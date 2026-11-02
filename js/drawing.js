@@ -150,7 +150,7 @@ function drawAllGame() {
 		//ctx.globalAlpha = 1;
 		perso.vie+=6;
 		perso.checkMort();
-		sfx_flatline.volume = a/2;
+		setSoundVolume(sfx_flatline, a/2);
 	}
 	
 	if(perso.fadeNextLevel >= 0)  manageTransitionDraw();
@@ -274,7 +274,7 @@ function drawPauseMenu() {
 	if(currentMenu != 6) drawTinyButton(ECART_X + 187, ECART_Y + 180, scale2, "Restart");
 	drawTinyButton(ECART_X + 324, ECART_Y + 180, scale3, "Exit");
 	if(currentMenu != 6) drawTinyButton(127 + ECART_X, 340 + ECART_Y, scale4, "Quality : " + (quality==0?"Low":"High"));
-	if(currentMenu != 6 && !noSound) drawTinyButton(247 + ECART_X, 340 + ECART_Y, scale5, "Sounds : " + (sound?"On":"Off"));
+	if(currentMenu != 6 && isSoundAvailable()) drawTinyButton(247 + ECART_X, 340 + ECART_Y, scale5, "Sounds : " + (isSoundOn()?"On":"Off"));
 	
 	
 	if(mousePressed && mouseButton == LEFT && overMenu > 0) {
@@ -302,7 +302,7 @@ function drawPauseMenu() {
 				}
 			});
 		}else if(overMenu == 5) {//sound
-			sound = !sound;
+			toggleSound();
 		}
 	}
 
@@ -398,7 +398,7 @@ function drawSplash() {
 		timeSplash--;
 		if(timeSplash == 0) {
 			overSplash = true;
-			if(allImagesLoaded() && levelsLoaded >= levelsToLoad && loadedSfx >= sfxToLoad) {
+			if(allImagesLoaded() && levelsLoaded >= levelsToLoad && allSoundsLoaded()) {
 				started = 1;
 				goMenu = 0;
 				fadeMenu = 30;
@@ -437,8 +437,7 @@ function drawLoadingScreen() {
 	if(mouseInZone(80, 80, 133, 16)) {
 		ctx.fillStyle = "rgb(255, 255, 255)";
 		if(mouseNewPress) {
-			loadedSfx = sfxToLoad;
-			noSound = true;
+			disableSound();
 		}
 	}
 	
@@ -458,11 +457,11 @@ function drawLoadingScreen() {
 	//noStroke();
 	ctx.fillRect(11, 21, parseInt(imageProgress() * 200), 12);
 	ctx.fillRect(11, 61, parseInt(levelsLoaded / levelsToLoad * 200), 12);
-	ctx.fillRect(11, 101, parseInt(loadedSfx / sfxToLoad * 200), 12);
+	ctx.fillRect(11, 101, parseInt(soundProgress() * 200), 12);
 	ctx.fillStyle = "rgb(255, 255, 255)";
 	ctx.fillText((parseInt(imageProgress() * 100)) + "%", 100, 30);
 	ctx.fillText((parseInt(levelsLoaded / levelsToLoad * 100)) + "%", 100, 70);
-	ctx.fillText((parseInt(loadedSfx/sfxToLoad * 100)) + "%", 100, 110);
+	ctx.fillText((parseInt(soundProgress() * 100)) + "%", 100, 110);
 	
 	var missing = missingImages();
 	if(missing.length > 0) {
@@ -486,7 +485,7 @@ function drawLoadingScreen() {
 	}
 	
 	TIME++;
-	if(allImagesLoaded() && levelsLoaded >= levelsToLoad && loadedSfx >= sfxToLoad) {
+	if(allImagesLoaded() && levelsLoaded >= levelsToLoad && allSoundsLoaded()) {
 		if(TIME%50 < 25) {
 			ctx.fillText("Click to continue ...", 280, 476);
 		}
@@ -695,11 +694,11 @@ function drawMainMenu() {
 	}
 	
 	var zoomSound = 1;
-	if(!noSound && mouseInZone(20, 300, 29, 48)) {
+	if(isSoundAvailable() && mouseInZone(20, 300, 29, 48)) {
 		zoomSound = 0.9;
 		if(mousePressed && mouseButton == LEFT) {
 			unclick();
-			sound = !sound;
+			toggleSound();
 		}
 		
 		ctx.globalAlpha = 0.8;
@@ -750,9 +749,9 @@ function drawMainMenu() {
 	ctx.fillText("Quality", 13, 454);
 	ctx.fillText(quality==0?"Low":"High", 20, 438);
 	
-	if(!noSound) {
+	if(isSoundAvailable()) {
 		ctx.drawImage(tex_sound, 20 + ((1-zoomSound)*29) / 2, 300 + ((1-zoomSound)*48) / 2, 29 * zoomSound, 48 * zoomSound);
-		if(!sound) ctx.drawImage(tex_cross, 15 + ((1-zoomSound)*40) / 2, 305 + ((1-zoomSound)*40) / 2, 40 * zoomSound, 34 * zoomSound);
+		if(!isSoundOn()) ctx.drawImage(tex_cross, 15 + ((1-zoomSound)*40) / 2, 305 + ((1-zoomSound)*40) / 2, 40 * zoomSound, 34 * zoomSound);
 		ctx.fillText("SFX", 20, 365);
 	}
 	

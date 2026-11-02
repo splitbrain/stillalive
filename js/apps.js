@@ -102,9 +102,6 @@ var tileset;
 var imgBuff;
 var levelsLoaded;
 var levelsToLoad;
-var loadedSfx;
-var sfxToLoad;
-var needLoadSfx;
 var perso;
 var GRAVITY = 60;
 var portals;
@@ -115,8 +112,6 @@ var needRedrawTiles;
 
 var NUM_TILES = 61;
 
-var sound = false;
-var noSound = false;
 
 
 var sfx_enterPortal, sfx_flatline, sfx_noPortal, sfx_pain, sfx_shoot;
@@ -134,7 +129,6 @@ var bossIsComing;
 
 var portalLines;
 
-var audioTagSupport = !!(document.createElement('audio').canPlayType);
 
 var canSplash = false;
 var overSplash = false;
@@ -160,9 +154,6 @@ function setup() {
 	levelsToLoad = 5;
 	currentMenu = 0;
 	
-	sfxToLoad = 14;
-	loadedSfx = 0;
-	needLoadSfx = true;
 				
 	perso = new Perso();//prevents a crash during loading
 	
@@ -354,7 +345,7 @@ function draw() {
 				perso.fadeNextLevel = 120;
 				perso.intermissionFade = 20;
 				TRANS = parseInt(random(1, 7));//7 not included
-				playSfx(sfx_transition);
+				playSound(sfx_transition);
 				highscoreMessage = "";
 				unclick();
 				if(currentMenu == 2 && !replayMode) highscoreMessage = checkBestTime();
@@ -814,17 +805,6 @@ function mouseInZone(x, y, w, h) {
 	return false;
 }
 
-function loadAudio(snd, name) {
-	if(audioTagSupport) {
-		snd = new Audio("sounds/" + name + ".ogg");
-		snd.load();
-		snd.addEventListener('canplaythrough', function() { // totally loaded
-			if(!noSound) loadedSfx++;
-		});
-		return snd;
-	} else return null;
-}
-
 function reloadTiles() {
 	ctx.drawImage(bg[BG], ECART_X, ECART_Y, 512, 384);
 	for(i in displayMap) {		
@@ -911,7 +891,7 @@ function retirerBloqueurPorte(){
 }
 
 function fermerPorte(){		
-	playSfx(sfx_tick);
+	playSound(sfx_tick);
 	for(i in animatedTiles) {
 		if(animatedTiles[i].current>=23 && animatedTiles[i].current<=28){
 			animatedTiles[i].used = 1;
@@ -926,7 +906,7 @@ function fermerPorte(){
 }
 
 function ouvrirPorte(){
-	playSfx(sfx_tick);
+	playSound(sfx_tick);
 	for(i in animatedTiles) {
 		if(animatedTiles[i].current>=23 && animatedTiles[i].current<=28){
 			animatedTiles[i].used = 0;
@@ -1130,10 +1110,10 @@ function launchPortal(p){
 				else portals[p].plateforme = -1;
 			}
 			var r = parseInt(random(0, 2));
-			playSfx(sfx_portal[r]);
+			playSound(sfx_portal[r]);
 			PORTALS++;
-		} else playSfx(sfx_noPortal);
-	} else playSfx(sfx_noPortal);
+		} else playSound(sfx_noPortal);
+	} else playSound(sfx_noPortal);
 }
 
 function setPortalDir(p, x, y){
@@ -1374,7 +1354,7 @@ function transfertPortal(p, obj){
 	var entree = portals[p].direction;
 	var sortie = portals[1-p].direction;
 	
-	playSfx(sfx_enterPortal);
+	playSound(sfx_enterPortal);
 	
 	if(obj.type == "tourelle") {
 		obj.canExplode = 1;
@@ -1514,7 +1494,7 @@ function Tourelle(x, y, dir) {
 					}
 					if(this.mort) {
 						this.animeFrame = 2;
-						playSfx(sfx_explode);
+						playSound(sfx_explode);
 						createCakeOrSmokeSparkles(this.x, this.y, 9, 4, 255);
 						//_synth.play();
 					}
@@ -1534,7 +1514,7 @@ function Tourelle(x, y, dir) {
 				if(!this.mort && ((colLeft>=200 && colLeft<=210) || (colRight>=200 && colRight<=210))){
 					this.mort = 1;
 					this.animeFrame = 2;
-					playSfx(sfx_explode);
+					playSound(sfx_explode);
 					createCakeOrSmokeSparkles(this.x, this.y, 9, 4, 255);
 				}
 			}else{
@@ -1607,7 +1587,7 @@ function Tourelle(x, y, dir) {
 						perso.timeVie = 300;
 						perso.vx+=this.dir<<8;
 						this.coolTime = this.startCool;
-						playSfxIfFinished(sfx_shoot);
+						playSoundIfFinished(sfx_shoot);
 						
 						for(var i=0; i<5; i++) {
 							var s = new Sparkle();
@@ -1863,8 +1843,8 @@ function Perso() {
 		
 			this.mort = 1;
 			this.vie = -256;
-			playSfx(sfx_pain);
-			playSfx(sfx_flatline);
+			playSound(sfx_pain);
+			playSound(sfx_flatline);
 			if(perso.y>>8 < 384) {
 				for(var i=0; i<20; i++) {
 					var s = new Sparkle();
@@ -1881,7 +1861,7 @@ function Perso() {
 			}
 		}else if(this.mort) {
 			if(this.vie >= 0) {
-				sfx_flatline.volume = 1;
+				setSoundVolume(sfx_flatline, 1);
 				if(currentMenu == 2 || currentMenu == 6) {
 					loadLevel(currentLevel);
 					if(bossNum > 0) skipComingBoss();
@@ -2032,7 +2012,7 @@ function Perso() {
 		//jump handling
 		if(this.isJump && toucheSol && !checkTeleportBas(this) && ffield.length == 0){
 			this.vy = -1300;
-			playSfx(sfx_jump);
+			playSound(sfx_jump);
 		}else if(!this.isJump && this.oldIsJump && this.vy<-200){
 			this.vy = -200;
 		}
@@ -2278,7 +2258,7 @@ function toucheCake(){
 				cakes[i].used = 0;
 				CAKELEFT--;
 				createCakeOrSmokeSparkles(cakes[i].x, cakes[i].y, 8, 2, 180);
-				playSfx(sfx_grabCake);
+				playSound(sfx_grabCake);
 				if(CAKELEFT==0) validerArrivee();
 			}
 		}
@@ -2475,10 +2455,10 @@ function Plasma(x, y, vx, vy) {
 		var i;
 		var dist = getDistance(this.x>>8, this.x>>8, perso.x>>8, perso.y>>8);
 		if(dist > 384) dist = 384;
-		sfx_bounce.volume = 1 - (dist / 384);
+		setSoundVolume(sfx_bounce, 1 - (dist / 384));
 
 		if(getCollision(this)==GAUCHE){
-			playSfx(sfx_bounce);
+			playSound(sfx_bounce);
 			do{
 				this.x+=128;
 			}while(getCollision(this)==GAUCHE);
@@ -2506,7 +2486,7 @@ function Plasma(x, y, vx, vy) {
 				}
 			}
 		}else if(getCollision(this)==DROITE){
-			playSfx(sfx_bounce);
+			playSound(sfx_bounce);
 			do{
 				this.x-=128;
 			}while(getCollision(this)==DROITE);
@@ -2534,7 +2514,7 @@ function Plasma(x, y, vx, vy) {
 				}
 			}
 		}else if(getCollision(this)==HAUT){
-			playSfx(sfx_bounce);
+			playSound(sfx_bounce);
 			do{
 				this.y+=128;
 			}while(getCollision(this)==HAUT);
@@ -2562,7 +2542,7 @@ function Plasma(x, y, vx, vy) {
 				}
 			}
 		}else if(getCollision(this)==BAS){
-			playSfx(sfx_bounce);
+			playSound(sfx_bounce);
 			do{
 				this.y-=128;
 			}while(getCollision(this)==BAS);
@@ -3216,7 +3196,7 @@ function grabObject(){
 					ok = 1;
 					caisses[i].invincibility = 3;
 					caisses[i].noRemove = 90;
-					playSfx(sfx_throwObject);
+					playSound(sfx_throwObject);
 					break;
 				}
 			}
@@ -3225,7 +3205,7 @@ function grabObject(){
 					if(tourelles[i].porter==1){
 						tourelles[i].porter = 0;
 						tourelles[i].canExplode = 1;
-						playSfx(sfx_throwObject);
+						playSound(sfx_throwObject);
 						break;
 					}
 				}
@@ -3479,22 +3459,6 @@ function tabContains(tab, value) {
 	return false;
 }
 
-function playSfx(obj) {
-	if(sound) {
-		if(obj.currentTime != 0) {
-			obj.currentTime = 0;
-		}
-		obj.play();
-	}
-}
-
-function playSfxIfFinished(obj) {
-	if(sound && obj.currentTime == 0 || obj.currentTime == obj.duration) {
-		obj.currentTime = 0;
-		obj.play();
-	}
-}
-
 function toTime(time) {
 	var s = time / 60.0;
 	var m = parseInt((s/60.0));
@@ -3573,32 +3537,19 @@ function loadJsonFile(url, callback) {
 }
 
 function loadSfx() {
-	if(needLoadSfx) {
-		needLoadSfx = false;
-		sfx_explode = loadAudio(sfx_explode, "explode");
-		sfx_bounce = loadAudio(sfx_bounce, "bounce");
-		sfx_grabCake = loadAudio(sfx_grabCake, "grabCake");
-		sfx_jump = loadAudio(sfx_jump, "jump");
-		sfx_throwObject = loadAudio(sfx_throwObject, "throwObject");
-		sfx_enterPortal = loadAudio(sfx_enterPortal, "enterPortal");
-		sfx_transition = loadAudio(sfx_transition, "transition");
-		sfx_tick = loadAudio(sfx_tick, "tick");
-		sfx_pain = loadAudio(sfx_pain, "pain");
-		sfx_flatline = loadAudio(sfx_flatline, "flatline");
-		sfx_noPortal = loadAudio(sfx_noPortal, "noPortal");
-		sfx_shoot = loadAudio(sfx_shoot, "shoot");
-		
-		sfx_portal = new Array();
-		for(i=1; i<3 && audioTagSupport; i++) {
-			var a = new Audio("sounds/portal" + i + ".ogg");
-			a.load();
-			a.addEventListener('canplaythrough', function() { // totally loaded
-				if(!noSound) loadedSfx++;
-			});
-			sfx_portal.push(a);
-			//loadedSfx++;
-		}
-	}
+	sfx_explode = loadSound("explode");
+	sfx_bounce = loadSound("bounce");
+	sfx_grabCake = loadSound("grabCake");
+	sfx_jump = loadSound("jump");
+	sfx_throwObject = loadSound("throwObject");
+	sfx_enterPortal = loadSound("enterPortal");
+	sfx_transition = loadSound("transition");
+	sfx_tick = loadSound("tick");
+	sfx_pain = loadSound("pain");
+	sfx_flatline = loadSound("flatline");
+	sfx_noPortal = loadSound("noPortal");
+	sfx_shoot = loadSound("shoot");
+	sfx_portal = [loadSound("portal1"), loadSound("portal2")];
 }
 
 function loadCreditsText() {

@@ -46,7 +46,7 @@ function isForeignTarget(event) {
 function onKeyDown(event) {
 	if (isForeignTarget(event)) return;
 	if (event.code in KEY_BITS) keys |= KEY_BITS[event.code];
-	if (event.key === 'm' || event.key === 'M') sound = !sound;
+	if (event.key === 'm' || event.key === 'M') toggleSound();
 }
 
 /**

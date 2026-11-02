@@ -3,6 +3,7 @@
  */
 
 import { ctx } from '../canvas.js';
+import { Transition } from '../constants.js';
 import { TRANS } from '../game.js';
 import { highscore, linesHoriz, linesVerti } from '../images.js';
 import { finNiveau } from '../physics.js';
@@ -47,17 +48,13 @@ function drawTransitionIn() {
 	let nb, i;
 	ctx.fillStyle = 'rgb(0, 0, 0)';
 	const scale = 1 - game.perso.fadeNextLevel / 120;
-	if (TRANS == 1) {
-		//top left corner
+	if (TRANS == Transition.TOP_LEFT) {
 		ctx.fillRect(game.ECART_X, game.ECART_Y, parseInt(512 * scale), parseInt(384 * scale));
-	} else if (TRANS == 2) {
-		//left to right
+	} else if (TRANS == Transition.LEFT_TO_RIGHT) {
 		ctx.fillRect(game.ECART_X, game.ECART_Y, parseInt(512 * scale), 384);
-	} else if (TRANS == 3) {
-		//top to bottom
+	} else if (TRANS == Transition.TOP_TO_BOTTOM) {
 		ctx.fillRect(game.ECART_X, game.ECART_Y, 512, parseInt(384 * scale));
-	} else if (TRANS == 4) {
-		//successive horizontal lines
+	} else if (TRANS == Transition.HORIZONTAL_LINES) {
 		nb = 120 - game.perso.fadeNextLevel;
 		if (nb < linesHoriz.length) {
 			for (i = 0; i < nb; i++) {
@@ -66,8 +63,7 @@ function drawTransitionIn() {
 		} else {
 			ctx.fillRect(game.ECART_X, game.ECART_Y, 512, 384);
 		}
-	} else if (TRANS == 5) {
-		//successive vertical lines
+	} else if (TRANS == Transition.VERTICAL_LINES) {
 		nb = 120 - game.perso.fadeNextLevel;
 		if (nb < linesVerti.length) {
 			for (i = 0; i < nb; i++) {
@@ -76,8 +72,7 @@ function drawTransitionIn() {
 		} else {
 			ctx.fillRect(game.ECART_X, game.ECART_Y, 512, 384);
 		}
-	} else if (TRANS == 6) {
-		//square to center
+	} else if (TRANS == Transition.SQUARE) {
 		const x = 512 - parseInt(512 * scale);
 		const y = 384 - parseInt(384 * scale);
 		ctx.fillRect(game.ECART_X + (x >> 1), game.ECART_Y + (y >> 1), parseInt(512 * scale), parseInt(384 * scale));
@@ -97,17 +92,13 @@ function drawTransitionOut() {
 	const x = 512 - parseInt(512 * scale);
 	const y = 384 - parseInt(384 * scale);
 
-	if (TRANS == 1) {
-		//top left corner
+	if (TRANS == Transition.TOP_LEFT) {
 		ctx.fillRect(game.ECART_X + x, game.ECART_Y + y, parseInt(512 * scale), parseInt(384 * scale));
-	} else if (TRANS == 2) {
-		//left to right
+	} else if (TRANS == Transition.LEFT_TO_RIGHT) {
 		ctx.fillRect(game.ECART_X + x, game.ECART_Y, parseInt(512 * scale), 384);
-	} else if (TRANS == 3) {
-		//top to bottom
+	} else if (TRANS == Transition.TOP_TO_BOTTOM) {
 		ctx.fillRect(game.ECART_X, game.ECART_Y + y, 512, parseInt(384 * scale));
-	} else if (TRANS == 4) {
-		//successive lines
+	} else if (TRANS == Transition.HORIZONTAL_LINES) {
 		nb = game.perso.fadeNextLevel;
 		if (nb < linesHoriz.length) {
 			for (i = 0; i < nb; i++) {
@@ -116,8 +107,7 @@ function drawTransitionOut() {
 		} else {
 			ctx.fillRect(game.ECART_X, game.ECART_Y, 512, 384);
 		}
-	} else if (TRANS == 5) {
-		//successive vertical lines
+	} else if (TRANS == Transition.VERTICAL_LINES) {
 		nb = game.perso.fadeNextLevel;
 		if (nb < linesVerti.length) {
 			for (i = 0; i < nb; i++) {
@@ -126,8 +116,7 @@ function drawTransitionOut() {
 		} else {
 			ctx.fillRect(game.ECART_X, game.ECART_Y, 512, 384);
 		}
-	} else if (TRANS == 6) {
-		//square to center
+	} else if (TRANS == Transition.SQUARE) {
 		ctx.strokeStyle = 'rgb(0, 0, 0)';
 		ctx.lineWidth = 384 * scale;
 		ctx.strokeRect(game.ECART_X, game.ECART_Y, 512, 384);

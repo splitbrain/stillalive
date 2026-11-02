@@ -3,7 +3,19 @@
  */
 
 import { ctx } from './canvas.js';
-import { BAS, DROITE, GAUCHE, HAUT, LEFT, MIDDLE, Menu, NUM_TILES, RIGHT } from './constants.js';
+import {
+	BAS,
+	DROITE,
+	EditorButton,
+	EditorMenuButton,
+	GAUCHE,
+	HAUT,
+	LEFT,
+	MIDDLE,
+	Menu,
+	NUM_TILES,
+	RIGHT,
+} from './constants.js';
 import { alertDialog } from './dialog.js';
 import { Caisse } from './entities/Caisse.js';
 import { Cake } from './entities/Cake.js';
@@ -63,7 +75,7 @@ import { getAngle } from './utils.js';
 
 /** @type {number} The index of the selected tile in the palette, or -1. */
 let selectedTile;
-/** @type {number} The selected object of the palette, or 0. */
+/** @type {number} The tile id of the selected object of the palette, or 0. */
 let selectedSprite;
 /** @type {number[]} The tile ids of the palette. */
 let tilesToDraw;
@@ -350,29 +362,28 @@ function menuSaveMap() {
 	}
 
 	let overMenu = -1;
-	if (mouseInZone(20, 495, 120, 24)) overMenu = 2;
-	const scale2 = overMenu == 2 ? 0.9 : 1;
+	if (mouseInZone(20, 495, 120, 24)) overMenu = EditorMenuButton.EXIT;
+	const scale2 = overMenu == EditorMenuButton.EXIT ? 0.9 : 1;
 	drawTinyButton(20, 495, scale2, 'Exit');
 
 	if (ui.previewMap > 0) {
 		ctx.fillStyle = 'rgb(15, 112, 144)';
 		ctx.fillRect(529, 105 + ui.previewMap * 12 + 2, 90, 14);
 
-		if (mouseInZone(515, 495, 120, 24)) overMenu = 1;
-		const scale1 = overMenu == 1 ? 0.9 : 1;
+		if (mouseInZone(515, 495, 120, 24)) overMenu = EditorMenuButton.ACCEPT;
+		const scale1 = overMenu == EditorMenuButton.ACCEPT ? 0.9 : 1;
 
 		drawTinyButton(515, 495, scale1, 'Save');
 	}
 
-	if (mouseInZone(180, 495, 120, 24)) overMenu = 3;
-	drawTinyButton(180, 495, overMenu == 3 ? 0.9 : 1, 'Export');
-	if (mouseInZone(340, 495, 120, 24)) overMenu = 4;
-	drawTinyButton(340, 495, overMenu == 4 ? 0.9 : 1, 'Import');
+	if (mouseInZone(180, 495, 120, 24)) overMenu = EditorMenuButton.EXPORT;
+	drawTinyButton(180, 495, overMenu == EditorMenuButton.EXPORT ? 0.9 : 1, 'Export');
+	if (mouseInZone(340, 495, 120, 24)) overMenu = EditorMenuButton.IMPORT;
+	drawTinyButton(340, 495, overMenu == EditorMenuButton.IMPORT ? 0.9 : 1, 'Import');
 
 	if (input.mouseNewPress && overMenu > 0) {
 		unclick();
-		if (overMenu == 1) {
-			//save
+		if (overMenu == EditorMenuButton.ACCEPT) {
 			saveEditorMap(ui.previewMap, game.oldMap, oldBG);
 
 			game.map = new Array();
@@ -383,8 +394,7 @@ function menuSaveMap() {
 			game.ECART_X = 64;
 			game.ECART_Y = 96;
 			return;
-		} else if (overMenu == 2) {
-			//exit
+		} else if (overMenu == EditorMenuButton.EXIT) {
 			game.ECART_X = 64;
 			game.ECART_Y = 96;
 			askSaving = false;
@@ -394,11 +404,9 @@ function menuSaveMap() {
 			game.BG = oldBG;
 			redrawTiles = true;
 			return;
-		} else if (overMenu == 3) {
-			//export
+		} else if (overMenu == EditorMenuButton.EXPORT) {
 			exportEditorMap(game.oldMap, oldBG);
-		} else if (overMenu == 4) {
-			//import
+		} else if (overMenu == EditorMenuButton.IMPORT) {
 			startMapImport();
 		}
 	}
@@ -480,30 +488,29 @@ function menuLoadMap() {
 	}
 
 	let overMenu = -1;
-	if (mouseInZone(20, 495, 120, 24)) overMenu = 2;
-	const scale2 = overMenu == 2 ? 0.9 : 1;
+	if (mouseInZone(20, 495, 120, 24)) overMenu = EditorMenuButton.EXIT;
+	const scale2 = overMenu == EditorMenuButton.EXIT ? 0.9 : 1;
 	drawTinyButton(20, 495, scale2, 'Exit');
 
 	if (ui.previewMap > 0) {
 		ctx.fillStyle = 'rgb(15, 112, 144)';
 		ctx.fillRect(529, 105 + ui.previewMap * 12 + 2, 90, 14);
 
-		if (mouseInZone(515, 495, 120, 24)) overMenu = 1;
-		const scale1 = overMenu == 1 ? 0.9 : 1;
+		if (mouseInZone(515, 495, 120, 24)) overMenu = EditorMenuButton.ACCEPT;
+		const scale1 = overMenu == EditorMenuButton.ACCEPT ? 0.9 : 1;
 
 		drawTinyButton(515, 495, scale1, 'Load');
 
-		if (mouseInZone(180, 495, 120, 24)) overMenu = 3;
-		drawTinyButton(180, 495, overMenu == 3 ? 0.9 : 1, 'Export');
+		if (mouseInZone(180, 495, 120, 24)) overMenu = EditorMenuButton.EXPORT;
+		drawTinyButton(180, 495, overMenu == EditorMenuButton.EXPORT ? 0.9 : 1, 'Export');
 	}
 
-	if (mouseInZone(340, 495, 120, 24)) overMenu = 4;
-	drawTinyButton(340, 495, overMenu == 4 ? 0.9 : 1, 'Import');
+	if (mouseInZone(340, 495, 120, 24)) overMenu = EditorMenuButton.IMPORT;
+	drawTinyButton(340, 495, overMenu == EditorMenuButton.IMPORT ? 0.9 : 1, 'Import');
 
 	if (input.mouseNewPress && overMenu > 0) {
 		unclick();
-		if (overMenu == 1) {
-			//load
+		if (overMenu == EditorMenuButton.ACCEPT) {
 			askLoading = false;
 			redrawTiles = true;
 			game.ECART_X = 64;
@@ -513,8 +520,7 @@ function menuLoadMap() {
 			undoIndex = -1;
 			addUndo();
 			return;
-		} else if (overMenu == 2) {
-			//exit
+		} else if (overMenu == EditorMenuButton.EXIT) {
 			game.ECART_X = 64;
 			game.ECART_Y = 96;
 
@@ -524,11 +530,9 @@ function menuLoadMap() {
 			askLoading = false;
 			redrawTiles = true;
 			return;
-		} else if (overMenu == 3) {
-			//export
+		} else if (overMenu == EditorMenuButton.EXPORT) {
 			exportEditorMap(game.map, game.BG);
-		} else if (overMenu == 4) {
-			//import
+		} else if (overMenu == EditorMenuButton.IMPORT) {
 			startMapImport();
 		}
 	}
@@ -569,19 +573,19 @@ function manageEditor() {
 	oldMouseReleased = input.mouseReleased;
 
 	let overMenu = -1;
-	if (mouseInZone(game.ECART_X + 512 - 250, game.ECART_Y + 394, 120, 24)) overMenu = 1;
-	else if (mouseInZone(game.ECART_X + 512 - 120, game.ECART_Y + 394, 120, 24)) overMenu = 2;
-	else if (mouseInZone(game.ECART_X, game.ECART_Y + 394, 120, 24)) overMenu = 3;
-	else if (mouseInZone(game.ECART_X + 130, game.ECART_Y + 394, 120, 24)) overMenu = 4;
-	else if (mouseInZone(game.ECART_X + 60, game.ECART_Y + 420, 120, 24)) overMenu = 5;
-	else if (mouseInZone(game.ECART_X + 60 + 130, game.ECART_Y + 420, 120, 24)) overMenu = 6;
+	if (mouseInZone(game.ECART_X + 512 - 250, game.ECART_Y + 394, 120, 24)) overMenu = EditorButton.LOAD;
+	else if (mouseInZone(game.ECART_X + 512 - 120, game.ECART_Y + 394, 120, 24)) overMenu = EditorButton.SAVE;
+	else if (mouseInZone(game.ECART_X, game.ECART_Y + 394, 120, 24)) overMenu = EditorButton.EXIT;
+	else if (mouseInZone(game.ECART_X + 130, game.ECART_Y + 394, 120, 24)) overMenu = EditorButton.CLEAR;
+	else if (mouseInZone(game.ECART_X + 60, game.ECART_Y + 420, 120, 24)) overMenu = EditorButton.TRY;
+	else if (mouseInZone(game.ECART_X + 60 + 130, game.ECART_Y + 420, 120, 24)) overMenu = EditorButton.HELP;
 
-	const scale1 = overMenu == 1 ? 0.9 : 1;
-	const scale2 = overMenu == 2 ? 0.9 : 1;
-	const scale3 = overMenu == 3 ? 0.9 : 1;
-	const scale4 = overMenu == 4 ? 0.9 : 1;
-	const scale5 = overMenu == 5 ? 0.9 : 1;
-	const scale6 = overMenu == 6 ? 0.9 : 1;
+	const scale1 = overMenu == EditorButton.LOAD ? 0.9 : 1;
+	const scale2 = overMenu == EditorButton.SAVE ? 0.9 : 1;
+	const scale3 = overMenu == EditorButton.EXIT ? 0.9 : 1;
+	const scale4 = overMenu == EditorButton.CLEAR ? 0.9 : 1;
+	const scale5 = overMenu == EditorButton.TRY ? 0.9 : 1;
+	const scale6 = overMenu == EditorButton.HELP ? 0.9 : 1;
 
 	drawTinyButton(game.ECART_X, game.ECART_Y + 394, scale3, 'Exit');
 	drawTinyButton(game.ECART_X + 512 - 250, game.ECART_Y + 394, scale1, 'Load');
@@ -597,11 +601,9 @@ function manageEditor() {
 
 	if (overMenu > 0 && input.mouseNewPress) {
 		unclick();
-		if (overMenu == 5) {
-			//try map
+		if (overMenu == EditorButton.TRY) {
 			startPlayingLevel();
-		} else if (overMenu == 6) {
-			//help
+		} else if (overMenu == EditorButton.HELP) {
 			alertDialog(
 				'Left click : Put tile or object\n' +
 					'Right click : Remove tile or object\n' +
@@ -612,8 +614,7 @@ function manageEditor() {
 					'Escape : Stop trying',
 				'Level Editor Shortcuts',
 			);
-		} else if (overMenu == 2) {
-			//save
+		} else if (overMenu == EditorButton.SAVE) {
 			askSaving = true;
 			ui.previewMap = -1;
 			game.ECART_X = 0;
@@ -621,8 +622,7 @@ function manageEditor() {
 			game.oldMap = new Array();
 			for (i in game.map) game.oldMap.push(game.map[i]);
 			oldBG = game.BG;
-		} else if (overMenu == 1) {
-			//load
+		} else if (overMenu == EditorButton.LOAD) {
 			askLoading = true;
 			ui.previewMap = -1;
 			game.ECART_X = 0;
@@ -630,13 +630,11 @@ function manageEditor() {
 			game.oldMap = new Array();
 			for (i in game.map) game.oldMap.push(game.map[i]);
 			oldBG = game.BG;
-		} else if (overMenu == 4) {
-			//clear
+		} else if (overMenu == EditorButton.CLEAR) {
 			for (i in game.map) game.map[i] = 0;
 			addUndo();
 			redrawTiles = true;
-		} else if (overMenu == 3) {
-			//exit
+		} else if (overMenu == EditorButton.EXIT) {
 			ui.currentMenu = Menu.MAIN;
 			game.sparkles = new Array();
 			ui.fadeMenu = 30;
@@ -792,52 +790,32 @@ function manageDrawSprite() {
 	if (mouseInZone(game.ECART_X, game.ECART_Y, 512, 384) && selectedSprite > 0) {
 		let x = (input.mouseX >> 4) << 4;
 		let y = (input.mouseY >> 4) << 4;
-		if (selectedSprite == 1) ctx.drawImage(cake, x, y);
-		else if (selectedSprite == 2) ctx.drawImage(caisse, x, y);
-		else if (selectedSprite == 3) ctx.drawImage(tourelle[0], 0, 0, 16, 32, x, y, 16, 32);
-		else if (selectedSprite == 4) ctx.drawImage(tourelle[1], 0, 0, 16, 32, x, y, 16, 32);
-		else if (selectedSprite == 5) {
-			//right platform
+		if (selectedSprite == Tile.CAKE) ctx.drawImage(cake, x, y);
+		else if (selectedSprite == Tile.CRATE) ctx.drawImage(caisse, x, y);
+		else if (selectedSprite == Tile.TURRET_LEFT) ctx.drawImage(tourelle[0], 0, 0, 16, 32, x, y, 16, 32);
+		else if (selectedSprite == Tile.TURRET_RIGHT) ctx.drawImage(tourelle[1], 0, 0, 16, 32, x, y, 16, 32);
+		else if (selectedSprite == Tile.PLATFORM_RIGHT) {
 			ctx.drawImage(platform, x, y);
 			ctx.fillStyle = 'rgb(255, 0, 0)';
 			ctx.strokeStyle = 'rgb(255, 0, 0)';
 			drawArrow(x + 5, y + 8, x + 15, y + 8, 3, 1);
-		} else if (selectedSprite == 6) {
-			//left platform
+		} else if (selectedSprite == Tile.PLATFORM_LEFT) {
 			ctx.drawImage(platform, x, y);
 			ctx.fillStyle = 'rgb(255, 0, 0)';
 			ctx.strokeStyle = 'rgb(255, 0, 0)';
 			drawArrow(x + 5, y + 8, x + 15, y + 8, 3, -1);
-		} else if (selectedSprite == 7) drawPerso(x, y, 0);
-		else if (selectedSprite == 8) {
-			//right tunnel
+		} else if (selectedSprite == Tile.PLAYER_START) drawPerso(x, y, 0);
+		else if (selectedSprite == Tile.TUNNEL_RIGHT) {
 			ctx.drawImage(tunnel, 0, 0, 16, 32, x, y, 16, 32);
-		} else if (selectedSprite == 9) {
-			//left tunnel
+		} else if (selectedSprite == Tile.TUNNEL_LEFT) {
 			ctx.drawImage(tunnel, 0, 32, 16, 32, x, y, 16, 32);
-		} else if (selectedSprite == 10) {
-			//top tunnel
+		} else if (selectedSprite == Tile.TUNNEL_UP) {
 			ctx.drawImage(tunnel2, 0, 0, 32, 16, x, y, 32, 16);
-		} else if (selectedSprite == 11) {
-			//bottom tunnel
+		} else if (selectedSprite == Tile.TUNNEL_DOWN) {
 			ctx.drawImage(tunnel2, 32, 0, 32, 16, x, y, 32, 16);
 		}
 
 		if (input.mousePressed) {
-			const arrEquiv = [
-				Tile.CAKE,
-				Tile.CRATE,
-				Tile.TURRET_LEFT,
-				Tile.TURRET_RIGHT,
-				Tile.PLATFORM_RIGHT,
-				Tile.PLATFORM_LEFT,
-				Tile.PLAYER_START,
-				Tile.TUNNEL_RIGHT,
-				Tile.TUNNEL_LEFT,
-				Tile.TUNNEL_UP,
-				Tile.TUNNEL_DOWN,
-			];
-
 			x -= game.ECART_X;
 			y -= game.ECART_Y;
 			const xt = x >> 4;
@@ -845,20 +823,20 @@ function manageDrawSprite() {
 
 			const tile = (y >> 4) * 32 + (x >> 4);
 			if (input.mouseButton == LEFT) {
-				if (arrEquiv[selectedSprite - 1] == 104) {
+				if (selectedSprite == Tile.PLAYER_START) {
 					for (i in game.map) {
 						if (game.map[i] == Tile.PLAYER_START) game.map[i] = Tile.EMPTY;
 					}
 				}
 
-				eraseSprites(arrEquiv[selectedSprite - 1], xt, yt);
+				eraseSprites(selectedSprite, xt, yt);
 
-				if (allowTile(arrEquiv[selectedSprite - 1])) {
-					game.map[tile] = arrEquiv[selectedSprite - 1];
+				if (allowTile(selectedSprite)) {
+					game.map[tile] = selectedSprite;
 				}
 			} else if (input.mouseButton == RIGHT) {
 				game.map[tile] = 0;
-				eraseSprites(arrEquiv[selectedSprite - 1], xt, yt);
+				eraseSprites(selectedSprite, xt, yt);
 			}
 			build();
 			redrawTiles = true;
@@ -880,13 +858,10 @@ function allowTile(tile) {
 	if (tile == Tile.PLAYER_START) return true;
 
 	if (tile == Tile.CAKE) {
-		// cake
 		return countTile(tile) < 30;
 	} else if (tile == Tile.CRATE) {
-		// crate
 		return countTile(tile) < 15;
 	} else if (tile == Tile.TURRET_LEFT || tile == Tile.TURRET_RIGHT) {
-		// turret
 		return countTile(Tile.TURRET_LEFT) + countTile(Tile.TURRET_RIGHT) < 15;
 	} else if (tile == Tile.PLATFORM_RIGHT || tile == Tile.PLATFORM_LEFT) {
 		return countTile(Tile.PLATFORM_RIGHT) + countTile(Tile.PLATFORM_LEFT) < 8;
@@ -1054,55 +1029,47 @@ function addUndo() {
  * @returns {void}
  */
 function manageSpriteSelection() {
-	let x, y, inZone;
+	let x,
+		y,
+		inZone,
+		arrow = 0;
 	if (mouseInZone(580, 140, 56, 216)) {
 		x = 584;
 		y = 142;
 		inZone = 0;
 		ctx.fillStyle = 'rgb(255, 0, 0)';
 		if (mouseInZone(x, y, 16, 16)) {
-			//cake
-			inZone = 1;
+			inZone = Tile.CAKE;
 			ctx.fillRect(x - 2, y - 2, 20, 20);
 		} else if (mouseInZone(x + 24, y, 16, 16)) {
-			//crate
-			inZone = 2;
+			inZone = Tile.CRATE;
 			ctx.fillRect(x + 24 - 2, y - 2, 20, 20);
 		} else if (mouseInZone(x, y + 24, 16, 32)) {
-			//left turret
-			inZone = 3;
+			inZone = Tile.TURRET_LEFT;
 			ctx.fillRect(x - 2, y + 24 - 2, 20, 36);
 		} else if (mouseInZone(x + 24, y + 24, 16, 32)) {
-			//right turret
-			inZone = 4;
+			inZone = Tile.TURRET_RIGHT;
 			ctx.fillRect(x + 24 - 2, y + 24 - 2, 20, 36);
 		} else if (mouseInZone(x, y + 24 + 40, 48, 16)) {
-			//left platform
-			inZone = 5;
+			inZone = Tile.PLATFORM_RIGHT;
 			ctx.fillRect(x - 2, y + 24 + 40 - 2, 52, 20);
 		} else if (mouseInZone(x, y + 24 + 40 + 24, 48, 16)) {
-			//right platform
-			inZone = 6;
+			inZone = Tile.PLATFORM_LEFT;
 			ctx.fillRect(x - 2, y + 24 + 40 + 24 - 2, 52, 20);
 		} else if (mouseInZone(x, y + 24 + 40 + 24 + 24, 16, 26)) {
-			//player
-			inZone = 7;
+			inZone = Tile.PLAYER_START;
 			ctx.fillRect(x - 2, y + 24 + 40 + 24 + 24 - 2, 20, 30);
 		} else if (mouseInZone(x, y + 144, 16, 32)) {
-			//right tunnel
-			inZone = 8;
+			inZone = Tile.TUNNEL_RIGHT;
 			ctx.fillRect(x - 2, y + 142, 20, 36);
 		} else if (mouseInZone(x + 24, y + 144, 16, 32)) {
-			//left tunnel
-			inZone = 9;
+			inZone = Tile.TUNNEL_LEFT;
 			ctx.fillRect(x + 22, y + 142, 20, 36);
 		} else if (mouseInZone(x, y + 180, 32, 16)) {
-			//top tunnel
-			inZone = 10;
+			inZone = Tile.TUNNEL_UP;
 			ctx.fillRect(x - 2, y + 178, 36, 20);
 		} else if (mouseInZone(x, y + 200, 32, 16)) {
-			//bottom tunnel
-			inZone = 11;
+			inZone = Tile.TUNNEL_DOWN;
 			ctx.fillRect(x - 2, y + 198, 36, 20);
 		}
 
@@ -1114,20 +1081,20 @@ function manageSpriteSelection() {
 	} else if (mouseInZone(0, 400, 62, 48)) {
 		ctx.fillStyle = 'rgb(3, 108, 134)';
 		if (mouseInZone(3, 412, 27, 47)) {
-			inZone = 100;
+			arrow = -1;
 			ctx.fillRect(3, 412, 27, 47);
 		} else if (mouseInZone(32, 412, 27, 47)) {
-			inZone = 101;
+			arrow = 1;
 			ctx.fillRect(32, 412, 27, 47);
 		}
 
 		if (input.mouseNewPress) {
 			unclick();
-			if (inZone == 100) {
+			if (arrow < 0) {
 				game.BG--;
 				redrawTiles = true;
 				if (game.BG < 0) game.BG = bg.length - 1;
-			} else if (inZone == 101) {
+			} else if (arrow > 0) {
 				game.BG++;
 				redrawTiles++;
 				if (game.BG == bg.length) game.BG = 0;
@@ -1139,17 +1106,17 @@ function manageSpriteSelection() {
 		x = 584;
 		y = 142;
 		ctx.fillStyle = 'rgb(0, 255, 0)';
-		if (selectedSprite == 1) ctx.fillRect(x - 2, y - 2, 20, 20);
-		else if (selectedSprite == 2) ctx.fillRect(x + 24 - 2, y - 2, 20, 20);
-		else if (selectedSprite == 3) ctx.fillRect(x - 2, y + 24 - 2, 20, 36);
-		else if (selectedSprite == 4) ctx.fillRect(x + 24 - 2, y + 24 - 2, 20, 36);
-		else if (selectedSprite == 5) ctx.fillRect(x - 2, y + 24 + 40 - 2, 52, 20);
-		else if (selectedSprite == 6) ctx.fillRect(x - 2, y + 24 + 40 + 24 - 2, 52, 20);
-		else if (selectedSprite == 7) ctx.fillRect(x - 2, y + 24 + 40 + 24 + 24 - 2, 20, 30);
-		else if (selectedSprite == 8) ctx.fillRect(x - 2, y + 142, 20, 36);
-		else if (selectedSprite == 9) ctx.fillRect(x + 22, y + 142, 20, 36);
-		else if (selectedSprite == 10) ctx.fillRect(x - 2, y + 178, 36, 20);
-		else if (selectedSprite == 11) ctx.fillRect(x - 2, y + 198, 36, 20);
+		if (selectedSprite == Tile.CAKE) ctx.fillRect(x - 2, y - 2, 20, 20);
+		else if (selectedSprite == Tile.CRATE) ctx.fillRect(x + 24 - 2, y - 2, 20, 20);
+		else if (selectedSprite == Tile.TURRET_LEFT) ctx.fillRect(x - 2, y + 24 - 2, 20, 36);
+		else if (selectedSprite == Tile.TURRET_RIGHT) ctx.fillRect(x + 24 - 2, y + 24 - 2, 20, 36);
+		else if (selectedSprite == Tile.PLATFORM_RIGHT) ctx.fillRect(x - 2, y + 24 + 40 - 2, 52, 20);
+		else if (selectedSprite == Tile.PLATFORM_LEFT) ctx.fillRect(x - 2, y + 24 + 40 + 24 - 2, 52, 20);
+		else if (selectedSprite == Tile.PLAYER_START) ctx.fillRect(x - 2, y + 24 + 40 + 24 + 24 - 2, 20, 30);
+		else if (selectedSprite == Tile.TUNNEL_RIGHT) ctx.fillRect(x - 2, y + 142, 20, 36);
+		else if (selectedSprite == Tile.TUNNEL_LEFT) ctx.fillRect(x + 22, y + 142, 20, 36);
+		else if (selectedSprite == Tile.TUNNEL_UP) ctx.fillRect(x - 2, y + 178, 36, 20);
+		else if (selectedSprite == Tile.TUNNEL_DOWN) ctx.fillRect(x - 2, y + 198, 36, 20);
 	}
 }
 

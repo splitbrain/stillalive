@@ -67,6 +67,59 @@ export const MainButton = {
 	TUTORIAL: 4,
 };
 
+/** @type {Object<string, number>} The transition effects at the end and the start of a level, the value of TRANS. */
+export const Transition = {
+	TOP_LEFT: 1,
+	LEFT_TO_RIGHT: 2,
+	TOP_TO_BOTTOM: 3,
+	HORIZONTAL_LINES: 4,
+	VERTICAL_LINES: 5,
+	SQUARE: 6,
+};
+
+/** @type {Object<string, number>} The buttons of the pause menu. */
+export const PauseButton = {
+	RESUME: 1,
+	RESTART: 2,
+	EXIT: 3,
+	QUALITY: 4,
+	SOUND: 5,
+};
+
+/** @type {Object<string, number>} The buttons of the intermission screen, the value of ui.intermissionChoice. */
+export const IntermissionButton = {
+	NONE: 0,
+	EXIT: 1,
+	RESTART: 2,
+	CONTINUE: 3,
+	REPLAY: 4,
+};
+
+/** @type {Object<string, number>} The buttons of the level selection. */
+export const SelectionButton = {
+	PLAY: 1,
+	EXIT: 2,
+	MODE: 3,
+};
+
+/** @type {Object<string, number>} The buttons of the level editor. */
+export const EditorButton = {
+	LOAD: 1,
+	SAVE: 2,
+	EXIT: 3,
+	CLEAR: 4,
+	TRY: 5,
+	HELP: 6,
+};
+
+/** @type {Object<string, number>} The buttons of the save and load screens of the editor. */
+export const EditorMenuButton = {
+	ACCEPT: 1,
+	EXIT: 2,
+	EXPORT: 3,
+	IMPORT: 4,
+};
+
 /** @type {number} The number of levels of a campaign. */
 export const LEVELS_PER_CAMPAIGN = 28;
 

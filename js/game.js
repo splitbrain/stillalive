@@ -5,7 +5,7 @@
 import { playSound, sfx_transition } from './audio.js';
 import { manageBoss, skipComingBoss } from './boss.js';
 import { ctx } from './canvas.js';
-import { CampaignId, Menu } from './constants.js';
+import { CampaignId, IntermissionButton, Menu, Transition } from './constants.js';
 import { alertDialog } from './dialog.js';
 import { drawLevelEditor } from './editor.js';
 import { crosshair } from './images.js';
@@ -113,12 +113,12 @@ function draw() {
 				ui.drawCredits = false;
 				game.perso.fadeNextLevel = 120;
 				game.perso.intermissionFade = 20;
-				TRANS = parseInt(random(1, 7));
+				TRANS = parseInt(random(Transition.TOP_LEFT, Transition.SQUARE + 1));
 				playSound(sfx_transition);
 				ui.highscoreMessage = '';
 				unclick();
 				if (ui.currentMenu == Menu.PLAY && !game.replayMode) ui.highscoreMessage = checkBestTime();
-				ui.intermissionChoice = 0;
+				ui.intermissionChoice = IntermissionButton.NONE;
 				if (ui.currentMenu == Menu.PLAY && !game.replayMode) {
 					if (maxLevel[ui.campaign] < ui.currentLevel + 1) {
 						if (ui.campaign == CampaignId.STORY && maxLevel[ui.campaign] == 28) ui.drawCredits = true;
@@ -143,26 +143,22 @@ function draw() {
 					ui.tutoPause = true;
 				} else {
 					ui.drawIntermission = true;
-					if (ui.intermissionChoice == 3) {
-						//continue
+					if (ui.intermissionChoice == IntermissionButton.CONTINUE) {
 						unclick();
 						if (ui.currentMenu == Menu.PLAY) {
 							loadLevel(++ui.currentLevel);
 							game.perso.intermissionFade = -20;
 						}
-					} else if (ui.intermissionChoice == 2) {
-						//restart
+					} else if (ui.intermissionChoice == IntermissionButton.RESTART) {
 						unclick();
 						if (ui.currentMenu == Menu.PLAY) {
 							loadLevel(ui.currentLevel);
 							if (game.bossNum > 0) skipComingBoss();
 						}
 						game.perso.intermissionFade = -20;
-					} else if (ui.intermissionChoice == 1) {
-						//exit
+					} else if (ui.intermissionChoice == IntermissionButton.EXIT) {
 						exitFunc();
-					} else if (ui.intermissionChoice == 4) {
-						//watch replay
+					} else if (ui.intermissionChoice == IntermissionButton.REPLAY) {
 						unclick();
 						game.replayMode = true;
 						if (ui.currentMenu == Menu.PLAY) loadLevel(ui.currentLevel);
@@ -256,5 +252,5 @@ export function exitFunc() {
 	game.replayMode = false;
 }
 
-/** @type {number} The transition effect of the level end, chosen at random from 1 to 6. */
-export let TRANS = 4;
+/** @type {number} The transition effect of the level end, chosen at random. */
+export let TRANS = Transition.HORIZONTAL_LINES;

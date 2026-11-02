@@ -6,7 +6,18 @@ import { allImagesLoaded, areImagesLoaded, imageProgress, missingImages } from '
 import { allSoundsLoaded, disableSound, isSoundAvailable, isSoundOn, soundProgress, toggleSound } from '../audio.js';
 import { drawBoss, setupBoss, skipComingBoss } from '../boss.js';
 import { ctx } from '../canvas.js';
-import { BUTTON_CAMPAIGN, CampaignId, LEFT, LEVELS_PER_CAMPAIGN, MainButton, Menu, NUM_TILES } from '../constants.js';
+import {
+	BUTTON_CAMPAIGN,
+	CampaignId,
+	IntermissionButton,
+	LEFT,
+	LEVELS_PER_CAMPAIGN,
+	MainButton,
+	Menu,
+	NUM_TILES,
+	PauseButton,
+	SelectionButton,
+} from '../constants.js';
 import { confirmDialog } from '../dialog.js';
 import { lvlEditorSetup } from '../editor.js';
 import { createSparkles, manageSparkles } from '../entities/Sparkle.js';
@@ -70,18 +81,18 @@ export function prepareSelectionText() {
  */
 function manageDownMenu() {
 	let overMenu = -1;
-	if (mouseInZone(74, 445, 120, 24)) overMenu = 1;
-	else if (mouseInZone(74 + 130, 445, 120, 24)) overMenu = 2;
+	if (mouseInZone(74, 445, 120, 24)) overMenu = IntermissionButton.EXIT;
+	else if (mouseInZone(74 + 130, 445, 120, 24)) overMenu = IntermissionButton.RESTART;
 	else if (mouseInZone(74 + 260, 445, 120, 24) && ui.currentMenu == Menu.PLAY && ui.currentLevel + 1 < 29) {
 		if (maxLevel[ui.campaign] >= ui.currentLevel + 1) {
-			overMenu = 3;
+			overMenu = IntermissionButton.CONTINUE;
 		}
-	} else if (mouseInZone(74 + 390, 445, 120, 24)) overMenu = 4;
+	} else if (mouseInZone(74 + 390, 445, 120, 24)) overMenu = IntermissionButton.REPLAY;
 
-	const scale1 = overMenu == 1 ? 0.9 : 1;
-	const scale2 = overMenu == 2 ? 0.9 : 1;
-	const scale3 = overMenu == 3 ? 0.9 : 1;
-	const scale4 = overMenu == 4 ? 0.9 : 1;
+	const scale1 = overMenu == IntermissionButton.EXIT ? 0.9 : 1;
+	const scale2 = overMenu == IntermissionButton.RESTART ? 0.9 : 1;
+	const scale3 = overMenu == IntermissionButton.CONTINUE ? 0.9 : 1;
+	const scale4 = overMenu == IntermissionButton.REPLAY ? 0.9 : 1;
 
 	drawTinyButton(74, 445, scale1, 'Exit');
 	drawTinyButton(74 + 130, 445, scale2, 'Restart');
@@ -94,7 +105,7 @@ function manageDownMenu() {
 		ui.campaign == CampaignId.STORY &&
 		(ui.currentLevel == 7 || ui.currentLevel == 14 || ui.currentLevel == 21 || ui.currentLevel == 28)
 	) {
-		if (overMenu == 4) overMenu = 0;
+		if (overMenu == IntermissionButton.REPLAY) overMenu = IntermissionButton.NONE;
 	} else {
 		drawTinyButton(74 + 390, 445, scale4, 'Watch Replay');
 	}
@@ -133,22 +144,20 @@ export function drawPauseMenu() {
 
 	ctx.fillStyle = 'rgb(255, 255, 255)';
 	let overMenu = -1;
-	if (mouseInZone(50 + game.ECART_X, 180 + game.ECART_Y, 120, 24))
-		overMenu = 1; //continue
+	if (mouseInZone(50 + game.ECART_X, 180 + game.ECART_Y, 120, 24)) overMenu = PauseButton.RESUME;
 	else if (ui.currentMenu != Menu.TUTORIAL && mouseInZone(187 + game.ECART_X, 180 + game.ECART_Y, 120, 24))
-		overMenu = 2; //restart
-	else if (mouseInZone(324 + game.ECART_X, 180 + game.ECART_Y, 120, 24))
-		overMenu = 3; //exit
+		overMenu = PauseButton.RESTART;
+	else if (mouseInZone(324 + game.ECART_X, 180 + game.ECART_Y, 120, 24)) overMenu = PauseButton.EXIT;
 	else if (ui.currentMenu != Menu.TUTORIAL && mouseInZone(127 + game.ECART_X, 340 + game.ECART_Y, 120, 24))
-		overMenu = 4; //quality
+		overMenu = PauseButton.QUALITY;
 	else if (ui.currentMenu != Menu.TUTORIAL && mouseInZone(247 + game.ECART_X, 340 + game.ECART_Y, 120, 24))
-		overMenu = 5; //sound
+		overMenu = PauseButton.SOUND;
 
-	const scale1 = overMenu == 1 ? 0.9 : 1;
-	const scale2 = overMenu == 2 ? 0.9 : 1;
-	const scale3 = overMenu == 3 ? 0.9 : 1;
-	const scale4 = overMenu == 4 ? 0.9 : 1;
-	const scale5 = overMenu == 5 ? 0.9 : 1;
+	const scale1 = overMenu == PauseButton.RESUME ? 0.9 : 1;
+	const scale2 = overMenu == PauseButton.RESTART ? 0.9 : 1;
+	const scale3 = overMenu == PauseButton.EXIT ? 0.9 : 1;
+	const scale4 = overMenu == PauseButton.QUALITY ? 0.9 : 1;
+	const scale5 = overMenu == PauseButton.SOUND ? 0.9 : 1;
 
 	drawTinyButton(game.ECART_X + 50, game.ECART_Y + 180, scale1, 'Resume');
 	if (ui.currentMenu != Menu.TUTORIAL) drawTinyButton(game.ECART_X + 187, game.ECART_Y + 180, scale2, 'Restart');
@@ -165,25 +174,21 @@ export function drawPauseMenu() {
 
 	if (input.mousePressed && input.mouseButton == LEFT && overMenu > 0) {
 		unclick();
-		if (overMenu == 1) {
-			//resume
+		if (overMenu == PauseButton.RESUME) {
 			ui.escapeMenu = !ui.escapeMenu;
 			if (game.replayMode) {
 				rescaleReplay();
 			}
-		} else if (overMenu == 2) {
-			//restart
+		} else if (overMenu == PauseButton.RESTART) {
 			ui.escapeMenu = !ui.escapeMenu;
 			if (ui.currentMenu == Menu.PLAY) {
 				loadLevel(ui.currentLevel);
 				if (game.bossNum > 0) skipComingBoss();
 			}
-		} else if (overMenu == 3) {
-			//exit
+		} else if (overMenu == PauseButton.EXIT) {
 			ui.escapeMenu = !ui.escapeMenu;
 			exitFunc();
-		} else if (overMenu == 4) {
-			//quality
+		} else if (overMenu == PauseButton.QUALITY) {
 			confirmDialog('Changing quality will restart the map. Are you sure ?', 'Change quality ?').then(function (r) {
 				if (r) {
 					settings.quality = settings.quality ? 0 : 1;
@@ -191,8 +196,7 @@ export function drawPauseMenu() {
 					if (ui.currentMenu == Menu.PLAY) loadLevel(ui.currentLevel);
 				}
 			});
-		} else if (overMenu == 5) {
-			//sound
+		} else if (overMenu == PauseButton.SOUND) {
 			toggleSound();
 		}
 	}
@@ -422,33 +426,32 @@ export function drawMapSelection() {
 	}
 
 	let overMenu = -1;
-	if (mouseInZone(20, 495, 120, 24)) overMenu = 2;
-	const scale2 = overMenu == 2 ? 0.9 : 1;
+	if (mouseInZone(20, 495, 120, 24)) overMenu = SelectionButton.EXIT;
+	const scale2 = overMenu == SelectionButton.EXIT ? 0.9 : 1;
 	drawTinyButton(20, 495, scale2, 'Exit');
 
 	if (ui.previewMap > 0) {
 		ctx.fillStyle = 'rgb(15, 112, 144)';
 		ctx.fillRect(529, 105 + ui.previewMap * 12 + 2, 90, 14);
 
-		if (mouseInZone(515, 495, 120, 24)) overMenu = 1;
-		const scale1 = overMenu == 1 ? 0.9 : 1;
+		if (mouseInZone(515, 495, 120, 24)) overMenu = SelectionButton.PLAY;
+		const scale1 = overMenu == SelectionButton.PLAY ? 0.9 : 1;
 
 		drawTinyButton(515, 495, scale1, 'Play');
 	}
 
 	if (ui.campaign == CampaignId.NORMAL && maxLevel[0] == 29) {
-		if (mouseInZone(380, 495, 120, 24)) overMenu = 3;
-		scale3 = overMenu == 3 ? 0.9 : 1;
+		if (mouseInZone(380, 495, 120, 24)) overMenu = SelectionButton.MODE;
+		scale3 = overMenu == SelectionButton.MODE ? 0.9 : 1;
 		drawTinyButton(380, 495, scale3, 'Hard Mode');
 	} else if (ui.campaign == CampaignId.ADVANCED) {
-		if (mouseInZone(380, 495, 120, 24)) overMenu = 3;
-		scale3 = overMenu == 3 ? 0.9 : 1;
+		if (mouseInZone(380, 495, 120, 24)) overMenu = SelectionButton.MODE;
+		scale3 = overMenu == SelectionButton.MODE ? 0.9 : 1;
 		drawTinyButton(380, 495, scale3, 'Normal Mode');
 	}
 
 	if (input.mousePressed && input.mouseButton == LEFT && overMenu > 0) {
-		if (overMenu == 1) {
-			//play
+		if (overMenu == SelectionButton.PLAY) {
 			game.ECART_X = 64;
 			game.ECART_Y = 96;
 			ui.currentMenu = Menu.PLAY;
@@ -456,8 +459,7 @@ export function drawMapSelection() {
 			loadLevel(ui.currentLevel);
 			unclick();
 			return;
-		} else if (overMenu == 2) {
-			//exit
+		} else if (overMenu == SelectionButton.EXIT) {
 			game.ECART_X = 64;
 			game.ECART_Y = 96;
 			ui.currentMenu = Menu.MAIN;
@@ -466,8 +468,7 @@ export function drawMapSelection() {
 			document.getElementById('highscores').classList.remove('open');
 			unclick();
 			return;
-		} else if (overMenu == 3) {
-			//hard/normal mode
+		} else if (overMenu == SelectionButton.MODE) {
 			ui.campaign = ui.campaign == CampaignId.NORMAL ? CampaignId.ADVANCED : CampaignId.NORMAL;
 			ui.previewMap = 0;
 		}

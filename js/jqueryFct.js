@@ -1,5 +1,4 @@
-$(document).ready(function() {
-
+document.addEventListener('DOMContentLoaded', function() {
 	maxLevel = new Array();
 	maxLevel[0] = 1;
 	maxLevel[1] = 1;

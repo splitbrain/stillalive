@@ -9,6 +9,7 @@
 import { getBestTime, getCampaignTotal, loadBestReplay } from './storage.js';
 import { decodeReplay, downloadReplay } from './replay.js';
 import { pickJsonFile } from './files.js';
+import { alertDialog } from './dialog.js';
 
 /** @type {number} Number of ticks between two updates of the current time. */
 const TIME_UPDATE_INTERVAL = 30;
@@ -116,7 +117,7 @@ function startReplay(data) {
  * @returns {void}
  */
 function showError(error) {
-	jAlert(error.message, 'Replay');
+	alertDialog(error.message, 'Replay');
 }
 
 /**

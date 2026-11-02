@@ -259,7 +259,7 @@ function drawPauseMenu() {
 			escapeMenu = !escapeMenu;
 			exitFunc();
 		}else if(overMenu == 4) {//quality
-			jConfirm("Changing quality will restart the map. Are you sure ?", 'Change quality ?', function(r) {
+			confirmDialog("Changing quality will restart the map. Are you sure ?", 'Change quality ?').then(function(r) {
 				if(r) {
 					quality = 1 - quality;
 					escapeMenu = !escapeMenu;
@@ -524,7 +524,6 @@ function drawMapSelection() {
 			currentMenu = 2;
 			currentLevel = previewMap;
 			loadLevel(currentLevel);
-			//$("#highscores").slideDown("slow");
 			//selectMenu = 0;
 			unclick();
 			return;
@@ -534,7 +533,7 @@ function drawMapSelection() {
 			currentMenu = 1;
 			selectMenu = 0;
 			fadeMenu = 30;
-			$("#highscores").slideUp("slow");
+			document.getElementById('highscores').classList.remove('open');
 			unclick();
 			return;
 		}else if(overMenu == 3) {//hard/normal mode
@@ -738,7 +737,7 @@ function drawMainMenu() {
 				selectMenu = 1;
 				previewMap = 0;
 				prepareSelectionText();
-				$("#highscores").slideDown("slow");
+				document.getElementById('highscores').classList.add('open');
 				ECART_X = 0;
 				ECART_Y = 96;
 				if(lvlType == 2) {

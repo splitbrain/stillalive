@@ -33,7 +33,7 @@ function isForeignTarget(event) {
 	if (!(target instanceof Element)) return false;
 	return (
 		target.isContentEditable ||
-		target.closest('input, textarea, select, dialog, #popup_container') !== null
+		target.closest('input, textarea, select, dialog') !== null
 	);
 }
 

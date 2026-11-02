@@ -212,7 +212,7 @@ function unclick() {
 }
 
 function reportBrokenReplay() {
-	jAlert("The replay you're watching seems to be broken -_-;<br />" +
+	alertDialog("The replay you're watching seems to be broken -_-;\n" +
 				"Sorry for any inconveniences."
 		, 'An error occured');
 	replayMode = false;
@@ -723,7 +723,6 @@ function manageBoss() {
 function exitFunc() {
 	unclick();
 	sparkles = new Array();
-	//$("#highscores").slideUp("slow");
 	if(currentMenu == 2) {//campaign
 		ECART_X = 0;
 		ECART_Y = 96;
@@ -839,7 +838,7 @@ function loadAudio(snd, name) {
 	if(audioTagSupport) {
 		snd = new Audio("sounds/" + name + ".ogg");
 		snd.load();
-		$(snd).bind('canplaythrough', function() { // totally loaded
+		snd.addEventListener('canplaythrough', function() { // totally loaded
 			if(!noSound) loadedSfx++;
 		});
 		return snd;
@@ -3545,53 +3544,48 @@ function loadCampaigns() {
 			campaigns[c].texts[i - 1] = new Array();
 			
 			if(campaigns[c].folder != "tutorial" || (campaigns[c].folder == "tutorial" && i < 9)) {
-			
-				$.ajax({
-					url: "maps/" + campaigns[c].folder + "/level" + i + ".sad",
-					type: "GET",
-					cache: false,
-					async: true,
-					count: i,
-					camp: c,
-					success: function(msg){
-						var tmp = msg.split(" ", 768);
-						for(j in tmp) {
-							campaigns[this.camp].levels[this.count - 1].push(parseInt(tmp[j]));
-						}
-						levelsLoaded++;
-					}
-				});
-				
-				if(campaigns[c].folder != "advanced") {
-					$.ajax({
-						url: "txt/" + campaigns[c].folder + "/level" + i + "_1.txt",
-						type: "GET",
-						async: true,
-						cache: false,
-						count: i,
-						camp: c,
-						success: function(msg){
-							campaigns[this.camp].texts[this.count - 1] = msg + "";
-							txtLoaded++;
-						}
-					});
-				} else {
-					$.ajax({
-						url: "txt/" + campaigns[c].folder + "/level1_1.txt",
-						type: "GET",
-						async: true,
-						cache: false,
-						count: i,
-						camp: c,
-						success: function(msg){
-							campaigns[this.camp].texts[this.count - 1] = msg + "";
-							txtLoaded++;
-						}
-					});
-				}
+				loadLevelFiles(c, i);
 			}
 		}
 	}
+}
+
+/**
+ * Load the map and the text of a campaign level.
+ *
+ * @param {number} camp The index of the campaign.
+ * @param {number} count The level number, starting at 1.
+ */
+function loadLevelFiles(camp, count) {
+	var folder = campaigns[camp].folder;
+	loadTextFile("maps/" + folder + "/level" + count + ".sad", function(msg) {
+		var tmp = msg.split(" ", 768);
+		for(j in tmp) {
+			campaigns[camp].levels[count - 1].push(parseInt(tmp[j]));
+		}
+		levelsLoaded++;
+	});
+	
+	var txtLevel = folder == "advanced" ? 1 : count;
+	loadTextFile("txt/" + folder + "/level" + txtLevel + "_1.txt", function(msg) {
+		campaigns[camp].texts[count - 1] = msg;
+		txtLoaded++;
+	});
+}
+
+/**
+ * Load a text file.
+ *
+ * @param {string} url The URL of the file.
+ * @param {function(string)} callback Gets the content of the file.
+ */
+function loadTextFile(url, callback) {
+	fetch(url, { cache: "no-cache" }).then(function(response) {
+		if(!response.ok) throw new Error(url + ": " + response.status);
+		return response.text();
+	}).then(callback).catch(function(e) {
+		console.error(e);
+	});
 }
 
 function loadSfx() {
@@ -3614,7 +3608,7 @@ function loadSfx() {
 		for(i=1; i<3 && audioTagSupport; i++) {
 			var a = new Audio("sounds/portal" + i + ".ogg");
 			a.load();
-			$(a).bind('canplaythrough', function() { // totally loaded
+			a.addEventListener('canplaythrough', function() { // totally loaded
 				if(!noSound) loadedSfx++;
 			});
 			sfx_portal.push(a);
@@ -3625,16 +3619,10 @@ function loadSfx() {
 
 function loadCreditsText() {
 	creditsTxt = new Array();
-	$.ajax({
-		url: "txt/credits/credits.txt",
-		type: "GET",
-		cache: false,
-		async: false,
-		success: function(msg){
-			var tmp = msg.split("|");
-			for(j in tmp) {
-				creditsTxt.push(tmp[j]);
-			}
+	loadTextFile("txt/credits/credits.txt", function(msg) {
+		var tmp = msg.split("|");
+		for(j in tmp) {
+			creditsTxt.push(tmp[j]);
 		}
 	});
 }

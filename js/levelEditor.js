@@ -287,7 +287,7 @@ function startMapImport() {
 		undoIndex = -1;
 		addUndo();
 	}).catch(function(e) {
-		jAlert(e.message, 'Import map');
+		alertDialog(e.message, 'Import map');
 	});
 }
 
@@ -422,13 +422,13 @@ function manageEditor() {
 		if(overMenu == 5) {//try map
 			startPlayingLevel();
 		}else if(overMenu == 6) {//help
-			jAlert("Left click : Put tile or object\r\n" + 
-					"Right click : Remove tile or object\r\n" +
-					"Middle click : Fill\r\n" + 
-					"ctrl + z : Undo\r\n" + 
-					"ctrl + y : Redo\r\n" + 
-					"Return : Try Map / Stop trying\r\n" +
-					"Escape : Stop trying\r\n"
+			alertDialog("Left click : Put tile or object\n" + 
+					"Right click : Remove tile or object\n" +
+					"Middle click : Fill\n" + 
+					"ctrl + z : Undo\n" + 
+					"ctrl + y : Redo\n" + 
+					"Return : Try Map / Stop trying\n" +
+					"Escape : Stop trying"
 					,"Level Editor Shortcuts");
 		}else if(overMenu == 2) {//save
 			askSaving = true;

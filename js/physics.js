@@ -3,17 +3,11 @@
  */
 
 import { playSound, sfx_throwObject } from './audio.js';
-import { BAS, DROITE, GAUCHE, GRAVITY, HAUT, LEFT } from './constants.js';
-import { caisseSurPerso, caisseToucheObjet, collideCaisse } from './entities/Caisse.js';
+import { Direction, GRAVITY, MouseButton } from './constants.js';
+import { crateAt, crateLandsOnPlayer, movingCrateTouching } from './entities/Crate.js';
 import { inForceFieldTp } from './entities/ForceField.js';
-import { collidePlateforme, onCarpet } from './entities/Platform.js';
-import {
-	checkTeleportBas,
-	checkTeleportDroite,
-	checkTeleportGauche,
-	checkTeleportHaut,
-	dansUnPortal,
-} from './portals.js';
+import { onCarpet, platformAt } from './entities/Platform.js';
+import { checkTeleportDown, checkTeleportLeft, checkTeleportRight, checkTeleportUp, inPortal } from './portals.js';
 import { game, input } from './state.js';
 import { FIRST_OF_KIND, Tile, TileKind, inForceFieldRange, isCrateCode, isDeadlyTile, isTileKind } from './tiles.js';
 import { getCos, getDistance, getSin } from './utils.js';
@@ -27,13 +21,13 @@ import { getCos, getDistance, getSin } from './utils.js';
  */
 export function touchingGround(obj) {
 	if (obj.vy >= 0) {
-		const touche = getTile((obj.x >> 8) + 1, (obj.y >> 8) + obj.pY);
-		const touche2 = getTile((obj.x >> 8) + obj.pX - 1, (obj.y >> 8) + obj.pY);
+		const hit = getTile((obj.x >> 8) + 1, (obj.y >> 8) + obj.pY);
+		const hit2 = getTile((obj.x >> 8) + obj.pX - 1, (obj.y >> 8) + obj.pY);
 
-		if (isTileKind(touche, TileKind.BELT_RIGHT) || isTileKind(touche2, TileKind.BELT_RIGHT)) return 3;
-		if (isTileKind(touche, TileKind.BELT_LEFT) || isTileKind(touche2, TileKind.BELT_LEFT)) return 4;
-		if (touche == Tile.MIRROR || touche2 == Tile.MIRROR) return 2;
-		else if (touche || touche2) return 1;
+		if (isTileKind(hit, TileKind.BELT_RIGHT) || isTileKind(hit2, TileKind.BELT_RIGHT)) return 3;
+		if (isTileKind(hit, TileKind.BELT_LEFT) || isTileKind(hit2, TileKind.BELT_LEFT)) return 4;
+		if (hit == Tile.MIRROR || hit2 == Tile.MIRROR) return 2;
+		else if (hit || hit2) return 1;
 	}
 	return 0;
 }
@@ -45,7 +39,7 @@ export function touchingGround(obj) {
  * @param {number} y The y coordinate in pixels.
  * @returns {boolean} True if the tile at the point is deadly.
  */
-function objetToucheTileMort(x, y) {
+function pointOnDeadlyTile(x, y) {
 	if (x >= 512 || y >= 384 || y < 0 || x < 0) return 0;
 	const tile = game.map[(y >> 4) * 32 + (x >> 4)];
 	return isDeadlyTile(tile);
@@ -57,20 +51,20 @@ function objetToucheTileMort(x, y) {
  * @param {object} obj The object with x, y, pX and pY.
  * @returns {boolean} True if the object touches a deadly tile.
  */
-export function toucheTileMort(obj) {
+export function touchesDeadlyTile(obj) {
 	const x = obj.x >> 8;
 	const y = obj.y >> 8;
 	const pX = obj.pX;
 	const pY = obj.pY;
 
-	let touche = objetToucheTileMort(x, y);
-	if (!touche) touche = objetToucheTileMort(x + pX - 1, y);
-	if (!touche) touche = objetToucheTileMort(x, y + (pY >> 1));
-	if (!touche) touche = objetToucheTileMort(x, y + pY - 6);
-	if (!touche) touche = objetToucheTileMort(x + pX - 1, y + (pY >> 1));
-	if (!touche) touche = objetToucheTileMort(x + pX - 1, y + pY - 6);
+	let hit = pointOnDeadlyTile(x, y);
+	if (!hit) hit = pointOnDeadlyTile(x + pX - 1, y);
+	if (!hit) hit = pointOnDeadlyTile(x, y + (pY >> 1));
+	if (!hit) hit = pointOnDeadlyTile(x, y + pY - 6);
+	if (!hit) hit = pointOnDeadlyTile(x + pX - 1, y + (pY >> 1));
+	if (!hit) hit = pointOnDeadlyTile(x + pX - 1, y + pY - 6);
 
-	return touche;
+	return hit;
 }
 
 /**
@@ -80,12 +74,12 @@ export function toucheTileMort(obj) {
  * @param {number} y The y coordinate in pixels.
  * @returns {number} The tile id, a platform code, or Tile.EMPTY if nothing solid is there.
  */
-export function getTileNoCaisse(x, y) {
+export function getTileWithoutCrates(x, y) {
 	if (x >= 512 || y >= 384 || y < 0 || x < 0) return 0;
 	let tile = game.map[(y >> 4) * 32 + (x >> 4)];
 
 	if (!tile) {
-		tile = collidePlateforme(x, y);
+		tile = platformAt(x, y);
 	}
 
 	if (tile == Tile.EXIT || isDeadlyTile(tile) || tile == Tile.PLAYER_START || inForceFieldRange(tile))
@@ -101,7 +95,7 @@ export function getTileNoCaisse(x, y) {
  * @param {number} y The y coordinate in pixels.
  * @returns {number} The tile id, or Tile.EMPTY if nothing solid is there.
  */
-export function getTileNoCaisseNoPlate(x, y) {
+export function getTileWithoutObjects(x, y) {
 	if (x >= 512 || y >= 384 || y < 0 || x < 0) return 0;
 	let tile = game.map[(y >> 4) * 32 + (x >> 4)];
 
@@ -123,9 +117,9 @@ export function getTile(x, y) {
 	let tile = game.map[(y >> 4) * 32 + (x >> 4)];
 
 	if (!tile) {
-		tile = collideCaisse(x, y);
+		tile = crateAt(x, y);
 		if (!tile) {
-			tile = collidePlateforme(x, y);
+			tile = platformAt(x, y);
 		}
 	}
 
@@ -157,7 +151,7 @@ export function getTilePortal(x, y) {
 		tile = Tile.EMPTY;
 
 	if (!tile) {
-		tile = collidePlateforme(x, y);
+		tile = platformAt(x, y);
 	}
 
 	return tile;
@@ -170,24 +164,24 @@ export function getTilePortal(x, y) {
  * @returns {void}
  */
 export function placeObject(obj) {
-	let po, col;
-	const x = game.perso.x + (game.perso.pX << 7);
-	const y = game.perso.y + (game.perso.pY << 7);
+	let step, col;
+	const x = game.player.x + (game.player.pX << 7);
+	const y = game.player.y + (game.player.pY << 7);
 
 	obj.x = x - (obj.pX << 7);
 	obj.y = y - (obj.pY << 7);
 
-	const cos = getCos(input.mouseX, input.mouseY, (x >> 8) + game.ECART_X, (y >> 8) + game.ECART_Y);
-	const sin = getSin(input.mouseX, input.mouseY, (x >> 8) + game.ECART_X, (y >> 8) + game.ECART_Y);
+	const cos = getCos(input.mouseX, input.mouseY, (x >> 8) + game.offsetX, (y >> 8) + game.offsetY);
+	const sin = getSin(input.mouseX, input.mouseY, (x >> 8) + game.offsetX, (y >> 8) + game.offsetY);
 
 	obj.vx = cos * (16 << 8);
 	obj.vy = sin * (16 << 8);
 
-	for (po = 0; po < 2; po++) {
+	for (step = 0; step < 2; step++) {
 		obj.x += obj.vx >> 1;
 		obj.y += obj.vy >> 1;
 
-		if (!checkTeleportGauche(obj) && !checkTeleportBas(obj) && !checkTeleportHaut(obj) && !checkTeleportDroite(obj)) {
+		if (!checkTeleportLeft(obj) && !checkTeleportDown(obj) && !checkTeleportUp(obj) && !checkTeleportRight(obj)) {
 			col = checkCollisions(obj);
 		}
 	}
@@ -205,11 +199,11 @@ export function placeObject(obj) {
  */
 export function moveObject(obj) {
 	let col, i, c;
-	const ffield = inForceFieldTp(obj);
-	for (i in ffield) {
-		const f = ffield[i];
+	const fields = inForceFieldTp(obj);
+	for (i in fields) {
+		const f = fields[i];
 		if (game.forceFields[f].vx != 0) {
-			if (checkTeleportHaut(obj) || checkTeleportBas(obj)) {
+			if (checkTeleportUp(obj) || checkTeleportDown(obj)) {
 				if (obj.y >> 8 < game.forceFields[f].y) obj.y += 768;
 				else if ((obj.y >> 8) + obj.pY > game.forceFields[f].y + 32) obj.y -= 768;
 			} else if (obj.y >> 8 < game.forceFields[f].y + (16 - (obj.pY >> 1))) obj.y += 512;
@@ -222,72 +216,72 @@ export function moveObject(obj) {
 		obj.vx = game.forceFields[f].vx * 384;
 		obj.vy = game.forceFields[f].vy * 384;
 
-		if (obj.type == 'tourelle' && !obj.canExplode) {
+		if (obj.type == 'turret' && !obj.canExplode) {
 			obj.canExplode = true;
 		}
 	}
 
-	const carp = onCarpet(obj);
-	if (carp) {
-		obj.x += carp == 3 ? 384 : carp == 4 ? -384 : 0;
-		obj.vx = carp == 3 ? 8 : carp == 4 ? -8 : 0;
+	const belt = onCarpet(obj);
+	if (belt) {
+		obj.x += belt == 3 ? 384 : belt == 4 ? -384 : 0;
+		obj.vx = belt == 3 ? 8 : belt == 4 ? -8 : 0;
 	}
-	if (obj.type == 'caisse') {
-		if (carp == 0 && obj.carpet != 0) obj.vx = obj.carpet == 3 ? 384 : obj.carpet == 4 ? -384 : 0;
-		obj.carpet = carp;
+	if (obj.type == 'crate') {
+		if (belt == 0 && obj.carpet != 0) obj.vx = obj.carpet == 3 ? 384 : obj.carpet == 4 ? -384 : 0;
+		obj.carpet = belt;
 	}
 
-	const checkTgauche = checkTeleportGauche(obj);
-	const checkTdroite = checkTeleportDroite(obj);
+	const inLeftPortal = checkTeleportLeft(obj);
+	const inRightPortal = checkTeleportRight(obj);
 
-	const toucheSol = touchingGround(obj);
+	const ground = touchingGround(obj);
 
-	if (!toucheSol || checkTeleportBas(obj)) {
-		if (ffield.length == 0) obj.vy += GRAVITY;
+	if (!ground || checkTeleportDown(obj)) {
+		if (fields.length == 0) obj.vy += GRAVITY;
 		if (obj.vy > 10 << 8) obj.vy = 10 << 8;
 	}
 
 	if (obj.vy == 0 && obj.vx == 0) return;
 
 	if (obj.vx > 0) {
-		if (toucheSol && !checkTgauche) obj.vx -= 64;
+		if (ground && !inLeftPortal) obj.vx -= 64;
 		else obj.vx -= 10;
 		if (obj.vx < 0) obj.vx = 0;
 	} else if (obj.vx < 0) {
-		if (toucheSol && !checkTdroite) obj.vx += 64;
+		if (ground && !inRightPortal) obj.vx += 64;
 		else obj.vx += 10;
 		if (obj.vx > 0) obj.vx = 0;
 	}
 
-	if (obj.vx > 512 && toucheSol == 1 && !checkTgauche) obj.vx = 512;
-	else if (obj.vx < -512 && toucheSol == 1 && !checkTdroite) obj.vx = -512;
+	if (obj.vx > 512 && ground == 1 && !inLeftPortal) obj.vx = 512;
+	else if (obj.vx < -512 && ground == 1 && !inRightPortal) obj.vx = -512;
 
 	let j;
 	for (j = 0; j < 8; j++) {
-		if (!checkTeleportBas(obj) && !checkTeleportHaut(obj)) obj.x += obj.vx >> 3;
-		if (!checkTeleportGauche(obj) && !checkTeleportDroite(obj) && !caisseSurPerso(obj)) obj.y += obj.vy >> 3;
+		if (!checkTeleportDown(obj) && !checkTeleportUp(obj)) obj.x += obj.vx >> 3;
+		if (!checkTeleportLeft(obj) && !checkTeleportRight(obj) && !crateLandsOnPlayer(obj)) obj.y += obj.vy >> 3;
 
-		if (obj.type == 'caisse') {
-			if (caisseToucheObjet(game.perso) && obj.invincibility == 0) {
-				game.perso.x += obj.vx >> 3;
+		if (obj.type == 'crate') {
+			if (movingCrateTouching(game.player) && obj.invincibility == 0) {
+				game.player.x += obj.vx >> 3;
 
 				if (obj.vx < 0) {
-					if (leftCollision(game.perso)) {
-						while (leftCollision(game.perso)) game.perso.x += 128;
+					if (leftCollision(game.player)) {
+						while (leftCollision(game.player)) game.player.x += 128;
 						obj.vx = 0;
 					}
 				} else if (obj.vx > 0) {
-					if (rightCollision(game.perso)) {
-						while (rightCollision(game.perso)) game.perso.x -= 128;
+					if (rightCollision(game.player)) {
+						while (rightCollision(game.player)) game.player.x -= 128;
 						obj.vx = 0;
 					}
 				}
 			}
 
-			if (obj.vx != 0 && !dansUnPortal(obj)) {
-				for (c in game.caisses) {
-					const ca = game.caisses[c];
-					if (dansUnPortal(ca)) continue;
+			if (obj.vx != 0 && !inPortal(obj)) {
+				for (c in game.crates) {
+					const ca = game.crates[c];
+					if (inPortal(ca)) continue;
 					if (obj.x != ca.x && obj.y != ca.y) {
 						const y = obj.y >> 8;
 						let x = obj.x >> 8;
@@ -297,21 +291,21 @@ export function moveObject(obj) {
 
 						let needReturn = false;
 
-						if (pointDansObjet(x, y + 1, ca)) {
-							if (ca.porter) game.perso.vx = obj.vx;
-							else if (obj.porter) game.perso.vx = ca.vx;
+						if (pointInObject(x, y + 1, ca)) {
+							if (ca.carried) game.player.vx = obj.vx;
+							else if (obj.carried) game.player.vx = ca.vx;
 							ca.vx = obj.vx;
 							obj.vx >>= 1;
 							needReturn = true;
-						} else if (pointDansObjet(x, y + 8, ca)) {
-							if (ca.porter) game.perso.vx = obj.vx;
-							else if (obj.porter) game.perso.vx = ca.vx;
+						} else if (pointInObject(x, y + 8, ca)) {
+							if (ca.carried) game.player.vx = obj.vx;
+							else if (obj.carried) game.player.vx = ca.vx;
 							ca.vx = obj.vx;
 							obj.vx >>= 1;
 							needReturn = true;
-						} else if (pointDansObjet(x, y + 13, ca)) {
-							if (ca.porter) game.perso.vx = obj.vx;
-							else if (obj.porter) game.perso.vx = ca.vx;
+						} else if (pointInObject(x, y + 13, ca)) {
+							if (ca.carried) game.player.vx = obj.vx;
+							else if (obj.carried) game.player.vx = ca.vx;
 							ca.vx = obj.vx;
 							obj.vx >>= 1;
 							needReturn = true;
@@ -319,7 +313,7 @@ export function moveObject(obj) {
 
 						if (needReturn) {
 							col = 1;
-							while (col && !dansUnPortal(obj)) {
+							while (col && !inPortal(obj)) {
 								col = checkCollisions(obj);
 							}
 							return;
@@ -331,7 +325,7 @@ export function moveObject(obj) {
 	}
 
 	col = 1;
-	while (col && !dansUnPortal(obj)) {
+	while (col && !inPortal(obj)) {
 		col = checkCollisions(obj);
 	}
 }
@@ -341,13 +335,13 @@ export function moveObject(obj) {
  *
  * @returns {number} 1 if the player carries a crate or a turret, else 0.
  */
-export function objetPortee() {
+export function carriesObject() {
 	let i;
-	for (i in game.caisses) {
-		if (game.caisses[i].porter == 1) return 1;
+	for (i in game.crates) {
+		if (game.crates[i].carried == 1) return 1;
 	}
-	for (i in game.tourelles) {
-		if (game.tourelles[i].porter == 1) return 1;
+	for (i in game.turrets) {
+		if (game.turrets[i].carried == 1) return 1;
 	}
 	return 0;
 }
@@ -360,7 +354,7 @@ export function objetPortee() {
  * @param {object} obj The object with x, y, pX and pY.
  * @returns {number} 1 if the point is inside, else 0.
  */
-function pointDansObjet(x, y, obj) {
+function pointInObject(x, y, obj) {
 	const x2 = obj.x >> 8;
 	const y2 = obj.y >> 8;
 	if (x >= x2 && x < x2 + obj.pX && y >= y2 && y < y2 + obj.pY) return 1;
@@ -376,32 +370,32 @@ function pointDansObjet(x, y, obj) {
 export function grabObject() {
 	let x1, y1, i;
 	let ok = 0;
-	if (!objetPortee()) {
-		if (input.mousePressed && input.mouseButton == LEFT) {
-			const x2 = (game.perso.x >> 8) + (game.perso.pX >> 1);
-			const y2 = (game.perso.y >> 8) + (game.perso.pY >> 1);
-			for (i in game.caisses) {
-				x1 = (game.caisses[i].x >> 8) + (game.caisses[i].pX >> 1);
-				y1 = (game.caisses[i].y >> 8) + (game.caisses[i].pY >> 1);
+	if (!carriesObject()) {
+		if (input.mousePressed && input.mouseButton == MouseButton.LEFT) {
+			const x2 = (game.player.x >> 8) + (game.player.pX >> 1);
+			const y2 = (game.player.y >> 8) + (game.player.pY >> 1);
+			for (i in game.crates) {
+				x1 = (game.crates[i].x >> 8) + (game.crates[i].pX >> 1);
+				y1 = (game.crates[i].y >> 8) + (game.crates[i].pY >> 1);
 				if (
 					getDistance(x1, y1, x2, y2) < 32 &&
-					pointDansObjet(input.mouseX - game.ECART_X, input.mouseY - game.ECART_Y, game.caisses[i])
+					pointInObject(input.mouseX - game.offsetX, input.mouseY - game.offsetY, game.crates[i])
 				) {
-					game.caisses[i].porter = 1;
+					game.crates[i].carried = 1;
 					ok = 1;
 					break;
 				}
 			}
 			if (!ok) {
-				for (i in game.tourelles) {
-					x1 = (game.tourelles[i].x >> 8) + (game.tourelles[i].pX >> 1);
-					y1 = (game.tourelles[i].y >> 8) + (game.tourelles[i].pY >> 1);
+				for (i in game.turrets) {
+					x1 = (game.turrets[i].x >> 8) + (game.turrets[i].pX >> 1);
+					y1 = (game.turrets[i].y >> 8) + (game.turrets[i].pY >> 1);
 					if (
-						!game.tourelles[i].mort &&
+						!game.turrets[i].dead &&
 						getDistance(x1, y1, x2, y2) < 32 &&
-						pointDansObjet(input.mouseX - game.ECART_X, input.mouseY - game.ECART_Y, game.tourelles[i])
+						pointInObject(input.mouseX - game.offsetX, input.mouseY - game.offsetY, game.turrets[i])
 					) {
-						game.tourelles[i].porter = 1;
+						game.turrets[i].carried = 1;
 						break;
 					}
 				}
@@ -410,21 +404,21 @@ export function grabObject() {
 	} else {
 		if (!input.mousePressed) {
 			ok = 0;
-			for (i in game.caisses) {
-				if (game.caisses[i].porter == 1) {
-					game.caisses[i].porter = 0;
+			for (i in game.crates) {
+				if (game.crates[i].carried == 1) {
+					game.crates[i].carried = 0;
 					ok = 1;
-					game.caisses[i].invincibility = 3;
-					game.caisses[i].noRemove = 90;
+					game.crates[i].invincibility = 3;
+					game.crates[i].noRemove = 90;
 					playSound(sfx_throwObject);
 					break;
 				}
 			}
 			if (!ok) {
-				for (i in game.tourelles) {
-					if (game.tourelles[i].porter == 1) {
-						game.tourelles[i].porter = 0;
-						game.tourelles[i].canExplode = 1;
+				for (i in game.turrets) {
+					if (game.turrets[i].carried == 1) {
+						game.turrets[i].carried = 0;
+						game.turrets[i].canExplode = 1;
 						playSound(sfx_throwObject);
 						break;
 					}
@@ -518,11 +512,11 @@ export function rightCollision(obj) {
  * Find the side of an object that is deepest in a solid tile.
  *
  * @param {object} obj The object with x, y, pX and pY.
- * @returns {number} HAUT, BAS, GAUCHE or DROITE, or -1 if the object touches nothing.
+ * @returns {number} Direction.UP, Direction.DOWN, Direction.LEFT or Direction.RIGHT, or -1 if the object touches nothing.
  */
 export function getCollision(obj) {
 	let i;
-	const touche = [0, 0, 0, 0]; //top, bottom, left, right
+	const hit = [0, 0, 0, 0]; //top, bottom, left, right
 	const x = obj.x >> 8;
 	const y = obj.y >> 8;
 
@@ -531,35 +525,35 @@ export function getCollision(obj) {
 
 	for (i = x; i < x + obj.pX; i += 2) {
 		//top
-		if (getTile(i, y)) touche[0]++;
+		if (getTile(i, y)) hit[0]++;
 	}
-	maxVal = touche[0];
+	maxVal = hit[0];
 
 	for (i = x + 1; i < x + obj.pX - 1; i += 2) {
 		//bottom
-		if (getTile(i, y + obj.pY - 1)) touche[1]++;
+		if (getTile(i, y + obj.pY - 1)) hit[1]++;
 	}
-	if (touche[1] > maxVal) {
+	if (hit[1] > maxVal) {
 		max = 1;
-		maxVal = touche[1];
+		maxVal = hit[1];
 	}
 
 	for (i = y; i < y + obj.pY; i += 2) {
 		//left
-		if (getTile(x, i)) touche[2]++;
+		if (getTile(x, i)) hit[2]++;
 	}
-	if (touche[2] > maxVal) {
+	if (hit[2] > maxVal) {
 		max = 2;
-		maxVal = touche[2];
+		maxVal = hit[2];
 	}
 
 	for (i = y; i < y + obj.pY; i += 2) {
 		//right
-		if (getTile(x + obj.pX - 1, i)) touche[3]++;
+		if (getTile(x + obj.pX - 1, i)) hit[3]++;
 	}
-	if (touche[3] > maxVal) {
+	if (hit[3] > maxVal) {
 		max = 3;
-		maxVal = touche[3];
+		maxVal = hit[3];
 	}
 
 	if (maxVal == 0) return -1;
@@ -575,7 +569,7 @@ export function getCollision(obj) {
 export function checkCollisions(obj) {
 	let coll = 0;
 
-	if (getCollision(obj) == HAUT) {
+	if (getCollision(obj) == Direction.UP) {
 		coll = 1;
 		if (obj.vy < 0) {
 			obj.vx >>= 1;
@@ -583,51 +577,51 @@ export function checkCollisions(obj) {
 		}
 		do {
 			obj.y += 256;
-			if (getCollision(obj) == BAS) {
+			if (getCollision(obj) == Direction.DOWN) {
 				coll = 0;
 				break;
 			}
-		} while (getCollision(obj) == HAUT);
+		} while (getCollision(obj) == Direction.UP);
 	}
 
-	if (!coll && getCollision(obj) == BAS) {
+	if (!coll && getCollision(obj) == Direction.DOWN) {
 		coll = 1;
 		if (obj.vy > 0) {
 			obj.vy = 0;
 		}
 		do {
 			obj.y -= 256;
-			if (getCollision(obj) == HAUT) {
+			if (getCollision(obj) == Direction.UP) {
 				coll = 0;
 				break;
 			}
-		} while (getCollision(obj) == BAS);
+		} while (getCollision(obj) == Direction.DOWN);
 	}
 
-	if (!coll && getCollision(obj) == GAUCHE) {
+	if (!coll && getCollision(obj) == Direction.LEFT) {
 		coll = 1;
 		if (obj.vx < 0) obj.vx = 0;
 		do {
 			obj.x += 256;
-			if (getCollision(obj) == DROITE) {
+			if (getCollision(obj) == Direction.RIGHT) {
 				coll = 0;
 				obj.vy = 0;
 				break;
 			}
-		} while (getCollision(obj) == GAUCHE);
+		} while (getCollision(obj) == Direction.LEFT);
 	}
 
-	if (!coll && getCollision(obj) == DROITE) {
+	if (!coll && getCollision(obj) == Direction.RIGHT) {
 		coll = 1;
 		if (obj.vx > 0) obj.vx = 0;
 		do {
 			obj.x -= 256;
-			if (getCollision(obj) == GAUCHE) {
+			if (getCollision(obj) == Direction.LEFT) {
 				coll = 0;
 				obj.vy = 0;
 				break;
 			}
-		} while (getCollision(obj) == DROITE);
+		} while (getCollision(obj) == Direction.RIGHT);
 	}
 
 	return coll;
@@ -638,12 +632,12 @@ export function checkCollisions(obj) {
  *
  * @returns {number} 1 if the player is on the open exit, else 0.
  */
-export function finNiveau() {
-	if (!dansUnPortal(game.perso)) {
+export function atExit() {
+	if (!inPortal(game.player)) {
 		let i, j;
 		for (i = 4; i <= 28; i += 2) {
 			for (j = 2; j <= 14; j += 2) {
-				if (getTileSimple((game.perso.x >> 8) + j, (game.perso.y >> 8) + j) == 22) return 1;
+				if (getTileSimple((game.player.x >> 8) + j, (game.player.y >> 8) + j) == 22) return 1;
 			}
 		}
 	}

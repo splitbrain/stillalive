@@ -26,10 +26,10 @@ export class Portal {
 		this.scaleY = 1;
 		/** @type {boolean|number} True or 1 while the portal is placed on a wall. */
 		this.used = false;
-		/** @type {number} The side of the wall that the portal is on: HAUT, BAS, GAUCHE or DROITE. */
+		/** @type {number} The side of the wall that the portal is on: Direction.UP, Direction.DOWN, Direction.LEFT or Direction.RIGHT. */
 		this.direction = 0;
 		/** @type {number} The index of the platform that the portal is on, or -1. */
-		this.plateforme = -1;
+		this.platformIndex = -1;
 		/** @type {number} The frame of the portal animation. */
 		this.frame = 0;
 	}
@@ -40,8 +40,8 @@ export class Portal {
 	 * @returns {void}
 	 */
 	move() {
-		if (this.used && this.plateforme > -1) {
-			this.x += game.platforms[this.plateforme].vx;
+		if (this.used && this.platformIndex > -1) {
+			this.x += game.platforms[this.platformIndex].vx;
 		}
 	}
 }

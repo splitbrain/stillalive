@@ -10,12 +10,12 @@ import { alertDialog } from './dialog.js';
 import { drawLevelEditor } from './editor.js';
 import { crosshair } from './images.js';
 import { manageKeys, unclick } from './input.js';
-import { campaigns, gestionPorte, loadLevel, loadPreviewMap } from './level.js';
+import { campaigns, loadLevel, loadPreviewMap, manageDoors } from './level.js';
 import { getFps } from './loop.js';
 import { canSplash } from './main.js';
 import { updatePanel } from './panel.js';
-import { finNiveau } from './physics.js';
-import { dansUnPortal } from './portals.js';
+import { atExit } from './physics.js';
+import { inPortal } from './portals.js';
 import { drawAllGame } from './render/game.js';
 import { drawHudText, drawKeys, drawText } from './render/hud.js';
 import {
@@ -90,29 +90,29 @@ function draw() {
 	if (ui.currentMenu == Menu.EDITOR) {
 		drawLevelEditor();
 	} else if ((ui.currentMenu == Menu.PLAY || ui.currentMenu == Menu.TUTORIAL) && !ui.escapeMenu) {
-		if (!finNiveau() && game.perso.fadeNextLevel == -1) {
+		if (!atExit() && game.player.fadeNextLevel == -1) {
 			if (game.TIME == 0) unclick();
 			game.TIME++;
 		}
 		game.needRedrawTiles = 0;
-		if (!game.perso.mort && game.perso.fadeNextLevel == -1) {
-			game.perso.move();
-			if (game.needRedrawTiles == 0) game.needRedrawTiles = dansUnPortal(game.perso);
+		if (!game.player.dead && game.player.fadeNextLevel == -1) {
+			game.player.move();
+			if (game.needRedrawTiles == 0) game.needRedrawTiles = inPortal(game.player);
 		}
 
-		gestionPorte();
-		if (finNiveau()) {
+		manageDoors();
+		if (atExit()) {
 			game.bossNum = 0;
-			game.ECART_X = 64;
-			game.ECART_Y = 96;
+			game.offsetX = 64;
+			game.offsetY = 96;
 
-			if (game.perso.fadeNextLevel > 0) {
-				game.perso.fadeNextLevel -= 4;
+			if (game.player.fadeNextLevel > 0) {
+				game.player.fadeNextLevel -= 4;
 			}
-			if (game.perso.fadeNextLevel == -1) {
+			if (game.player.fadeNextLevel == -1) {
 				ui.drawCredits = false;
-				game.perso.fadeNextLevel = 120;
-				game.perso.intermissionFade = 20;
+				game.player.fadeNextLevel = 120;
+				game.player.intermissionFade = 20;
 				TRANS = parseInt(random(Transition.TOP_LEFT, Transition.SQUARE + 1));
 				playSound(sfx_transition);
 				ui.highscoreMessage = '';
@@ -128,8 +128,8 @@ function draw() {
 
 				game.replayMode = false;
 			}
-			if (game.perso.fadeNextLevel <= 0) {
-				game.perso.fadeNextLevel = 0;
+			if (game.player.fadeNextLevel <= 0) {
+				game.player.fadeNextLevel = 0;
 
 				if (ui.currentMenu == Menu.TUTORIAL) {
 					ui.currentLevel++;
@@ -138,7 +138,7 @@ function draw() {
 						loadLevel(ui.currentLevel);
 					} else {
 						ui.currentLevel = 9;
-						if (!ui.tutoEnded) game.perso.fadeNextLevel = 1;
+						if (!ui.tutoEnded) game.player.fadeNextLevel = 1;
 					}
 					ui.tutoPause = true;
 				} else {
@@ -147,7 +147,7 @@ function draw() {
 						unclick();
 						if (ui.currentMenu == Menu.PLAY) {
 							loadLevel(++ui.currentLevel);
-							game.perso.intermissionFade = -20;
+							game.player.intermissionFade = -20;
 						}
 					} else if (ui.intermissionChoice == IntermissionButton.RESTART) {
 						unclick();
@@ -155,31 +155,31 @@ function draw() {
 							loadLevel(ui.currentLevel);
 							if (game.bossNum > 0) skipComingBoss();
 						}
-						game.perso.intermissionFade = -20;
+						game.player.intermissionFade = -20;
 					} else if (ui.intermissionChoice == IntermissionButton.EXIT) {
 						exitFunc();
 					} else if (ui.intermissionChoice == IntermissionButton.REPLAY) {
 						unclick();
 						game.replayMode = true;
 						if (ui.currentMenu == Menu.PLAY) loadLevel(ui.currentLevel);
-						game.perso.intermissionFade = -20;
+						game.player.intermissionFade = -20;
 					}
 				}
 			}
 		} else {
-			if (game.perso.intermissionFade == 0) {
-				if (game.perso.fadeNextLevel > 0) {
-					game.perso.fadeNextLevel -= 4;
+			if (game.player.intermissionFade == 0) {
+				if (game.player.fadeNextLevel > 0) {
+					game.player.fadeNextLevel -= 4;
 				}
-				if (game.perso.fadeNextLevel <= 0) {
-					game.perso.fadeNextLevel = -1;
+				if (game.player.fadeNextLevel <= 0) {
+					game.player.fadeNextLevel = -1;
 					ui.drawIntermission = false;
 				}
 			}
 		}
 
 		if (ui.currentMenu == Menu.PLAY || ui.currentMenu == Menu.TUTORIAL) {
-			if (game.bossNum > 0 && game.bossIsComing && game.perso.fadeNextLevel == -1) game.perso.fadeNextLevel = 0;
+			if (game.bossNum > 0 && game.bossIsComing && game.player.fadeNextLevel == -1) game.player.fadeNextLevel = 0;
 			drawAllGame();
 			drawHudText();
 
@@ -192,7 +192,7 @@ function draw() {
 			if (ui.currentMenu == Menu.TUTORIAL && ui.currentLevel == 9) {
 				ui.currentLevel = 9;
 				ctx.fillStyle = 'rgb(0, 0, 0)';
-				ctx.fillRect(game.ECART_X, game.ECART_Y, 544, 384);
+				ctx.fillRect(game.offsetX, game.offsetY, 544, 384);
 
 				manageTutorial();
 				drawText(146, 28, 11);
@@ -236,8 +236,8 @@ export function exitFunc() {
 	unclick();
 	game.sparkles = new Array();
 	if (ui.currentMenu == Menu.PLAY) {
-		game.ECART_X = 0;
-		game.ECART_Y = 96;
+		game.offsetX = 0;
+		game.offsetY = 96;
 		ui.currentMenu = Menu.MAIN;
 		prepareSelectionText();
 		ui.previewMap = ui.currentLevel;

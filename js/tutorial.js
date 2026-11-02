@@ -3,16 +3,16 @@
  */
 
 import { ctx } from './canvas.js';
-import { CampaignId, DROITE } from './constants.js';
+import { CampaignId, Direction } from './constants.js';
 import { Sparkle } from './entities/Sparkle.js';
 import { unclick } from './input.js';
 import { loadLevel } from './level.js';
-import { finNiveau } from './physics.js';
+import { atExit } from './physics.js';
 import { game, input, ui } from './state.js';
 import { random } from './utils.js';
 
 /** @type {number} The x coordinate of the text in the robot panel. */
-const leftPan = game.ECART_X + 40;
+const leftPan = game.offsetX + 40;
 
 /**
  * Start the tutorial at its first level.
@@ -40,15 +40,15 @@ export function manageTutorial() {
 	if (ui.currentLevel == 9) {
 		//tutorial finished
 		drawEndTutorialMessage();
-	} else if (ui.currentLevel == 1 && !finNiveau()) {
-		if (!ui.tutoJump && game.perso.x >> 8 > 100) {
+	} else if (ui.currentLevel == 1 && !atExit()) {
+		if (!ui.tutoJump && game.player.x >> 8 > 100) {
 			ui.tutoJump = true;
 			ui.tutoPause = true;
-			game.perso.fadeNextLevel = 0;
-			game.perso.intermissionFade = 1;
+			game.player.fadeNextLevel = 0;
+			game.player.intermissionFade = 1;
 		}
 
-		if (game.perso.x >> 8 > 512 - 256) {
+		if (game.player.x >> 8 > 512 - 256) {
 			drawExitMessage();
 		}
 
@@ -57,27 +57,27 @@ export function manageTutorial() {
 
 			if (input.mousePressed) {
 				unclick();
-				game.perso.fadeNextLevel = -1;
-				game.perso.intermissionFade = 0;
+				game.player.fadeNextLevel = -1;
+				game.player.intermissionFade = 0;
 				ui.tutoPause = false;
 			}
 		} else if (ui.tutoPause) {
-			if (game.perso.fadeNextLevel < 1) {
-				game.perso.fadeNextLevel = 0;
-				game.perso.intermissionFade = 1;
+			if (game.player.fadeNextLevel < 1) {
+				game.player.fadeNextLevel = 0;
+				game.player.intermissionFade = 1;
 				drawMoveMessage();
 
 				if (input.mousePressed) {
 					unclick();
-					game.perso.fadeNextLevel = -1;
-					game.perso.intermissionFade = 0;
+					game.player.fadeNextLevel = -1;
+					game.player.intermissionFade = 0;
 					ui.tutoPause = false;
 				}
 			}
 		}
-	} else if (ui.currentLevel == 2 && !finNiveau()) {
+	} else if (ui.currentLevel == 2 && !atExit()) {
 		drawCakeMessage();
-	} else if (ui.currentLevel == 3 && !finNiveau()) {
+	} else if (ui.currentLevel == 3 && !atExit()) {
 		const sec = 5 - parseInt(game.TIME / 60);
 		if (parseInt(game.TIME / 60) == 5) {
 			if (!ui.portalsDisplayed) {
@@ -89,16 +89,16 @@ export function manageTutorial() {
 		} else {
 			drawOpenPortalMessage();
 		}
-	} else if (ui.currentLevel == 4 && !finNiveau()) {
+	} else if (ui.currentLevel == 4 && !atExit()) {
 		if (ui.tutoPause && !ui.tutoPortal) {
-			if (game.perso.fadeNextLevel < 1) {
-				game.perso.fadeNextLevel = 0;
-				game.perso.intermissionFade = 1;
+			if (game.player.fadeNextLevel < 1) {
+				game.player.fadeNextLevel = 0;
+				game.player.intermissionFade = 1;
 				drawActivatePortalMessage();
 
 				if (input.mousePressed) {
-					game.perso.fadeNextLevel = -1;
-					game.perso.intermissionFade = 0;
+					game.player.fadeNextLevel = -1;
+					game.player.intermissionFade = 0;
 					ui.tutoPause = false;
 					ui.tutoPortal = true;
 					unclick();
@@ -107,16 +107,16 @@ export function manageTutorial() {
 		} else {
 			drawActivatePortalMessage2();
 		}
-	} else if (ui.currentLevel == 5 && !finNiveau()) {
+	} else if (ui.currentLevel == 5 && !atExit()) {
 		if (ui.tutoPause) {
-			if (game.perso.fadeNextLevel < 1) {
-				game.perso.fadeNextLevel = 0;
-				game.perso.intermissionFade = 1;
-				drawMementum();
+			if (game.player.fadeNextLevel < 1) {
+				game.player.fadeNextLevel = 0;
+				game.player.intermissionFade = 1;
+				drawMomentumMessage();
 
 				if (input.mousePressed) {
-					game.perso.fadeNextLevel = -1;
-					game.perso.intermissionFade = 0;
+					game.player.fadeNextLevel = -1;
+					game.player.intermissionFade = 0;
 					ui.tutoPause = false;
 					unclick();
 				}
@@ -124,11 +124,11 @@ export function manageTutorial() {
 		} else {
 			drawIndications();
 		}
-	} else if (ui.currentLevel == 6 && !finNiveau()) {
-		drawInterruptorMessage();
-	} else if (ui.currentLevel == 7 && !finNiveau()) {
+	} else if (ui.currentLevel == 6 && !atExit()) {
+		drawSwitchMessage();
+	} else if (ui.currentLevel == 7 && !atExit()) {
 		drawTurretsCrateMessage();
-	} else if (ui.currentLevel == 8 && !finNiveau()) {
+	} else if (ui.currentLevel == 8 && !atExit()) {
 		drawPlasmaMessage();
 	}
 }
@@ -141,10 +141,10 @@ export function manageTutorial() {
 function drawEndTutorialMessage() {
 	prepareTxt(32, 152, 512 - 32, 72);
 	ctx.font = '16px Arial';
-	ctx.fillText('Congratulations ! You just learned the basics of StillAliveJS.', leftPan, game.ECART_Y + 170);
-	ctx.fillText('You have now a better understanding of the mechanics of the game.', leftPan, game.ECART_Y + 170 + 16);
-	ctx.fillText('However, there are still a lot more features waiting for you.', leftPan, game.ECART_Y + 170 + 32);
-	ctx.fillText('Click to continue and start an amazing journey !', leftPan, game.ECART_Y + 170 + 48);
+	ctx.fillText('Congratulations ! You just learned the basics of StillAliveJS.', leftPan, game.offsetY + 170);
+	ctx.fillText('You have now a better understanding of the mechanics of the game.', leftPan, game.offsetY + 170 + 16);
+	ctx.fillText('However, there are still a lot more features waiting for you.', leftPan, game.offsetY + 170 + 32);
+	ctx.fillText('Click to continue and start an amazing journey !', leftPan, game.offsetY + 170 + 48);
 }
 
 /**
@@ -155,10 +155,10 @@ function drawEndTutorialMessage() {
 function drawPlasmaMessage() {
 	prepareTxt(32, 16, 420, 56);
 	ctx.font = '14px Arial';
-	ctx.fillText('Plasma balls can open special green walls when guided to their', leftPan, game.ECART_Y + 30);
-	ctx.fillText('red slot. They can also destroy turrets and kill you.', leftPan, game.ECART_Y + 30 + 12);
-	ctx.fillText('Follow instructions on the walls to guide the plasma ball and', leftPan, game.ECART_Y + 30 + 24);
-	ctx.fillText('use that crate to destroy the turret blocking your way.', leftPan, game.ECART_Y + 30 + 36);
+	ctx.fillText('Plasma balls can open special green walls when guided to their', leftPan, game.offsetY + 30);
+	ctx.fillText('red slot. They can also destroy turrets and kill you.', leftPan, game.offsetY + 30 + 12);
+	ctx.fillText('Follow instructions on the walls to guide the plasma ball and', leftPan, game.offsetY + 30 + 24);
+	ctx.fillText('use that crate to destroy the turret blocking your way.', leftPan, game.offsetY + 30 + 36);
 
 	ctx.fillText('Use to kill', 292, 369);
 	ctx.fillText('<= Portal', 500, 410);
@@ -173,11 +173,11 @@ function drawPlasmaMessage() {
 function drawTurretsCrateMessage() {
 	prepareTxt(32, 32, 420, 68);
 	ctx.font = '14px Arial';
-	ctx.fillText('Sometimes, your body is not enough to use the switch efficiently.', leftPan, game.ECART_Y + 46);
-	ctx.fillText('Here is a crate you can use in this level. Get close enough and', leftPan, game.ECART_Y + 46 + 12);
-	ctx.fillText('hold left mouse button to carry the crate with your portal gun.', leftPan, game.ECART_Y + 46 + 24);
-	ctx.fillText('Release mouse to shoot the crate on the switch and leave. Pay', leftPan, game.ECART_Y + 46 + 36);
-	ctx.fillText("attention to that turret that can kill you if you're in range.", leftPan, game.ECART_Y + 46 + 48);
+	ctx.fillText('Sometimes, your body is not enough to use the switch efficiently.', leftPan, game.offsetY + 46);
+	ctx.fillText('Here is a crate you can use in this level. Get close enough and', leftPan, game.offsetY + 46 + 12);
+	ctx.fillText('hold left mouse button to carry the crate with your portal gun.', leftPan, game.offsetY + 46 + 24);
+	ctx.fillText('Release mouse to shoot the crate on the switch and leave. Pay', leftPan, game.offsetY + 46 + 36);
+	ctx.fillText("attention to that turret that can kill you if you're in range.", leftPan, game.offsetY + 46 + 48);
 
 	ctx.fillText('Grab', 125, 367);
 	ctx.fillText('Release here', 312, 478);
@@ -189,11 +189,11 @@ function drawTurretsCrateMessage() {
  *
  * @returns {void}
  */
-function drawInterruptorMessage() {
+function drawSwitchMessage() {
 	prepareTxtDefault();
-	ctx.fillText('This special blue wall can be deactivated thanks to a switch.', leftPan, game.ECART_Y + 48);
-	ctx.fillText('Step on this switch to be able to clear the wall and shoot a', leftPan, game.ECART_Y + 48 + 16);
-	ctx.fillText('portal behind it. Cross the finish line to continue the tutorial.', leftPan, game.ECART_Y + 48 + 32);
+	ctx.fillText('This special blue wall can be deactivated thanks to a switch.', leftPan, game.offsetY + 48);
+	ctx.fillText('Step on this switch to be able to clear the wall and shoot a', leftPan, game.offsetY + 48 + 16);
+	ctx.fillText('portal behind it. Cross the finish line to continue the tutorial.', leftPan, game.offsetY + 48 + 32);
 }
 
 /**
@@ -213,13 +213,13 @@ function drawIndications() {
  *
  * @returns {void}
  */
-function drawMementum() {
+function drawMomentumMessage() {
 	prepareTxtDefault();
 	ctx.font = '14px Arial';
-	ctx.fillText('When you enter a portal, you keep your speed while leaving', leftPan, game.ECART_Y + 46);
-	ctx.fillText('the second one. Use this speed to jump higher or further.', leftPan, game.ECART_Y + 46 + 12);
-	ctx.fillText("Shoot portals where indicated to finish this level. Don't forget", leftPan, game.ECART_Y + 46 + 24);
-	ctx.fillText('to grab cakes on your way. Click to continue ...', leftPan, game.ECART_Y + 46 + 36);
+	ctx.fillText('When you enter a portal, you keep your speed while leaving', leftPan, game.offsetY + 46);
+	ctx.fillText('the second one. Use this speed to jump higher or further.', leftPan, game.offsetY + 46 + 12);
+	ctx.fillText("Shoot portals where indicated to finish this level. Don't forget", leftPan, game.offsetY + 46 + 24);
+	ctx.fillText('to grab cakes on your way. Click to continue ...', leftPan, game.offsetY + 46 + 36);
 }
 
 /**
@@ -230,10 +230,10 @@ function drawMementum() {
 function drawActivatePortalMessage2() {
 	prepareTxtDefault();
 	ctx.font = '14px Arial';
-	ctx.fillText('Shoot a portal in the hole on the right and the other one', leftPan, game.ECART_Y + 48);
-	ctx.fillText('under your feet. That way, you will be able to pass through.', leftPan, game.ECART_Y + 48 + 12);
-	ctx.fillText('Then, just finish the level to continue the tutorial.', leftPan, game.ECART_Y + 48 + 24);
-	ctx.fillText('If you want to clear portals, press the E key.', leftPan, game.ECART_Y + 48 + 36);
+	ctx.fillText('Shoot a portal in the hole on the right and the other one', leftPan, game.offsetY + 48);
+	ctx.fillText('under your feet. That way, you will be able to pass through.', leftPan, game.offsetY + 48 + 12);
+	ctx.fillText('Then, just finish the level to continue the tutorial.', leftPan, game.offsetY + 48 + 24);
+	ctx.fillText('If you want to clear portals, press the E key.', leftPan, game.offsetY + 48 + 36);
 
 	ctx.fillText('Portal', 114, 365);
 	ctx.fillText('Here', 118, 380);
@@ -250,10 +250,10 @@ function drawActivatePortalMessage2() {
 function drawActivatePortalMessage() {
 	prepareTxtDefault();
 	ctx.font = '14px Arial';
-	ctx.fillText('Your portal gun has been activated. You can shoot portals by', leftPan, game.ECART_Y + 48);
-	ctx.fillText('pressing left or right mouse button. They allow you to reach ', leftPan, game.ECART_Y + 48 + 12);
-	ctx.fillText("places where your body can't go and can only be placed on blue", leftPan, game.ECART_Y + 48 + 24);
-	ctx.fillText('walls. Click to continue ...', leftPan, game.ECART_Y + 48 + 36);
+	ctx.fillText('Your portal gun has been activated. You can shoot portals by', leftPan, game.offsetY + 48);
+	ctx.fillText('pressing left or right mouse button. They allow you to reach ', leftPan, game.offsetY + 48 + 12);
+	ctx.fillText("places where your body can't go and can only be placed on blue", leftPan, game.offsetY + 48 + 24);
+	ctx.fillText('walls. Click to continue ...', leftPan, game.offsetY + 48 + 36);
 }
 
 /**
@@ -263,9 +263,9 @@ function drawActivatePortalMessage() {
  */
 function drawOpenPortalMessage() {
 	prepareTxtDefault();
-	ctx.fillText('Fully loaded ! Technology is beautiful.', leftPan, game.ECART_Y + 48);
-	ctx.fillText("When you enter a portal, you're teleported in the other one.", leftPan, game.ECART_Y + 48 + 16);
-	ctx.fillText('Enter the blue portal to pass through the wall.', leftPan, game.ECART_Y + 48 + 32);
+	ctx.fillText('Fully loaded ! Technology is beautiful.', leftPan, game.offsetY + 48);
+	ctx.fillText("When you enter a portal, you're teleported in the other one.", leftPan, game.offsetY + 48 + 16);
+	ctx.fillText('Enter the blue portal to pass through the wall.', leftPan, game.offsetY + 48 + 32);
 }
 
 /**
@@ -276,8 +276,8 @@ function drawOpenPortalMessage() {
  */
 function drawPortalMessage(sec) {
 	prepareTxtDefault();
-	ctx.fillText("Let's get familiar with portals now. Please wait " + sec + ' seconds', leftPan, game.ECART_Y + 56);
-	ctx.fillText('while we are gathering energy to activate them ...', leftPan, game.ECART_Y + 56 + 16);
+	ctx.fillText("Let's get familiar with portals now. Please wait " + sec + ' seconds', leftPan, game.offsetY + 56);
+	ctx.fillText('while we are gathering energy to activate them ...', leftPan, game.offsetY + 56 + 16);
 }
 
 /**
@@ -287,9 +287,9 @@ function drawPortalMessage(sec) {
  */
 function drawCakeMessage() {
 	prepareTxtDefault();
-	ctx.fillText('In StillAliveJS, grabing cakes enables the finish line.', leftPan, game.ECART_Y + 48);
-	ctx.fillText('When no cakes are left in a level, finish line turns white.', leftPan, game.ECART_Y + 48 + 16);
-	ctx.fillText('Take that cake on the left and leave this room.', leftPan, game.ECART_Y + 48 + 32);
+	ctx.fillText('In StillAliveJS, grabing cakes enables the finish line.', leftPan, game.offsetY + 48);
+	ctx.fillText('When no cakes are left in a level, finish line turns white.', leftPan, game.offsetY + 48 + 16);
+	ctx.fillText('Take that cake on the left and leave this room.', leftPan, game.offsetY + 48 + 32);
 }
 
 /**
@@ -299,8 +299,8 @@ function drawCakeMessage() {
  */
 function drawExitMessage() {
 	prepareTxtDefault();
-	ctx.fillText('See this checkered flag on the right ?', leftPan, game.ECART_Y + 56);
-	ctx.fillText('Just touch it to finish the level.', leftPan, game.ECART_Y + 56 + 16);
+	ctx.fillText('See this checkered flag on the right ?', leftPan, game.offsetY + 56);
+	ctx.fillText('Just touch it to finish the level.', leftPan, game.offsetY + 56 + 16);
 }
 
 /**
@@ -310,9 +310,9 @@ function drawExitMessage() {
  */
 function drawMoveMessage() {
 	prepareTxtDefault();
-	ctx.fillText('Welcome to the tutorial.', leftPan, game.ECART_Y + 48);
-	ctx.fillText('First, start moving around the room with Q (A) or D.', leftPan, game.ECART_Y + 48 + 16);
-	ctx.fillText('Click to continue ...', leftPan, game.ECART_Y + 48 + 32);
+	ctx.fillText('Welcome to the tutorial.', leftPan, game.offsetY + 48);
+	ctx.fillText('First, start moving around the room with Q (A) or D.', leftPan, game.offsetY + 48 + 16);
+	ctx.fillText('Click to continue ...', leftPan, game.offsetY + 48 + 32);
 }
 
 /**
@@ -322,9 +322,9 @@ function drawMoveMessage() {
  */
 function drawJumpMessage() {
 	prepareTxtDefault();
-	ctx.fillText("You can't pass these obstacles unless you jump over them.", leftPan, game.ECART_Y + 48);
-	ctx.fillText('Press Z (W) to perform a jump and hold it to jump higher !', leftPan, game.ECART_Y + 48 + 16);
-	ctx.fillText('Click to continue ...', leftPan, game.ECART_Y + 48 + 32);
+	ctx.fillText("You can't pass these obstacles unless you jump over them.", leftPan, game.offsetY + 48);
+	ctx.fillText('Press Z (W) to perform a jump and hold it to jump higher !', leftPan, game.offsetY + 48 + 16);
+	ctx.fillText('Click to continue ...', leftPan, game.offsetY + 48 + 32);
 }
 
 /**
@@ -347,12 +347,12 @@ function prepareTxtDefault() {
  */
 export function prepareTxt(x, y, w, h) {
 	ctx.fillStyle = 'rgb(7, 49, 63)';
-	ctx.fillRect(game.ECART_X + x, game.ECART_Y + y, w, h);
+	ctx.fillRect(game.offsetX + x, game.offsetY + y, w, h);
 
 	ctx.lineWidth = 4;
 	ctx.fillStyle = 'rgb(255, 255, 255)';
 	ctx.strokeStyle = 'rgb(255, 255, 255)';
-	ctx.strokeRect(game.ECART_X + x, game.ECART_Y + y, w, h);
+	ctx.strokeRect(game.offsetX + x, game.offsetY + y, w, h);
 	ctx.font = '16px Arial';
 }
 
@@ -365,7 +365,7 @@ function displayPortals() {
 	let p, i;
 	game.portals[0].direction = 3;
 	game.portals[0].frame = 1;
-	game.portals[0].plateforme = -1;
+	game.portals[0].platformIndex = -1;
 	game.portals[0].scaleX = 1;
 	game.portals[0].scaleY = 1;
 	game.portals[0].used = 1;
@@ -376,7 +376,7 @@ function displayPortals() {
 
 	game.portals[1].direction = 2;
 	game.portals[1].frame = 1;
-	game.portals[1].plateforme = -1;
+	game.portals[1].platformIndex = -1;
 	game.portals[1].scaleX = 1;
 	game.portals[1].scaleY = 1;
 	game.portals[1].used = 1;
@@ -394,7 +394,7 @@ function displayPortals() {
 			s.yOrig = s.y;
 			s.portalNum = p;
 			s.used = 3;
-			if (game.portals[p].direction == DROITE) {
+			if (game.portals[p].direction == Direction.RIGHT) {
 				s.vx = -parseInt(random(128, 384));
 				s.xOrig -= 7 << 8;
 			} else s.vx = parseInt(random(128, 384));

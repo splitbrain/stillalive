@@ -109,8 +109,8 @@ export async function runLevel(page, { campaign, level, ticks, seed, inputs = nu
 				return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
 			};
 
-			game.ECART_X = 64;
-			game.ECART_Y = 96;
+			game.offsetX = 64;
+			game.offsetY = 96;
 			ui.campaign = campaign;
 			ui.currentLevel = level;
 			if (campaign === 3) {
@@ -138,9 +138,9 @@ export async function runLevel(page, { campaign, level, ticks, seed, inputs = nu
 				JSON.stringify({
 					tick,
 					time: game.TIME,
-					perso: pick(game.perso, ['x', 'y', 'vx', 'vy', 'vie', 'mort']),
-					caisses: game.caisses.map((c) => pick(c, ['x', 'y', 'vx', 'vy', 'porter'])),
-					tourelles: game.tourelles.map((t) => pick(t, ['x', 'y', 'vx', 'vy', 'mort', 'porter'])),
+					player: pick(game.player, ['x', 'y', 'vx', 'vy', 'life', 'dead']),
+					crates: game.crates.map((c) => pick(c, ['x', 'y', 'vx', 'vy', 'carried'])),
+					turrets: game.turrets.map((t) => pick(t, ['x', 'y', 'vx', 'vy', 'dead', 'carried'])),
 					plasma: game.plasmaBall.map((p) => pick(p, ['x', 'y', 'vx', 'vy', 'used'])),
 					platforms: game.platforms.map((p) => pick(p, ['x', 'y', 'vx'])),
 					portals: game.portals.map((p) => pick(p, ['x', 'y', 'used', 'direction'])),
@@ -153,10 +153,10 @@ export async function runLevel(page, { campaign, level, ticks, seed, inputs = nu
 				if (inputs) {
 					[input.keys, input.mouseX, input.mouseY] = inputs[tick - 1];
 				}
-				const perso = game.perso;
-				const fade = perso.fadeNextLevel;
+				const player = game.player;
+				const fade = player.fadeNextLevel;
 				t.myLoop();
-				const finished = game.perso === perso && fade === -1 && perso.fadeNextLevel === 120;
+				const finished = game.player === player && fade === -1 && player.fadeNextLevel === 120;
 				if (tick % interval === 0 || finished) lines.push(snapshot(tick));
 				if (finished) {
 					lines.push('finished');

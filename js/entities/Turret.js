@@ -1,12 +1,12 @@
 /**
- * The Tourelle object and its helper functions.
+ * The Turret object and its helper functions.
  */
 
 import { playSound, playSoundIfFinished, sfx_explode, sfx_shoot } from '../audio.js';
-import { caisseToucheObjet, collideAnyCaisse } from './Caisse.js';
+import { anyCrateAt, movingCrateTouching } from './Crate.js';
 import { inForceFieldTp } from './ForceField.js';
-import { plasmaToucheObjet } from './Plasma.js';
-import { onPlateforme } from './Platform.js';
+import { plasmaTouching } from './Plasma.js';
+import { onPlatform } from './Platform.js';
 import { Sparkle, createCakeOrSmokeSparkles } from './Sparkle.js';
 import {
 	getTile,
@@ -14,7 +14,7 @@ import {
 	moveObject,
 	placeObject,
 	rightCollision,
-	toucheTileMort,
+	touchesDeadlyTile,
 	touchingGround,
 } from '../physics.js';
 import { game } from '../state.js';
@@ -24,7 +24,7 @@ import { random } from '../utils.js';
 /**
  * A turret. It shoots at the player in its line of sight, and the player can carry and throw it.
  */
-export class Tourelle {
+export class Turret {
 	/**
 	 * @param {number} x The x position in 1/256 pixels.
 	 * @param {number} y The y position in 1/256 pixels.
@@ -50,11 +50,11 @@ export class Tourelle {
 		/** @type {number} Ticks until the turret shoots after it saw the player, from 10 down to 0. */
 		this.rotation = 10;
 		/** @type {number} 1 when the turret is destroyed. */
-		this.mort = 0;
+		this.dead = 0;
 		/** @type {number} 1 while the turret exists. */
 		this.used = 1;
 		/** @type {number} 1 while the player carries the turret. */
-		this.porter = 0;
+		this.carried = 0;
 		/** @type {number} 1 while the turret sees the player. */
 		this.inSight = 0;
 		/** @type {number} The width in pixels. */
@@ -66,7 +66,7 @@ export class Tourelle {
 		/** @type {number} 1 after the turret passed a portal or a force field; a hard landing then destroys it. */
 		this.canExplode = 0;
 		/** @type {string} The entity type, used by the shared object functions. */
-		this.type = 'tourelle';
+		this.type = 'turret';
 		/** @type {number} The x position where the laser sight ends, in 1/256 pixels. */
 		this.ex = 0;
 	}
@@ -79,7 +79,7 @@ export class Tourelle {
 	 */
 	move() {
 		if (this.used) {
-			if (!this.porter) {
+			if (!this.carried) {
 				if (!touchingGround(this)) this.angle += (this.vx >> 8) << 1;
 				else this.angle = 0;
 				if (this.angle >= 360) this.angle -= 360;
@@ -89,16 +89,16 @@ export class Tourelle {
 
 				moveObject(this);
 
-				if (!this.mort) {
+				if (!this.dead) {
 					if (this.vx == 0 && Math.abs(oldVx) > 3 << 8 && this.canExplode && inForceFieldTp(this).length == 0)
-						this.mort = 1;
+						this.dead = 1;
 					else if (this.vy == 0 && Math.abs(oldVy) > 4 << 8 && this.canExplode && inForceFieldTp(this).length == 0)
-						this.mort = 1;
-					else if (toucheTileMort(this) || caisseToucheObjet(this) || plasmaToucheObjet(this)) {
-						this.mort = 1;
+						this.dead = 1;
+					else if (touchesDeadlyTile(this) || movingCrateTouching(this) || plasmaTouching(this)) {
+						this.dead = 1;
 					}
-					if (this.mort) {
-						this.animeFrame = 2;
+					if (this.dead) {
+						this.animationFrame = 2;
 						playSound(sfx_explode);
 						createCakeOrSmokeSparkles(this.x, this.y, 9, 4, 255);
 					}
@@ -106,24 +106,24 @@ export class Tourelle {
 					if (game.TIME % 4 == 0) this.animFrame++;
 				}
 
-				let plt = onPlateforme(this);
-				if (plt) {
-					plt -= 200;
-					this.x += game.platforms[plt].vx;
+				let pi = onPlatform(this);
+				if (pi) {
+					pi -= 200;
+					this.x += game.platforms[pi].vx;
 				}
 
 				const colLeft = leftCollision(this);
 				const colRight = rightCollision(this);
-				if (!this.mort && (isPlatformCode(colLeft) || isPlatformCode(colRight))) {
-					this.mort = 1;
-					this.animeFrame = 2;
+				if (!this.dead && (isPlatformCode(colLeft) || isPlatformCode(colRight))) {
+					this.dead = 1;
+					this.animationFrame = 2;
 					playSound(sfx_explode);
 					createCakeOrSmokeSparkles(this.x, this.y, 9, 4, 255);
 				}
 			} else {
 				placeObject(this);
 			}
-			if (!this.mort) this.shoot();
+			if (!this.dead) this.shoot();
 		}
 	}
 
@@ -135,68 +135,68 @@ export class Tourelle {
 	shoot() {
 		let j;
 		let testShoot = false;
-		if (this.dir == -1 && this.x > game.perso.x) testShoot = true;
-		else if (this.dir == 1 && this.x < game.perso.x) testShoot = true;
+		if (this.dir == -1 && this.x > game.player.x) testShoot = true;
+		else if (this.dir == 1 && this.x < game.player.x) testShoot = true;
 
 		if (testShoot) {
 			const y = (this.y >> 8) + 13;
-			const y2 = (game.perso.y >> 8) + 16;
+			const y2 = (game.player.y >> 8) + 16;
 
 			if (Math.abs(y - y2) > 32) testShoot = false;
 		}
 
-		if (this.mort == 0 && testShoot && !game.perso.mort) {
+		if (this.dead == 0 && testShoot && !game.player.dead) {
 			this.coolTime--;
 			if (this.coolTime < 0) this.coolTime = 0;
 			if (this.coolTime == 0) {
 				if (this.dir == 1) j = (this.x >> 8) + 16;
 				else j = this.x >> 8;
-				const ySent = (this.y >> 8) + 12;
-				let dansLeChamp = 0;
-				let exitt = 0;
+				const beamY = (this.y >> 8) + 12;
+				let playerInSight = 0;
+				let stop = 0;
 				const oldJ = j;
-				while (j >= 0 && j < 512 && !dansLeChamp && !exitt) {
-					const tile = getTile(j, ySent);
+				while (j >= 0 && j < 512 && !playerInSight && !stop) {
+					const tile = getTile(j, beamY);
 					if (tile != Tile.EMPTY) {
-						exitt = 1;
+						stop = 1;
 						break;
 					} else {
-						if (collideAnyCaisse(j, ySent)) {
-							exitt = 2;
+						if (anyCrateAt(j, beamY)) {
+							stop = 2;
 							break;
 						} else {
-							const t = toucheJoueur(j, ySent);
+							const t = pointInPlayer(j, beamY);
 							if (t) {
-								dansLeChamp = t;
+								playerInSight = t;
 								break;
 							}
 						}
 					}
 					j += this.dir * 14;
-					if (oldJ == j) exitt = 1;
+					if (oldJ == j) stop = 1;
 				}
-				if (exitt == 2) {
+				if (stop == 2) {
 					this.rotation--;
 					if (this.rotation < 0) this.rotation = 0;
 					this.ex = j << 8;
-				} else if (dansLeChamp) {
+				} else if (playerInSight) {
 					this.ex = j << 8;
 					this.rotation--;
-					this.inSight = dansLeChamp;
-					dansLeChamp--;
+					this.inSight = playerInSight;
+					playerInSight--;
 					if (this.rotation < 0) this.rotation = 0;
 					if (!this.rotation) {
 						this.animFrame = 1 - this.animFrame;
-						game.perso.vie -= 640; // 2.5 life points
-						game.perso.timeVie = 300;
-						game.perso.vx += this.dir << 8;
+						game.player.life -= 640; // 2.5 life points
+						game.player.recoveryTime = 300;
+						game.player.vx += this.dir << 8;
 						this.coolTime = this.startCool;
 						playSoundIfFinished(sfx_shoot);
 
 						for (let i = 0; i < 5; i++) {
 							const s = new Sparkle();
-							s.x = game.perso.x + (this.pX << 7) + random(-8 << 8, 8 << 8);
-							s.y = game.perso.y + (this.pY << 6);
+							s.x = game.player.x + (this.pX << 7) + random(-8 << 8, 8 << 8);
+							s.y = game.player.y + (this.pY << 6);
 							s.used = 5;
 							s.vx = parseInt(random(512, 1024) * this.dir);
 							s.vy = random(-3 << 8, 0);
@@ -212,7 +212,7 @@ export class Tourelle {
 				}
 			} else this.animFrame = 0;
 		} else {
-			if (this.mort == 0) {
+			if (this.dead == 0) {
 				this.animFrame = 0;
 				this.rotation = 10;
 			}
@@ -224,12 +224,12 @@ export class Tourelle {
  * Check if a point of the laser line is inside the player.
  *
  * @param {number} j The x coordinate in pixels.
- * @param {number} ySent The y coordinate in pixels.
+ * @param {number} beamY The y coordinate of the laser line in pixels.
  * @returns {number} 1 if the point is inside the player, else 0.
  */
-function toucheJoueur(j, ySent) {
-	const x = game.perso.x >> 8;
-	const y = game.perso.y >> 8;
-	if (j >= x && j < x + 15 && ySent >= y && ySent < y + 31) return 1;
+function pointInPlayer(j, beamY) {
+	const x = game.player.x >> 8;
+	const y = game.player.y >> 8;
+	if (j >= x && j < x + 15 && beamY >= y && beamY < y + 31) return 1;
 	return 0;
 }

@@ -5,18 +5,18 @@
 import { setSoundVolume, sfx_flatline } from '../audio.js';
 import { drawBoss, shakeScreen } from '../boss.js';
 import { ctx } from '../canvas.js';
-import { BAS, CampaignId, DROITE, GAUCHE, HAUT, Menu, NUM_TILES, ORDERED, RANDOM } from '../constants.js';
+import { CampaignId, Direction, Menu, NUM_TILES, ORDERED, RANDOM } from '../constants.js';
 import { isTestingLevel } from '../editor.js';
 import { ForceField } from '../entities/ForceField.js';
-import { projoTouchePerso } from '../entities/Projectile.js';
+import { projectileTouchesPlayer } from '../entities/Projectile.js';
 import { createCakeOrSmokeSparkles, manageSparkles } from '../entities/Sparkle.js';
 import {
 	bg,
 	bluePortal,
 	body,
-	caisse,
 	cake,
 	cameraFollow,
+	crateImage,
 	crosshair,
 	head,
 	highscore,
@@ -28,14 +28,14 @@ import {
 	robotEye,
 	robotHead,
 	tileset,
-	tourelle,
 	tube,
 	tube2,
 	tunnel,
 	tunnel2,
+	turretImages,
 } from '../images.js';
-import { getTileNoCaisse, getTileNoCaisseNoPlate } from '../physics.js';
-import { dansUnPortal, pointInPortal, portalLines } from '../portals.js';
+import { getTileWithoutCrates, getTileWithoutObjects } from '../physics.js';
+import { inPortal, pointInPortal, portalLines } from '../portals.js';
 import { drawText } from './hud.js';
 import { manageTransitionDraw } from './transitions.js';
 import { game, input, settings, ui } from '../state.js';
@@ -50,15 +50,15 @@ import { degToRad, getAngle, radToDeg, random } from '../utils.js';
  */
 export function reloadTiles() {
 	let i;
-	ctx.drawImage(bg[game.BG], game.ECART_X, game.ECART_Y, 512, 384);
+	ctx.drawImage(bg[game.BG], game.offsetX, game.offsetY, 512, 384);
 	for (i in game.displayMap) {
 		if (game.map[i] < NUM_TILES && game.map[i] > 0 && i < 768) {
 			const y = i >> 5;
 			const x = i - (y << 5);
-			ctx.drawImage(tileset[game.displayMap[i]], x * 16 + game.ECART_X, y * 16 + game.ECART_Y, 16, 16);
+			ctx.drawImage(tileset[game.displayMap[i]], x * 16 + game.offsetX, y * 16 + game.offsetY, 16, 16);
 		}
 	}
-	game.imgBuff = copyCanvas(game.ECART_X, game.ECART_Y, 512, 384);
+	game.imgBuff = copyCanvas(game.offsetX, game.offsetY, 512, 384);
 }
 
 /**
@@ -131,7 +131,7 @@ function triangle(x1, y1, x2, y2, x3, y3) {
  */
 export function drawLowQualityPortals() {
 	let i;
-	if (settings.quality == 0 && game.perso.timePosePortal < 5) {
+	if (settings.quality == 0 && game.player.portalCooldown < 5) {
 		ctx.lineWidth = 3;
 		for (i in portalLines) {
 			if (portalLines[i].color == 0) {
@@ -140,10 +140,10 @@ export function drawLowQualityPortals() {
 				ctx.strokeStyle = 'rgb(255, 0, 0)';
 			}
 			line(
-				portalLines[i].x1 + game.ECART_X,
-				portalLines[i].y1 + game.ECART_Y,
-				portalLines[i].x2 + game.ECART_X,
-				portalLines[i].y2 + game.ECART_Y,
+				portalLines[i].x1 + game.offsetX,
+				portalLines[i].y1 + game.offsetY,
+				portalLines[i].x2 + game.offsetX,
+				portalLines[i].y2 + game.offsetY,
 			);
 		}
 	}
@@ -157,15 +157,15 @@ export function drawLowQualityPortals() {
 function drawPortalGun() {
 	if (ui.currentMenu != Menu.TUTORIAL || ui.tutoPortal) {
 		const a = getAngle(
-			(game.perso.x >> 8) + (game.perso.pX >> 1) + game.ECART_X,
-			(game.perso.y >> 8) + (game.perso.pY >> 1) + game.ECART_Y,
+			(game.player.x >> 8) + (game.player.pX >> 1) + game.offsetX,
+			(game.player.y >> 8) + (game.player.pY >> 1) + game.offsetY,
 			input.mouseX,
 			input.mouseY,
 		);
 		ctx.save();
 		ctx.translate(
-			(game.perso.x >> 8) + (game.perso.pX >> 1) + game.ECART_X,
-			(game.perso.y >> 8) + (game.perso.pY >> 1) + game.ECART_Y,
+			(game.player.x >> 8) + (game.player.pX >> 1) + game.offsetX,
+			(game.player.y >> 8) + (game.player.pY >> 1) + game.offsetY,
 		);
 		ctx.rotate(a);
 		ctx.drawImage(portalGun, -5, -5);
@@ -181,13 +181,13 @@ function drawPortalGun() {
  */
 function drawRotatedHead(flipDx) {
 	let a = getAngle(
-		(game.perso.x >> 8) + (game.perso.pX >> 1) + game.ECART_X,
-		(game.perso.y >> 8) + (game.perso.pY >> 1) + game.ECART_Y,
+		(game.player.x >> 8) + (game.player.pX >> 1) + game.offsetX,
+		(game.player.y >> 8) + (game.player.pY >> 1) + game.offsetY,
 		input.mouseX,
 		input.mouseY,
 	);
 	ctx.save();
-	ctx.translate((game.perso.x >> 8) + game.ECART_X + 8, (game.perso.y >> 8) + game.ECART_Y + 6);
+	ctx.translate((game.player.x >> 8) + game.offsetX + 8, (game.player.y >> 8) + game.offsetY + 6);
 	let ad = radToDeg(a);
 
 	if (!flipDx) {
@@ -202,7 +202,7 @@ function drawRotatedHead(flipDx) {
 
 	a = degToRad(ad);
 	ctx.rotate(a);
-	ctx.drawImage(head[flipDx], game.perso.animeFrame * 16, 0, 15, 12, -8, -6, 16, 12);
+	ctx.drawImage(head[flipDx], game.player.animationFrame * 16, 0, 15, 12, -8, -6, 16, 12);
 	ctx.restore();
 }
 
@@ -249,60 +249,60 @@ export function drawCopy(copy, x, y) {
  */
 export function drawAllGame() {
 	if (game.needLoad) createBuff();
-	drawCopy(game.imgBuff, game.ECART_X, game.ECART_Y);
+	drawCopy(game.imgBuff, game.offsetX, game.offsetY);
 	if (settings.quality > 0) animateTiles();
 
 	drawLowQualityPortals();
 
-	game.perso.flip =
-		input.mouseX > (game.perso.x >> 8) + (game.perso.pX >> 1) + game.ECART_X
-			? (game.perso.flip = 1)
-			: (game.perso.flip = -1);
+	game.player.flip =
+		input.mouseX > (game.player.x >> 8) + (game.player.pX >> 1) + game.offsetX
+			? (game.player.flip = 1)
+			: (game.player.flip = -1);
 
 	drawTunnels();
 
-	const flipDx = game.perso.flip < 0 ? 1 : 0;
+	const flipDx = game.player.flip < 0 ? 1 : 0;
 	if (!flipDx) drawPortalGun();
 	drawRotatedHead(flipDx);
 	ctx.drawImage(
 		body[flipDx],
-		game.perso.animeFrame * 16,
+		game.player.animationFrame * 16,
 		0,
 		16,
 		27,
-		(game.perso.x >> 8) + game.ECART_X,
-		(game.perso.y >> 8) + game.ECART_Y,
+		(game.player.x >> 8) + game.offsetX,
+		(game.player.y >> 8) + game.offsetY,
 		16,
 		27,
 	);
 	if (flipDx) drawPortalGun();
 
 	drawCakes();
-	drawTourelles();
+	drawTurrets();
 	drawPlasma();
 
 	manageSparkles();
 
-	drawCaisses();
+	drawCrates();
 
 	if (game.bossNum > 0) {
 		drawBoss();
 		if (game.bossNum == 1 || game.bossNum == 3)
-			ctx.drawImage(tube, (game.tubeX >> 8) + game.ECART_X, (game.tubeY >> 8) + game.ECART_Y);
+			ctx.drawImage(tube, (game.tubeX >> 8) + game.offsetX, (game.tubeY >> 8) + game.offsetY);
 		else if (game.bossNum == 2) {
-			drawProjos();
-			ctx.drawImage(tube2, (game.tubeX >> 8) + game.ECART_X, (game.tubeY >> 8) + game.ECART_Y);
+			drawProjectiles();
+			ctx.drawImage(tube2, (game.tubeX >> 8) + game.offsetX, (game.tubeY >> 8) + game.offsetY);
 		} else if (game.bossNum == 4) {
-			drawProjos();
-			ctx.drawImage(tube, (game.tubeX >> 8) + game.ECART_X, (game.tubeY >> 8) + game.ECART_Y);
+			drawProjectiles();
+			ctx.drawImage(tube, (game.tubeX >> 8) + game.offsetX, (game.tubeY >> 8) + game.offsetY);
 		}
 
 		if (game.bossLife == 3) {
 			game.rumbleTime++;
 			if (!game.bossIsComing) shakeScreen();
 			else if (game.rumbleTime % 3 == 0) {
-				game.ECART_X = 64 + random(-3, 3);
-				game.ECART_Y = 96 + random(-3, 3);
+				game.offsetX = 64 + random(-3, 3);
+				game.offsetY = 96 + random(-3, 3);
 			}
 			if (!game.bossIsComing && game.TIME % 10 == 0) {
 				if (game.bossX < 530) {
@@ -313,7 +313,7 @@ export function drawAllGame() {
 		}
 	}
 
-	drawPlatformes();
+	drawPlatforms();
 
 	drawFrontTiles();
 
@@ -322,16 +322,16 @@ export function drawAllGame() {
 	drawCamera();
 	if (ui.currentMenu == Menu.TUTORIAL) manageTutorial();
 
-	if (game.perso.mort) {
-		const a = -(game.perso.vie / 256);
+	if (game.player.dead) {
+		const a = -(game.player.life / 256);
 		ctx.fillStyle = 'rgba(0, 0, 0,' + (1 - a) + ')';
-		ctx.fillRect(game.ECART_X, game.ECART_Y, 512, 384);
-		game.perso.vie += 6;
-		game.perso.checkMort();
+		ctx.fillRect(game.offsetX, game.offsetY, 512, 384);
+		game.player.life += 6;
+		game.player.checkMort();
 		setSoundVolume(sfx_flatline, a / 2);
 	}
 
-	if (game.perso.fadeNextLevel >= 0) manageTransitionDraw();
+	if (game.player.fadeNextLevel >= 0) manageTransitionDraw();
 
 	ctx.drawImage(hud, 0, 0);
 
@@ -347,7 +347,7 @@ export function drawAllGame() {
 
 	drawRobot();
 
-	if (game.perso.fadeNextLevel == -1 && ui.currentMenu == Menu.PLAY && settings.quality > 0) drawText(146, 28, 11);
+	if (game.player.fadeNextLevel == -1 && ui.currentMenu == Menu.PLAY && settings.quality > 0) drawText(146, 28, 11);
 
 	ctx.drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
 }
@@ -407,8 +407,8 @@ export function animateTiles() {
 			}
 			ctx.drawImage(
 				tileset[game.animatedTiles[i].current],
-				(game.animatedTiles[i].x << 4) + game.ECART_X,
-				(game.animatedTiles[i].y << 4) + game.ECART_Y,
+				(game.animatedTiles[i].x << 4) + game.offsetX,
+				(game.animatedTiles[i].y << 4) + game.offsetY,
 				16,
 				16,
 			);
@@ -423,7 +423,7 @@ export function animateTiles() {
  */
 export function createBuff() {
 	let i;
-	ctx.drawImage(bg[game.BG], game.ECART_X, game.ECART_Y, 512, 384);
+	ctx.drawImage(bg[game.BG], game.offsetX, game.offsetY, 512, 384);
 	for (i in game.displayMap) {
 		const y = i >> 5;
 		const x = i - (y << 5);
@@ -432,14 +432,14 @@ export function createBuff() {
 				game.displayMap[i] = Tile.EXIT;
 				game.map[i] = Tile.EXIT;
 			}
-			ctx.drawImage(tileset[game.displayMap[i]], x * 16 + game.ECART_X, y * 16 + game.ECART_Y, 16, 16);
+			ctx.drawImage(tileset[game.displayMap[i]], x * 16 + game.offsetX, y * 16 + game.offsetY, 16, 16);
 		}
 	}
-	game.imgBuff = copyCanvas(game.ECART_X, game.ECART_Y, 512, 384);
+	game.imgBuff = copyCanvas(game.offsetX, game.offsetY, 512, 384);
 	game.needLoad = false;
 	ctx.fillStyle = 'rgb(0, 0, 0)';
-	ctx.fillRect(game.ECART_X, game.ECART_Y, 512, 384);
-	if (game.perso.intermissionFade < 0) ctx.drawImage(highscore, game.ECART_X, game.ECART_Y);
+	ctx.fillRect(game.offsetX, game.offsetY, 512, 384);
+	if (game.player.intermissionFade < 0) ctx.drawImage(highscore, game.offsetX, game.offsetY);
 }
 
 /**
@@ -451,7 +451,7 @@ export function drawCakes() {
 	let i;
 	for (i in game.cakes) {
 		if (game.cakes[i].used) {
-			if (game.perso.fadeNextLevel == -1) {
+			if (game.player.fadeNextLevel == -1) {
 				game.cakes[i].vy += 32 * game.cakes[i].mDir;
 				if (game.cakes[i].vy < -3 << 8) {
 					game.cakes[i].mDir = -game.cakes[i].mDir;
@@ -460,13 +460,13 @@ export function drawCakes() {
 				}
 				ctx.drawImage(
 					cake,
-					(game.cakes[i].x >> 8) + game.ECART_X,
-					((game.cakes[i].y + game.cakes[i].vy) >> 8) + game.ECART_Y,
+					(game.cakes[i].x >> 8) + game.offsetX,
+					((game.cakes[i].y + game.cakes[i].vy) >> 8) + game.offsetY,
 					16,
 					12,
 				);
 			} else {
-				ctx.drawImage(cake, (game.cakes[i].x >> 8) + game.ECART_X, (game.cakes[i].y >> 8) + game.ECART_Y, 16, 12);
+				ctx.drawImage(cake, (game.cakes[i].x >> 8) + game.offsetX, (game.cakes[i].y >> 8) + game.offsetY, 16, 12);
 			}
 		}
 	}
@@ -477,69 +477,69 @@ export function drawCakes() {
  *
  * @returns {void}
  */
-export function drawTourelles() {
-	let dx, tour;
-	for (tour in game.tourelles) {
-		const side = game.tourelles[tour].dir < 0 ? 0 : 1;
+export function drawTurrets() {
+	let dx, ti;
+	for (ti in game.turrets) {
+		const side = game.turrets[ti].dir < 0 ? 0 : 1;
 
 		if (settings.quality > 0) {
 			ctx.save();
 			ctx.translate(
-				(game.tourelles[tour].x >> 8) + (game.tourelles[tour].pX >> 1) + game.ECART_X,
-				(game.tourelles[tour].y >> 8) + (game.tourelles[tour].pY >> 1) + game.ECART_Y,
+				(game.turrets[ti].x >> 8) + (game.turrets[ti].pX >> 1) + game.offsetX,
+				(game.turrets[ti].y >> 8) + (game.turrets[ti].pY >> 1) + game.offsetY,
 			);
-			ctx.rotate(degToRad(game.tourelles[tour].angle));
+			ctx.rotate(degToRad(game.turrets[ti].angle));
 			ctx.drawImage(
-				tourelle[side],
+				turretImages[side],
 				0,
-				game.tourelles[tour].animFrame * 32,
+				game.turrets[ti].animFrame * 32,
 				16,
 				32,
-				-(game.tourelles[tour].pX >> 1),
-				-(game.tourelles[tour].pY >> 1),
+				-(game.turrets[ti].pX >> 1),
+				-(game.turrets[ti].pY >> 1),
 				16,
 				32,
 			);
 			ctx.restore();
 		} else {
 			ctx.drawImage(
-				tourelle[side],
+				turretImages[side],
 				0,
-				game.tourelles[tour].animFrame * 32,
+				game.turrets[ti].animFrame * 32,
 				16,
 				32,
-				(game.tourelles[tour].x >> 8) + game.ECART_X,
-				(game.tourelles[tour].y >> 8) + game.ECART_Y,
+				(game.turrets[ti].x >> 8) + game.offsetX,
+				(game.turrets[ti].y >> 8) + game.offsetY,
 				16,
 				32,
 			);
 		}
 
-		if (game.tourelles[tour].animFrame == 1 && game.tourelles[tour].mort == 0) {
+		if (game.turrets[ti].animFrame == 1 && game.turrets[ti].dead == 0) {
 			ctx.strokeStyle = 'rgb(255, 255, 0)';
 			ctx.lineWidth = 3;
-			dx = game.tourelles[tour].dir < 0 ? 0 : game.tourelles[tour].pX;
+			dx = game.turrets[ti].dir < 0 ? 0 : game.turrets[ti].pX;
 			const dy = parseInt(random(-16, 16));
 			line(
-				(game.tourelles[tour].x >> 8) + game.ECART_X + dx,
-				(game.tourelles[tour].y >> 8) + game.ECART_Y + 13,
-				(game.perso.x >> 8) + game.ECART_X,
-				(game.perso.y >> 8) + game.ECART_Y + (game.perso.pY >> 1) + dy,
+				(game.turrets[ti].x >> 8) + game.offsetX + dx,
+				(game.turrets[ti].y >> 8) + game.offsetY + 13,
+				(game.player.x >> 8) + game.offsetX,
+				(game.player.y >> 8) + game.offsetY + (game.player.pY >> 1) + dy,
 			);
-		} else if (game.tourelles[tour].rotation < 10 && game.tourelles[tour].mort == 0) {
+		} else if (game.turrets[ti].rotation < 10 && game.turrets[ti].dead == 0) {
 			ctx.strokeStyle = 'rgb(255, 0, 0)';
 			ctx.lineWidth = 1;
-			dx = game.tourelles[tour].dir < 0 ? 0 : game.tourelles[tour].pX;
+			dx = game.turrets[ti].dir < 0 ? 0 : game.turrets[ti].pX;
 			line(
-				(game.tourelles[tour].x >> 8) + game.ECART_X + dx,
-				(game.tourelles[tour].y >> 8) + game.ECART_Y + 13,
-				(game.tourelles[tour].ex >> 8) + game.ECART_X,
-				(game.perso.y >> 8) + game.ECART_Y + (game.perso.pY >> 1),
+				(game.turrets[ti].x >> 8) + game.offsetX + dx,
+				(game.turrets[ti].y >> 8) + game.offsetY + 13,
+				(game.turrets[ti].ex >> 8) + game.offsetX,
+				(game.player.y >> 8) + game.offsetY + (game.player.pY >> 1),
 			);
 		}
-		if (game.perso.fadeNextLevel == -1) {
-			game.tourelles[tour].move();
-			if (game.needRedrawTiles == 0) game.needRedrawTiles = dansUnPortal(game.tourelles[tour]);
+		if (game.player.fadeNextLevel == -1) {
+			game.turrets[ti].move();
+			if (game.needRedrawTiles == 0) game.needRedrawTiles = inPortal(game.turrets[ti]);
 		}
 	}
 }
@@ -551,34 +551,34 @@ export function drawTourelles() {
  */
 export function drawPlasma() {
 	let r, vy;
-	for (let plasm = 0; plasm < game.plasmaBall.length; plasm++) {
-		if (game.plasmaBall[plasm].used) {
+	for (let pi = 0; pi < game.plasmaBall.length; pi++) {
+		if (game.plasmaBall[pi].used) {
 			let vx = (vy = 0);
-			if (game.plasmaBall[plasm].vx != 0) vy = game.plasmaBall[plasm].scale;
-			else if (game.plasmaBall[plasm].vy != 0) vx = game.plasmaBall[plasm].scale;
+			if (game.plasmaBall[pi].vx != 0) vy = game.plasmaBall[pi].scale;
+			else if (game.plasmaBall[pi].vy != 0) vx = game.plasmaBall[pi].scale;
 			if (game.TIME % 10 == 0) {
 				do {
 					r = parseInt(random(0, 3));
-				} while (game.plasmaBall[plasm].animFrame == r);
-				game.plasmaBall[plasm].animFrame = r;
+				} while (game.plasmaBall[pi].animFrame == r);
+				game.plasmaBall[pi].animFrame = r;
 			}
 			ctx.drawImage(
 				plasma,
 				0,
-				game.plasmaBall[plasm].animFrame * 16,
+				game.plasmaBall[pi].animFrame * 16,
 				16,
 				16,
-				(game.plasmaBall[plasm].x >> 8) + game.ECART_X + vx,
-				(game.plasmaBall[plasm].y >> 8) + game.ECART_Y + vy,
+				(game.plasmaBall[pi].x >> 8) + game.offsetX + vx,
+				(game.plasmaBall[pi].y >> 8) + game.offsetY + vy,
 				16,
 				16,
 			);
-			if (game.perso.fadeNextLevel == -1) {
-				game.plasmaBall[plasm].move();
-				if (game.needRedrawTiles == 0) game.needRedrawTiles = dansUnPortal(game.plasmaBall[plasm]);
-				if (game.plasmaBall[plasm].needKill) {
-					game.plasmaBall.splice(plasm, 1);
-					plasm--;
+			if (game.player.fadeNextLevel == -1) {
+				game.plasmaBall[pi].move();
+				if (game.needRedrawTiles == 0) game.needRedrawTiles = inPortal(game.plasmaBall[pi]);
+				if (game.plasmaBall[pi].needKill) {
+					game.plasmaBall.splice(pi, 1);
+					pi--;
 				}
 			}
 		}
@@ -590,50 +590,50 @@ export function drawPlasma() {
  *
  * @returns {void}
  */
-function drawProjos() {
-	let pr;
-	for (pr = 0; pr < game.projos.length; pr++) {
-		game.projos[pr].move();
+function drawProjectiles() {
+	let pi;
+	for (pi = 0; pi < game.projectiles.length; pi++) {
+		game.projectiles[pi].move();
 
-		if (settings.quality > 0 && !game.projos[pr].needKill) {
+		if (settings.quality > 0 && !game.projectiles[pi].needKill) {
 			ctx.globalAlpha = 0.5;
 			ctx.drawImage(
-				tileset[game.projos[pr].img],
-				((game.projos[pr].x - game.projos[pr].vx * 4) >> 8) + game.ECART_X,
-				((game.projos[pr].y - game.projos[pr].vy * 4) >> 8) + game.ECART_Y,
+				tileset[game.projectiles[pi].img],
+				((game.projectiles[pi].x - game.projectiles[pi].vx * 4) >> 8) + game.offsetX,
+				((game.projectiles[pi].y - game.projectiles[pi].vy * 4) >> 8) + game.offsetY,
 				16,
 				16,
 			);
 			ctx.globalAlpha = 0.75;
 			ctx.drawImage(
-				tileset[game.projos[pr].img],
-				((game.projos[pr].x - game.projos[pr].vx * 2) >> 8) + game.ECART_X,
-				((game.projos[pr].y - game.projos[pr].vy * 2) >> 8) + game.ECART_Y,
+				tileset[game.projectiles[pi].img],
+				((game.projectiles[pi].x - game.projectiles[pi].vx * 2) >> 8) + game.offsetX,
+				((game.projectiles[pi].y - game.projectiles[pi].vy * 2) >> 8) + game.offsetY,
 				16,
 				16,
 			);
 			ctx.globalAlpha = 1;
 		}
 		ctx.drawImage(
-			tileset[game.projos[pr].img],
-			(game.projos[pr].x >> 8) + game.ECART_X,
-			(game.projos[pr].y >> 8) + game.ECART_Y,
+			tileset[game.projectiles[pi].img],
+			(game.projectiles[pi].x >> 8) + game.offsetX,
+			(game.projectiles[pi].y >> 8) + game.offsetY,
 			16,
 			16,
 		);
 
-		if (!game.projos[pr].needKill && projoTouchePerso(game.projos[pr])) {
-			game.projos.splice(pr, 1);
-			pr--;
-			game.perso.vie = -200;
-			game.perso.timeVie = 180;
+		if (!game.projectiles[pi].needKill && projectileTouchesPlayer(game.projectiles[pi])) {
+			game.projectiles.splice(pi, 1);
+			pi--;
+			game.player.life = -200;
+			game.player.recoveryTime = 180;
 			return;
 		}
 
-		if (game.projos[pr].needKill) {
-			if (game.projos[pr].timer == 0 || settings.quality == 0) {
-				game.projos.splice(pr, 1);
-				pr--;
+		if (game.projectiles[pi].needKill) {
+			if (game.projectiles[pi].timer == 0 || settings.quality == 0) {
+				game.projectiles.splice(pi, 1);
+				pi--;
 			}
 		}
 	}
@@ -644,49 +644,49 @@ function drawProjos() {
  *
  * @returns {void}
  */
-export function drawCaisses() {
-	let cai;
-	for (cai = 0; cai < game.caisses.length; cai++) {
+export function drawCrates() {
+	let ci;
+	for (ci = 0; ci < game.crates.length; ci++) {
 		let sc = 1;
 		let dxy = 0;
-		if (game.caisses[cai].shrink > 0) {
-			game.caisses[cai].x += game.caisses[cai].vx >> 1;
-			game.caisses[cai].y += game.caisses[cai].vy >> 1;
-			sc = game.caisses[cai].shrink / 60;
+		if (game.crates[ci].shrink > 0) {
+			game.crates[ci].x += game.crates[ci].vx >> 1;
+			game.crates[ci].y += game.crates[ci].vy >> 1;
+			sc = game.crates[ci].shrink / 60;
 			dxy = (16 - parseInt(16 * sc)) / 2;
 		}
 
 		if (settings.quality > 0) {
 			ctx.save();
 			ctx.translate(
-				(game.caisses[cai].x >> 8) + (game.caisses[cai].pX >> 1) + game.ECART_X,
-				(game.caisses[cai].y >> 8) + (game.caisses[cai].pY >> 1) + game.ECART_Y,
+				(game.crates[ci].x >> 8) + (game.crates[ci].pX >> 1) + game.offsetX,
+				(game.crates[ci].y >> 8) + (game.crates[ci].pY >> 1) + game.offsetY,
 			);
-			ctx.rotate(degToRad(game.caisses[cai].angle));
-			ctx.drawImage(caisse, 0, 0, 16, 16, -(game.caisses[cai].pX >> 1), -(game.caisses[cai].pY >> 1), 16 * sc, 16 * sc);
+			ctx.rotate(degToRad(game.crates[ci].angle));
+			ctx.drawImage(crateImage, 0, 0, 16, 16, -(game.crates[ci].pX >> 1), -(game.crates[ci].pY >> 1), 16 * sc, 16 * sc);
 			ctx.restore();
 		} else {
 			ctx.drawImage(
-				caisse,
+				crateImage,
 				0,
 				0,
 				16,
 				16,
-				(game.caisses[cai].x >> 8) + game.ECART_X + dxy,
-				(game.caisses[cai].y >> 8) + game.ECART_Y + dxy,
+				(game.crates[ci].x >> 8) + game.offsetX + dxy,
+				(game.crates[ci].y >> 8) + game.offsetY + dxy,
 				16 * sc,
 				16 * sc,
 			);
 		}
 
-		if (game.perso.fadeNextLevel == -1) {
-			game.caisses[cai].move();
-			if (game.caisses[cai].needKill) {
-				game.caisses.splice(cai, 1);
-				cai--;
+		if (game.player.fadeNextLevel == -1) {
+			game.crates[ci].move();
+			if (game.crates[ci].needKill) {
+				game.crates.splice(ci, 1);
+				ci--;
 				continue;
 			}
-			if (game.needRedrawTiles == 0) game.needRedrawTiles = dansUnPortal(game.caisses[cai]);
+			if (game.needRedrawTiles == 0) game.needRedrawTiles = inPortal(game.crates[ci]);
 		}
 	}
 }
@@ -725,16 +725,16 @@ function drawOneField(sx, sy, nx, ny, vx, vy) {
 	const x = nx;
 	const y = ny;
 	if (vx < 0) {
-		ctx.fillRect(sx + game.ECART_X, sy + game.ECART_Y, -(sx - x - 16), 32);
+		ctx.fillRect(sx + game.offsetX, sy + game.offsetY, -(sx - x - 16), 32);
 		game.forceFields.push(new ForceField(sx, sy, -(sx - x - 16), 32, -1, 0));
 	} else if (vx > 0) {
-		ctx.fillRect(sx + game.ECART_X, sy + game.ECART_Y, x - sx, 32);
+		ctx.fillRect(sx + game.offsetX, sy + game.offsetY, x - sx, 32);
 		game.forceFields.push(new ForceField(sx, sy, x - sx, 32, 1, 0));
 	} else if (vy < 0) {
-		ctx.fillRect(sx + game.ECART_X, sy + game.ECART_Y, 32, -(sy - y - 16));
+		ctx.fillRect(sx + game.offsetX, sy + game.offsetY, 32, -(sy - y - 16));
 		game.forceFields.push(new ForceField(sx, sy, 32, -(sy - y - 16), 0, -1));
 	} else if (vy > 0) {
-		ctx.fillRect(sx + game.ECART_X, sy + game.ECART_Y, 32, y - sy);
+		ctx.fillRect(sx + game.offsetX, sy + game.offsetY, 32, y - sy);
 		game.forceFields.push(new ForceField(sx, sy, 32, y - sy, 0, 1));
 	}
 }
@@ -761,15 +761,15 @@ function drawTunnelField(sx, sy, vx, vy) {
 
 	while (x >= 0 && x < 512 && y >= 0 && y < 384) {
 		if (vx != 0) {
-			tile = getTileNoCaisseNoPlate(x, y);
-			if (tile == Tile.EMPTY) tile = getTileNoCaisseNoPlate(x, y + 8);
-			if (tile == Tile.EMPTY) tile = getTileNoCaisseNoPlate(x, y + 16);
-			if (tile == Tile.EMPTY) tile = getTileNoCaisseNoPlate(x, y + 31);
+			tile = getTileWithoutObjects(x, y);
+			if (tile == Tile.EMPTY) tile = getTileWithoutObjects(x, y + 8);
+			if (tile == Tile.EMPTY) tile = getTileWithoutObjects(x, y + 16);
+			if (tile == Tile.EMPTY) tile = getTileWithoutObjects(x, y + 31);
 		} else if (vy != 0) {
-			tile = getTileNoCaisse(x, y);
-			if (tile == Tile.EMPTY) tile = getTileNoCaisse(x + 8, y);
-			if (tile == Tile.EMPTY) tile = getTileNoCaisse(x + 16, y);
-			if (tile == Tile.EMPTY) tile = getTileNoCaisse(x + 31, y);
+			tile = getTileWithoutCrates(x, y);
+			if (tile == Tile.EMPTY) tile = getTileWithoutCrates(x + 8, y);
+			if (tile == Tile.EMPTY) tile = getTileWithoutCrates(x + 16, y);
+			if (tile == Tile.EMPTY) tile = getTileWithoutCrates(x + 31, y);
 		}
 
 		if (tile != Tile.EMPTY && (tile < NUM_TILES || tile == Tile.TUNNEL_BLOCK || tile >= PLATFORM_CODE)) {
@@ -791,28 +791,28 @@ function drawTunnelField(sx, sy, vx, vy) {
 				}
 				if (p1 == p2 && p1 > -1) {
 					const p = p1;
-					if (game.portals[p].direction == DROITE) {
+					if (game.portals[p].direction == Direction.RIGHT) {
 						sx = game.portals[p].x >> 8;
 						sy = game.portals[p].y >> 8;
 						vx = -1;
 						vy = 0;
 						y = sy;
 						x = sx;
-					} else if (game.portals[p].direction == GAUCHE) {
+					} else if (game.portals[p].direction == Direction.LEFT) {
 						sx = (game.portals[p].x >> 8) + 3;
 						sy = game.portals[p].y >> 8;
 						vx = 1;
 						vy = 0;
 						y = sy;
 						x = sx;
-					} else if (game.portals[p].direction == HAUT) {
+					} else if (game.portals[p].direction == Direction.UP) {
 						sx = game.portals[p].x >> 8;
 						sy = game.portals[p].y >> 8;
 						vx = 0;
 						vy = 1;
 						y = sy + 3;
 						x = sx;
-					} else if (game.portals[p].direction == BAS) {
+					} else if (game.portals[p].direction == Direction.DOWN) {
 						sx = game.portals[p].x >> 8;
 						sy = game.portals[p].y >> 8;
 						vx = 0;
@@ -842,74 +842,74 @@ function drawTunnelField(sx, sy, vx, vy) {
  * @returns {void}
  */
 export function drawTunnels() {
-	let tu;
+	let tn;
 	if (game.tunnels.length > 0) {
 		game.forceFields = new Array();
 		ctx.fillStyle = 'rgb(151, 206, 233)';
 	}
-	for (tu in game.tunnels) {
-		const x = game.tunnels[tu].x >> 8;
-		const y = game.tunnels[tu].y >> 8;
+	for (tn in game.tunnels) {
+		const x = game.tunnels[tn].x >> 8;
+		const y = game.tunnels[tn].y >> 8;
 
 		let vx = 0;
 		let vy = 0;
-		if (game.tunnels[tu].dir == DROITE) {
+		if (game.tunnels[tn].dir == Direction.RIGHT) {
 			vx = 1;
-		} else if (game.tunnels[tu].dir == GAUCHE) {
+		} else if (game.tunnels[tn].dir == Direction.LEFT) {
 			vx = -1;
-		} else if (game.tunnels[tu].dir == HAUT) {
+		} else if (game.tunnels[tn].dir == Direction.UP) {
 			vy = -1;
-		} else if (game.tunnels[tu].dir == BAS) {
+		} else if (game.tunnels[tn].dir == Direction.DOWN) {
 			vy = 1;
 		}
 
 		drawTunnelField(x, y, vx, vy);
 
-		if (game.tunnels[tu].dir == DROITE) {
+		if (game.tunnels[tn].dir == Direction.RIGHT) {
 			ctx.drawImage(
 				tunnel,
 				0,
 				0,
 				16,
 				32,
-				(game.tunnels[tu].x >> 8) + game.ECART_X,
-				(game.tunnels[tu].y >> 8) + game.ECART_Y,
+				(game.tunnels[tn].x >> 8) + game.offsetX,
+				(game.tunnels[tn].y >> 8) + game.offsetY,
 				16,
 				32,
 			);
-		} else if (game.tunnels[tu].dir == GAUCHE) {
+		} else if (game.tunnels[tn].dir == Direction.LEFT) {
 			ctx.drawImage(
 				tunnel,
 				0,
 				32,
 				16,
 				32,
-				(game.tunnels[tu].x >> 8) + game.ECART_X,
-				(game.tunnels[tu].y >> 8) + game.ECART_Y,
+				(game.tunnels[tn].x >> 8) + game.offsetX,
+				(game.tunnels[tn].y >> 8) + game.offsetY,
 				16,
 				32,
 			);
-		} else if (game.tunnels[tu].dir == HAUT) {
+		} else if (game.tunnels[tn].dir == Direction.UP) {
 			ctx.drawImage(
 				tunnel2,
 				0,
 				0,
 				32,
 				16,
-				(game.tunnels[tu].x >> 8) + game.ECART_X,
-				(game.tunnels[tu].y >> 8) + game.ECART_Y,
+				(game.tunnels[tn].x >> 8) + game.offsetX,
+				(game.tunnels[tn].y >> 8) + game.offsetY,
 				32,
 				16,
 			);
-		} else if (game.tunnels[tu].dir == BAS) {
+		} else if (game.tunnels[tn].dir == Direction.DOWN) {
 			ctx.drawImage(
 				tunnel2,
 				32,
 				0,
 				32,
 				16,
-				(game.tunnels[tu].x >> 8) + game.ECART_X,
-				(game.tunnels[tu].y >> 8) + game.ECART_Y,
+				(game.tunnels[tn].x >> 8) + game.offsetX,
+				(game.tunnels[tn].y >> 8) + game.offsetY,
 				32,
 				16,
 			);
@@ -922,20 +922,20 @@ export function drawTunnels() {
  *
  * @returns {void}
  */
-export function drawPlatformes() {
-	let pla;
-	for (pla in game.platforms) {
-		const x = (game.platforms[pla].x >> 8) + game.ECART_X;
-		const y = (game.platforms[pla].y >> 8) + game.ECART_Y;
+export function drawPlatforms() {
+	let pi;
+	for (pi in game.platforms) {
+		const x = (game.platforms[pi].x >> 8) + game.offsetX;
+		const y = (game.platforms[pi].y >> 8) + game.offsetY;
 
 		ctx.drawImage(platform, x, y);
 		if (ui.currentMenu == Menu.EDITOR && !isTestingLevel) {
 			ctx.fillStyle = 'rgb(255, 0, 0)';
 			ctx.strokeStyle = 'rgb(255, 0, 0)';
-			drawArrow(x + 5, y + 8, x + 15, y + 8, 3, game.platforms[pla].dir);
+			drawArrow(x + 5, y + 8, x + 15, y + 8, 3, game.platforms[pi].dir);
 		}
-		if (game.perso.fadeNextLevel == -1) {
-			game.platforms[pla].move();
+		if (game.player.fadeNextLevel == -1) {
+			game.platforms[pi].move();
 		}
 	}
 }
@@ -949,10 +949,10 @@ export function drawFrontTiles() {
 	let tx, ty, t, p, i;
 	if (game.needRedrawTiles > 0) {
 		for (p in game.portals) {
-			if (game.portals[p].plateforme == -1) {
+			if (game.portals[p].platformIndex == -1) {
 				const x = game.portals[p].x >> 8;
 				const y = game.portals[p].y >> 8;
-				if (game.portals[p].direction == HAUT || game.portals[p].direction == BAS) {
+				if (game.portals[p].direction == Direction.UP || game.portals[p].direction == Direction.DOWN) {
 					tx = x >> 4;
 					ty = y >> 4;
 					for (i = 0; i < 4; i++) {
@@ -961,15 +961,15 @@ export function drawFrontTiles() {
 							if (tileset[game.displayMap[t]]) {
 								ctx.drawImage(
 									tileset[game.displayMap[t]],
-									(tx + i) * 16 + game.ECART_X,
-									ty * 16 + game.ECART_Y,
+									(tx + i) * 16 + game.offsetX,
+									ty * 16 + game.offsetY,
 									16,
 									16,
 								);
 							}
 						}
 					}
-				} else if (game.portals[p].direction == GAUCHE || game.portals[p].direction == DROITE) {
+				} else if (game.portals[p].direction == Direction.LEFT || game.portals[p].direction == Direction.RIGHT) {
 					tx = x >> 4;
 					ty = y >> 4;
 					for (i = 0; i < 4; i++) {
@@ -978,8 +978,8 @@ export function drawFrontTiles() {
 							if (game.displayMap[t] < tileset.length) {
 								ctx.drawImage(
 									tileset[game.displayMap[t]],
-									tx * 16 + game.ECART_X,
-									(ty + i) * 16 + game.ECART_Y,
+									tx * 16 + game.offsetX,
+									(ty + i) * 16 + game.offsetY,
 									16,
 									16,
 								);
@@ -1001,13 +1001,13 @@ function drawCamera() {
 	game.camera.move();
 
 	const a = getAngle(
-		(game.perso.x >> 8) + (game.perso.pX >> 1),
-		(game.perso.y >> 8) + 8,
+		(game.player.x >> 8) + (game.player.pX >> 1),
+		(game.player.y >> 8) + 8,
 		(game.camera.x >> 8) + 8,
 		(game.camera.y >> 8) + 8,
 	);
 	ctx.save();
-	ctx.translate((game.camera.x >> 8) + 8 + game.ECART_X, (game.camera.y >> 8) + 8 + game.ECART_Y);
+	ctx.translate((game.camera.x >> 8) + 8 + game.offsetX, (game.camera.y >> 8) + 8 + game.offsetY);
 	ctx.rotate(a);
 	ctx.drawImage(cameraFollow, 0, 0);
 	ctx.restore();
@@ -1019,30 +1019,30 @@ function drawCamera() {
  * @returns {void}
  */
 export function drawPortals() {
-	let prt, dy;
-	for (prt in game.portals) {
-		if (game.portals[prt].used) {
-			if (game.portals[prt].scaleX < 1) game.portals[prt].scaleX += 0.1;
-			else if (game.portals[prt].scaleY < 1) game.portals[prt].scaleY += 0.1;
+	let pi, dy;
+	for (pi in game.portals) {
+		if (game.portals[pi].used) {
+			if (game.portals[pi].scaleX < 1) game.portals[pi].scaleX += 0.1;
+			else if (game.portals[pi].scaleY < 1) game.portals[pi].scaleY += 0.1;
 
 			let dx = (dy = 0);
-			if (game.portals[prt].direction == GAUCHE || game.portals[prt].direction == DROITE)
-				dy = 16 - game.portals[prt].scaleY * 16;
-			else if (game.portals[prt].direction == HAUT || game.portals[prt].direction == HAUT)
-				dx = 16 - game.portals[prt].scaleX * 16;
+			if (game.portals[pi].direction == Direction.LEFT || game.portals[pi].direction == Direction.RIGHT)
+				dy = 16 - game.portals[pi].scaleY * 16;
+			else if (game.portals[pi].direction == Direction.UP || game.portals[pi].direction == Direction.UP)
+				dx = 16 - game.portals[pi].scaleX * 16;
 
-			game.portals[prt].move();
+			game.portals[pi].move();
 
 			ctx.drawImage(
-				prt == 0 ? bluePortal : redPortal,
+				pi == 0 ? bluePortal : redPortal,
 				0,
-				32 * game.portals[prt].frame,
+				32 * game.portals[pi].frame,
 				32,
 				32,
-				(game.portals[prt].x >> 8) + dx + game.ECART_X,
-				(game.portals[prt].y >> 8) + dy + game.ECART_Y,
-				32 * game.portals[prt].scaleX,
-				32 * game.portals[prt].scaleY,
+				(game.portals[pi].x >> 8) + dx + game.offsetX,
+				(game.portals[pi].y >> 8) + dy + game.offsetY,
+				32 * game.portals[pi].scaleX,
+				32 * game.portals[pi].scaleY,
 			);
 		}
 	}
@@ -1056,7 +1056,7 @@ export function drawPortals() {
  * @param {number} flipX The direction, 1 right or -1 left.
  * @returns {void}
  */
-export function drawPerso(x, y, flipX) {
+export function drawPlayer(x, y, flipX) {
 	const flipDx = flipX < 0 ? 1 : 0;
 	ctx.drawImage(body[flipDx], 16, 0, 16, 27, x, y, 16, 27);
 	ctx.drawImage(head[flipDx], 16, 0, 15, 12, x, y, 16, 12);

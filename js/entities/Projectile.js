@@ -2,7 +2,7 @@
  * The Projectile object and its helper functions.
  */
 
-import { collideAnyCaisse } from './Caisse.js';
+import { anyCrateAt } from './Crate.js';
 import { getTile } from '../physics.js';
 import { game } from '../state.js';
 import { FIRST_OF_KIND, LAST_OF_KIND, PLATFORM_CODE, TileKind } from '../tiles.js';
@@ -61,10 +61,10 @@ export class Projectile {
 					this.timer = 0;
 				}
 			} else {
-				if (collideAnyCaisse(this.x >> 8, this.y >> 8)) this.needKill = true;
-				else if (collideAnyCaisse((this.x >> 8) + 16, this.y >> 8)) this.needKill = true;
-				else if (collideAnyCaisse(this.x >> 8, (this.y >> 8) + 16)) this.needKill = true;
-				else if (collideAnyCaisse((this.x >> 8) + 16, (this.y >> 8) + 16)) this.needKill = true;
+				if (anyCrateAt(this.x >> 8, this.y >> 8)) this.needKill = true;
+				else if (anyCrateAt((this.x >> 8) + 16, this.y >> 8)) this.needKill = true;
+				else if (anyCrateAt(this.x >> 8, (this.y >> 8) + 16)) this.needKill = true;
+				else if (anyCrateAt((this.x >> 8) + 16, (this.y >> 8) + 16)) this.needKill = true;
 			}
 		} else {
 			if (--this.timer < 0) this.timer = 0;
@@ -78,16 +78,16 @@ export class Projectile {
  * @param {Projectile} obj The wheel.
  * @returns {number} 1 if the wheel overlaps the player, else 0.
  */
-export function projoTouchePerso(obj) {
+export function projectileTouchesPlayer(obj) {
 	const posx = obj.x >> 8;
 	const posy = obj.y >> 8;
 	const px = obj.pX;
 	const py = obj.pY;
 
-	const x = game.perso.x >> 8;
-	const y = game.perso.y >> 8;
+	const x = game.player.x >> 8;
+	const y = game.player.y >> 8;
 
-	if (posx + px > x && x + game.perso.pX > posx && posy + py > y && y + game.perso.pY > posy) {
+	if (posx + px > x && x + game.player.pX > posx && posy + py > y && y + game.player.pY > posy) {
 		return true;
 	}
 

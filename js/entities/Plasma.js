@@ -3,9 +3,9 @@
  */
 
 import { playSound, setSoundVolume, sfx_bounce } from '../audio.js';
-import { BAS, DROITE, GAUCHE, HAUT } from '../constants.js';
+import { Direction } from '../constants.js';
 import { getCollision, getTileSimple } from '../physics.js';
-import { dansUnPortal } from '../portals.js';
+import { inPortal } from '../portals.js';
 import { reloadTiles } from '../render/game.js';
 import { game, settings } from '../state.js';
 import { Tile, TileKind, isTileKind } from '../tiles.js';
@@ -77,20 +77,20 @@ export class Plasma {
 		const vx = this.vx;
 		const vy = this.vy;
 
-		if (!dansUnPortal(this)) {
+		if (!inPortal(this)) {
 			this.checkCollision();
 			if (game.bossNum == 3 || game.bossNum == 4) {
-				if (this.x < game.perso.x) this.vx += 4;
-				else if (this.x > game.perso.x) this.vx -= 4;
-				if (this.y < game.perso.y) this.vy += 4;
-				else if (this.y > game.perso.y) this.vy -= 4;
+				if (this.x < game.player.x) this.vx += 4;
+				else if (this.x > game.player.x) this.vx -= 4;
+				if (this.y < game.player.y) this.vy += 4;
+				else if (this.y > game.player.y) this.vy -= 4;
 
-				const vmx = 3;
+				const maxSpeed = 3;
 
-				if (this.vx > vmx << 8) this.vx = vmx << 8;
-				else if (this.vx < -(vmx << 8)) this.vx = -(vmx << 8);
-				if (this.vy > vmx << 8) this.vy = vmx << 8;
-				else if (this.vy < -(vmx << 8)) this.vy = -(vmx << 8);
+				if (this.vx > maxSpeed << 8) this.vx = maxSpeed << 8;
+				else if (this.vx < -(maxSpeed << 8)) this.vx = -(maxSpeed << 8);
+				if (this.vy > maxSpeed << 8) this.vy = maxSpeed << 8;
+				else if (this.vy < -(maxSpeed << 8)) this.vy = -(maxSpeed << 8);
 
 				if (this.x > game.tubeX) this.needKill = true;
 			}
@@ -126,7 +126,7 @@ export class Plasma {
 	 *
 	 * @returns {void}
 	 */
-	ouvrirPorte() {
+	openSwitchDoors() {
 		let i;
 		for (i in game.animatedTiles) {
 			if (isTileKind(game.animatedTiles[i].current, TileKind.PLASMA_DOOR)) {
@@ -145,7 +145,7 @@ export class Plasma {
 	 *
 	 * @returns {number} 1 if a slot exists, else 0.
 	 */
-	encore() {
+	hasSlot() {
 		let i;
 		for (i = 0; i < 768; i++) {
 			if (game.map[i] == Tile.PLASMA_SLOT) return 1;
@@ -161,15 +161,15 @@ export class Plasma {
 	 */
 	checkCollision() {
 		let x, y, i;
-		let dist = getDistance(this.x >> 8, this.y >> 8, game.perso.x >> 8, game.perso.y >> 8);
+		let dist = getDistance(this.x >> 8, this.y >> 8, game.player.x >> 8, game.player.y >> 8);
 		if (dist > 384) dist = 384;
 		setSoundVolume(sfx_bounce, 1 - dist / 384);
 
-		if (getCollision(this) == GAUCHE) {
+		if (getCollision(this) == Direction.LEFT) {
 			playSound(sfx_bounce);
 			do {
 				this.x += 128;
-			} while (getCollision(this) == GAUCHE);
+			} while (getCollision(this) == Direction.LEFT);
 			this.vx = -this.vx;
 
 			x = (this.x >> 8) - 1;
@@ -182,9 +182,9 @@ export class Plasma {
 					game.map[x + (y << 5)] = Tile.WALL;
 					game.displayMap[x + (y << 5)] = Tile.WALL;
 					reloadTiles();
-					if (!this.encore()) {
+					if (!this.hasSlot()) {
 						this.used = 0;
-						this.ouvrirPorte();
+						this.openSwitchDoors();
 					} else {
 						this.x = this.xOrig;
 						this.y = this.yOrig;
@@ -193,11 +193,11 @@ export class Plasma {
 					}
 				}
 			}
-		} else if (getCollision(this) == DROITE) {
+		} else if (getCollision(this) == Direction.RIGHT) {
 			playSound(sfx_bounce);
 			do {
 				this.x -= 128;
-			} while (getCollision(this) == DROITE);
+			} while (getCollision(this) == Direction.RIGHT);
 			this.vx = -this.vx;
 
 			x = (this.x >> 8) + 16;
@@ -210,9 +210,9 @@ export class Plasma {
 					game.map[x + (y << 5)] = Tile.WALL;
 					game.displayMap[x + (y << 5)] = Tile.WALL;
 					reloadTiles();
-					if (!this.encore()) {
+					if (!this.hasSlot()) {
 						this.used = 0;
-						this.ouvrirPorte();
+						this.openSwitchDoors();
 					} else {
 						this.x = this.xOrig;
 						this.y = this.yOrig;
@@ -221,11 +221,11 @@ export class Plasma {
 					}
 				}
 			}
-		} else if (getCollision(this) == HAUT) {
+		} else if (getCollision(this) == Direction.UP) {
 			playSound(sfx_bounce);
 			do {
 				this.y += 128;
-			} while (getCollision(this) == HAUT);
+			} while (getCollision(this) == Direction.UP);
 			this.vy = -this.vy;
 
 			x = this.x >> 8;
@@ -238,9 +238,9 @@ export class Plasma {
 					game.map[x + (y << 5)] = Tile.WALL;
 					game.displayMap[x + (y << 5)] = Tile.WALL;
 					reloadTiles();
-					if (!this.encore()) {
+					if (!this.hasSlot()) {
 						this.used = 0;
-						this.ouvrirPorte();
+						this.openSwitchDoors();
 					} else {
 						this.x = this.xOrig;
 						this.y = this.yOrig;
@@ -249,11 +249,11 @@ export class Plasma {
 					}
 				}
 			}
-		} else if (getCollision(this) == BAS) {
+		} else if (getCollision(this) == Direction.DOWN) {
 			playSound(sfx_bounce);
 			do {
 				this.y -= 128;
-			} while (getCollision(this) == BAS);
+			} while (getCollision(this) == Direction.DOWN);
 			this.vy = -this.vy;
 
 			x = this.x >> 8;
@@ -266,9 +266,9 @@ export class Plasma {
 					game.map[x + (y << 5)] = Tile.WALL;
 					game.displayMap[x + (y << 5)] = Tile.WALL;
 					reloadTiles();
-					if (!this.encore()) {
+					if (!this.hasSlot()) {
 						this.used = 0;
-						this.ouvrirPorte();
+						this.openSwitchDoors();
 					} else {
 						this.x = this.xOrig;
 						this.y = this.yOrig;
@@ -287,7 +287,7 @@ export class Plasma {
  * @param {object} obj The object with x, y, pX and pY.
  * @returns {number} 1 if a ball overlaps the object, else 0.
  */
-export function plasmaToucheObjet(obj) {
+export function plasmaTouching(obj) {
 	let i;
 	for (i in game.plasmaBall) {
 		if (game.plasmaBall[i].used) {

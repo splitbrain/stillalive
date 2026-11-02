@@ -14,7 +14,7 @@ import { inForceFieldRange } from '../tiles.js';
  */
 export function fieldForceTest() {
 	if (game.portals[0].used || game.portals[1].used) {
-		if (inForceField(game.perso)) {
+		if (inForceField(game.player)) {
 			let i;
 			for (i = 0; i < 2; i++) {
 				game.portals[i].used = 0;

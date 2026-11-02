@@ -38,14 +38,14 @@ export class Camera {
 
 		let angle;
 
-		if (game.perso.flip == -1) {
+		if (game.player.flip == -1) {
 			angle = 335;
 		} else {
 			angle = 185;
 		}
 
-		const dx = game.perso.x + Math.cos((angle / 180) * Math.PI) * (40 << 8);
-		const dy = game.perso.y + Math.sin((angle / 180) * Math.PI) * (40 << 8);
+		const dx = game.player.x + Math.cos((angle / 180) * Math.PI) * (40 << 8);
+		const dy = game.player.y + Math.sin((angle / 180) * Math.PI) * (40 << 8);
 
 		this.vx = (dx - this.x) >> 4;
 		this.vy = (dy - this.y) >> 4;

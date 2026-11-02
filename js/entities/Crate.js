@@ -1,28 +1,28 @@
 /**
- * The Caisse object and its helper functions.
+ * The Crate object and its helper functions.
  */
 
-import { manageInTube, manageToucheBoss } from '../boss.js';
+import { hitBoss, manageInTube } from '../boss.js';
 import { inForceField } from './ForceField.js';
-import { plasmaToucheObjet } from './Plasma.js';
-import { onPlateforme } from './Platform.js';
+import { plasmaTouching } from './Plasma.js';
+import { onPlatform } from './Platform.js';
 import {
 	getTileSimple,
 	leftCollision,
 	moveObject,
 	placeObject,
 	rightCollision,
-	toucheTileMort,
+	touchesDeadlyTile,
 	touchingGround,
 } from '../physics.js';
-import { dansUnPortal } from '../portals.js';
+import { inPortal } from '../portals.js';
 import { game } from '../state.js';
 import { CRATE_CODE, LAST_OF_KIND, TileKind, isTileKind } from '../tiles.js';
 
 /**
  * A crate. The player can carry and throw it, and it can press switches and stop turret shots.
  */
-export class Caisse {
+export class Crate {
 	/**
 	 * @param {number} x The x position in 1/256 pixels.
 	 * @param {number} y The y position in 1/256 pixels.
@@ -47,13 +47,13 @@ export class Caisse {
 		/** @type {number} The vertical speed in 1/256 pixels per tick. */
 		this.vy = 0;
 		/** @type {number} 1 while the player carries the crate. */
-		this.porter = 0;
+		this.carried = 0;
 		/** @type {number} The index of the platform that the crate stands on, or -1. */
-		this.plateforme = -1;
+		this.platformIndex = -1;
 		/** @type {number} The conveyor belt that the crate stands on: 3 to the right, 4 to the left, 0 for none. */
 		this.carpet = 0;
 		/** @type {string} The entity type, used by the shared object functions. */
-		this.type = 'caisse';
+		this.type = 'crate';
 		/**
 		 * @type {number} Ticks left of the shrink animation after a force field destroyed the crate, 0 for a normal
 		 * crate.
@@ -97,7 +97,7 @@ export class Caisse {
 		if (this.noRemove > 0) this.noRemove--;
 
 		if (this.shrink == 0) {
-			if (!this.porter) {
+			if (!this.carried) {
 				moveObject(this);
 
 				if (game.bossNum > 0) {
@@ -127,29 +127,29 @@ export class Caisse {
 						return;
 					}
 
-					manageToucheBoss(this);
+					hitBoss(this);
 				}
 
-				let plt = onPlateforme(this);
-				if (plt) {
-					plt -= 200;
-					this.x += game.platforms[plt].vx;
-					this.plateforme = plt;
-					if (game.platforms[plt].vx < 0 && leftCollision(this)) this.x -= game.platforms[plt].vx;
-					else if (game.platforms[plt].vx > 0 && rightCollision(this)) this.x -= game.platforms[plt].vx;
-				} else this.plateforme = -1;
+				let pi = onPlatform(this);
+				if (pi) {
+					pi -= 200;
+					this.x += game.platforms[pi].vx;
+					this.platformIndex = pi;
+					if (game.platforms[pi].vx < 0 && leftCollision(this)) this.x -= game.platforms[pi].vx;
+					else if (game.platforms[pi].vx > 0 && rightCollision(this)) this.x -= game.platforms[pi].vx;
+				} else this.platformIndex = -1;
 
 				if (!touchingGround(this)) this.angle += (this.vx >> 8) << 1;
 				else this.angle = 0;
 				if (this.angle >= 360) this.angle -= 360;
-				if (caisseSurPerso(this)) {
-					while (caisseSurPerso(this)) this.y -= 256;
+				if (crateLandsOnPlayer(this)) {
+					while (crateLandsOnPlayer(this)) this.y -= 256;
 					this.vy = 0;
 					this.angle = 0;
 				}
 				const x = this.x >> 8;
 				const y = this.y >> 8;
-				if (x < -16 || x > 512 || y < -16 || y > 384 || toucheTileMort(this) || plasmaToucheObjet(this)) {
+				if (x < -16 || x > 512 || y < -16 || y > 384 || touchesDeadlyTile(this) || plasmaTouching(this)) {
 					if (game.bossNum == 1 || game.bossNum == 3 || game.bossNum == 4) {
 						this.needKill = true;
 						return;
@@ -178,7 +178,7 @@ export class Caisse {
 		}
 
 		if (this.shrink == 0 && inForceField(this)) {
-			this.porter = 0;
+			this.carried = 0;
 			this.shrink = 60;
 		}
 	}
@@ -191,12 +191,12 @@ export class Caisse {
  * @param {number} y The y coordinate in pixels.
  * @returns {number} The crate code of the crate, or 0.
  */
-export function collideCaisse(x, y) {
+export function crateAt(x, y) {
 	let i;
-	for (i in game.caisses) {
-		const x2 = game.caisses[i].x >> 8;
-		const y2 = game.caisses[i].y >> 8;
-		if (!game.caisses[i].porter && !dansUnPortal(game.caisses[i]) && x > x2 && x < x2 + 15 && y > y2 && y < y2 + 15) {
+	for (i in game.crates) {
+		const x2 = game.crates[i].x >> 8;
+		const y2 = game.crates[i].y >> 8;
+		if (!game.crates[i].carried && !inPortal(game.crates[i]) && x > x2 && x < x2 + 15 && y > y2 && y < y2 + 15) {
 			const ret = parseInt(i);
 			return CRATE_CODE + ret;
 		}
@@ -211,11 +211,11 @@ export function collideCaisse(x, y) {
  * @param {number} y The y coordinate in pixels.
  * @returns {number} The crate code of the crate, or 0.
  */
-export function collideAnyCaisse(x, y) {
+export function anyCrateAt(x, y) {
 	let i;
-	for (i in game.caisses) {
-		const x2 = game.caisses[i].x >> 8;
-		const y2 = game.caisses[i].y >> 8;
+	for (i in game.crates) {
+		const x2 = game.crates[i].x >> 8;
+		const y2 = game.crates[i].y >> 8;
 		if (x > x2 && x < x2 + 15 && y > y2 && y < y2 + 15) {
 			const ret = parseInt(i);
 			return CRATE_CODE + ret;
@@ -230,12 +230,12 @@ export function collideAnyCaisse(x, y) {
  * @param {object} obj The moving object.
  * @returns {number} 1 if the object is a crate that falls onto the player, else 0.
  */
-export function caisseSurPerso(obj) {
-	if (obj.type == 'caisse' && obj.vy > 0 && !dansUnPortal(obj)) {
+export function crateLandsOnPlayer(obj) {
+	if (obj.type == 'crate' && obj.vy > 0 && !inPortal(obj)) {
 		let x = (obj.x >> 8) + 3;
 		const y = (obj.y >> 8) + obj.pY;
-		const x2 = game.perso.x >> 8;
-		const y2 = game.perso.y >> 8;
+		const x2 = game.player.x >> 8;
+		const y2 = game.player.y >> 8;
 
 		if (x >= x2 && x < x2 + 16 && y >= y2 && y < y2 + 4) return 1;
 		else {
@@ -252,21 +252,21 @@ export function caisseSurPerso(obj) {
  * @param {object} obj The object with x, y, pX and pY.
  * @returns {number} The crate index plus 1, or 0 if no moving crate overlaps the object.
  */
-export function caisseToucheObjet(obj) {
+export function movingCrateTouching(obj) {
 	let i;
 	const posx = obj.x >> 8;
 	const posy = obj.y >> 8;
 	const px = obj.pX;
 	const py = obj.pY;
 
-	for (i in game.caisses) {
+	for (i in game.crates) {
 		if (
-			game.caisses[i].porter == 0 &&
-			(game.caisses[i].vx != 0 || game.caisses[i].vy != 0) &&
-			!dansUnPortal(game.caisses[i])
+			game.crates[i].carried == 0 &&
+			(game.crates[i].vx != 0 || game.crates[i].vy != 0) &&
+			!inPortal(game.crates[i])
 		) {
-			const x = game.caisses[i].x >> 8;
-			const y = game.caisses[i].y >> 8;
+			const x = game.crates[i].x >> 8;
+			const y = game.crates[i].y >> 8;
 			if (posx + px > x && x + 16 > posx && posy + py > y && y + 16 > posy) return i + 1;
 		}
 	}

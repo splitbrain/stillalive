@@ -6,8 +6,8 @@ import { allImagesLoaded, whenImagesDone } from './assets.js';
 import { allSoundsLoaded, loadSfx } from './audio.js';
 import { ctx } from './canvas.js';
 import { Menu } from './constants.js';
-import { validerArrivee } from './entities/Cake.js';
-import { Perso } from './entities/Perso.js';
+import { openExit } from './entities/Cake.js';
+import { Player } from './entities/Player.js';
 import { myLoop } from './game.js';
 import { loadGfx, loadSplashImages } from './images.js';
 import { unclick } from './input.js';
@@ -50,7 +50,7 @@ function setup() {
 
 	ui.currentMenu = Menu.LOADING;
 
-	game.perso = new Perso(); // the drawing reads the player before the first level loads
+	game.player = new Player(); // the drawing reads the player before the first level loads
 
 	game.TIME = 0;
 
@@ -80,7 +80,7 @@ function addTestHook() {
 		allSoundsLoaded,
 		encodeReplay,
 		decodeReplay,
-		validerArrivee,
+		openExit,
 		unclick,
 	};
 }

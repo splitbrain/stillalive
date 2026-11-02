@@ -39,7 +39,7 @@ for (const campaign of CAMPAIGNS.filter((c) => c.name !== 'tutorial')) {
 
 			// the replay only holds the last attempt, so only a run without a death can be compared
 			const last = JSON.parse(played.trim().split('\n').at(-1));
-			if (last.time !== TICKS - INTRO_TICKS || last.perso[5]) continue;
+			if (last.time !== TICKS - INTRO_TICKS || last.player[5]) continue;
 
 			const replay = await recordedReplay(page);
 			const replayed = await runLevel(page, {

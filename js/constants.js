@@ -2,39 +2,41 @@
  * Constants of the game: key bits, directions, tile animation types, mouse buttons and physics values.
  */
 
-export const KEY_Z = 1;
-/** @type {number} Key bit for left. */
-export const KEY_Q = 2;
-/** @type {number} Key bit for right. */
-export const KEY_D = 4;
-/** @type {number} Key bit for clear portals. */
-export const KEY_E = 8;
-/** @type {number} Key bit for down. */
-export const KEY_S = 16;
+/** @type {number} Key bit for the jump key. */
+export const KEY_JUMP = 1;
+/** @type {number} Key bit for the left key. */
+export const KEY_LEFT = 2;
+/** @type {number} Key bit for the right key. */
+export const KEY_RIGHT = 4;
+/** @type {number} Key bit for the clear portals key. */
+export const KEY_CLEAR = 8;
+/** @type {number} Key bit for the down key. */
+export const KEY_DOWN = 16;
 /** @type {number} Key bit for the left mouse button. */
-export const MSE_L = 32;
+export const MOUSE_LEFT = 32;
 /** @type {number} Key bit for the right mouse button. */
-export const MSE_R = 64;
+export const MOUSE_RIGHT = 64;
 /** @type {number} Key bit for the middle mouse button. */
-export const MSE_M = 128;
-/** @type {number} The direction up, or the top side of an object. */
-export const HAUT = 0;
-/** @type {number} The direction down, or the bottom side of an object. */
-export const BAS = 1;
-/** @type {number} The direction left, or the left side of an object. */
-export const GAUCHE = 2;
-/** @type {number} The direction right, or the right side of an object. */
-export const DROITE = 3;
+export const MOUSE_MIDDLE = 128;
 /** @type {number} Tile animation type: the frames come in random order. */
 export const RANDOM = 1;
 /** @type {number} Tile animation type: the frames come in sequence. */
 export const ORDERED = 2;
-/** @type {number} The left mouse button. */
-export const LEFT = 0;
-/** @type {number} The right mouse button. */
-export const RIGHT = 1;
-/** @type {number} The middle mouse button. */
-export const MIDDLE = 2;
+/** @type {Object<string, number>} The directions, also the sides of an object. */
+export const Direction = {
+	UP: 0,
+	DOWN: 1,
+	LEFT: 2,
+	RIGHT: 3,
+};
+
+/** @type {Object<string, number>} The mouse buttons, the value of input.mouseButton. */
+export const MouseButton = {
+	LEFT: 0,
+	RIGHT: 1,
+	MIDDLE: 2,
+};
+
 /** @type {number} The downward acceleration in 1/256 pixels per tick squared. */
 export const GRAVITY = 60;
 /** @type {number} The number of tiles in the tile set. */

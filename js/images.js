@@ -63,11 +63,11 @@ export let tube2;
 /** @type {HTMLImageElement} The controls picture of the loading screen. */
 export let controls;
 /** @type {HTMLImageElement[]} The turret, facing left and right. */
-export let tourelle;
+export let turretImages;
 /** @type {HTMLImageElement} The plasma ball frames. */
 export let plasma;
 /** @type {HTMLImageElement} The crate. */
-export let caisse;
+export let crateImage;
 /** @type {HTMLImageElement} The sparkle colors. */
 export let sparkle;
 /** @type {HTMLImageElement} The blue portal frames. */
@@ -160,7 +160,7 @@ export function loadGfx() {
 
 	key = loadImage('images/key.png');
 
-	caisse = loadImage('sprites/caisse.png');
+	crateImage = loadImage('sprites/crate.png');
 
 	pauseBG = loadImage('menu/pauseBG.png');
 
@@ -174,10 +174,10 @@ export function loadGfx() {
 
 	tex_button = loadImage('menu/tex_button.png');
 
-	tourelle = new Array();
+	turretImages = new Array();
 	for (i = 0; i < 2; i++) {
-		t = loadImage('sprites/tourelle' + i + '.png');
-		tourelle.push(t);
+		t = loadImage('sprites/turret' + i + '.png');
+		turretImages.push(t);
 	}
 
 	sparkle = loadImage('sprites/sparkle.png');
@@ -198,7 +198,7 @@ export function loadGfx() {
 
 	plasma = loadImage('sprites/plasma.png');
 
-	platform = loadImage('sprites/plateforme.png');
+	platform = loadImage('sprites/platform.png');
 
 	tileset = new Array();
 	for (i = 0; i < NUM_TILES; i++) {

@@ -10,10 +10,10 @@ import {
 	BUTTON_CAMPAIGN,
 	CampaignId,
 	IntermissionButton,
-	LEFT,
 	LEVELS_PER_CAMPAIGN,
 	MainButton,
 	Menu,
+	MouseButton,
 	NUM_TILES,
 	PauseButton,
 	SelectionButton,
@@ -26,9 +26,9 @@ import {
 	bg,
 	bluePortal,
 	body,
-	caisse,
 	cake,
 	controls,
+	crateImage,
 	crosshair,
 	head,
 	highscore,
@@ -46,13 +46,13 @@ import {
 	tex_sound,
 	tex_tails,
 	tileset,
-	tourelle,
 	tube,
 	tube2,
+	turretImages,
 } from '../images.js';
 import { mouseInZone, unclick } from '../input.js';
 import { creditsTxt, levelsLoaded, levelsToLoad, loadLevel, loadPreviewMap } from '../level.js';
-import { copyCanvas, drawCopy, drawPerso, drawRobot, drawTunnels } from './game.js';
+import { copyCanvas, drawCopy, drawPlayer, drawRobot, drawTunnels } from './game.js';
 import { drawHudText, drawText } from './hud.js';
 import { rescaleReplay } from '../replay.js';
 import { game, input, settings, ui } from '../state.js';
@@ -110,7 +110,7 @@ function manageDownMenu() {
 		drawTinyButton(74 + 390, 445, scale4, 'Watch Replay');
 	}
 
-	if (input.mousePressed && input.mouseButton == LEFT && overMenu > 0) {
+	if (input.mousePressed && input.mouseButton == MouseButton.LEFT && overMenu > 0) {
 		ui.intermissionChoice = overMenu;
 		unclick();
 	}
@@ -140,17 +140,17 @@ function drawPortalGunMenu(x, y, angle) {
  */
 export function drawPauseMenu() {
 	ctx.fillStyle = 'rgb(0, 65, 88)';
-	ctx.drawImage(pauseBG, game.ECART_X, game.ECART_Y);
+	ctx.drawImage(pauseBG, game.offsetX, game.offsetY);
 
 	ctx.fillStyle = 'rgb(255, 255, 255)';
 	let overMenu = -1;
-	if (mouseInZone(50 + game.ECART_X, 180 + game.ECART_Y, 120, 24)) overMenu = PauseButton.RESUME;
-	else if (ui.currentMenu != Menu.TUTORIAL && mouseInZone(187 + game.ECART_X, 180 + game.ECART_Y, 120, 24))
+	if (mouseInZone(50 + game.offsetX, 180 + game.offsetY, 120, 24)) overMenu = PauseButton.RESUME;
+	else if (ui.currentMenu != Menu.TUTORIAL && mouseInZone(187 + game.offsetX, 180 + game.offsetY, 120, 24))
 		overMenu = PauseButton.RESTART;
-	else if (mouseInZone(324 + game.ECART_X, 180 + game.ECART_Y, 120, 24)) overMenu = PauseButton.EXIT;
-	else if (ui.currentMenu != Menu.TUTORIAL && mouseInZone(127 + game.ECART_X, 340 + game.ECART_Y, 120, 24))
+	else if (mouseInZone(324 + game.offsetX, 180 + game.offsetY, 120, 24)) overMenu = PauseButton.EXIT;
+	else if (ui.currentMenu != Menu.TUTORIAL && mouseInZone(127 + game.offsetX, 340 + game.offsetY, 120, 24))
 		overMenu = PauseButton.QUALITY;
-	else if (ui.currentMenu != Menu.TUTORIAL && mouseInZone(247 + game.ECART_X, 340 + game.ECART_Y, 120, 24))
+	else if (ui.currentMenu != Menu.TUTORIAL && mouseInZone(247 + game.offsetX, 340 + game.offsetY, 120, 24))
 		overMenu = PauseButton.SOUND;
 
 	const scale1 = overMenu == PauseButton.RESUME ? 0.9 : 1;
@@ -159,20 +159,20 @@ export function drawPauseMenu() {
 	const scale4 = overMenu == PauseButton.QUALITY ? 0.9 : 1;
 	const scale5 = overMenu == PauseButton.SOUND ? 0.9 : 1;
 
-	drawTinyButton(game.ECART_X + 50, game.ECART_Y + 180, scale1, 'Resume');
-	if (ui.currentMenu != Menu.TUTORIAL) drawTinyButton(game.ECART_X + 187, game.ECART_Y + 180, scale2, 'Restart');
-	drawTinyButton(game.ECART_X + 324, game.ECART_Y + 180, scale3, 'Exit');
+	drawTinyButton(game.offsetX + 50, game.offsetY + 180, scale1, 'Resume');
+	if (ui.currentMenu != Menu.TUTORIAL) drawTinyButton(game.offsetX + 187, game.offsetY + 180, scale2, 'Restart');
+	drawTinyButton(game.offsetX + 324, game.offsetY + 180, scale3, 'Exit');
 	if (ui.currentMenu != Menu.TUTORIAL)
 		drawTinyButton(
-			127 + game.ECART_X,
-			340 + game.ECART_Y,
+			127 + game.offsetX,
+			340 + game.offsetY,
 			scale4,
 			'Quality : ' + (settings.quality == 0 ? 'Low' : 'High'),
 		);
 	if (ui.currentMenu != Menu.TUTORIAL && isSoundAvailable())
-		drawTinyButton(247 + game.ECART_X, 340 + game.ECART_Y, scale5, 'Sounds : ' + (isSoundOn() ? 'On' : 'Off'));
+		drawTinyButton(247 + game.offsetX, 340 + game.offsetY, scale5, 'Sounds : ' + (isSoundOn() ? 'On' : 'Off'));
 
-	if (input.mousePressed && input.mouseButton == LEFT && overMenu > 0) {
+	if (input.mousePressed && input.mouseButton == MouseButton.LEFT && overMenu > 0) {
 		unclick();
 		if (overMenu == PauseButton.RESUME) {
 			ui.escapeMenu = !ui.escapeMenu;
@@ -371,9 +371,9 @@ export function drawLoadingScreen() {
 		const dy = 190;
 		ctx.drawImage(controls, dx, dy);
 
-		drawPerso(62 + dx, dy, -1);
-		drawPerso(124 + dx, 95 + dy, 1);
-		drawPerso(dx, 95 + dy, -1);
+		drawPlayer(62 + dx, dy, -1);
+		drawPlayer(124 + dx, 95 + dy, 1);
+		drawPlayer(dx, 95 + dy, -1);
 		ctx.drawImage(bluePortal, 0, 0, 32, 32, 68 + dx, 177 + dy, 32, 32);
 		ctx.drawImage(redPortal, 0, 0, 32, 32, 171 + dx, 177 + dy, 32, 32);
 	}
@@ -402,7 +402,7 @@ export function drawLoadingScreen() {
  */
 export function drawMapSelection() {
 	let scale3, i;
-	if (ui.previewMap < 1) ctx.drawImage(noLevel, game.ECART_X, game.ECART_Y);
+	if (ui.previewMap < 1) ctx.drawImage(noLevel, game.offsetX, game.offsetY);
 	if (ui.previewMap > 0) drawPreviewMap();
 	ctx.drawImage(mapSelection, 0, 0);
 
@@ -413,7 +413,7 @@ export function drawMapSelection() {
 				ctx.fillStyle = 'rgb(15, 112, 144)';
 				ctx.fillRect(529, 105 + y * 12 + 2, 90, 14);
 
-				if (input.mousePressed && input.mouseButton == LEFT) {
+				if (input.mousePressed && input.mouseButton == MouseButton.LEFT) {
 					if (y != ui.previewMap) {
 						unclick();
 						ui.previewMap = y;
@@ -450,18 +450,18 @@ export function drawMapSelection() {
 		drawTinyButton(380, 495, scale3, 'Normal Mode');
 	}
 
-	if (input.mousePressed && input.mouseButton == LEFT && overMenu > 0) {
+	if (input.mousePressed && input.mouseButton == MouseButton.LEFT && overMenu > 0) {
 		if (overMenu == SelectionButton.PLAY) {
-			game.ECART_X = 64;
-			game.ECART_Y = 96;
+			game.offsetX = 64;
+			game.offsetY = 96;
 			ui.currentMenu = Menu.PLAY;
 			ui.currentLevel = ui.previewMap;
 			loadLevel(ui.currentLevel);
 			unclick();
 			return;
 		} else if (overMenu == SelectionButton.EXIT) {
-			game.ECART_X = 64;
-			game.ECART_Y = 96;
+			game.offsetX = 64;
+			game.offsetY = 96;
 			ui.currentMenu = Menu.MAIN;
 			ui.selectMenu = 0;
 			ui.fadeMenu = 30;
@@ -557,14 +557,14 @@ export function drawMainMenu() {
 	ctx.drawImage(menuBG, 0, 0);
 
 	const yStart = 32;
-	const ecart = 18;
+	const spacing = 18;
 
 	let overMenu = -1;
 	if (mouseInZone(160, yStart, 320, 64)) overMenu = 1;
-	else if (mouseInZone(160, yStart + 1 * (64 + ecart), 320, 64)) overMenu = 2;
-	else if (mouseInZone(160, yStart + 2 * (64 + ecart), 320, 64)) overMenu = 3;
-	else if (mouseInZone(160, yStart + 3 * (64 + ecart), 320, 64)) overMenu = 4;
-	else if (mouseInZone(160, yStart + 4 * (64 + ecart), 320, 64)) overMenu = 5;
+	else if (mouseInZone(160, yStart + 1 * (64 + spacing), 320, 64)) overMenu = 2;
+	else if (mouseInZone(160, yStart + 2 * (64 + spacing), 320, 64)) overMenu = 3;
+	else if (mouseInZone(160, yStart + 3 * (64 + spacing), 320, 64)) overMenu = 4;
+	else if (mouseInZone(160, yStart + 4 * (64 + spacing), 320, 64)) overMenu = 5;
 
 	const scale1 = overMenu == 1 ? 0.9 : 1;
 	const scale2 = overMenu == 2 ? 0.9 : 1;
@@ -581,36 +581,37 @@ export function drawMainMenu() {
 				'Classic Mode' + (maxLevel[CampaignId.NORMAL] > LEVELS_PER_CAMPAIGN ? ' +' : ''),
 			);
 		else if (ui.menuButton == MainButton.ENHANCED)
-			drawBigButton(160, yStart + 1 * (64 + ecart), scale2, 'Enhanced Mode');
+			drawBigButton(160, yStart + 1 * (64 + spacing), scale2, 'Enhanced Mode');
 		else if (ui.menuButton == MainButton.ULTIMATE)
-			drawBigButton(160, yStart + 2 * (64 + ecart), scale3, 'Ultimate Mode');
-		else if (ui.menuButton == MainButton.EDITOR) drawBigButton(160, yStart + 3 * (64 + ecart), scale4, 'Level Editor');
-		else if (ui.menuButton == MainButton.TUTORIAL) drawBigButton(160, yStart + 4 * (64 + ecart), scale5, 'Tutorial');
+			drawBigButton(160, yStart + 2 * (64 + spacing), scale3, 'Ultimate Mode');
+		else if (ui.menuButton == MainButton.EDITOR)
+			drawBigButton(160, yStart + 3 * (64 + spacing), scale4, 'Level Editor');
+		else if (ui.menuButton == MainButton.TUTORIAL) drawBigButton(160, yStart + 4 * (64 + spacing), scale5, 'Tutorial');
 	} else {
 		let dy = 0;
 		if (maxLevel[0] <= 28) dy = 64;
 		drawBigButton(160, yStart, scale1, 'Classic Mode' + (maxLevel[0] > 28 ? ' +' : ''));
-		drawBigButton(160, yStart + 1 * (64 + ecart), scale2, 'Enhanced Mode');
-		drawBigButton(160, yStart + 2 * (64 + ecart), scale3, 'Ultimate Mode');
-		drawBigButton(160, yStart + 3 * (64 + ecart), scale4, 'Level Editor');
-		drawBigButton(160, yStart + 4 * (64 + ecart), scale5, 'Tutorial');
+		drawBigButton(160, yStart + 1 * (64 + spacing), scale2, 'Enhanced Mode');
+		drawBigButton(160, yStart + 2 * (64 + spacing), scale3, 'Ultimate Mode');
+		drawBigButton(160, yStart + 3 * (64 + spacing), scale4, 'Level Editor');
+		drawBigButton(160, yStart + 4 * (64 + spacing), scale5, 'Tutorial');
 
 		pX = 130;
-		pY = yStart + 25 + (overMenu - 1) * 64 + (overMenu - 1) * ecart;
+		pY = yStart + 25 + (overMenu - 1) * 64 + (overMenu - 1) * spacing;
 
 		pX2 = 150 + 320 + 40 - 16;
 
 		drawPortalGunMenu(pX, pY, getAngle(pX, pY, input.mouseX, input.mouseY));
-		drawPerso(pX, pY, 1);
+		drawPlayer(pX, pY, 1);
 
 		drawPortalGunMenu(pX2, pY, getAngle(pX2, pY, input.mouseX, input.mouseY));
-		drawPerso(pX2, pY, -1);
+		drawPlayer(pX2, pY, -1);
 	}
 
 	let zoomSound = 1;
 	if (isSoundAvailable() && mouseInZone(20, 300, 29, 48)) {
 		zoomSound = 0.9;
-		if (input.mousePressed && input.mouseButton == LEFT) {
+		if (input.mousePressed && input.mouseButton == MouseButton.LEFT) {
 			unclick();
 			toggleSound();
 		}
@@ -631,7 +632,7 @@ export function drawMainMenu() {
 	let zoomQuality = 1;
 	if (mouseInZone(20, 385, 30, 36)) {
 		zoomQuality = 0.9;
-		if (input.mousePressed && input.mouseButton == LEFT) {
+		if (input.mousePressed && input.mouseButton == MouseButton.LEFT) {
 			unclick();
 			settings.quality = settings.quality ? 0 : 1;
 		}
@@ -690,7 +691,7 @@ export function drawMainMenu() {
 
 	ctx.drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
 
-	if (input.mousePressed && input.mouseButton == LEFT && overMenu > 0 && ui.goMenu == 0) {
+	if (input.mousePressed && input.mouseButton == MouseButton.LEFT && overMenu > 0 && ui.goMenu == 0) {
 		ui.menuButton = overMenu - 1;
 		ui.goMenu = 60;
 		createSparkles(pX << 8, (pY << 8) + (13 << 8), input.mouseX << 8, input.mouseY << 8, 1, 8);
@@ -707,8 +708,8 @@ export function drawMainMenu() {
 				ui.previewMap = 0;
 				prepareSelectionText();
 				document.getElementById('highscores').classList.add('open');
-				game.ECART_X = 0;
-				game.ECART_Y = 96;
+				game.offsetX = 0;
+				game.offsetY = 96;
 				ui.campaign = BUTTON_CAMPAIGN[ui.menuButton];
 				if (ui.campaign == CampaignId.STORY) {
 					game.bossNum = 0;
@@ -798,23 +799,23 @@ export function doDrawCredits() {
  * @returns {void}
  */
 export function doDrawIntermission() {
-	if (game.perso.intermissionFade > 0) {
+	if (game.player.intermissionFade > 0) {
 		ctx.fillStyle = 'rgb(0, 0, 0)';
-		ctx.fillRect(game.ECART_X - 1, game.ECART_Y, 512, 384);
-		game.perso.intermissionFade--;
-		const a = game.perso.intermissionFade / 20;
+		ctx.fillRect(game.offsetX - 1, game.offsetY, 512, 384);
+		game.player.intermissionFade--;
+		const a = game.player.intermissionFade / 20;
 		ctx.globalAlpha = 1 - a;
 	}
-	ctx.drawImage(highscore, game.ECART_X, game.ECART_Y);
-	if (game.perso.intermissionFade > 0) ctx.globalAlpha = 1;
+	ctx.drawImage(highscore, game.offsetX, game.offsetY);
+	if (game.player.intermissionFade > 0) ctx.globalAlpha = 1;
 
 	manageDownMenu();
 
-	if (game.perso.intermissionFade == 0) {
+	if (game.player.intermissionFade == 0) {
 		ctx.fillStyle = 'rgb(255, 255, 255)';
 		ctx.font = 'bold 12px Arial';
-		ctx.fillText('Your time : ' + toTime(game.TIME), game.ECART_X + 35, game.ECART_Y + 260);
-		ctx.fillText(ui.highscoreMessage, game.ECART_X + 35, game.ECART_Y + 278);
+		ctx.fillText('Your time : ' + toTime(game.TIME), game.offsetX + 35, game.offsetY + 260);
+		ctx.fillText(ui.highscoreMessage, game.offsetX + 35, game.offsetY + 278);
 	}
 }
 
@@ -824,9 +825,9 @@ export function doDrawIntermission() {
  * @returns {void}
  */
 export function drawPreviewMap() {
-	let i, tour, cai, pla;
+	let i, ti, ci, pi;
 	if (game.needLoad) {
-		ctx.drawImage(bg[game.BG], game.ECART_X, game.ECART_Y, 512, 384);
+		ctx.drawImage(bg[game.BG], game.offsetX, game.offsetY, 512, 384);
 		for (i in game.displayMap) {
 			const y = i >> 5;
 			const x = i - (y << 5);
@@ -835,46 +836,46 @@ export function drawPreviewMap() {
 					game.displayMap[i] = Tile.EXIT;
 					game.map[i] = Tile.EXIT;
 				}
-				ctx.drawImage(tileset[game.displayMap[i]], x * 16 + game.ECART_X, y * 16 + game.ECART_Y, 16, 16);
+				ctx.drawImage(tileset[game.displayMap[i]], x * 16 + game.offsetX, y * 16 + game.offsetY, 16, 16);
 			}
 		}
-		game.imgBuff = copyCanvas(game.ECART_X, game.ECART_Y, 512, 384);
+		game.imgBuff = copyCanvas(game.offsetX, game.offsetY, 512, 384);
 		game.needLoad = false;
 		ctx.fillStyle = 'rgb(0, 0, 0)';
-		ctx.fillRect(game.ECART_X, game.ECART_Y, 512, 384);
+		ctx.fillRect(game.offsetX, game.offsetY, 512, 384);
 	} else {
-		drawCopy(game.imgBuff, game.ECART_X, game.ECART_Y);
+		drawCopy(game.imgBuff, game.offsetX, game.offsetY);
 
-		game.perso.flip = 1;
+		game.player.flip = 1;
 
 		ctx.save();
 		ctx.translate(
-			(game.perso.x >> 8) + (game.perso.pX >> 1) + game.ECART_X,
-			(game.perso.y >> 8) + (game.perso.pY >> 1) + game.ECART_Y,
+			(game.player.x >> 8) + (game.player.pX >> 1) + game.offsetX,
+			(game.player.y >> 8) + (game.player.pY >> 1) + game.offsetY,
 		);
 		ctx.drawImage(portalGun, -5, -5);
 		ctx.restore();
 
-		const flipDx = game.perso.flip < 0 ? 1 : 0;
+		const flipDx = game.player.flip < 0 ? 1 : 0;
 		ctx.drawImage(
 			head[flipDx],
-			game.perso.animeFrame * 16,
+			game.player.animationFrame * 16,
 			0,
 			15,
 			12,
-			(game.perso.x >> 8) + game.ECART_X,
-			(game.perso.y >> 8) + game.ECART_Y,
+			(game.player.x >> 8) + game.offsetX,
+			(game.player.y >> 8) + game.offsetY,
 			16,
 			12,
 		);
 		ctx.drawImage(
 			body[flipDx],
-			game.perso.animeFrame * 16,
+			game.player.animationFrame * 16,
 			0,
 			16,
 			27,
-			(game.perso.x >> 8) + game.ECART_X,
-			(game.perso.y >> 8) + game.ECART_Y,
+			(game.player.x >> 8) + game.offsetX,
+			(game.player.y >> 8) + game.offsetY,
 			16,
 			27,
 		);
@@ -883,44 +884,44 @@ export function drawPreviewMap() {
 			if (game.cakes[i].used) {
 				ctx.drawImage(
 					cake,
-					(game.cakes[i].x >> 8) + game.ECART_X,
-					((game.cakes[i].y + game.cakes[i].vy) >> 8) + game.ECART_Y,
+					(game.cakes[i].x >> 8) + game.offsetX,
+					((game.cakes[i].y + game.cakes[i].vy) >> 8) + game.offsetY,
 					16,
 					12,
 				);
 			}
 		}
 
-		for (tour in game.tourelles) {
-			const side = game.tourelles[tour].dir < 0 ? 0 : 1;
+		for (ti in game.turrets) {
+			const side = game.turrets[ti].dir < 0 ? 0 : 1;
 			ctx.drawImage(
-				tourelle[side],
+				turretImages[side],
 				0,
-				game.tourelles[tour].animFrame * 32,
+				game.turrets[ti].animFrame * 32,
 				16,
 				32,
-				(game.tourelles[tour].x >> 8) + game.ECART_X,
-				(game.tourelles[tour].y >> 8) + game.ECART_Y,
+				(game.turrets[ti].x >> 8) + game.offsetX,
+				(game.turrets[ti].y >> 8) + game.offsetY,
 				16,
 				32,
 			);
 		}
 
-		for (cai in game.caisses) {
-			ctx.drawImage(caisse, (game.caisses[cai].x >> 8) + game.ECART_X, (game.caisses[cai].y >> 8) + game.ECART_Y);
+		for (ci in game.crates) {
+			ctx.drawImage(crateImage, (game.crates[ci].x >> 8) + game.offsetX, (game.crates[ci].y >> 8) + game.offsetY);
 		}
 
-		for (pla in game.platforms) {
-			ctx.drawImage(platform, (game.platforms[pla].x >> 8) + game.ECART_X, (game.platforms[pla].y >> 8) + game.ECART_Y);
+		for (pi in game.platforms) {
+			ctx.drawImage(platform, (game.platforms[pi].x >> 8) + game.offsetX, (game.platforms[pi].y >> 8) + game.offsetY);
 		}
 
 		drawTunnels();
 
 		if (game.bossNum > 0) {
 			if (game.bossNum == 1 || game.bossNum == 3 || game.bossNum == 4)
-				ctx.drawImage(tube, (game.tubeX >> 8) + game.ECART_X, (game.tubeY >> 8) + game.ECART_Y);
+				ctx.drawImage(tube, (game.tubeX >> 8) + game.offsetX, (game.tubeY >> 8) + game.offsetY);
 			else if (game.bossNum == 2)
-				ctx.drawImage(tube2, (game.tubeX >> 8) + game.ECART_X, (game.tubeY >> 8) + game.ECART_Y);
+				ctx.drawImage(tube2, (game.tubeX >> 8) + game.offsetX, (game.tubeY >> 8) + game.offsetY);
 			drawBoss();
 		}
 

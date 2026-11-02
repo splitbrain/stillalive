@@ -4,19 +4,19 @@
 
 import { playSound, sfx_tick } from './audio.js';
 import { setupBoss } from './boss.js';
-import { BAS, CampaignId, DROITE, GAUCHE, HAUT, Menu, ORDERED, RANDOM } from './constants.js';
+import { CampaignId, Direction, Menu, ORDERED, RANDOM } from './constants.js';
 import { AnimatedTile } from './entities/AnimatedTile.js';
-import { Caisse } from './entities/Caisse.js';
 import { Cake } from './entities/Cake.js';
 import { Camera } from './entities/Camera.js';
-import { Perso } from './entities/Perso.js';
+import { Crate } from './entities/Crate.js';
 import { Plasma } from './entities/Plasma.js';
 import { Platform } from './entities/Platform.js';
+import { Player } from './entities/Player.js';
 import { Portal } from './entities/Portal.js';
 import { Robot } from './entities/Robot.js';
 import { removeSparkles } from './entities/Sparkle.js';
-import { Tourelle } from './entities/Tourelle.js';
 import { Tunnel } from './entities/Tunnel.js';
+import { Turret } from './entities/Turret.js';
 import { parseMap } from './mapFile.js';
 import { getTileSimple } from './physics.js';
 import { Replay } from './replay.js';
@@ -35,21 +35,19 @@ export let levelsToLoad = 5;
  *
  * @returns {void}
  */
-export function gestionPorte() {
-	const etatPorte = game.perso.porte;
-
-	if (!game.perso.porte) {
-		if (persoSurInterrupteur(game.perso.x >> 8, game.perso.y >> 8)) {
-			game.perso.porte = 1;
-			ouvrirPorte();
-		} else if (caisseSurInterrupteur()) {
-			game.perso.porte = 1;
-			ouvrirPorte();
+export function manageDoors() {
+	if (!game.player.switchPressed) {
+		if (playerOnSwitch(game.player.x >> 8, game.player.y >> 8)) {
+			game.player.switchPressed = 1;
+			openSwitchDoors();
+		} else if (crateOnSwitch()) {
+			game.player.switchPressed = 1;
+			openSwitchDoors();
 		}
 	} else {
-		if (!persoSurInterrupteur(game.perso.x >> 8, game.perso.y >> 8) && !caisseSurInterrupteur()) {
-			game.perso.porte = 0;
-			fermerPorte();
+		if (!playerOnSwitch(game.player.x >> 8, game.player.y >> 8) && !crateOnSwitch()) {
+			game.player.switchPressed = 0;
+			closeSwitchDoors();
 		}
 	}
 }
@@ -60,18 +58,18 @@ export function gestionPorte() {
  *
  * @returns {void}
  */
-function retirerBloqueurPorte() {
+function clearDoorBlockers() {
 	let x, y, i, j;
 	for (i = 0; i < 2; i++) {
 		if (game.portals[i].used) {
 			x = game.portals[i].x >> 8;
 			y = game.portals[i].y >> 8;
-			if (game.portals[i].direction == HAUT) y += 6;
-			else if (game.portals[i].direction == GAUCHE) x += 6;
-			else if (game.portals[i].direction == DROITE) x -= 2;
-			else if (game.portals[i].direction == BAS) y -= 2;
+			if (game.portals[i].direction == Direction.UP) y += 6;
+			else if (game.portals[i].direction == Direction.LEFT) x += 6;
+			else if (game.portals[i].direction == Direction.RIGHT) x -= 2;
+			else if (game.portals[i].direction == Direction.DOWN) y -= 2;
 
-			if (game.portals[i].direction == GAUCHE || game.portals[i].direction == DROITE) {
+			if (game.portals[i].direction == Direction.LEFT || game.portals[i].direction == Direction.RIGHT) {
 				for (j = 0; j < 32; j++) {
 					if (getTileSimple(x, y + j) == FIRST_OF_KIND[TileKind.SWITCH_DOOR]) {
 						game.portals[i].used = 0;
@@ -91,19 +89,19 @@ function retirerBloqueurPorte() {
 		}
 	}
 
-	for (i in game.caisses) {
-		x = game.caisses[i].x >> 8;
-		y = game.caisses[i].y >> 8;
+	for (i in game.crates) {
+		x = game.crates[i].x >> 8;
+		y = game.crates[i].y >> 8;
 		if (
 			getTileSimple(x, y) == FIRST_OF_KIND[TileKind.SWITCH_DOOR] ||
 			getTileSimple(x + 15, y) == FIRST_OF_KIND[TileKind.SWITCH_DOOR] ||
 			getTileSimple(x, y + 15) == FIRST_OF_KIND[TileKind.SWITCH_DOOR] ||
 			getTileSimple(x + 15, y + 15) == FIRST_OF_KIND[TileKind.SWITCH_DOOR]
 		) {
-			game.caisses[i].x = game.caisses[i].xOrig;
-			game.caisses[i].y = game.caisses[i].yOrig;
-			game.caisses[i].vx = 0;
-			game.caisses[i].vy = 0;
+			game.crates[i].x = game.crates[i].xOrig;
+			game.crates[i].y = game.crates[i].yOrig;
+			game.crates[i].vx = 0;
+			game.crates[i].vy = 0;
 		}
 	}
 
@@ -129,7 +127,7 @@ function retirerBloqueurPorte() {
  *
  * @returns {void}
  */
-function fermerPorte() {
+function closeSwitchDoors() {
 	let i;
 	playSound(sfx_tick);
 	for (i in game.animatedTiles) {
@@ -142,7 +140,7 @@ function fermerPorte() {
 			}
 		}
 	}
-	retirerBloqueurPorte();
+	clearDoorBlockers();
 }
 
 /**
@@ -150,7 +148,7 @@ function fermerPorte() {
  *
  * @returns {void}
  */
-function ouvrirPorte() {
+function openSwitchDoors() {
 	let i;
 	playSound(sfx_tick);
 	for (i in game.animatedTiles) {
@@ -172,7 +170,7 @@ function ouvrirPorte() {
  * @param {number} y The y coordinate of the player in pixels.
  * @returns {number} 1 if a switch tile is below the player, else 0.
  */
-function persoSurInterrupteur(x, y) {
+function playerOnSwitch(x, y) {
 	if (getTileSimple(x, y + 32) == Tile.SWITCH) return 1;
 	else if (getTileSimple(x + 15, y + 32) == Tile.SWITCH) return 1;
 	return 0;
@@ -183,12 +181,12 @@ function persoSurInterrupteur(x, y) {
  *
  * @returns {number} 1 if a switch tile is below a crate, else 0.
  */
-function caisseSurInterrupteur() {
+function crateOnSwitch() {
 	let i;
-	for (i in game.caisses) {
-		if (getTileSimple(game.caisses[i].x >> 8, (game.caisses[i].y >> 8) + 19) == 19) {
+	for (i in game.crates) {
+		if (getTileSimple(game.crates[i].x >> 8, (game.crates[i].y >> 8) + 19) == 19) {
 			return 1;
-		} else if (getTileSimple((game.caisses[i].x >> 8) + 15, (game.caisses[i].y >> 8) + 19) == 19) {
+		} else if (getTileSimple((game.crates[i].x >> 8) + 15, (game.crates[i].y >> 8) + 19) == 19) {
 			return 1;
 		}
 	}
@@ -305,7 +303,7 @@ export let creditsTxt = new Array();
  * @returns {void}
  */
 export function loadLevelEditor() {
-	let vx, haut, bas, gauche, droite, i, y2, vx2, vy2, vy;
+	let vx, up, down, left, right, i, y2, vx2, vy2, vy;
 	game.tubeX = game.tubeY = -1;
 	game.displayMap = new Array();
 	for (i in game.map) {
@@ -319,13 +317,13 @@ export function loadLevelEditor() {
 	game.portals.push(new Portal());
 	game.cakes = new Array();
 	game.sparkles = new Array();
-	game.caisses = new Array();
+	game.crates = new Array();
 	game.tunnels = new Array();
 	game.forceFields = new Array();
 	game.platforms = new Array();
 	game.animatedTiles = new Array();
 	game.plasmaBall = new Array();
-	game.tourelles = new Array();
+	game.turrets = new Array();
 	ui.txtLines = new Array();
 	game.TIME = 0;
 	game.STEPS = 0;
@@ -335,32 +333,32 @@ export function loadLevelEditor() {
 	input.keys = 0;
 	input.oldKeys = 0;
 
-	game.perso = new Perso();
+	game.player = new Player();
 
 	for (i in game.map) {
 		const y = i >> 5;
 		const x = i - (y << 5);
 
 		if (game.map[i] == Tile.TUNNEL_RIGHT) {
-			game.tunnels.push(new Tunnel((x * 16) << 8, (y * 16) << 8, DROITE));
+			game.tunnels.push(new Tunnel((x * 16) << 8, (y * 16) << 8, Direction.RIGHT));
 			game.map[i] = Tile.TUNNEL_BLOCK;
 			game.map[x + ((y + 1) << 5)] = 199;
 			game.displayMap[i] = 0;
 			game.displayMap[x + ((y + 1) << 5)] = 0;
 		} else if (game.map[i] == Tile.TUNNEL_LEFT) {
-			game.tunnels.push(new Tunnel((x * 16) << 8, (y * 16) << 8, GAUCHE));
+			game.tunnels.push(new Tunnel((x * 16) << 8, (y * 16) << 8, Direction.LEFT));
 			game.map[i] = Tile.TUNNEL_BLOCK;
 			game.map[x + ((y + 1) << 5)] = 199;
 			game.displayMap[i] = 0;
 			game.displayMap[x + ((y + 1) << 5)] = 0;
 		} else if (game.map[i] == Tile.TUNNEL_UP) {
-			game.tunnels.push(new Tunnel((x * 16) << 8, (y * 16) << 8, HAUT));
+			game.tunnels.push(new Tunnel((x * 16) << 8, (y * 16) << 8, Direction.UP));
 			game.map[i] = Tile.TUNNEL_BLOCK;
 			game.map[x + 1 + (y << 5)] = 199;
 			game.displayMap[i] = 0;
 			game.displayMap[x + 1 + (y << 5)] = 0;
 		} else if (game.map[i] == Tile.TUNNEL_DOWN) {
-			game.tunnels.push(new Tunnel((x * 16) << 8, (y * 16) << 8, BAS));
+			game.tunnels.push(new Tunnel((x * 16) << 8, (y * 16) << 8, Direction.DOWN));
 			game.map[i] = Tile.TUNNEL_BLOCK;
 			game.map[x + 1 + (y << 5)] = 199;
 			game.displayMap[i] = 0;
@@ -424,21 +422,21 @@ export function loadLevelEditor() {
 		} else if (game.map[i] == Tile.TURRET_LEFT) {
 			game.displayMap[i] = 0;
 			game.map[i] = 0;
-			game.tourelles.push(new Tourelle((x * 16) << 8, (y * 16) << 8, -1));
+			game.turrets.push(new Turret((x * 16) << 8, (y * 16) << 8, -1));
 			continue;
 		} else if (game.map[i] == Tile.TURRET_RIGHT) {
 			game.displayMap[i] = 0;
 			game.map[i] = 0;
-			game.tourelles.push(new Tourelle((x * 16) << 8, (y * 16) << 8, 1));
+			game.turrets.push(new Turret((x * 16) << 8, (y * 16) << 8, 1));
 			continue;
 		} else if (game.map[i] == Tile.CRATE) {
 			game.displayMap[i] = 0;
 			game.map[i] = 0;
-			game.caisses.push(new Caisse((x * 16) << 8, (y * 16) << 8));
+			game.crates.push(new Crate((x * 16) << 8, (y * 16) << 8));
 			continue;
 		} else if (game.map[i] == Tile.PLAYER_START) {
-			game.perso.x = (x * 16) << 8;
-			game.perso.y = (y * 16) << 8;
+			game.player.x = (x * 16) << 8;
+			game.player.y = (y * 16) << 8;
 			game.map[i] = 0;
 			continue;
 		} else if (game.map[i] == Tile.PLATFORM_RIGHT) {
@@ -452,34 +450,34 @@ export function loadLevelEditor() {
 			game.map[i] = 0;
 			continue;
 		} else if (game.map[i] == Tile.PLASMA_START) {
-			if (x + 1 < 32) droite = game.map[x + 1 + (y << 5)];
-			else droite = 1;
-			if (x - 1 >= 0) gauche = game.map[x - 1 + (y << 5)];
-			else gauche = 1;
-			if (y + 1 < 24) bas = game.map[x + ((y + 1) << 5)];
-			else bas = 1;
-			if (y - 1 >= 0) haut = game.map[x + ((y - 1) << 5)];
-			else haut = 1;
+			if (x + 1 < 32) right = game.map[x + 1 + (y << 5)];
+			else right = 1;
+			if (x - 1 >= 0) left = game.map[x - 1 + (y << 5)];
+			else left = 1;
+			if (y + 1 < 24) down = game.map[x + ((y + 1) << 5)];
+			else down = 1;
+			if (y - 1 >= 0) up = game.map[x + ((y - 1) << 5)];
+			else up = 1;
 
 			let x2 = (y2 = vx2 = vy2 = 0);
 			let push = true;
 
-			if (haut && bas && gauche) {
+			if (up && down && left) {
 				vx = 424;
 				vy = 0;
 				x2 = ((x + 1) << 4) << 8;
 				y2 = (y << 4) << 8;
-			} else if (haut && bas && droite) {
+			} else if (up && down && right) {
 				vx = -424;
 				vy = 0;
 				x2 = ((x - 1) << 4) << 8;
 				y2 = (y << 4) << 8;
-			} else if (droite && bas && gauche) {
+			} else if (right && down && left) {
 				vx = 0;
 				vy = -424;
 				x2 = (x << 4) << 8;
 				y2 = ((y - 1) << 4) << 8;
-			} else if (gauche && droite && haut) {
+			} else if (left && right && up) {
 				vx = 0;
 				vy = 424;
 				x2 = (x << 4) << 8;
@@ -490,7 +488,7 @@ export function loadLevelEditor() {
 		}
 	}
 
-	game.camera = new Camera(game.perso.x, game.perso.y);
+	game.camera = new Camera(game.player.x, game.player.y);
 	game.CAKELEFT = game.cakes.length;
 
 	game.needLoad = true;
@@ -507,7 +505,7 @@ export function loadLevelEditor() {
  * @returns {void}
  */
 export function loadLevel(level) {
-	let vx, haut, bas, gauche, droite, i, y2, vx2, vy2, vy;
+	let vx, up, down, left, right, i, y2, vx2, vy2, vy;
 	game.tubeX = game.tubeY = -1;
 	game.hudLight = null;
 
@@ -537,11 +535,11 @@ export function loadLevel(level) {
 	game.sparkles = new Array();
 	game.tunnels = new Array();
 	game.forceFields = new Array();
-	game.caisses = new Array();
+	game.crates = new Array();
 	game.platforms = new Array();
 	game.animatedTiles = new Array();
 	game.plasmaBall = new Array();
-	game.tourelles = new Array();
+	game.turrets = new Array();
 	ui.txtLines = new Array();
 
 	if (ui.currentMenu == Menu.TUTORIAL) {
@@ -559,13 +557,13 @@ export function loadLevel(level) {
 	input.oldKeys = 0;
 	if (!game.replayMode) game.replay = new Replay();
 
-	game.perso = new Perso();
+	game.player = new Player();
 
 	if (level > -1) {
 		if (level == 8 && ui.campaign <= CampaignId.ADVANCED) {
-			game.perso.vy = -2400;
-			game.perso.x = 128 << 8;
-			game.perso.y = 384 << 8;
+			game.player.vy = -2400;
+			game.player.x = 128 << 8;
+			game.player.y = 384 << 8;
 		}
 	}
 
@@ -574,25 +572,25 @@ export function loadLevel(level) {
 		const x = i - (y << 5);
 
 		if (game.map[i] == Tile.TUNNEL_RIGHT) {
-			game.tunnels.push(new Tunnel((x * 16) << 8, (y * 16) << 8, DROITE));
+			game.tunnels.push(new Tunnel((x * 16) << 8, (y * 16) << 8, Direction.RIGHT));
 			game.map[i] = Tile.TUNNEL_BLOCK;
 			game.map[x + ((y + 1) << 5)] = 199;
 			game.displayMap[i] = 0;
 			game.displayMap[x + ((y + 1) << 5)] = 0;
 		} else if (game.map[i] == Tile.TUNNEL_LEFT) {
-			game.tunnels.push(new Tunnel((x * 16) << 8, (y * 16) << 8, GAUCHE));
+			game.tunnels.push(new Tunnel((x * 16) << 8, (y * 16) << 8, Direction.LEFT));
 			game.map[i] = Tile.TUNNEL_BLOCK;
 			game.map[x + ((y + 1) << 5)] = 199;
 			game.displayMap[i] = 0;
 			game.displayMap[x + ((y + 1) << 5)] = 0;
 		} else if (game.map[i] == Tile.TUNNEL_UP) {
-			game.tunnels.push(new Tunnel((x * 16) << 8, (y * 16) << 8, HAUT));
+			game.tunnels.push(new Tunnel((x * 16) << 8, (y * 16) << 8, Direction.UP));
 			game.map[i] = Tile.TUNNEL_BLOCK;
 			game.map[x + 1 + (y << 5)] = 199;
 			game.displayMap[i] = 0;
 			game.displayMap[x + 1 + (y << 5)] = 0;
 		} else if (game.map[i] == Tile.TUNNEL_DOWN) {
-			game.tunnels.push(new Tunnel((x * 16) << 8, (y * 16) << 8, BAS));
+			game.tunnels.push(new Tunnel((x * 16) << 8, (y * 16) << 8, Direction.DOWN));
 			game.map[i] = Tile.TUNNEL_BLOCK;
 			game.map[x + 1 + (y << 5)] = 199;
 			game.displayMap[i] = 0;
@@ -656,21 +654,21 @@ export function loadLevel(level) {
 		} else if (game.map[i] == Tile.TURRET_LEFT) {
 			game.displayMap[i] = 0;
 			game.map[i] = 0;
-			game.tourelles.push(new Tourelle((x * 16) << 8, (y * 16) << 8, -1));
+			game.turrets.push(new Turret((x * 16) << 8, (y * 16) << 8, -1));
 			continue;
 		} else if (game.map[i] == Tile.TURRET_RIGHT) {
 			game.displayMap[i] = 0;
 			game.map[i] = 0;
-			game.tourelles.push(new Tourelle((x * 16) << 8, (y * 16) << 8, 1));
+			game.turrets.push(new Turret((x * 16) << 8, (y * 16) << 8, 1));
 			continue;
 		} else if (game.map[i] == Tile.CRATE) {
 			game.displayMap[i] = 0;
 			game.map[i] = 0;
-			game.caisses.push(new Caisse((x * 16) << 8, (y * 16) << 8));
+			game.crates.push(new Crate((x * 16) << 8, (y * 16) << 8));
 			continue;
 		} else if (game.map[i] == Tile.PLAYER_START) {
-			game.perso.x = (x * 16) << 8;
-			game.perso.y = (y * 16) << 8;
+			game.player.x = (x * 16) << 8;
+			game.player.y = (y * 16) << 8;
 			game.map[i] = 0;
 			continue;
 		} else if (game.map[i] == Tile.PLATFORM_RIGHT) {
@@ -690,34 +688,34 @@ export function loadLevel(level) {
 			game.map[i] = 0;
 			continue;
 		} else if (game.map[i] == Tile.PLASMA_START) {
-			if (x + 1 < 32) droite = game.map[x + 1 + (y << 5)];
-			else droite = 1;
-			if (x - 1 >= 0) gauche = game.map[x - 1 + (y << 5)];
-			else gauche = 1;
-			if (y + 1 < 24) bas = game.map[x + ((y + 1) << 5)];
-			else bas = 1;
-			if (y - 1 >= 0) haut = game.map[x + ((y - 1) << 5)];
-			else haut = 1;
+			if (x + 1 < 32) right = game.map[x + 1 + (y << 5)];
+			else right = 1;
+			if (x - 1 >= 0) left = game.map[x - 1 + (y << 5)];
+			else left = 1;
+			if (y + 1 < 24) down = game.map[x + ((y + 1) << 5)];
+			else down = 1;
+			if (y - 1 >= 0) up = game.map[x + ((y - 1) << 5)];
+			else up = 1;
 
 			let x2 = (y2 = vx2 = vy2 = 0);
 			let push = true;
 
-			if (haut && bas && gauche) {
+			if (up && down && left) {
 				vx = 424;
 				vy = 0;
 				x2 = ((x + 1) << 4) << 8;
 				y2 = (y << 4) << 8;
-			} else if (haut && bas && droite) {
+			} else if (up && down && right) {
 				vx = -424;
 				vy = 0;
 				x2 = ((x - 1) << 4) << 8;
 				y2 = (y << 4) << 8;
-			} else if (droite && bas && gauche) {
+			} else if (right && down && left) {
 				vx = 0;
 				vy = -424;
 				x2 = (x << 4) << 8;
 				y2 = ((y - 1) << 4) << 8;
-			} else if (gauche && droite && haut) {
+			} else if (left && right && up) {
 				vx = 0;
 				vy = 424;
 				x2 = (x << 4) << 8;
@@ -732,7 +730,7 @@ export function loadLevel(level) {
 		}
 	}
 
-	game.camera = new Camera(game.perso.x, game.perso.y);
+	game.camera = new Camera(game.player.x, game.player.y);
 	game.CAKELEFT = game.cakes.length;
 
 	game.needLoad = true;
@@ -780,26 +778,26 @@ export function loadPreviewMap(level) {
 	game.tunnels = new Array();
 	game.forceFields = new Array();
 	game.sparkles = new Array();
-	game.caisses = new Array();
+	game.crates = new Array();
 	game.platforms = new Array();
 	game.animatedTiles = new Array();
 	game.plasmaBall = new Array();
-	game.tourelles = new Array();
+	game.turrets = new Array();
 
-	game.perso = new Perso();
+	game.player = new Player();
 
 	for (i in game.map) {
 		const y = i >> 5;
 		const x = i - (y << 5);
 
 		if (game.map[i] == Tile.TUNNEL_RIGHT) {
-			game.tunnels.push(new Tunnel((x * 16) << 8, (y * 16) << 8, DROITE));
+			game.tunnels.push(new Tunnel((x * 16) << 8, (y * 16) << 8, Direction.RIGHT));
 		} else if (game.map[i] == Tile.TUNNEL_LEFT) {
-			game.tunnels.push(new Tunnel((x * 16) << 8, (y * 16) << 8, GAUCHE));
+			game.tunnels.push(new Tunnel((x * 16) << 8, (y * 16) << 8, Direction.LEFT));
 		} else if (game.map[i] == Tile.TUNNEL_UP) {
-			game.tunnels.push(new Tunnel((x * 16) << 8, (y * 16) << 8, HAUT));
+			game.tunnels.push(new Tunnel((x * 16) << 8, (y * 16) << 8, Direction.UP));
 		} else if (game.map[i] == Tile.TUNNEL_DOWN) {
-			game.tunnels.push(new Tunnel((x * 16) << 8, (y * 16) << 8, BAS));
+			game.tunnels.push(new Tunnel((x * 16) << 8, (y * 16) << 8, Direction.DOWN));
 		} else if (game.map[i] == Tile.TUBE) {
 			game.tubeX = (x * 16) << 8;
 			game.tubeY = (y * 16) << 8;
@@ -811,17 +809,17 @@ export function loadPreviewMap(level) {
 			game.cakes.push(new Cake((x * 16) << 8, (y * 16) << 8));
 			continue;
 		} else if (game.map[i] == Tile.TURRET_LEFT) {
-			game.tourelles.push(new Tourelle((x * 16) << 8, (y * 16) << 8, -1));
+			game.turrets.push(new Turret((x * 16) << 8, (y * 16) << 8, -1));
 			continue;
 		} else if (game.map[i] == Tile.TURRET_RIGHT) {
-			game.tourelles.push(new Tourelle((x * 16) << 8, (y * 16) << 8, 1));
+			game.turrets.push(new Turret((x * 16) << 8, (y * 16) << 8, 1));
 			continue;
 		} else if (game.map[i] == Tile.CRATE) {
-			game.caisses.push(new Caisse((x * 16) << 8, (y * 16) << 8));
+			game.crates.push(new Crate((x * 16) << 8, (y * 16) << 8));
 			continue;
 		} else if (game.map[i] == Tile.PLAYER_START) {
-			game.perso.x = (x * 16) << 8;
-			game.perso.y = (y * 16) << 8;
+			game.player.x = (x * 16) << 8;
+			game.player.y = (y * 16) << 8;
 			continue;
 		} else if (game.map[i] == Tile.PLATFORM_RIGHT) {
 			vx = 256;
@@ -835,9 +833,9 @@ export function loadPreviewMap(level) {
 	}
 
 	if (level == 8 && ui.campaign <= CampaignId.ADVANCED) {
-		game.perso.vy = -2400;
-		game.perso.x = 128 << 8;
-		game.perso.y = 384 << 8;
+		game.player.vy = -2400;
+		game.player.x = 128 << 8;
+		game.player.y = 384 << 8;
 	}
 
 	if (ui.campaign == CampaignId.STORY) {

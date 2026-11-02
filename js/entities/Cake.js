@@ -14,7 +14,7 @@ import { random } from '../utils.js';
  *
  * @returns {void}
  */
-export function validerArrivee() {
+export function openExit() {
 	let i;
 	for (i = 0; i < 768; i++) {
 		if (game.map[i] == Tile.EXIT_CLOSED) {
@@ -30,16 +30,16 @@ export function validerArrivee() {
  *
  * @returns {void}
  */
-export function toucheCake() {
+export function collectCakes() {
 	let i;
 	for (i = 0; i < game.cakes.length; i++) {
 		if (game.cakes[i].used) {
-			if (persoToucheCake(i)) {
+			if (playerTouchesCake(i)) {
 				game.cakes[i].used = 0;
 				game.CAKELEFT--;
 				createCakeOrSmokeSparkles(game.cakes[i].x, game.cakes[i].y, 8, 2, 180);
 				playSound(sfx_grabCake);
-				if (game.CAKELEFT == 0) validerArrivee();
+				if (game.CAKELEFT == 0) openExit();
 			}
 		}
 	}
@@ -51,21 +51,21 @@ export function toucheCake() {
  * @param {number} i The index of the cake.
  * @returns {number} 1 if the player overlaps the cake, else 0.
  */
-function persoToucheCake(i) {
-	let retour = 0;
+function playerTouchesCake(i) {
+	let hit = 0;
 
-	const posx = game.perso.x >> 8;
-	const posy = game.perso.y >> 8;
-	const pX = game.perso.pX;
-	const pY = game.perso.pY;
+	const posx = game.player.x >> 8;
+	const posy = game.player.y >> 8;
+	const pX = game.player.pX;
+	const pY = game.player.pY;
 	const x = game.cakes[i].x >> 8;
 	const y = game.cakes[i].y >> 8;
 
 	if (posx + pX > x && x + 16 > posx && posy + pY > y && y + 16 > posy) {
-		retour = 1;
+		hit = 1;
 	}
 
-	return retour;
+	return hit;
 }
 
 /**

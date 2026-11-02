@@ -6,19 +6,19 @@
  */
 
 /** @type {number} Key bit for jump (Z or W). */
-const KEY_Z = 1;
+const KEY_JUMP = 1;
 /** @type {number} Key bit for left (Q or A). */
-const KEY_Q = 2;
+const KEY_LEFT = 2;
 /** @type {number} Key bit for right (D). */
-const KEY_D = 4;
+const KEY_RIGHT = 4;
 /** @type {number} Key bit for "clear portals" (E). */
-const KEY_E = 8;
+const KEY_CLEAR = 8;
 /** @type {number} Key bit for down (S). */
-const KEY_S = 16;
+const KEY_DOWN = 16;
 /** @type {number} Bit for the left mouse button. */
-const MSE_L = 32;
+const MOUSE_LEFT = 32;
 /** @type {number} Bit for the right mouse button. */
-const MSE_R = 64;
+const MOUSE_RIGHT = 64;
 
 /** @type {{x: number, y: number, width: number, height: number}} Position of the playfield on the canvas. */
 const PLAYFIELD = { x: 64, y: 96, width: 512, height: 384 };
@@ -62,21 +62,21 @@ export function generateInputs(seed, ticks) {
 		let keys = 0;
 
 		const direction = random();
-		if (direction < 0.4) keys |= KEY_D;
-		else if (direction < 0.7) keys |= KEY_Q;
-		if (random() < 0.3) keys |= KEY_Z;
-		if (random() < 0.05) keys |= KEY_S;
+		if (direction < 0.4) keys |= KEY_RIGHT;
+		else if (direction < 0.7) keys |= KEY_LEFT;
+		if (random() < 0.3) keys |= KEY_JUMP;
+		if (random() < 0.05) keys |= KEY_DOWN;
 
 		const button = random();
-		if (button < 0.15) keys |= MSE_L;
-		else if (button < 0.3) keys |= MSE_R;
+		if (button < 0.15) keys |= MOUSE_LEFT;
+		else if (button < 0.3) keys |= MOUSE_RIGHT;
 
 		const clear = random() < 0.03;
 		const x = PLAYFIELD.x + randomInt(0, PLAYFIELD.width - 1);
 		const y = PLAYFIELD.y + randomInt(0, PLAYFIELD.height - 1);
 
 		for (let i = 0; i < length && inputs.length < ticks; i++) {
-			inputs.push([clear && i === 0 ? keys | KEY_E : keys, x, y]);
+			inputs.push([clear && i === 0 ? keys | KEY_CLEAR : keys, x, y]);
 		}
 	}
 

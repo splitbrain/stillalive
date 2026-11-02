@@ -40,8 +40,8 @@ export function createSparkles(xFrom, yFrom, xTo, yTo, color, used) {
 		if (i % 6 == 0 && now > 15) {
 			for (k = 0; k < 3; k++) {
 				const s = new Sparkle();
-				s.x = x + parseInt(random(-5 << 8, 5 << 8)) - (8 << 8) - (game.ECART_X << 8);
-				s.y = y + parseInt(random(-5 << 8, 5 << 8)) - (8 << 8) - (game.ECART_Y << 8);
+				s.x = x + parseInt(random(-5 << 8, 5 << 8)) - (8 << 8) - (game.offsetX << 8);
+				s.y = y + parseInt(random(-5 << 8, 5 << 8)) - (8 << 8) - (game.offsetY << 8);
 				s.used = used;
 				s.vx = parseInt(random(96, 192));
 				s.vy = parseInt(random(96, 192));
@@ -122,9 +122,9 @@ export function manageSparkles() {
 				d = Math.abs(game.sparkles[i].yOrig - game.sparkles[i].y) >> 8;
 				game.sparkles[i].fading = 200 - 5 * d;
 				const n = game.sparkles[i].portalNum;
-				const plt = game.portals[n].plateforme;
-				if (plt >= 0) {
-					game.sparkles[i].x += game.platforms[plt].vx;
+				const pi = game.portals[n].platformIndex;
+				if (pi >= 0) {
+					game.sparkles[i].x += game.platforms[pi].vx;
 					game.sparkles[i].xOrig = game.sparkles[i].x;
 				}
 			}
@@ -143,8 +143,8 @@ export function manageSparkles() {
 				game.sparkles[i].color * 9,
 				9,
 				9,
-				(game.sparkles[i].x >> 8) + dt + game.ECART_X,
-				(game.sparkles[i].y >> 8) + dt + game.ECART_Y,
+				(game.sparkles[i].x >> 8) + dt + game.offsetX,
+				(game.sparkles[i].y >> 8) + dt + game.offsetY,
 				16 * sc,
 				16 * sc,
 			);

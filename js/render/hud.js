@@ -3,7 +3,7 @@
  */
 
 import { ctx } from '../canvas.js';
-import { KEY_D, KEY_E, KEY_Q, KEY_S, KEY_Z, MSE_L, MSE_R, Menu } from '../constants.js';
+import { KEY_CLEAR, KEY_DOWN, KEY_JUMP, KEY_LEFT, KEY_RIGHT, MOUSE_LEFT, MOUSE_RIGHT, Menu } from '../constants.js';
 import { key, mouseIcon } from '../images.js';
 import { campaigns } from '../level.js';
 import { game, input, settings, ui } from '../state.js';
@@ -17,13 +17,13 @@ export function drawKeys() {
 	ctx.font = 'bold 12px Arial';
 	ctx.fillStyle = 'rgb(0, 0, 0)';
 
-	const z = KEY_Z & input.keys ? 1 : 0;
-	const q = KEY_Q & input.keys ? 1 : 0;
-	const d = KEY_D & input.keys ? 1 : 0;
-	const e = KEY_E & input.keys ? 1 : 0;
-	const s = KEY_S & input.keys ? 1 : 0;
-	const ml = MSE_L & input.keys ? 1 : 0;
-	const mr = MSE_R & input.keys ? 1 : 0;
+	const z = KEY_JUMP & input.keys ? 1 : 0;
+	const q = KEY_LEFT & input.keys ? 1 : 0;
+	const d = KEY_RIGHT & input.keys ? 1 : 0;
+	const e = KEY_CLEAR & input.keys ? 1 : 0;
+	const s = KEY_DOWN & input.keys ? 1 : 0;
+	const ml = MOUSE_LEFT & input.keys ? 1 : 0;
+	const mr = MOUSE_RIGHT & input.keys ? 1 : 0;
 
 	ctx.drawImage(key, 0, z * 24, 24, 24, 525, 485, 24, 24);
 	ctx.fillText('Z', 525 + 6, 485 + 16);
@@ -105,7 +105,7 @@ export function drawHudText() {
 	ctx.font = 'bold 14px Arial';
 	ctx.fillStyle = 'rgb(255, 255, 255)';
 
-	ctx.fillText((game.perso.vie >> 8 > 0 ? game.perso.vie >> 8 : 0) + '', 20, 150);
+	ctx.fillText((game.player.life >> 8 > 0 ? game.player.life >> 8 : 0) + '', 20, 150);
 	ctx.fillText(game.CAKELEFT + '', 26, 215);
 	ctx.fillText((game.STEPS >> 8) + '', 26, 275);
 	ctx.fillText(game.PORTALS + '', 26, 335);

@@ -57,7 +57,7 @@ function panelHtml() {
 	let html = '';
 
 	if (playing) {
-		const time = game.perso.fadeNextLevel === -1 ? game.TIME - (game.TIME % TIME_UPDATE_INTERVAL) : game.TIME;
+		const time = game.player.fadeNextLevel === -1 ? game.TIME - (game.TIME % TIME_UPDATE_INTERVAL) : game.TIME;
 		html += `<p class="title">Level ${level}${game.replayMode ? ' (replay)' : ''}</p>`;
 		html += `<p>Time: ${toTime(time)}</p>`;
 		html += `<p>Best time: ${formatTime(best)}</p>`;
@@ -108,8 +108,8 @@ function startReplay(data) {
 
 	game.replay = recorded;
 	game.replayMode = true;
-	game.ECART_X = 64;
-	game.ECART_Y = 96;
+	game.offsetX = 64;
+	game.offsetY = 96;
 	ui.currentMenu = Menu.PLAY;
 	loadLevel(ui.currentLevel);
 	unclick();

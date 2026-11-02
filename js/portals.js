@@ -3,7 +3,7 @@
  */
 
 import { playSound, sfx_enterPortal, sfx_noPortal, sfx_portal } from './audio.js';
-import { BAS, DROITE, GAUCHE, HAUT } from './constants.js';
+import { Direction } from './constants.js';
 import { Sparkle, removeSparkles } from './entities/Sparkle.js';
 import { getTile, getTilePortal } from './physics.js';
 import { Line } from './render/game.js';
@@ -22,14 +22,14 @@ import { getCos, getSin, inScreen, random } from './utils.js';
  */
 export function launchPortal(p) {
 	let i, k;
-	game.perso.timePosePortal = 0;
-	game.perso.lastLaunched = p;
+	game.player.portalCooldown = 0;
+	game.player.lastLaunched = p;
 
-	let x = game.perso.x + ((game.perso.pX >> 1) << 8);
-	let y = game.perso.y + ((game.perso.pY >> 1) << 8);
+	let x = game.player.x + ((game.player.pX >> 1) << 8);
+	let y = game.player.y + ((game.player.pY >> 1) << 8);
 
-	game.portals[p].vx = getCos(input.mouseX, input.mouseY, (x >> 8) + game.ECART_X, (y >> 8) + game.ECART_Y) * 256;
-	game.portals[p].vy = getSin(input.mouseX, input.mouseY, (x >> 8) + game.ECART_X, (y >> 8) + game.ECART_Y) * 256;
+	game.portals[p].vx = getCos(input.mouseX, input.mouseY, (x >> 8) + game.offsetX, (y >> 8) + game.offsetY) * 256;
+	game.portals[p].vy = getSin(input.mouseX, input.mouseY, (x >> 8) + game.offsetX, (y >> 8) + game.offsetY) * 256;
 
 	for (i = 0; i < game.sparkles.length; i++) {
 		if (game.sparkles[i].color == p && game.sparkles[i].used == 1) {
@@ -39,7 +39,7 @@ export function launchPortal(p) {
 	}
 
 	i = 0;
-	let rebond = 0;
+	let bounces = 0;
 	let tile;
 	let now = 0;
 
@@ -55,17 +55,17 @@ export function launchPortal(p) {
 		tile = getTilePortal(x >> 8, y >> 8);
 
 		if (tile == Tile.MIRROR) {
-			const haut = getTilePortal(x >> 8, (y >> 8) - 1);
-			const bas = getTilePortal(x >> 8, (y >> 8) + 1);
-			const gauche = getTilePortal((x >> 8) - 1, y >> 8);
-			const droite = getTilePortal((x >> 8) + 1, y >> 8);
-			if ((!bas || !haut) && gauche && droite) {
+			const up = getTilePortal(x >> 8, (y >> 8) - 1);
+			const down = getTilePortal(x >> 8, (y >> 8) + 1);
+			const left = getTilePortal((x >> 8) - 1, y >> 8);
+			const right = getTilePortal((x >> 8) + 1, y >> 8);
+			if ((!down || !up) && left && right) {
 				game.portals[p].vy = -game.portals[p].vy;
-			} else if ((!gauche || !droite) && haut && bas) {
+			} else if ((!left || !right) && up && down) {
 				game.portals[p].vx = -game.portals[p].vx;
 			}
 			tile = 0;
-			rebond++;
+			bounces++;
 
 			portalLines[portalLines.length - 1].x2 = x >> 8;
 			portalLines[portalLines.length - 1].y2 = y >> 8;
@@ -96,7 +96,7 @@ export function launchPortal(p) {
 			const yy = y >> 8;
 			if (yy < 0 && game.portals[p].vy > 0) inScreenOK = true;
 		}
-	} while (tile == Tile.EMPTY && inScreenOK && rebond < 5);
+	} while (tile == Tile.EMPTY && inScreenOK && bounces < 5);
 
 	portalLines[portalLines.length - 1].x2 = x >> 8;
 	portalLines[portalLines.length - 1].y2 = y >> 8;
@@ -104,16 +104,16 @@ export function launchPortal(p) {
 	if (isTileKind(tile, TileKind.WALL) || isPlatformCode(tile)) {
 		const ok = setPortalDir(p, x >> 8, y >> 8);
 		if (ok) {
-			if (game.portals[p].direction == DROITE || game.portals[p].direction == GAUCHE) {
+			if (game.portals[p].direction == Direction.RIGHT || game.portals[p].direction == Direction.LEFT) {
 				game.portals[p].scaleX = 1;
 				game.portals[p].scaleY = 0;
-				game.portals[p].plateforme = -1;
+				game.portals[p].platformIndex = -1;
 			} else {
 				game.portals[p].scaleX = 0;
 				game.portals[p].scaleY = 1;
-				const plate = getTilePortal(x >> 8, y >> 8);
-				if (isPlatformCode(plate)) game.portals[p].plateforme = plate - PLATFORM_CODE;
-				else game.portals[p].plateforme = -1;
+				const platformCode = getTilePortal(x >> 8, y >> 8);
+				if (isPlatformCode(platformCode)) game.portals[p].platformIndex = platformCode - PLATFORM_CODE;
+				else game.portals[p].platformIndex = -1;
 			}
 			const r = parseInt(random(0, 2));
 			playSound(sfx_portal[r]);
@@ -139,28 +139,28 @@ function setPortalDir(p, x, y) {
 	let i;
 	const oldDir = game.portals[p].direction;
 
-	let mur = 0;
+	let wallCount = 0;
 	//first check if the portal is on a left or right wall
 	for (i = y - 14; i < y + 14; i++) {
 		tile = getTilePortal(x, i);
 		if (tile != Tile.EMPTY) {
-			if (isTileKind(tile, TileKind.WALL) || isPlatformCode(tile)) mur++;
+			if (isTileKind(tile, TileKind.WALL) || isPlatformCode(tile)) wallCount++;
 		}
 	}
-	if (mur == 28) {
-		mur = 0;
+	if (wallCount == 28) {
+		wallCount = 0;
 		for (i = x - 16; i < x + 16; i++) {
 			//make sure that nothing touches horizontally
-			if (getTile(i, y - 14) != Tile.EMPTY && !isCrateCode(getTile(i, y - 14))) mur++;
-			if (getTile(i, y + 13) != Tile.EMPTY && !isCrateCode(getTile(i, y + 13))) mur++;
+			if (getTile(i, y - 14) != Tile.EMPTY && !isCrateCode(getTile(i, y - 14))) wallCount++;
+			if (getTile(i, y + 13) != Tile.EMPTY && !isCrateCode(getTile(i, y + 13))) wallCount++;
 		}
-		if (mur > 36) return 0;
+		if (wallCount > 36) return 0;
 
 		if (vx < 0) {
 			//if the portal is on the left
 			x -= 3;
-			game.portals[p].direction = GAUCHE;
-		} else game.portals[p].direction = DROITE;
+			game.portals[p].direction = Direction.LEFT;
+		} else game.portals[p].direction = Direction.RIGHT;
 		y -= 16;
 
 		x2 = game.portals[1 - p].x >> 8;
@@ -188,7 +188,7 @@ function setPortalDir(p, x, y) {
 			s.yOrig = s.y;
 			s.portalNum = p;
 			s.used = 3;
-			if (game.portals[p].direction == DROITE) {
+			if (game.portals[p].direction == Direction.RIGHT) {
 				s.vx = -parseInt(random(128, 384));
 				s.xOrig -= 7 << 8;
 			} else s.vx = parseInt(random(128, 384));
@@ -202,27 +202,27 @@ function setPortalDir(p, x, y) {
 		return 1;
 	} else {
 		//then check if the portal is on a top or bottom wall
-		mur = 0;
+		wallCount = 0;
 		for (i = x - 14; i < x + 14; i++) {
 			tile = getTilePortal(i, y);
 			if (tile != Tile.EMPTY) {
-				if (isTileKind(tile, TileKind.WALL) || isPlatformCode(tile)) mur++;
+				if (isTileKind(tile, TileKind.WALL) || isPlatformCode(tile)) wallCount++;
 			}
 		}
-		if (mur == 28) {
-			mur = 0;
+		if (wallCount == 28) {
+			wallCount = 0;
 			for (i = y - 16; i < y + 16; i++) {
 				//make sure that nothing touches vertically
-				if (getTile(x - 14, i) != Tile.EMPTY && !isCrateCode(getTile(x - 14, i))) mur++;
-				if (getTile(x + 13, i) != Tile.EMPTY && !isCrateCode(getTile(x + 13, i))) mur++;
+				if (getTile(x - 14, i) != Tile.EMPTY && !isCrateCode(getTile(x - 14, i))) wallCount++;
+				if (getTile(x + 13, i) != Tile.EMPTY && !isCrateCode(getTile(x + 13, i))) wallCount++;
 			}
-			if (mur > 36) return 0;
+			if (wallCount > 36) return 0;
 
 			if (vy < 0) {
 				//if the portal is at the top
 				y -= 3;
-				game.portals[p].direction = HAUT;
-			} else game.portals[p].direction = BAS;
+				game.portals[p].direction = Direction.UP;
+			} else game.portals[p].direction = Direction.DOWN;
 			x -= 16;
 
 			x2 = game.portals[1 - p].x >> 8;
@@ -251,7 +251,7 @@ function setPortalDir(p, x, y) {
 				s.yOrig = s.y;
 				s.used = 3;
 				s.portalNum = p;
-				if (game.portals[p].direction == BAS) {
+				if (game.portals[p].direction == Direction.DOWN) {
 					s.vy = -parseInt(random(128, 384));
 					s.yOrig -= 8 << 8;
 				} else s.vy = parseInt(random(128, 384));
@@ -274,7 +274,7 @@ function setPortalDir(p, x, y) {
  * @param {object} obj The object with x, y, vx, vy, pX and pY.
  * @returns {number} The portal index plus 1, or 0 if the object is not in such a portal.
  */
-export function checkTeleportGauche(obj) {
+export function checkTeleportLeft(obj) {
 	let j;
 	let x = obj.x >> 8;
 	const y = obj.y >> 8;
@@ -282,13 +282,13 @@ export function checkTeleportGauche(obj) {
 	for (j = 0; j < 2; j++) {
 		const tx = (game.portals[j].x >> 8) + 3;
 		const ty = game.portals[j].y >> 8;
-		if (game.portals[j].used && game.portals[j].direction == GAUCHE && game.portals[1 - j].used) {
+		if (game.portals[j].used && game.portals[j].direction == Direction.LEFT && game.portals[1 - j].used) {
 			if (y >= ty - 6 && y + obj.pY <= ty + 38 && x < tx && tx - x <= 20) {
-				const ecrt = (32 - obj.pY) >> 1;
-				obj.y = (ty + ecrt) << 8;
+				const gap = (32 - obj.pY) >> 1;
+				obj.y = (ty + gap) << 8;
 				if (game.bossNum == 0 || obj.type != 'plasma') obj.vy = 0;
 				if (tx - x >= obj.pX >> 1 && obj.vx < 0) {
-					transfertPortal(j, obj);
+					teleport(j, obj);
 				}
 				return j + 1;
 			}
@@ -303,7 +303,7 @@ export function checkTeleportGauche(obj) {
  * @param {object} obj The object with x, y, vx, vy, pX and pY.
  * @returns {number} The portal index plus 1, or 0 if the object is not in such a portal.
  */
-export function checkTeleportDroite(obj) {
+export function checkTeleportRight(obj) {
 	let j;
 	let x = obj.x >> 8;
 	const y = obj.y >> 8;
@@ -311,13 +311,13 @@ export function checkTeleportDroite(obj) {
 	for (j = 0; j < 2; j++) {
 		const tx = game.portals[j].x >> 8;
 		const ty = game.portals[j].y >> 8;
-		if (game.portals[j].used && game.portals[j].direction == DROITE && game.portals[1 - j].used) {
+		if (game.portals[j].used && game.portals[j].direction == Direction.RIGHT && game.portals[1 - j].used) {
 			if (y >= ty - 6 && y + obj.pY <= ty + 38 && x > tx && x - tx <= 20) {
-				const ecrt = (32 - obj.pY) >> 1;
-				obj.y = (ty + ecrt) << 8;
+				const gap = (32 - obj.pY) >> 1;
+				obj.y = (ty + gap) << 8;
 				if (game.bossNum == 0 || obj.type != 'plasma') obj.vy = 0;
 				if (x - tx >= obj.pX >> 1 && obj.vx > 0) {
-					transfertPortal(j, obj);
+					teleport(j, obj);
 				}
 				return j + 1;
 			}
@@ -332,7 +332,7 @@ export function checkTeleportDroite(obj) {
  * @param {object} obj The object with x, y, vx, vy, pX and pY.
  * @returns {number} The portal index plus 1, or 0 if the object is not in such a portal.
  */
-export function checkTeleportBas(obj) {
+export function checkTeleportDown(obj) {
 	let j;
 	const x = obj.x >> 8;
 	let y = obj.y >> 8;
@@ -343,11 +343,11 @@ export function checkTeleportBas(obj) {
 	for (j = 0; j < 2; j++) {
 		const tx = game.portals[j].x >> 8;
 		const ty = game.portals[j].y >> 8;
-		if (game.portals[j].used && game.portals[j].direction == BAS && game.portals[1 - j].used == 1) {
+		if (game.portals[j].used && game.portals[j].direction == Direction.DOWN && game.portals[1 - j].used == 1) {
 			if (x >= tx - 4 && x + obj.pX < tx + 36 && y >= ty && y - ty <= 20) {
 				obj.x = (tx + 8) << 8;
 				if (y - ty >= 16 && obj.vy > 0) {
-					transfertPortal(j, obj);
+					teleport(j, obj);
 				}
 				return j + 1;
 			}
@@ -362,7 +362,7 @@ export function checkTeleportBas(obj) {
  * @param {object} obj The object with x, y, vx, vy, pX and pY.
  * @returns {number} The portal index plus 1, or 0 if the object is not in such a portal.
  */
-export function checkTeleportHaut(obj) {
+export function checkTeleportUp(obj) {
 	let j;
 	const x = obj.x >> 8;
 	let y = obj.y >> 8;
@@ -373,11 +373,11 @@ export function checkTeleportHaut(obj) {
 	for (j = 0; j < 2; j++) {
 		const tx = game.portals[j].x >> 8;
 		const ty = (game.portals[j].y >> 8) + 4;
-		if (game.portals[j].used && game.portals[j].direction == HAUT && game.portals[1 - j].used == 1) {
+		if (game.portals[j].used && game.portals[j].direction == Direction.UP && game.portals[1 - j].used == 1) {
 			if (x >= tx - 4 && x + obj.pX < tx + 36 && y < ty && ty - y <= 20) {
 				obj.x = (tx + 8) << 8;
 				if (ty - y >= 16 && obj.vy < 0) {
-					transfertPortal(j, obj);
+					teleport(j, obj);
 				}
 				return j + 1;
 			}
@@ -392,11 +392,11 @@ export function checkTeleportHaut(obj) {
  * @param {object} obj The object with x, y, vx, vy, pX and pY.
  * @returns {number} The portal index plus 1, or 0 if the object is not in a portal.
  */
-export function dansUnPortal(obj) {
-	let p = checkTeleportBas(obj);
-	if (p == 0) p = checkTeleportHaut(obj);
-	if (p == 0) p = checkTeleportGauche(obj);
-	if (p == 0) p = checkTeleportDroite(obj);
+export function inPortal(obj) {
+	let p = checkTeleportDown(obj);
+	if (p == 0) p = checkTeleportUp(obj);
+	if (p == 0) p = checkTeleportLeft(obj);
+	if (p == 0) p = checkTeleportRight(obj);
 
 	return p;
 }
@@ -408,96 +408,111 @@ export function dansUnPortal(obj) {
  * @param {object} obj The object.
  * @returns {void}
  */
-function transfertPortal(p, obj) {
-	let ecrt, oldx;
-	const entree = game.portals[p].direction;
-	const sortie = game.portals[1 - p].direction;
+function teleport(p, obj) {
+	let gap, swap;
+	const entry = game.portals[p].direction;
+	const exit = game.portals[1 - p].direction;
 
 	playSound(sfx_enterPortal);
 
-	if (obj.type == 'tourelle') {
+	if (obj.type == 'turret') {
 		obj.canExplode = 1;
 	}
 
-	if (obj.type == 'perso') {
-		game.perso.timePassedPortal = p == 0 ? 42 : -42;
+	if (obj.type == 'player') {
+		game.player.teleportTime = p == 0 ? 42 : -42;
 	}
 
-	if (sortie == DROITE) {
-		ecrt = (32 - obj.pY) >> 1;
+	if (exit == Direction.RIGHT) {
+		gap = (32 - obj.pY) >> 1;
 		obj.x = game.portals[1 - p].x - ((obj.pX >> 1) << 8);
-		obj.y = game.portals[1 - p].y + (ecrt << 8);
-	} else if (sortie == GAUCHE) {
-		ecrt = (32 - obj.pY) >> 1;
+		obj.y = game.portals[1 - p].y + (gap << 8);
+	} else if (exit == Direction.LEFT) {
+		gap = (32 - obj.pY) >> 1;
 		obj.x = game.portals[1 - p].x - ((obj.pX >> 1) << 8);
-		obj.y = game.portals[1 - p].y + (ecrt << 8);
-	} else if (sortie == HAUT) {
+		obj.y = game.portals[1 - p].y + (gap << 8);
+	} else if (exit == Direction.UP) {
 		obj.x = game.portals[1 - p].x + (8 << 8);
 		obj.y = game.portals[1 - p].y - ((obj.pY >> 1) << 8) + (4 << 8);
-	} else if (sortie == BAS) {
+	} else if (exit == Direction.DOWN) {
 		obj.x = game.portals[1 - p].x + (8 << 8);
 		obj.y = game.portals[1 - p].y - ((obj.pY >> 1) << 8);
 	}
 
 	if (game.bossNum == 0 || obj.type != 'plasma') {
-		if (entree == BAS && sortie == BAS) {
+		if (entry == Direction.DOWN && exit == Direction.DOWN) {
 			obj.vy = -obj.vy;
 			if (obj.vy > -1100) obj.vy = -1100;
-		} else if (entree == BAS && sortie == GAUCHE) {
-			oldx = obj.vx;
+		} else if (entry == Direction.DOWN && exit == Direction.LEFT) {
+			swap = obj.vx;
 			obj.vx = obj.vy;
-			obj.vy = oldx;
-		} else if (entree == BAS && sortie == DROITE) {
-			oldx = obj.vx;
+			obj.vy = swap;
+		} else if (entry == Direction.DOWN && exit == Direction.RIGHT) {
+			swap = obj.vx;
 			obj.vx = -obj.vy;
-			obj.vy = oldx;
-		} else if (entree == GAUCHE && sortie == BAS) {
+			obj.vy = swap;
+		} else if (entry == Direction.LEFT && exit == Direction.DOWN) {
 			obj.vy = -1000;
-		} else if (entree == DROITE && sortie == BAS) {
+		} else if (entry == Direction.RIGHT && exit == Direction.DOWN) {
 			obj.vy = -1000;
-		} else if (entree == DROITE && sortie == DROITE) {
+		} else if (entry == Direction.RIGHT && exit == Direction.RIGHT) {
 			obj.vx = -1000;
-		} else if (entree == GAUCHE && sortie == GAUCHE) {
+		} else if (entry == Direction.LEFT && exit == Direction.LEFT) {
 			obj.vx = 1000;
-		} else if (entree == HAUT && sortie == HAUT) {
+		} else if (entry == Direction.UP && exit == Direction.UP) {
 			obj.vy = 650;
-		} else if (entree == GAUCHE && sortie == DROITE) {
+		} else if (entry == Direction.LEFT && exit == Direction.RIGHT) {
 			obj.vx = -650;
-		} else if (entree == DROITE && sortie == GAUCHE) {
+		} else if (entry == Direction.RIGHT && exit == Direction.LEFT) {
 			obj.vx = 650;
-		} else if (entree == DROITE && sortie == HAUT) {
+		} else if (entry == Direction.RIGHT && exit == Direction.UP) {
 			obj.vy = 650;
-		} else if (entree == GAUCHE && sortie == HAUT) {
+		} else if (entry == Direction.LEFT && exit == Direction.UP) {
 			obj.vy = 650;
-		} else if (entree == HAUT && sortie == GAUCHE) {
+		} else if (entry == Direction.UP && exit == Direction.LEFT) {
 			obj.vx = 650;
-		} else if (entree == HAUT && sortie == DROITE) {
+		} else if (entry == Direction.UP && exit == Direction.RIGHT) {
 			obj.vx = -650;
-		} else if (entree == HAUT && sortie == BAS) {
+		} else if (entry == Direction.UP && exit == Direction.DOWN) {
 			obj.vy = -1000;
-		} else if (entree == HAUT && sortie == HAUT) {
+		} else if (entry == Direction.UP && exit == Direction.UP) {
 			obj.vy = -obj.vy;
 		}
 	} else if ((game.bossNum == 3 || game.bossNum == 4) && obj.type == 'plasma') {
-		if ((entree == BAS && sortie == BAS) || (entree == HAUT && sortie == HAUT)) {
+		if ((entry == Direction.DOWN && exit == Direction.DOWN) || (entry == Direction.UP && exit == Direction.UP)) {
 			obj.vy = -obj.vy;
-		} else if ((entree == BAS && sortie == GAUCHE) || (entree == HAUT && sortie == DROITE)) {
-			oldx = obj.vx;
+		} else if (
+			(entry == Direction.DOWN && exit == Direction.LEFT) ||
+			(entry == Direction.UP && exit == Direction.RIGHT)
+		) {
+			swap = obj.vx;
 			obj.vx = obj.vy;
-			obj.vy = oldx;
-		} else if ((entree == BAS && sortie == DROITE) || (entree == HAUT && sortie == GAUCHE)) {
-			oldx = obj.vx;
+			obj.vy = swap;
+		} else if (
+			(entry == Direction.DOWN && exit == Direction.RIGHT) ||
+			(entry == Direction.UP && exit == Direction.LEFT)
+		) {
+			swap = obj.vx;
 			obj.vx = -obj.vy;
-			obj.vy = oldx;
-		} else if ((entree == GAUCHE && sortie == BAS) || (entree == DROITE && sortie == HAUT)) {
-			oldx = obj.vx;
+			obj.vy = swap;
+		} else if (
+			(entry == Direction.LEFT && exit == Direction.DOWN) ||
+			(entry == Direction.RIGHT && exit == Direction.UP)
+		) {
+			swap = obj.vx;
 			obj.vx = obj.vy;
-			obj.vy = oldx;
-		} else if ((entree == DROITE && sortie == BAS) || (entree == GAUCHE && sortie == HAUT)) {
-			oldx = obj.vx;
+			obj.vy = swap;
+		} else if (
+			(entry == Direction.RIGHT && exit == Direction.DOWN) ||
+			(entry == Direction.LEFT && exit == Direction.UP)
+		) {
+			swap = obj.vx;
 			obj.vx = obj.vy;
-			obj.vy = -oldx;
-		} else if ((entree == DROITE && sortie == DROITE) || (entree == GAUCHE && sortie == GAUCHE)) {
+			obj.vy = -swap;
+		} else if (
+			(entry == Direction.RIGHT && exit == Direction.RIGHT) ||
+			(entry == Direction.LEFT && exit == Direction.LEFT)
+		) {
 			obj.vx = -obj.vx;
 		}
 	}
@@ -511,20 +526,20 @@ function transfertPortal(p, obj) {
 export function clearPortals() {
 	let ok = 1;
 	let i = 0;
-	for (i in game.caisses) {
+	for (i in game.crates) {
 		if (!ok) break;
-		if (game.caisses[i].shrink == 0 && dansUnPortal(game.caisses[i])) ok = 0;
+		if (game.crates[i].shrink == 0 && inPortal(game.crates[i])) ok = 0;
 	}
 
 	if (ok) {
-		for (i in game.tourelles) {
-			if (game.tourelles[i].mort == 0 && dansUnPortal(game.tourelles[i])) ok = 0;
+		for (i in game.turrets) {
+			if (game.turrets[i].dead == 0 && inPortal(game.turrets[i])) ok = 0;
 		}
 	}
 
-	if (ok && game.plasmaBall.length > 0 && dansUnPortal(game.plasmaBall[0])) ok = 0;
+	if (ok && game.plasmaBall.length > 0 && inPortal(game.plasmaBall[0])) ok = 0;
 
-	if (ok && dansUnPortal(game.perso)) ok = 0;
+	if (ok && inPortal(game.player)) ok = 0;
 
 	if (ok) {
 		for (i = 0; i < 2; i++) {
@@ -547,11 +562,11 @@ export function pointInPortal(x, y) {
 		const xp = game.portals[i].x >> 8;
 		const yp = game.portals[i].y >> 8;
 
-		if (game.portals[i].direction == GAUCHE || game.portals[i].direction == DROITE) {
+		if (game.portals[i].direction == Direction.LEFT || game.portals[i].direction == Direction.RIGHT) {
 			if (x >= xp && x <= xp + 3 && y >= yp && y <= yp + 32) {
 				return 1 - i;
 			}
-		} else if (game.portals[i].direction == HAUT || game.portals[i].direction == BAS) {
+		} else if (game.portals[i].direction == Direction.UP || game.portals[i].direction == Direction.DOWN) {
 			if (x >= xp && x <= xp + 32 && y >= yp && y <= yp + 3) {
 				return 1 - i;
 			}

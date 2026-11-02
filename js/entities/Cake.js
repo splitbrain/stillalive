@@ -9,10 +9,10 @@ import { game } from '../state.js';
 import { Tile } from '../tiles.js';
 import { random } from '../utils.js';
 
-export function validerArrivee(){
+export function validerArrivee() {
 	let i;
-	for(i=0;i<768;i++){
-		if(game.map[i]==Tile.EXIT_CLOSED) {
+	for (i = 0; i < 768; i++) {
+		if (game.map[i] == Tile.EXIT_CLOSED) {
 			game.map[i] = Tile.EXIT;
 			game.displayMap[i] = Tile.EXIT;
 		}
@@ -20,35 +20,35 @@ export function validerArrivee(){
 	reloadTiles();
 }
 
-export function toucheCake(){
+export function toucheCake() {
 	let i;
-	for(i=0;i<game.cakes.length;i++){
-		if(game.cakes[i].used){
-			if(persoToucheCake(i)){
+	for (i = 0; i < game.cakes.length; i++) {
+		if (game.cakes[i].used) {
+			if (persoToucheCake(i)) {
 				game.cakes[i].used = 0;
 				game.CAKELEFT--;
 				createCakeOrSmokeSparkles(game.cakes[i].x, game.cakes[i].y, 8, 2, 180);
 				playSound(sfx_grabCake);
-				if(game.CAKELEFT==0) validerArrivee();
+				if (game.CAKELEFT == 0) validerArrivee();
 			}
 		}
 	}
 }
 
-function persoToucheCake(i){
+function persoToucheCake(i) {
 	let retour = 0;
 
-	const posx = game.perso.x>>8;
-	const posy = (game.perso.y>>8);
+	const posx = game.perso.x >> 8;
+	const posy = game.perso.y >> 8;
 	const pX = game.perso.pX;
 	const pY = game.perso.pY;
-	const x = game.cakes[i].x>>8;
-	const y = game.cakes[i].y>>8;
-	
-	if(posx+pX>x && x+16>posx && posy+pY>y && y+16>posy){
-		retour =  1;
+	const x = game.cakes[i].x >> 8;
+	const y = game.cakes[i].y >> 8;
+
+	if (posx + pX > x && x + 16 > posx && posy + pY > y && y + 16 > posy) {
+		retour = 1;
 	}
-	
+
 	return retour;
 }
 
@@ -59,7 +59,7 @@ export class Cake {
 		this.ox = x;
 		this.oy = y;
 		this.mDir = parseInt(random(0, 1)) == 0 ? -1 : 1;
-		this.vy = random(-3<<8, 3<<8);
+		this.vy = random(-3 << 8, 3 << 8);
 		this.used = true;
 	}
 }

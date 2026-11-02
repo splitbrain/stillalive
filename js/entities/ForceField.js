@@ -8,10 +8,10 @@ import { game } from '../state.js';
 import { inForceFieldRange } from '../tiles.js';
 
 export function fieldForceTest() {
-	if(game.portals[0].used || game.portals[1].used) {
-		if(inForceField(game.perso)) {
+	if (game.portals[0].used || game.portals[1].used) {
+		if (inForceField(game.perso)) {
 			let i;
-			for(i=0;i<2;i++){
+			for (i = 0; i < 2; i++) {
 				game.portals[i].used = 0;
 				removeSparkles(i, 3);
 			}
@@ -21,10 +21,10 @@ export function fieldForceTest() {
 
 export function inForceField(obj) {
 	let i, j;
-	for(i=0;i<=obj.pY - 1;i+=2){
-		for(j=0;j<=obj.pX - 1;j+=2){
-			const t = getTileSimple((obj.x>>8) + j, (obj.y>>8) + j);
-			if(inForceFieldRange(t)) {				
+	for (i = 0; i <= obj.pY - 1; i += 2) {
+		for (j = 0; j <= obj.pX - 1; j += 2) {
+			const t = getTileSimple((obj.x >> 8) + j, (obj.y >> 8) + j);
+			if (inForceFieldRange(t)) {
 				return true;
 			}
 		}
@@ -45,31 +45,31 @@ export class ForceField {
 
 export function inForceFieldTp(obj) {
 	let i;
-	const posx = obj.x>>8;
-	const posy = (obj.y>>8);
+	const posx = obj.x >> 8;
+	const posy = obj.y >> 8;
 	const pX = obj.pX;
 	const pY = obj.pY;
-	
+
 	const fields = new Array();
-	
-	for(i in game.forceFields) {
+
+	for (i in game.forceFields) {
 		let x = game.forceFields[i].x;
 		let y = game.forceFields[i].y;
 		let w = game.forceFields[i].w;
 		let h = game.forceFields[i].h;
-		
-		if(w < 0) {
+
+		if (w < 0) {
 			w = -w;
 			x -= w;
-		}else if(h < 0) {
+		} else if (h < 0) {
 			h = -h;
 			y -= h;
 		}
-		
-		if(posx+pX>x && x+w>posx && posy+pY>y && y+h>posy){
+
+		if (posx + pX > x && x + w > posx && posy + pY > y && y + h > posy) {
 			fields.push(i);
 		}
 	}
-	
+
 	return fields;
 }

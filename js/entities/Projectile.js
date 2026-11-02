@@ -21,46 +21,46 @@ export class Projectile {
 	}
 
 	move() {
-		if(!this.needKill) {
+		if (!this.needKill) {
 			this.x += this.vx;
 			this.y += this.vy;
-			
-			if(game.TIME%6 == 0) {
-				if(++this.img > LAST_OF_KIND[TileKind.WHEEL]) this.img = FIRST_OF_KIND[TileKind.WHEEL];
+
+			if (game.TIME % 6 == 0) {
+				if (++this.img > LAST_OF_KIND[TileKind.WHEEL]) this.img = FIRST_OF_KIND[TileKind.WHEEL];
 			}
-			
-			const t = getTile((this.x>>8) + 8, (this.y>>8) + 8);
-			
-			if(t) {
+
+			const t = getTile((this.x >> 8) + 8, (this.y >> 8) + 8);
+
+			if (t) {
 				this.needKill = true;
 				this.timer = 180;
-				if(t > PLATFORM_CODE) {
+				if (t > PLATFORM_CODE) {
 					this.timer = 0;
 				}
-			}else {
-				if(collideAnyCaisse((this.x>>8), (this.y>>8))) this.needKill = true;
-				else if(collideAnyCaisse((this.x>>8) + 16, (this.y>>8))) this.needKill = true;
-				else if(collideAnyCaisse((this.x>>8), (this.y>>8) + 16)) this.needKill = true;
-				else if(collideAnyCaisse((this.x>>8) + 16, (this.y>>8) + 16)) this.needKill = true;
+			} else {
+				if (collideAnyCaisse(this.x >> 8, this.y >> 8)) this.needKill = true;
+				else if (collideAnyCaisse((this.x >> 8) + 16, this.y >> 8)) this.needKill = true;
+				else if (collideAnyCaisse(this.x >> 8, (this.y >> 8) + 16)) this.needKill = true;
+				else if (collideAnyCaisse((this.x >> 8) + 16, (this.y >> 8) + 16)) this.needKill = true;
 			}
-		}else {
-			if(--this.timer < 0) this.timer = 0;
+		} else {
+			if (--this.timer < 0) this.timer = 0;
 		}
 	}
 }
 
 export function projoTouchePerso(obj) {
-	const posx = obj.x>>8;
-	const posy = obj.y>>8;
+	const posx = obj.x >> 8;
+	const posy = obj.y >> 8;
 	const px = obj.pX;
 	const py = obj.pY;
-	
-	const x = game.perso.x>>8;
-	const y = game.perso.y>>8;
 
-	if(posx+px>x && x+game.perso.pX>posx && posy+py>y && y+game.perso.pY>posy) {
+	const x = game.perso.x >> 8;
+	const y = game.perso.y >> 8;
+
+	if (posx + px > x && x + game.perso.pX > posx && posy + py > y && y + game.perso.pY > posy) {
 		return true;
 	}
-		
+
 	return false;
 }

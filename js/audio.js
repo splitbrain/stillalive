@@ -185,17 +185,17 @@ export let sfx_throwObject, sfx_tick, sfx_transition;
 export let sfx_portal;
 
 export function loadSfx() {
-	sfx_explode = loadSound("explode");
-	sfx_bounce = loadSound("bounce");
-	sfx_grabCake = loadSound("grabCake");
-	sfx_jump = loadSound("jump");
-	sfx_throwObject = loadSound("throwObject");
-	sfx_enterPortal = loadSound("enterPortal");
-	sfx_transition = loadSound("transition");
-	sfx_tick = loadSound("tick");
-	sfx_pain = loadSound("pain");
-	sfx_flatline = loadSound("flatline");
-	sfx_noPortal = loadSound("noPortal");
-	sfx_shoot = loadSound("shoot");
-	sfx_portal = [loadSound("portal1"), loadSound("portal2")];
+	sfx_explode = loadSound('explode');
+	sfx_bounce = loadSound('bounce');
+	sfx_grabCake = loadSound('grabCake');
+	sfx_jump = loadSound('jump');
+	sfx_throwObject = loadSound('throwObject');
+	sfx_enterPortal = loadSound('enterPortal');
+	sfx_transition = loadSound('transition');
+	sfx_tick = loadSound('tick');
+	sfx_pain = loadSound('pain');
+	sfx_flatline = loadSound('flatline');
+	sfx_noPortal = loadSound('noPortal');
+	sfx_shoot = loadSound('shoot');
+	sfx_portal = [loadSound('portal1'), loadSound('portal2')];
 }

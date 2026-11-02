@@ -39,10 +39,7 @@ const MOUSE_BITS = MSE_L | MSE_R | MSE_M;
 function isForeignTarget(event) {
 	const target = event.target;
 	if (!(target instanceof Element)) return false;
-	return (
-		target.isContentEditable ||
-		target.closest('input, textarea, select, dialog') !== null
-	);
+	return target.isContentEditable || target.closest('input, textarea, select, dialog') !== null;
 }
 
 /**
@@ -145,7 +142,7 @@ export function unclick() {
 	input.mousePressed = 0;
 	input.mouseReleased = 0;
 	input.mouseNewPress = 0;
-	
+
 	input.keys &= ~MSE_L;
 	input.keys &= ~MSE_R;
 	input.keys &= ~MSE_M;
@@ -157,8 +154,16 @@ export function unclick() {
  * @returns {number[]} The old keys, the mouse state and the jump and clear state of the player.
  */
 function captureInput() {
-	return [input.oldKeys, input.mousePressed, input.mouseReleased, input.mouseButton, input.mouseNewPress,
-			game.perso.isJump, game.perso.oldIsJump, game.perso.askClear ? 1 : 0];
+	return [
+		input.oldKeys,
+		input.mousePressed,
+		input.mouseReleased,
+		input.mouseButton,
+		input.mouseNewPress,
+		game.perso.isJump,
+		game.perso.oldIsJump,
+		game.perso.askClear ? 1 : 0,
+	];
 }
 
 /**
@@ -180,87 +185,95 @@ export function restoreInput(state) {
 export function manageKeys() {
 	// The input still changes while the level time stands still. A replay restores the input state at the same time.
 	const inGame = game.perso.fadeNextLevel == -1 && ui.currentMenu == Menu.PLAY && !ui.escapeMenu;
-	if(inGame && !game.replayMode && !input.lastTickInGame) game.replay.states[game.TIME] = captureInput();
-	else if(inGame && game.replayMode && game.replay.states[game.TIME]) restoreInput(game.replay.states[game.TIME]);
+	if (inGame && !game.replayMode && !input.lastTickInGame) game.replay.states[game.TIME] = captureInput();
+	else if (inGame && game.replayMode && game.replay.states[game.TIME]) restoreInput(game.replay.states[game.TIME]);
 	input.lastTickInGame = inGame;
-	
-	if(game.perso.fadeNextLevel == -1 && ui.currentMenu == Menu.PLAY && !game.replayMode) {
+
+	if (game.perso.fadeNextLevel == -1 && ui.currentMenu == Menu.PLAY && !game.replayMode) {
 		input.mouseX = Math.round(input.mouseX);
 		input.mouseY = Math.round(input.mouseY);
 		game.replay.inputs[game.TIME] = input.keys;
 		game.replay.mouseX[game.TIME] = input.mouseX;
 		game.replay.mouseY[game.TIME] = input.mouseY;
-	}else if(game.perso.fadeNextLevel == -1 && ui.currentMenu == Menu.PLAY && game.replayMode && !ui.escapeMenu) {
-		if(game.TIME < game.replay.inputs.length) {
+	} else if (game.perso.fadeNextLevel == -1 && ui.currentMenu == Menu.PLAY && game.replayMode && !ui.escapeMenu) {
+		if (game.TIME < game.replay.inputs.length) {
 			input.keys = game.replay.inputs[game.TIME];
 			input.mouseX = game.replay.mouseX[game.TIME];
 			input.mouseY = game.replay.mouseY[game.TIME];
-		}else {
+		} else {
 			reportBrokenReplay();
 		}
 	}
-	
+
 	// check for a new left click
-	if((input.keys & MSE_L)) {
-		if(input.mousePressed == 0) {
+	if (input.keys & MSE_L) {
+		if (input.mousePressed == 0) {
 			input.mouseNewPress = 1;
-		}else {
+		} else {
 			input.mouseNewPress = 0;
 		}
-	}else input.mouseNewPress = 0;
+	} else input.mouseNewPress = 0;
 
 	//check if a mouse button was just pressed
-	if(!(input.oldKeys & MSE_L) && (input.keys & MSE_L)) {
+	if (!(input.oldKeys & MSE_L) && input.keys & MSE_L) {
 		input.mouseButton = LEFT;
 		input.mousePressed = 1;
 		input.mouseReleased = 0;
-	}else if(!(input.oldKeys & MSE_R) && (input.keys & MSE_R)) {
+	} else if (!(input.oldKeys & MSE_R) && input.keys & MSE_R) {
 		input.mouseButton = RIGHT;
 		input.mousePressed = 1;
 		input.mouseReleased = 0;
-	}else if(!(input.oldKeys & MSE_M) && (input.keys & MSE_M)) {
+	} else if (!(input.oldKeys & MSE_M) && input.keys & MSE_M) {
 		input.mouseButton = MIDDLE;
 		input.mousePressed = 1;
 		input.mouseReleased = 0;
 	}
-	
+
 	//check if a mouse button was just released
-	if((input.oldKeys & MSE_L) && !(input.keys & MSE_L)) {
+	if (input.oldKeys & MSE_L && !(input.keys & MSE_L)) {
 		input.mouseReleased = 1;
 		input.mousePressed = 0;
-	}else if((input.oldKeys & MSE_R) && !(input.keys & MSE_R)) {
+	} else if (input.oldKeys & MSE_R && !(input.keys & MSE_R)) {
 		input.mouseButton = RIGHT;
 		input.mouseReleased = 1;
 		input.mousePressed = 0;
-	}else if((input.oldKeys & MSE_M) && !(input.keys & MSE_M)) {
+	} else if (input.oldKeys & MSE_M && !(input.keys & MSE_M)) {
 		input.mouseButton = MIDDLE;
 		input.mouseReleased = 1;
 		input.mousePressed = 0;
 	}
-	
-	if(input.keys & KEY_E) {//clear portals
-		if(input.oldKeys & KEY_E) input.keys &= ~KEY_E;
+
+	if (input.keys & KEY_E) {
+		//clear portals
+		if (input.oldKeys & KEY_E) input.keys &= ~KEY_E;
 		else game.perso.askClear = true;
 	}
-	
-	if(input.keys & KEY_Q) game.perso.isLeft = 1;if(!(input.keys & KEY_Q)) game.perso.isLeft = 0;
-	if(input.keys & KEY_D) game.perso.isRight = 1;if(!(input.keys & KEY_D)) game.perso.isRight = 0;
-	if(input.keys & KEY_S) game.perso.isDown = 1;if(!(input.keys & KEY_S)) game.perso.isDown = 0;
-	
+
+	if (input.keys & KEY_Q) game.perso.isLeft = 1;
+	if (!(input.keys & KEY_Q)) game.perso.isLeft = 0;
+	if (input.keys & KEY_D) game.perso.isRight = 1;
+	if (!(input.keys & KEY_D)) game.perso.isRight = 0;
+	if (input.keys & KEY_S) game.perso.isDown = 1;
+	if (!(input.keys & KEY_S)) game.perso.isDown = 0;
+
 	//jump
-	if((input.keys & KEY_Z) && (isTestingLevel || ui.currentMenu == Menu.PLAY || (ui.currentMenu == Menu.TUTORIAL && ui.tutoJump)) && !dansUnPortal(game.perso)) {
-		if(!(input.oldKeys & KEY_Z)) game.perso.oldIsJump = game.perso.isJump;
+	if (
+		input.keys & KEY_Z &&
+		(isTestingLevel || ui.currentMenu == Menu.PLAY || (ui.currentMenu == Menu.TUTORIAL && ui.tutoJump)) &&
+		!dansUnPortal(game.perso)
+	) {
+		if (!(input.oldKeys & KEY_Z)) game.perso.oldIsJump = game.perso.isJump;
 		game.perso.isJump = 1;
 	}
-	if(!(input.keys & KEY_Z)) {
-		if(input.oldKeys & KEY_Z) game.perso.oldIsJump = game.perso.isJump;
+	if (!(input.keys & KEY_Z)) {
+		if (input.oldKeys & KEY_Z) game.perso.oldIsJump = game.perso.isJump;
 		game.perso.isJump = 0;
 	}
-	
+
 	input.oldKeys = input.keys;
 }
 
 export function mouseInZone(x, y, w, h) {
-	if(input.mouseX >=x && input.mouseX < x+w && input.mouseY >= y && input.mouseY < y+h) return true;
+	if (input.mouseX >= x && input.mouseX < x + w && input.mouseY >= y && input.mouseY < y + h) return true;
 	return false;
 }

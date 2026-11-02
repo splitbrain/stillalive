@@ -36,11 +36,11 @@ export let canSplash = false;
  * campaigns start to load, and the loading screen shows the progress.
  */
 function setup() {
-	ctx.strokeStyle = "rgb(255, 0, 0)";
-	ctx.font = "bold 10px Arial";
-	
+	ctx.strokeStyle = 'rgb(255, 0, 0)';
+	ctx.font = 'bold 10px Arial';
+
 	loadSplashImages();
-	Promise.all([whenImagesDone(), document.fonts.load("48px yikes")]).then(function() {
+	Promise.all([whenImagesDone(), document.fonts.load('48px yikes')]).then(function () {
 		canSplash = true;
 		loadGfx();
 		loadSfx();
@@ -49,13 +49,11 @@ function setup() {
 	});
 
 	ui.currentMenu = Menu.LOADING;
-	
-				
-	game.perso = new Perso();//prevents a crash during loading
-	
-	
+
+	game.perso = new Perso(); //prevents a crash during loading
+
 	game.TIME = 0;
-	
+
 	startLoop(myLoop);
 }
 

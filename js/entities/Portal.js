@@ -20,7 +20,7 @@ export class Portal {
 	}
 
 	move() {
-		if(this.used && this.plateforme>-1){
+		if (this.used && this.plateforme > -1) {
 			this.x += game.platforms[this.plateforme].vx;
 		}
 	}

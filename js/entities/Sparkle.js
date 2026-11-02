@@ -15,41 +15,41 @@ export function createSparkles(xFrom, yFrom, xTo, yTo, color, used) {
 	let y = yFrom;
 	const x2 = xTo;
 	const y2 = yTo;
-	
+
 	const vx = getCos(x2, y2, x, y) * 256;
 	const vy = getSin(x2, y2, x, y) * 256;
-	
+
 	let i = 0;
 	let now = 0;
-	do{
+	do {
 		now++;
 		x += vx;
 		y += vy;
-		
-		if(i%6==0 && now > 15){
-			for(k=0;k<3;k++){
+
+		if (i % 6 == 0 && now > 15) {
+			for (k = 0; k < 3; k++) {
 				const s = new Sparkle();
-				s.x = x + parseInt(random(-5<<8,5<<8)) - (8<<8) - (game.ECART_X << 8);
-				s.y = y + parseInt(random(-5<<8,5<<8)) - (8<<8) - (game.ECART_Y << 8);
+				s.x = x + parseInt(random(-5 << 8, 5 << 8)) - (8 << 8) - (game.ECART_X << 8);
+				s.y = y + parseInt(random(-5 << 8, 5 << 8)) - (8 << 8) - (game.ECART_Y << 8);
 				s.used = used;
 				s.vx = parseInt(random(96, 192));
 				s.vy = parseInt(random(96, 192));
 				s.fading = 255;
 				s.color = color;
 				s.portalNum = -1;
-				if(parseInt(random(0, 2))==0) s.vx = -s.vx;
-				if(parseInt(random(0, 2))==0) s.vy = -s.vy;
+				if (parseInt(random(0, 2)) == 0) s.vx = -s.vx;
+				if (parseInt(random(0, 2)) == 0) s.vy = -s.vy;
 				game.sparkles.push(s);
 			}
 		}
 		i++;
-	}while(getDistance(x, y, x2, y2) > 256);
+	} while (getDistance(x, y, x2, y2) > 256);
 }
 
 export function removeSparkles(p, used) {
 	let i;
-	for(i=0;i<game.sparkles.length;i++) {
-		if(game.sparkles[i].used == used && game.sparkles[i].color == p) {
+	for (i = 0; i < game.sparkles.length; i++) {
+		if (game.sparkles[i].used == used && game.sparkles[i].color == p) {
 			game.sparkles.splice(i, 1);
 			i--;
 		}
@@ -58,71 +58,81 @@ export function removeSparkles(p, used) {
 
 export function manageSparkles() {
 	let d, i, sc;
-	for(i=0;i<game.sparkles.length && settings.quality > 0;i++) {
-		if(game.sparkles[i].used == 5) game.sparkles[i].vy += GRAVITY;
-		else if(game.sparkles[i].used == 6 || game.sparkles[i].used == 7) game.sparkles[i].vy += GRAVITY>>1;
-	
-		if(game.sparkles[i].floorTime < 0) {
+	for (i = 0; i < game.sparkles.length && settings.quality > 0; i++) {
+		if (game.sparkles[i].used == 5) game.sparkles[i].vy += GRAVITY;
+		else if (game.sparkles[i].used == 6 || game.sparkles[i].used == 7) game.sparkles[i].vy += GRAVITY >> 1;
+
+		if (game.sparkles[i].floorTime < 0) {
 			game.sparkles[i].x += game.sparkles[i].vx;
 			game.sparkles[i].y += game.sparkles[i].vy;
 			sc = game.sparkles[i].fading / 255;
-		}else {		
-			if(game.sparkles[i].used == 7) {
+		} else {
+			if (game.sparkles[i].used == 7) {
 				game.sparkles[i].fading -= 0.7;
 				sc = game.sparkles[i].fading / 255;
-			}else if(game.sparkles[i].used == 5) {
-				if(++game.sparkles[i].floorTime >= 120) game.sparkles[i].fading -= 0.7;
+			} else if (game.sparkles[i].used == 5) {
+				if (++game.sparkles[i].floorTime >= 120) game.sparkles[i].fading -= 0.7;
 				sc = game.sparkles[i].fading / 255;
 			}
 		}
-		
-		if(game.sparkles[i].used >= 5 && game.sparkles[i].used < 8) {
-			if(getTile((game.sparkles[i].x>>8) + ((16*sc)>>1), (game.sparkles[i].y>>8) + ((16*sc)>>1)) != 0) {
-				if(game.sparkles[i].floorTime < 0) {
-					if(game.sparkles[i].used == 7 || game.sparkles[i].used == 5) {
+
+		if (game.sparkles[i].used >= 5 && game.sparkles[i].used < 8) {
+			if (getTile((game.sparkles[i].x >> 8) + ((16 * sc) >> 1), (game.sparkles[i].y >> 8) + ((16 * sc) >> 1)) != 0) {
+				if (game.sparkles[i].floorTime < 0) {
+					if (game.sparkles[i].used == 7 || game.sparkles[i].used == 5) {
 						game.sparkles[i].floorTime = 0;
-					}else {
+					} else {
 						game.sparkles[i].fading = 0;
 					}
 				}
 			}
 		}
-		
-		if(game.sparkles[i].used == 1 || game.sparkles[i].used == 4) {
+
+		if (game.sparkles[i].used == 1 || game.sparkles[i].used == 4) {
 			game.sparkles[i].fading -= 8;
-			if(getTile((game.sparkles[i].x>>8) + 4, (game.sparkles[i].y>>8) + 4) != 0) game.sparkles[i].fading = 0;
-		}else if(game.sparkles[i].used == 3) {
-			if(game.sparkles[i].vx != 0) {
+			if (getTile((game.sparkles[i].x >> 8) + 4, (game.sparkles[i].y >> 8) + 4) != 0) game.sparkles[i].fading = 0;
+		} else if (game.sparkles[i].used == 3) {
+			if (game.sparkles[i].vx != 0) {
 				d = Math.abs(game.sparkles[i].xOrig - game.sparkles[i].x) >> 8;
-				game.sparkles[i].fading = 200 - (5 * d);
-			}else if(game.sparkles[i].vy != 0) {
+				game.sparkles[i].fading = 200 - 5 * d;
+			} else if (game.sparkles[i].vy != 0) {
 				d = Math.abs(game.sparkles[i].yOrig - game.sparkles[i].y) >> 8;
-				game.sparkles[i].fading = 200 - (5 * d);
+				game.sparkles[i].fading = 200 - 5 * d;
 				const n = game.sparkles[i].portalNum;
 				const plt = game.portals[n].plateforme;
-				if(plt >= 0) {
+				if (plt >= 0) {
 					game.sparkles[i].x += game.platforms[plt].vx;
 					game.sparkles[i].xOrig = game.sparkles[i].x;
 				}
 			}
-		}else if(game.sparkles[i].used == 8 || game.sparkles[i].used == 9) {
+		} else if (game.sparkles[i].used == 8 || game.sparkles[i].used == 9) {
 			game.sparkles[i].fading -= 8;
 			//if( sparkles[i].used == 9) sparkles[i].vy += GRAVITY;
 		}
-		
-		if(settings.quality > 0 && game.sparkles[i].fading > 0) {
-			let dt = 9 - (sc * 9);
-			if(game.sparkles[i].used == 7 || game.sparkles[i].used == 5) {
+
+		if (settings.quality > 0 && game.sparkles[i].fading > 0) {
+			let dt = 9 - sc * 9;
+			if (game.sparkles[i].used == 7 || game.sparkles[i].used == 5) {
 				dt -= 8;
 			}
-			ctx.drawImage(sparkle, 0, game.sparkles[i].color * 9, 9, 9, (game.sparkles[i].x>>8) + dt + game.ECART_X, (game.sparkles[i].y>>8) + dt + game.ECART_Y, 16 * sc, 16 * sc); 
+			ctx.drawImage(
+				sparkle,
+				0,
+				game.sparkles[i].color * 9,
+				9,
+				9,
+				(game.sparkles[i].x >> 8) + dt + game.ECART_X,
+				(game.sparkles[i].y >> 8) + dt + game.ECART_Y,
+				16 * sc,
+				16 * sc,
+			);
 		}
-		
-		if(game.sparkles[i].fading <= 0) {
-			if(game.sparkles[i].used == 1 || game.sparkles[i].used == 4) {
+
+		if (game.sparkles[i].fading <= 0) {
+			if (game.sparkles[i].used == 1 || game.sparkles[i].used == 4) {
 				game.sparkles.splice(i, 1);
 				i--;
-			}else if(game.sparkles[i].used == 3) {
+			} else if (game.sparkles[i].used == 3) {
 				game.sparkles[i].x = game.sparkles[i].xOrig;
 				game.sparkles[i].y = game.sparkles[i].yOrig;
 				game.sparkles[i].fading = 200;
@@ -133,16 +143,16 @@ export function manageSparkles() {
 
 export function createCakeOrSmokeSparkles(x, y, type, number, size) {
 	let k;
-	for(k=0;k<number;k++){
+	for (k = 0; k < number; k++) {
 		const s = new Sparkle();
-		s.x = x + parseInt(random(-8<<8,8<<8));
-		s.y = y + parseInt(random(-8<<8,8<<8));
+		s.x = x + parseInt(random(-8 << 8, 8 << 8));
+		s.y = y + parseInt(random(-8 << 8, 8 << 8));
 		s.used = type;
 		s.vx = parseInt(random(-192, 192));
 		s.vy = parseInt(random(-192, -96));
 		s.fading = size;
-		if(type == 8) s.color = 2;
-		else if(type == 9) s.color = 3;
+		if (type == 8) s.color = 2;
+		else if (type == 9) s.color = 3;
 		s.portalNum = -1;
 		game.sparkles.push(s);
 	}

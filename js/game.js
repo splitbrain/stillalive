@@ -36,15 +36,16 @@ import { random, toTime } from './utils.js';
 
 export function myLoop() {
 	manageKeys();
-	if(!ui.drawCredits) draw();
+	if (!ui.drawCredits) draw();
 	else doDrawCredits();
 	updatePanel();
 }
 
 export function reportBrokenReplay() {
-	alertDialog("The replay you're watching seems to be broken -_-;\n" +
-				"Sorry for any inconveniences."
-		, 'An error occured');
+	alertDialog(
+		"The replay you're watching seems to be broken -_-;\n" + 'Sorry for any inconveniences.',
+		'An error occured',
+	);
 	game.replayMode = false;
 	exitFunc();
 }
@@ -57,177 +58,181 @@ export function reportBrokenReplay() {
 function checkBestTime() {
 	const campaign = campaigns[ui.campaign].folder;
 	const best = getBestTime(campaign, ui.currentLevel);
-	if(best != null && best <= game.TIME) return "Best time : " + toTime(best);
-	
-	saveBestTime(campaign, ui.currentLevel, game.TIME, encodeReplay(game.replay, campaign, ui.currentLevel)).catch(function(e) {
-		console.error(e);
-	});
-	return "New best time !";
+	if (best != null && best <= game.TIME) return 'Best time : ' + toTime(best);
+
+	saveBestTime(campaign, ui.currentLevel, game.TIME, encodeReplay(game.replay, campaign, ui.currentLevel)).catch(
+		function (e) {
+			console.error(e);
+		},
+	);
+	return 'New best time !';
 }
 
 function draw() {
-	if(ui.currentMenu == Menu.EDITOR) {
+	if (ui.currentMenu == Menu.EDITOR) {
 		drawLevelEditor();
-	} else if((ui.currentMenu == Menu.PLAY || ui.currentMenu == Menu.TUTORIAL) && !ui.escapeMenu) {	
-		if(!finNiveau() && game.perso.fadeNextLevel == -1) {
-			if(game.TIME==0) unclick();
+	} else if ((ui.currentMenu == Menu.PLAY || ui.currentMenu == Menu.TUTORIAL) && !ui.escapeMenu) {
+		if (!finNiveau() && game.perso.fadeNextLevel == -1) {
+			if (game.TIME == 0) unclick();
 			game.TIME++;
 		}
 		game.needRedrawTiles = 0;
-		if(!game.perso.mort && game.perso.fadeNextLevel == -1) {
+		if (!game.perso.mort && game.perso.fadeNextLevel == -1) {
 			game.perso.move();
-			if(game.needRedrawTiles == 0) game.needRedrawTiles = dansUnPortal(game.perso);
+			if (game.needRedrawTiles == 0) game.needRedrawTiles = dansUnPortal(game.perso);
 		}
-		
+
 		gestionPorte();
-		if(finNiveau()) {
+		if (finNiveau()) {
 			game.bossNum = 0;
 			game.ECART_X = 64;
 			game.ECART_Y = 96;
-		
-			if(game.perso.fadeNextLevel > 0) {
+
+			if (game.perso.fadeNextLevel > 0) {
 				game.perso.fadeNextLevel -= 4;
 			}
-			if(game.perso.fadeNextLevel == -1) {
+			if (game.perso.fadeNextLevel == -1) {
 				ui.drawCredits = false;
 				game.perso.fadeNextLevel = 120;
 				game.perso.intermissionFade = 20;
-				TRANS = parseInt(random(1, 7));//7 not included
+				TRANS = parseInt(random(1, 7)); //7 not included
 				playSound(sfx_transition);
-				ui.highscoreMessage = "";
+				ui.highscoreMessage = '';
 				unclick();
-				if(ui.currentMenu == Menu.PLAY && !game.replayMode) ui.highscoreMessage = checkBestTime();
+				if (ui.currentMenu == Menu.PLAY && !game.replayMode) ui.highscoreMessage = checkBestTime();
 				ui.intermissionChoice = 0;
 				//TRANS = 7;
-				if(ui.currentMenu == Menu.PLAY && !game.replayMode) {
-					if(maxLevel[ui.campaign] < ui.currentLevel + 1) {
-						if(ui.campaign == CampaignId.STORY && maxLevel[ui.campaign] == 28) ui.drawCredits = true;
+				if (ui.currentMenu == Menu.PLAY && !game.replayMode) {
+					if (maxLevel[ui.campaign] < ui.currentLevel + 1) {
+						if (ui.campaign == CampaignId.STORY && maxLevel[ui.campaign] == 28) ui.drawCredits = true;
 						saveProgress(ui.campaign, ui.currentLevel + 1);
 					}
 				}
-				
+
 				game.replayMode = false;
 			}
-			if(game.perso.fadeNextLevel <= 0) {
+			if (game.perso.fadeNextLevel <= 0) {
 				game.perso.fadeNextLevel = 0;
-				
-				if(ui.currentMenu == Menu.TUTORIAL) {
+
+				if (ui.currentMenu == Menu.TUTORIAL) {
 					ui.currentLevel++;
-					if(ui.currentLevel < 9) {
+					if (ui.currentLevel < 9) {
 						unclick();
 						loadLevel(ui.currentLevel);
-					}else {
+					} else {
 						ui.currentLevel = 9;
-						if(!ui.tutoEnded) game.perso.fadeNextLevel = 1;
+						if (!ui.tutoEnded) game.perso.fadeNextLevel = 1;
 					}
 					ui.tutoPause = true;
-				}else {
+				} else {
 					ui.drawIntermission = true;
-					if(ui.intermissionChoice == 3) {//continue
+					if (ui.intermissionChoice == 3) {
+						//continue
 						unclick();
-						if(ui.currentMenu == Menu.PLAY) {
+						if (ui.currentMenu == Menu.PLAY) {
 							loadLevel(++ui.currentLevel);
 							game.perso.intermissionFade = -20;
 						}
-					}else if(ui.intermissionChoice == 2) {//restart
+					} else if (ui.intermissionChoice == 2) {
+						//restart
 						unclick();
-						if(ui.currentMenu == Menu.PLAY) {
+						if (ui.currentMenu == Menu.PLAY) {
 							loadLevel(ui.currentLevel);
-							if(game.bossNum > 0) skipComingBoss();
+							if (game.bossNum > 0) skipComingBoss();
 						}
 						game.perso.intermissionFade = -20;
-					}else if(ui.intermissionChoice == 1) {//exit
+					} else if (ui.intermissionChoice == 1) {
+						//exit
 						exitFunc();
-					}else if(ui.intermissionChoice == 4) {//watch replay
+					} else if (ui.intermissionChoice == 4) {
+						//watch replay
 						unclick();
 						game.replayMode = true;
-						if(ui.currentMenu == Menu.PLAY) loadLevel(ui.currentLevel);
+						if (ui.currentMenu == Menu.PLAY) loadLevel(ui.currentLevel);
 						game.perso.intermissionFade = -20;
 					}
 				}
 			}
 		} else {
-			if(game.perso.intermissionFade == 0) {
-				if(game.perso.fadeNextLevel > 0) {
+			if (game.perso.intermissionFade == 0) {
+				if (game.perso.fadeNextLevel > 0) {
 					game.perso.fadeNextLevel -= 4;
 				}
-				if(game.perso.fadeNextLevel <= 0) {
+				if (game.perso.fadeNextLevel <= 0) {
 					game.perso.fadeNextLevel = -1;
 					ui.drawIntermission = false;
 				}
 			}
 		}
-		
-		if(ui.currentMenu == Menu.PLAY || ui.currentMenu == Menu.TUTORIAL) {
-			if(game.bossNum > 0 && game.bossIsComing && game.perso.fadeNextLevel == -1) game.perso.fadeNextLevel = 0;
+
+		if (ui.currentMenu == Menu.PLAY || ui.currentMenu == Menu.TUTORIAL) {
+			if (game.bossNum > 0 && game.bossIsComing && game.perso.fadeNextLevel == -1) game.perso.fadeNextLevel = 0;
 			drawAllGame();
 			drawHudText();
-			
+
 			manageBoss();
-			
-			if(game.replayMode) {
+
+			if (game.replayMode) {
 				drawKeys();
 			}
-			
-			if(ui.currentMenu == Menu.TUTORIAL && ui.currentLevel == 9) {
+
+			if (ui.currentMenu == Menu.TUTORIAL && ui.currentLevel == 9) {
 				ui.currentLevel = 9;
-				ctx.fillStyle = "rgb(0, 0, 0)";
+				ctx.fillStyle = 'rgb(0, 0, 0)';
 				ctx.fillRect(game.ECART_X, game.ECART_Y, 544, 384);
-				
+
 				manageTutorial();
 				drawText(146, 28, 11);
-				
-				if(input.mousePressed) {
+
+				if (input.mousePressed) {
 					unclick();
 					ui.currentMenu = Menu.MAIN;
 					ui.selectMenu = 0;
 					ui.fadeMenu = 30;
 					game.sparkles = new Array();
 				}
-				
+
 				ctx.drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
 			}
 		}
-	} 
-	else if((ui.currentMenu == Menu.PLAY || ui.currentMenu == Menu.TUTORIAL) && ui.escapeMenu) {
+	} else if ((ui.currentMenu == Menu.PLAY || ui.currentMenu == Menu.TUTORIAL) && ui.escapeMenu) {
 		drawPauseMenu();
-	}
-	else if(ui.currentMenu == Menu.LOADING) {
+	} else if (ui.currentMenu == Menu.LOADING) {
 		//loading is in progress
-		if(canSplash && !overSplash) drawSplash();
-		else if(overSplash) drawLoadingScreen();
-	}
-	else if(ui.currentMenu == Menu.MAIN) {
-		if(ui.selectMenu == 0) drawMainMenu();
+		if (canSplash && !overSplash) drawSplash();
+		else if (overSplash) drawLoadingScreen();
+	} else if (ui.currentMenu == Menu.MAIN) {
+		if (ui.selectMenu == 0) drawMainMenu();
 		else {
 			drawMapSelection();
 			drawText(30, 25, 14);
 		}
 	}
-	
-	ctx.font = "bold 10px Arial";
-	ctx.strokeStyle = "rgb(255, 255, 255)";
-	ctx.fillStyle = "rgb(255, 255, 255)";
-	ctx.fillText("" + getFps(), 5, 10);
+
+	ctx.font = 'bold 10px Arial';
+	ctx.strokeStyle = 'rgb(255, 255, 255)';
+	ctx.fillStyle = 'rgb(255, 255, 255)';
+	ctx.fillText('' + getFps(), 5, 10);
 }
 
 export function exitFunc() {
 	unclick();
 	game.sparkles = new Array();
-	if(ui.currentMenu == Menu.PLAY) {//campaign
+	if (ui.currentMenu == Menu.PLAY) {
+		//campaign
 		game.ECART_X = 0;
 		game.ECART_Y = 96;
 		ui.currentMenu = Menu.MAIN;
 		prepareSelectionText();
 		ui.previewMap = ui.currentLevel;
 		loadPreviewMap(ui.previewMap);
-	}else if(ui.currentMenu == Menu.TUTORIAL) {
+	} else if (ui.currentMenu == Menu.TUTORIAL) {
 		ui.currentMenu = Menu.MAIN;
 		ui.selectMenu = 0;
 		ui.fadeMenu = 30;
 		game.sparkles = new Array();
 	}
-	
+
 	game.replayMode = false;
 }
 

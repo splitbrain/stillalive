@@ -388,7 +388,7 @@ function loadLevel(level) {
 	needLoad = true;
 	
 	if(level > -1) {
-		BG = ((level - 1) % 11);
+		BG = campaigns[lvlType].backgrounds[level - 1];
 	}
 	
 	if(lvlType == 4) {
@@ -491,5 +491,5 @@ function loadPreviewMap(level) {
 	
 	needLoad = true;
 	
-	if(level > 0) BG = ((level - 1) % 11);
+	if(level > 0) BG = campaigns[lvlType].backgrounds[level - 1];
 }

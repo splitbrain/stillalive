@@ -6,6 +6,8 @@
  * - format: the version of the file format, always 1
  * - tiles: the 768 tile ids of the 32 x 24 tiles, row by row
  * - bg: the index of the background image
+ * - text: optional, the text that the robot shows during the level. The campaign levels use the same format. The
+ *   editor does not use the text.
  */
 
 import { downloadJson, pickJsonFile } from './files.js';
@@ -38,13 +40,13 @@ export function exportEditorMap(tiles, bg) {
 }
 
 /**
- * Let the player select a map file and read it.
+ * Check the data of a map file.
  *
- * @returns {Promise<{tiles: number[], bg: number}>} The tile ids and the background index.
- * @throws {Error} If the file is not a valid map file.
+ * @param {*} data The parsed content of a map file.
+ * @returns {{tiles: number[], bg: number}} The tile ids and the background index.
+ * @throws {Error} If the data is not a valid map.
  */
-export async function importEditorMap() {
-	const data = await pickJsonFile();
+export function parseMap(data) {
 	if (
 		data?.format !== MAP_FORMAT ||
 		!Array.isArray(data.tiles) ||
@@ -59,4 +61,14 @@ export async function importEditorMap() {
 	return { tiles: data.tiles, bg: data.bg };
 }
 
-Object.assign(window, { exportEditorMap, importEditorMap });
+/**
+ * Let the player select a map file and read it.
+ *
+ * @returns {Promise<{tiles: number[], bg: number}>} The tile ids and the background index.
+ * @throws {Error} If the file is not a valid map file.
+ */
+export async function importEditorMap() {
+	return parseMap(await pickJsonFile());
+}
+
+Object.assign(window, { exportEditorMap, importEditorMap, parseMap });

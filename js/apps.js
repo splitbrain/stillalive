@@ -100,12 +100,8 @@ var cake;
 var portalGun;
 var tileset;
 var imgBuff;
-var loadedImg;
 var levelsLoaded;
 var levelsToLoad;
-var txtLoaded;
-var txtToLoad;
-var imgToLoad;
 var loadedSfx;
 var sfxToLoad;
 var needLoadSfx;
@@ -122,7 +118,6 @@ var NUM_TILES = 61;
 var sound = false;
 var noSound = false;
 
-var canDrawLoading = 0;
 
 var sfx_enterPortal, sfx_flatline, sfx_noPortal, sfx_pain, sfx_shoot;
 var sfx_explode, sfx_jump, sfx_bounce, sfx_grabCake, sfx_holdObject;
@@ -148,36 +143,21 @@ function setup() {
 	var canvas = document.getElementById('canvas');
 	ctx = canvas.getContext('2d');
 	ctx.strokeStyle = "rgb(255, 0, 0)";
-	ctx.font = "bold 10px Yikes";
-	ctx.fillText(" ", 0, 0);
-	
 	ctx.font = "bold 10px Arial";
 	
-	tex_tails = new Image();   // Create a new Image object
-	tex_tails.src = 'decor/tails.png'; // Set the path to the source
-	tex_tails.onload = function() {
-		tex_blackos = new Image();   // Create a new Image object
-		tex_blackos.src = 'decor/blackos.png'; // Set the path to the source
-		tex_blackos.onload = function() {
-			noLevel = new Image();   // Create a new Image object
-			noLevel.src = 'bg/noLevel.png'; // Set the path to the source
-			noLevel.onload = function() {  
-				loadedImg++;
-				canSplash = true;
-				loadGfx();
-				loadSfx();
-				loadCreditsText();
-				loadCampaigns();
-			}
-		}
-	}
+	tex_tails = loadImage('decor/tails.png');
+	tex_blackos = loadImage('decor/blackos.png');
+	noLevel = loadImage('bg/noLevel.png');
+	Promise.all([whenImagesDone(), document.fonts.load("48px yikes")]).then(function() {
+		canSplash = true;
+		loadGfx();
+		loadSfx();
+		loadCreditsText();
+		loadCampaigns();
+	});
 
-	loadedImg = 0;
 	levelsLoaded = 0;
-	levelsToLoad = 28 * 4 + 8;
-	txtToLoad = 28 * 4 + 8;
-	txtLoaded = 0;
-	imgToLoad = 110;
+	levelsToLoad = 5;
 	currentMenu = 0;
 	
 	sfxToLoad = 14;
@@ -854,7 +834,7 @@ function reloadTiles() {
 			ctx.drawImage(tileset[displayMap[i]], x*16 + ECART_X, y*16 + ECART_Y, 16, 16);
 		}
 	}
-	imgBuff = ctx.getImageData(ECART_X, ECART_Y, 512, 384);
+	imgBuff = copyCanvas(ECART_X, ECART_Y, 512, 384);
 }
 
 function gestionPorte(){
@@ -3527,6 +3507,7 @@ function toTime(time) {
 function Campaign(folder) {
 	this.folder = folder;
 	this.levels = new Array();
+	this.backgrounds = new Array();
 	this.texts = new Array();
 }
 
@@ -3539,52 +3520,55 @@ function loadCampaigns() {
 	campaigns.push(new Campaign("story"));
 
 	for(c in campaigns) {
-		for(i=1; i<29;i++){
-			campaigns[c].levels[i - 1] = new Array();
-			campaigns[c].texts[i - 1] = new Array();
-			
-			if(campaigns[c].folder != "tutorial" || (campaigns[c].folder == "tutorial" && i < 9)) {
-				loadLevelFiles(c, i);
-			}
-		}
+		loadCampaignFiles(c);
 	}
 }
 
 /**
- * Load the map and the text of a campaign level.
+ * Load the level list of a campaign and then its level files.
  *
  * @param {number} camp The index of the campaign.
- * @param {number} count The level number, starting at 1.
  */
-function loadLevelFiles(camp, count) {
-	var folder = campaigns[camp].folder;
-	loadTextFile("maps/" + folder + "/level" + count + ".sad", function(msg) {
-		var tmp = msg.split(" ", 768);
-		for(j in tmp) {
-			campaigns[camp].levels[count - 1].push(parseInt(tmp[j]));
+function loadCampaignFiles(camp) {
+	var folder = "maps/" + campaigns[camp].folder + "/";
+	loadJsonFile(folder + "campaign.json", function(data) {
+		levelsToLoad += data.levels.length;
+		for(var i = 0; i < data.levels.length; i++) {
+			loadLevelFile(camp, i, folder + data.levels[i]);
 		}
 		levelsLoaded++;
-	});
-	
-	var txtLevel = folder == "advanced" ? 1 : count;
-	loadTextFile("txt/" + folder + "/level" + txtLevel + "_1.txt", function(msg) {
-		campaigns[camp].texts[count - 1] = msg;
-		txtLoaded++;
 	});
 }
 
 /**
- * Load a text file.
+ * Load a level file of a campaign.
+ *
+ * @param {number} camp The index of the campaign.
+ * @param {number} index The index of the level in the campaign, starting at 0.
+ * @param {string} url The URL of the level file.
+ */
+function loadLevelFile(camp, index, url) {
+	loadJsonFile(url, function(data) {
+		var level = parseMap(data);
+		campaigns[camp].levels[index] = level.tiles;
+		campaigns[camp].backgrounds[index] = level.bg;
+		campaigns[camp].texts[index] = typeof data.text == "string" ? data.text : "";
+		levelsLoaded++;
+	});
+}
+
+/**
+ * Load a JSON file.
  *
  * @param {string} url The URL of the file.
- * @param {function(string)} callback Gets the content of the file.
+ * @param {function(*)} callback Gets the content of the file.
  */
-function loadTextFile(url, callback) {
+function loadJsonFile(url, callback) {
 	fetch(url, { cache: "no-cache" }).then(function(response) {
 		if(!response.ok) throw new Error(url + ": " + response.status);
-		return response.text();
+		return response.json();
 	}).then(callback).catch(function(e) {
-		console.error(e);
+		console.error(url, e);
 	});
 }
 
@@ -3619,11 +3603,8 @@ function loadSfx() {
 
 function loadCreditsText() {
 	creditsTxt = new Array();
-	loadTextFile("txt/credits/credits.txt", function(msg) {
-		var tmp = msg.split("|");
-		for(j in tmp) {
-			creditsTxt.push(tmp[j]);
-		}
+	loadJsonFile("credits.json", function(data) {
+		creditsTxt = data.lines;
 	});
 }
 
@@ -3631,51 +3612,22 @@ function loadGfx() {
 
 	body = new Array();
 	for(var i=0; i < 2; i++) {
-		var t = new Image();   // Create a new Image object
-		t.src = 'sprites/body' + i + '.png'; // Set the path to the source
-		t.onload = function() {
-			loadedImg++;
-			canDrawLoading++;
-		}
+		var t = loadImage('sprites/body' + i + '.png');
 		body.push(t);
 	}
 	
 	head = new Array();
 	for(var i=0; i < 2; i++) {
-		var t = new Image();   // Create a new Image object
-		t.src = 'sprites/head' + i + '.png'; // Set the path to the source
-		t.onload = function() {
-			loadedImg++;
-			canDrawLoading++;
-		}
+		var t = loadImage('sprites/head' + i + '.png');
 		head.push(t);
 	}
-	controls = new Image();   // Create a new Image object
-	controls.src = 'decor/controls.png'; // Set the path to the source
-	controls.onload = function() { 
-		canDrawLoading++;
-	}
+	controls = loadImage('decor/controls.png');
 	
-	crosshair = new Image();   // Create a new Image object
-	crosshair.src = 'sprites/crosshair.png'; // Set the path to the source
-	crosshair.onload = function() {  
-		loadedImg++;
-		canDrawLoading++;
-	}
+	crosshair = loadImage('sprites/crosshair.png');
 	
-	bluePortal = new Image();   // Create a new Image object
-	bluePortal.src = 'sprites/bluePortal.png'; // Set the path to the source
-	bluePortal.onload = function() {  
-		loadedImg++; 
-		canDrawLoading++;
-	}
+	bluePortal = loadImage('sprites/bluePortal.png');
 	
-	redPortal = new Image();   // Create a new Image object
-	redPortal.src = 'sprites/redPortal.png'; // Set the path to the source
-	redPortal.onload = function() {  
-		loadedImg++;
-		canDrawLoading++;
-	}
+	redPortal = loadImage('sprites/redPortal.png');
 	
 	//generating transition line order
 	linesHoriz = new Array();
@@ -3691,191 +3643,75 @@ function loadGfx() {
 	
 	bg = new Array();
 	for(i=1; i<12; i++) {
-		var img = new Image();   // Create a new Image object
-		img.src = 'bg/level' + i + '.png'; // Set the path to the source
-		img.onload = function() {  
-			loadedImg++; 
-		}
+		var img = loadImage('bg/level' + i + '.png');
 		bg.push(img);
 	}
 	
-	menuBG = new Image();   // Create a new Image object
-	menuBG.src = 'bg/menuBG.png'; // Set the path to the source
-	menuBG.onload = function() {  
-		loadedImg++; 
-	}
+	menuBG = loadImage('bg/menuBG.png');
 	
-	levelEditorHud = new Image();   // Create a new Image object
-	levelEditorHud.src = 'bg/levelEditorHud.png'; // Set the path to the source
-	levelEditorHud.onload = function() {  
-		loadedImg++; 
-	}
+	levelEditorHud = loadImage('bg/levelEditorHud.png');
 	
-	hud = new Image();   // Create a new Image object
-	hud.src = 'bg/hud.png'; // Set the path to the source
-	hud.onload = function() {  
-		loadedImg++; 
-	}
+	hud = loadImage('bg/hud.png');
 	
-	mapSelection = new Image();   // Create a new Image object
-	mapSelection.src = 'bg/mapSelection.png'; // Set the path to the source
-	mapSelection.onload = function() {  
-		loadedImg++; 
-	}
+	mapSelection = loadImage('bg/mapSelection.png');
 	
-	highscore = new Image();   // Create a new Image object
-	highscore.src = 'bg/highscore.png'; // Set the path to the source
-	highscore.onload = function() {  
-		loadedImg++; 
-	}
+	highscore = loadImage('bg/highscore.png');
 	
-	tube = new Image();   // Create a new Image object
-	tube.src = 'sprites/tube.png'; // Set the path to the source
-	tube.onload = function() {
-		loadedImg++; 
-	}
+	tube = loadImage('sprites/tube.png');
 	
-	tube2 = new Image();   // Create a new Image object
-	tube2.src = 'sprites/tube2.png'; // Set the path to the source
-	tube2.onload = function() {
-		loadedImg++; 
-	}
+	tube2 = loadImage('sprites/tube2.png');
 	
-	tunnel = new Image();   // Create a new Image object
-	tunnel.src = 'sprites/tunnel.png'; // Set the path to the source
-	tunnel.onload = function() {
-		loadedImg++; 
-	}
+	tunnel = loadImage('sprites/tunnel.png');
 	
-	tunnel2 = new Image();   // Create a new Image object
-	tunnel2.src = 'sprites/tunnel2.png'; // Set the path to the source
-	tunnel2.onload = function() {
-		loadedImg++; 
-	}
+	tunnel2 = loadImage('sprites/tunnel2.png');
 	
-	mouseIcon = new Image();   // Create a new Image object
-	mouseIcon.src = 'images/mouseIcon.png'; // Set the path to the source
-	mouseIcon.onload = function() {
-		loadedImg++; 
-	}
+	mouseIcon = loadImage('images/mouseIcon.png');
 	
-	key = new Image();   // Create a new Image object
-	key.src = 'images/key.png'; // Set the path to the source
-	key.onload = function() {
-		loadedImg++; 
-	}
+	key = loadImage('images/key.png');
 	
-	caisse = new Image();   // Create a new Image object
-	caisse.src = 'sprites/caisse.png'; // Set the path to the source
-	caisse.onload = function() {
-		loadedImg++; 
-	}
+	caisse = loadImage('sprites/caisse.png');
 	
-	pauseBG = new Image();   // Create a new Image object
-	pauseBG.src = 'menu/pauseBG.png'; // Set the path to the source
-	pauseBG.onload = function() {
-		loadedImg++;
-	}
+	pauseBG = loadImage('menu/pauseBG.png');
 	
-	tex_sound = new Image();   // Create a new Image object
-	tex_sound.src = 'menu/tex_sound.png'; // Set the path to the source
-	tex_sound.onload = function() {
-		loadedImg++; 
-	}
+	tex_sound = loadImage('menu/tex_sound.png');
 	
-	tex_cross = new Image();   // Create a new Image object
-	tex_cross.src = 'menu/tex_cross.png'; // Set the path to the source
-	tex_cross.onload = function() {
-		loadedImg++; 
-	}
+	tex_cross = loadImage('menu/tex_cross.png');
 	
-	tex_leftBG = new Image();   // Create a new Image object
-	tex_leftBG.src = 'menu/tex_leftBG.png'; // Set the path to the source
-	tex_leftBG.onload = function() {
-		loadedImg++; 
-	}
+	tex_leftBG = loadImage('menu/tex_leftBG.png');
 	
-	tex_rightBG = new Image();   // Create a new Image object
-	tex_rightBG.src = 'menu/tex_rightBG.png'; // Set the path to the source
-	tex_rightBG.onload = function() {
-		loadedImg++; 
-	}
+	tex_rightBG = loadImage('menu/tex_rightBG.png');
 	
-	tex_button = new Image();   // Create a new Image object
-	tex_button.src = 'menu/tex_button.png'; // Set the path to the source
-	tex_button.onload = function() {
-		loadedImg++; 
-	}
+	tex_button = loadImage('menu/tex_button.png');
 	
 	tourelle = new Array();
 	for(var i=0; i < 2; i++) {
-		var t = new Image();   // Create a new Image object
-		t.src = 'sprites/tourelle' + i + '.png'; // Set the path to the source
-		t.onload = function() {
-			loadedImg++; 
-		}
+		var t = loadImage('sprites/tourelle' + i + '.png');
 		tourelle.push(t);
 	}
 	
-	sparkle = new Image();   // Create a new Image object
-	sparkle.src = 'sprites/sparkle.png'; // Set the path to the source
-	sparkle.onload = function() {  
-		loadedImg++; 
-	}
+	sparkle = loadImage('sprites/sparkle.png');
 	
-	cake = new Image();   // Create a new Image object
-	cake.src = 'sprites/cake.png'; // Set the path to the source
-	cake.onload = function() {  
-		loadedImg++;
-	}
+	cake = loadImage('sprites/cake.png');
 	
-	portalGun = new Image();   // Create a new Image object
-	portalGun.src = 'sprites/portalGun.png'; // Set the path to the source
-	portalGun.onload = function() {  
-		loadedImg++; 
-	}
+	portalGun = loadImage('sprites/portalGun.png');
 	
-	cameraFollow = new Image();   // Create a new Image object
-	cameraFollow.src = 'sprites/cameraFollow.png'; // Set the path to the source
-	cameraFollow.onload = function() {  
-		loadedImg++; 
-	}
+	cameraFollow = loadImage('sprites/cameraFollow.png');
 	
 	robotEye = new Array();
 	for(var rob = 1; rob < 5; rob++) {
-		var r = new Image();   // Create a new Image object
-		r.src = 'sprites/robotEye' + rob + '.png'; // Set the path to the source
-		r.onload = function() {  
-			loadedImg++; 
-		}
+		var r = loadImage('sprites/robotEye' + rob + '.png');
 		robotEye.push(r);
 	}
 	
-	robotHead = new Image();   // Create a new Image object
-	robotHead.src = 'sprites/robotHead.png'; // Set the path to the source
-	robotHead.onload = function() {  
-		loadedImg++; 
-	}
+	robotHead = loadImage('sprites/robotHead.png');
 	
-	plasma = new Image();   // Create a new Image object
-	plasma.src = 'sprites/plasma.png'; // Set the path to the source
-	plasma.onload = function() {  
-		loadedImg++; 
-	}
+	plasma = loadImage('sprites/plasma.png');
 	
-	platform = new Image();   // Create a new Image object
-	platform.src = 'sprites/plateforme.png'; // Set the path to the source
-	platform.onload = function() {  
-		loadedImg++;
-	}
+	platform = loadImage('sprites/plateforme.png');
 	
 	tileset = new Array();
 	for (i = 0; i < NUM_TILES; i++) {
-		tileset[i] = new Image();
-		tileset[i].src = 'tiles/tile_' + (i+1) + '.gif';
-		tileset[i].onload = function() {  
-			loadedImg++; 
-		}
+		tileset[i] = loadImage('tiles/tile_' + (i+1) + '.gif');
 	}
 }
 

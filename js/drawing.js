@@ -45,9 +45,44 @@ function drawRotatedHead(flipDx) {
 	ctx.restore();
 }
 
+/**
+ * Copy a part of the canvas into a new offscreen canvas.
+ *
+ * @param {number} x The left edge of the part.
+ * @param {number} y The top edge of the part.
+ * @param {number} w The width of the part.
+ * @param {number} h The height of the part.
+ * @returns {OffscreenCanvas} The copy.
+ */
+function copyCanvas(x, y, w, h) {
+	var copy = new OffscreenCanvas(w, h);
+	copy.getContext('2d').drawImage(ctx.canvas, x, y, w, h, 0, 0, w, h);
+	return copy;
+}
+
+/**
+ * Draw a copy from copyCanvas() onto the canvas. The copy replaces the pixels, as the current transformation,
+ * transparency and composition of the canvas do not apply.
+ *
+ * @param {OffscreenCanvas} copy The copy.
+ * @param {number} x The left edge on the canvas.
+ * @param {number} y The top edge on the canvas.
+ */
+function drawCopy(copy, x, y) {
+	ctx.save();
+	ctx.setTransform(1, 0, 0, 1, 0, 0);
+	ctx.beginPath();
+	ctx.rect(x, y, copy.width, copy.height);
+	ctx.clip();
+	ctx.globalAlpha = 1;
+	ctx.globalCompositeOperation = 'copy';
+	ctx.drawImage(copy, x, y);
+	ctx.restore();
+}
+
 function drawAllGame() {
 	if(needLoad) createBuff();
-	ctx.putImageData(imgBuff, ECART_X, ECART_Y);
+	drawCopy(imgBuff, ECART_X, ECART_Y);
 	if(quality > 0) animateTiles();
 	
 	drawLowQualityPortals();
@@ -127,9 +162,9 @@ function drawAllGame() {
 	if(quality == 0) {
 		if(hudLight == null) {
 			drawText(146, 28, 11);
-			hudLight = ctx.getImageData(132, 12, 473, 78);
+			hudLight = copyCanvas(132, 12, 473, 78);
 		}
-		ctx.putImageData(hudLight, 132, 12);
+		drawCopy(hudLight, 132, 12);
 	}
 	
 	drawRobot();
@@ -275,7 +310,7 @@ function drawPauseMenu() {
 	if(currentMenu == 2 && quality > 0) {
 		drawText(146, 28, 11);
 	}else if(currentMenu == 2 && quality == 0 && hudLight) {
-		ctx.putImageData(hudLight, 132, 12);
+		drawCopy(hudLight, 132, 12);
 	}
 	drawRobot();
 	
@@ -363,7 +398,7 @@ function drawSplash() {
 		timeSplash--;
 		if(timeSplash == 0) {
 			overSplash = true;
-			if(loadedImg >= imgToLoad && levelsLoaded >= levelsToLoad && txtLoaded >= txtToLoad && loadedSfx >= sfxToLoad) {
+			if(allImagesLoaded() && levelsLoaded >= levelsToLoad && loadedSfx >= sfxToLoad) {
 				started = 1;
 				goMenu = 0;
 				fadeMenu = 30;
@@ -392,15 +427,14 @@ function drawLoadingScreen() {
 	ctx.fillStyle = "rgb(255, 255, 255)";
 	ctx.fillText("Loading gfx ...", 10, 10);
 	ctx.fillText("Loading maps ...", 10, 50);
-	ctx.fillText("Loading texts ...", 10, 90);
-	ctx.fillText("Loading sfx ...", 10, 130);
+	ctx.fillText("Loading sfx ...", 10, 90);
 	
 	ctx.fillStyle = "rgb(255, 0, 0)";
 	if(TIME%50 < 25) {
 		ctx.fillStyle = "rgb(0, 0, 0)";
 	}
 	
-	if(mouseInZone(80, 120, 133, 16)) {
+	if(mouseInZone(80, 80, 133, 16)) {
 		ctx.fillStyle = "rgb(255, 255, 255)";
 		if(mouseNewPress) {
 			loadedSfx = sfxToLoad;
@@ -408,7 +442,7 @@ function drawLoadingScreen() {
 		}
 	}
 	
-	ctx.fillText("(click here if not loading)", 85, 130);
+	ctx.fillText("(click here if not loading)", 85, 90);
 	ctx.fillStyle = "rgb(255, 255, 255)";
 	
 	//noFill();
@@ -416,25 +450,30 @@ function drawLoadingScreen() {
 	ctx.strokeRect(10, 20, 202, 14);
 	ctx.strokeRect(10, 60, 202, 14);
 	ctx.strokeRect(10, 100, 202, 14);
-	ctx.strokeRect(10, 140, 202, 14);
 	
-	ctx.fillText("- Grab cakes and reach the exit of each level.", 10, 170);
-	ctx.fillText("- Use your portal gun to teleport through levels.", 10, 180);
+	ctx.fillText("- Grab cakes and reach the exit of each level.", 10, 130);
+	ctx.fillText("- Use your portal gun to teleport through levels.", 10, 140);
 	
 	ctx.fillStyle = "rgb(255, 0, 0)";
 	//noStroke();
-	ctx.fillRect(11, 21, parseInt(loadedImg / imgToLoad * 200), 12);
+	ctx.fillRect(11, 21, parseInt(imageProgress() * 200), 12);
 	ctx.fillRect(11, 61, parseInt(levelsLoaded / levelsToLoad * 200), 12);
-	ctx.fillRect(11, 101, parseInt(txtLoaded / txtToLoad * 200), 12);
-	ctx.fillRect(11, 141, parseInt(loadedSfx / sfxToLoad * 200), 12);
+	ctx.fillRect(11, 101, parseInt(loadedSfx / sfxToLoad * 200), 12);
 	ctx.fillStyle = "rgb(255, 255, 255)";
-	ctx.fillText((parseInt(loadedImg/imgToLoad * 100)) + "%", 100, 30);
+	ctx.fillText((parseInt(imageProgress() * 100)) + "%", 100, 30);
 	ctx.fillText((parseInt(levelsLoaded / levelsToLoad * 100)) + "%", 100, 70);
-	ctx.fillText((parseInt(txtLoaded / txtToLoad * 100)) + "%", 100, 110);
-	ctx.fillText((parseInt(loadedSfx/sfxToLoad * 100)) + "%", 100, 150);
+	ctx.fillText((parseInt(loadedSfx/sfxToLoad * 100)) + "%", 100, 110);
+	
+	var missing = missingImages();
+	if(missing.length > 0) {
+		ctx.fillStyle = "rgb(255, 0, 0)";
+		ctx.fillText("Some images could not be loaded: " + missing.join(", "), 10, 160);
+		ctx.fillStyle = "rgb(255, 255, 255)";
+	}
 	
 	//make sure img in the menu are loaded
-	if(canDrawLoading >= 8) {
+	var imagesReady = areImagesLoaded([body[0], body[1], head[0], head[1], controls, crosshair, bluePortal, redPortal]);
+	if(imagesReady) {
 		var dx = 225;
 		var dy = 190;
 		ctx.drawImage(controls, dx, dy);
@@ -447,7 +486,7 @@ function drawLoadingScreen() {
 	}
 	
 	TIME++;
-	if(loadedImg >= imgToLoad && levelsLoaded >= levelsToLoad && txtLoaded >= txtToLoad && loadedSfx >= sfxToLoad) {
+	if(allImagesLoaded() && levelsLoaded >= levelsToLoad && loadedSfx >= sfxToLoad) {
 		if(TIME%50 < 25) {
 			ctx.fillText("Click to continue ...", 280, 476);
 		}
@@ -463,7 +502,7 @@ function drawLoadingScreen() {
 		}
 	}
 	//make sure crosshair image is loaded
-	if(canDrawLoading >= 8) ctx.drawImage(crosshair, mouseX - 8, mouseY - 8, 16, 16);
+	if(imagesReady) ctx.drawImage(crosshair, mouseX - 8, mouseY - 8, 16, 16);
 }
 
 function drawMapSelection() {
@@ -809,7 +848,7 @@ function createBuff() {
 			ctx.drawImage(tileset[displayMap[i]], x*16 + ECART_X, y*16 + ECART_Y, 16, 16);
 		}
 	}
-	imgBuff = ctx.getImageData(ECART_X, ECART_Y, 512, 384);
+	imgBuff = copyCanvas(ECART_X, ECART_Y, 512, 384);
 	needLoad = false;
 	ctx.fillStyle = "rgb(0, 0, 0)";
 	//noStroke();
@@ -1414,7 +1453,7 @@ function drawPreviewMap() {
 				ctx.drawImage(tileset[displayMap[i]], x*16 + ECART_X, y*16 + ECART_Y, 16, 16);
 			}
 		}
-		imgBuff = ctx.getImageData(ECART_X, ECART_Y, 512, 384);
+		imgBuff = copyCanvas(ECART_X, ECART_Y, 512, 384);
 		needLoad = false;
 		ctx.fillStyle = "rgb(0, 0, 0)";;
 		//noStroke();
@@ -1422,7 +1461,7 @@ function drawPreviewMap() {
 	}
 	else 
 	{
-		ctx.putImageData(imgBuff, ECART_X, ECART_Y);
+		drawCopy(imgBuff, ECART_X, ECART_Y);
 		
 		perso.flip = 1;
 		

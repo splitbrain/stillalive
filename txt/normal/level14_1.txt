@@ -1,1 +1,0 @@
-Let me introduce you the turrets ! These new elements will shoot you if you're in range. Make sure not te be in front of them for too long or you'll have a bad day. Each bullet lower you health, so make sure not to be killed. You can destroy turrets by teleporting them with portals.

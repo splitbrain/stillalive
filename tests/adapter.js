@@ -69,8 +69,7 @@ export async function openGame(page) {
 		() =>
 			typeof campaigns !== 'undefined' &&
 			levelsLoaded >= levelsToLoad &&
-			txtLoaded >= txtToLoad &&
-			loadedImg >= imgToLoad,
+			allImagesLoaded(),
 		null,
 		{ polling: 50 },
 	);

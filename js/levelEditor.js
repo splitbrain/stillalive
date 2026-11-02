@@ -47,7 +47,7 @@ function levelEditorTestLevel() {
 
 function drawTestLevel() {
 	if(needLoad) createBuff();
-	ctx.putImageData(imgBuff, ECART_X, ECART_Y);
+	drawCopy(imgBuff, ECART_X, ECART_Y);
 	
 	if(quality > 0) animateTiles();
 	
@@ -569,10 +569,10 @@ function drawTileMap() {
 		}
 		recreateSprites();
 		drawSprites();
-		tilesBuff = ctx.getImageData(ECART_X, ECART_Y, 512, 384);
+		tilesBuff = copyCanvas(ECART_X, ECART_Y, 512, 384);
 		redrawTiles = false;
 	}else {
-		ctx.putImageData(tilesBuff, ECART_X, ECART_Y);
+		drawCopy(tilesBuff, ECART_X, ECART_Y);
 	}
 }
 

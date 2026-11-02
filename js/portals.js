@@ -475,6 +475,7 @@ function teleport(p, obj) {
 			obj.vx = -650;
 		} else if (entry == Direction.UP && exit == Direction.DOWN) {
 			obj.vy = -1000;
+			// eslint-disable-next-line no-dupe-else-if -- the branch is unreachable
 		} else if (entry == Direction.UP && exit == Direction.UP) {
 			obj.vy = -obj.vy;
 		}

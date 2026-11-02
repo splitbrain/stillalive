@@ -9,6 +9,7 @@ import { Projectile } from './entities/Projectile.js';
 import { robotEye, robotHead } from './images.js';
 import { unclick } from './input.js';
 import { game, input, ui } from './state.js';
+import { FIRST_OF_KIND, TileKind } from './tiles.js';
 import { prepareTxt } from './tutorial.js';
 import { getCos, getDistance, getSin, random } from './utils.js';
 
@@ -265,9 +266,9 @@ export function manageToucheBoss(obj) {
     game.bossLife++;
 	if(game.bossLife < 3) {
 		for(i in game.oldMap) {
-			if(game.oldMap[i] == 58) {
-				game.map[i] = 58;
-				game.displayMap[i] = 58;
+			if(game.oldMap[i] == FIRST_OF_KIND[TileKind.BOSS_BLOCK]) {
+				game.map[i] = FIRST_OF_KIND[TileKind.BOSS_BLOCK];
+				game.displayMap[i] = FIRST_OF_KIND[TileKind.BOSS_BLOCK];
 			}
 		}
 		game.needLoad = true;

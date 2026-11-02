@@ -5,6 +5,7 @@
 import { collideAnyCaisse } from './Caisse.js';
 import { getTile } from '../physics.js';
 import { game } from '../state.js';
+import { FIRST_OF_KIND, LAST_OF_KIND, PLATFORM_CODE, TileKind } from '../tiles.js';
 
 export class Projectile {
 	constructor(x, y, vx, vy) {
@@ -25,7 +26,7 @@ export class Projectile {
 			this.y += this.vy;
 			
 			if(game.TIME%6 == 0) {
-				if(++this.img == 38) this.img = 36;
+				if(++this.img > LAST_OF_KIND[TileKind.WHEEL]) this.img = FIRST_OF_KIND[TileKind.WHEEL];
 			}
 			
 			const t = getTile((this.x>>8) + 8, (this.y>>8) + 8);
@@ -33,7 +34,7 @@ export class Projectile {
 			if(t) {
 				this.needKill = true;
 				this.timer = 180;
-				if(t > 200) {
+				if(t > PLATFORM_CODE) {
 					this.timer = 0;
 				}
 			}else {

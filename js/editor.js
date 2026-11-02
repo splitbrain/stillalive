@@ -3,7 +3,7 @@
  */
 
 import { ctx } from './canvas.js';
-import { BAS, DROITE, GAUCHE, HAUT, LEFT, MIDDLE, NUM_TILES, RIGHT } from './constants.js';
+import { BAS, DROITE, GAUCHE, HAUT, LEFT, MIDDLE, Menu, NUM_TILES, RIGHT } from './constants.js';
 import { alertDialog } from './dialog.js';
 import { Caisse } from './entities/Caisse.js';
 import { Cake } from './entities/Cake.js';
@@ -58,6 +58,7 @@ import { drawText } from './render/hud.js';
 import { drawPreviewMap, drawTinyButton } from './render/menus.js';
 import { game, input, settings, ui } from './state.js';
 import { getEditorMap, saveEditorMap } from './storage.js';
+import { Tile, TileKind, isTileKind, isTunnelTile } from './tiles.js';
 import { getAngle } from './utils.js';
 
 let selectedTile, selectedSprite;
@@ -338,7 +339,7 @@ function showEditorMap(slot) {
  */
 function startMapImport() {
 	importEditorMap().then(function(data) {
-		if(ui.currentMenu != 3 || !(askSaving || askLoading)) return;
+		if(ui.currentMenu != Menu.EDITOR || !(askSaving || askLoading)) return;
 		game.map = data.tiles.slice();
 		game.BG = data.bg;
 		loadPreviewMap(-1);
@@ -519,7 +520,7 @@ function manageEditor() {
 			addUndo();
 			redrawTiles = true;
 		}else if(overMenu == 3) {//exit
-			ui.currentMenu = 1;
+			ui.currentMenu = Menu.MAIN;
 			game.sparkles = new Array();
 			ui.fadeMenu = 30;
 		}
@@ -559,34 +560,34 @@ function recreateSprites() {
 		const y = i >> 5;
 		const x = i - (y << 5);
 		
-		if(game.map[i] == 109) {//top tunnel
+		if(game.map[i] == Tile.TUNNEL_UP) {//top tunnel
 			game.tunnels.push(new Tunnel((x*16) << 8, (y*16) << 8, HAUT));
-		}else if(game.map[i] == 110) {//bottom tunnel
+		}else if(game.map[i] == Tile.TUNNEL_DOWN) {//bottom tunnel
 			game.tunnels.push(new Tunnel((x*16) << 8, (y*16) << 8, BAS));
-		}else if(game.map[i] == 107) {//right tunnel
+		}else if(game.map[i] == Tile.TUNNEL_RIGHT) {//right tunnel
 			game.tunnels.push(new Tunnel((x*16) << 8, (y*16) << 8, DROITE));
-		}else if(game.map[i] == 108) {//left tunnel
+		}else if(game.map[i] == Tile.TUNNEL_LEFT) {//left tunnel
 			game.tunnels.push(new Tunnel((x*16) << 8, (y*16) << 8, GAUCHE));
-		}else if(game.map[i] == 103) {//cake
+		}else if(game.map[i] == Tile.CAKE) {//cake
 			game.cakes.push(new Cake((x*16) << 8, (y*16) << 8));
 			continue;
-		}else if(game.map[i] == 100) {//left turret
+		}else if(game.map[i] == Tile.TURRET_LEFT) {//left turret
 			game.tourelles.push(new Tourelle((x*16) << 8, (y*16) << 8, -1));
 			continue;
-		}else if(game.map[i] == 101) {//right turret
+		}else if(game.map[i] == Tile.TURRET_RIGHT) {//right turret
 			game.tourelles.push(new Tourelle((x*16) << 8, (y*16) << 8, 1));
 			continue;
-		}else if(game.map[i] == 102) {//crate
+		}else if(game.map[i] == Tile.CRATE) {//crate
 			game.caisses.push(new Caisse((x*16) << 8, (y*16) << 8));
 			continue;
-		}else if(game.map[i] == 104) {//player start
+		}else if(game.map[i] == Tile.PLAYER_START) {//player start
 			game.perso.x = (x * 16) << 8;
 			game.perso.y = (y * 16) << 8;
 			continue;
-		}else if(game.map[i] == 105) {//platform
+		}else if(game.map[i] == Tile.PLATFORM_RIGHT) {//platform
 			game.platforms.push(new Platform((x * 16) << 8, (y * 16) << 8, 128, 0));
 			continue;
-		}else if(game.map[i] == 106) {//platform
+		}else if(game.map[i] == Tile.PLATFORM_LEFT) {//platform
 			game.platforms.push(new Platform((x * 16) << 8, (y * 16) << 8, -128, 0));
 			continue;
 		}
@@ -608,7 +609,7 @@ function drawTileMap() {
 		ctx.drawImage(bg[game.BG], game.ECART_X, game.ECART_Y, 512, 384);
 		ctx.fillStyle = "rgba(255, 0, 0, 0.7)";
 		for(i in game.map) {
-			if(game.map[i] == 20) {
+			if(game.map[i] == Tile.PLASMA_START) {
 				y = i >> 5;
 				x = i - (y << 5);
 				
@@ -701,7 +702,7 @@ function manageDrawSprite() {
 			if(input.mouseButton == LEFT) {
 				if(arrEquiv[selectedSprite - 1] == 104) {
 					for(i in game.map) {
-						if(game.map[i] == 104) game.map[i] = 0;
+						if(game.map[i] == Tile.PLAYER_START) game.map[i] = Tile.EMPTY;
 					}
 				}
 				
@@ -727,17 +728,17 @@ function manageDrawSprite() {
 }
 
 function allowTile(tile) {
-	if(tile == 104) return true;
+	if(tile == Tile.PLAYER_START) return true;
 
-	if(tile == 103) { // cake
+	if(tile == Tile.CAKE) { // cake
 		return countTile(tile) < 30;
-	}else if(tile == 102) { // crate
+	}else if(tile == Tile.CRATE) { // crate
 		return countTile(tile) < 15;
-	}else if(tile == 100 || tile == 101) { // turret
+	}else if(tile == Tile.TURRET_LEFT || tile == Tile.TURRET_RIGHT) { // turret
 		return countTile(100) + countTile(101) < 15;
-	}else if(tile == 105 || tile == 106) { // platform
+	}else if(tile == Tile.PLATFORM_RIGHT || tile == Tile.PLATFORM_LEFT) { // platform
 		return countTile(105) + countTile(106) < 8;
-	}else if(tile >= 107 && tile <= 110) { // tunnel
+	}else if(isTunnelTile(tile)) { // tunnel
 		return countTile(107) + countTile(108) +  countTile(109) +  countTile(110) < 8;
 	}
 	
@@ -756,25 +757,25 @@ function countTile(tile) {
 
 function eraseSprites(til, xt, yt) {
 	let h, t;
-	if(til == 105 || til == 106 || til == 109 || til == 110) { // sprite horizontal
+	if(til == Tile.PLATFORM_RIGHT || til == Tile.PLATFORM_LEFT || til == Tile.TUNNEL_UP || til == Tile.TUNNEL_DOWN) { // sprite horizontal
 		for(h = 1; h<3; h++) {
-			if(h == 2 && til >= 109) continue;
+			if(h == 2 && til >= Tile.TUNNEL_UP) continue;
 			if(xt + h < 32) {
 				game.map[yt*32 + xt + h] = 0;
 				if(yt - 1 >= 0) {
 					t = game.map[(yt-1)*32 + xt + h];
-					if(t == 104 || t == 100 || t == 101 || (t >= 107 && t <= 110)) game.map[(yt-1)*32 + xt + h] = 0;
+					if(t == Tile.PLAYER_START || t == Tile.TURRET_LEFT || t == Tile.TURRET_RIGHT || isTunnelTile(t)) game.map[(yt-1)*32 + xt + h] = 0;
 				}
 			}
 		}
 	}
-	if(til == 104 || til == 100 || til == 101 || til == 107 || til == 108) { // vertical sprite
+	if(til == Tile.PLAYER_START || til == Tile.TURRET_LEFT || til == Tile.TURRET_RIGHT || til == Tile.TUNNEL_RIGHT || til == Tile.TUNNEL_LEFT) { // vertical sprite
 		if(yt + 1 < 24) {
 			game.map[(yt+1)*32 + xt] = 0;
 			for(h = 1; h<3; h++) {
 				if(xt - h >= 0) {
 					t = game.map[(yt+1)*32 + xt - h];
-					if(t == 105 || t == 106 || t == 109 || t == 110) game.map[(yt+1)*32 + xt - h] = 0;
+					if(t == Tile.PLATFORM_RIGHT || t == Tile.PLATFORM_LEFT || t == Tile.TUNNEL_UP || t == Tile.TUNNEL_DOWN) game.map[(yt+1)*32 + xt - h] = 0;
 				}
 			}
 		}
@@ -782,13 +783,13 @@ function eraseSprites(til, xt, yt) {
 	
 	if(yt - 1 >= 0) {
 		t = game.map[(yt-1)*32 + xt];
-		if(t == 104 || t == 100 || t == 101 || (t >= 107 && t <= 110)) game.map[(yt-1)*32 + xt] = 0;
+		if(t == Tile.PLAYER_START || t == Tile.TURRET_LEFT || t == Tile.TURRET_RIGHT || isTunnelTile(t)) game.map[(yt-1)*32 + xt] = 0;
 	}
 	for(h = 1; h<3; h++) {
 		if(xt - h >= 0) {
 			t = game.map[yt*32 + xt - h];
-			if(t == 105 || t == 106) game.map[yt*32 + xt - h] = 0;
-			else if((t == 109 || t == 110) && h < 2) game.map[yt*32 + xt - h] = 0;
+			if(t == Tile.PLATFORM_RIGHT || t == Tile.PLATFORM_LEFT) game.map[yt*32 + xt - h] = 0;
+			else if((t == Tile.TUNNEL_UP || t == Tile.TUNNEL_DOWN) && h < 2) game.map[yt*32 + xt - h] = 0;
 		}
 	}
 }
@@ -808,9 +809,9 @@ function manageDrawTile() {
 			y -= game.ECART_Y; 
 			const tile = ((y>>4)*32) + (x>>4);
 			if(input.mouseButton == LEFT) {
-				if(tilesToDraw[selectedTile] == 20) {
+				if(tilesToDraw[selectedTile] == Tile.PLASMA_START) {
 					for(i in game.map) {	
-						if(game.map[i] == 20) {
+						if(game.map[i] == Tile.PLASMA_START) {
 							game.map[i] = 0;
 							break;
 						}
@@ -826,7 +827,7 @@ function manageDrawTile() {
 			
 			if(yt - 1 >= 0) {
 				const t = game.map[(yt-1)*32 + xt];
-				if(t == 104 || t == 100 || t == 101 || (t >= 107 && t <= 110)) game.map[(yt-1)*32 + xt] = 0;
+				if(t == Tile.PLAYER_START || t == Tile.TURRET_LEFT || t == Tile.TURRET_RIGHT || isTunnelTile(t)) game.map[(yt-1)*32 + xt] = 0;
 			}
 			
 			build();
@@ -1131,19 +1132,11 @@ function fill(tile, toFill, x, y){
 }
 
 function isTileMurBleu(index){
-	let i;
-	for(i=1;i<17;i++){
-		if(game.map[index]==i) return true;
-	}
-	return false;
+	return isTileKind(game.map[index], TileKind.WALL);
 }
 
 function isTileHere(x, y){
 	if(x<0||x>31||y<0||y>23) return 1;
-	if(game.map[x+y*32] >= 54 && game.map[x+y*32] <= 57) return 1;
-	let i;
-	for(i=1;i<19;i++){
-		if(game.map[x+y*32]==i) return 1
-	}
-	return 0;
+	if(isTileKind(game.map[x+y*32], TileKind.BELT_RIGHT, TileKind.BELT_LEFT)) return 1;
+	return isTileKind(game.map[x+y*32], TileKind.WALL, TileKind.DECOR) ? 1 : 0;
 }

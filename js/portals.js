@@ -8,6 +8,7 @@ import { Sparkle, removeSparkles } from './entities/Sparkle.js';
 import { getTile, getTilePortal } from './physics.js';
 import { Line } from './render/game.js';
 import { game, input } from './state.js';
+import { PLATFORM_CODE, Tile, TileKind, isCrateCode, isPlatformCode, isTileKind } from './tiles.js';
 import { getCos, getSin, inScreen, random } from './utils.js';
 
 export function launchPortal(p){
@@ -44,7 +45,7 @@ export function launchPortal(p){
 		y += game.portals[p].vy;
 		tile = getTilePortal(x>>8, y>>8);
 		
-		if(tile==46){
+		if(tile==Tile.MIRROR){
 			const haut = getTilePortal((x>>8),(y>>8)-1);
 			const bas = getTilePortal((x>>8),(y>>8)+1);
 			const gauche = getTilePortal((x>>8)-1,(y>>8));
@@ -86,12 +87,12 @@ export function launchPortal(p){
 			const yy = y>>8;
 			if(yy < 0 && game.portals[p].vy > 0) inScreenOK = true;
 		}
-	}while(tile==0 && inScreenOK && rebond<5);
+	}while(tile==Tile.EMPTY && inScreenOK && rebond<5);
 	
 	portalLines[portalLines.length - 1].x2 = x>>8;
 	portalLines[portalLines.length - 1].y2 = y>>8;
 	
-	if(tile!=0 && (tile<=16 || (tile>=200 && tile<=204))){
+	if(isTileKind(tile, TileKind.WALL) || isPlatformCode(tile)){
 		const ok = setPortalDir(p, x>>8, y>>8);
 		if(ok){
 			if(game.portals[p].direction==DROITE || game.portals[p].direction==GAUCHE){
@@ -102,7 +103,7 @@ export function launchPortal(p){
 				game.portals[p].scaleX = 0;
 				game.portals[p].scaleY = 1;
 				const plate = getTilePortal(x>>8,y>>8);
-				if(plate>=200 && plate<=204) game.portals[p].plateforme = plate - 200;
+				if(isPlatformCode(plate)) game.portals[p].plateforme = plate - PLATFORM_CODE;
 				else game.portals[p].plateforme = -1;
 			}
 			const r = parseInt(random(0, 2));
@@ -123,15 +124,15 @@ function setPortalDir(p, x, y){
 	//first check if the portal is on a left or right wall
 	for(i=y-14;i<y+14;i++){
 		tile = getTilePortal(x,i);
-		if(tile!=0){
-			if((tile>0 && tile<=16) || (tile>=200 && tile<=204)) mur++;
+		if(tile!=Tile.EMPTY){
+			if(isTileKind(tile, TileKind.WALL) || isPlatformCode(tile)) mur++;
 		}
 	}
 	if(mur==28){
 		mur = 0;
 		for(i=x-16;i<x+16;i++){//make sure that nothing touches horizontally
-			if(getTile(i,y-14)!=0 && getTile(i,y-14)<300) mur++;
-			if(getTile(i,y+13)!=0 && getTile(i,y+13)<300) mur++;
+			if(getTile(i,y-14)!=Tile.EMPTY && !isCrateCode(getTile(i,y-14))) mur++;
+			if(getTile(i,y+13)!=Tile.EMPTY && !isCrateCode(getTile(i,y+13))) mur++;
 		}
 		if(mur>36) return 0;
 		
@@ -181,15 +182,15 @@ function setPortalDir(p, x, y){
 		mur = 0;
 		for(i=x-14;i<x+14;i++){
 			tile = getTilePortal(i,y);
-			if(tile!=0){
-				if((tile>0 && tile<=16) || (tile>=200 && tile<=204)) mur++;
+			if(tile!=Tile.EMPTY){
+				if(isTileKind(tile, TileKind.WALL) || isPlatformCode(tile)) mur++;
 			}
 		}
 		if(mur==28){
 			mur = 0;
 			for(i=y-16;i<y+16;i++){//make sure that nothing touches vertically
-				if(getTile(x-14,i)!=0 && getTile(x-14,i)<300) mur++;
-				if(getTile(x+13,i)!=0 && getTile(x+13,i)<300) mur++;
+				if(getTile(x-14,i)!=Tile.EMPTY && !isCrateCode(getTile(x-14,i))) mur++;
+				if(getTile(x+13,i)!=Tile.EMPTY && !isCrateCode(getTile(x+13,i))) mur++;
 			}
 			if(mur>36) return 0;
 			

@@ -13,6 +13,7 @@
 import { NUM_TILES } from './constants.js';
 import { downloadJson, pickJsonFile } from './files.js';
 import { bg } from './images.js';
+import { isObjectTile } from './tiles.js';
 
 /** @type {number} The version of the map file format. */
 export const MAP_FORMAT = 1;
@@ -27,7 +28,7 @@ const MAP_SIZE = 768;
  * @returns {boolean} True for a tile id of the tile set or an object id from 100 to 111.
  */
 function isValidTile(tile) {
-	return Number.isInteger(tile) && ((tile >= 0 && tile < NUM_TILES) || (tile >= 100 && tile <= 111));
+	return Number.isInteger(tile) && ((tile >= 0 && tile < NUM_TILES) || isObjectTile(tile));
 }
 
 /**

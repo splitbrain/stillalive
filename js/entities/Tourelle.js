@@ -18,6 +18,7 @@ import {
 	touchingGround,
 } from '../physics.js';
 import { game } from '../state.js';
+import { Tile, isPlatformCode } from '../tiles.js';
 import { random } from '../utils.js';
 
 export class Tourelle {
@@ -80,7 +81,7 @@ export class Tourelle {
 				
 				const colLeft = leftCollision(this);
 				const colRight = rightCollision(this);
-				if(!this.mort && ((colLeft>=200 && colLeft<=210) || (colRight>=200 && colRight<=210))){
+				if(!this.mort && (isPlatformCode(colLeft) || isPlatformCode(colRight))){
 					this.mort = 1;
 					this.animeFrame = 2;
 					playSound(sfx_explode);
@@ -120,7 +121,7 @@ export class Tourelle {
 				//var freeze = 0;
 				while(j>=0&&j<512&&!dansLeChamp&&!exitt){
 					const tile = getTile(j,ySent);
-					if(tile!=0) {
+					if(tile!=Tile.EMPTY) {
 						exitt = 1;
 						break;
 					}

@@ -3,7 +3,7 @@
  */
 
 import { ctx } from './canvas.js';
-import { DROITE } from './constants.js';
+import { CampaignId, DROITE } from './constants.js';
 import { Sparkle } from './entities/Sparkle.js';
 import { unclick } from './input.js';
 import { loadLevel } from './level.js';
@@ -20,7 +20,7 @@ export function setupTutorial() {
 	ui.portalsDisplayed = false;
 	ui.tutoEnded = false;
 	
-	ui.lvlType = 3;
+	ui.campaign = CampaignId.TUTORIAL;
 	ui.currentLevel = 1;
 	loadLevel(ui.currentLevel);
 }

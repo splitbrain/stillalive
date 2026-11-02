@@ -15,6 +15,7 @@ import {
 	dansUnPortal,
 } from './portals.js';
 import { game, input } from './state.js';
+import { FIRST_OF_KIND, Tile, TileKind, inForceFieldRange, isCrateCode, isDeadlyTile, isTileKind } from './tiles.js';
 import { getCos, getDistance, getSin } from './utils.js';
 
 export function touchingGround(obj){
@@ -22,9 +23,9 @@ export function touchingGround(obj){
 		const touche = getTile((obj.x>>8)+1, (obj.y>>8)+obj.pY);
 		const touche2 = getTile((obj.x>>8)+obj.pX-1, (obj.y>>8)+obj.pY);
 		
-		if((touche >= 54 && touche <= 55) || (touche2 >= 54 && touche2 <= 55)) return 3;
-		if((touche >= 56 && touche <= 57) || (touche2 >= 56 && touche2 <= 57)) return 4;
-		if(touche == 46 || touche2 == 46) return 2;
+		if(isTileKind(touche, TileKind.BELT_RIGHT) || isTileKind(touche2, TileKind.BELT_RIGHT)) return 3;
+		if(isTileKind(touche, TileKind.BELT_LEFT) || isTileKind(touche2, TileKind.BELT_LEFT)) return 4;
+		if(touche == Tile.MIRROR || touche2 == Tile.MIRROR) return 2;
 		else if(touche || touche2) return 1;
 	}
 	return 0;
@@ -33,7 +34,7 @@ export function touchingGround(obj){
 function objetToucheTileMort(x, y){
 	if(x>=512 || y>=384 || y<0 || x<0) return 0;
 	const tile = game.map[((y>>4)*32) + (x>>4)];
-	return (tile==36||tile==37||tile==38||tile==39||tile==47);
+	return isDeadlyTile(tile);
 }
 
 export function toucheTileMort(obj){
@@ -60,8 +61,7 @@ export function getTileNoCaisse(x, y) {
 		tile = collidePlateforme(x,y);
 	}
 	
-	if(tile==22 || tile==36 || tile==37 || tile==38 || tile==39 || tile==47 || tile==104) tile = 0;
-	else if(tile >= 49 && tile <= 54) tile = 0;
+	if(tile==Tile.EXIT || isDeadlyTile(tile) || tile==Tile.PLAYER_START || inForceFieldRange(tile)) tile = Tile.EMPTY;
 	
 	return tile;
 }
@@ -70,8 +70,7 @@ export function getTileNoCaisseNoPlate(x, y) {
 	if(x>=512 || y>=384 || y<0 || x<0) return 0;
 	let tile = game.map[((y>>4)*32) + (x>>4)];
 	
-	if(tile==22 || tile==36 || tile==37 || tile==38 || tile==39 || tile==47 || tile==104) tile = 0;
-	else if(tile >= 49 && tile <= 54) tile = 0;
+	if(tile==Tile.EXIT || isDeadlyTile(tile) || tile==Tile.PLAYER_START || inForceFieldRange(tile)) tile = Tile.EMPTY;
 	
 	return tile;
 }
@@ -87,8 +86,7 @@ export function getTile(x, y) {
 		}
 	}
 	
-	if(tile==22 || tile==36 || tile==37 || tile==38 || tile==39 || tile==47 || tile==104) tile = 0;
-	else if(tile >= 49 && tile <= 54) tile = 0;
+	if(tile==Tile.EXIT || isDeadlyTile(tile) || tile==Tile.PLAYER_START || inForceFieldRange(tile)) tile = Tile.EMPTY;
 	
 	return tile;
 }
@@ -97,7 +95,7 @@ export function getTilePortal(x, y){
 	if(x>=512 || y>=384 || y<0 || x<0) return 0;
 	let tile = game.map[((y>>4)*32) + (x>>4)];
 	//passes through: crate, finish, razor wheel, red plasma, cake, start
-	if(tile==22 || tile==36 || (tile>=40 && tile<=45) || tile == 103 || tile == 104 || tile>=300) tile = 0;
+	if(tile==Tile.EXIT || tile==FIRST_OF_KIND[TileKind.WHEEL] || isTileKind(tile, TileKind.NO_PORTAL) || tile == Tile.CAKE || tile == Tile.PLAYER_START || isCrateCode(tile)) tile = Tile.EMPTY;
 	
 	if(!tile){//check contact with a platform
 		tile = collidePlateforme(x,y);

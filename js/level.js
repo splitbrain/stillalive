@@ -4,7 +4,7 @@
 
 import { playSound, sfx_tick } from './audio.js';
 import { setupBoss } from './boss.js';
-import { BAS, DROITE, GAUCHE, HAUT, ORDERED, RANDOM } from './constants.js';
+import { BAS, CampaignId, DROITE, GAUCHE, HAUT, Menu, ORDERED, RANDOM } from './constants.js';
 import { AnimatedTile } from './entities/AnimatedTile.js';
 import { Caisse } from './entities/Caisse.js';
 import { Cake } from './entities/Cake.js';
@@ -21,6 +21,7 @@ import { parseMap } from './mapFile.js';
 import { getTileSimple } from './physics.js';
 import { Replay } from './replay.js';
 import { game, input, settings, ui } from './state.js';
+import { FIRST_OF_KIND, LAST_OF_KIND, Tile, TileKind, isTileKind } from './tiles.js';
 
 export let campaigns;
 export let levelsLoaded = 0;
@@ -58,7 +59,7 @@ function retirerBloqueurPorte(){
 			
 			if(game.portals[i].direction==GAUCHE || game.portals[i].direction==DROITE){
 				for(j=0;j<32;j++){
-					if(getTileSimple(x,y+j)==23){
+					if(getTileSimple(x,y+j)==FIRST_OF_KIND[TileKind.SWITCH_DOOR]){
 						game.portals[i].used = 0;
 						removeSparkles(i, 3);
 						j = 32;
@@ -66,7 +67,7 @@ function retirerBloqueurPorte(){
 				}
 			}else{
 				for(j=0;j<32;j++){
-					if(getTileSimple(x+j,y)==23){
+					if(getTileSimple(x+j,y)==FIRST_OF_KIND[TileKind.SWITCH_DOOR]){
 						game.portals[i].used = 0;
 						removeSparkles(i, 3);
 						j = 32;
@@ -79,7 +80,7 @@ function retirerBloqueurPorte(){
 	for(i in game.caisses){
 		x = game.caisses[i].x>>8;
 		y = game.caisses[i].y>>8;
-		if(getTileSimple(x,y)==23 || getTileSimple(x+15,y)==23 || getTileSimple(x,y+15)==23 || getTileSimple(x+15,y+15)==23){
+		if(getTileSimple(x,y)==FIRST_OF_KIND[TileKind.SWITCH_DOOR] || getTileSimple(x+15,y)==FIRST_OF_KIND[TileKind.SWITCH_DOOR] || getTileSimple(x,y+15)==FIRST_OF_KIND[TileKind.SWITCH_DOOR] || getTileSimple(x+15,y+15)==FIRST_OF_KIND[TileKind.SWITCH_DOOR]){
 			game.caisses[i].x = game.caisses[i].xOrig;
 			game.caisses[i].y = game.caisses[i].yOrig;
 			game.caisses[i].vx = 0;
@@ -90,7 +91,7 @@ function retirerBloqueurPorte(){
 	for(i in game.plasmaBall) {
 		x = game.plasmaBall[i].x>>8;
 		y = game.plasmaBall[i].y>>8;
-		if(getTileSimple(x,y)==23 || getTileSimple(x+15,y)==23 || getTileSimple(x,y+15)==23 || getTileSimple(x+15,y+15)==23){
+		if(getTileSimple(x,y)==FIRST_OF_KIND[TileKind.SWITCH_DOOR] || getTileSimple(x+15,y)==FIRST_OF_KIND[TileKind.SWITCH_DOOR] || getTileSimple(x,y+15)==FIRST_OF_KIND[TileKind.SWITCH_DOOR] || getTileSimple(x+15,y+15)==FIRST_OF_KIND[TileKind.SWITCH_DOOR]){
 			game.plasmaBall[i].vx = game.plasmaBall[i].origVx;
 			game.plasmaBall[i].vy = game.plasmaBall[i].origVy;
 			game.plasmaBall[i].x = game.plasmaBall[i].xOrig;
@@ -103,7 +104,7 @@ function fermerPorte(){
 	let i;
 	playSound(sfx_tick);
 	for(i in game.animatedTiles) {
-		if(game.animatedTiles[i].current>=23 && game.animatedTiles[i].current<=28){
+		if(isTileKind(game.animatedTiles[i].current, TileKind.SWITCH_DOOR)){
 			game.animatedTiles[i].used = 1;
 			game.map[game.animatedTiles[i].place] = game.animatedTiles[i].min;
 			if(settings.quality == 0) {
@@ -119,7 +120,7 @@ function ouvrirPorte(){
 	let i;
 	playSound(sfx_tick);
 	for(i in game.animatedTiles) {
-		if(game.animatedTiles[i].current>=23 && game.animatedTiles[i].current<=28){
+		if(isTileKind(game.animatedTiles[i].current, TileKind.SWITCH_DOOR)){
 			game.animatedTiles[i].used = 0;
 			game.map[game.animatedTiles[i].place] = 0;
 			if(settings.quality == 0) {
@@ -131,8 +132,8 @@ function ouvrirPorte(){
 }
 
 function persoSurInterrupteur(x, y){
-	if(getTileSimple(x,y+32)==19) return 1;
-	else if(getTileSimple(x+15,y+32)==19) return 1;
+	if(getTileSimple(x,y+32)==Tile.SWITCH) return 1;
+	else if(getTileSimple(x+15,y+32)==Tile.SWITCH) return 1;
 	return 0;
 }
 
@@ -264,102 +265,102 @@ export function loadLevelEditor() {
 		const y = i >> 5;
 		const x = i - (y << 5);
 		
-		if(game.map[i] == 107) {//right tunnel
+		if(game.map[i] == Tile.TUNNEL_RIGHT) {//right tunnel
 			game.tunnels.push(new Tunnel((x*16) << 8, (y*16) << 8, DROITE));
-			game.map[i] = 199;
+			game.map[i] = Tile.TUNNEL_BLOCK;
 			game.map[x+((y+1)<<5)] = 199;
 			game.displayMap[i] = 0;
 			game.displayMap[x+((y+1)<<5)] = 0;
-		}else if(game.map[i] == 108) {//left tunnel
+		}else if(game.map[i] == Tile.TUNNEL_LEFT) {//left tunnel
 			game.tunnels.push(new Tunnel((x*16) << 8, (y*16) << 8, GAUCHE));
-			game.map[i] = 199;
+			game.map[i] = Tile.TUNNEL_BLOCK;
 			game.map[x+((y+1)<<5)] = 199;
 			game.displayMap[i] = 0;
 			game.displayMap[x+((y+1)<<5)] = 0;
-		}else if(game.map[i] == 109) {//top tunnel
+		}else if(game.map[i] == Tile.TUNNEL_UP) {//top tunnel
 			game.tunnels.push(new Tunnel((x*16) << 8, (y*16) << 8, HAUT));
-			game.map[i] = 199;
+			game.map[i] = Tile.TUNNEL_BLOCK;
 			game.map[x + 1 + (y<<5)] = 199;
 			game.displayMap[i] = 0;
 			game.displayMap[x + 1 + (y<<5)] = 0;
-		}else if(game.map[i] == 110) {//bottom tunnel
+		}else if(game.map[i] == Tile.TUNNEL_DOWN) {//bottom tunnel
 			game.tunnels.push(new Tunnel((x*16) << 8, (y*16) << 8, BAS));
-			game.map[i] = 199;
+			game.map[i] = Tile.TUNNEL_BLOCK;
 			game.map[x + 1 + (y<<5)] = 199;
 			game.displayMap[i] = 0;
 			game.displayMap[x + 1 + (y<<5)] = 0;
-		}else if(game.map[i]==22) {//exit
-			game.map[i] = 35;
-			game.displayMap[i] = 35;
+		}else if(game.map[i] == Tile.EXIT) {//exit
+			game.map[i] = Tile.EXIT_CLOSED;
+			game.displayMap[i] = Tile.EXIT_CLOSED;
 			continue;
-		}else if(game.map[i]>=29 && game.map[i]<=34) { //plasma ball door tile
+		}else if(isTileKind(game.map[i], TileKind.PLASMA_DOOR)) { //plasma ball door tile
 			if(settings.quality > 0) game.displayMap[i] = 0;
-			game.animatedTiles.push(new AnimatedTile(x, y, 29, 34, RANDOM, i, 6));
+			game.animatedTiles.push(new AnimatedTile(x, y, FIRST_OF_KIND[TileKind.PLASMA_DOOR], LAST_OF_KIND[TileKind.PLASMA_DOOR], RANDOM, i, 6));
 			continue;
-		}else if(game.map[i]>=23 && game.map[i]<=28) { //switch door tile
+		}else if(isTileKind(game.map[i], TileKind.SWITCH_DOOR)) { //switch door tile
 			if(settings.quality > 0) game.displayMap[i] = 0;
-			game.animatedTiles.push(new AnimatedTile(x, y, 23, 28, RANDOM, i, 6));
+			game.animatedTiles.push(new AnimatedTile(x, y, FIRST_OF_KIND[TileKind.SWITCH_DOOR], LAST_OF_KIND[TileKind.SWITCH_DOOR], RANDOM, i, 6));
 			continue;
-		}else if(game.map[i]==36 || game.map[i]==37) { //rotating wheels
+		}else if(isTileKind(game.map[i], TileKind.WHEEL)) { //rotating wheels
 			if(settings.quality > 0) game.displayMap[i] = 0;
-			game.animatedTiles.push(new AnimatedTile(x, y, 36, 37, ORDERED, i, 15));
+			game.animatedTiles.push(new AnimatedTile(x, y, FIRST_OF_KIND[TileKind.WHEEL], LAST_OF_KIND[TileKind.WHEEL], ORDERED, i, 15));
 			continue;
-		}else if(game.map[i]==38 || game.map[i]==39) { //acid waves
+		}else if(isTileKind(game.map[i], TileKind.ACID)) { //acid waves
 			if(settings.quality > 0) game.displayMap[i] = 0;
-			game.animatedTiles.push(new AnimatedTile(x, y, 38, 39, ORDERED, i, 15));
+			game.animatedTiles.push(new AnimatedTile(x, y, FIRST_OF_KIND[TileKind.ACID], LAST_OF_KIND[TileKind.ACID], ORDERED, i, 15));
 			continue;
-		}else if(game.map[i]>=40 && game.map[i]<=45) { //red portal tile
+		}else if(isTileKind(game.map[i], TileKind.NO_PORTAL)) { //red portal tile
 			if(settings.quality > 0) game.displayMap[i] = 0;
-			game.animatedTiles.push(new AnimatedTile(x, y, 40, 45, RANDOM, i, 6));
+			game.animatedTiles.push(new AnimatedTile(x, y, FIRST_OF_KIND[TileKind.NO_PORTAL], LAST_OF_KIND[TileKind.NO_PORTAL], RANDOM, i, 6));
 			continue;
-		}else if(game.map[i]>=48 && game.map[i]<=53) { //clear portal force field
+		}else if(isTileKind(game.map[i], TileKind.FORCE_FIELD)) { //clear portal force field
 			if(settings.quality > 0) game.displayMap[i] = 0;
-			game.animatedTiles.push(new AnimatedTile(x, y, 48, 53, ORDERED, i, 6));
+			game.animatedTiles.push(new AnimatedTile(x, y, FIRST_OF_KIND[TileKind.FORCE_FIELD], LAST_OF_KIND[TileKind.FORCE_FIELD], ORDERED, i, 6));
 			continue;
-		}else if(game.map[i] == 54 || game.map[i] == 55) { //right conveyor belt
+		}else if(isTileKind(game.map[i], TileKind.BELT_RIGHT)) { //right conveyor belt
 			if(settings.quality > 0) game.displayMap[i] = 0;
-			game.animatedTiles.push(new AnimatedTile(x, y, 54, 55, ORDERED, i, 10));
+			game.animatedTiles.push(new AnimatedTile(x, y, FIRST_OF_KIND[TileKind.BELT_RIGHT], LAST_OF_KIND[TileKind.BELT_RIGHT], ORDERED, i, 10));
 			continue;
-		}else if(game.map[i] == 56 || game.map[i] == 57) { //left conveyor belt
+		}else if(isTileKind(game.map[i], TileKind.BELT_LEFT)) { //left conveyor belt
 			if(settings.quality > 0) game.displayMap[i] = 0;
-			game.animatedTiles.push(new AnimatedTile(x, y, 56, 57, ORDERED, i, 10));
+			game.animatedTiles.push(new AnimatedTile(x, y, FIRST_OF_KIND[TileKind.BELT_LEFT], LAST_OF_KIND[TileKind.BELT_LEFT], ORDERED, i, 10));
 			continue;
-		}else if(game.map[i] == 103) {//cake
+		}else if(game.map[i] == Tile.CAKE) {//cake
 			game.cakes.push(new Cake((x*16) << 8, (y*16) << 8));
 			game.map[i] = 0;
 			continue;
-		}else if(game.map[i] == 100) {//left turret
+		}else if(game.map[i] == Tile.TURRET_LEFT) {//left turret
 			game.displayMap[i] = 0;
 			game.map[i] = 0;
 			game.tourelles.push(new Tourelle((x*16) << 8, (y*16) << 8, -1));
 			continue;
-		}else if(game.map[i] == 101) {//right turret
+		}else if(game.map[i] == Tile.TURRET_RIGHT) {//right turret
 			game.displayMap[i] = 0;
 			game.map[i] = 0;
 			game.tourelles.push(new Tourelle((x*16) << 8, (y*16) << 8, 1));
 			continue;
-		}else if(game.map[i] == 102) {//crate
+		}else if(game.map[i] == Tile.CRATE) {//crate
 			game.displayMap[i] = 0;
 			game.map[i] = 0;
 			game.caisses.push(new Caisse((x*16) << 8, (y*16) << 8));
 			continue;
-		}else if(game.map[i] == 104) {//player start
+		}else if(game.map[i] == Tile.PLAYER_START) {//player start
 			game.perso.x = (x * 16) << 8;
 			game.perso.y = (y * 16) << 8;
 			game.map[i] = 0;
 			game.camera = new Camera(game.perso.x, game.perso.y);
 			continue;
-		}else if(game.map[i] == 105) {//right platform
+		}else if(game.map[i] == Tile.PLATFORM_RIGHT) {//right platform
 			vx = 256;
 			game.platforms.push(new Platform((x * 16) << 8, (y * 16) << 8, vx, 0));
 			game.map[i] = 0;
 			continue;
-		}else if(game.map[i] == 106) {//left platform
+		}else if(game.map[i] == Tile.PLATFORM_LEFT) {//left platform
 			vx = -256;
 			game.platforms.push(new Platform((x * 16) << 8, (y * 16) << 8, vx, 0));
 			game.map[i] = 0;
 			continue;
-		}else if(game.map[i] == 20) {//plasma start
+		}else if(game.map[i] == Tile.PLASMA_START) {//plasma start
 			if(x+1<32) droite = game.map[x+1+(y<<5)];
 			else droite = 1;
 			if(x-1>=0) gauche = game.map[x-1+(y<<5)];
@@ -412,10 +413,10 @@ export function loadLevel(level) {
 		game.map = new Array();
 		game.oldMap = new Array();
 		game.displayMap = new Array();
-		for(i in campaigns[ui.lvlType].levels[level - 1]) {
-			game.map.push(campaigns[ui.lvlType].levels[level - 1][i]);
-			game.oldMap.push(campaigns[ui.lvlType].levels[level - 1][i]);
-			game.displayMap.push(campaigns[ui.lvlType].levels[level - 1][i]);
+		for(i in campaigns[ui.campaign].levels[level - 1]) {
+			game.map.push(campaigns[ui.campaign].levels[level - 1][i]);
+			game.oldMap.push(campaigns[ui.campaign].levels[level - 1][i]);
+			game.displayMap.push(campaigns[ui.campaign].levels[level - 1][i]);
 		}
 	}else {
 		game.displayMap = new Array();
@@ -440,7 +441,7 @@ export function loadLevel(level) {
 	game.tourelles = new Array();
 	ui.txtLines = new Array();
 	
-	if(ui.currentMenu == 6) { //Tutorial
+	if(ui.currentMenu == Menu.TUTORIAL) { //Tutorial
 		ui.txtLines.push("");
 		ui.txtLines.push("");
 		ui.txtLines.push("Follow the on-screen instructions to progress through the tutorial.");
@@ -458,7 +459,7 @@ export function loadLevel(level) {
 	game.perso = new Perso();
 	
 	if(level > -1) {
-		if(level == 8 && ui.lvlType <= 1) {
+		if(level == 8 && ui.campaign <= CampaignId.ADVANCED) {
 			game.perso.vy = -2400;
 			game.perso.x = 128 << 8;
 			game.perso.y = 384 << 8;
@@ -469,108 +470,108 @@ export function loadLevel(level) {
 		const y = i >> 5;
 		const x = i - (y << 5);
 		
-		if(game.map[i] == 107) {//right tunnel
+		if(game.map[i] == Tile.TUNNEL_RIGHT) {//right tunnel
 			game.tunnels.push(new Tunnel((x*16) << 8, (y*16) << 8, DROITE));
-			game.map[i] = 199;
+			game.map[i] = Tile.TUNNEL_BLOCK;
 			game.map[x+((y+1)<<5)] = 199;
 			game.displayMap[i] = 0;
 			game.displayMap[x+((y+1)<<5)] = 0;
-		}else if(game.map[i] == 108) {//left tunnel
+		}else if(game.map[i] == Tile.TUNNEL_LEFT) {//left tunnel
 			game.tunnels.push(new Tunnel((x*16) << 8, (y*16) << 8, GAUCHE));
-			game.map[i] = 199;
+			game.map[i] = Tile.TUNNEL_BLOCK;
 			game.map[x+((y+1)<<5)] = 199;
 			game.displayMap[i] = 0;
 			game.displayMap[x+((y+1)<<5)] = 0;
-		}else if(game.map[i] == 109) {//top tunnel
+		}else if(game.map[i] == Tile.TUNNEL_UP) {//top tunnel
 			game.tunnels.push(new Tunnel((x*16) << 8, (y*16) << 8, HAUT));
-			game.map[i] = 199;
+			game.map[i] = Tile.TUNNEL_BLOCK;
 			game.map[x + 1 + (y<<5)] = 199;
 			game.displayMap[i] = 0;
 			game.displayMap[x + 1 + (y<<5)] = 0;
-		}else if(game.map[i] == 110) {//bottom tunnel
+		}else if(game.map[i] == Tile.TUNNEL_DOWN) {//bottom tunnel
 			game.tunnels.push(new Tunnel((x*16) << 8, (y*16) << 8, BAS));
-			game.map[i] = 199;
+			game.map[i] = Tile.TUNNEL_BLOCK;
 			game.map[x + 1 + (y<<5)] = 199;
 			game.displayMap[i] = 0;
 			game.displayMap[x + 1 + (y<<5)] = 0;
-		}else if(game.map[i]==22) {//exit
-			game.map[i] = 35;
-			game.displayMap[i] = 35;
+		}else if(game.map[i] == Tile.EXIT) {//exit
+			game.map[i] = Tile.EXIT_CLOSED;
+			game.displayMap[i] = Tile.EXIT_CLOSED;
 			continue;
-		}else if(game.map[i]>=29 && game.map[i]<=34) { //plasma ball door tile
+		}else if(isTileKind(game.map[i], TileKind.PLASMA_DOOR)) { //plasma ball door tile
 			if(settings.quality > 0) game.displayMap[i] = 0;
-			game.animatedTiles.push(new AnimatedTile(x, y, 29, 34, RANDOM, i, 6));
+			game.animatedTiles.push(new AnimatedTile(x, y, FIRST_OF_KIND[TileKind.PLASMA_DOOR], LAST_OF_KIND[TileKind.PLASMA_DOOR], RANDOM, i, 6));
 			continue;
-		}else if(game.map[i]>=23 && game.map[i]<=28) { //switch door tile
+		}else if(isTileKind(game.map[i], TileKind.SWITCH_DOOR)) { //switch door tile
 			if(settings.quality > 0) game.displayMap[i] = 0;
-			game.animatedTiles.push(new AnimatedTile(x, y, 23, 28, RANDOM, i, 6));
+			game.animatedTiles.push(new AnimatedTile(x, y, FIRST_OF_KIND[TileKind.SWITCH_DOOR], LAST_OF_KIND[TileKind.SWITCH_DOOR], RANDOM, i, 6));
 			continue;
-		}else if(game.map[i]==36 || game.map[i]==37) { //rotating wheels
+		}else if(isTileKind(game.map[i], TileKind.WHEEL)) { //rotating wheels
 			if(settings.quality > 0) game.displayMap[i] = 0;
-			game.animatedTiles.push(new AnimatedTile(x, y, 36, 37, ORDERED, i, 15));
+			game.animatedTiles.push(new AnimatedTile(x, y, FIRST_OF_KIND[TileKind.WHEEL], LAST_OF_KIND[TileKind.WHEEL], ORDERED, i, 15));
 			continue;
-		}else if(game.map[i]==38 || game.map[i]==39) { //acid waves
+		}else if(isTileKind(game.map[i], TileKind.ACID)) { //acid waves
 			if(settings.quality > 0) game.displayMap[i] = 0;
-			game.animatedTiles.push(new AnimatedTile(x, y, 38, 39, ORDERED, i, 15));
+			game.animatedTiles.push(new AnimatedTile(x, y, FIRST_OF_KIND[TileKind.ACID], LAST_OF_KIND[TileKind.ACID], ORDERED, i, 15));
 			continue;
-		}else if(game.map[i]>=40 && game.map[i]<=45) { //red portal tile
+		}else if(isTileKind(game.map[i], TileKind.NO_PORTAL)) { //red portal tile
 			if(settings.quality > 0) game.displayMap[i] = 0;
-			game.animatedTiles.push(new AnimatedTile(x, y, 40, 45, RANDOM, i, 6));
+			game.animatedTiles.push(new AnimatedTile(x, y, FIRST_OF_KIND[TileKind.NO_PORTAL], LAST_OF_KIND[TileKind.NO_PORTAL], RANDOM, i, 6));
 			continue;
-		}else if(game.map[i]>=48 && game.map[i]<=53) { //clear portal force field
+		}else if(isTileKind(game.map[i], TileKind.FORCE_FIELD)) { //clear portal force field
 			if(settings.quality > 0) game.displayMap[i] = 0;
-			game.animatedTiles.push(new AnimatedTile(x, y, 48, 53, ORDERED, i, 6));
+			game.animatedTiles.push(new AnimatedTile(x, y, FIRST_OF_KIND[TileKind.FORCE_FIELD], LAST_OF_KIND[TileKind.FORCE_FIELD], ORDERED, i, 6));
 			continue;
-		}else if(game.map[i] == 54 || game.map[i] == 55) { //right conveyor belt
+		}else if(isTileKind(game.map[i], TileKind.BELT_RIGHT)) { //right conveyor belt
 			if(settings.quality > 0) game.displayMap[i] = 0;
-			game.animatedTiles.push(new AnimatedTile(x, y, 54, 55, ORDERED, i, 10));
+			game.animatedTiles.push(new AnimatedTile(x, y, FIRST_OF_KIND[TileKind.BELT_RIGHT], LAST_OF_KIND[TileKind.BELT_RIGHT], ORDERED, i, 10));
 			continue;
-		}else if(game.map[i] == 56 || game.map[i] == 57) { //left conveyor belt
+		}else if(isTileKind(game.map[i], TileKind.BELT_LEFT)) { //left conveyor belt
 			if(settings.quality > 0) game.displayMap[i] = 0;
-			game.animatedTiles.push(new AnimatedTile(x, y, 56, 57, ORDERED, i, 10));
+			game.animatedTiles.push(new AnimatedTile(x, y, FIRST_OF_KIND[TileKind.BELT_LEFT], LAST_OF_KIND[TileKind.BELT_LEFT], ORDERED, i, 10));
 			continue;
-		}else if(game.map[i] == 103) {//cake
+		}else if(game.map[i] == Tile.CAKE) {//cake
 			game.cakes.push(new Cake((x*16) << 8, (y*16) << 8));
 			game.map[i] = 0;
 			continue;
-		}else if(game.map[i] == 100) {//left turret
+		}else if(game.map[i] == Tile.TURRET_LEFT) {//left turret
 			game.displayMap[i] = 0;
 			game.map[i] = 0;
 			game.tourelles.push(new Tourelle((x*16) << 8, (y*16) << 8, -1));
 			continue;
-		}else if(game.map[i] == 101) {//right turret
+		}else if(game.map[i] == Tile.TURRET_RIGHT) {//right turret
 			game.displayMap[i] = 0;
 			game.map[i] = 0;
 			game.tourelles.push(new Tourelle((x*16) << 8, (y*16) << 8, 1));
 			continue;
-		}else if(game.map[i] == 102) {//crate
+		}else if(game.map[i] == Tile.CRATE) {//crate
 			game.displayMap[i] = 0;
 			game.map[i] = 0;
 			game.caisses.push(new Caisse((x*16) << 8, (y*16) << 8));
 			continue;
-		}else if(game.map[i] == 104) {//player start
+		}else if(game.map[i] == Tile.PLAYER_START) {//player start
 			game.perso.x = (x * 16) << 8;
 			game.perso.y = (y * 16) << 8;
 			game.map[i] = 0;
 			game.camera = new Camera(game.perso.x, game.perso.y);
 			continue;
-		}else if(game.map[i] == 105) {//right platform
+		}else if(game.map[i] == Tile.PLATFORM_RIGHT) {//right platform
 			vx = 256;
 			game.platforms.push(new Platform((x * 16) << 8, (y * 16) << 8, vx, 0));
 			game.map[i] = 0;
 			continue;
-		}else if(game.map[i] == 106) {//left platform
+		}else if(game.map[i] == Tile.PLATFORM_LEFT) {//left platform
 			vx = -256;
 			game.platforms.push(new Platform((x * 16) << 8, (y * 16) << 8, vx, 0));
 			game.map[i] = 0;
 			continue;
-		}else if(game.map[i] == 111) {//tube
+		}else if(game.map[i] == Tile.TUBE) {//tube
 			game.tubeX = (x*16) << 8;
 			game.tubeY = (y*16) << 8;
 			game.displayMap[i] = 0;
 			game.map[i] = 0;
 			continue;
-		}else if(game.map[i] == 20) {//plasma start
+		}else if(game.map[i] == Tile.PLASMA_START) {//plasma start
 			if(x+1<32) droite = game.map[x+1+(y<<5)];
 			else droite = 1;
 			if(x-1>=0) gauche = game.map[x-1+(y<<5)];
@@ -618,10 +619,10 @@ export function loadLevel(level) {
 	game.needLoad = true;
 	
 	if(level > -1) {
-		game.BG = campaigns[ui.lvlType].backgrounds[level - 1];
+		game.BG = campaigns[ui.campaign].backgrounds[level - 1];
 	}
 	
-	if(ui.lvlType == 4) {
+	if(ui.campaign == CampaignId.STORY) {
 		if(level == 7 || level == 14 || level == 21 || level == 28) {
 			game.bossNum = level / 7;
 			setupBoss();
@@ -636,9 +637,9 @@ export function loadPreviewMap(level) {
 	if(level > 0) {
 		game.map = new Array();
 		game.displayMap = new Array();
-		for(i in campaigns[ui.lvlType].levels[level - 1]) {
-			game.map.push(campaigns[ui.lvlType].levels[level - 1][i]);
-			game.displayMap.push(campaigns[ui.lvlType].levels[level - 1][i]);
+		for(i in campaigns[ui.campaign].levels[level - 1]) {
+			game.map.push(campaigns[ui.campaign].levels[level - 1][i]);
+			game.displayMap.push(campaigns[ui.campaign].levels[level - 1][i]);
 		}
 	}else {
 		game.displayMap = new Array();
@@ -665,55 +666,55 @@ export function loadPreviewMap(level) {
 		const y = i >> 5;
 		const x = i - (y << 5);
 		
-		if(game.map[i] == 107) {//right tunnel
+		if(game.map[i] == Tile.TUNNEL_RIGHT) {//right tunnel
 			game.tunnels.push(new Tunnel((x*16) << 8, (y*16) << 8, DROITE));
-		}else if(game.map[i] == 108) {//left tunnel
+		}else if(game.map[i] == Tile.TUNNEL_LEFT) {//left tunnel
 			game.tunnels.push(new Tunnel((x*16) << 8, (y*16) << 8, GAUCHE));
-		}else if(game.map[i] == 109) {//top tunnel
+		}else if(game.map[i] == Tile.TUNNEL_UP) {//top tunnel
 			game.tunnels.push(new Tunnel((x*16) << 8, (y*16) << 8, HAUT));
-		}else if(game.map[i] == 110) {//bottom tunnel
+		}else if(game.map[i] == Tile.TUNNEL_DOWN) {//bottom tunnel
 			game.tunnels.push(new Tunnel((x*16) << 8, (y*16) << 8, BAS));
-		}else if(game.map[i] == 111) {//tube
+		}else if(game.map[i] == Tile.TUBE) {//tube
 			game.tubeX = (x*16) << 8;
 			game.tubeY = (y*16) << 8;
-		}else if(game.map[i]==22) {
-			game.map[i] = 35;
-			game.displayMap[i] = 35;
+		}else if(game.map[i] == Tile.EXIT) {
+			game.map[i] = Tile.EXIT_CLOSED;
+			game.displayMap[i] = Tile.EXIT_CLOSED;
 			continue;
-		}else if(game.map[i] == 103) {//cake
+		}else if(game.map[i] == Tile.CAKE) {//cake
 			game.cakes.push(new Cake((x*16) << 8, (y*16) << 8));
 			continue;
-		}else if(game.map[i] == 100) {//left turret
+		}else if(game.map[i] == Tile.TURRET_LEFT) {//left turret
 			game.tourelles.push(new Tourelle((x*16) << 8, (y*16) << 8, -1));
 			continue;
-		}else if(game.map[i] == 101) {//right turret
+		}else if(game.map[i] == Tile.TURRET_RIGHT) {//right turret
 			game.tourelles.push(new Tourelle((x*16) << 8, (y*16) << 8, 1));
 			continue;
-		}else if(game.map[i] == 102) {//crate
+		}else if(game.map[i] == Tile.CRATE) {//crate
 			game.caisses.push(new Caisse((x*16) << 8, (y*16) << 8));
 			continue;
-		}else if(game.map[i] == 104) {//player start
+		}else if(game.map[i] == Tile.PLAYER_START) {//player start
 			game.perso.x = (x * 16) << 8;
 			game.perso.y = (y * 16) << 8;
 			continue;
-		}else if(game.map[i] == 105) {//right platform
+		}else if(game.map[i] == Tile.PLATFORM_RIGHT) {//right platform
 			vx = 256;
 			game.platforms.push(new Platform((x * 16) << 8, (y * 16) << 8, vx, 0));
 			continue;
-		}else if(game.map[i] == 106) {//left platform
+		}else if(game.map[i] == Tile.PLATFORM_LEFT) {//left platform
 			vx = -256;
 			game.platforms.push(new Platform((x * 16) << 8, (y * 16) << 8, vx, 0));
 			continue;
 		}
 	}
 	
-	if(level == 8 && ui.lvlType <= 1) {
+	if(level == 8 && ui.campaign <= CampaignId.ADVANCED) {
 		game.perso.vy = -2400;
 		game.perso.x = 128 << 8;
 		game.perso.y = 384 << 8;
 	}
 	
-	if(ui.lvlType == 4) {
+	if(ui.campaign == CampaignId.STORY) {
 		if(level == 7 || level == 14 || level == 21 || level == 28) {
 			game.bossNum = level / 7;
 			setupBoss();
@@ -722,5 +723,5 @@ export function loadPreviewMap(level) {
 	
 	game.needLoad = true;
 	
-	if(level > 0) game.BG = campaigns[ui.lvlType].backgrounds[level - 1];
+	if(level > 0) game.BG = campaigns[ui.campaign].backgrounds[level - 1];
 }

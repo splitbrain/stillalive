@@ -4,7 +4,7 @@
 
 import { playSound, setSoundVolume, sfx_flatline, sfx_jump, sfx_pain } from '../audio.js';
 import { skipComingBoss } from '../boss.js';
-import { GRAVITY, LEFT, RIGHT } from '../constants.js';
+import { GRAVITY, LEFT, Menu, RIGHT } from '../constants.js';
 import { toucheCake } from './Cake.js';
 import { fieldForceTest, inForceFieldTp } from './ForceField.js';
 import { plasmaToucheObjet } from './Plasma.js';
@@ -33,6 +33,7 @@ import {
 	launchPortal,
 } from '../portals.js';
 import { game, input, ui } from '../state.js';
+import { isPlatformCode } from '../tiles.js';
 import { random } from '../utils.js';
 
 export class Perso {
@@ -99,7 +100,7 @@ export class Perso {
 		}else if(this.mort) {
 			if(this.vie >= 0) {
 				setSoundVolume(sfx_flatline, 1);
-				if(ui.currentMenu == 2 || ui.currentMenu == 6) {
+				if(ui.currentMenu == Menu.PLAY || ui.currentMenu == Menu.TUTORIAL) {
 					loadLevel(ui.currentLevel);
 					if(game.bossNum > 0) skipComingBoss();
 				}
@@ -322,7 +323,7 @@ export class Perso {
 		grabObject();
 		fieldForceTest();
 		
-		if(ui.currentMenu != 6 || ui.tutoPortal) {
+		if(ui.currentMenu != Menu.TUTORIAL || ui.tutoPortal) {
 			if(input.mousePressed && this.timePosePortal == 25 && !dansUnPortal(this) && !objetPortee() ) {
 				if (input.mouseButton == LEFT) {
 					launchPortal(0);
@@ -336,7 +337,7 @@ export class Perso {
 		const colLeft = leftCollision(this);
 		const colRight = rightCollision(this);
 		if(colLeft && colRight && !dansUnPortal(this)){
-			if((colLeft>=200 && colLeft<=210) || (colRight>=200 && colRight<=210)){
+			if(isPlatformCode(colLeft) || isPlatformCode(colRight)){
 				this.vie = 0;
 			}
 		}

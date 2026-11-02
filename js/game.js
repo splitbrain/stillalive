@@ -5,6 +5,7 @@
 import { playSound, sfx_transition } from './audio.js';
 import { manageBoss, skipComingBoss } from './boss.js';
 import { ctx } from './canvas.js';
+import { CampaignId, Menu } from './constants.js';
 import { alertDialog } from './dialog.js';
 import { drawLevelEditor } from './editor.js';
 import { crosshair } from './images.js';
@@ -54,7 +55,7 @@ export function reportBrokenReplay() {
  * @returns {string} The message for the intermission screen.
  */
 function checkBestTime() {
-	const campaign = campaigns[ui.lvlType].folder;
+	const campaign = campaigns[ui.campaign].folder;
 	const best = getBestTime(campaign, ui.currentLevel);
 	if(best != null && best <= game.TIME) return "Best time : " + toTime(best);
 	
@@ -65,9 +66,9 @@ function checkBestTime() {
 }
 
 function draw() {
-	if(ui.currentMenu == 3) {
+	if(ui.currentMenu == Menu.EDITOR) {
 		drawLevelEditor();
-	} else if((ui.currentMenu == 2 || ui.currentMenu == 6) && !ui.escapeMenu) {	
+	} else if((ui.currentMenu == Menu.PLAY || ui.currentMenu == Menu.TUTORIAL) && !ui.escapeMenu) {	
 		if(!finNiveau() && game.perso.fadeNextLevel == -1) {
 			if(game.TIME==0) unclick();
 			game.TIME++;
@@ -95,13 +96,13 @@ function draw() {
 				playSound(sfx_transition);
 				ui.highscoreMessage = "";
 				unclick();
-				if(ui.currentMenu == 2 && !game.replayMode) ui.highscoreMessage = checkBestTime();
+				if(ui.currentMenu == Menu.PLAY && !game.replayMode) ui.highscoreMessage = checkBestTime();
 				ui.intermissionChoice = 0;
 				//TRANS = 7;
-				if(ui.currentMenu == 2 && !game.replayMode) {
-					if(maxLevel[ui.lvlType] < ui.currentLevel + 1) {
-						if(ui.lvlType == 4 && maxLevel[ui.lvlType] == 28) ui.drawCredits = true;
-						saveProgress(ui.lvlType, ui.currentLevel + 1);
+				if(ui.currentMenu == Menu.PLAY && !game.replayMode) {
+					if(maxLevel[ui.campaign] < ui.currentLevel + 1) {
+						if(ui.campaign == CampaignId.STORY && maxLevel[ui.campaign] == 28) ui.drawCredits = true;
+						saveProgress(ui.campaign, ui.currentLevel + 1);
 					}
 				}
 				
@@ -110,7 +111,7 @@ function draw() {
 			if(game.perso.fadeNextLevel <= 0) {
 				game.perso.fadeNextLevel = 0;
 				
-				if(ui.currentMenu == 6) {
+				if(ui.currentMenu == Menu.TUTORIAL) {
 					ui.currentLevel++;
 					if(ui.currentLevel < 9) {
 						unclick();
@@ -124,13 +125,13 @@ function draw() {
 					ui.drawIntermission = true;
 					if(ui.intermissionChoice == 3) {//continue
 						unclick();
-						if(ui.currentMenu == 2) {
+						if(ui.currentMenu == Menu.PLAY) {
 							loadLevel(++ui.currentLevel);
 							game.perso.intermissionFade = -20;
 						}
 					}else if(ui.intermissionChoice == 2) {//restart
 						unclick();
-						if(ui.currentMenu == 2) {
+						if(ui.currentMenu == Menu.PLAY) {
 							loadLevel(ui.currentLevel);
 							if(game.bossNum > 0) skipComingBoss();
 						}
@@ -140,7 +141,7 @@ function draw() {
 					}else if(ui.intermissionChoice == 4) {//watch replay
 						unclick();
 						game.replayMode = true;
-						if(ui.currentMenu == 2) loadLevel(ui.currentLevel);
+						if(ui.currentMenu == Menu.PLAY) loadLevel(ui.currentLevel);
 						game.perso.intermissionFade = -20;
 					}
 				}
@@ -157,7 +158,7 @@ function draw() {
 			}
 		}
 		
-		if(ui.currentMenu == 2 || ui.currentMenu == 6) {
+		if(ui.currentMenu == Menu.PLAY || ui.currentMenu == Menu.TUTORIAL) {
 			if(game.bossNum > 0 && game.bossIsComing && game.perso.fadeNextLevel == -1) game.perso.fadeNextLevel = 0;
 			drawAllGame();
 			drawHudText();
@@ -168,7 +169,7 @@ function draw() {
 				drawKeys();
 			}
 			
-			if(ui.currentMenu == 6 && ui.currentLevel == 9) {
+			if(ui.currentMenu == Menu.TUTORIAL && ui.currentLevel == 9) {
 				ui.currentLevel = 9;
 				ctx.fillStyle = "rgb(0, 0, 0)";
 				ctx.fillRect(game.ECART_X, game.ECART_Y, 544, 384);
@@ -178,7 +179,7 @@ function draw() {
 				
 				if(input.mousePressed) {
 					unclick();
-					ui.currentMenu = 1;
+					ui.currentMenu = Menu.MAIN;
 					ui.selectMenu = 0;
 					ui.fadeMenu = 30;
 					game.sparkles = new Array();
@@ -188,15 +189,15 @@ function draw() {
 			}
 		}
 	} 
-	else if((ui.currentMenu == 2 || ui.currentMenu == 6) && ui.escapeMenu) {
+	else if((ui.currentMenu == Menu.PLAY || ui.currentMenu == Menu.TUTORIAL) && ui.escapeMenu) {
 		drawPauseMenu();
 	}
-	else if(ui.currentMenu == 0) {
+	else if(ui.currentMenu == Menu.LOADING) {
 		//loading is in progress
 		if(canSplash && !overSplash) drawSplash();
 		else if(overSplash) drawLoadingScreen();
 	}
-	else if(ui.currentMenu == 1) {
+	else if(ui.currentMenu == Menu.MAIN) {
 		if(ui.selectMenu == 0) drawMainMenu();
 		else {
 			drawMapSelection();
@@ -213,15 +214,15 @@ function draw() {
 export function exitFunc() {
 	unclick();
 	game.sparkles = new Array();
-	if(ui.currentMenu == 2) {//campaign
+	if(ui.currentMenu == Menu.PLAY) {//campaign
 		game.ECART_X = 0;
 		game.ECART_Y = 96;
-		ui.currentMenu = 1;
+		ui.currentMenu = Menu.MAIN;
 		prepareSelectionText();
 		ui.previewMap = ui.currentLevel;
 		loadPreviewMap(ui.previewMap);
-	}else if(ui.currentMenu == 6) {
-		ui.currentMenu = 1;
+	}else if(ui.currentMenu == Menu.TUTORIAL) {
+		ui.currentMenu = Menu.MAIN;
 		ui.selectMenu = 0;
 		ui.fadeMenu = 30;
 		game.sparkles = new Array();

@@ -5,6 +5,7 @@
 import { allImagesLoaded, whenImagesDone } from './assets.js';
 import { allSoundsLoaded, loadSfx } from './audio.js';
 import { ctx } from './canvas.js';
+import { Menu } from './constants.js';
 import { validerArrivee } from './entities/Cake.js';
 import { Camera } from './entities/Camera.js';
 import { Perso } from './entities/Perso.js';
@@ -48,7 +49,7 @@ function setup() {
 		loadCampaigns();
 	});
 
-	ui.currentMenu = 0;
+	ui.currentMenu = Menu.LOADING;
 	
 				
 	game.perso = new Perso();//prevents a crash during loading

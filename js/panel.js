@@ -6,6 +6,7 @@
  * campaign.
  */
 
+import { Menu } from './constants.js';
 import { alertDialog } from './dialog.js';
 import { pickJsonFile } from './files.js';
 import { unclick } from './input.js';
@@ -37,7 +38,7 @@ function formatTime(ticks) {
  * @returns {boolean} True in the level selection.
  */
 function inLevelSelection() {
-	return ui.currentMenu === 1 && ui.selectMenu === 1;
+	return ui.currentMenu === Menu.MAIN && ui.selectMenu === 1;
 }
 
 /**
@@ -46,10 +47,10 @@ function inLevelSelection() {
  * @returns {string} The HTML, or an empty string if the panel has no content.
  */
 function panelHtml() {
-	const playing = ui.currentMenu === 2;
+	const playing = ui.currentMenu === Menu.PLAY;
 	if (!playing && !inLevelSelection()) return '';
 
-	const campaign = campaigns[ui.lvlType].folder;
+	const campaign = campaigns[ui.campaign].folder;
 	const level = playing ? ui.currentLevel : ui.previewMap;
 	const best = level > 0 ? getBestTime(campaign, level) : null;
 	const total = getCampaignTotal(campaign);
@@ -100,7 +101,7 @@ function startReplay(data) {
 	const campaign = campaigns.findIndex((c) => c.folder === data.campaign && c.folder !== 'tutorial');
 	if (campaign < 0 || data.level < 1 || data.level > 28) throw new Error('The replay is for an unknown level.');
 
-	ui.lvlType = campaign;
+	ui.campaign = campaign;
 	ui.previewMap = data.level;
 	ui.currentLevel = data.level;
 	loadPreviewMap(data.level);
@@ -109,7 +110,7 @@ function startReplay(data) {
 	game.replayMode = true;
 	game.ECART_X = 64;
 	game.ECART_Y = 96;
-	ui.currentMenu = 2;
+	ui.currentMenu = Menu.PLAY;
 	loadLevel(ui.currentLevel);
 	unclick();
 }
@@ -138,7 +139,7 @@ async function runAction(action) {
 		return;
 	}
 
-	const data = await loadBestReplay(campaigns[ui.lvlType].folder, ui.previewMap);
+	const data = await loadBestReplay(campaigns[ui.campaign].folder, ui.previewMap);
 	if (!data) throw new Error('There is no stored replay for this level.');
 	if (action === 'watch') startReplay(data);
 	else if (action === 'export') downloadReplay(data);

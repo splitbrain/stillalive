@@ -6,14 +6,15 @@ import { playSound, sfx_grabCake } from '../audio.js';
 import { createCakeOrSmokeSparkles } from './Sparkle.js';
 import { reloadTiles } from '../render/game.js';
 import { game } from '../state.js';
+import { Tile } from '../tiles.js';
 import { random } from '../utils.js';
 
 export function validerArrivee(){
 	let i;
 	for(i=0;i<768;i++){
-		if(game.map[i]==35) {
-			game.map[i] = 22;
-			game.displayMap[i] = 22;
+		if(game.map[i]==Tile.EXIT_CLOSED) {
+			game.map[i] = Tile.EXIT;
+			game.displayMap[i] = Tile.EXIT;
 		}
 	}
 	reloadTiles();

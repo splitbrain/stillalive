@@ -8,6 +8,7 @@ import { getCollision, getTileSimple } from '../physics.js';
 import { dansUnPortal } from '../portals.js';
 import { reloadTiles } from '../render/game.js';
 import { game, settings } from '../state.js';
+import { Tile, TileKind, isTileKind } from '../tiles.js';
 import { getDistance } from '../utils.js';
 
 export class Plasma {
@@ -78,7 +79,7 @@ export class Plasma {
 			this.vy = this.origVy;
 		}else {
 			const t = getTileSimple((this.x>>8) + 8, (this.y>>8) + 8);
-			if(t == 38 || t == 39 || t == 47) {
+			if(isTileKind(t, TileKind.ACID, TileKind.GOO)) {
 				this.x = this.xOrig;
 				this.y = this.yOrig;
 				this.vx = this.origVx;
@@ -90,7 +91,7 @@ export class Plasma {
 	ouvrirPorte() {
 		let i;
 		for(i in game.animatedTiles) {
-			if(game.animatedTiles[i].current>=29 && game.animatedTiles[i].current<=34){
+			if(isTileKind(game.animatedTiles[i].current, TileKind.PLASMA_DOOR)){
 				game.animatedTiles[i].used = 0;
 				game.map[game.animatedTiles[i].place] = 0;
 				if(settings.quality == 0) {
@@ -104,7 +105,7 @@ export class Plasma {
 	encore() {
 		let i;
 		for(i=0;i<768;i++){
-			if(game.map[i]==21) return 1;
+			if(game.map[i]==Tile.PLASMA_SLOT) return 1;
 		}
 		return 0;
 	}
@@ -125,12 +126,12 @@ export class Plasma {
 			x = (this.x>>8) - 1;
 			y = this.y>>8;
 			for(i=2;i<=14 && game.bossNum == 0;i++){
-				if(getTileSimple(x,y+i)==21){
+				if(getTileSimple(x,y+i)==Tile.PLASMA_SLOT){
 					y+=i;
 					x>>=4;
 					y>>=4;
-					game.map[x+(y<<5)] = 1;
-					game.displayMap[x+(y<<5)] = 1;
+					game.map[x+(y<<5)] = Tile.WALL;
+					game.displayMap[x+(y<<5)] = Tile.WALL;
 					reloadTiles();
 					if(!this.encore()){
 						this.used = 0;
@@ -153,12 +154,12 @@ export class Plasma {
 			x = (this.x>>8) + 16;
 			y = this.y>>8;
 			for(i=2;i<=14 && game.bossNum == 0;i++){
-				if(getTileSimple(x,y+i)==21){
+				if(getTileSimple(x,y+i)==Tile.PLASMA_SLOT){
 					y+=i;
 					x>>=4;
 					y>>=4;
-					game.map[x+(y<<5)] = 1;
-					game.displayMap[x+(y<<5)] = 1;
+					game.map[x+(y<<5)] = Tile.WALL;
+					game.displayMap[x+(y<<5)] = Tile.WALL;
 					reloadTiles();
 					if(!this.encore()){
 						this.used = 0;
@@ -181,12 +182,12 @@ export class Plasma {
 			x = this.x>>8;
 			y = (this.y>>8) - 1;
 			for(i=4;i<=12 && game.bossNum == 0;i++){
-				if(getTileSimple(x+i,y)==21){
+				if(getTileSimple(x+i,y)==Tile.PLASMA_SLOT){
 					x+=i;
 					x>>=4;
 					y>>=4;
-					game.map[x+(y<<5)] = 1;
-					game.displayMap[x+(y<<5)] = 1;
+					game.map[x+(y<<5)] = Tile.WALL;
+					game.displayMap[x+(y<<5)] = Tile.WALL;
 					reloadTiles();
 					if(!this.encore()){
 						this.used = 0;
@@ -209,12 +210,12 @@ export class Plasma {
 			x = this.x>>8;
 			y = (this.y>>8) + 16;
 			for(i=4;i<=12 && game.bossNum == 0;i++){
-				if(getTileSimple(x+i,y)==21){
+				if(getTileSimple(x+i,y)==Tile.PLASMA_SLOT){
 					x+=i;
 					x>>=4;
 					y>>=4;
-					game.map[x+(y<<5)] = 1;
-					game.displayMap[x+(y<<5)] = 1;
+					game.map[x+(y<<5)] = Tile.WALL;
+					game.displayMap[x+(y<<5)] = Tile.WALL;
 					reloadTiles();
 					if(!this.encore()){
 						this.used = 0;

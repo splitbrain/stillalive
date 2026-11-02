@@ -17,6 +17,7 @@ import {
 } from '../physics.js';
 import { dansUnPortal } from '../portals.js';
 import { game } from '../state.js';
+import { CRATE_CODE, LAST_OF_KIND, TileKind, isTileKind } from '../tiles.js';
 
 export class Caisse {
 	constructor(x, y) {
@@ -60,10 +61,10 @@ export class Caisse {
 					if(game.bossNum == 1 || game.bossNum == 4) manageInTube(this);
           
 					const t = getTileSimple((this.x >> 8) + this.pX + 1, this.y >> 8);
-					if(t>= 58 && t <= 60) {
+					if(isTileKind(t, TileKind.BOSS_BLOCK)) {
 						for(i in game.map) {
 							if(game.map[i] == t) {
-								if(t < 60) {
+								if(t < LAST_OF_KIND[TileKind.BOSS_BLOCK]) {
 									game.map[i]++;
 									game.displayMap[i]++;
 								}
@@ -149,7 +150,7 @@ export function collideCaisse(x, y){
 		const y2 = game.caisses[i].y>>8;
 		if(!game.caisses[i].porter && !dansUnPortal(game.caisses[i]) && x>x2 && x<x2+15 && y>y2 && y<y2+15){
 			const ret = parseInt(i);
-			return 300 + ret;
+			return CRATE_CODE + ret;
 		}
 	}
 	return 0;
@@ -162,7 +163,7 @@ export function collideAnyCaisse(x, y) {
 		const y2 = game.caisses[i].y>>8;
 		if(x>x2 && x<x2+15 && y>y2 && y<y2+15){
 			const ret = parseInt(i);
-			return 300 + ret;
+			return CRATE_CODE + ret;
 		}
 	}
 	return 0;

@@ -5,6 +5,7 @@
 import { collideCaisse } from './Caisse.js';
 import { leftCollision, rightCollision, touchingGround } from '../physics.js';
 import { game } from '../state.js';
+import { CRATE_CODE, PLATFORM_CODE } from '../tiles.js';
 
 export class Platform {
 	constructor(x, y, vx, vy) {
@@ -37,7 +38,7 @@ export function onCarpet(obj) {
 		let cai = collideCaisse(obj.x>>8,(obj.y>>8) + obj.pY);
 		if(!cai) cai = collideCaisse((obj.x>>8)+obj.pX-1,(obj.y>>8) + obj.pY);
 		if(cai){
-			cai-=300;
+			cai -= CRATE_CODE;
 			if(game.caisses[cai].carpet > 0) return game.caisses[cai].carpet;
 		}
 	}
@@ -52,8 +53,8 @@ export function onPlateforme(obj){
 		let cai = collideCaisse(obj.x>>8,(obj.y>>8) + obj.pY);
 		if(!cai) cai = collideCaisse((obj.x>>8)+obj.pX-1,(obj.y>>8) + obj.pY);
 		if(cai){
-			cai-=300;
-			if(game.caisses[cai].plateforme>-1) plate = 200 + game.caisses[cai].plateforme;
+			cai -= CRATE_CODE;
+			if(game.caisses[cai].plateforme>-1) plate = PLATFORM_CODE + game.caisses[cai].plateforme;
 		}
 	}
 	
@@ -67,7 +68,7 @@ export function collidePlateforme(x, y){
 		const y2 = game.platforms[plt].y>>8;
 		if(x>x2 && x<x2+48 && y>=y2 && y<y2+15){
 			const ret = parseInt(plt);
-			return 200 + ret;
+			return PLATFORM_CODE + ret;
 		}
 	}
 	return 0;

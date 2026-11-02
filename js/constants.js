@@ -21,3 +21,40 @@ export const RIGHT = 1;
 export const MIDDLE = 2;
 export const GRAVITY = 60;
 export const NUM_TILES = 61;
+
+/** @type {Object<string, number>} The screens of the game, the value of ui.currentMenu. */
+export const Menu = {
+	LOADING: 0,
+	MAIN: 1,
+	PLAY: 2,
+	EDITOR: 3,
+	TUTORIAL: 6,
+};
+
+/** @type {Object<string, number>} The campaigns, their index in the campaigns list and the value of ui.campaign. */
+export const CampaignId = {
+	NORMAL: 0,
+	ADVANCED: 1,
+	COMMUNITY: 2,
+	TUTORIAL: 3,
+	STORY: 4,
+};
+
+/** @type {Object<string, number>} The buttons of the main menu from top to bottom, the value of ui.menuButton. */
+export const MainButton = {
+	CLASSIC: 0,
+	ENHANCED: 1,
+	ULTIMATE: 2,
+	EDITOR: 3,
+	TUTORIAL: 4,
+};
+
+/** @type {number} The number of levels of a campaign. */
+export const LEVELS_PER_CAMPAIGN = 28;
+
+/** @type {Object<number, number>} The campaign that each campaign button of the main menu opens. */
+export const BUTTON_CAMPAIGN = {
+	[MainButton.CLASSIC]: CampaignId.NORMAL,
+	[MainButton.ENHANCED]: CampaignId.COMMUNITY,
+	[MainButton.ULTIMATE]: CampaignId.STORY,
+};

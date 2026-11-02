@@ -6,7 +6,7 @@ import { allImagesLoaded, areImagesLoaded, imageProgress, missingImages } from '
 import { allSoundsLoaded, disableSound, isSoundAvailable, isSoundOn, soundProgress, toggleSound } from '../audio.js';
 import { drawBoss, setupBoss, skipComingBoss } from '../boss.js';
 import { ctx } from '../canvas.js';
-import { LEFT, NUM_TILES } from '../constants.js';
+import { BUTTON_CAMPAIGN, CampaignId, LEFT, LEVELS_PER_CAMPAIGN, MainButton, Menu, NUM_TILES } from '../constants.js';
 import { confirmDialog } from '../dialog.js';
 import { lvlEditorSetup } from '../editor.js';
 import { createSparkles, manageSparkles } from '../entities/Sparkle.js';
@@ -46,6 +46,7 @@ import { drawHudText, drawText } from './hud.js';
 import { rescaleReplay } from '../replay.js';
 import { game, input, settings, ui } from '../state.js';
 import { maxLevel } from '../storage.js';
+import { Tile } from '../tiles.js';
 import { setupTutorial } from '../tutorial.js';
 import { getAngle, toTime } from '../utils.js';
 
@@ -61,8 +62,8 @@ function manageDownMenu() {
 	let overMenu = -1;
 	if(mouseInZone(74, 445, 120, 24)) overMenu = 1;
 	else if(mouseInZone(74 + 130, 445, 120, 24)) overMenu = 2;
-	else if(mouseInZone(74 + 260, 445, 120, 24) && ui.currentMenu < 5 && ui.currentLevel + 1 < 29) {
-		if(maxLevel[ui.lvlType] >= ui.currentLevel + 1) {
+	else if(mouseInZone(74 + 260, 445, 120, 24) && ui.currentMenu == Menu.PLAY && ui.currentLevel + 1 < 29) {
+		if(maxLevel[ui.campaign] >= ui.currentLevel + 1) {
 			overMenu = 3;
 		}
 	}else if(mouseInZone(74 + 390, 445, 120, 24)) overMenu = 4;
@@ -74,12 +75,12 @@ function manageDownMenu() {
 	
 	drawTinyButton(74, 445, scale1, "Exit");
 	drawTinyButton(74 + 130, 445, scale2, "Restart");
-	if(ui.currentMenu < 5 && ui.currentLevel + 1 < 29) {
-		if(maxLevel[ui.lvlType] >= ui.currentLevel + 1) {
+	if(ui.currentMenu == Menu.PLAY && ui.currentLevel + 1 < 29) {
+		if(maxLevel[ui.campaign] >= ui.currentLevel + 1) {
 			drawTinyButton(74 + 260, 445, scale3, "Continue");
 		}
 	}
-	if(ui.lvlType == 4 && (ui.currentLevel == 7 || ui.currentLevel == 14 || ui.currentLevel == 21 || ui.currentLevel == 28)) {
+	if(ui.campaign == CampaignId.STORY && (ui.currentLevel == 7 || ui.currentLevel == 14 || ui.currentLevel == 21 || ui.currentLevel == 28)) {
 		if(overMenu == 4) overMenu = 0;
 	}else {
 		drawTinyButton(74 + 390, 445, scale4, "Watch Replay");
@@ -109,10 +110,10 @@ export function drawPauseMenu() {
 	ctx.fillStyle = "rgb(255, 255, 255)";
 	let overMenu = -1;
 	if(mouseInZone(50 + game.ECART_X, 180 + game.ECART_Y, 120, 24)) overMenu = 1;//continue
-	else if(ui.currentMenu != 6 && mouseInZone(187 + game.ECART_X, 180 + game.ECART_Y, 120, 24)) overMenu = 2;//Restart
+	else if(ui.currentMenu != Menu.TUTORIAL && mouseInZone(187 + game.ECART_X, 180 + game.ECART_Y, 120, 24)) overMenu = 2;//Restart
 	else if(mouseInZone(324 + game.ECART_X, 180 + game.ECART_Y, 120, 24)) overMenu = 3;//exit
-	else if(ui.currentMenu != 6 && mouseInZone(127 + game.ECART_X, 340 + game.ECART_Y, 120, 24)) overMenu = 4;//quality
-	else if(ui.currentMenu != 6 && mouseInZone(247 + game.ECART_X, 340 + game.ECART_Y, 120, 24)) overMenu = 5;//sound
+	else if(ui.currentMenu != Menu.TUTORIAL && mouseInZone(127 + game.ECART_X, 340 + game.ECART_Y, 120, 24)) overMenu = 4;//quality
+	else if(ui.currentMenu != Menu.TUTORIAL && mouseInZone(247 + game.ECART_X, 340 + game.ECART_Y, 120, 24)) overMenu = 5;//sound
 	
 	const scale1 = overMenu == 1 ? 0.9 : 1;
 	const scale2 = overMenu == 2 ? 0.9 : 1;
@@ -121,10 +122,10 @@ export function drawPauseMenu() {
 	const scale5 = overMenu == 5 ? 0.9 : 1;
 	
 	drawTinyButton(game.ECART_X + 50, game.ECART_Y + 180, scale1, "Resume");
-	if(ui.currentMenu != 6) drawTinyButton(game.ECART_X + 187, game.ECART_Y + 180, scale2, "Restart");
+	if(ui.currentMenu != Menu.TUTORIAL) drawTinyButton(game.ECART_X + 187, game.ECART_Y + 180, scale2, "Restart");
 	drawTinyButton(game.ECART_X + 324, game.ECART_Y + 180, scale3, "Exit");
-	if(ui.currentMenu != 6) drawTinyButton(127 + game.ECART_X, 340 + game.ECART_Y, scale4, "Quality : " + (settings.quality==0?"Low":"High"));
-	if(ui.currentMenu != 6 && isSoundAvailable()) drawTinyButton(247 + game.ECART_X, 340 + game.ECART_Y, scale5, "Sounds : " + (isSoundOn()?"On":"Off"));
+	if(ui.currentMenu != Menu.TUTORIAL) drawTinyButton(127 + game.ECART_X, 340 + game.ECART_Y, scale4, "Quality : " + (settings.quality==0?"Low":"High"));
+	if(ui.currentMenu != Menu.TUTORIAL && isSoundAvailable()) drawTinyButton(247 + game.ECART_X, 340 + game.ECART_Y, scale5, "Sounds : " + (isSoundOn()?"On":"Off"));
 	
 	
 	if(input.mousePressed && input.mouseButton == LEFT && overMenu > 0) {
@@ -136,7 +137,7 @@ export function drawPauseMenu() {
 			}
 		}else if(overMenu == 2) {//restart
 			ui.escapeMenu = !ui.escapeMenu;
-			if(ui.currentMenu == 2) {
+			if(ui.currentMenu == Menu.PLAY) {
 				loadLevel(ui.currentLevel);
 				if(game.bossNum > 0) skipComingBoss();
 			}
@@ -148,7 +149,7 @@ export function drawPauseMenu() {
 				if(r) {
 					settings.quality = 1 - settings.quality;
 					ui.escapeMenu = !ui.escapeMenu;
-					if(ui.currentMenu == 2) loadLevel(ui.currentLevel);
+					if(ui.currentMenu == Menu.PLAY) loadLevel(ui.currentLevel);
 				}
 			});
 		}else if(overMenu == 5) {//sound
@@ -157,9 +158,9 @@ export function drawPauseMenu() {
 	}
 
 	ctx.drawImage(hud, 0, 0);
-	if(ui.currentMenu == 2 && settings.quality > 0) {
+	if(ui.currentMenu == Menu.PLAY && settings.quality > 0) {
 		drawText(146, 28, 11);
-	}else if(ui.currentMenu == 2 && settings.quality == 0 && game.hudLight) {
+	}else if(ui.currentMenu == Menu.PLAY && settings.quality == 0 && game.hudLight) {
 		drawCopy(game.hudLight, 132, 12);
 	}
 	drawRobot();
@@ -245,7 +246,7 @@ export function drawSplash() {
 				ui.goMenu = 0;
 				ui.fadeMenu = 30;
 				unclick();
-				ui.currentMenu = 1;
+				ui.currentMenu = Menu.MAIN;
 				game.sparkles = new Array();
 			}
 		}
@@ -337,7 +338,7 @@ export function drawLoadingScreen() {
 			ui.goMenu = 0;
 			ui.fadeMenu = 30;
 			unclick();
-			ui.currentMenu = 1;
+			ui.currentMenu = Menu.MAIN;
 			game.sparkles = new Array();
 			//exitFunc();
 		}
@@ -355,7 +356,7 @@ export function drawMapSelection() {
 	if(input.mouseX >= 529 && input.mouseX <= 529 + 90) {
 		if(input.mouseY >= 12 + 105 && input.mouseY <= 104 + (29 * 12)) {
 			const y = parseInt((input.mouseY - 105)/12);
-			if(y <= maxLevel[ui.lvlType]) {
+			if(y <= maxLevel[ui.campaign]) {
 				ctx.fillStyle = "rgb(15, 112, 144)";
 				//noStroke();
 				ctx.fillRect(529, 105 + (y * 12) + 2, 90, 14);
@@ -388,11 +389,11 @@ export function drawMapSelection() {
 		drawTinyButton(515, 495, scale1, "Play");
 	}
 	
-	if(ui.lvlType == 0 && maxLevel[0]==29) {
+	if(ui.campaign == CampaignId.NORMAL && maxLevel[0]==29) {
 		if(mouseInZone(380, 495, 120, 24)) overMenu = 3;
 		scale3 = overMenu == 3 ? 0.9 : 1;
 		drawTinyButton(380, 495, scale3, "Hard Mode");
-	}else if(ui.lvlType == 1) {
+	}else if(ui.campaign == CampaignId.ADVANCED) {
 		if(mouseInZone(380, 495, 120, 24)) overMenu = 3;
 		scale3 = overMenu == 3 ? 0.9 : 1;
 		drawTinyButton(380, 495, scale3, "Normal Mode");
@@ -402,7 +403,7 @@ export function drawMapSelection() {
 		if(overMenu == 1) {//play
 			game.ECART_X = 64;
 			game.ECART_Y = 96;
-			ui.currentMenu = 2;
+			ui.currentMenu = Menu.PLAY;
 			ui.currentLevel = ui.previewMap;
 			loadLevel(ui.currentLevel);
 			//selectMenu = 0;
@@ -411,14 +412,14 @@ export function drawMapSelection() {
 		}else if(overMenu == 2) {//exit
 			game.ECART_X = 64;
 			game.ECART_Y = 96;
-			ui.currentMenu = 1;
+			ui.currentMenu = Menu.MAIN;
 			ui.selectMenu = 0;
 			ui.fadeMenu = 30;
 			document.getElementById('highscores').classList.remove('open');
 			unclick();
 			return;
 		}else if(overMenu == 3) {//hard/normal mode
-			ui.lvlType = 1 - ui.lvlType;
+			ui.campaign = ui.campaign == CampaignId.NORMAL ? CampaignId.ADVANCED : CampaignId.NORMAL;
 			ui.previewMap = 0;
 		}
 		
@@ -428,7 +429,7 @@ export function drawMapSelection() {
 	ctx.font = "bold 12px Arial";
 	for(i=0; i<28;i++) {
 		ctx.strokeStyle = "rgb(0, 0, 0)";
-		if((i+1) <= maxLevel[ui.lvlType]) {
+		if((i+1) <= maxLevel[ui.campaign]) {
 			ctx.fillStyle = "rgb(255, 255, 255)";
 		}else {
 			ctx.fillStyle = "rgb(200, 200, 200)";
@@ -501,11 +502,11 @@ export function drawMainMenu() {
 	const scale5 = overMenu == 5 ? 0.9 : 1;
 	
 	if(ui.goMenu) {
-		if(ui.lvlType==0) drawBigButton(160, yStart, scale1, "Classic Mode" + (maxLevel[0]>28?" +":""));
-		else if(ui.lvlType==1) drawBigButton(160, yStart + (1 * (64 + ecart)), scale2, "Enhanced Mode");
-		else if(ui.lvlType==2) drawBigButton(160, yStart + (2 * (64 + ecart)), scale3, "Ultimate Mode");
-		else if(ui.lvlType==3) drawBigButton(160, yStart + (3 * (64 + ecart)), scale4, "Level Editor");
-		else if(ui.lvlType==4) drawBigButton(160, yStart + (4 * (64 + ecart)), scale5, "Tutorial");
+		if(ui.menuButton == MainButton.CLASSIC) drawBigButton(160, yStart, scale1, "Classic Mode" + (maxLevel[CampaignId.NORMAL]>LEVELS_PER_CAMPAIGN?" +":""));
+		else if(ui.menuButton == MainButton.ENHANCED) drawBigButton(160, yStart + (1 * (64 + ecart)), scale2, "Enhanced Mode");
+		else if(ui.menuButton == MainButton.ULTIMATE) drawBigButton(160, yStart + (2 * (64 + ecart)), scale3, "Ultimate Mode");
+		else if(ui.menuButton == MainButton.EDITOR) drawBigButton(160, yStart + (3 * (64 + ecart)), scale4, "Level Editor");
+		else if(ui.menuButton == MainButton.TUTORIAL) drawBigButton(160, yStart + (4 * (64 + ecart)), scale5, "Tutorial");
 	}else {
 		let dy = 0;
 		if(maxLevel[0] <= 28) dy = 64;
@@ -600,7 +601,7 @@ export function drawMainMenu() {
 	ctx.drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
 	
 	if(input.mousePressed && input.mouseButton == LEFT && overMenu > 0 && ui.goMenu == 0) {
-		ui.lvlType = overMenu - 1;
+		ui.menuButton = overMenu - 1;
 		ui.goMenu = 60;
 		createSparkles(pX<<8, (pY<<8) + (13<<8), input.mouseX<<8,input.mouseY<<8, 1, 8);
 		createSparkles(pX<<8, (pY<<8) + (13<<8), input.mouseX<<8,input.mouseY<<8, 1, 9);
@@ -613,27 +614,25 @@ export function drawMainMenu() {
 			ctx.fillStyle = "rgb(0, 0, 0)";
 			//noStroke();
 			ctx.fillRect(0, 0, 640, 544);
-			if(ui.lvlType < 3) {
+			if(ui.menuButton in BUTTON_CAMPAIGN) {
 				ui.selectMenu = 1;
 				ui.previewMap = 0;
 				prepareSelectionText();
 				document.getElementById('highscores').classList.add('open');
 				game.ECART_X = 0;
 				game.ECART_Y = 96;
-				if(ui.lvlType == 2) {
-				  ui.lvlType = 4;
+				ui.campaign = BUTTON_CAMPAIGN[ui.menuButton];
+				if(ui.campaign == CampaignId.STORY) {
 				  game.bossNum = 0;
 				  setupBoss();
-				}else if(ui.lvlType == 1) {
-					ui.lvlType = 2;
 				}
 			}else {
-				if(ui.lvlType == 3) {//go level editor
-					ui.currentMenu = 3;
+				if(ui.menuButton == MainButton.EDITOR) {//go level editor
+					ui.currentMenu = Menu.EDITOR;
 					lvlEditorSetup();
 					game.sparkles = new Array();
-				}else if(ui.lvlType == 4) {//go tutorial
-					ui.currentMenu = 6;
+				}else if(ui.menuButton == MainButton.TUTORIAL) {//go tutorial
+					ui.currentMenu = Menu.TUTORIAL;
 					setupTutorial();
 				}
 			}
@@ -732,9 +731,9 @@ export function drawPreviewMap() {
 			const y = i >> 5;
 			const x = i - (y << 5);
 			if(game.displayMap[i] < NUM_TILES && game.displayMap[i] > 0 && i < 768) {
-				if(game.CAKELEFT == 0 && game.displayMap[i]==35) {
-					game.displayMap[i] = 22;
-					game.map[i] = 22;
+				if(game.CAKELEFT == 0 && game.displayMap[i]==Tile.EXIT_CLOSED) {
+					game.displayMap[i] = Tile.EXIT;
+					game.map[i] = Tile.EXIT;
 				}
 				ctx.drawImage(tileset[game.displayMap[i]], x*16 + game.ECART_X, y*16 + game.ECART_Y, 16, 16);
 			}

@@ -5,7 +5,7 @@
 import { setSoundVolume, sfx_flatline } from '../audio.js';
 import { drawBoss, shakeScreen } from '../boss.js';
 import { ctx } from '../canvas.js';
-import { BAS, DROITE, GAUCHE, HAUT, NUM_TILES, ORDERED, RANDOM } from '../constants.js';
+import { BAS, CampaignId, DROITE, GAUCHE, HAUT, Menu, NUM_TILES, ORDERED, RANDOM } from '../constants.js';
 import { isTestingLevel } from '../editor.js';
 import { ForceField } from '../entities/ForceField.js';
 import { projoTouchePerso } from '../entities/Projectile.js';
@@ -39,6 +39,7 @@ import { dansUnPortal, pointInPortal, portalLines } from '../portals.js';
 import { drawText } from './hud.js';
 import { manageTransitionDraw } from './transitions.js';
 import { game, input, settings, ui } from '../state.js';
+import { PLATFORM_CODE, Tile } from '../tiles.js';
 import { manageTutorial } from '../tutorial.js';
 import { degToRad, getAngle, radToDeg, random } from '../utils.js';
 
@@ -99,7 +100,7 @@ export function drawLowQualityPortals() {
 }
 
 function drawPortalGun() {
-	if(ui.currentMenu != 6 || ui.tutoPortal) {
+	if(ui.currentMenu != Menu.TUTORIAL || ui.tutoPortal) {
 		const a = getAngle((game.perso.x>>8) + (game.perso.pX>>1) + game.ECART_X, (game.perso.y>>8) + (game.perso.pY>>1) + game.ECART_Y, input.mouseX, input.mouseY);
 		ctx.save();
 		ctx.translate((game.perso.x>>8) + (game.perso.pX>>1) + game.ECART_X, (game.perso.y>>8) + (game.perso.pY>>1) + game.ECART_Y);
@@ -226,7 +227,7 @@ export function drawAllGame() {
 	drawPortals();	
 	
 	drawCamera();
-	if(ui.currentMenu == 6) manageTutorial();
+	if(ui.currentMenu == Menu.TUTORIAL) manageTutorial();
 	
 	if(game.perso.mort) {
 		const a = -(game.perso.vie / 256);
@@ -243,7 +244,7 @@ export function drawAllGame() {
 
 	ctx.drawImage(hud, 0, 0);
 	
-	if(ui.currentMenu == 6) drawText(146, 28, 11);
+	if(ui.currentMenu == Menu.TUTORIAL) drawText(146, 28, 11);
 	
 	if(settings.quality == 0) {
 		if(game.hudLight == null) {
@@ -255,7 +256,7 @@ export function drawAllGame() {
 	
 	drawRobot();
 	
-	if(game.perso.fadeNextLevel == -1 && ui.currentMenu == 2 && settings.quality > 0) drawText(146, 28, 11);
+	if(game.perso.fadeNextLevel == -1 && ui.currentMenu == Menu.PLAY && settings.quality > 0) drawText(146, 28, 11);
 	
 	ctx.drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
 }
@@ -263,7 +264,7 @@ export function drawAllGame() {
 export function drawRobot() {
 	if(game.bossNum <= 0) {
 		let eye = 0;
-		if(ui.lvlType == 4) {
+		if(ui.campaign == CampaignId.STORY) {
 			if(ui.currentLevel <= 7) eye = 0;
 			else if(ui.currentLevel <= 14) eye = 1;
 			else if(ui.currentLevel <= 21) eye = 2;
@@ -315,9 +316,9 @@ export function createBuff() {
 		const y = i >> 5;
 		const x = i - (y << 5);
 		if(game.displayMap[i] < NUM_TILES && game.displayMap[i] > 0 && i < 768) {
-			if(game.CAKELEFT == 0 && game.displayMap[i]==35) {
-				game.displayMap[i] = 22;
-				game.map[i] = 22;
+			if(game.CAKELEFT == 0 && game.displayMap[i]==Tile.EXIT_CLOSED) {
+				game.displayMap[i] = Tile.EXIT;
+				game.map[i] = Tile.EXIT;
 			}
 			ctx.drawImage(tileset[game.displayMap[i]], x*16 + game.ECART_X, y*16 + game.ECART_Y, 16, 16);
 		}
@@ -521,17 +522,17 @@ function drawTunnelField(sx, sy, vx, vy) {
 	while(x >= 0 && x < 512 && y >= 0 && y < 384) {
 		if(vx != 0) {
 			tile = getTileNoCaisseNoPlate(x,y);
-			if(tile == 0) tile = getTileNoCaisseNoPlate(x,y + 8);
-			if(tile == 0) tile = getTileNoCaisseNoPlate(x,y + 16);
-			if(tile == 0) tile = getTileNoCaisseNoPlate(x,y + 31);
+			if(tile == Tile.EMPTY) tile = getTileNoCaisseNoPlate(x,y + 8);
+			if(tile == Tile.EMPTY) tile = getTileNoCaisseNoPlate(x,y + 16);
+			if(tile == Tile.EMPTY) tile = getTileNoCaisseNoPlate(x,y + 31);
 		}else if(vy != 0) {
 			tile = getTileNoCaisse(x,y);
-			if(tile == 0) tile = getTileNoCaisse(x + 8,y);
-			if(tile == 0) tile = getTileNoCaisse(x + 16,y);
-			if(tile == 0) tile = getTileNoCaisse(x + 31,y);
+			if(tile == Tile.EMPTY) tile = getTileNoCaisse(x + 8,y);
+			if(tile == Tile.EMPTY) tile = getTileNoCaisse(x + 16,y);
+			if(tile == Tile.EMPTY) tile = getTileNoCaisse(x + 31,y);
 		}
 		
-		if(tile != 0 && (tile < NUM_TILES || tile == 199 || tile >= 200)) {
+		if(tile != Tile.EMPTY && (tile < NUM_TILES || tile == Tile.TUNNEL_BLOCK || tile >= PLATFORM_CODE)) {
 			x = (x >> 4) << 4;
 			y = (y >> 4) << 4;
 			
@@ -640,7 +641,7 @@ export function drawPlatformes() {
 		const y = (game.platforms[pla].y >> 8) + game.ECART_Y;
 		
 		ctx.drawImage(platform, x, y);
-		if(ui.currentMenu == 3 && !isTestingLevel) {
+		if(ui.currentMenu == Menu.EDITOR && !isTestingLevel) {
 			ctx.fillStyle = "rgb(255, 0, 0)";
 			ctx.strokeStyle = "rgb(255, 0, 0)";
 			drawArrow(x + 5, y + 8, x + 15, y + 8, 3, game.platforms[pla].dir);

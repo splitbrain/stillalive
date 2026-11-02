@@ -3,7 +3,7 @@
  */
 
 import { ctx } from '../canvas.js';
-import { KEY_D, KEY_E, KEY_Q, KEY_S, KEY_Z, MSE_L, MSE_R } from '../constants.js';
+import { KEY_D, KEY_E, KEY_Q, KEY_S, KEY_Z, MSE_L, MSE_R, Menu } from '../constants.js';
 import { key, mouseIcon } from '../images.js';
 import { campaigns } from '../level.js';
 import { game, input, settings, ui } from '../state.js';
@@ -35,8 +35,8 @@ export function drawText(x, y, size) {
 	let i;
 	ctx.fillStyle = "rgb(255, 255, 255)";
 	ctx.font = "13px Arial";
-	if(ui.txtLines.length == 0 && ui.currentMenu != 6) {
-		const txt = campaigns[ui.lvlType].texts[ui.currentLevel-1];
+	if(ui.txtLines.length == 0 && ui.currentMenu != Menu.TUTORIAL) {
+		const txt = campaigns[ui.campaign].texts[ui.currentLevel-1];
 		let l = 0;
 		let line = "";
 		while(l < txt.length) {

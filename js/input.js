@@ -6,7 +6,7 @@
  */
 
 import { toggleSound } from './audio.js';
-import { KEY_D, KEY_E, KEY_Q, KEY_S, KEY_Z, LEFT, MIDDLE, MSE_L, MSE_M, MSE_R, RIGHT } from './constants.js';
+import { KEY_D, KEY_E, KEY_Q, KEY_S, KEY_Z, LEFT, MIDDLE, MSE_L, MSE_M, MSE_R, Menu, RIGHT } from './constants.js';
 import { isTestingLevel, startPlayingLevel, stopPlayingLevel } from './editor.js';
 import { reportBrokenReplay } from './game.js';
 import { dansUnPortal } from './portals.js';
@@ -72,7 +72,7 @@ function onKeyUp(event) {
 	if (event.ctrlKey && key === 'y') input.rightReleased = 1;
 
 	if (event.key === 'Escape') {
-		if ((ui.currentMenu === 2 || ui.currentMenu === 6) && !ui.drawIntermission) {
+		if ((ui.currentMenu === Menu.PLAY || ui.currentMenu === Menu.TUTORIAL) && !ui.drawIntermission) {
 			ui.escapeMenu = !ui.escapeMenu;
 			if (game.replayMode) {
 				if (ui.escapeMenu) {
@@ -83,12 +83,12 @@ function onKeyUp(event) {
 					rescaleReplay();
 				}
 			}
-		} else if (ui.currentMenu === 3 && isTestingLevel) {
+		} else if (ui.currentMenu === Menu.EDITOR && isTestingLevel) {
 			stopPlayingLevel();
 		}
 	}
 
-	if (event.key === 'Enter' && ui.currentMenu === 3) {
+	if (event.key === 'Enter' && ui.currentMenu === Menu.EDITOR) {
 		if (isTestingLevel) stopPlayingLevel();
 		else startPlayingLevel();
 	}
@@ -179,18 +179,18 @@ export function restoreInput(state) {
 
 export function manageKeys() {
 	// The input still changes while the level time stands still. A replay restores the input state at the same time.
-	const inGame = game.perso.fadeNextLevel == -1 && ui.currentMenu == 2 && !ui.escapeMenu;
+	const inGame = game.perso.fadeNextLevel == -1 && ui.currentMenu == Menu.PLAY && !ui.escapeMenu;
 	if(inGame && !game.replayMode && !input.lastTickInGame) game.replay.states[game.TIME] = captureInput();
 	else if(inGame && game.replayMode && game.replay.states[game.TIME]) restoreInput(game.replay.states[game.TIME]);
 	input.lastTickInGame = inGame;
 	
-	if(game.perso.fadeNextLevel == -1 && ui.currentMenu == 2 && !game.replayMode) {
+	if(game.perso.fadeNextLevel == -1 && ui.currentMenu == Menu.PLAY && !game.replayMode) {
 		input.mouseX = Math.round(input.mouseX);
 		input.mouseY = Math.round(input.mouseY);
 		game.replay.inputs[game.TIME] = input.keys;
 		game.replay.mouseX[game.TIME] = input.mouseX;
 		game.replay.mouseY[game.TIME] = input.mouseY;
-	}else if(game.perso.fadeNextLevel == -1 && ui.currentMenu == 2 && game.replayMode && !ui.escapeMenu) {
+	}else if(game.perso.fadeNextLevel == -1 && ui.currentMenu == Menu.PLAY && game.replayMode && !ui.escapeMenu) {
 		if(game.TIME < game.replay.inputs.length) {
 			input.keys = game.replay.inputs[game.TIME];
 			input.mouseX = game.replay.mouseX[game.TIME];
@@ -248,7 +248,7 @@ export function manageKeys() {
 	if(input.keys & KEY_S) game.perso.isDown = 1;if(!(input.keys & KEY_S)) game.perso.isDown = 0;
 	
 	//jump
-	if((input.keys & KEY_Z) && (isTestingLevel || ui.currentMenu == 2 || (ui.currentMenu == 6 && ui.tutoJump)) && !dansUnPortal(game.perso)) {
+	if((input.keys & KEY_Z) && (isTestingLevel || ui.currentMenu == Menu.PLAY || (ui.currentMenu == Menu.TUTORIAL && ui.tutoJump)) && !dansUnPortal(game.perso)) {
 		if(!(input.oldKeys & KEY_Z)) game.perso.oldIsJump = game.perso.isJump;
 		game.perso.isJump = 1;
 	}

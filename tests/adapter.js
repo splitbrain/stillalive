@@ -111,7 +111,7 @@ export async function runLevel(page, { campaign, level, ticks, seed, inputs = nu
 
 			game.ECART_X = 64;
 			game.ECART_Y = 96;
-			ui.lvlType = campaign;
+			ui.campaign = campaign;
 			ui.currentLevel = level;
 			if (campaign === 3) {
 				game.bossNum = 0;
@@ -180,7 +180,7 @@ export async function runLevel(page, { campaign, level, ticks, seed, inputs = nu
 export async function recordedReplay(page) {
 	const data = await page.evaluate(() => {
 		const t = window.__test;
-		return JSON.stringify(t.encodeReplay(t.game.replay, t.campaigns()[t.ui.lvlType].folder, t.ui.currentLevel));
+		return JSON.stringify(t.encodeReplay(t.game.replay, t.campaigns()[t.ui.campaign].folder, t.ui.currentLevel));
 	});
 	return JSON.parse(data);
 }

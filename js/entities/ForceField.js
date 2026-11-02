@@ -5,6 +5,7 @@
 import { removeSparkles } from './Sparkle.js';
 import { getTileSimple } from '../physics.js';
 import { game } from '../state.js';
+import { inForceFieldRange } from '../tiles.js';
 
 export function fieldForceTest() {
 	if(game.portals[0].used || game.portals[1].used) {
@@ -23,7 +24,7 @@ export function inForceField(obj) {
 	for(i=0;i<=obj.pY - 1;i+=2){
 		for(j=0;j<=obj.pX - 1;j+=2){
 			const t = getTileSimple((obj.x>>8) + j, (obj.y>>8) + j);
-			if(t>=49 && t<=54) {				
+			if(inForceFieldRange(t)) {				
 				return true;
 			}
 		}

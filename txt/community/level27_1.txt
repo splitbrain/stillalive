@@ -1,0 +1,5 @@
+First floor : Run !
+Second floor : Do not jump !
+Third floor : Avoid bullets.
+Fourth floor : Avoid the plasma ball.
+Last floor : Do not get overwhelmed by the platforms.

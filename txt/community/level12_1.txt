@@ -1,0 +1,1 @@
+Don't worry, we will not turn round again as in the old rooms ... You'll need an infinite loop to move into the right side of the room, but it won't be easy.

@@ -2,8 +2,8 @@
  * The game loop.
  *
  * The game logic runs in ticks of 1/60 second. The loop runs one tick for each 1/60 second of real time, so the game
- * speed does not depend on the refresh rate of the monitor. Each tick also draws the screen. The game does not run
- * while a dialog is open.
+ * speed does not depend on the refresh rate of the monitor. After the ticks of a frame, the loop draws the screen
+ * once. The game does not run while a dialog is open.
  */
 
 import { isDialogOpen } from './dialog.js';
@@ -34,6 +34,9 @@ let fps = 0;
 
 /** @type {function(): void} The function that runs one tick. */
 let tickFunction = () => {};
+
+/** @type {function(): void} The function that draws the screen. */
+let renderFunction = () => {};
 
 /**
  * Run one tick. An error in a tick does not stop the loop.
@@ -70,6 +73,13 @@ function frame(now) {
 		pendingTime -= ticks * TICK_LENGTH;
 	}
 	for (let i = 0; i < ticks; i++) runTick();
+	if (ticks > 0) {
+		try {
+			renderFunction();
+		} catch (error) {
+			console.error(error);
+		}
+	}
 
 	fpsTime ??= now;
 	fpsFrames++;
@@ -84,10 +94,12 @@ function frame(now) {
  * Start the game loop.
  *
  * @param {function(): void} tick The function that runs one tick.
+ * @param {function(): void} render The function that draws the screen after the ticks of a frame.
  * @returns {void}
  */
-export function startLoop(tick) {
+export function startLoop(tick, render) {
 	tickFunction = tick;
+	renderFunction = render;
 	requestAnimationFrame(frame);
 }
 

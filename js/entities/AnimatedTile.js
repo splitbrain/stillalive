@@ -2,6 +2,10 @@
  * The AnimatedTile object and its helper functions.
  */
 
+import { ORDERED, RANDOM } from '../constants.js';
+import { game } from '../state.js';
+import { random } from '../utils.js';
+
 export class AnimatedTile {
 	/**
 	 * @param {number} x The column of the tile in the map.
@@ -31,5 +35,26 @@ export class AnimatedTile {
 		this.place = place;
 		/** @type {number} The number of ticks between two frames. */
 		this.speed = speed;
+	}
+}
+
+/**
+ * Advance the frames of the animated tiles.
+ *
+ * @returns {void}
+ */
+export function animateTiles() {
+	let r;
+	for (const tile of game.animatedTiles) {
+		if (!tile.used || game.TIME % tile.speed != 0) continue;
+		if (tile.type == RANDOM) {
+			do {
+				r = parseInt(random(tile.min, tile.max) + 1);
+			} while (r == tile.current);
+			tile.current = r;
+		} else if (tile.type == ORDERED) {
+			if (tile.current == tile.max) tile.current = tile.min;
+			else tile.current++;
+		}
 	}
 }

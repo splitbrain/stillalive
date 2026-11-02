@@ -32,103 +32,96 @@ export function setupTutorial() {
 }
 
 /**
- * Run the tutorial for one tick: the messages of the current level and the pauses that wait for a click.
+ * Run the tutorial for one tick: the pauses that wait for a click and the portals of the portal level.
  *
  * @returns {void}
  */
-export function manageTutorial() {
-	if (ui.currentLevel == 9) {
-		//tutorial finished
-		drawEndTutorialMessage();
-	} else if (ui.currentLevel == 1 && !atExit()) {
+export function updateTutorial() {
+	if (atExit()) return;
+	if (ui.currentLevel == 1) {
 		if (!ui.tutoJump && game.player.x >> 8 > 100) {
 			ui.tutoJump = true;
 			ui.tutoPause = true;
 			game.player.fadeNextLevel = 0;
 			game.player.intermissionFade = 1;
 		}
-
-		if (game.player.x >> 8 > 512 - 256) {
-			drawExitMessage();
-		}
-
 		if (ui.tutoPause && ui.tutoJump) {
-			drawJumpMessage();
-
+			if (input.mousePressed) endPause();
+		} else if (ui.tutoPause && game.player.fadeNextLevel < 1) {
+			game.player.fadeNextLevel = 0;
+			game.player.intermissionFade = 1;
+			if (input.mousePressed) endPause();
+		}
+	} else if (ui.currentLevel == 3) {
+		if (parseInt(game.TIME / 60) == 5 && !ui.portalsDisplayed) {
+			displayPortals();
+			ui.portalsDisplayed = true;
+		}
+	} else if (ui.currentLevel == 4) {
+		if (ui.tutoPause && !ui.tutoPortal && game.player.fadeNextLevel < 1) {
+			game.player.fadeNextLevel = 0;
+			game.player.intermissionFade = 1;
 			if (input.mousePressed) {
-				unclick();
-				game.player.fadeNextLevel = -1;
-				game.player.intermissionFade = 0;
-				ui.tutoPause = false;
-			}
-		} else if (ui.tutoPause) {
-			if (game.player.fadeNextLevel < 1) {
-				game.player.fadeNextLevel = 0;
-				game.player.intermissionFade = 1;
-				drawMoveMessage();
-
-				if (input.mousePressed) {
-					unclick();
-					game.player.fadeNextLevel = -1;
-					game.player.intermissionFade = 0;
-					ui.tutoPause = false;
-				}
+				endPause();
+				ui.tutoPortal = true;
 			}
 		}
-	} else if (ui.currentLevel == 2 && !atExit()) {
+	} else if (ui.currentLevel == 5) {
+		if (ui.tutoPause && game.player.fadeNextLevel < 1) {
+			game.player.fadeNextLevel = 0;
+			game.player.intermissionFade = 1;
+			if (input.mousePressed) endPause();
+		}
+	}
+}
+
+/**
+ * End a pause of the tutorial after a click.
+ *
+ * @returns {void}
+ */
+function endPause() {
+	unclick();
+	game.player.fadeNextLevel = -1;
+	game.player.intermissionFade = 0;
+	ui.tutoPause = false;
+}
+
+/**
+ * Draw the messages of the current tutorial level.
+ *
+ * @returns {void}
+ */
+export function drawTutorial() {
+	if (ui.currentLevel == 9) {
+		drawEndTutorialMessage();
+		return;
+	}
+	if (atExit()) return;
+	if (ui.currentLevel == 1) {
+		if (game.player.x >> 8 > 512 - 256) drawExitMessage();
+		if (ui.tutoPause && ui.tutoJump) drawJumpMessage();
+		else if (ui.tutoPause && game.player.fadeNextLevel < 1) drawMoveMessage();
+	} else if (ui.currentLevel == 2) {
 		drawCakeMessage();
-	} else if (ui.currentLevel == 3 && !atExit()) {
+	} else if (ui.currentLevel == 3) {
 		const sec = 5 - parseInt(game.TIME / 60);
-		if (parseInt(game.TIME / 60) == 5) {
-			if (!ui.portalsDisplayed) {
-				displayPortals();
-				ui.portalsDisplayed = true;
-			}
-		} else if (sec >= 0) {
-			drawPortalMessage(sec);
-		} else {
-			drawOpenPortalMessage();
-		}
-	} else if (ui.currentLevel == 4 && !atExit()) {
+		if (parseInt(game.TIME / 60) == 5) return;
+		if (sec >= 0) drawPortalMessage(sec);
+		else drawOpenPortalMessage();
+	} else if (ui.currentLevel == 4) {
 		if (ui.tutoPause && !ui.tutoPortal) {
-			if (game.player.fadeNextLevel < 1) {
-				game.player.fadeNextLevel = 0;
-				game.player.intermissionFade = 1;
-				drawActivatePortalMessage();
-
-				if (input.mousePressed) {
-					game.player.fadeNextLevel = -1;
-					game.player.intermissionFade = 0;
-					ui.tutoPause = false;
-					ui.tutoPortal = true;
-					unclick();
-				}
-			}
-		} else {
-			drawActivatePortalMessage2();
-		}
-	} else if (ui.currentLevel == 5 && !atExit()) {
+			if (game.player.fadeNextLevel < 1) drawActivatePortalMessage();
+		} else drawActivatePortalMessage2();
+	} else if (ui.currentLevel == 5) {
 		if (ui.tutoPause) {
-			if (game.player.fadeNextLevel < 1) {
-				game.player.fadeNextLevel = 0;
-				game.player.intermissionFade = 1;
-				drawMomentumMessage();
-
-				if (input.mousePressed) {
-					game.player.fadeNextLevel = -1;
-					game.player.intermissionFade = 0;
-					ui.tutoPause = false;
-					unclick();
-				}
-			}
-		} else {
-			drawIndications();
-		}
-	} else if (ui.currentLevel == 6 && !atExit()) {
+			if (game.player.fadeNextLevel < 1) drawMomentumMessage();
+		} else drawIndications();
+	} else if (ui.currentLevel == 6) {
 		drawSwitchMessage();
-	} else if (ui.currentLevel == 7 && !atExit()) {
+	} else if (ui.currentLevel == 7) {
 		drawTurretsCrateMessage();
-	} else if (ui.currentLevel == 8 && !atExit()) {
+	} else if (ui.currentLevel == 8) {
 		drawPlasmaMessage();
 	}
 }

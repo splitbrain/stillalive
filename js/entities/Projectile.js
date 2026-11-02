@@ -4,7 +4,7 @@
 
 import { anyCrateAt } from './Crate.js';
 import { getTile } from '../physics.js';
-import { game } from '../state.js';
+import { game, settings } from '../state.js';
 import { FIRST_OF_KIND, LAST_OF_KIND, PLATFORM_CODE, TileKind } from '../tiles.js';
 
 /**
@@ -92,4 +92,26 @@ export function projectileTouchesPlayer(obj) {
 	}
 
 	return false;
+}
+
+/**
+ * Move the razor wheels of the boss, hurt the player on a hit and remove the faded wheels.
+ *
+ * @returns {void}
+ */
+export function updateProjectiles() {
+	for (let pi = 0; pi < game.projectiles.length; pi++) {
+		const p = game.projectiles[pi];
+		p.move();
+		if (!p.needKill && projectileTouchesPlayer(p)) {
+			game.projectiles.splice(pi, 1);
+			game.player.life = -200;
+			game.player.recoveryTime = 180;
+			return;
+		}
+		if (p.needKill && (p.timer == 0 || settings.quality == 0)) {
+			game.projectiles.splice(pi, 1);
+			pi--;
+		}
+	}
 }

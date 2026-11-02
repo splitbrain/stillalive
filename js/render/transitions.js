@@ -7,23 +7,35 @@ import { Transition } from '../constants.js';
 import { TRANS } from '../game.js';
 import { highscore, linesHoriz, linesVerti } from '../images.js';
 import { atExit } from '../physics.js';
-import { doDrawIntermission } from './menus.js';
+import { drawIntermission, updateIntermission } from './menus.js';
 import { game, ui } from '../state.js';
+
+/**
+ * Advance the transitions between the levels: the fade of the intermission screen at the level end and the fade in
+ * of the next level.
+ *
+ * @returns {void}
+ */
+export function updateTransition() {
+	if (atExit()) {
+		if (game.player.fadeNextLevel <= 0 && ui.drawIntermission) updateIntermission();
+	} else if (game.player.intermissionFade < 0) {
+		game.player.intermissionFade++;
+	}
+}
 
 /**
  * Draw the transition at the end of a level or at its start, with the progress of the fade of the player.
  *
  * @returns {void}
  */
-export function manageTransitionDraw() {
+export function drawTransition() {
 	if (atExit()) {
 		// closing transition at the level end
 		if (game.player.fadeNextLevel > 0) {
 			drawTransitionIn();
-		} else {
-			if (ui.drawIntermission) {
-				doDrawIntermission();
-			}
+		} else if (ui.drawIntermission) {
+			drawIntermission();
 		}
 	} else {
 		// opening transition at the level start
@@ -31,7 +43,6 @@ export function manageTransitionDraw() {
 			ctx.fillStyle = 'rgb(0, 0, 0)';
 			ctx.fillRect(game.offsetX - 1, game.offsetY, 512, 384);
 			const a = -(game.player.intermissionFade / 20);
-			game.player.intermissionFade++;
 			ctx.globalAlpha = a;
 			ctx.drawImage(highscore, game.offsetX, game.offsetY);
 			ctx.globalAlpha = 1;

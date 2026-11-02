@@ -272,3 +272,28 @@ export function movingCrateTouching(obj) {
 	}
 	return 0;
 }
+
+/**
+ * Move the crates and remove the destroyed ones. A shrinking crate keeps half of its speed. The crates stand still
+ * during the level transitions.
+ *
+ * @returns {void}
+ */
+export function updateCrates() {
+	for (let ci = 0; ci < game.crates.length; ci++) {
+		const c = game.crates[ci];
+		if (c.shrink > 0) {
+			c.x += c.vx >> 1;
+			c.y += c.vy >> 1;
+		}
+		if (game.player.fadeNextLevel == -1) {
+			c.move();
+			if (c.needKill) {
+				game.crates.splice(ci, 1);
+				ci--;
+				continue;
+			}
+			if (game.needRedrawTiles == 0) game.needRedrawTiles = inPortal(c);
+		}
+	}
+}

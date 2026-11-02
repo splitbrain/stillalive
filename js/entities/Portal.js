@@ -45,3 +45,17 @@ export class Portal {
 		}
 	}
 }
+
+/**
+ * Advance the opening animation of the placed portals and move them with their platforms.
+ *
+ * @returns {void}
+ */
+export function updatePortals() {
+	for (const p of game.portals) {
+		if (!p.used) continue;
+		if (p.scaleX < 1) p.scaleX += 0.1;
+		else if (p.scaleY < 1) p.scaleY += 0.1;
+		p.move();
+	}
+}

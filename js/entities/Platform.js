@@ -112,3 +112,13 @@ export function platformAt(x, y) {
 	}
 	return 0;
 }
+
+/**
+ * Move the platforms. The platforms stand still during the level transitions.
+ *
+ * @returns {void}
+ */
+export function updatePlatforms() {
+	if (game.player.fadeNextLevel != -1) return;
+	for (const p of game.platforms) p.move();
+}

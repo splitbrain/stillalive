@@ -2,6 +2,9 @@
  * The Robot object and its helper functions.
  */
 
+import { game } from '../state.js';
+import { random } from '../utils.js';
+
 /**
  * The robot head in the panel at the top of the screen. It looks around and blinks at random.
  */
@@ -173,4 +176,22 @@ export class Robot {
 			this.blinking = 2;
 		}
 	}
+}
+
+/**
+ * Run the action of the robot and start a new look, move or blink at random.
+ *
+ * @returns {void}
+ */
+export function updateRobot() {
+	game.robot.move();
+	if (game.robot.doingAction) return;
+	const r = parseInt(random(1, 800));
+	if (r == 1) game.robot.lookLeftRight(-1);
+	else if (r == 2) game.robot.lookLeftRight(1);
+	else if (r == 3) game.robot.lookUpDown(-1);
+	else if (r == 4) game.robot.lookUpDown(1);
+	else if (r == 5) game.robot.moveRobot(-1);
+	else if (r == 6) game.robot.moveRobot(1);
+	if (r % 100 == 0) game.robot.blink();
 }

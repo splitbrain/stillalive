@@ -8,7 +8,7 @@ import { ctx } from './canvas.js';
 import { Menu } from './constants.js';
 import { openExit } from './entities/Cake.js';
 import { Player } from './entities/Player.js';
-import { myLoop } from './game.js';
+import { render, tick } from './game.js';
 import { loadGfx, loadSplashImages } from './images.js';
 import { unclick } from './input.js';
 import {
@@ -54,7 +54,7 @@ function setup() {
 
 	game.TIME = 0;
 
-	startLoop(myLoop);
+	startLoop(tick, render);
 }
 
 /**
@@ -69,7 +69,7 @@ function addTestHook() {
 		ui,
 		input,
 		settings,
-		myLoop,
+		tick,
 		loadLevel,
 		loadPreviewMap,
 		campaigns: () => campaigns,

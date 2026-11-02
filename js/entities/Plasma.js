@@ -9,7 +9,7 @@ import { inPortal } from '../portals.js';
 import { reloadTiles } from '../render/game.js';
 import { game, settings } from '../state.js';
 import { Tile, TileKind, isTileKind } from '../tiles.js';
-import { getDistance } from '../utils.js';
+import { getDistance, random } from '../utils.js';
 
 /**
  * A plasma ball. It moves in a straight line, bounces off walls, opens the plasma doors in its slot, and kills the
@@ -303,4 +303,32 @@ export function plasmaTouching(obj) {
 	}
 
 	return 0;
+}
+
+/**
+ * Advance the animation of the plasma balls, move them and remove the dead ones. The balls stand still during the
+ * level transitions.
+ *
+ * @returns {void}
+ */
+export function updatePlasma() {
+	let r;
+	for (let pi = 0; pi < game.plasmaBall.length; pi++) {
+		const ball = game.plasmaBall[pi];
+		if (!ball.used) continue;
+		if (game.TIME % 10 == 0) {
+			do {
+				r = parseInt(random(0, 3));
+			} while (ball.animFrame == r);
+			ball.animFrame = r;
+		}
+		if (game.player.fadeNextLevel == -1) {
+			ball.move();
+			if (game.needRedrawTiles == 0) game.needRedrawTiles = inPortal(ball);
+			if (ball.needKill) {
+				game.plasmaBall.splice(pi, 1);
+				pi--;
+			}
+		}
+	}
 }

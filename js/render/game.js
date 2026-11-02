@@ -2,14 +2,11 @@
  * Drawing of a level: tiles, objects, the player and the portals.
  */
 
-import { setSoundVolume, sfx_flatline } from '../audio.js';
-import { drawBoss, shakeScreen } from '../boss.js';
+import { drawBoss, drawBossSpeech } from '../boss.js';
 import { ctx } from '../canvas.js';
-import { CampaignId, Direction, Menu, NUM_TILES, ORDERED, RANDOM } from '../constants.js';
+import { CampaignId, Direction, Menu, NUM_TILES } from '../constants.js';
 import { isTestingLevel } from '../editor.js';
-import { ForceField } from '../entities/ForceField.js';
-import { projectileTouchesPlayer } from '../entities/Projectile.js';
-import { createCakeOrSmokeSparkles, manageSparkles } from '../entities/Sparkle.js';
+import { drawSparkles } from '../entities/Sparkle.js';
 import {
 	bg,
 	bluePortal,
@@ -34,31 +31,20 @@ import {
 	tunnel2,
 	turretImages,
 } from '../images.js';
-import { getTileWithoutCrates, getTileWithoutObjects } from '../physics.js';
-import { inPortal, pointInPortal, portalLines } from '../portals.js';
-import { drawText } from './hud.js';
-import { manageTransitionDraw } from './transitions.js';
+import { portalLines } from '../portals.js';
+import { drawHudText, drawKeys, drawText } from './hud.js';
+import { drawTransition } from './transitions.js';
 import { game, input, settings, ui } from '../state.js';
-import { PLATFORM_CODE, Tile } from '../tiles.js';
-import { manageTutorial } from '../tutorial.js';
+import { drawTutorial } from '../tutorial.js';
 import { degToRad, getAngle, radToDeg, random } from '../utils.js';
 
 /**
- * Draw the background and the tile layer again and keep a copy for the next ticks.
+ * Mark the tile layer as changed, so the next frame draws it again.
  *
  * @returns {void}
  */
 export function reloadTiles() {
-	let i;
-	ctx.drawImage(bg[game.BG], game.offsetX, game.offsetY, 512, 384);
-	for (i in game.displayMap) {
-		if (game.map[i] < NUM_TILES && game.map[i] > 0 && i < 768) {
-			const y = i >> 5;
-			const x = i - (y << 5);
-			ctx.drawImage(tileset[game.displayMap[i]], x * 16 + game.offsetX, y * 16 + game.offsetY, 16, 16);
-		}
-	}
-	game.imgBuff = copyCanvas(game.offsetX, game.offsetY, 512, 384);
+	game.needLoad = true;
 }
 
 /**
@@ -242,23 +228,16 @@ export function drawCopy(copy, x, y) {
 }
 
 /**
- * Draw one tick of a level and run the logic that is part of the drawing: the tiles, the player, the objects, the boss,
- * the force fields, the death fade, the transition and the HUD.
+ * Draw a level: the tiles, the player, the objects, the boss, the transitions, the HUD and the texts.
  *
  * @returns {void}
  */
-export function drawAllGame() {
+export function drawLevel() {
 	if (game.needLoad) createBuff();
 	drawCopy(game.imgBuff, game.offsetX, game.offsetY);
-	if (settings.quality > 0) animateTiles();
+	if (settings.quality > 0) drawAnimatedTiles();
 
 	drawLowQualityPortals();
-
-	game.player.flip =
-		input.mouseX > (game.player.x >> 8) + (game.player.pX >> 1) + game.offsetX
-			? (game.player.flip = 1)
-			: (game.player.flip = -1);
-
 	drawTunnels();
 
 	const flipDx = game.player.flip < 0 ? 1 : 0;
@@ -280,9 +259,7 @@ export function drawAllGame() {
 	drawCakes();
 	drawTurrets();
 	drawPlasma();
-
-	manageSparkles();
-
+	drawSparkles();
 	drawCrates();
 
 	if (game.bossNum > 0) {
@@ -296,42 +273,21 @@ export function drawAllGame() {
 			drawProjectiles();
 			ctx.drawImage(tube, (game.tubeX >> 8) + game.offsetX, (game.tubeY >> 8) + game.offsetY);
 		}
-
-		if (game.bossLife == 3) {
-			game.rumbleTime++;
-			if (!game.bossIsComing) shakeScreen();
-			else if (game.rumbleTime % 3 == 0) {
-				game.offsetX = 64 + random(-3, 3);
-				game.offsetY = 96 + random(-3, 3);
-			}
-			if (!game.bossIsComing && game.TIME % 10 == 0) {
-				if (game.bossX < 530) {
-					createCakeOrSmokeSparkles((game.bossX + 14) << 8, (game.bossY + 18) << 8, 9, 3, 300);
-					game.bossX += 1;
-				}
-			}
-		}
 	}
 
 	drawPlatforms();
-
 	drawFrontTiles();
-
 	drawPortals();
-
 	drawCamera();
-	if (ui.currentMenu == Menu.TUTORIAL) manageTutorial();
+	if (ui.currentMenu == Menu.TUTORIAL) drawTutorial();
 
 	if (game.player.dead) {
 		const a = -(game.player.life / 256);
 		ctx.fillStyle = 'rgba(0, 0, 0,' + (1 - a) + ')';
 		ctx.fillRect(game.offsetX, game.offsetY, 512, 384);
-		game.player.life += 6;
-		game.player.checkMort();
-		setSoundVolume(sfx_flatline, a / 2);
 	}
 
-	if (game.player.fadeNextLevel >= 0) manageTransitionDraw();
+	if (game.player.fadeNextLevel >= 0) drawTransition();
 
 	ctx.drawImage(hud, 0, 0);
 
@@ -350,69 +306,47 @@ export function drawAllGame() {
 	if (game.player.fadeNextLevel == -1 && ui.currentMenu == Menu.PLAY && settings.quality > 0) drawText(146, 28, 11);
 
 	ctx.drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
-}
 
-/**
- * Draw the robot in the panel and let it look around at random, outside the boss levels.
- *
- * @returns {void}
- */
-export function drawRobot() {
-	if (game.bossNum <= 0) {
-		let eye = 0;
-		if (ui.campaign == CampaignId.STORY) {
-			if (ui.currentLevel <= 7) eye = 0;
-			else if (ui.currentLevel <= 14) eye = 1;
-			else if (ui.currentLevel <= 21) eye = 2;
-			else eye = 3;
-		}
+	drawHudText();
+	drawBossSpeech();
+	if (game.replayMode) drawKeys();
 
-		ctx.drawImage(robotHead, game.robot.x >> 8, game.robot.y >> 8);
-		ctx.drawImage(robotEye[eye], 0, 19 * game.robot.eye, 19, 19, game.robot.ex >> 8, game.robot.ey >> 8, 19, 19);
-		game.robot.move();
-
-		if (!game.robot.doingAction) {
-			const r = parseInt(random(1, 800));
-			if (r == 1) game.robot.lookLeftRight(-1);
-			else if (r == 2) game.robot.lookLeftRight(1);
-			else if (r == 3) game.robot.lookUpDown(-1);
-			else if (r == 4) game.robot.lookUpDown(1);
-			else if (r == 5) game.robot.moveRobot(-1);
-			else if (r == 6) game.robot.moveRobot(1);
-			if (r % 100 == 0) game.robot.blink();
-		}
+	if (ui.currentMenu == Menu.TUTORIAL && ui.currentLevel == 9) {
+		ctx.fillStyle = 'rgb(0, 0, 0)';
+		ctx.fillRect(game.offsetX, game.offsetY, 544, 384);
+		drawTutorial();
+		drawText(146, 28, 11);
+		ctx.drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
 	}
 }
 
 /**
- * Advance the frames of the animated tiles and draw them.
+ * Draw the robot in the panel, outside the boss levels. The eye image follows the part of the story campaign.
  *
  * @returns {void}
  */
-export function animateTiles() {
-	let r, i;
-	for (i in game.animatedTiles) {
-		if (game.animatedTiles[i].used) {
-			if (game.TIME % game.animatedTiles[i].speed == 0) {
-				if (game.animatedTiles[i].type == RANDOM) {
-					do {
-						r = parseInt(random(game.animatedTiles[i].min, game.animatedTiles[i].max) + 1);
-					} while (r == game.animatedTiles[i].current);
-					game.animatedTiles[i].current = r;
-				} else if (game.animatedTiles[i].type == ORDERED) {
-					if (game.animatedTiles[i].current == game.animatedTiles[i].max) {
-						game.animatedTiles[i].current = game.animatedTiles[i].min;
-					} else game.animatedTiles[i].current++;
-				}
-			}
-			ctx.drawImage(
-				tileset[game.animatedTiles[i].current],
-				(game.animatedTiles[i].x << 4) + game.offsetX,
-				(game.animatedTiles[i].y << 4) + game.offsetY,
-				16,
-				16,
-			);
-		}
+export function drawRobot() {
+	if (game.bossNum > 0) return;
+	let eye = 0;
+	if (ui.campaign == CampaignId.STORY) {
+		if (ui.currentLevel <= 7) eye = 0;
+		else if (ui.currentLevel <= 14) eye = 1;
+		else if (ui.currentLevel <= 21) eye = 2;
+		else eye = 3;
+	}
+	ctx.drawImage(robotHead, game.robot.x >> 8, game.robot.y >> 8);
+	ctx.drawImage(robotEye[eye], 0, 19 * game.robot.eye, 19, 19, game.robot.ex >> 8, game.robot.ey >> 8, 19, 19);
+}
+
+/**
+ * Draw the current frames of the animated tiles.
+ *
+ * @returns {void}
+ */
+export function drawAnimatedTiles() {
+	for (const tile of game.animatedTiles) {
+		if (!tile.used) continue;
+		ctx.drawImage(tileset[tile.current], (tile.x << 4) + game.offsetX, (tile.y << 4) + game.offsetY, 16, 16);
 	}
 }
 
@@ -428,10 +362,6 @@ export function createBuff() {
 		const y = i >> 5;
 		const x = i - (y << 5);
 		if (game.displayMap[i] < NUM_TILES && game.displayMap[i] > 0 && i < 768) {
-			if (game.CAKELEFT == 0 && game.displayMap[i] == Tile.EXIT_CLOSED) {
-				game.displayMap[i] = Tile.EXIT;
-				game.map[i] = Tile.EXIT;
-			}
 			ctx.drawImage(tileset[game.displayMap[i]], x * 16 + game.offsetX, y * 16 + game.offsetY, 16, 16);
 		}
 	}
@@ -443,227 +373,115 @@ export function createBuff() {
 }
 
 /**
- * Draw the cakes and let them float.
+ * Draw the cakes. During the level transitions, the cakes stand at their rest position.
  *
  * @returns {void}
  */
 export function drawCakes() {
-	let i;
-	for (i in game.cakes) {
-		if (game.cakes[i].used) {
-			if (game.player.fadeNextLevel == -1) {
-				game.cakes[i].vy += 32 * game.cakes[i].mDir;
-				if (game.cakes[i].vy < -3 << 8) {
-					game.cakes[i].mDir = -game.cakes[i].mDir;
-				} else if (game.cakes[i].vy > 3 << 8) {
-					game.cakes[i].mDir = -game.cakes[i].mDir;
-				}
-				ctx.drawImage(
-					cake,
-					(game.cakes[i].x >> 8) + game.offsetX,
-					((game.cakes[i].y + game.cakes[i].vy) >> 8) + game.offsetY,
-					16,
-					12,
-				);
-			} else {
-				ctx.drawImage(cake, (game.cakes[i].x >> 8) + game.offsetX, (game.cakes[i].y >> 8) + game.offsetY, 16, 12);
-			}
-		}
+	for (const c of game.cakes) {
+		if (!c.used) continue;
+		const float = game.player.fadeNextLevel == -1 ? c.vy : 0;
+		ctx.drawImage(cake, (c.x >> 8) + game.offsetX, ((c.y + float) >> 8) + game.offsetY, 16, 12);
 	}
 }
 
 /**
- * Draw the turrets with their laser sights and move them.
+ * Draw the turrets with their laser sights.
  *
  * @returns {void}
  */
 export function drawTurrets() {
-	let dx, ti;
-	for (ti in game.turrets) {
-		const side = game.turrets[ti].dir < 0 ? 0 : 1;
-
+	for (const t of game.turrets) {
+		const side = t.dir < 0 ? 0 : 1;
+		const x = (t.x >> 8) + game.offsetX;
+		const y = (t.y >> 8) + game.offsetY;
 		if (settings.quality > 0) {
 			ctx.save();
-			ctx.translate(
-				(game.turrets[ti].x >> 8) + (game.turrets[ti].pX >> 1) + game.offsetX,
-				(game.turrets[ti].y >> 8) + (game.turrets[ti].pY >> 1) + game.offsetY,
-			);
-			ctx.rotate(degToRad(game.turrets[ti].angle));
-			ctx.drawImage(
-				turretImages[side],
-				0,
-				game.turrets[ti].animFrame * 32,
-				16,
-				32,
-				-(game.turrets[ti].pX >> 1),
-				-(game.turrets[ti].pY >> 1),
-				16,
-				32,
-			);
+			ctx.translate(x + (t.pX >> 1), y + (t.pY >> 1));
+			ctx.rotate(degToRad(t.angle));
+			ctx.drawImage(turretImages[side], 0, t.animFrame * 32, 16, 32, -(t.pX >> 1), -(t.pY >> 1), 16, 32);
 			ctx.restore();
 		} else {
-			ctx.drawImage(
-				turretImages[side],
-				0,
-				game.turrets[ti].animFrame * 32,
-				16,
-				32,
-				(game.turrets[ti].x >> 8) + game.offsetX,
-				(game.turrets[ti].y >> 8) + game.offsetY,
-				16,
-				32,
-			);
+			ctx.drawImage(turretImages[side], 0, t.animFrame * 32, 16, 32, x, y, 16, 32);
 		}
-
-		if (game.turrets[ti].animFrame == 1 && game.turrets[ti].dead == 0) {
+		const dx = t.dir < 0 ? 0 : t.pX;
+		const playerY = (game.player.y >> 8) + game.offsetY + (game.player.pY >> 1);
+		if (t.animFrame == 1 && t.dead == 0) {
 			ctx.strokeStyle = 'rgb(255, 255, 0)';
 			ctx.lineWidth = 3;
-			dx = game.turrets[ti].dir < 0 ? 0 : game.turrets[ti].pX;
 			const dy = parseInt(random(-16, 16));
-			line(
-				(game.turrets[ti].x >> 8) + game.offsetX + dx,
-				(game.turrets[ti].y >> 8) + game.offsetY + 13,
-				(game.player.x >> 8) + game.offsetX,
-				(game.player.y >> 8) + game.offsetY + (game.player.pY >> 1) + dy,
-			);
-		} else if (game.turrets[ti].rotation < 10 && game.turrets[ti].dead == 0) {
+			line(x + dx, y + 13, (game.player.x >> 8) + game.offsetX, playerY + dy);
+		} else if (t.rotation < 10 && t.dead == 0) {
 			ctx.strokeStyle = 'rgb(255, 0, 0)';
 			ctx.lineWidth = 1;
-			dx = game.turrets[ti].dir < 0 ? 0 : game.turrets[ti].pX;
-			line(
-				(game.turrets[ti].x >> 8) + game.offsetX + dx,
-				(game.turrets[ti].y >> 8) + game.offsetY + 13,
-				(game.turrets[ti].ex >> 8) + game.offsetX,
-				(game.player.y >> 8) + game.offsetY + (game.player.pY >> 1),
-			);
-		}
-		if (game.player.fadeNextLevel == -1) {
-			game.turrets[ti].move();
-			if (game.needRedrawTiles == 0) game.needRedrawTiles = inPortal(game.turrets[ti]);
+			line(x + dx, y + 13, (t.ex >> 8) + game.offsetX, playerY);
 		}
 	}
 }
 
 /**
- * Draw the plasma balls and move them.
+ * Draw the plasma balls with their pulse.
  *
  * @returns {void}
  */
 export function drawPlasma() {
-	let r, vy;
-	for (let pi = 0; pi < game.plasmaBall.length; pi++) {
-		if (game.plasmaBall[pi].used) {
-			let vx = (vy = 0);
-			if (game.plasmaBall[pi].vx != 0) vy = game.plasmaBall[pi].scale;
-			else if (game.plasmaBall[pi].vy != 0) vx = game.plasmaBall[pi].scale;
-			if (game.TIME % 10 == 0) {
-				do {
-					r = parseInt(random(0, 3));
-				} while (game.plasmaBall[pi].animFrame == r);
-				game.plasmaBall[pi].animFrame = r;
-			}
-			ctx.drawImage(
-				plasma,
-				0,
-				game.plasmaBall[pi].animFrame * 16,
-				16,
-				16,
-				(game.plasmaBall[pi].x >> 8) + game.offsetX + vx,
-				(game.plasmaBall[pi].y >> 8) + game.offsetY + vy,
-				16,
-				16,
-			);
-			if (game.player.fadeNextLevel == -1) {
-				game.plasmaBall[pi].move();
-				if (game.needRedrawTiles == 0) game.needRedrawTiles = inPortal(game.plasmaBall[pi]);
-				if (game.plasmaBall[pi].needKill) {
-					game.plasmaBall.splice(pi, 1);
-					pi--;
-				}
-			}
-		}
+	for (const ball of game.plasmaBall) {
+		if (!ball.used) continue;
+		let vx = 0;
+		let vy = 0;
+		if (ball.vx != 0) vy = ball.scale;
+		else if (ball.vy != 0) vx = ball.scale;
+		ctx.drawImage(
+			plasma,
+			0,
+			ball.animFrame * 16,
+			16,
+			16,
+			(ball.x >> 8) + game.offsetX + vx,
+			(ball.y >> 8) + game.offsetY + vy,
+			16,
+			16,
+		);
 	}
 }
 
 /**
- * Draw the razor wheels of the boss, move them and apply their damage to the player.
+ * Draw the razor wheels of the boss with their motion trail.
  *
  * @returns {void}
  */
 function drawProjectiles() {
-	let pi;
-	for (pi = 0; pi < game.projectiles.length; pi++) {
-		game.projectiles[pi].move();
-
-		if (settings.quality > 0 && !game.projectiles[pi].needKill) {
+	for (const p of game.projectiles) {
+		const image = tileset[p.img];
+		if (settings.quality > 0 && !p.needKill) {
 			ctx.globalAlpha = 0.5;
-			ctx.drawImage(
-				tileset[game.projectiles[pi].img],
-				((game.projectiles[pi].x - game.projectiles[pi].vx * 4) >> 8) + game.offsetX,
-				((game.projectiles[pi].y - game.projectiles[pi].vy * 4) >> 8) + game.offsetY,
-				16,
-				16,
-			);
+			ctx.drawImage(image, ((p.x - p.vx * 4) >> 8) + game.offsetX, ((p.y - p.vy * 4) >> 8) + game.offsetY, 16, 16);
 			ctx.globalAlpha = 0.75;
-			ctx.drawImage(
-				tileset[game.projectiles[pi].img],
-				((game.projectiles[pi].x - game.projectiles[pi].vx * 2) >> 8) + game.offsetX,
-				((game.projectiles[pi].y - game.projectiles[pi].vy * 2) >> 8) + game.offsetY,
-				16,
-				16,
-			);
+			ctx.drawImage(image, ((p.x - p.vx * 2) >> 8) + game.offsetX, ((p.y - p.vy * 2) >> 8) + game.offsetY, 16, 16);
 			ctx.globalAlpha = 1;
 		}
-		ctx.drawImage(
-			tileset[game.projectiles[pi].img],
-			(game.projectiles[pi].x >> 8) + game.offsetX,
-			(game.projectiles[pi].y >> 8) + game.offsetY,
-			16,
-			16,
-		);
-
-		if (!game.projectiles[pi].needKill && projectileTouchesPlayer(game.projectiles[pi])) {
-			game.projectiles.splice(pi, 1);
-			pi--;
-			game.player.life = -200;
-			game.player.recoveryTime = 180;
-			return;
-		}
-
-		if (game.projectiles[pi].needKill) {
-			if (game.projectiles[pi].timer == 0 || settings.quality == 0) {
-				game.projectiles.splice(pi, 1);
-				pi--;
-			}
-		}
+		ctx.drawImage(image, (p.x >> 8) + game.offsetX, (p.y >> 8) + game.offsetY, 16, 16);
 	}
 }
 
 /**
- * Draw the crates and move them.
+ * Draw the crates. A destroyed crate shrinks.
  *
  * @returns {void}
  */
 export function drawCrates() {
-	let ci;
-	for (ci = 0; ci < game.crates.length; ci++) {
+	for (const c of game.crates) {
 		let sc = 1;
 		let dxy = 0;
-		if (game.crates[ci].shrink > 0) {
-			game.crates[ci].x += game.crates[ci].vx >> 1;
-			game.crates[ci].y += game.crates[ci].vy >> 1;
-			sc = game.crates[ci].shrink / 60;
+		if (c.shrink > 0) {
+			sc = c.shrink / 60;
 			dxy = (16 - parseInt(16 * sc)) / 2;
 		}
-
 		if (settings.quality > 0) {
 			ctx.save();
-			ctx.translate(
-				(game.crates[ci].x >> 8) + (game.crates[ci].pX >> 1) + game.offsetX,
-				(game.crates[ci].y >> 8) + (game.crates[ci].pY >> 1) + game.offsetY,
-			);
-			ctx.rotate(degToRad(game.crates[ci].angle));
-			ctx.drawImage(crateImage, 0, 0, 16, 16, -(game.crates[ci].pX >> 1), -(game.crates[ci].pY >> 1), 16 * sc, 16 * sc);
+			ctx.translate((c.x >> 8) + (c.pX >> 1) + game.offsetX, (c.y >> 8) + (c.pY >> 1) + game.offsetY);
+			ctx.rotate(degToRad(c.angle));
+			ctx.drawImage(crateImage, 0, 0, 16, 16, -(c.pX >> 1), -(c.pY >> 1), 16 * sc, 16 * sc);
 			ctx.restore();
 		} else {
 			ctx.drawImage(
@@ -672,21 +490,11 @@ export function drawCrates() {
 				0,
 				16,
 				16,
-				(game.crates[ci].x >> 8) + game.offsetX + dxy,
-				(game.crates[ci].y >> 8) + game.offsetY + dxy,
+				(c.x >> 8) + game.offsetX + dxy,
+				(c.y >> 8) + game.offsetY + dxy,
 				16 * sc,
 				16 * sc,
 			);
-		}
-
-		if (game.player.fadeNextLevel == -1) {
-			game.crates[ci].move();
-			if (game.crates[ci].needKill) {
-				game.crates.splice(ci, 1);
-				ci--;
-				continue;
-			}
-			if (game.needRedrawTiles == 0) game.needRedrawTiles = inPortal(game.crates[ci]);
 		}
 	}
 }
@@ -711,231 +519,50 @@ export function drawArrow(x1, y1, x2, y2, lineWidth, dir) {
 }
 
 /**
- * Draw the area of a tunnel field and add it to the force fields.
+ * Draw the force fields of the tunnels as half transparent areas.
  *
- * @param {number} sx The x coordinate of the tunnel in pixels.
- * @param {number} sy The y coordinate of the tunnel in pixels.
- * @param {number} nx The x coordinate where the field ends in pixels.
- * @param {number} ny The y coordinate where the field ends in pixels.
- * @param {number} vx The horizontal direction of the push, -1, 0 or 1.
- * @param {number} vy The vertical direction of the push, -1, 0 or 1.
  * @returns {void}
  */
-function drawOneField(sx, sy, nx, ny, vx, vy) {
-	const x = nx;
-	const y = ny;
-	if (vx < 0) {
-		ctx.fillRect(sx + game.offsetX, sy + game.offsetY, -(sx - x - 16), 32);
-		game.forceFields.push(new ForceField(sx, sy, -(sx - x - 16), 32, -1, 0));
-	} else if (vx > 0) {
-		ctx.fillRect(sx + game.offsetX, sy + game.offsetY, x - sx, 32);
-		game.forceFields.push(new ForceField(sx, sy, x - sx, 32, 1, 0));
-	} else if (vy < 0) {
-		ctx.fillRect(sx + game.offsetX, sy + game.offsetY, 32, -(sy - y - 16));
-		game.forceFields.push(new ForceField(sx, sy, 32, -(sy - y - 16), 0, -1));
-	} else if (vy > 0) {
-		ctx.fillRect(sx + game.offsetX, sy + game.offsetY, 32, y - sy);
-		game.forceFields.push(new ForceField(sx, sy, 32, y - sy, 0, 1));
-	}
-}
-
-/**
- * Find the end of a tunnel field and draw it. The field ends at the first wall or platform, or at a portal, where it
- * continues from the other portal.
- *
- * @param {number} sx The x coordinate of the tunnel in pixels.
- * @param {number} sy The y coordinate of the tunnel in pixels.
- * @param {number} vx The horizontal direction of the push, -1, 0 or 1.
- * @param {number} vy The vertical direction of the push, -1, 0 or 1.
- * @returns {void}
- */
-function drawTunnelField(sx, sy, vx, vy) {
-	let tile, p1, p2;
+function drawForceFields() {
+	ctx.fillStyle = 'rgb(151, 206, 233)';
 	ctx.globalAlpha = 0.5;
-
-	let y = sy;
-	let x = sx;
-
-	x += vx * 16;
-	y += vy * 16;
-
-	while (x >= 0 && x < 512 && y >= 0 && y < 384) {
-		if (vx != 0) {
-			tile = getTileWithoutObjects(x, y);
-			if (tile == Tile.EMPTY) tile = getTileWithoutObjects(x, y + 8);
-			if (tile == Tile.EMPTY) tile = getTileWithoutObjects(x, y + 16);
-			if (tile == Tile.EMPTY) tile = getTileWithoutObjects(x, y + 31);
-		} else if (vy != 0) {
-			tile = getTileWithoutCrates(x, y);
-			if (tile == Tile.EMPTY) tile = getTileWithoutCrates(x + 8, y);
-			if (tile == Tile.EMPTY) tile = getTileWithoutCrates(x + 16, y);
-			if (tile == Tile.EMPTY) tile = getTileWithoutCrates(x + 31, y);
-		}
-
-		if (tile != Tile.EMPTY && (tile < NUM_TILES || tile == Tile.TUNNEL_BLOCK || tile >= PLATFORM_CODE)) {
-			x = (x >> 4) << 4;
-			y = (y >> 4) << 4;
-
-			drawOneField(sx, sy, x, y, vx, vy);
-			if (vx < 0) x += 13;
-
-			if (game.portals && game.portals[0].used && game.portals[1].used) {
-				if (vx != 0) {
-					p1 = pointInPortal(x, y + 4);
-					p2 = pointInPortal(x, y + 28);
-				} else if (vy != 0) {
-					const dy = vy < 0 ? 14 : 0;
-
-					p1 = pointInPortal(x + 4, y + dy);
-					p2 = pointInPortal(x + 28, y + dy);
-				}
-				if (p1 == p2 && p1 > -1) {
-					const p = p1;
-					if (game.portals[p].direction == Direction.RIGHT) {
-						sx = game.portals[p].x >> 8;
-						sy = game.portals[p].y >> 8;
-						vx = -1;
-						vy = 0;
-						y = sy;
-						x = sx;
-					} else if (game.portals[p].direction == Direction.LEFT) {
-						sx = (game.portals[p].x >> 8) + 3;
-						sy = game.portals[p].y >> 8;
-						vx = 1;
-						vy = 0;
-						y = sy;
-						x = sx;
-					} else if (game.portals[p].direction == Direction.UP) {
-						sx = game.portals[p].x >> 8;
-						sy = game.portals[p].y >> 8;
-						vx = 0;
-						vy = 1;
-						y = sy + 3;
-						x = sx;
-					} else if (game.portals[p].direction == Direction.DOWN) {
-						sx = game.portals[p].x >> 8;
-						sy = game.portals[p].y >> 8;
-						vx = 0;
-						vy = -1;
-						y = sy;
-						x = sx;
-					}
-				} else {
-					ctx.globalAlpha = 1;
-					return;
-				}
-			} else {
-				ctx.globalAlpha = 1;
-				return;
-			}
-		}
-		x += vx * 16;
-		y += vy * 16;
+	for (const field of game.forceFields) {
+		ctx.fillRect(field.x + game.offsetX, field.y + game.offsetY, field.w, field.h);
 	}
-	drawOneField(sx, sy, x, y, vx, vy);
 	ctx.globalAlpha = 1;
 }
 
 /**
- * Draw the tunnels and rebuild their force fields.
+ * Draw the force fields and the tunnels.
  *
  * @returns {void}
  */
 export function drawTunnels() {
-	let tn;
-	if (game.tunnels.length > 0) {
-		game.forceFields = new Array();
-		ctx.fillStyle = 'rgb(151, 206, 233)';
-	}
-	for (tn in game.tunnels) {
-		const x = game.tunnels[tn].x >> 8;
-		const y = game.tunnels[tn].y >> 8;
-
-		let vx = 0;
-		let vy = 0;
-		if (game.tunnels[tn].dir == Direction.RIGHT) {
-			vx = 1;
-		} else if (game.tunnels[tn].dir == Direction.LEFT) {
-			vx = -1;
-		} else if (game.tunnels[tn].dir == Direction.UP) {
-			vy = -1;
-		} else if (game.tunnels[tn].dir == Direction.DOWN) {
-			vy = 1;
-		}
-
-		drawTunnelField(x, y, vx, vy);
-
-		if (game.tunnels[tn].dir == Direction.RIGHT) {
-			ctx.drawImage(
-				tunnel,
-				0,
-				0,
-				16,
-				32,
-				(game.tunnels[tn].x >> 8) + game.offsetX,
-				(game.tunnels[tn].y >> 8) + game.offsetY,
-				16,
-				32,
-			);
-		} else if (game.tunnels[tn].dir == Direction.LEFT) {
-			ctx.drawImage(
-				tunnel,
-				0,
-				32,
-				16,
-				32,
-				(game.tunnels[tn].x >> 8) + game.offsetX,
-				(game.tunnels[tn].y >> 8) + game.offsetY,
-				16,
-				32,
-			);
-		} else if (game.tunnels[tn].dir == Direction.UP) {
-			ctx.drawImage(
-				tunnel2,
-				0,
-				0,
-				32,
-				16,
-				(game.tunnels[tn].x >> 8) + game.offsetX,
-				(game.tunnels[tn].y >> 8) + game.offsetY,
-				32,
-				16,
-			);
-		} else if (game.tunnels[tn].dir == Direction.DOWN) {
-			ctx.drawImage(
-				tunnel2,
-				32,
-				0,
-				32,
-				16,
-				(game.tunnels[tn].x >> 8) + game.offsetX,
-				(game.tunnels[tn].y >> 8) + game.offsetY,
-				32,
-				16,
-			);
-		}
+	drawForceFields();
+	for (const t of game.tunnels) {
+		const x = (t.x >> 8) + game.offsetX;
+		const y = (t.y >> 8) + game.offsetY;
+		if (t.dir == Direction.RIGHT) ctx.drawImage(tunnel, 0, 0, 16, 32, x, y, 16, 32);
+		else if (t.dir == Direction.LEFT) ctx.drawImage(tunnel, 0, 32, 16, 32, x, y, 16, 32);
+		else if (t.dir == Direction.UP) ctx.drawImage(tunnel2, 0, 0, 32, 16, x, y, 32, 16);
+		else if (t.dir == Direction.DOWN) ctx.drawImage(tunnel2, 32, 0, 32, 16, x, y, 32, 16);
 	}
 }
 
 /**
- * Draw the platforms and move them.
+ * Draw the platforms. In the editor, an arrow shows the direction.
  *
  * @returns {void}
  */
 export function drawPlatforms() {
-	let pi;
-	for (pi in game.platforms) {
-		const x = (game.platforms[pi].x >> 8) + game.offsetX;
-		const y = (game.platforms[pi].y >> 8) + game.offsetY;
-
+	for (const p of game.platforms) {
+		const x = (p.x >> 8) + game.offsetX;
+		const y = (p.y >> 8) + game.offsetY;
 		ctx.drawImage(platform, x, y);
 		if (ui.currentMenu == Menu.EDITOR && !isTestingLevel) {
 			ctx.fillStyle = 'rgb(255, 0, 0)';
 			ctx.strokeStyle = 'rgb(255, 0, 0)';
-			drawArrow(x + 5, y + 8, x + 15, y + 8, 3, game.platforms[pi].dir);
-		}
-		if (game.player.fadeNextLevel == -1) {
-			game.platforms[pi].move();
+			drawArrow(x + 5, y + 8, x + 15, y + 8, 3, p.dir);
 		}
 	}
 }
@@ -993,13 +620,11 @@ export function drawFrontTiles() {
 }
 
 /**
- * Move the security camera and draw it turned towards the player.
+ * Draw the security camera turned towards the player.
  *
  * @returns {void}
  */
 function drawCamera() {
-	game.camera.move();
-
 	const a = getAngle(
 		(game.player.x >> 8) + (game.player.pX >> 1),
 		(game.player.y >> 8) + 8,
@@ -1014,37 +639,29 @@ function drawCamera() {
 }
 
 /**
- * Draw the portals with their opening animation and move them with their platforms.
+ * Draw the portals with their opening animation.
  *
  * @returns {void}
  */
 export function drawPortals() {
-	let pi, dy;
-	for (pi in game.portals) {
-		if (game.portals[pi].used) {
-			if (game.portals[pi].scaleX < 1) game.portals[pi].scaleX += 0.1;
-			else if (game.portals[pi].scaleY < 1) game.portals[pi].scaleY += 0.1;
-
-			let dx = (dy = 0);
-			if (game.portals[pi].direction == Direction.LEFT || game.portals[pi].direction == Direction.RIGHT)
-				dy = 16 - game.portals[pi].scaleY * 16;
-			else if (game.portals[pi].direction == Direction.UP || game.portals[pi].direction == Direction.UP)
-				dx = 16 - game.portals[pi].scaleX * 16;
-
-			game.portals[pi].move();
-
-			ctx.drawImage(
-				pi == 0 ? bluePortal : redPortal,
-				0,
-				32 * game.portals[pi].frame,
-				32,
-				32,
-				(game.portals[pi].x >> 8) + dx + game.offsetX,
-				(game.portals[pi].y >> 8) + dy + game.offsetY,
-				32 * game.portals[pi].scaleX,
-				32 * game.portals[pi].scaleY,
-			);
-		}
+	for (let pi = 0; pi < game.portals.length; pi++) {
+		const p = game.portals[pi];
+		if (!p.used) continue;
+		let dx = 0;
+		let dy = 0;
+		if (p.direction == Direction.LEFT || p.direction == Direction.RIGHT) dy = 16 - p.scaleY * 16;
+		else if (p.direction == Direction.UP || p.direction == Direction.UP) dx = 16 - p.scaleX * 16;
+		ctx.drawImage(
+			pi == 0 ? bluePortal : redPortal,
+			0,
+			32 * p.frame,
+			32,
+			32,
+			(p.x >> 8) + dx + game.offsetX,
+			(p.y >> 8) + dy + game.offsetY,
+			32 * p.scaleX,
+			32 * p.scaleY,
+		);
 	}
 }
 

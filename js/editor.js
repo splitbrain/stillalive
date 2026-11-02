@@ -5,14 +5,17 @@
 import { ctx } from './canvas.js';
 import { Direction, EditorButton, EditorMenuButton, Menu, MouseButton, NUM_TILES } from './constants.js';
 import { alertDialog } from './dialog.js';
-import { Cake } from './entities/Cake.js';
-import { Crate } from './entities/Crate.js';
-import { Platform } from './entities/Platform.js';
+import { animateTiles } from './entities/AnimatedTile.js';
+import { Cake, updateCakes } from './entities/Cake.js';
+import { Crate, updateCrates } from './entities/Crate.js';
+import { rebuildForceFields } from './entities/ForceField.js';
+import { updatePlasma } from './entities/Plasma.js';
+import { Platform, updatePlatforms } from './entities/Platform.js';
 import { Player } from './entities/Player.js';
-import { Portal } from './entities/Portal.js';
-import { manageSparkles } from './entities/Sparkle.js';
+import { Portal, updatePortals } from './entities/Portal.js';
+import { drawSparkles, updateSparkles } from './entities/Sparkle.js';
 import { Tunnel } from './entities/Tunnel.js';
-import { Turret } from './entities/Turret.js';
+import { Turret, updateTurrets } from './entities/Turret.js';
 import {
 	bg,
 	body,
@@ -38,9 +41,9 @@ import { exportEditorMap, importEditorMap } from './mapFile.js';
 import { atExit } from './physics.js';
 import { inPortal } from './portals.js';
 import {
-	animateTiles,
 	copyCanvas,
 	createBuff,
+	drawAnimatedTiles,
 	drawArrow,
 	drawCakes,
 	drawCopy,
@@ -121,7 +124,7 @@ export function stopPlayingLevel() {
 }
 
 /**
- * Run one tick of the test run.
+ * Run one tick of the test run and draw it. The test run ends when the player dies.
  *
  * @returns {void}
  */
@@ -134,6 +137,23 @@ function levelEditorTestLevel() {
 	}
 
 	manageDoors();
+
+	if (settings.quality > 0) animateTiles();
+	game.player.flip = input.mouseX > (game.player.x >> 8) + (game.player.pX >> 1) + game.offsetX ? 1 : -1;
+	rebuildForceFields();
+	updateCakes();
+	updateTurrets();
+	updatePlasma();
+	updateSparkles();
+	updateCrates();
+	updatePlatforms();
+	updatePortals();
+
+	if (game.player.dead) {
+		stopPlayingLevel();
+		return;
+	}
+
 	drawTestLevel();
 	drawText(70, 38, 11);
 }
@@ -147,12 +167,7 @@ function drawTestLevel() {
 	if (game.needLoad) createBuff();
 	drawCopy(game.imgBuff, game.offsetX, game.offsetY);
 
-	if (settings.quality > 0) animateTiles();
-
-	game.player.flip =
-		input.mouseX > (game.player.x >> 8) + (game.player.pX >> 1) + game.offsetX
-			? (game.player.flip = 1)
-			: (game.player.flip = -1);
+	if (settings.quality > 0) drawAnimatedTiles();
 
 	const a = getAngle(
 		(game.player.x >> 8) + (game.player.pX >> 1) + game.offsetX,
@@ -198,20 +213,13 @@ function drawTestLevel() {
 	drawCakes();
 	drawTurrets();
 	drawPlasma();
-
-	manageSparkles();
-
+	drawSparkles();
 	drawCrates();
 	drawPlatforms();
 
 	drawFrontTiles();
 	drawPortals();
 	drawLowQualityPortals();
-
-	if (game.player.dead) {
-		stopPlayingLevel();
-		return;
-	}
 
 	ctx.drawImage(levelEditorHud, 0, 0);
 

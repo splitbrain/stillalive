@@ -20,7 +20,8 @@ import {
 } from '../constants.js';
 import { confirmDialog } from '../dialog.js';
 import { lvlEditorSetup } from '../editor.js';
-import { createSparkles, manageSparkles } from '../entities/Sparkle.js';
+import { updateRobot } from '../entities/Robot.js';
+import { createSparkles, drawSparkles, updateSparkles } from '../entities/Sparkle.js';
 import { exitFunc } from '../game.js';
 import {
 	bg,
@@ -75,11 +76,11 @@ export function prepareSelectionText() {
 }
 
 /**
- * Draw the buttons of the intermission screen and handle their clicks.
+ * Find the hovered button of the intermission screen and take the click on it.
  *
  * @returns {void}
  */
-function manageDownMenu() {
+export function updateIntermissionButtons() {
 	let overMenu = -1;
 	if (mouseInZone(74, 445, 120, 24)) overMenu = IntermissionButton.EXIT;
 	else if (mouseInZone(74 + 130, 445, 120, 24)) overMenu = IntermissionButton.RESTART;
@@ -89,30 +90,41 @@ function manageDownMenu() {
 		}
 	} else if (mouseInZone(74 + 390, 445, 120, 24)) overMenu = IntermissionButton.REPLAY;
 
-	const scale1 = overMenu == IntermissionButton.EXIT ? 0.9 : 1;
-	const scale2 = overMenu == IntermissionButton.RESTART ? 0.9 : 1;
-	const scale3 = overMenu == IntermissionButton.CONTINUE ? 0.9 : 1;
-	const scale4 = overMenu == IntermissionButton.REPLAY ? 0.9 : 1;
-
-	drawTinyButton(74, 445, scale1, 'Exit');
-	drawTinyButton(74 + 130, 445, scale2, 'Restart');
-	if (ui.currentMenu == Menu.PLAY && ui.currentLevel + 1 < 29) {
-		if (maxLevel[ui.campaign] >= ui.currentLevel + 1) {
-			drawTinyButton(74 + 260, 445, scale3, 'Continue');
-		}
-	}
-	if (
-		ui.campaign == CampaignId.STORY &&
-		(ui.currentLevel == 7 || ui.currentLevel == 14 || ui.currentLevel == 21 || ui.currentLevel == 28)
-	) {
-		if (overMenu == IntermissionButton.REPLAY) overMenu = IntermissionButton.NONE;
-	} else {
-		drawTinyButton(74 + 390, 445, scale4, 'Watch Replay');
-	}
+	if (isBossLevel() && overMenu == IntermissionButton.REPLAY) overMenu = IntermissionButton.NONE;
+	ui.intermissionHover = overMenu;
 
 	if (input.mousePressed && input.mouseButton == MouseButton.LEFT && overMenu > 0) {
 		ui.intermissionChoice = overMenu;
 		unclick();
+	}
+}
+
+/**
+ * Check if the current level is a boss level of the story campaign. A boss level has no replay button.
+ *
+ * @returns {boolean} True for a boss level.
+ */
+function isBossLevel() {
+	return (
+		ui.campaign == CampaignId.STORY &&
+		(ui.currentLevel == 7 || ui.currentLevel == 14 || ui.currentLevel == 21 || ui.currentLevel == 28)
+	);
+}
+
+/**
+ * Draw the buttons of the intermission screen. The hovered button is smaller.
+ *
+ * @returns {void}
+ */
+function drawIntermissionButtons() {
+	const hover = ui.intermissionHover;
+	drawTinyButton(74, 445, hover == IntermissionButton.EXIT ? 0.9 : 1, 'Exit');
+	drawTinyButton(74 + 130, 445, hover == IntermissionButton.RESTART ? 0.9 : 1, 'Restart');
+	if (ui.currentMenu == Menu.PLAY && ui.currentLevel + 1 < 29 && maxLevel[ui.campaign] >= ui.currentLevel + 1) {
+		drawTinyButton(74 + 260, 445, hover == IntermissionButton.CONTINUE ? 0.9 : 1, 'Continue');
+	}
+	if (!isBossLevel()) {
+		drawTinyButton(74 + 390, 445, hover == IntermissionButton.REPLAY ? 0.9 : 1, 'Watch Replay');
 	}
 }
 
@@ -207,6 +219,7 @@ export function drawPauseMenu() {
 	} else if (ui.currentMenu == Menu.PLAY && settings.quality == 0 && game.hudLight) {
 		drawCopy(game.hudLight, 132, 12);
 	}
+	updateRobot();
 	drawRobot();
 
 	drawHudText();
@@ -732,7 +745,8 @@ export function drawMainMenu() {
 		}
 	}
 
-	manageSparkles();
+	updateSparkles();
+	drawSparkles();
 
 	if (ui.fadeMenu > 0) {
 		ui.fadeMenu--;
@@ -794,22 +808,30 @@ export function doDrawCredits() {
 }
 
 /**
+ * Advance the fade of the intermission screen and handle its buttons.
+ *
+ * @returns {void}
+ */
+export function updateIntermission() {
+	if (game.player.intermissionFade > 0) game.player.intermissionFade--;
+	updateIntermissionButtons();
+}
+
+/**
  * Draw the intermission screen after a level with the time and the message.
  *
  * @returns {void}
  */
-export function doDrawIntermission() {
+export function drawIntermission() {
 	if (game.player.intermissionFade > 0) {
 		ctx.fillStyle = 'rgb(0, 0, 0)';
 		ctx.fillRect(game.offsetX - 1, game.offsetY, 512, 384);
-		game.player.intermissionFade--;
-		const a = game.player.intermissionFade / 20;
-		ctx.globalAlpha = 1 - a;
+		ctx.globalAlpha = 1 - game.player.intermissionFade / 20;
 	}
 	ctx.drawImage(highscore, game.offsetX, game.offsetY);
 	if (game.player.intermissionFade > 0) ctx.globalAlpha = 1;
 
-	manageDownMenu();
+	drawIntermissionButtons();
 
 	if (game.player.intermissionFade == 0) {
 		ctx.fillStyle = 'rgb(255, 255, 255)';

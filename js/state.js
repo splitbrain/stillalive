@@ -61,6 +61,7 @@ export const ui = {
 	fadeMenu: undefined,
 	drawIntermission: false,
 	intermissionChoice: undefined,
+	intermissionHover: -1,
 	highscoreMessage: undefined,
 	drawCredits: false,
 	timeWriting: 0,

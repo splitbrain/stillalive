@@ -17,6 +17,7 @@ import {
 	touchesDeadlyTile,
 	touchingGround,
 } from '../physics.js';
+import { inPortal } from '../portals.js';
 import { game } from '../state.js';
 import { Tile, isPlatformCode } from '../tiles.js';
 import { random } from '../utils.js';
@@ -232,4 +233,17 @@ function pointInPlayer(j, beamY) {
 	const y = game.player.y >> 8;
 	if (j >= x && j < x + 15 && beamY >= y && beamY < y + 31) return 1;
 	return 0;
+}
+
+/**
+ * Move the turrets. The turrets stand still during the level transitions.
+ *
+ * @returns {void}
+ */
+export function updateTurrets() {
+	if (game.player.fadeNextLevel != -1) return;
+	for (const t of game.turrets) {
+		t.move();
+		if (game.needRedrawTiles == 0) game.needRedrawTiles = inPortal(t);
+	}
 }

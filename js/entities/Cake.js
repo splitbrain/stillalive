@@ -93,3 +93,18 @@ export class Cake {
 		this.used = true;
 	}
 }
+
+/**
+ * Let the cakes float up and down. The cakes stand still during the level transitions.
+ *
+ * @returns {void}
+ */
+export function updateCakes() {
+	if (game.player.fadeNextLevel != -1) return;
+	for (const c of game.cakes) {
+		if (!c.used) continue;
+		c.vy += 32 * c.mDir;
+		if (c.vy < -3 << 8) c.mDir = -c.mDir;
+		else if (c.vy > 3 << 8) c.mDir = -c.mDir;
+	}
+}

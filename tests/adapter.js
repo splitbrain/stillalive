@@ -155,7 +155,7 @@ export async function runLevel(page, { campaign, level, ticks, seed, inputs = nu
 				}
 				const player = game.player;
 				const fade = player.fadeNextLevel;
-				t.myLoop();
+				t.tick();
 				const finished = game.player === player && fade === -1 && player.fadeNextLevel === 120;
 				if (tick % interval === 0 || finished) lines.push(snapshot(tick));
 				if (finished) {

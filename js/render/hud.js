@@ -41,6 +41,64 @@ export function drawKeys() {
 }
 
 /**
+ * Wrap the text of the current level into lines, if the lines are empty. The tutorial sets its own lines.
+ *
+ * @returns {void}
+ */
+function prepareTextLines() {
+	if (ui.txtLines.length > 0 || ui.currentMenu == Menu.TUTORIAL) return;
+	ctx.font = '13px Arial';
+	const txt = campaigns[ui.campaign].texts[ui.currentLevel - 1];
+	let l = 0;
+	let line = '';
+	while (l < txt.length) {
+		let word = '';
+		while (txt[l] != ' ' && l < txt.length) {
+			word += txt[l];
+			l++;
+		}
+		const metrics = ctx.measureText(line + ' ' + word);
+		if (metrics.width < 447) {
+			line += word + ' ';
+		} else {
+			ui.txtLines.push(line);
+			line = word + ' ';
+		}
+		l++;
+	}
+	ui.txtLines.push(line);
+}
+
+/**
+ * Advance the typewriter effect of the robot text while the text is on the screen.
+ *
+ * @returns {void}
+ */
+export function updateText() {
+	const visible = ui.currentMenu == Menu.TUTORIAL || (game.player.fadeNextLevel == -1 && settings.quality > 0);
+	if (!visible) return;
+	prepareTextLines();
+	let toWrite = parseInt(ui.timeWriting);
+	if (toWrite >= 0 && settings.quality > 0) {
+		for (const line of ui.txtLines) {
+			if (line.length < toWrite) toWrite -= line.length;
+			else return advanceText();
+		}
+		ui.timeWriting = -1;
+	}
+	advanceText();
+}
+
+/**
+ * Advance the typewriter effect by one tick.
+ *
+ * @returns {void}
+ */
+function advanceText() {
+	if (ui.timeWriting >= 0 && !ui.escapeMenu) ui.timeWriting += 0.75;
+}
+
+/**
  * Draw the text of the robot panel line by line, with a typewriter effect for the current line.
  *
  * @param {number} x The x coordinate of the text in canvas pixels.
@@ -50,29 +108,9 @@ export function drawKeys() {
  */
 export function drawText(x, y, size) {
 	let i;
+	prepareTextLines();
 	ctx.fillStyle = 'rgb(255, 255, 255)';
 	ctx.font = '13px Arial';
-	if (ui.txtLines.length == 0 && ui.currentMenu != Menu.TUTORIAL) {
-		const txt = campaigns[ui.campaign].texts[ui.currentLevel - 1];
-		let l = 0;
-		let line = '';
-		while (l < txt.length) {
-			let word = '';
-			while (txt[l] != ' ' && l < txt.length) {
-				word += txt[l];
-				l++;
-			}
-			const metrics = ctx.measureText(line + ' ' + word);
-			if (metrics.width < 447) {
-				line += word + ' ';
-			} else {
-				ui.txtLines.push(line);
-				line = word + ' ';
-			}
-			l++;
-		}
-		ui.txtLines.push(line);
-	}
 
 	let toWrite = parseInt(ui.timeWriting);
 
@@ -81,9 +119,6 @@ export function drawText(x, y, size) {
 			if (ui.txtLines[i].length < toWrite) {
 				ctx.fillText(ui.txtLines[i], x, y + i * size);
 				toWrite -= ui.txtLines[i].length;
-				if (i == ui.txtLines.length - 1) {
-					ui.timeWriting = -1;
-				}
 			} else if (toWrite != 0) {
 				ctx.fillText(ui.txtLines[i].substring(0, toWrite), x, y + i * size);
 				toWrite = 0;
@@ -92,8 +127,6 @@ export function drawText(x, y, size) {
 			ctx.fillText(ui.txtLines[i], x, y + i * size);
 		}
 	}
-
-	if (ui.timeWriting >= 0 && !ui.escapeMenu) ui.timeWriting += 0.75;
 }
 
 /**

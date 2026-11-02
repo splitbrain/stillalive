@@ -12,7 +12,6 @@
 	<script type="text/javascript" src="js/apps.js"></script>
 	<script type="text/javascript" src="js/drawing.js"></script>
 	<script type="text/javascript" src="js/jqueryFct.js"></script>
-	<script type="text/javascript" src="js/highscores.js"></script>
 	<script type="text/javascript" src="js/mapLoading.js"></script>
 	<script type="text/javascript" src="js/levelEditor.js"></script>
 	<script type="text/javascript" src="js/tutorial.js"></script>
@@ -32,81 +31,6 @@
   <body oncontextmenu="return false;" onload="setup()">	  
   
 	<div id="content">
-		<div id="left" style="float:left">
-			<div id="infos">
-				<a href="#" id="aLogin" style="color:white;text-decoration:none;margin:5px;display:block">Click here to hide</a>
-				<fieldset style="color:white;margin: 4px;border:1px solid black">
-				<legend>Log-in</legend>
-					<label for="nick">Nick : </label><input id="nick" type="text" maxlength="20" /><br />
-					<label for="pwd">Password : </label><input id="pwd" type="password" />
-					<br />
-					<br />
-					
-					<center>
-						<input type="button" id="bLogin" value="Login" />
-						<input type="button" id="bRegister" value="Register" />&nbsp;
-						<a class="whyRegister" style="color:white;text-decoration:none;" href="#">(Why register ?)</a>
-					</center>
-				</fieldset>
-			</div>
-			<div id="onlineFilter">
-				<div id="filter_in" style="color:white">
-					<table>
-						<tr>
-							<td>Show : </td>
-							<td>
-								<select id="show">
-									<option value="all">All</option>
-									<option value="favorites">Favorites</option>
-								</select>
-							</td>
-						</tr>
-						<tr>
-							<td>Author :</td>
-							<td>
-								<input id="author" type="text" />
-							</td>
-						</tr>
-						<tr>
-							<td>Name :</td>
-							<td>
-								<input id="name" type="text" />
-							</td>
-						</tr>
-						<tr>
-							<td>Order by :</td>
-							<td>
-								<select id="orderBy">
-									<option value="id">Date</option>
-									<option value="name">Name</option>
-									<option value="popularity">Popularity</option>
-								</select>
-							</td>
-						</tr>
-						<tr>
-							<td>&nbsp;</td>
-							<td>
-								<input type="radio" name="order" value="asc"> asc
-								<input type="radio" name="order" value="desc" checked="checked"> desc
-							</td>
-						</tr>
-						<tr id="buttons">
-							<td style="text-align:center" colspan="2">
-								<input id="filterButton" type="button" value="Filter" />
-								<input id="clearFilterButton" type="button" value="Clear" />
-							</td>
-						</tr>
-						<tr id="loadingButtons" style="display:none">
-							<td style="text-align:center" colspan="2">
-								<img src="decor/ajax-loader.gif" />
-							</td>
-						</tr>
-					</table>
-				</div>
-			</div>
-			<div id="social">
-			</div>
-		</div>
 		<div id="middle" style="float:left">
 			<canvas id="canvas" width="640" height="544">
 				Your browser doesn't support canvas.
@@ -117,10 +41,6 @@
       Audio licensed under <a href="http://creativecommons.org/licenses/by-sa/3.0/">Creative Commons Attribution-ShareAlike</a><br />
       Graphics copyright (c) 2010 ZeBlackos
     </div>
-      
-      
-			<div id="googleAd">
-			</div>
 		</div>
 		<div id="right" style="float:left">
 			<div id="highscores">

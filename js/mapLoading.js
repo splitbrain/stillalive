@@ -11,7 +11,6 @@ function loadLevelEditor() {
 	portals.push(new Portal());portals.push(new Portal());
 	cakes = new Array();
 	sparkles = new Array();
-	fsparkles = new Array();
 	caisses = new Array();
 	tunnels = new Array();
 	forceFields = new Array();
@@ -25,14 +24,11 @@ function loadLevelEditor() {
 	STEPS = 0;
 	PORTALS = 0;
 	timeWriting = 0;
-	timeShootSound = 0;
 	escapeMenu = false;
-	place = 0;
 	keys = 0;
 	oldKeys = 0;
 	
 	perso = new Perso();
-	firstLoadHud = true;
 	
 	for(i in map) {
 		var y = i >> 5;
@@ -205,7 +201,6 @@ function loadLevel(level) {
 	portals.push(new Portal());portals.push(new Portal());
 	cakes = new Array();
 	sparkles = new Array();
-	fsparkles = new Array();
 	tunnels = new Array();
 	forceFields = new Array();
 	caisses = new Array();
@@ -215,11 +210,7 @@ function loadLevel(level) {
 	tourelles = new Array();
 	txtLines = new Array();
 	
-	if(currentMenu == 5 || currentMenu == 4) { // Mode online
-		txtLines.push("Map : " + mapsOnline[previewMap-1].name);
-		txtLines.push("Author : " + mapsOnline[previewMap-1].author);
-		txtLines.push("Author time : " + toTime(mapsOnline[previewMap-1].time));
-	}else if(currentMenu == 6) { //Tutorial
+	if(currentMenu == 6) { //Tutorial
 		txtLines.push("");
 		txtLines.push("");
 		txtLines.push("Follow the on-screen instructions to progress through the tutorial.");
@@ -230,15 +221,12 @@ function loadLevel(level) {
 	STEPS = 0;
 	PORTALS = 0;
 	timeWriting = 0;
-	timeShootSound = 0;
 	escapeMenu = false;
-	place = 0;
 	keys = 0;
 	oldKeys = 0;
 	if(!replayMode) replay = new Replay();
 	
 	perso = new Perso();
-	firstLoadHud = true;
 	
 	if(level > -1) {
 		if(level == 8 && lvlType <= 1) {
@@ -403,11 +391,7 @@ function loadLevel(level) {
 	
 	if(level > -1) {
 		BG = ((level - 1) % 11);
-		if(currentMenu == 2) loadHighscores(level);
-	} else {
-		if(currentMenu == 5) loadOnlineHighscores(mapsOnline[currentLevel].md5);
 	}
-	nextTime = -1;
 	
 	if(lvlType == 4) {
 		if(level == 7 || level == 14 || level == 21 || level == 28) {
@@ -440,7 +424,6 @@ function loadPreviewMap(level) {
 	tunnels = new Array();
 	forceFields = new Array();
 	sparkles = new Array();
-	fsparkles = new Array();
 	caisses = new Array();
 	platforms = new Array();
 	animatedTiles = new Array();
@@ -448,7 +431,6 @@ function loadPreviewMap(level) {
 	tourelles = new Array();
 	
 	perso = new Perso();
-	firstLoadHud = true;
 	
 	for(i in map) {
 		var y = i >> 5;
@@ -512,6 +494,4 @@ function loadPreviewMap(level) {
 	needLoad = true;
 	
 	if(level > 0) BG = ((level - 1) % 11);
-	
-	//loadHighscores(level);
 }

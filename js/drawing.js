@@ -125,11 +125,7 @@ function drawAllGame() {
 	
 	if(quality == 0) {
 		if(hudLight == null) {
-			if(currentMenu == 5) {
-				drawText(146, 40, 13);
-			}else {
-				drawText(146, 28, 11);
-			}
+			drawText(146, 28, 11);
 			hudLight = ctx.getImageData(132, 12, 473, 78);
 		}
 		ctx.putImageData(hudLight, 132, 12);
@@ -138,7 +134,6 @@ function drawAllGame() {
 	drawRobot();
 	
 	if(perso.fadeNextLevel == -1 && currentMenu == 2 && quality > 0) drawText(146, 28, 11);
-	else if(perso.fadeNextLevel == -1 && currentMenu == 5 && quality > 0) drawText(146, 40, 13);
 	
 	ctx.drawImage(crosshair, mouseX - 8, mouseY - 8, 16, 16);
 }
@@ -233,7 +228,6 @@ function drawPauseMenu() {
 				loadLevel(currentLevel);
 				if(bossNum > 0) skipComingBoss();
 			}
-			else if(currentMenu == 5) loadLevel(-1);
 		}else if(overMenu == 3) {//exit
 			escapeMenu = !escapeMenu;
 			exitFunc();
@@ -243,7 +237,6 @@ function drawPauseMenu() {
 					quality = 1 - quality;
 					escapeMenu = !escapeMenu;
 					if(currentMenu == 2) loadLevel(currentLevel);
-					else if(currentMenu == 5) loadLevel(-1);
 				}
 			});
 		}else if(overMenu == 5) {//sound
@@ -262,16 +255,6 @@ function drawPauseMenu() {
 	drawHudText();
 	
 	ctx.drawImage(crosshair, mouseX - 8, mouseY - 8, 16, 16);
-}
-
-function drawIsLoadingScreen() {
-	ctx.strokeStyle = "rgb(0, 0, 0)";
-	ctx.fillStyle = "rgb(255, 255, 255)";
-	ctx.fillRect(0, 0, 640, 544);
-	
-	ctx.fillStyle = "rgb(0, 65, 88)";
-	ctx.font = "bold 24px Yikes";
-	ctx.fillText("Loading ...", 10, 130);
 }
 
 var timeSplash = 0;
@@ -360,7 +343,6 @@ function drawSplash() {
 				unclick();
 				currentMenu = 1;
 				sparkles = new Array();
-				fsparkles = new Array();
 			}
 		}
 	}else {
@@ -450,181 +432,11 @@ function drawLoadingScreen() {
 			unclick();
 			currentMenu = 1;
 			sparkles = new Array();
-			fsparkles = new Array();
 			//exitFunc();
 		}
 	}
 	//make sure crosshair image is loaded
 	if(canDrawLoading >= 8) ctx.drawImage(crosshair, mouseX - 8, mouseY - 8, 16, 16);
-}
-
-function drawDownloadMaps() {
-	if(previewMap < 1) ctx.drawImage(noLevel, ECART_X, ECART_Y);
-	if(previewMap > 0) drawPreviewMap();			
-	ctx.drawImage(mapSelection, 0, 0);
-	
-	var hovering = -1;
-	
-	if(mouseX >= 534 && mouseX <= 534 + 90) {
-		if(mouseY >= 105 && mouseY <= 104 + ((mapsOnline.length+2) * 12)) {
-			var y = parseInt((mouseY - 105)/12);
-			ctx.fillStyle = "rgb(15, 112, 144)";
-			//noStroke();
-			if(y != 0 && y != mapsOnline.length + 1) {
-				ctx.fillRect(534, 105 + (y * 12) + 2, 90, 14);
-				
-				hovering = y;
-			}
-			
-			if(mousePressed && mouseButton == LEFT && y == 0) {
-				if(onlinePage > 0) {
-					previewMap = 0;
-					onlinePage--;
-					setupDownloadMaps();
-				}
-				unclick();
-			}else if(mousePressed && mouseButton == LEFT && y == mapsOnline.length + 1) {
-				if(mapsOnline.length == 28) {
-					previewMap = 0;
-					onlinePage++;
-					setupDownloadMaps();
-				}
-				unclick();
-			}else if(mousePressed && mouseButton == LEFT && y != previewMap) {
-				unclick();
-				previewMap = y;
-				map = new Array();
-				for(j in mapsOnline[previewMap-1].map) map.push(parseInt(mapsOnline[previewMap-1].map[j]));
-				BG = mapsOnline[previewMap-1].bg;
-				
-				loadPreviewMap(-1);
-				loadOnlinePreviewHighscores(mapsOnline[previewMap-1].md5, 1000);
-				
-				txtLines = new Array();
-				timeWriting = 0;
-			}else if(mousePressed && mouseButton == RIGHT && y > 0 && y < mapsOnline.length + 1) { //add to or remove from favorites
-				unclick();
-				$.ajax({
-					type: "POST",
-					url: AJAX_URL,
-					async: true,
-					cache: false,
-					data: "function=addToFavorites&nick=" + USR_NICK + "&pwd=" + USR_PWD + "&map=" + mapsOnline[y-1].id,
-					success: function(shmsg) {
-						var message = jQuery.parseJSON(shmsg);
-						if(message.msg != "ok") jAlert(message.msg, 'Server Message');
-						else {
-							mapsOnline[y-1].fav = 1 - mapsOnline[y-1].fav;
-						}
-					}
-				});
-			}
-		}
-	}
-	
-	var overMenu = -1;
-	if(mouseInZone(20, 495, 120, 24)) overMenu = 2;
-	var scale2 = overMenu == 2 ? 0.9 : 1;
-	drawTinyButton(20, 495, scale2, "Exit");
-	
-	if(mouseInZone(180, 495, 120, 24)) overMenu = 3;
-	var scale3 = overMenu == 3 ? 0.9 : 1;
-	drawTinyButton(180, 495, scale3, "Refresh");
-	
-	if(previewMap > 0) {
-		ctx.fillStyle = "rgb(15, 112, 144)";
-		ctx.fillRect(534, 105 + (previewMap * 12) + 2, 90, 14);
-		
-		if(mouseInZone(515, 495, 120, 24)) overMenu = 1;
-		var scale1 = overMenu == 1 ? 0.9 : 1;
-
-		drawTinyButton(515, 495, scale1, "Play");
-
-		ctx.font = "bold 14px Arial";
-		ctx.strokeStyle = "rgb(0, 0, 0)";
-		ctx.fillStyle = "rgb(255, 255, 255)";
-		
-		if(txtLines.length == 0) {
-			txtLines.push("Map : " + mapsOnline[previewMap-1].name);
-			txtLines.push("Author : " + mapsOnline[previewMap-1].author);
-			txtLines.push("Author time : " + toTime(mapsOnline[previewMap-1].time));
-		}
-		
-		drawText(30, 30, 14);
-	}else drawText(30, 30, 14);
-	
-	if(mousePressed && mouseButton == LEFT && overMenu > 0) {
-		USR_REPLAY = null;
-		if(overMenu == 1) {//play
-			ECART_X = 64;
-			ECART_Y = 96;
-			currentMenu = 5;
-			oldMap = new Array();
-			for(i in map) oldMap.push(map[i]);
-			currentLevel = previewMap-1;
-			loadLevel(-1);
-			//selectMenu = 0;
-			finishedLastDraw = true;
-			$("#onlineFilter").slideUp("slow");
-			unclick();
-			return;
-		}else if(overMenu == 2) {//exit
-			ECART_X = 64;
-			ECART_Y = 96;
-			currentMenu = 1;
-			selectMenu = 0;
-			fadeMenu = 30;
-			$("#onlineFilter").slideUp("slow");
-			$("#highscores").slideUp("slow");
-			finishedLastDraw = true;
-			return;
-		}else if(overMenu == 3) {//refresh
-			onlinePage = 0;
-			previewMap = 0;
-			setupDownloadMaps();
-			prepareOnlineTxt();
-		}
-		
-		unclick();
-	}
-	
-	ctx.font = "bold 12px Arial";
-	ctx.strokeStyle = "rgb(0, 0, 0)";
-	ctx.fillStyle = "rgb(255, 255, 255)";
-	
-	for(i in mapsOnline) {
-		if(mapsOnline[i].fav == 1) ctx.drawImage(star, 523, 105 + 24 + (i * 12) - 10);
-		ctx.fillText(mapsOnline[i].name,534, 105 + 24 + (i * 12));
-	}
-	
-	if(onlinePage > 0) {
-		ctx.fillStyle = "rgb(15, 112, 200)";
-		ctx.fillRect(534, 105 + 2, 90, 14);
-		
-		ctx.fillStyle = "rgb(0, 0, 0)";
-		ctx.fillText("Previous Maps",534, 105 + 24 + (-1 * 12));
-	}
-	
-	if(mapsOnline.length == 28) {
-		ctx.fillStyle = "rgb(15, 112, 200)";
-		ctx.fillRect(534, 105 + (29 * 12) + 2, 90, 14);
-		
-		ctx.fillStyle = "rgb(0, 0, 0)";
-		ctx.fillText("Next Maps",540, 105 + 24 + (28 * 12));
-	}
-	
-	if(hovering > -1) {
-		ctx.fillStyle = "rgb(7, 49, 63)";
-		ctx.fillRect(550, 110 + ((hovering + 1) * 12) + 2, 79, 19);
-		
-		ctx.lineWidth = 1;
-		ctx.fillStyle = "rgb(255, 255, 255)";
-		ctx.strokeStyle = "rgb(255, 255, 255)";
-		ctx.strokeRect(550, 110 + ((hovering + 1) * 12) + 2, 79, 19);
-		ctx.fillText("Rating : " + mapsOnline[hovering-1].popularity + "%",554, 105 + 32 + (hovering * 12));
-	}
-	
-	ctx.drawImage(crosshair, mouseX - 8, mouseY - 8, 16, 16);
 }
 
 function drawMapSelection() {
@@ -647,7 +459,6 @@ function drawMapSelection() {
 						currentLevel = y;
 						loadPreviewMap(previewMap);
 					}
-					loadPreviewHighscores(previewMap, 1000);
 				}
 			}
 		}
@@ -657,10 +468,6 @@ function drawMapSelection() {
 	if(mouseInZone(20, 495, 120, 24)) overMenu = 2;
 	var scale2 = overMenu == 2 ? 0.9 : 1;
 	drawTinyButton(20, 495, scale2, "Exit");
-	
-	if(mouseInZone(200, 495, 120, 24)) overMenu = 4;
-	var scale4 = overMenu == 4 ? 0.9 : 1;
-	drawTinyButton(200, 495, scale4, "Total Times");
 	
 	if(previewMap > 0) {
 		ctx.fillStyle = "rgb(15, 112, 144)";
@@ -685,7 +492,6 @@ function drawMapSelection() {
 	
 	if(mousePressed && mouseButton == LEFT && overMenu > 0) {
 		if(overMenu == 1) {//play
-			USR_REPLAY = null;
 			ECART_X = 64;
 			ECART_Y = 96;
 			currentMenu = 2;
@@ -710,9 +516,6 @@ function drawMapSelection() {
 			lvlType = 1 - lvlType;
 			previewMap = 0;
 			$('#highscores_in').html('');
-		}else if(overMenu == 4) {//total time
-			previewMap = 0;
-			loadTotalHighscores();
 		}
 		
 		unclick();
@@ -787,22 +590,19 @@ function drawMainMenu() {
 	else if(mouseInZone(160, yStart + (2 * (64 + ecart)), 320, 64)) overMenu = 3;
 	else if(mouseInZone(160, yStart + (3 * (64 + ecart)), 320, 64)) overMenu = 4;
 	else if(mouseInZone(160, yStart + (4 * (64 + ecart)), 320, 64)) overMenu = 5;
-	else if(mouseInZone(160, yStart + (5 * (64 + ecart)), 320, 64)) overMenu = 6;
 	
 	var scale1 = overMenu == 1 ? 0.9 : 1;
 	var scale2 = overMenu == 2 ? 0.9 : 1;
 	var scale3 = overMenu == 3 ? 0.9 : 1;
 	var scale4 = overMenu == 4 ? 0.9 : 1;
 	var scale5 = overMenu == 5 ? 0.9 : 1;
-	var scale6 = overMenu == 6 ? 0.9 : 1;
 	
 	if(goMenu) {
 		if(lvlType==0) drawBigButton(160, yStart, scale1, "Classic Mode" + (maxLevel[0]>28?" +":""));
 		else if(lvlType==1) drawBigButton(160, yStart + (1 * (64 + ecart)), scale2, "Enhanced Mode");
 		else if(lvlType==2) drawBigButton(160, yStart + (2 * (64 + ecart)), scale3, "Ultimate Mode");
 		else if(lvlType==3) drawBigButton(160, yStart + (3 * (64 + ecart)), scale4, "Level Editor");
-		else if(lvlType==4) drawBigButton(160, yStart + (4 * (64 + ecart)), scale5, "Online Maps");
-		else if(lvlType==5) drawBigButton(160, yStart + (5 * (64 + ecart)), scale6, "Tutorial");
+		else if(lvlType==4) drawBigButton(160, yStart + (4 * (64 + ecart)), scale5, "Tutorial");
 	}else {
 		var dy = 0;
 		if(maxLevel[0] <= 28) dy = 64;
@@ -810,8 +610,7 @@ function drawMainMenu() {
 		drawBigButton(160, yStart + (1 * (64 + ecart)), scale2, "Enhanced Mode");
 		drawBigButton(160, yStart + (2 * (64 + ecart)), scale3, "Ultimate Mode");
 		drawBigButton(160, yStart + (3 * (64 + ecart)), scale4, "Level Editor");
-		drawBigButton(160, yStart + (4 * (64 + ecart)), scale5, "Online Maps");
-		drawBigButton(160, yStart + (5 * (64 + ecart)), scale6, "Tutorial");
+		drawBigButton(160, yStart + (4 * (64 + ecart)), scale5, "Tutorial");
 		
 		/*
 		if(maxLevel[0] <= 28 && overMenu > 1 && overMenu < 4) {
@@ -895,17 +694,6 @@ function drawMainMenu() {
 		ctx.fillText("SFX", 20, 365);
 	}
 	
-	if((USR_NICK == '' || USR_NICK == null) || (USR_PWD == '' || USR_PWD == null)) {
-				if(mouseInZone(0, 0, 137, 114)) {
-					ctx.drawImage(tex_unregistered, 0, 0, 216 * 1.05, 169 * 1.05);
-					if(mouseNewPress) {
-						unclick();
-						$('a.whyRegister').trigger('click');
-					}
-				}
-				else ctx.drawImage(tex_unregistered, 0, 0);
-	}
-	
 	ctx.drawImage(crosshair, mouseX - 8, mouseY - 8, 16, 16);
 	
 	if(mousePressed && mouseButton == LEFT && overMenu > 0 && goMenu == 0) {
@@ -942,19 +730,7 @@ function drawMainMenu() {
 					currentMenu = 3;
 					lvlEditorSetup();
 					sparkles = new Array();
-					fsparkles = new Array();
-				}else if(lvlType == 4) {//go download online
-					$("#onlineFilter").slideDown("slow");
-					$('#highscores_in').html('');
-					$("#highscores").slideDown("slow");
-					currentMenu = 4;
-					prepareOnlineTxt();
-					previewMap = 0;
-					ECART_X = 0;
-					ECART_Y = 96;
-					onlinePage = 0;
-					setupDownloadMaps();
-				}else if(lvlType == 5) {//go tutorial
+				}else if(lvlType == 4) {//go tutorial
 					currentMenu = 6;
 					setupTutorial();
 				}
@@ -1198,23 +974,6 @@ function inForceFieldTp(obj) {
 	}
 	
 	return fields;
-}
-
-function drawOneField2(sx, sy, nx, ny, vx, vy) {
-	var x = nx;
-	var y = ny;
-	if(vx < 0) {
-		ctx.fillRect(sx + ECART_X, sy + ECART_Y, - (sx - x - 16), 1);
-	}
-	else if(vx > 0) {
-		ctx.fillRect(sx + ECART_X, sy + ECART_Y, x - sx, 1);
-	}
-	else if(vy < 0) {
-		ctx.fillRect(sx + ECART_X, sy + ECART_Y, 1, - (sy - y - 16));
-	}
-	else if(vy > 0) {
-		ctx.fillRect(sx + ECART_X, sy + ECART_Y, 1, y - sy);
-	}
 }
 
 function drawOneField(sx, sy, nx, ny, vx, vy) {
@@ -1557,14 +1316,7 @@ function doDrawIntermission() {
 	if(perso.intermissionFade == 0) {
 		ctx.fillStyle = "rgb(255, 255, 255)";
 		ctx.font = "bold 12px Arial";
-		if(!USR_REPLAY) ctx.fillText("Your time : " + toTime(TIME), ECART_X + 35, ECART_Y + 260);
-		else {
-			if(USR_REPLAY.toLowerCase().charAt(USR_REPLAY.length - 1) == "s") {
-				ctx.fillText(USR_REPLAY + "' time : " + toTime(TIME), ECART_X + 35, ECART_Y + 260);
-			} else {
-				ctx.fillText(USR_REPLAY + "'s time : " + toTime(TIME), ECART_X + 35, ECART_Y + 260);
-			}
-		}
+		ctx.fillText("Your time : " + toTime(TIME), ECART_X + 35, ECART_Y + 260);
 		ctx.fillText(highscoreMessage, ECART_X + 35, ECART_Y + 278);
 	}
 }

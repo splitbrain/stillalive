@@ -8,31 +8,20 @@ var MSE_R = 64;
 var MSE_M = 128;
 var keys = oldKeys = 0;
 
-var AJAX_URL = "./php/ajax.php";
-
 var replay;
 var replayMode = false;
 
-var mapsOnline;
-
 var started = false;
-
-var USR_NICK = "";
-var USR_PWD = "";
-var USR_REPLAY = null;
 
 var highscoreMessage;
 var drawIntermission = false;
 var intermissionChoice;
-var place, nextTime;
 var selectMenu = 0;
 var previewMap = 0;
 
-var onlinePage;
-
 var campaigns;
 var currentMenu;
-var goMenu, selectedMenu, escapeMenu;
+var goMenu, escapeMenu;
 
 var currentLevel = 1;
 var lvlType = 0;
@@ -56,17 +45,13 @@ var TIME;
 var AVGFPS;
 var RATE = 0.166666;
 var timeWriting = 0;
-var timeShootSound;
 
 var RANDOM = 1;
 var ORDERED = 2;
 
-var REPLAY_ID;
-
 var TRANS = 4;
 
 var quality = 1;
-var firstLoadHud;
 
 var maxLevel;
 
@@ -89,12 +74,11 @@ var tunnels;
 var forceFields;
 var platforms;
 var tourelles;
-var sparkles, fsparkles;
+var sparkles;
 var animatedTiles;
 
-var tex_unregistered;
 var tex_button, tex_sound, tex_cross, tex_leftBG, tex_rightBG;
-var star, key, mouseIcon;
+var key, mouseIcon;
 var cameraFollow, robotEye, robotHead;
 var levelEditorHud, menuBG, pauseBG;
 var noLevel;
@@ -128,7 +112,6 @@ var imgToLoad;
 var loadedSfx;
 var sfxToLoad;
 var needLoadSfx;
-var canDraw = false;
 var perso;
 var GRAVITY = 60;
 var portals;
@@ -144,12 +127,11 @@ var sound = false;
 var noSound = false;
 
 var canDrawLoading = 0;
-var sfx_list;
 
 var sfx_enterPortal, sfx_flatline, sfx_noPortal, sfx_pain, sfx_shoot;
 var sfx_explode, sfx_jump, sfx_bounce, sfx_grabCake, sfx_holdObject;
-var sfx_throwObject, sfx_tick, sfx_woodExplode, sfx_transition;
-var sfx_portal, sfx_foot;
+var sfx_throwObject, sfx_tick, sfx_transition;
+var sfx_portal;
 var ctx;
 var finishedLastDraw = true;
 
@@ -200,13 +182,12 @@ function setup() {
 	levelsToLoad = 28 * 4 + 8;
 	txtToLoad = 28 * 4 + 8;
 	txtLoaded = 0;
-	imgToLoad = 112;
+	imgToLoad = 110;
 	currentMenu = 0;
 	
 	sfxToLoad = 14;
 	loadedSfx = 0;
 	needLoadSfx = true;
-	sfx_list = new Array();
 				
 	perso = new Perso();//prevents a crash during loading
 	
@@ -236,54 +217,20 @@ function unclick() {
 	keys &= ~MSE_M;
 }
 
-function reportBrokenReplayOnline() {
-	jAlert("The replay you're watching seems to be broken -_-;<br />" +
-				"It has been reported to the administrator.<br />" +
-				"Sorry for any inconveniences."
-		, 'An error occured');
-	replayMode = false;
-	exitFunc();
-	if(REPLAY_ID >= 0) {
-		$.ajax({
-			type: "POST",
-			url: AJAX_URL,
-			async: true,
-			cache: false,
-			data: "function=reportBadReplayOnline&replay=" + REPLAY_ID,
-			success: function(lhmsg) {
-			
-			}
-		});
-	}
-}
-
 function reportBrokenReplay() {
 	jAlert("The replay you're watching seems to be broken -_-;<br />" +
-				"It has been reported to the administrator.<br />" +
 				"Sorry for any inconveniences."
 		, 'An error occured');
 	replayMode = false;
 	exitFunc();
-	if(REPLAY_ID >= 0) {
-		$.ajax({
-			type: "POST",
-			url: AJAX_URL,
-			async: true,
-			cache: false,
-			data: "function=reportBadReplay&replay=" + REPLAY_ID,
-			success: function(lhmsg) {
-			
-			}
-		});
-	}
 }
 
 function manageKeys() {
-	if(perso.fadeNextLevel == -1 && (currentMenu == 2 || currentMenu == 5) && !replayMode) {
+	if(perso.fadeNextLevel == -1 && currentMenu == 2 && !replayMode) {
 		replay.inputs[TIME] = keys;
 		replay.mouseX[TIME] = mouseX;
 		replay.mouseY[TIME] = mouseY;
-	}else if(perso.fadeNextLevel == -1 && (currentMenu == 2 || currentMenu == 5) && replayMode && !escapeMenu) {
+	}else if(perso.fadeNextLevel == -1 && currentMenu == 2 && replayMode && !escapeMenu) {
 		if(TIME < replay.inputs.length) {
 			keys = replay.inputs[TIME];
 			mouseX = replay.mouseX[TIME];
@@ -341,7 +288,7 @@ function manageKeys() {
 	if(keys & KEY_S) perso.isDown = 1;if(!(keys & KEY_S)) perso.isDown = 0;
 	
 	//jump
-	if((keys & KEY_Z) && (isTestingLevel || currentMenu == 2 || currentMenu == 5 || (currentMenu == 6 && tutoJump)) && !dansUnPortal(perso)) {
+	if((keys & KEY_Z) && (isTestingLevel || currentMenu == 2 || (currentMenu == 6 && tutoJump)) && !dansUnPortal(perso)) {
 		if(!(oldKeys & KEY_Z)) perso.oldIsJump = perso.isJump;
 		perso.isJump = 1;
 	}
@@ -351,25 +298,6 @@ function manageKeys() {
 	}
 	
 	oldKeys = keys;
-}
-
-function getMaxLevelFromDB() {
-	maxLevel = new Array();
-	$.ajax({
-		type: "POST",
-		url: AJAX_URL,
-		async: true,
-		cache: false,
-		data: "function=getMaxLevel&nick=" + USR_NICK + "&pwd=" + USR_PWD,
-		success: function(msg) {
-			var lvls = jQuery.parseJSON(msg);
-			
-			maxLevel[0] = parseInt(lvls.lvl0);
-			maxLevel[1] = parseInt(lvls.lvl1);
-			maxLevel[2] = parseInt(lvls.lvl2);
-			maxLevel[4] = parseInt(lvls.lvl4);
-		}
-	});
 }
 
 function calculateFPS() {
@@ -393,17 +321,13 @@ function draw() {
 	finishedLastDraw = false;
 	calculateFPS();
 	
-	if(currentMenu == 4) {
-		drawDownloadMaps();
-	} else if(currentMenu == 3) {
+	if(currentMenu == 3) {
 		drawLevelEditor();
-	} else if((currentMenu == 2 || currentMenu == 5 || currentMenu == 6) && !escapeMenu) {	
+	} else if((currentMenu == 2 || currentMenu == 6) && !escapeMenu) {	
 		if(!finNiveau() && perso.fadeNextLevel == -1) {
 			if(TIME==0) unclick();
 			TIME++;
 			AVGFPS += parseInt(frameRate);
-			
-			if(currentMenu == 2 || currentMenu == 5) manageHighscore();
 		}
 		needRedrawTiles = 0;
 		if(!perso.mort && perso.fadeNextLevel == -1) {
@@ -413,8 +337,6 @@ function draw() {
 		
 		gestionPorte();
 		if(finNiveau()) {
-			if(currentMenu == 2 || currentMenu == 5) manageHighscore();
-			
 			bossNum = 0;
 			ECART_X = 64;
 			ECART_Y = 96;
@@ -430,9 +352,6 @@ function draw() {
 				playSfx(sfx_transition);
 				highscoreMessage = "";
 				unclick();
-				//alert('sendhighscore');
-				if(currentMenu == 2 && !replayMode) sendHighscore(currentLevel);
-				else if(currentMenu == 5 && !replayMode) sendOnlineHighscore(mapsOnline[currentLevel].md5);
 				intermissionChoice = 0;
 				//TRANS = 7;
 				if(currentMenu == 2 && !replayMode) {
@@ -462,16 +381,13 @@ function draw() {
 					drawIntermission = true;
 					if(intermissionChoice == 3) {//continue
 						unclick();
-						USR_REPLAY = null;
 						if(currentMenu == 2) {
 							loadLevel(++currentLevel);
 							perso.intermissionFade = -20;
 						}
 					}else if(intermissionChoice == 2) {//restart
-						USR_REPLAY = null;
 						unclick();
-						if(currentMenu == 5) loadLevel(-1);
-						else if(currentMenu == 2) {
+						if(currentMenu == 2) {
 							loadLevel(currentLevel);
 							if(bossNum > 0) skipComingBoss();
 						}
@@ -480,10 +396,8 @@ function draw() {
 						exitFunc();
 					}else if(intermissionChoice == 4) {//watch replay
 						unclick();
-						REPLAY_ID = -1;
 						replayMode = true;
-						if(currentMenu == 5) loadLevel(-1);
-						else if(currentMenu == 2) loadLevel(currentLevel);
+						if(currentMenu == 2) loadLevel(currentLevel);
 						perso.intermissionFade = -20;
 					}
 				}
@@ -500,7 +414,7 @@ function draw() {
 			}
 		}
 		
-		if(currentMenu == 2 || currentMenu == 5 || currentMenu == 6) {
+		if(currentMenu == 2 || currentMenu == 6) {
 			if(bossNum > 0 && bossIsComing && perso.fadeNextLevel == -1) perso.fadeNextLevel = 0;
 			drawAllGame();
 			drawHudText();
@@ -532,7 +446,7 @@ function draw() {
 			}
 		}
 	} 
-	else if((currentMenu == 2 || currentMenu == 5 || currentMenu == 6) && escapeMenu) {
+	else if((currentMenu == 2 || currentMenu == 6) && escapeMenu) {
 		drawPauseMenu();
 	}
 	else if(currentMenu == 0) {
@@ -781,75 +695,9 @@ function manageBoss() {
 	}
 }
 
-var filter_show = "all";
-var filter_author = "";
-var filter_name = "";
-var filter_orderBy = "id";
-var filter_order = "desc";
-
-function setupDownloadMaps() {
-	CAKELEFT = 1;
-	mapsOnline = new Array();
-	BG = 0;
-	onlineText = "";
-	$('#buttons').hide();
-	$('#loadingButtons').show();
-	
-	$.ajax({
-		type: "POST",
-		url: AJAX_URL,
-		async: false,
-		cache: false,
-		data: "function=get28Maps" + 
-				"&show=" + filter_show +
-				"&author=" + filter_author +
-				"&mapName=" + filter_name +
-				"&orderBy=" + filter_orderBy +
-				"&order=" + filter_order +
-				"&lvl=" + onlinePage +
-				"&nick=" + USR_NICK +
-				"&pwd=" + USR_PWD,
-		success: function(msg) {
-			var maps = jQuery.parseJSON(msg);
-			if(maps.error) {
-				if(maps.error == "author") jAlert('Author contains invalid caracters.', 'Server Message');
-				else if(maps.error == "mapName") jAlert('Map Name contains invalid caracters.', 'Server Message');
-			}else {
-				for(var i=0; i<28; i++) {
-					if(maps['id' + i]) {
-						var m = new mapOnline(maps['name' + i],
-												maps['nick' + i],
-												parseInt(maps['id' + i]),
-												parseInt(maps['favorite' + i]),
-												parseInt(maps['pop' + i]),
-												parseInt(maps['time' + i]),
-												maps['md5' + i]);
-						var tmp = maps['content' + i].split(",");
-						for(j in tmp) {
-							m.map.push(parseInt(tmp[j]));
-						}
-						
-						if(m.map.length == 769) {
-							m.bg = m.map[m.map.length - 1];
-							m.map.splice(768, 1);
-						}
-						else m.bg = 0;
-						
-						mapsOnline.push(m);
-					}
-				}
-			}
-			$('#loadingButtons').hide();
-			$('#buttons').show();
-		}
-	});
-}
-
 function exitFunc() {
 	unclick();
-	USR_REPLAY = null;
 	sparkles = new Array();
-	fsparkles = new Array();
 	//$("#highscores").slideUp("slow");
 	if(currentMenu == 2) {//campaign
 		ECART_X = 0;
@@ -858,26 +706,6 @@ function exitFunc() {
 		prepareSelectionText();
 		previewMap = currentLevel;
 		loadPreviewMap(previewMap);
-		loadPreviewHighscores(previewMap, 1000);
-	}else if(currentMenu == 4) {
-		ECART_X = 0;
-		ECART_Y = 96;
-		setupDownloadMaps();
-		BG = mapsOnline[previewMap-1].bg;
-		map = new Array();
-		for(i in oldMap) map.push(oldMap[i]);
-		loadPreviewMap(-1);
-	}else if(currentMenu == 5) {
-		ECART_X = 0;
-		ECART_Y = 96;
-		setupDownloadMaps();
-		BG = mapsOnline[previewMap-1].bg;
-		map = new Array();
-		for(i in oldMap) map.push(oldMap[i]);
-		loadPreviewMap(-1);
-		$("#onlineFilter").slideDown("slow");
-		currentMenu = 4;
-		loadOnlinePreviewHighscores(mapsOnline[currentLevel].md5, 1000);		
 	}else if(currentMenu == 6) {
 		currentMenu = 1;
 		selectMenu = 0;
@@ -889,25 +717,12 @@ function exitFunc() {
 	replayMode = false;
 }
 
-function prepareOnlineTxt() {
-	timeWriting = 0;
-	txtLines = new Array();
-	
-	txtLines.push("Welcome to the online maps download center ! Each user uploaded maps can be found in this place.");
-	txtLines.push("Make your choice on the right, click the camera if you want to watch a replay and try to be the");	
-	txtLines.push("fastest ! You can add filters with the menu on the left. If you really like a map and want to vote for");
-	txtLines.push("it, simply add it to your favorites by right clicking its name (a star appears). Have fun !");
-}
-
 function prepareSelectionText() {
 	timeWriting = 0;
 	txtLines = new Array();
 	
 	txtLines.push("Welcome to the campaign mode of StillAliveJS. Here you can select a map on the right and click");
-	txtLines.push("'Play' to play it. You can also review other players' highscores and watch their replay by clicking");	
-	txtLines.push("the little camera next to their time.");
-	txtLines.push(" ");
-	txtLines.push("Do you have what it takes to be the master of the leaderboard ? Good Luck !");
+	txtLines.push("'Play' to play it. Good Luck !");
 }
 
 function manageDownMenu() {
@@ -1788,10 +1603,7 @@ function Tourelle(x, y, dir) {
 						perso.timeVie = 300;
 						perso.vx+=this.dir<<8;
 						this.coolTime = this.startCool;
-						//if(timeShootSound >= 1) {
-							playSfxIfFinished(sfx_shoot);
-							timeShootSound = 0;
-						//} else timeShootSound++;
+						playSfxIfFinished(sfx_shoot);
 						
 						for(var i=0; i<5; i++) {
 							var s = new Sparkle();
@@ -1823,35 +1635,11 @@ function Tourelle(x, y, dir) {
 	}
 }
 
-function viseCaisse(x, y){
-	var i;
-	for(i in caisses){
-		if(!caisses[i].porter){
-			var xc = caisses[i].x>>8;
-			var yc = caisses[i].y>>8;
-			if(x>=xc&&x<=xc+15 && y>=yc&&y<=yc+15) return 1;
-		}
-	}
-	return 0;
-}
-
 function toucheJoueur(j, ySent){
 	var x = perso.x>>8;
 	var y = perso.y>>8;
 	if(j>=x && j<x+15 && ySent>=y && ySent<y+31) return 1;
 	return 0;
-}
-
-function mapOnline(name, author, id, fav, pop, time, md5) {
-	this.map = new Array();
-	this.name = name;
-	this.author = author;
-	this.id = id;
-	this.fav = fav;
-	this.popularity = pop;
-	this.time = time;
-	this.md5 = md5;
-	this.bg = bg;
 }
 
 function Robot() {
@@ -2102,7 +1890,6 @@ function Perso() {
 					loadLevel(currentLevel);
 					if(bossNum > 0) skipComingBoss();
 				}
-				else if(currentMenu == 5) loadLevel(-1);
 			}
 		}
 	}
@@ -3725,24 +3512,6 @@ function toTime(time) {
 	return (m<10 ? "0" : "") + m + ":" + (s<10 ? "0" : "") + parseInt(s) + "." + Math.round(ms);
 }
 
-function roundNumber(num, dec) {
-	var result = Math.round(num*Math.pow(10,dec))/Math.pow(10,dec);
-	return result;
-}
-
-function decimal(num) {
-	var r = num + "";
-	if(r.indexOf('.') > -1) {
-		var dec = r.substring(r.indexOf('.') + 1);
-		while(dec.length < 3) {
-			dec = dec + '0';
-		}
-		return dec;
-	}else {
-		return "000";
-	}
-}
-
 function Campaign(folder) {
 	this.folder = folder;
 	this.levels = new Array();
@@ -3995,12 +3764,6 @@ function loadGfx() {
 		loadedImg++; 
 	}
 	
-	star = new Image();   // Create a new Image object
-	star.src = 'sprites/star.png'; // Set the path to the source
-	star.onload = function() {
-		loadedImg++; 
-	}
-	
 	caisse = new Image();   // Create a new Image object
 	caisse.src = 'sprites/caisse.png'; // Set the path to the source
 	caisse.onload = function() {
@@ -4011,12 +3774,6 @@ function loadGfx() {
 	pauseBG.src = 'menu/pauseBG.png'; // Set the path to the source
 	pauseBG.onload = function() {
 		loadedImg++;
-	}
-	
-	tex_unregistered = new Image();   // Create a new Image object
-	tex_unregistered.src = 'decor/tex_unregistered.png'; // Set the path to the source
-	tex_unregistered.onload = function() {
-		loadedImg++; 
 	}
 	
 	tex_sound = new Image();   // Create a new Image object

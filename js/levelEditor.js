@@ -11,19 +11,12 @@ var isTestingLevel;
 var oldMap;
 var askLoading, askSaving;
 
-var NBCAISSES = 15;
-var NBCAKE = 30;
-var NBTOURELLE = 15;
-
-var canBeUploaded = false;
-
 function startPlayingLevel() {
 	isTestingLevel = true;
 	oldMap = new Array();
 	for(i in map) oldMap.push(map[i]);
 	loadLevelEditor();
 	perso.fadeNextLevel = -1;
-	onlineTime = 0;
 	prepareLvlEditorPlayTxt();
 }
 
@@ -149,28 +142,21 @@ function prepareLvlEditorTxt() {
 	txtLines = new Array();
 	
 	txtLines.push("Welcome to the StillAliveJS Level Editor ! Here is a place where you can easily");
-	txtLines.push("create and share your creations with the entire world. You can use your mouse to");	
-	txtLines.push("select tiles or object and draw them on the screen. Then, try out your map and");
-	txtLines.push("if you finish it, you have the possibility to send it to the server. Have Fun !");
+	txtLines.push("create your own maps. You can use your mouse to select tiles or object and draw");	
+	txtLines.push("them on the screen. Then, try out your map. Have Fun !");
 }
 
 function prepareLvlEditorPlayTxt() {
 	timeWriting = 0;
 	txtLines = new Array();
 	
-	txtLines.push("Don't forget to reach the finish line if you want to be able to upload your map.");
-	txtLines.push('');
 	txtLines.push("Press <Enter> or <Escape> key to stop testing.");	
 }
 
 function drawLevelEditor() {
 	if(isTestingLevel) {
 		levelEditorTestLevel();
-		if(finNiveau()) {
-			stopPlayingLevel();
-			canBeUploaded = true;
-			onlineTime = TIME;
-		}
+		if(finNiveau()) stopPlayingLevel();
 	}
 	else levelEditorManager();
 }
@@ -343,10 +329,6 @@ function menuLoadMap() {
 	ctx.drawImage(crosshair, mouseX - 8, mouseY - 8, 16, 16);
 }
 
-var msgTimer = -1;
-var lvlEditorMsg = "";
-var onlineTime;
-
 function manageEditor() {
 	drawTileMap();
 	manageDrawTile();
@@ -369,7 +351,6 @@ function manageEditor() {
 	else if(mouseInZone(ECART_X + 130, ECART_Y + 394, 120, 24)) overMenu = 4;
 	else if(mouseInZone(ECART_X + 60, ECART_Y + 420, 120, 24)) overMenu = 5;
 	else if(mouseInZone(ECART_X + 60 + 130, ECART_Y + 420, 120, 24)) overMenu = 6;
-	else if(canBeUploaded && mouseInZone(ECART_X + 60 + 260, ECART_Y + 420, 120, 24)) overMenu = 7;
 	
 	var scale1 = overMenu == 1 ? 0.9 : 1;
 	var scale2 = overMenu == 2 ? 0.9 : 1;
@@ -377,7 +358,6 @@ function manageEditor() {
 	var scale4 = overMenu == 4 ? 0.9 : 1;
 	var scale5 = overMenu == 5 ? 0.9 : 1;
 	var scale6 = overMenu == 6 ? 0.9 : 1;
-	var scale7 = overMenu == 7 ? 0.9 : 1;
 	
 	drawTinyButton(ECART_X, ECART_Y + 394, scale3, "Exit");
 	drawTinyButton(ECART_X + 512 - 250, ECART_Y + 394, scale1, "Load");
@@ -385,10 +365,6 @@ function manageEditor() {
 	drawTinyButton(ECART_X + 130, ECART_Y + 394, scale4, "Clear");
 	drawTinyButton(ECART_X + 60, ECART_Y + 420, scale5, "Try Map");
 	drawTinyButton(ECART_X + 60 + 130, ECART_Y + 420, scale6, "Help");
-		
-	if(canBeUploaded) {
-		drawTinyButton(ECART_X + 60 + 260, ECART_Y + 420, scale7, "Upload");
-	}
 	
 	drawText(70, 38, 11);
 	
@@ -431,68 +407,17 @@ function manageEditor() {
 			currentMenu = 1;
 			sparkles = new Array();
 			fadeMenu = 30;
-		}else if(canBeUploaded && overMenu == 7) {//upload
-			jPrompt('Enter Map Name', '', 'StillAliveJS', function(r) {
-				if( r ) {
-					var mapName = '' + r;
-					var reg = new RegExp(/^[\w]{4,15}$/g);
-					if(mapName.length < 4 || mapName.length > 15) {
-						jAlert('Map name must be between 4 and 15 characters long', 'Error');
-						error = true;
-						/*lvlEditorMsg = "Error : Map name must be between 4 and 15 characters long";
-						msgTimer = -1;*/
-					}else if(!reg.test(mapName)){
-						jAlert('Wrong map name. Accepted characters : a to z, 0 to 9 and _', 'Error');
-						error = true;
-						/*lvlEditorMsg = 'Error : Wrong map name. Accepted characters : a to z, 0 to 9 and _';
-						msgTimer = -1;*/
-					} else {
-						$.ajax({
-							type: "POST",
-							url: AJAX_URL,
-							async: false,
-							cache: false,
-							data: "function=uploadMap&time=" + onlineTime + "&nick=" + USR_NICK + "&pwd=" + USR_PWD + "&mapName=" + mapName + "&map=" + map + "," + BG,
-							success: function(shmsg) {
-								var message = jQuery.parseJSON(shmsg);
-								jAlert(message.msg, 'Server Message');
-								/*lvlEditorMsg = message.msg;
-								msgTimer = -1;*/
-							}
-						});
-					}
-				}
-			});
 		}
 	}
-	
-	/*if(lvlEditorMsg != "") {
-		if(msgTimer == -1) msgTimer = 300;
-		else msgTimer--;
-		
-		if(msgTimer == 0) {
-			lvlEditorMsg = "";
-		}
-		
-		var a = parseFloat(msgTimer) / parseFloat(300);
-		ctx.globalAlpha = a;
-		ctx.fillStyle = "rgb(255, 0, 0)";
-		ctx.font = "bold 15px serif";
-		ctx.fillText(lvlEditorMsg, 110, 58);
-		
-		ctx.globalAlpha = 1;
-	}*/
 }
 
 function manageUndoRedo() {
 	if(leftReleased && undoIndex > 0) {
-		canBeUploaded = false;
 		map = new Array();
 		undoIndex--;
 		for(i=0; i<768; i++) map.push(undoMap[undoIndex][i]);
 		redrawTiles = true;
 	}else if(rightReleased && undoIndex + 1 < undoMap.length) {
-		canBeUploaded = false;
 		undoIndex++;
 		map = new Array();
 		for(i=0; i<768; i++) map.push(undoMap[undoIndex][i]);
@@ -785,7 +710,6 @@ function manageDrawTile() {
 			
 			build();
 			redrawTiles = true;
-			canBeUploaded = false;
 		}else if(mouseReleased) {
 			mouseReleased = 0;
 			addUndo();
@@ -794,7 +718,6 @@ function manageDrawTile() {
 }
 
 function addUndo() {
-	canBeUploaded = false;
 	if(undoIndex == 10) {
 		undoMap.splice(0, 1);
 		undoIndex--;

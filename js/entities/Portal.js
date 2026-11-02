@@ -32,8 +32,6 @@ export class Portal {
 		this.plateforme = -1;
 		/** @type {number} The frame of the portal animation. */
 		this.frame = 0;
-		/** @type {number} Always -1. */
-		this.portalNum = -1;
 	}
 
 	/**

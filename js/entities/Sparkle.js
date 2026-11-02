@@ -203,9 +203,9 @@ export class Sparkle {
 		this.x = 0;
 		/** @type {number} The y position in 1/256 pixels. */
 		this.y = 0;
-		/** @type {number} Always 0. */
+		/** @type {number} The x position where a portal glow sparkle starts and restarts, in 1/256 pixels. */
 		this.xOrig = 0;
-		/** @type {number} Always 0. */
+		/** @type {number} The y position where a portal glow sparkle starts and restarts, in 1/256 pixels. */
 		this.yOrig = 0;
 		/** @type {number} The horizontal speed in 1/256 pixels per tick. */
 		this.vx = 0;
@@ -217,5 +217,9 @@ export class Sparkle {
 		this.color = 0;
 		/** @type {number} Ticks since the sparkle landed on the floor, or -1 while it flies. */
 		this.floorTime = -1;
+		/** @type {number} The remaining visibility, which also sets the size; the sparkle goes away at 0. */
+		this.fading = 0;
+		/** @type {number} The index of the portal of a portal glow sparkle, or -1. */
+		this.portalNum = -1;
 	}
 }

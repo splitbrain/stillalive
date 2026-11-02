@@ -24,8 +24,6 @@ export class Robot {
 		this.vy = 0;
 		/** @type {boolean} True while the robot looks or moves. */
 		this.doingAction = false;
-		/** @type {number} The speed of the last look action. */
-		this.actionDir = 0;
 		/** @type {number} The frame of the eye image; 0 is the open eye. */
 		this.eye = 0;
 		/** @type {number} The direction of the blink animation, 1 closing or -1 opening. */
@@ -135,7 +133,6 @@ export class Robot {
 		if (!this.doingAction) {
 			this.doingAction = true;
 			this.vx = 128 * dir;
-			this.actionDir = this.vx;
 		}
 	}
 
@@ -149,7 +146,6 @@ export class Robot {
 		if (!this.doingAction) {
 			this.doingAction = true;
 			this.vy = 128 * dir;
-			this.actionDir = this.vy;
 		}
 	}
 

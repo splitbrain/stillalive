@@ -19,9 +19,5 @@ export class Tunnel {
 		this.pX = 16;
 		/** @type {number} The height in pixels. */
 		this.pY = 32;
-		/** @type {number} Always 0. */
-		this.vx = 0;
-		/** @type {number} Always 0. */
-		this.vy = 0;
 	}
 }

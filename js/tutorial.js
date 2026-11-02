@@ -87,7 +87,7 @@ export function manageTutorial() {
 		} else if (sec >= 0) {
 			drawPortalMessage(sec);
 		} else {
-			drawOpenPortalMessage(sec);
+			drawOpenPortalMessage();
 		}
 	} else if (ui.currentLevel == 4 && !finNiveau()) {
 		if (ui.tutoPause && !ui.tutoPortal) {
@@ -259,10 +259,9 @@ function drawActivatePortalMessage() {
 /**
  * Draw the message after the portals appeared.
  *
- * @param {number} sec Ignored.
  * @returns {void}
  */
-function drawOpenPortalMessage(sec) {
+function drawOpenPortalMessage() {
 	prepareTxtDefault();
 	ctx.fillText('Fully loaded ! Technology is beautiful.', leftPan, game.ECART_Y + 48);
 	ctx.fillText("When you enter a portal, you're teleported in the other one.", leftPan, game.ECART_Y + 48 + 16);
@@ -368,7 +367,6 @@ function displayPortals() {
 	game.portals[0].direction = 3;
 	game.portals[0].frame = 1;
 	game.portals[0].plateforme = -1;
-	game.portals[0].portalNum = -1;
 	game.portals[0].scaleX = 1;
 	game.portals[0].scaleY = 1;
 	game.portals[0].used = 1;
@@ -380,7 +378,6 @@ function displayPortals() {
 	game.portals[1].direction = 2;
 	game.portals[1].frame = 1;
 	game.portals[1].plateforme = -1;
-	game.portals[1].portalNum = -1;
 	game.portals[1].scaleX = 1;
 	game.portals[1].scaleY = 1;
 	game.portals[1].used = 1;

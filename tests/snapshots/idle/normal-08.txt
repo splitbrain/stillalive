@@ -1,0 +1,11 @@
+{"tick":0,"time":0,"perso":[32768,98304,0,-2400,25600,0],"caisses":[],"tourelles":[],"plasma":[],"platforms":[],"portals":[[0,0,false,0],[0,0,false,0]],"cakesLeft":8,"map":[]}
+{"tick":60,"time":30,"perso":[32768,54144,0,-600,25600,0],"caisses":[],"tourelles":[],"plasma":[],"platforms":[],"portals":[[0,0,false,0],[0,0,false,0]],"cakesLeft":8,"map":[]}
+{"tick":120,"time":90,"perso":[32768,110736,0,2640,-214,1],"caisses":[],"tourelles":[],"plasma":[],"platforms":[],"portals":[[0,0,false,0],[0,0,false,0]],"cakesLeft":8,"map":[]}
+{"tick":180,"time":0,"perso":[32768,98304,0,-2400,25600,0],"caisses":[],"tourelles":[],"plasma":[],"platforms":[],"portals":[[0,0,false,0],[0,0,false,0]],"cakesLeft":8,"map":[]}
+{"tick":240,"time":54,"perso":[32768,57696,0,840,25600,0],"caisses":[],"tourelles":[],"plasma":[],"platforms":[],"portals":[[0,0,false,0],[0,0,false,0]],"cakesLeft":8,"map":[]}
+{"tick":300,"time":114,"perso":[32768,110736,0,2640,-70,1],"caisses":[],"tourelles":[],"plasma":[],"platforms":[],"portals":[[0,0,false,0],[0,0,false,0]],"cakesLeft":8,"map":[]}
+{"tick":360,"time":18,"perso":[32768,65328,0,-1320,25600,0],"caisses":[],"tourelles":[],"plasma":[],"platforms":[],"portals":[[0,0,false,0],[0,0,false,0]],"cakesLeft":8,"map":[]}
+{"tick":420,"time":78,"perso":[32768,95808,0,2280,25600,0],"caisses":[],"tourelles":[],"plasma":[],"platforms":[],"portals":[[0,0,false,0],[0,0,false,0]],"cakesLeft":8,"map":[]}
+{"tick":480,"time":0,"perso":[32768,98304,0,-2400,25600,0],"caisses":[],"tourelles":[],"plasma":[],"platforms":[],"portals":[[0,0,false,0],[0,0,false,0]],"cakesLeft":8,"map":[]}
+{"tick":540,"time":42,"perso":[32768,51600,0,120,25600,0],"caisses":[],"tourelles":[],"plasma":[],"platforms":[],"portals":[[0,0,false,0],[0,0,false,0]],"cakesLeft":8,"map":[]}
+{"tick":600,"time":102,"perso":[32768,110736,0,2640,-142,1],"caisses":[],"tourelles":[],"plasma":[],"platforms":[],"portals":[[0,0,false,0],[0,0,false,0]],"cakesLeft":8,"map":[]}

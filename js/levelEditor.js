@@ -1,17 +1,20 @@
-var selectedTile, selectedSprite;
-var tilesToDraw;
-var redrawTiles;
-var tilesBuff;
-var undoMap;
-var undoIndex;
+"use strict";
 
-var leftReleased, rightReleased;
-var oldMouseReleased = 0;
-var isTestingLevel;
-var oldMap, oldBG;
-var askLoading, askSaving;
+let selectedTile, selectedSprite;
+let tilesToDraw;
+let redrawTiles;
+let tilesBuff;
+let undoMap;
+let undoIndex;
+
+let leftReleased, rightReleased;
+let oldMouseReleased = 0;
+let isTestingLevel;
+let oldMap, oldBG;
+let askLoading, askSaving;
 
 function startPlayingLevel() {
+	let i;
 	isTestingLevel = true;
 	oldMap = new Array();
 	for(i in map) oldMap.push(map[i]);
@@ -21,6 +24,7 @@ function startPlayingLevel() {
 }
 
 function stopPlayingLevel() {
+	let i;
 	portals = new Array();
 	portals.push(new Portal());portals.push(new Portal());
 	unclick();
@@ -53,7 +57,7 @@ function drawTestLevel() {
 	
 	perso.flip = mouseX > (perso.x >> 8) + (perso.pX >> 1) + ECART_X ? perso.flip = 1 : perso.flip = -1;
 	
-	var a = getAngle((perso.x>>8) + (perso.pX>>1) + ECART_X, (perso.y>>8) + (perso.pY>>1) + ECART_Y, mouseX, mouseY);
+	const a = getAngle((perso.x>>8) + (perso.pX>>1) + ECART_X, (perso.y>>8) + (perso.pY>>1) + ECART_Y, mouseX, mouseY);
 	ctx.save();
 	ctx.translate((perso.x>>8) + (perso.pX>>1) + ECART_X, (perso.y>>8) + (perso.pY>>1) + ECART_Y);
 	ctx.rotate(a);
@@ -62,7 +66,7 @@ function drawTestLevel() {
 	
 	drawTunnels();
 
-	var flipDx =  perso.flip < 0 ? 1 : 0;
+	const flipDx =  perso.flip < 0 ? 1 : 0;
 	// image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight
 	ctx.drawImage(head[flipDx], perso.animeFrame * 16, 0, 15, 12, ((perso.x>>8) + ECART_X), (perso.y>>8) + ECART_Y, 16, 12); 
 	ctx.drawImage(body[flipDx], perso.animeFrame * 16, 0, 16, 27, ((perso.x>>8) + ECART_X), (perso.y>>8) + ECART_Y, 16, 27);
@@ -94,6 +98,7 @@ function drawTestLevel() {
 }
 
 function lvlEditorSetup() {
+	let i;
 	BG = 0;
 	askLoading = false;
 	askSaving = false;
@@ -113,7 +118,7 @@ function lvlEditorSetup() {
 	tilesToDraw = new Array();
 	tilesToDraw.push(0);
 	tilesToDraw.push(1);
-	for(var i=17; i<24; i++) tilesToDraw.push(i);
+	for(i = 17; i<24; i++) tilesToDraw.push(i);
 	tilesToDraw.push(29);
 	tilesToDraw.push(36);
 	tilesToDraw.push(38);
@@ -172,12 +177,13 @@ function levelEditorManager() {
 }
 
 function menuSaveMap() {
+	let i;
 	if(previewMap < 1 || getEditorMap(previewMap) == null) ctx.drawImage(noLevel, ECART_X, ECART_Y);
 	else if(previewMap > 0) drawPreviewMap();	
 	ctx.drawImage(mapSelection, 0, 0);
 	
 	if(mouseInZone(529, 117, 90, 29 * 12)) {
-		var y = parseInt((mouseY - 105)/12);
+		const y = parseInt((mouseY - 105)/12);
 		if(y <= 28) {
 			ctx.fillStyle = "rgb(15, 112, 144)";
 			//noStroke();
@@ -191,9 +197,9 @@ function menuSaveMap() {
 		}
 	}
 	
-	var overMenu = -1;
+	let overMenu = -1;
 	if(mouseInZone(20, 495, 120, 24)) overMenu = 2;
-	var scale2 = overMenu == 2 ? 0.9 : 1;
+	const scale2 = overMenu == 2 ? 0.9 : 1;
 	drawTinyButton(20, 495, scale2, "Exit");
 	
 	if(previewMap > 0) {
@@ -202,7 +208,7 @@ function menuSaveMap() {
 		ctx.fillRect(529, 105 + (previewMap * 12) + 2, 90, 14);
 		
 		if(mouseInZone(515, 495, 120, 24)) overMenu = 1;
-		var scale1 = overMenu == 1 ? 0.9 : 1;
+		const scale1 = overMenu == 1 ? 0.9 : 1;
 
 		drawTinyButton(515, 495, scale1, "Save");
 	}
@@ -262,7 +268,7 @@ function menuSaveMap() {
  * @param {number} slot The slot number, starting at 1.
  */
 function showEditorMap(slot) {
-	var stored = getEditorMap(slot);
+	const stored = getEditorMap(slot);
 	if(stored == null) return;
 	map = stored.tiles.slice();
 	BG = stored.bg;
@@ -292,12 +298,13 @@ function startMapImport() {
 }
 
 function menuLoadMap() {
+	let i;
 	if(previewMap < 1) ctx.drawImage(noLevel, ECART_X, ECART_Y);
 	if(previewMap > 0) drawPreviewMap();			
 	ctx.drawImage(mapSelection, 0, 0);
 	
 	if(mouseInZone(529, 117, 90, 29 * 12)) {
-		var y = parseInt((mouseY - 105)/12);
+		const y = parseInt((mouseY - 105)/12);
 		if(y <= 28 && getEditorMap(y) != null) {
 			ctx.fillStyle = "rgb(15, 112, 144)";
 			//noStroke();
@@ -311,9 +318,9 @@ function menuLoadMap() {
 		}
 	}
 	
-	var overMenu = -1;
+	let overMenu = -1;
 	if(mouseInZone(20, 495, 120, 24)) overMenu = 2;
-	var scale2 = overMenu == 2 ? 0.9 : 1;
+	const scale2 = overMenu == 2 ? 0.9 : 1;
 	drawTinyButton(20, 495, scale2, "Exit");
 	
 	if(previewMap > 0) {
@@ -322,7 +329,7 @@ function menuLoadMap() {
 		ctx.fillRect(529, 105 + (previewMap * 12) + 2, 90, 14);
 		
 		if(mouseInZone(515, 495, 120, 24)) overMenu = 1;
-		var scale1 = overMenu == 1 ? 0.9 : 1;
+		const scale1 = overMenu == 1 ? 0.9 : 1;
 
 		drawTinyButton(515, 495, scale1, "Load");
 		
@@ -377,6 +384,7 @@ function menuLoadMap() {
 }
 
 function manageEditor() {
+	let i;
 	drawTileMap();
 	manageDrawTile();
 	manageDrawSprite();
@@ -391,7 +399,7 @@ function manageEditor() {
 	if(oldMouseReleased == 1 && mouseReleased == 1) mouseReleased = 0;
 	oldMouseReleased = mouseReleased;
 	
-	var overMenu = -1;
+	let overMenu = -1;
 	if(mouseInZone(ECART_X + 512 - 250, ECART_Y + 394, 120, 24)) overMenu = 1;
 	else if(mouseInZone(ECART_X + 512 - 120, ECART_Y + 394, 120, 24)) overMenu = 2;
 	else if(mouseInZone(ECART_X, ECART_Y + 394, 120, 24)) overMenu = 3;
@@ -399,12 +407,12 @@ function manageEditor() {
 	else if(mouseInZone(ECART_X + 60, ECART_Y + 420, 120, 24)) overMenu = 5;
 	else if(mouseInZone(ECART_X + 60 + 130, ECART_Y + 420, 120, 24)) overMenu = 6;
 	
-	var scale1 = overMenu == 1 ? 0.9 : 1;
-	var scale2 = overMenu == 2 ? 0.9 : 1;
-	var scale3 = overMenu == 3 ? 0.9 : 1;
-	var scale4 = overMenu == 4 ? 0.9 : 1;
-	var scale5 = overMenu == 5 ? 0.9 : 1;
-	var scale6 = overMenu == 6 ? 0.9 : 1;
+	const scale1 = overMenu == 1 ? 0.9 : 1;
+	const scale2 = overMenu == 2 ? 0.9 : 1;
+	const scale3 = overMenu == 3 ? 0.9 : 1;
+	const scale4 = overMenu == 4 ? 0.9 : 1;
+	const scale5 = overMenu == 5 ? 0.9 : 1;
+	const scale6 = overMenu == 6 ? 0.9 : 1;
 	
 	drawTinyButton(ECART_X, ECART_Y + 394, scale3, "Exit");
 	drawTinyButton(ECART_X + 512 - 250, ECART_Y + 394, scale1, "Load");
@@ -461,6 +469,7 @@ function manageEditor() {
 }
 
 function manageUndoRedo() {
+	let i;
 	if(leftReleased && undoIndex > 0) {
 		map = new Array();
 		undoIndex--;
@@ -477,6 +486,7 @@ function manageUndoRedo() {
 }
 
 function recreateSprites() {
+	let i;
 	cakes = new Array();
 	tourelles = new Array();
 	caisses = new Array();
@@ -488,8 +498,8 @@ function recreateSprites() {
 	perso.fadeNextLevel = 0;
 	
 	for(i in map) {
-		var y = i >> 5;
-		var x = i - (y << 5);
+		const y = i >> 5;
+		const x = i - (y << 5);
 		
 		if(map[i] == 109) {//top tunnel
 			tunnels.push(new Tunnel((x*16) << 8, (y*16) << 8, HAUT));
@@ -535,15 +545,15 @@ function drawSprites() {
 }
 
 function drawTileMap() {
+	let y, x, haut, bas, gauche, droite, i;
 	if(redrawTiles) {
 		ctx.drawImage(bg[BG], ECART_X, ECART_Y, 512, 384);
 		ctx.fillStyle = "rgba(255, 0, 0, 0.7)";
 		for(i in map) {
 			if(map[i] == 20) {
-				var y = i >> 5;
-				var x = i - (y << 5);
+				y = i >> 5;
+				x = i - (y << 5);
 				
-				var haut,bas,gauche,droite;
 				haut = isTileHere(x,y-1);
 				bas = isTileHere(x,y+1);
 				gauche = isTileHere(x-1,y);
@@ -562,8 +572,8 @@ function drawTileMap() {
 		
 		for(i in map) {
 			if(map[i] < NUM_TILES && map[i] > 0) {
-				var y = i >> 5;
-				var x = i - (y << 5);
+				y = i >> 5;
+				x = i - (y << 5);
 				ctx.drawImage(tileset[map[i]], x*16 + ECART_X, y*16 + ECART_Y);
 			}
 		}
@@ -577,9 +587,10 @@ function drawTileMap() {
 }
 
 function manageDrawSprite() {
+	let i;
 	if(mouseInZone(ECART_X, ECART_Y, 512, 384) && selectedSprite > 0) {
-		var x = (mouseX >> 4) << 4;
-		var y = (mouseY >> 4) << 4;
+		let x = (mouseX >> 4) << 4;
+		let y = (mouseY >> 4) << 4;
 		if(selectedSprite == 1) ctx.drawImage(cake, x, y);
 		else if(selectedSprite == 2) ctx.drawImage(caisse, x, y);
 		else if(selectedSprite == 3) ctx.drawImage(tourelle[0], 0, 0, 16, 32, x, y, 16, 32);
@@ -609,7 +620,7 @@ function manageDrawSprite() {
 		}
 		
 		if(mousePressed) {
-			var arrEquiv = new Array();
+			const arrEquiv = new Array();
 			
 			arrEquiv.push(103); // cake
 			arrEquiv.push(102); // crate
@@ -625,10 +636,10 @@ function manageDrawSprite() {
 			
 			x -= ECART_X; 
 			y -= ECART_Y;
-			var xt = x >> 4;
-			var yt = y >> 4;
+			const xt = x >> 4;
+			const yt = y >> 4;
 			
-			var tile = ((y>>4)*32) + (x>>4);
+			const tile = ((y>>4)*32) + (x>>4);
 			if(mouseButton == LEFT) {
 				if(arrEquiv[selectedSprite - 1] == 104) {
 					for(i in map) {
@@ -676,7 +687,8 @@ function allowTile(tile) {
 }
 
 function countTile(tile) {
-	var c = 0;
+	let i;
+	let c = 0;
 	for(i in map) {
 		if(map[i] == tile) c++;
 	}
@@ -685,13 +697,14 @@ function countTile(tile) {
 }
 
 function eraseSprites(til, xt, yt) {
+	let h, t;
 	if(til == 105 || til == 106 || til == 109 || til == 110) { // sprite horizontal
-		for(var h = 1; h<3; h++) {
+		for(h = 1; h<3; h++) {
 			if(h == 2 && til >= 109) continue;
 			if(xt + h < 32) {
 				map[yt*32 + xt + h] = 0;
 				if(yt - 1 >= 0) {
-					var t = map[(yt-1)*32 + xt + h];
+					t = map[(yt-1)*32 + xt + h];
 					if(t == 104 || t == 100 || t == 101 || (t >= 107 && t <= 110)) map[(yt-1)*32 + xt + h] = 0;
 				}
 			}
@@ -700,9 +713,9 @@ function eraseSprites(til, xt, yt) {
 	if(til == 104 || til == 100 || til == 101 || til == 107 || til == 108) { // vertical sprite
 		if(yt + 1 < 24) {
 			map[(yt+1)*32 + xt] = 0;
-			for(var h = 1; h<3; h++) {
+			for(h = 1; h<3; h++) {
 				if(xt - h >= 0) {
-					var t = map[(yt+1)*32 + xt - h];
+					t = map[(yt+1)*32 + xt - h];
 					if(t == 105 || t == 106 || t == 109 || t == 110) map[(yt+1)*32 + xt - h] = 0;
 				}
 			}
@@ -710,12 +723,12 @@ function eraseSprites(til, xt, yt) {
 	}
 	
 	if(yt - 1 >= 0) {
-		var t = map[(yt-1)*32 + xt];
+		t = map[(yt-1)*32 + xt];
 		if(t == 104 || t == 100 || t == 101 || (t >= 107 && t <= 110)) map[(yt-1)*32 + xt] = 0;
 	}
-	for(var h = 1; h<3; h++) {
+	for(h = 1; h<3; h++) {
 		if(xt - h >= 0) {
-			var t = map[yt*32 + xt - h];
+			t = map[yt*32 + xt - h];
 			if(t == 105 || t == 106) map[yt*32 + xt - h] = 0;
 			else if((t == 109 || t == 110) && h < 2) map[yt*32 + xt - h] = 0;
 		}
@@ -723,9 +736,10 @@ function eraseSprites(til, xt, yt) {
 }
 
 function manageDrawTile() {
+	let i;
 	if(mouseInZone(ECART_X, ECART_Y, 512, 384) && selectedTile > -1) {
-		var x = (mouseX >> 4) << 4;
-		var y = (mouseY >> 4) << 4;
+		let x = (mouseX >> 4) << 4;
+		let y = (mouseY >> 4) << 4;
 		ctx.drawImage(tileset[tilesToDraw[selectedTile]], x, y);
 		ctx.strokeStyle = "rgb(255, 0, 0)";
 		ctx.lineWidth = 1;
@@ -734,7 +748,7 @@ function manageDrawTile() {
 		if(mousePressed) {
 			x -= ECART_X;
 			y -= ECART_Y; 
-			var tile = ((y>>4)*32) + (x>>4);
+			const tile = ((y>>4)*32) + (x>>4);
 			if(mouseButton == LEFT) {
 				if(tilesToDraw[selectedTile] == 20) {
 					for(i in map) {	
@@ -749,11 +763,11 @@ function manageDrawTile() {
 			else if(mouseButton == RIGHT) map[tile] = 0;
 			else if(mouseButton == MIDDLE) fill(tilesToDraw[selectedTile], map[tile], x >> 4, y >> 4);
 			
-			var xt = x >> 4;
-			var yt = y >> 4;
+			const xt = x >> 4;
+			const yt = y >> 4;
 			
 			if(yt - 1 >= 0) {
-				var t = map[(yt-1)*32 + xt];
+				const t = map[(yt-1)*32 + xt];
 				if(t == 104 || t == 100 || t == 101 || (t >= 107 && t <= 110)) map[(yt-1)*32 + xt] = 0;
 			}
 			
@@ -767,6 +781,7 @@ function manageDrawTile() {
 }
 
 function addUndo() {
+	let i;
 	if(undoIndex == 10) {
 		undoMap.splice(0, 1);
 		undoIndex--;
@@ -776,16 +791,17 @@ function addUndo() {
 	for(i=0; i<768; i++) undoMap[undoIndex].push(map[i]);
 	
 	if(undoIndex < undoMap.length - 1) {
-		var r = undoMap.length - 1 - undoIndex;
+		const r = undoMap.length - 1 - undoIndex;
 		for(i=0; i<r; i++) undoMap.pop();
 	}
 }
 
 function manageSpriteSelection() {
+	let x, y, inZone;
 	if(mouseInZone(580, 140, 56, 216)) {
-		var x = 584;
-		var y = 142;
-		var inZone = 0;
+		x = 584;
+		y = 142;
+		inZone = 0;
 		ctx.fillStyle = "rgb(255, 0, 0)";
 		if(mouseInZone(x, y, 16, 16)) {//cake
 			inZone = 1;
@@ -852,8 +868,8 @@ function manageSpriteSelection() {
 	}
 	
 	if(selectedSprite > 0) {
-		var x = 584;
-		var y = 142;
+		x = 584;
+		y = 142;
 		ctx.fillStyle = "rgb(0, 255, 0)";
 		if(selectedSprite == 1) ctx.fillRect(x - 2, y - 2, 20, 20);
 		else if(selectedSprite == 2) ctx.fillRect(x + 24 - 2, y - 2, 20, 20);
@@ -871,9 +887,10 @@ function manageSpriteSelection() {
 
 function manageTileSelection() {
 	
+	let x, y;
 	if(mouseInZone(4, 140, 56, 118)) {
-		var x = mouseX;
-		var y = mouseY;
+		x = mouseX;
+		y = mouseY;
 		
 		x = (parseInt(x / 20) * 20) + 2;
 		y = (parseInt(y / 20) * 20) - 4;
@@ -883,8 +900,8 @@ function manageTileSelection() {
 		if(mouseNewPress) {
 			unclick();
 			selectedSprite = -1;
-			var xt = parseInt(x / 20);
-			var yt = parseInt((y - 136) / 20);
+			const xt = parseInt(x / 20);
+			const yt = parseInt((y - 136) / 20);
 			selectedTile =  xt + yt * 3;
 		}
 	}
@@ -892,16 +909,16 @@ function manageTileSelection() {
 	if(selectedTile > -1) {
 		ctx.fillStyle = "rgb(0, 255, 0)";
 		
-		var x = (selectedTile%3) * 20 + 2;
-		var y = parseInt(selectedTile/3) * 20 + 136;
+		x = (selectedTile%3) * 20 + 2;
+		y = parseInt(selectedTile/3) * 20 + 136;
 		
 		ctx.fillRect(x, y, 20, 20);
 	}
 }
 
 function drawRightSprites() {
-	var x = 584;
-	var y = 142;
+	const x = 584;
+	const y = 142;
 	
 	ctx.drawImage(cake, x, y);
 	ctx.drawImage(caisse, x + 24, y);
@@ -926,8 +943,9 @@ function drawRightSprites() {
 }
 
 function drawLeftTiles() {
-	var x = 4;
-	var y = 138;
+	let i;
+	let x = 4;
+	let y = 138;
 	
 	for(i in tilesToDraw) {
 		ctx.drawImage(tileset[tilesToDraw[i]], x, y);
@@ -944,7 +962,7 @@ function drawLeftTiles() {
 }
 
 function build() {
-	var i;
+	let haut, bas, gauche, droite, i;
 	for(i=0;i<768;i++){
 		/*if(map[i]==13){
 			var y = (i/32);
@@ -961,9 +979,8 @@ function build() {
 		}*/
 		
 		if(isTileMurBleu(i)){
-			var y = i >> 5;
-			var x = i - (y<<5);
-			var haut,bas,gauche,droite;
+			const y = i >> 5;
+			const x = i - (y<<5);
 			
 			haut = isTileHere(x,y-1);
 			bas = isTileHere(x,y+1);
@@ -1008,47 +1025,44 @@ function build() {
 }
 
 function fill(tile, toFill, x, y){
-	var tmpMap = new Array();
+	let j, k, i;
+	const tmpMap = new Array();
 	for(i=0;i<768;i++){
 		tmpMap.push(-1);
 	}
 
-	var tileCourant = 0;
-	var tTile = 1;
+	let tileCourant = 0;
+	let tTile = 1;
 	tmpMap[tileCourant] = x+(y<<5);
 
 	while(tileCourant<768 && tmpMap[tileCourant]!=-1){
-		var t = tmpMap[tileCourant];
+		const t = tmpMap[tileCourant];
 		y = (t>>5);
 		x = t - (y<<5);
 		map[x+(y<<5)] = tile;
 		if(x<31 && map[x+1+(y<<5)] == toFill){
-			var j = true;
-			var k;
+			j = true;
 			for(k=0;k<tTile;k++){
 				if(tmpMap[k]==x+1+(y<<5)) j = false;
 			}
 			if(j) tmpMap[tTile++] = x+1+(y<<5);
 		}
 		if(x>0 && map[x-1+(y<<5)] == toFill){
-			var j = true;
-			var k;
+			j = true;
 			for(k=0;k<tTile;k++){
 				if(tmpMap[k]==x-1+(y<<5)) j = false;
 			}
 			if(j) tmpMap[tTile++] = x-1+(y<<5);
 		}
 		if(y<23 && map[x+((y+1)<<5)] == toFill){
-			var j = true;
-			var k;
+			j = true;
 			for(k=0;k<tTile;k++){
 				if(tmpMap[k]==x+((y+1)<<5)) j = false;
 			}
 			if(j) tmpMap[tTile++] = x+((y+1)<<5);
 		}
 		if(y>0 && map[x+((y-1)<<5)] == toFill){
-			var j = true;
-			var k;
+			j = true;
 			for(k=0;k<tTile;k++){
 				if(tmpMap[k]==x+((y-1)<<5)) j = false;
 			}
@@ -1059,7 +1073,7 @@ function fill(tile, toFill, x, y){
 }
 
 function isTileMurBleu(index){
-	var i;
+	let i;
 	for(i=1;i<17;i++){
 		if(map[index]==i) return true;
 	}
@@ -1069,7 +1083,7 @@ function isTileMurBleu(index){
 function isTileHere(x, y){
 	if(x<0||x>31||y<0||y>23) return 1;
 	if(map[x+y*32] >= 54 && map[x+y*32] <= 57) return 1;
-	var i;
+	let i;
 	for(i=1;i<19;i++){
 		if(map[x+y*32]==i) return 1
 	}

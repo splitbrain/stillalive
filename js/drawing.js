@@ -1,4 +1,7 @@
+"use strict";
+
 function drawLowQualityPortals() {
+	let i;
 	if(quality == 0 && perso.timePosePortal < 5) {
 		ctx.lineWidth = 3;
 		for(i in portalLines) {
@@ -14,7 +17,7 @@ function drawLowQualityPortals() {
 
 function drawPortalGun() {
 	if(currentMenu != 6 || tutoPortal) {
-		var a = getAngle((perso.x>>8) + (perso.pX>>1) + ECART_X, (perso.y>>8) + (perso.pY>>1) + ECART_Y, mouseX, mouseY);
+		const a = getAngle((perso.x>>8) + (perso.pX>>1) + ECART_X, (perso.y>>8) + (perso.pY>>1) + ECART_Y, mouseX, mouseY);
 		ctx.save();
 		ctx.translate((perso.x>>8) + (perso.pX>>1) + ECART_X, (perso.y>>8) + (perso.pY>>1) + ECART_Y);
 		ctx.rotate(a);
@@ -24,10 +27,10 @@ function drawPortalGun() {
 }
 
 function drawRotatedHead(flipDx) {
-	var a = getAngle((perso.x>>8) + (perso.pX>>1) + ECART_X, (perso.y>>8) + (perso.pY>>1) + ECART_Y, mouseX, mouseY);
+	let a = getAngle((perso.x>>8) + (perso.pX>>1) + ECART_X, (perso.y>>8) + (perso.pY>>1) + ECART_Y, mouseX, mouseY);
 	ctx.save();
 	ctx.translate(((perso.x>>8) + ECART_X) + 8, (perso.y>>8) + ECART_Y + 6);
-	var ad = radToDeg(a);
+	let ad = radToDeg(a);
 	
 	if(!flipDx) {
 		if(ad > 15) ad = 15;
@@ -55,7 +58,7 @@ function drawRotatedHead(flipDx) {
  * @returns {OffscreenCanvas} The copy.
  */
 function copyCanvas(x, y, w, h) {
-	var copy = new OffscreenCanvas(w, h);
+	const copy = new OffscreenCanvas(w, h);
 	copy.getContext('2d').drawImage(ctx.canvas, x, y, w, h, 0, 0, w, h);
 	return copy;
 }
@@ -91,7 +94,7 @@ function drawAllGame() {
 	
 	drawTunnels();
 	
-	var flipDx =  perso.flip < 0 ? 1 : 0;
+	const flipDx =  perso.flip < 0 ? 1 : 0;
 	// image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight
 	if(!flipDx) drawPortalGun();
 	drawRotatedHead(flipDx);
@@ -143,7 +146,7 @@ function drawAllGame() {
 	if(currentMenu == 6) manageTutorial();
 	
 	if(perso.mort) {
-		var a = -(perso.vie / 256);
+		const a = -(perso.vie / 256);
 		ctx.fillStyle = "rgba(0, 0, 0," + (1 - a) + ")";
 		//noStroke();
 		ctx.fillRect(ECART_X, ECART_Y, 512, 384);
@@ -181,7 +184,7 @@ function drawAllGame() {
  * offset, so random offsets would change the result of a replay. The offset changes every third tick.
  */
 function shakeScreen() {
-	var step = Math.floor(TIME / 3);
+	const step = Math.floor(TIME / 3);
 	ECART_X = 64 + shakeOffset(step * 2);
 	ECART_Y = 96 + shakeOffset(step * 2 + 1);
 }
@@ -193,7 +196,7 @@ function shakeScreen() {
  * @returns {number} An offset from -3 to 2 pixels, the same range as random(-3, 3).
  */
 function shakeOffset(n) {
-	var h = Math.imul(n ^ 0x9e3779b9, 0x85ebca6b);
+	let h = Math.imul(n ^ 0x9e3779b9, 0x85ebca6b);
 	h ^= h >>> 13;
 	h = Math.imul(h, 0xc2b2ae35);
 	h ^= h >>> 16;
@@ -204,13 +207,13 @@ function drawKeys() {
 	ctx.font = "bold 12px Arial";
 	ctx.fillStyle = "rgb(0, 0, 0)";
 
-	var z = KEY_Z & keys ? 1 : 0;
-	var q = KEY_Q & keys ? 1 : 0;
-	var d = KEY_D & keys ? 1 : 0;
-	var e = KEY_E & keys ? 1 : 0;
-	var s = KEY_S & keys ? 1 : 0;
-	var ml = MSE_L & keys ? 1 : 0;
-	var mr = MSE_R & keys ? 1 : 0;
+	const z = KEY_Z & keys ? 1 : 0;
+	const q = KEY_Q & keys ? 1 : 0;
+	const d = KEY_D & keys ? 1 : 0;
+	const e = KEY_E & keys ? 1 : 0;
+	const s = KEY_S & keys ? 1 : 0;
+	const ml = MSE_L & keys ? 1 : 0;
+	const mr = MSE_R & keys ? 1 : 0;
 	
 	ctx.drawImage(key, 0, z * 24, 24, 24, 525, 485, 24, 24);ctx.fillText("Z", 525 + 6, 485 + 16);
 	ctx.drawImage(key, 0, e * 24, 24, 24, 525 + 26, 485, 24, 24);ctx.fillText("E", 525 + 26 + 6, 485 + 16);
@@ -225,7 +228,7 @@ function drawKeys() {
 
 function drawRobot() {
 	if(bossNum <= 0) {
-		var eye = 0;
+		let eye = 0;
 		if(lvlType == 4) {
 			if(currentLevel <= 7) eye = 0;
 			else if(currentLevel <= 14) eye = 1;
@@ -238,7 +241,7 @@ function drawRobot() {
 		robot.move();
 		
 		if(!robot.doingAction) {
-			var r = parseInt(random(1, 800));
+			const r = parseInt(random(1, 800));
 			if(r == 1) robot.lookLeftRight(-1);
 			else if(r == 2) robot.lookLeftRight(1);
 			else if(r == 3) robot.lookUpDown(-1);
@@ -257,18 +260,18 @@ function drawPauseMenu() {
 	ctx.drawImage(pauseBG, ECART_X, ECART_Y);
 	
 	ctx.fillStyle = "rgb(255, 255, 255)";
-	var overMenu = -1;
+	let overMenu = -1;
 	if(mouseInZone(50 + ECART_X, 180 + ECART_Y, 120, 24)) overMenu = 1;//continue
 	else if(currentMenu != 6 && mouseInZone(187 + ECART_X, 180 + ECART_Y, 120, 24)) overMenu = 2;//Restart
 	else if(mouseInZone(324 + ECART_X, 180 + ECART_Y, 120, 24)) overMenu = 3;//exit
 	else if(currentMenu != 6 && mouseInZone(127 + ECART_X, 340 + ECART_Y, 120, 24)) overMenu = 4;//quality
 	else if(currentMenu != 6 && mouseInZone(247 + ECART_X, 340 + ECART_Y, 120, 24)) overMenu = 5;//sound
 	
-	var scale1 = overMenu == 1 ? 0.9 : 1;
-	var scale2 = overMenu == 2 ? 0.9 : 1;
-	var scale3 = overMenu == 3 ? 0.9 : 1;
-	var scale4 = overMenu == 4 ? 0.9 : 1;
-	var scale5 = overMenu == 5 ? 0.9 : 1;
+	const scale1 = overMenu == 1 ? 0.9 : 1;
+	const scale2 = overMenu == 2 ? 0.9 : 1;
+	const scale3 = overMenu == 3 ? 0.9 : 1;
+	const scale4 = overMenu == 4 ? 0.9 : 1;
+	const scale5 = overMenu == 5 ? 0.9 : 1;
 	
 	drawTinyButton(ECART_X + 50, ECART_Y + 180, scale1, "Resume");
 	if(currentMenu != 6) drawTinyButton(ECART_X + 187, ECART_Y + 180, scale2, "Restart");
@@ -319,13 +322,13 @@ function drawPauseMenu() {
 	ctx.drawImage(crosshair, mouseX - 8, mouseY - 8, 16, 16);
 }
 
-var timeSplash = 0;
-var timeExit = 0;
-var tailsVY = blackosVY = 0;
-var tailsY = -100;
-var blackosY  = -100;
-var titleY = -50;
-var titleVY = 0;
+let timeSplash = 0;
+let timeExit = 0;
+let tailsVY = 0, blackosVY = 0;
+let tailsY = -100;
+let blackosY  = -100;
+let titleY = -50;
+let titleVY = 0;
 
 function drawSplash() {
 	ctx.fillStyle = "rgb(0, 0, 0)";
@@ -463,7 +466,7 @@ function drawLoadingScreen() {
 	ctx.fillText((parseInt(levelsLoaded / levelsToLoad * 100)) + "%", 100, 70);
 	ctx.fillText((parseInt(soundProgress() * 100)) + "%", 100, 110);
 	
-	var missing = missingImages();
+	const missing = missingImages();
 	if(missing.length > 0) {
 		ctx.fillStyle = "rgb(255, 0, 0)";
 		ctx.fillText("Some images could not be loaded: " + missing.join(", "), 10, 160);
@@ -471,10 +474,10 @@ function drawLoadingScreen() {
 	}
 	
 	//make sure img in the menu are loaded
-	var imagesReady = areImagesLoaded([body[0], body[1], head[0], head[1], controls, crosshair, bluePortal, redPortal]);
+	const imagesReady = areImagesLoaded([body[0], body[1], head[0], head[1], controls, crosshair, bluePortal, redPortal]);
 	if(imagesReady) {
-		var dx = 225;
-		var dy = 190;
+		const dx = 225;
+		const dy = 190;
 		ctx.drawImage(controls, dx, dy);
 		
 		drawPerso(62 + dx, dy, -1);
@@ -505,13 +508,14 @@ function drawLoadingScreen() {
 }
 
 function drawMapSelection() {
+	let scale3, i;
 	if(previewMap < 1) ctx.drawImage(noLevel, ECART_X, ECART_Y);
 	if(previewMap > 0) drawPreviewMap();			
 	ctx.drawImage(mapSelection, 0, 0);
 	
 	if(mouseX >= 529 && mouseX <= 529 + 90) {
 		if(mouseY >= 12 + 105 && mouseY <= 104 + (29 * 12)) {
-			var y = parseInt((mouseY - 105)/12);
+			const y = parseInt((mouseY - 105)/12);
 			if(y <= maxLevel[lvlType]) {
 				ctx.fillStyle = "rgb(15, 112, 144)";
 				//noStroke();
@@ -529,9 +533,9 @@ function drawMapSelection() {
 		}
 	}
 	
-	var overMenu = -1;
+	let overMenu = -1;
 	if(mouseInZone(20, 495, 120, 24)) overMenu = 2;
-	var scale2 = overMenu == 2 ? 0.9 : 1;
+	const scale2 = overMenu == 2 ? 0.9 : 1;
 	drawTinyButton(20, 495, scale2, "Exit");
 	
 	if(previewMap > 0) {
@@ -540,18 +544,18 @@ function drawMapSelection() {
 		ctx.fillRect(529, 105 + (previewMap * 12) + 2, 90, 14);
 		
 		if(mouseInZone(515, 495, 120, 24)) overMenu = 1;
-		var scale1 = overMenu == 1 ? 0.9 : 1;
+		const scale1 = overMenu == 1 ? 0.9 : 1;
 
 		drawTinyButton(515, 495, scale1, "Play");
 	}
 	
 	if(lvlType == 0 && maxLevel[0]==29) {
 		if(mouseInZone(380, 495, 120, 24)) overMenu = 3;
-		var scale3 = overMenu == 3 ? 0.9 : 1;
+		scale3 = overMenu == 3 ? 0.9 : 1;
 		drawTinyButton(380, 495, scale3, "Hard Mode");
 	}else if(lvlType == 1) {
 		if(mouseInZone(380, 495, 120, 24)) overMenu = 3;
-		var scale3 = overMenu == 3 ? 0.9 : 1;
+		scale3 = overMenu == 3 ? 0.9 : 1;
 		drawTinyButton(380, 495, scale3, "Normal Mode");
 	}
 	
@@ -604,7 +608,7 @@ function drawBigButton(x, y, scale, text) {
 	ctx.font = "36px yikes";
 	if(scale != 1) ctx.font = "34px yikes";
 	
-	var metrics = ctx.measureText(text);
+	const metrics = ctx.measureText(text);
 	x -= metrics.width / 2;
 	y += 45;
 	
@@ -622,7 +626,7 @@ function drawTinyButton(x, y, scale, text) {
 
 	ctx.font = "16px yikes";
 	if(scale != 1) ctx.font = "14px yikes";
-	var metrics = ctx.measureText(text);
+	const metrics = ctx.measureText(text);
 	x -= metrics.width / 2;
 	y += 18;
 	
@@ -633,30 +637,31 @@ function drawTinyButton(x, y, scale, text) {
 	ctx.fillText(text, x, y);
 }
 
-var fadeMenu;
+let fadeMenu;
 
 function drawMainMenu() {
+	let pX, pY, pX2;
 	ctx.strokeStyle = "rgb(0, 0, 0)";
 	ctx.fillStyle = "rgb(0, 65, 88)";
 	//ctx.fillRect(0, 0, 640, 544);
 	ctx.drawImage(menuBG, 0, 0);
 	//draw the menu
 	
-	var yStart = 32;
-	var ecart = 18;
+	const yStart = 32;
+	const ecart = 18;
 	
-	var overMenu = -1;
+	let overMenu = -1;
 	if(mouseInZone(160, yStart, 320, 64)) overMenu = 1;
 	else if(mouseInZone(160, yStart + (1 * (64 + ecart)), 320, 64)) overMenu = 2;
 	else if(mouseInZone(160, yStart + (2 * (64 + ecart)), 320, 64)) overMenu = 3;
 	else if(mouseInZone(160, yStart + (3 * (64 + ecart)), 320, 64)) overMenu = 4;
 	else if(mouseInZone(160, yStart + (4 * (64 + ecart)), 320, 64)) overMenu = 5;
 	
-	var scale1 = overMenu == 1 ? 0.9 : 1;
-	var scale2 = overMenu == 2 ? 0.9 : 1;
-	var scale3 = overMenu == 3 ? 0.9 : 1;
-	var scale4 = overMenu == 4 ? 0.9 : 1;
-	var scale5 = overMenu == 5 ? 0.9 : 1;
+	const scale1 = overMenu == 1 ? 0.9 : 1;
+	const scale2 = overMenu == 2 ? 0.9 : 1;
+	const scale3 = overMenu == 3 ? 0.9 : 1;
+	const scale4 = overMenu == 4 ? 0.9 : 1;
+	const scale5 = overMenu == 5 ? 0.9 : 1;
 	
 	if(goMenu) {
 		if(lvlType==0) drawBigButton(160, yStart, scale1, "Classic Mode" + (maxLevel[0]>28?" +":""));
@@ -665,7 +670,7 @@ function drawMainMenu() {
 		else if(lvlType==3) drawBigButton(160, yStart + (3 * (64 + ecart)), scale4, "Level Editor");
 		else if(lvlType==4) drawBigButton(160, yStart + (4 * (64 + ecart)), scale5, "Tutorial");
 	}else {
-		var dy = 0;
+		let dy = 0;
 		if(maxLevel[0] <= 28) dy = 64;
 		drawBigButton(160, yStart, scale1, "Classic Mode" + (maxLevel[0]>28?" +":""));
 		drawBigButton(160, yStart + (1 * (64 + ecart)), scale2, "Enhanced Mode");
@@ -681,10 +686,10 @@ function drawMainMenu() {
 			overMenu = -1;
 		}*/
 		
-		var pX = 130;
-		var pY = (yStart + 25 + (overMenu - 1) * 64 + (overMenu - 1) * ecart);
+		pX = 130;
+		pY = yStart + 25 + (overMenu - 1) * 64 + (overMenu - 1) * ecart;
 		
-		var pX2 = 150 + 320 + 40 - 16;
+		pX2 = 150 + 320 + 40 - 16;
 
 		drawPortalGunMenu(pX, pY, getAngle(pX, pY, mouseX, mouseY));
 		drawPerso(pX, pY, 1);
@@ -693,7 +698,7 @@ function drawMainMenu() {
 		drawPerso(pX2, pY, -1);
 	}
 	
-	var zoomSound = 1;
+	let zoomSound = 1;
 	if(isSoundAvailable() && mouseInZone(20, 300, 29, 48)) {
 		zoomSound = 0.9;
 		if(mousePressed && mouseButton == LEFT) {
@@ -714,7 +719,7 @@ function drawMainMenu() {
 		ctx.globalAlpha = 1;
 	}
 	
-	var zoomQuality = 1;
+	let zoomQuality = 1;
 	if(mouseInZone(20, 385, 30, 36)) {
 		zoomQuality = 0.9;
 		if(mousePressed && mouseButton == LEFT) {
@@ -796,7 +801,7 @@ function drawMainMenu() {
 				}
 			}
 		}else {
-			var a = goMenu / 60;
+			const a = goMenu / 60;
 			ctx.fillStyle = "rgba(0, 0, 0," + (1-a) + ")";
 			//noStroke();
 			ctx.fillRect(0, 0, 640, 544);
@@ -807,18 +812,18 @@ function drawMainMenu() {
 	
 	if(fadeMenu > 0) {
 		fadeMenu--;
-		var fa = fadeMenu / 30;
+		const fa = fadeMenu / 30;
 		ctx.fillStyle = "rgba(0, 0, 0, " + fa + ")";
 		ctx.fillRect(0, 0, 640, 544);
 	}
 }
 
 function animateTiles() {
+	let r, i;
 	for(i in animatedTiles) {
 		if(animatedTiles[i].used) {
 			if(TIME%animatedTiles[i].speed == 0) {
 				if(animatedTiles[i].type == RANDOM) {
-					var r;
 					do {
 						r = parseInt(random(animatedTiles[i].min, animatedTiles[i].max) + 1);
 					}while(r == animatedTiles[i].current);
@@ -835,10 +840,11 @@ function animateTiles() {
 }
 
 function createBuff() {
+	let i;
 	ctx.drawImage(bg[BG], ECART_X, ECART_Y, 512, 384);
 	for(i in displayMap) {
-		var y = i >> 5;
-		var x = i - (y << 5);
+		const y = i >> 5;
+		const x = i - (y << 5);
 		if(displayMap[i] < NUM_TILES && displayMap[i] > 0 && i < 768) {
 			if(CAKELEFT == 0 && displayMap[i]==35) {
 				displayMap[i] = 22;
@@ -856,6 +862,7 @@ function createBuff() {
 }
 
 function drawCakes() {
+	let i;
 	for(i in cakes) {
 		if(cakes[i].used) {
 			if(perso.fadeNextLevel == -1) {
@@ -874,9 +881,10 @@ function drawCakes() {
 }
 
 function drawTourelles() {
+	let dx, tour;
 	for(tour in tourelles) {
 		//if(tourelles[tour].animFrame < 10) {
-			var side = tourelles[tour].dir < 0 ? 0 : 1;
+			const side = tourelles[tour].dir < 0 ? 0 : 1;
 			
 			if(quality > 0) {
 				ctx.save();
@@ -891,13 +899,13 @@ function drawTourelles() {
 			if(tourelles[tour].animFrame == 1 && tourelles[tour].mort == 0) {
 				ctx.strokeStyle = "rgb(255, 255, 0)";
 				ctx.lineWidth = 3;
-				var dx = tourelles[tour].dir < 0 ? 0 : tourelles[tour].pX;
-				var dy = parseInt(random(-16, 16));
+				dx = tourelles[tour].dir < 0 ? 0 : tourelles[tour].pX;
+				const dy = parseInt(random(-16, 16));
 				line((tourelles[tour].x>>8) + ECART_X + dx, (tourelles[tour].y>>8) + ECART_Y + 13, ((perso.x>>8) + ECART_X), (perso.y>>8) + ECART_Y + (perso.pY >> 1) + dy);
 			}else if(tourelles[tour].rotation < 10 && tourelles[tour].mort == 0) {
 				ctx.strokeStyle = "rgb(255, 0, 0)";
 				ctx.lineWidth = 1;
-				var dx = tourelles[tour].dir < 0 ? 0 : tourelles[tour].pX;
+				dx = tourelles[tour].dir < 0 ? 0 : tourelles[tour].pX;
 				line((tourelles[tour].x>>8) + ECART_X + dx, (tourelles[tour].y>>8) + ECART_Y + 13, ((tourelles[tour].ex>>8) + ECART_X), (perso.y>>8) + ECART_Y + (perso.pY >> 1));
 			}
 			if(perso.fadeNextLevel == -1) {
@@ -909,13 +917,13 @@ function drawTourelles() {
 }
 
 function drawPlasma() {
-	for(var plasm=0; plasm<plasmaBall.length; plasm++) {
+	let r, vy;
+	for(let plasm=0; plasm<plasmaBall.length; plasm++) {
 		if(plasmaBall[plasm].used) {
-			var vx = vy = 0;
+			let vx = vy = 0;
 			if(plasmaBall[plasm].vx != 0) vy = plasmaBall[plasm].scale;
 			else if(plasmaBall[plasm].vy != 0) vx = plasmaBall[plasm].scale;
 			if(TIME % 10 == 0) {
-				var r;
 				do{
 					r = parseInt(random(0, 3));
 				}while(plasmaBall[plasm].animFrame == r);
@@ -936,6 +944,7 @@ function drawPlasma() {
 }
 
 function drawProjos() {
+	let pr;
 	for(pr = 0; pr < projos.length; pr++) {
 		projos[pr].move();
 
@@ -966,9 +975,10 @@ function drawProjos() {
 }
 
 function drawCaisses() {
+	let cai;
 	for(cai = 0; cai < caisses.length; cai++) {
-		var sc = 1;
-		var dxy = 0;
+		let sc = 1;
+		let dxy = 0;
 		if(caisses[cai].shrink > 0) {
 			caisses[cai].x += caisses[cai].vx >> 1;
 			caisses[cai].y += caisses[cai].vy >> 1;
@@ -1001,24 +1011,25 @@ function drawCaisses() {
 function drawArrow(x1, y1, x2, y2, lineWidth, dir) {
 	ctx.lineWidth = lineWidth;
 	line(x1, y1, x2, y2);
-	var xa = x1 + (Math.abs(x1 - x2)>>1) + dir * 2;
+	const xa = x1 + (Math.abs(x1 - x2)>>1) + dir * 2;
 	if(dir == -1) triangle(xa - 6, y1, xa, y1 - 6, xa, y1 + 6);
 	else triangle(xa + 6, y1, xa, y1 - 6, xa, y1 + 6);
 }
 
 function inForceFieldTp(obj) {
-	var posx = obj.x>>8;
-	var posy = (obj.y>>8);
-	var pX = obj.pX;
-	var pY = obj.pY;
+	let i;
+	const posx = obj.x>>8;
+	const posy = (obj.y>>8);
+	const pX = obj.pX;
+	const pY = obj.pY;
 	
-	var fields = new Array();
+	const fields = new Array();
 	
 	for(i in forceFields) {
-		var x = forceFields[i].x;
-		var y = forceFields[i].y;
-		var w = forceFields[i].w;
-		var h = forceFields[i].h;
+		let x = forceFields[i].x;
+		let y = forceFields[i].y;
+		let w = forceFields[i].w;
+		let h = forceFields[i].h;
 		
 		if(w < 0) {
 			w = -w;
@@ -1037,8 +1048,8 @@ function inForceFieldTp(obj) {
 }
 
 function drawOneField(sx, sy, nx, ny, vx, vy) {
-	var x = nx;
-	var y = ny;
+	const x = nx;
+	const y = ny;
 	if(vx < 0) {
 		ctx.fillRect(sx + ECART_X, sy + ECART_Y, - (sx - x - 16), 32);
 		forceFields.push(new forceField(sx, sy, - (sx - x - 16), 32, -1, 0));
@@ -1059,9 +1070,10 @@ function drawOneField(sx, sy, nx, ny, vx, vy) {
 }
 
 function pointInPortal(x, y) {
+	let i;
 	for(i in portals) {
-		var xp = portals[i].x >> 8;
-		var yp = portals[i].y >> 8;
+		const xp = portals[i].x >> 8;
+		const yp = portals[i].y >> 8;
 		
 		if(portals[i].direction == GAUCHE || portals[i].direction == DROITE) {
 			if(x >= xp && x <= xp + 3 && y >= yp && y <= yp + 32) {
@@ -1078,16 +1090,16 @@ function pointInPortal(x, y) {
 
 function drawTunnelField(sx, sy, vx, vy) {
 	
+	let tile, p1, p2;
 	ctx.globalAlpha = 0.5;
 	
-	var y = sy;
-	var x = sx;
+	let y = sy;
+	let x = sx;
 	
 	x += vx * 16;
 	y += vy * 16;
 	
 	while(x >= 0 && x < 512 && y >= 0 && y < 384) {
-		var tile;
 		if(vx != 0) {
 			tile = getTileNoCaisseNoPlate(x,y);
 			if(tile == 0) tile = getTileNoCaisseNoPlate(x,y + 8);
@@ -1108,18 +1120,17 @@ function drawTunnelField(sx, sy, vx, vy) {
 			if(vx < 0) x += 13;
 			
 			if(portals && portals[0].used && portals[1].used) {
-				var p1, p2;
 				if(vx != 0) {
 					p1 = pointInPortal(x, y + 4);
 					p2 = pointInPortal(x, y + 28);
 				}else if(vy != 0) {
-					var dy = vy < 0 ? 14 : 0;
+					const dy = vy < 0 ? 14 : 0;
 				
 					p1 = pointInPortal(x + 4, y + dy);
 					p2 = pointInPortal(x + 28, y + dy);
 				}
 				if(p1 == p2 && p1 > -1) {
-					var p = p1;
+					const p = p1;
 					if(portals[p].direction == DROITE) {
 						sx = portals[p].x >> 8;
 						sy = portals[p].y >> 8;
@@ -1168,16 +1179,17 @@ function drawTunnelField(sx, sy, vx, vy) {
 }
 
 function drawTunnels() {
+	let tu;
 	if(tunnels.length > 0) {
 		forceFields = new Array();
 		ctx.fillStyle = "rgb(151, 206, 233)";
 	}
 	for(tu in tunnels) {
-		var x = (tunnels[tu].x >> 8);
-		var y = (tunnels[tu].y >> 8);
+		const x = (tunnels[tu].x >> 8);
+		const y = (tunnels[tu].y >> 8);
 		
-		var vx = 0;
-		var vy = 0;
+		let vx = 0;
+		let vy = 0;
 		if(tunnels[tu].dir == DROITE) {
 			vx = 1;
 		} else if(tunnels[tu].dir == GAUCHE) {
@@ -1203,9 +1215,10 @@ function drawTunnels() {
 }
 
 function drawPlatformes() {
+	let pla;
 	for(pla in platforms) {
-		var x = (platforms[pla].x >> 8) + ECART_X;
-		var y = (platforms[pla].y >> 8) + ECART_Y;
+		const x = (platforms[pla].x >> 8) + ECART_X;
+		const y = (platforms[pla].y >> 8) + ECART_Y;
 		
 		ctx.drawImage(platform, x, y);
 		if(currentMenu == 3 && !isTestingLevel) {
@@ -1220,28 +1233,29 @@ function drawPlatformes() {
 }
 
 function drawFrontTiles() {
+	let tx, ty, t, p, i;
 	if(needRedrawTiles > 0) {
 		for(p in portals) {
 			if(portals[p].plateforme == -1) {
-				var x = portals[p].x >> 8;
-				var y = portals[p].y >> 8;
+				const x = portals[p].x >> 8;
+				const y = portals[p].y >> 8;
 				if(portals[p].direction == HAUT || portals[p].direction == BAS) {
-					var tx = x >> 4;
-					var ty = y >> 4;
+					tx = x >> 4;
+					ty = y >> 4;
 					for(i=0; i<4; i++) {
 						if(tx + i < 32 && tx + i >= 0) {
-							var t = tx + i + (ty << 5);
+							t = tx + i + (ty << 5);
 							if(tileset[displayMap[t]]) {
 								ctx.drawImage(tileset[displayMap[t]], (tx+i)*16 + ECART_X, ty*16 + ECART_Y, 16, 16);
 							}
 						}
 					}
 				}else if(portals[p].direction == GAUCHE || portals[p].direction == DROITE) {
-					var tx = x >> 4;
-					var ty = y >> 4;
+					tx = x >> 4;
+					ty = y >> 4;
 					for(i=0; i<4; i++) {
 						if(ty + i < 24 && ty + i >= 0) {
-							var t = tx + ((ty + i) << 5);
+							t = tx + ((ty + i) << 5);
 							if(displayMap[t] < tileset.length) {
 								ctx.drawImage(tileset[displayMap[t]], tx*16 + ECART_X, (ty+i)*16 + ECART_Y, 16, 16);
 							}
@@ -1256,7 +1270,7 @@ function drawFrontTiles() {
 function drawCamera() {
 	camera.move();
 	
-	var a = getAngle((perso.x>>8) + (perso.pX>>1), (perso.y>>8) + (8), (camera.x >> 8) + 8, (camera.y >> 8) + 8);
+	const a = getAngle((perso.x>>8) + (perso.pX>>1), (perso.y>>8) + (8), (camera.x >> 8) + 8, (camera.y >> 8) + 8);
 	ctx.save();
 	ctx.translate((camera.x>>8) + 8 + ECART_X, (camera.y>>8) + 8 + ECART_Y);
 	ctx.rotate(a);
@@ -1265,12 +1279,13 @@ function drawCamera() {
 }
 
 function drawPortals() {
+	let prt, dy;
 	for(prt in portals) {
 		if(portals[prt].used) {
 			if(portals[prt].scaleX < 1) portals[prt].scaleX += 0.1;
 			else if(portals[prt].scaleY < 1) portals[prt].scaleY += 0.1;
 			
-			var dx = dy = 0;
+			let dx = dy = 0;
 			if(portals[prt].direction == GAUCHE || portals[prt].direction == DROITE) dy = 16 - (portals[prt].scaleY * 16);
 			else if(portals[prt].direction == HAUT || portals[prt].direction == HAUT) dx = 16 - (portals[prt].scaleX * 16);
 			
@@ -1297,7 +1312,7 @@ function manageTransitionDraw() {
 			ctx.fillStyle = "rgb(0, 0, 0)";
 			//noStroke();
 			ctx.fillRect(ECART_X - 1, ECART_Y, 512, 384);
-			var a = -(perso.intermissionFade / 20);
+			const a = -(perso.intermissionFade / 20);
 			perso.intermissionFade++;
 			ctx.globalAlpha = a;
 			ctx.drawImage(highscore, ECART_X, ECART_Y);
@@ -1306,11 +1321,11 @@ function manageTransitionDraw() {
 	}
 }
 
-var creditsTime = 0;
-var creditsAlpha = 0;
-var creditsTxt = new Array();
+let creditsTime = 0;
+let creditsAlpha = 0;
+let creditsTxt = new Array();
 
-var speedScr = 0.4;
+let speedScr = 0.4;
 
 function doDrawCredits() {
 	if(mouseNewPress && creditsTime > 150) speedScr = 5;
@@ -1337,14 +1352,14 @@ function doDrawCredits() {
 	ctx.fillRect(0, 0, 640, 544);
 	
 	ctx.font = "24px yikes";	
-	for(var t in creditsTxt) {
-		var txt = creditsTxt[t];
-		var metrics = ctx.measureText(txt);
-		var x = 320 - (metrics.width >> 1);
+	for(const t in creditsTxt) {
+		const txt = creditsTxt[t];
+		const metrics = ctx.measureText(txt);
+		const x = 320 - (metrics.width >> 1);
 		
-		var yLow = creditsTxt.length * 15;
+		const yLow = creditsTxt.length * 15;
 		
-		var y = t * 32 + (yLow - creditsTime);
+		const y = t * 32 + (yLow - creditsTime);
 		
 		if(y <= 544) {
 		ctx.fillStyle = "rgb(0, 0, 0)";
@@ -1365,7 +1380,7 @@ function doDrawIntermission() {
 		//noStroke();
 		ctx.fillRect(ECART_X - 1, ECART_Y, 512, 384);
 		perso.intermissionFade--;
-		var a = perso.intermissionFade / 20;
+		const a = perso.intermissionFade / 20;
 		ctx.globalAlpha = 1 - a;
 	}
 	ctx.drawImage(highscore, ECART_X, ECART_Y);
@@ -1382,19 +1397,20 @@ function doDrawIntermission() {
 }
 
 function drawText(x, y, size) {
+	let i;
 	ctx.fillStyle = "rgb(255, 255, 255)";
 	ctx.font = "13px Arial";
 	if(txtLines.length == 0 && currentMenu != 6) {
-		var txt = campaigns[lvlType].texts[currentLevel-1];
-		var l = 0;
-		var line = "";
+		const txt = campaigns[lvlType].texts[currentLevel-1];
+		let l = 0;
+		let line = "";
 		while(l < txt.length) {
-			var word = "";
+			let word = "";
 			while(txt[l] != " " && l < txt.length) {
 				word += txt[l];
 				l++;
 			}
-			var metrics = ctx.measureText(line + " " + word);
+			const metrics = ctx.measureText(line + " " + word);
 			if(metrics.width < 447) {
 				line += word + " ";
 			}else {
@@ -1406,7 +1422,7 @@ function drawText(x, y, size) {
 		txtLines.push(line);
 	}
 	
-	var toWrite = parseInt(timeWriting);
+	let toWrite = parseInt(timeWriting);
 	
 	for(i in txtLines) {
 		if(toWrite >= 0 && quality > 0) {
@@ -1439,11 +1455,12 @@ function drawHudText() {
 }
 
 function drawPreviewMap() {
+	let i, tour, cai, pla;
 	if(needLoad) {
 		ctx.drawImage(bg[BG], ECART_X, ECART_Y, 512, 384);
 		for(i in displayMap) {
-			var y = i >> 5;
-			var x = i - (y << 5);
+			const y = i >> 5;
+			const x = i - (y << 5);
 			if(displayMap[i] < NUM_TILES && displayMap[i] > 0 && i < 768) {
 				if(CAKELEFT == 0 && displayMap[i]==35) {
 					displayMap[i] = 22;
@@ -1469,7 +1486,7 @@ function drawPreviewMap() {
 		ctx.drawImage(portalGun, -5, -5);
 		ctx.restore();
 
-		var flipDx =  perso.flip < 0 ? 1 : 0;
+		const flipDx =  perso.flip < 0 ? 1 : 0;
 		ctx.drawImage(head[flipDx], perso.animeFrame * 16, 0, 15, 12, ((perso.x>>8) + ECART_X), (perso.y>>8) + ECART_Y, 16, 12); 
 		ctx.drawImage(body[flipDx], perso.animeFrame * 16, 0, 16, 27, ((perso.x>>8) + ECART_X), (perso.y>>8) + ECART_Y, 16, 27);
 		
@@ -1480,7 +1497,7 @@ function drawPreviewMap() {
 		}
 		
 		for(tour in tourelles) {
-			var side = tourelles[tour].dir < 0 ? 0 : 1;
+			const side = tourelles[tour].dir < 0 ? 0 : 1;
 			ctx.drawImage(tourelle[side], 0, tourelles[tour].animFrame * 32, 16, 32,(tourelles[tour].x>>8) + ECART_X, (tourelles[tour].y>>8) + ECART_Y, 16, 32);
 		}
 
@@ -1511,7 +1528,7 @@ function drawPreviewMap() {
 function drawBoss() {
 	ctx.drawImage(robotHead, (bossX) + ECART_X, (bossY) + ECART_Y, 74, 58);
 	
-	var eye = 0;
+	let eye = 0;
 	if(currentLevel <= 7) eye = 0;
 	else if(currentLevel <= 14) eye = 1;
 	else if(currentLevel <= 21) eye = 2;
@@ -1521,9 +1538,10 @@ function drawBoss() {
 }
 
 function drawTransitionIn() {
+	let nb, i;
 	ctx.fillStyle = "rgb(0, 0, 0)";;
 	//noStroke();
-	var scale = 1 - (perso.fadeNextLevel / 120);
+	const scale = 1 - (perso.fadeNextLevel / 120);
 	if(TRANS == 1) {//top left corner
 		ctx.fillRect(ECART_X, ECART_Y, parseInt(512 * scale), parseInt(384 * scale));
 	}else if(TRANS == 2) {//left to right
@@ -1531,7 +1549,7 @@ function drawTransitionIn() {
 	}else if(TRANS == 3) {//top to bottom
 		ctx.fillRect(ECART_X, ECART_Y, 512, parseInt(384 * scale));
 	}else if(TRANS == 4) {//successive horizontal lines
-		var nb = 120 - perso.fadeNextLevel;
+		nb = 120 - perso.fadeNextLevel;
 		if(nb < linesHoriz.length) {
 			for(i = 0; i < nb; i++) {
 				ctx.fillRect(ECART_X, ECART_Y + (linesHoriz[i] * 3), 512, 3);
@@ -1540,7 +1558,7 @@ function drawTransitionIn() {
 			ctx.fillRect(ECART_X, ECART_Y, 512, 384);
 		}
 	}else if(TRANS == 5) {//successive vertical lines
-		var nb = 120 - perso.fadeNextLevel;
+		nb = 120 - perso.fadeNextLevel;
 		if(nb < linesVerti.length) {
 			for(i = 0; i < nb; i++) {
 				ctx.fillRect(ECART_X + (linesVerti[i] * 4), ECART_Y, 6, 384);
@@ -1549,18 +1567,19 @@ function drawTransitionIn() {
 			ctx.fillRect(ECART_X, ECART_Y, 512, 384);
 		}
 	}else if(TRANS == 6) {//square to center
-		var x = 512 - parseInt(512 * scale);
-		var y = 384 - parseInt(384 * scale);
+		const x = 512 - parseInt(512 * scale);
+		const y = 384 - parseInt(384 * scale);
 		ctx.fillRect(ECART_X + (x>>1), ECART_Y + (y>>1), parseInt(512 * scale), parseInt(384 * scale));
 	}
 }
 
 function drawTransitionOut() {
+	let nb, i;
 	ctx.fillStyle = "rgb(0, 0, 0)";
 	ctx.strokeStyle = "rgb(0, 0, 0)";
-	var scale = perso.fadeNextLevel / 120;
-	var x = 512 - parseInt(512 * scale);
-	var y = 384 - parseInt(384 * scale);
+	const scale = perso.fadeNextLevel / 120;
+	const x = 512 - parseInt(512 * scale);
+	const y = 384 - parseInt(384 * scale);
 	
 	if(TRANS == 1) {//top left corner
 		ctx.fillRect(ECART_X + x, ECART_Y + y, parseInt(512 * scale), parseInt(384 * scale));
@@ -1569,7 +1588,7 @@ function drawTransitionOut() {
 	}else if(TRANS == 3) {//top to bottom
 		ctx.fillRect(ECART_X, ECART_Y + y, 512, parseInt(384 * scale));
 	}else if(TRANS == 4) {//successive lines
-		var nb = perso.fadeNextLevel;
+		nb = perso.fadeNextLevel;
 		if(nb < linesHoriz.length) {
 			for(i = 0; i < nb; i++) {
 				ctx.fillRect(ECART_X, ECART_Y + (linesHoriz[i] * 3), 512, 5);
@@ -1578,7 +1597,7 @@ function drawTransitionOut() {
 			ctx.fillRect(ECART_X, ECART_Y, 512, 384);
 		}
 	}else if(TRANS == 5) {//successive vertical lines
-		var nb = perso.fadeNextLevel;
+		nb = perso.fadeNextLevel;
 		if(nb < linesVerti.length) {
 			for(i = 0; i < nb; i++) {
 				ctx.fillRect(ECART_X + (linesVerti[i] * 4), ECART_Y, 6, 384);
@@ -1596,7 +1615,7 @@ function drawTransitionOut() {
 
 
 function drawPerso(x, y, flipX) {
-	var flipDx =  flipX < 0 ? 1 : 0;
+	const flipDx =  flipX < 0 ? 1 : 0;
 	ctx.drawImage(body[flipDx], 16, 0, 16, 27, x, y,16, 27);
 	ctx.drawImage(head[flipDx], 16, 0, 15, 12, x, y, 16, 12);
 }

@@ -1,140 +1,141 @@
-var KEY_Z = 1;
-var KEY_Q = 2;
-var KEY_D = 4;
-var KEY_E = 8;
-var KEY_S = 16;
-var MSE_L = 32;
-var MSE_R = 64;
-var MSE_M = 128;
-var keys = oldKeys = 0;
+"use strict";
 
-var replay;
-var replayMode = false;
+const KEY_Z = 1;
+const KEY_Q = 2;
+const KEY_D = 4;
+const KEY_E = 8;
+const KEY_S = 16;
+const MSE_L = 32;
+const MSE_R = 64;
+const MSE_M = 128;
+let keys = 0, oldKeys = 0;
 
-var started = false;
+let replay;
+let replayMode = false;
 
-var highscoreMessage;
-var drawIntermission = false;
-var intermissionChoice;
-var selectMenu = 0;
-var previewMap = 0;
+let started = false;
 
-var campaigns;
-var currentMenu;
-var goMenu, escapeMenu;
+let highscoreMessage;
+let drawIntermission = false;
+let intermissionChoice;
+let selectMenu = 0;
+let previewMap = 0;
 
-var currentLevel = 1;
-var lvlType = 0;
+let campaigns;
+let currentMenu;
+let goMenu, escapeMenu;
 
-var linesHoriz, linesVerti;
+let currentLevel = 1;
+let lvlType = 0;
 
-var HAUT = 0;
-var BAS = 1;
-var GAUCHE = 2;
-var DROITE = 3;
-var CAKELEFT;
-var STEPS;
-var PORTALS;
+let linesHoriz, linesVerti;
 
-var BG;
+const HAUT = 0;
+const BAS = 1;
+const GAUCHE = 2;
+const DROITE = 3;
+let CAKELEFT;
+let STEPS;
+let PORTALS;
 
-var ECART_X = 64;
-var ECART_Y = 96;
+let BG;
 
-var TIME;
-var timeWriting = 0;
+let ECART_X = 64;
+let ECART_Y = 96;
 
-var RANDOM = 1;
-var ORDERED = 2;
+let TIME;
+let timeWriting = 0;
 
-var TRANS = 4;
+const RANDOM = 1;
+const ORDERED = 2;
 
-var quality = 1;
+let TRANS = 4;
 
-var maxLevel;
+let quality = 1;
 
-
-var mouseX = mouseY = mousePressed = mouseReleased = mouseButton = mouseNewPress = 0;
-var replayPauseInput = null;
-var lastTickInGame = false;
-var LEFT = 0;
-var RIGHT = 1;
-var MIDDLE = 2;
+let maxLevel;
 
 
-var tex_blackos, tex_tails;
-
-var cakes;
-var caisses;
-var projos;
-var tunnels;
-var forceFields;
-var platforms;
-var tourelles;
-var sparkles;
-var animatedTiles;
-
-var tex_button, tex_sound, tex_cross, tex_leftBG, tex_rightBG;
-var key, mouseIcon;
-var cameraFollow, robotEye, robotHead;
-var levelEditorHud, menuBG, pauseBG;
-var noLevel;
-var highscore;
-var platform;
-var head, body;
-var tunnel, tunnel2, tube, tube2;
-var controls;
-var tourelle;
-var plasma;
-var caisse;
-var sparkle;
-var bluePortal;
-var redPortal;
-var crosshair;
-var bg;
-var hud, hudLight;
-var ctx;
-var map, displayMap;
-var needLoad;
-var cake;
-var portalGun;
-var tileset;
-var imgBuff;
-var levelsLoaded;
-var levelsToLoad;
-var perso;
-var GRAVITY = 60;
-var portals;
-var plasmaBall;
-var camera, robot;
-
-var needRedrawTiles;
-
-var NUM_TILES = 61;
+let mouseX = 0, mouseY = 0, mousePressed = 0, mouseReleased = 0, mouseButton = 0, mouseNewPress = 0;
+let replayPauseInput = null;
+let lastTickInGame = false;
+const LEFT = 0;
+const RIGHT = 1;
+const MIDDLE = 2;
 
 
+let tex_blackos, tex_tails;
 
-var sfx_enterPortal, sfx_flatline, sfx_noPortal, sfx_pain, sfx_shoot;
-var sfx_explode, sfx_jump, sfx_bounce, sfx_grabCake, sfx_holdObject;
-var sfx_throwObject, sfx_tick, sfx_transition;
-var sfx_portal;
-var ctx;
+let cakes;
+let caisses;
+let projos;
+let tunnels;
+let forceFields;
+let platforms;
+let tourelles;
+let sparkles;
+let animatedTiles;
 
-var txtLines;
+let tex_button, tex_sound, tex_cross, tex_leftBG, tex_rightBG;
+let key, mouseIcon;
+let cameraFollow, robotEye, robotHead;
+let levelEditorHud, menuBG, pauseBG, mapSelection;
+let noLevel;
+let highscore;
+let platform;
+let head, body;
+let tunnel, tunnel2, tube, tube2;
+let controls;
+let tourelle;
+let plasma;
+let caisse;
+let sparkle;
+let bluePortal;
+let redPortal;
+let crosshair;
+let bg;
+let hud, hudLight;
+let ctx;
+let map, displayMap;
+let needLoad;
+let cake;
+let portalGun;
+let tileset;
+let imgBuff;
+let levelsLoaded;
+let levelsToLoad;
+let perso;
+const GRAVITY = 60;
+let portals;
+let plasmaBall;
+let camera, robot;
 
-var tubeX, tubeY, plasmaX, plasmaY;
-var bossX, bossY;
-var bossNum = 0;
-var bossIsComing;
+let needRedrawTiles;
 
-var portalLines;
+const NUM_TILES = 61;
 
 
-var canSplash = false;
-var overSplash = false;
+
+let sfx_enterPortal, sfx_flatline, sfx_noPortal, sfx_pain, sfx_shoot;
+let sfx_explode, sfx_jump, sfx_bounce, sfx_grabCake, sfx_holdObject;
+let sfx_throwObject, sfx_tick, sfx_transition;
+let sfx_portal;
+
+let txtLines;
+
+let tubeX, tubeY, plasmaX, plasmaY;
+let bossX, bossY;
+let bossNum = 0;
+let bossIsComing;
+
+let portalLines;
+
+
+let canSplash = false;
+let overSplash = false;
 
 function setup() {
-	var canvas = document.getElementById('canvas');
+	const canvas = document.getElementById('canvas');
 	ctx = canvas.getContext('2d');
 	ctx.strokeStyle = "rgb(255, 0, 0)";
 	ctx.font = "bold 10px Arial";
@@ -196,8 +197,8 @@ function reportBrokenReplay() {
  * @returns {string} The message for the intermission screen.
  */
 function checkBestTime() {
-	var campaign = campaigns[lvlType].folder;
-	var best = getBestTime(campaign, currentLevel);
+	const campaign = campaigns[lvlType].folder;
+	const best = getBestTime(campaign, currentLevel);
 	if(best != null && best <= TIME) return "Best time : " + toTime(best);
 	
 	saveBestTime(campaign, currentLevel, TIME, encodeReplay(replay, campaign, currentLevel)).catch(function(e) {
@@ -234,7 +235,7 @@ function restoreInput(state) {
 
 function manageKeys() {
 	// The input still changes while the level time stands still. A replay restores the input state at the same time.
-	var inGame = perso.fadeNextLevel == -1 && currentMenu == 2 && !escapeMenu;
+	const inGame = perso.fadeNextLevel == -1 && currentMenu == 2 && !escapeMenu;
 	if(inGame && !replayMode && !lastTickInGame) replay.states[TIME] = captureInput();
 	else if(inGame && replayMode && replay.states[TIME]) restoreInput(replay.states[TIME]);
 	lastTickInGame = inGame;
@@ -315,7 +316,7 @@ function manageKeys() {
 	oldKeys = keys;
 }
 
-var drawCredits = false;
+let drawCredits = false;
 
 function draw() {
 	if(currentMenu == 3) {
@@ -434,7 +435,6 @@ function draw() {
 					unclick();
 					currentMenu = 1;
 					selectMenu = 0;
-					classic = false;
 					fadeMenu = 30;
 					sparkles = new Array();
 				}
@@ -465,10 +465,10 @@ function draw() {
 	ctx.fillText("" + getFps(), 5, 10);
 }
 
-var bossLife;
-var bossComingTime;
-var bossIsTalking;
-var rumbleTime;
+let bossLife;
+let bossComingTime;
+let bossIsTalking;
+let rumbleTime;
 
 function setupBoss() {
 	bossX = 449;
@@ -497,6 +497,7 @@ function skipComingBoss() {
 }
 
 function manageBoss() {
+	let d, vx1, vy1, i;
 	if(bossNum == 0) return; 
 	if(bossIsComing) {
 		if(bossIsTalking) {
@@ -626,7 +627,7 @@ function manageBoss() {
 					}
 				}
 
-				var d = getDistance(perso.x>>8, perso.y>>8, caisses[caisses.length-1].x>>8, caisses[caisses.length-1].y>>8);
+				d = getDistance(perso.x>>8, perso.y>>8, caisses[caisses.length-1].x>>8, caisses[caisses.length-1].y>>8);
 				d = parseInt(d/18);
 				if(d > 16) d = 16;
 				if(d < 3) d = 3;
@@ -634,21 +635,21 @@ function manageBoss() {
 			}
 		}else if(bossLife < 3 && bossNum == 2) {
 			if(perso.fadeNextLevel == -1 && TIME%(90-15*bossLife) == 0) {
-				var vx1 = getCos((perso.x>>8) + (perso.pX>>1), (perso.y>>8) + (perso.pY>>1), 435 + 8, 50 + 8) * (1200 - perso.vx);
-				var vy1 = getSin((perso.x>>8) + (perso.pX>>1), (perso.y>>8) + (perso.pY>>1), 435 + 8, 50 + 8) * 1200;
+				vx1 = getCos((perso.x>>8) + (perso.pX>>1), (perso.y>>8) + (perso.pY>>1), 435 + 8, 50 + 8) * (1200 - perso.vx);
+				vy1 = getSin((perso.x>>8) + (perso.pX>>1), (perso.y>>8) + (perso.pY>>1), 435 + 8, 50 + 8) * 1200;
 				projos.push(new Projectile(435 << 8, 50 << 8, parseInt(vx1), parseInt(vy1)));
 				
 				if(bossLife == 2) {
-					var vx2 = getCos((perso.x>>8) + (perso.pX>>1), (perso.y>>8) + (perso.pY>>1), 16 + 8, 48 + 8) * 1200;
-					var vy2 = getSin((perso.x>>8) + (perso.pX>>1), (perso.y>>8) + (perso.pY>>1), 16 + 8, 48 + 8) * 1200;
+					const vx2 = getCos((perso.x>>8) + (perso.pX>>1), (perso.y>>8) + (perso.pY>>1), 16 + 8, 48 + 8) * 1200;
+					const vy2 = getSin((perso.x>>8) + (perso.pX>>1), (perso.y>>8) + (perso.pY>>1), 16 + 8, 48 + 8) * 1200;
 					projos.push(new Projectile(16 << 8, 48 << 8, parseInt(vx2), parseInt(vy2)));
 				}
 			}
 		}else if(bossLife < 3 && bossNum == 3) {
-			var limit = bossLife+1;
+			const limit = bossLife+1;
 			if(perso.fadeNextLevel == -1 && TIME%(90-30*bossLife) == 0 && plasmaBall.length < limit) {
-				var vx1 = getCos((perso.x>>8) + (perso.pX>>1), (perso.y>>8) + (perso.pY>>1), (plasmaX>>8) + 8, (plasmaY>>8) + 8) * 800;
-				var vy1 = getSin((perso.x>>8) + (perso.pX>>1), (perso.y>>8) + (perso.pY>>1), (plasmaX>>8) + 8, (plasmaY>>8) + 8) * 800;
+				vx1 = getCos((perso.x>>8) + (perso.pX>>1), (perso.y>>8) + (perso.pY>>1), (plasmaX>>8) + 8, (plasmaY>>8) + 8) * 800;
+				vy1 = getSin((perso.x>>8) + (perso.pX>>1), (perso.y>>8) + (perso.pY>>1), (plasmaX>>8) + 8, (plasmaY>>8) + 8) * 800;
 				plasmaBall.push(new Plasma(plasmaX, plasmaY, vx1, vy1));
 			}
 			
@@ -669,7 +670,7 @@ function manageBoss() {
 					}
 				}
 
-				var d = getDistance(perso.x>>8, perso.y>>8, caisses[caisses.length-1].x>>8, caisses[caisses.length-1].y>>8);
+				d = getDistance(perso.x>>8, perso.y>>8, caisses[caisses.length-1].x>>8, caisses[caisses.length-1].y>>8);
 				d = parseInt(d/20);
 				if(d > 16) d = 16;
 				if(d < 3) d = 3;
@@ -677,14 +678,14 @@ function manageBoss() {
 			}
 			
 			if(bossLife > 0 && perso.fadeNextLevel == -1 && TIME%(180-20*bossLife) == 0) {
-				var vx1 = getCos((perso.x>>8) + (perso.pX>>1), (perso.y>>8) + (perso.pY>>1), 432 + 8, 32 + 8) * 600;
-				var vy1 = getSin((perso.x>>8) + (perso.pX>>1), (perso.y>>8) + (perso.pY>>1), 432 + 8, 32 + 8) * 600;
+				vx1 = getCos((perso.x>>8) + (perso.pX>>1), (perso.y>>8) + (perso.pY>>1), 432 + 8, 32 + 8) * 600;
+				vy1 = getSin((perso.x>>8) + (perso.pX>>1), (perso.y>>8) + (perso.pY>>1), 432 + 8, 32 + 8) * 600;
 				projos.push(new Projectile((432) << 8, 32 << 8, parseInt(vx1), parseInt(vy1)));
 			}
 			
 			if(bossLife > 1 && perso.fadeNextLevel == -1 && plasmaBall.length == 0) {
-				var vx1 = getCos((perso.x>>8) + (perso.pX>>1), (perso.y>>8) + (perso.pY>>1), (plasmaX>>8) + 8, (plasmaY>>8) + 8) * 400;
-				var vy1 = getSin((perso.x>>8) + (perso.pX>>1), (perso.y>>8) + (perso.pY>>1), (plasmaX>>8) + 8, (plasmaY>>8) + 8) * 400;
+				vx1 = getCos((perso.x>>8) + (perso.pX>>1), (perso.y>>8) + (perso.pY>>1), (plasmaX>>8) + 8, (plasmaY>>8) + 8) * 400;
+				vy1 = getSin((perso.x>>8) + (perso.pX>>1), (perso.y>>8) + (perso.pY>>1), (plasmaX>>8) + 8, (plasmaY>>8) + 8) * 400;
 				plasmaBall.push(new Plasma(plasmaX, plasmaY, vx1, vy1));
 			}
 		}
@@ -704,7 +705,6 @@ function exitFunc() {
 	}else if(currentMenu == 6) {
 		currentMenu = 1;
 		selectMenu = 0;
-		classic = false;
 		fadeMenu = 30;
 		sparkles = new Array();
 	}
@@ -721,7 +721,7 @@ function prepareSelectionText() {
 }
 
 function manageDownMenu() {
-	var overMenu = -1;
+	let overMenu = -1;
 	if(mouseInZone(74, 445, 120, 24)) overMenu = 1;
 	else if(mouseInZone(74 + 130, 445, 120, 24)) overMenu = 2;
 	else if(mouseInZone(74 + 260, 445, 120, 24) && currentMenu < 5 && currentLevel + 1 < 29) {
@@ -730,10 +730,10 @@ function manageDownMenu() {
 		}
 	}else if(mouseInZone(74 + 390, 445, 120, 24)) overMenu = 4;
 	
-	var scale1 = overMenu == 1 ? 0.9 : 1;
-	var scale2 = overMenu == 2 ? 0.9 : 1;
-	var scale3 = overMenu == 3 ? 0.9 : 1;
-	var scale4 = overMenu == 4 ? 0.9 : 1;
+	const scale1 = overMenu == 1 ? 0.9 : 1;
+	const scale2 = overMenu == 2 ? 0.9 : 1;
+	const scale3 = overMenu == 3 ? 0.9 : 1;
+	const scale4 = overMenu == 4 ? 0.9 : 1;
 	
 	drawTinyButton(74, 445, scale1, "Exit");
 	drawTinyButton(74 + 130, 445, scale2, "Restart");
@@ -755,7 +755,7 @@ function manageDownMenu() {
 }
 
 function drawPortalGunMenu(x, y, angle) {
-	var a = angle;
+	const a = angle;
 	ctx.save();
 	ctx.translate(x + 8, y + 13);
 	ctx.rotate(a);
@@ -764,25 +764,25 @@ function drawPortalGunMenu(x, y, angle) {
 }
 
 function createSparkles(xFrom, yFrom, xTo, yTo, color, used) {
-	var x = xFrom;
-	var y = yFrom;
-	var x2 = xTo;
-	var y2 = yTo;
+	let k;
+	let x = xFrom;
+	let y = yFrom;
+	const x2 = xTo;
+	const y2 = yTo;
 	
-	var vx = getCos(x2, y2, x, y) * 256;
-	var vy = getSin(x2, y2, x, y) * 256;
+	const vx = getCos(x2, y2, x, y) * 256;
+	const vy = getSin(x2, y2, x, y) * 256;
 	
-	var i = 0;
-	var now = 0;
+	let i = 0;
+	let now = 0;
 	do{
 		now++;
 		x += vx;
 		y += vy;
 		
 		if(i%6==0 && now > 15){
-			var k;
 			for(k=0;k<3;k++){
-				var s = new Sparkle();
+				const s = new Sparkle();
 				s.x = x + parseInt(random(-5<<8,5<<8)) - (8<<8) - (ECART_X << 8);
 				s.y = y + parseInt(random(-5<<8,5<<8)) - (8<<8) - (ECART_Y << 8);
 				s.used = used;
@@ -806,11 +806,12 @@ function mouseInZone(x, y, w, h) {
 }
 
 function reloadTiles() {
+	let i;
 	ctx.drawImage(bg[BG], ECART_X, ECART_Y, 512, 384);
 	for(i in displayMap) {		
 		if(map[i] < NUM_TILES && map[i] > 0 && i < 768) {
-			var y = i >> 5;
-			var x = i - (y << 5);
+			const y = i >> 5;
+			const x = i - (y << 5);
 			ctx.drawImage(tileset[displayMap[i]], x*16 + ECART_X, y*16 + ECART_Y, 16, 16);
 		}
 	}
@@ -818,7 +819,7 @@ function reloadTiles() {
 }
 
 function gestionPorte(){
-	var etatPorte = perso.porte;
+	const etatPorte = perso.porte;
 	
 	if(!perso.porte){
 		if(persoSurInterrupteur(perso.x>>8, perso.y>>8)){
@@ -837,11 +838,11 @@ function gestionPorte(){
 }
 
 function retirerBloqueurPorte(){
-	var i,j;
+	let x, y, i,j;
 	for(i=0;i<2;i++){
 		if(portals[i].used){
-			var x = portals[i].x>>8;
-			var y = portals[i].y>>8;
+			x = portals[i].x>>8;
+			y = portals[i].y>>8;
 			if(portals[i].direction==HAUT) y+=6;
 			else if(portals[i].direction==GAUCHE) x+=6;
 			else if(portals[i].direction==DROITE) x-=2;
@@ -868,8 +869,8 @@ function retirerBloqueurPorte(){
 	}
 	
 	for(i in caisses){
-		var x = caisses[i].x>>8;
-		var y = caisses[i].y>>8;
+		x = caisses[i].x>>8;
+		y = caisses[i].y>>8;
 		if(getTileSimple(x,y)==23 || getTileSimple(x+15,y)==23 || getTileSimple(x,y+15)==23 || getTileSimple(x+15,y+15)==23){
 			caisses[i].x = caisses[i].xOrig;
 			caisses[i].y = caisses[i].yOrig;
@@ -879,8 +880,8 @@ function retirerBloqueurPorte(){
 	}
 	
 	for(i in plasmaBall) {
-		var x = plasmaBall[i].x>>8;
-		var y = plasmaBall[i].y>>8;
+		x = plasmaBall[i].x>>8;
+		y = plasmaBall[i].y>>8;
 		if(getTileSimple(x,y)==23 || getTileSimple(x+15,y)==23 || getTileSimple(x,y+15)==23 || getTileSimple(x+15,y+15)==23){
 			plasmaBall[i].vx = plasmaBall[i].origVx;
 			plasmaBall[i].vy = plasmaBall[i].origVy;
@@ -891,6 +892,7 @@ function retirerBloqueurPorte(){
 }
 
 function fermerPorte(){		
+	let i;
 	playSound(sfx_tick);
 	for(i in animatedTiles) {
 		if(animatedTiles[i].current>=23 && animatedTiles[i].current<=28){
@@ -906,6 +908,7 @@ function fermerPorte(){
 }
 
 function ouvrirPorte(){
+	let i;
 	playSound(sfx_tick);
 	for(i in animatedTiles) {
 		if(animatedTiles[i].current>=23 && animatedTiles[i].current<=28){
@@ -927,8 +930,8 @@ function persoSurInterrupteur(x, y){
 
 function touchingGround(obj){
 	if(obj.vy >= 0){
-		var touche = getTile((obj.x>>8)+1, (obj.y>>8)+obj.pY);
-		var touche2 = getTile((obj.x>>8)+obj.pX-1, (obj.y>>8)+obj.pY);
+		const touche = getTile((obj.x>>8)+1, (obj.y>>8)+obj.pY);
+		const touche2 = getTile((obj.x>>8)+obj.pX-1, (obj.y>>8)+obj.pY);
 		
 		if((touche >= 54 && touche <= 55) || (touche2 >= 54 && touche2 <= 55)) return 3;
 		if((touche >= 56 && touche <= 57) || (touche2 >= 56 && touche2 <= 57)) return 4;
@@ -940,17 +943,17 @@ function touchingGround(obj){
 
 function objetToucheTileMort(x, y){
 	if(x>=512 || y>=384 || y<0 || x<0) return 0;
-	var tile = map[((y>>4)*32) + (x>>4)];
+	const tile = map[((y>>4)*32) + (x>>4)];
 	return (tile==36||tile==37||tile==38||tile==39||tile==47);
 }
 
 function toucheTileMort(obj){
-	var x = obj.x>>8;
-	var y = obj.y>>8;
-	var pX = obj.pX;
-	var pY = obj.pY;
+	const x = obj.x>>8;
+	const y = obj.y>>8;
+	const pX = obj.pX;
+	const pY = obj.pY;
 	
-	var touche = objetToucheTileMort(x,y);
+	let touche = objetToucheTileMort(x,y);
 	if(!touche)	touche = objetToucheTileMort(x+pX-1,y);
 	if(!touche)	touche = objetToucheTileMort(x,y+(pY>>1));
 	if(!touche)	touche = objetToucheTileMort(x,y+pY-6);
@@ -962,7 +965,7 @@ function toucheTileMort(obj){
 
 function getTileNoCaisse(x, y) {
 	if(x>=512 || y>=384 || y<0 || x<0) return 0;
-	var tile = map[((y>>4)*32) + (x>>4)];
+	let tile = map[((y>>4)*32) + (x>>4)];
 	
 	if(!tile){//check contact with a platform
 		tile = collidePlateforme(x,y);
@@ -976,7 +979,7 @@ function getTileNoCaisse(x, y) {
 
 function getTileNoCaisseNoPlate(x, y) {
 	if(x>=512 || y>=384 || y<0 || x<0) return 0;
-	var tile = map[((y>>4)*32) + (x>>4)];
+	let tile = map[((y>>4)*32) + (x>>4)];
 	
 	if(tile==22 || tile==36 || tile==37 || tile==38 || tile==39 || tile==47 || tile==104) tile = 0;
 	else if(tile >= 49 && tile <= 54) tile = 0;
@@ -986,7 +989,7 @@ function getTileNoCaisseNoPlate(x, y) {
 
 function getTile(x, y) {
 	if(x>=512 || y>=384 || y<0 || x<0) return 0;
-	var tile = map[((y>>4)*32) + (x>>4)];
+	let tile = map[((y>>4)*32) + (x>>4)];
 	
 	if(!tile){//check contact with a crate
 		tile = collideCaisse(x,y);
@@ -1003,7 +1006,7 @@ function getTile(x, y) {
 
 function getTilePortal(x, y){
 	if(x>=512 || y>=384 || y<0 || x<0) return 0;
-	var tile = map[((y>>4)*32) + (x>>4)];
+	let tile = map[((y>>4)*32) + (x>>4)];
 	//passes through: crate, finish, razor wheel, red plasma, cake, start
 	if(tile==22 || tile==36 || (tile>=40 && tile<=45) || tile == 103 || tile == 104 || tile>=300) tile = 0;
 	
@@ -1015,11 +1018,12 @@ function getTilePortal(x, y){
 }
 
 function launchPortal(p){
+	let i, k;
 	perso.timePosePortal = 0;
 	perso.lastLaunched = p;
 	
-	var x = perso.x + ((perso.pX>>1)<<8);
-	var y = perso.y + ((perso.pY>>1)<<8);
+	let x = perso.x + ((perso.pX>>1)<<8);
+	let y = perso.y + ((perso.pY>>1)<<8);
 	
 	portals[p].vx = getCos(mouseX, mouseY, (x>>8) + ECART_X, (y>>8) + ECART_Y) * 256;
 	portals[p].vy = getSin(mouseX, mouseY, (x>>8) + ECART_X, (y>>8) + ECART_Y) * 256;
@@ -1031,14 +1035,14 @@ function launchPortal(p){
 		}
 	}
 	
-	var i = 0;
-	var rebond = 0;
-	var tile;
-	var now = 0;
+	i = 0;
+	let rebond = 0;
+	let tile;
+	let now = 0;
 	
 	portalLines = new Array();
 	portalLines.push(new Line(x>>8, y>>8, 0, 0, p));
-	var inScreenOK = false;
+	let inScreenOK = false;
 	
 	do{
 		inScreenOK = false;
@@ -1048,10 +1052,10 @@ function launchPortal(p){
 		tile = getTilePortal(x>>8, y>>8);
 		
 		if(tile==46){
-			var haut = getTilePortal((x>>8),(y>>8)-1);
-			var bas = getTilePortal((x>>8),(y>>8)+1);
-			var gauche = getTilePortal((x>>8)-1,(y>>8));
-			var droite = getTilePortal((x>>8)+1,(y>>8));
+			const haut = getTilePortal((x>>8),(y>>8)-1);
+			const bas = getTilePortal((x>>8),(y>>8)+1);
+			const gauche = getTilePortal((x>>8)-1,(y>>8));
+			const droite = getTilePortal((x>>8)+1,(y>>8));
 			if((!bas||!haut)&&(gauche&&droite)){
 				portals[p].vy = -portals[p].vy;
 			}else if((!gauche||!droite)&&(haut&&bas)){
@@ -1067,9 +1071,8 @@ function launchPortal(p){
 		}
 		
 		if(i%6==0 && now > 15){
-			var k;
 			for(k=0;k<1;k++){
-				var s = new Sparkle();
+				const s = new Sparkle();
 				s.x = x + parseInt(random(-5<<8,5<<8)) - (8<<8);
 				s.y = y + parseInt(random(-5<<8,5<<8)) - (8<<8);
 				s.used = 1;
@@ -1087,7 +1090,7 @@ function launchPortal(p){
 		if(inScreen(x>>8,y>>8)) {
 			inScreenOK = true;
 		} else {
-			var yy = y>>8;
+			const yy = y>>8;
 			if(yy < 0 && portals[p].vy > 0) inScreenOK = true;
 		}
 	}while(tile==0 && inScreenOK && rebond<5);
@@ -1096,7 +1099,7 @@ function launchPortal(p){
 	portalLines[portalLines.length - 1].y2 = y>>8;
 	
 	if(tile!=0 && (tile<=16 || (tile>=200 && tile<=204))){
-		var ok = setPortalDir(p, x>>8, y>>8);
+		const ok = setPortalDir(p, x>>8, y>>8);
 		if(ok){
 			if(portals[p].direction==DROITE || portals[p].direction==GAUCHE){
 				portals[p].scaleX = 1;
@@ -1105,11 +1108,11 @@ function launchPortal(p){
 			}else{
 				portals[p].scaleX = 0;
 				portals[p].scaleY = 1;
-				var plate = getTilePortal(x>>8,y>>8);
+				const plate = getTilePortal(x>>8,y>>8);
 				if(plate>=200 && plate<=204) portals[p].plateforme = plate - 200;
 				else portals[p].plateforme = -1;
 			}
-			var r = parseInt(random(0, 2));
+			const r = parseInt(random(0, 2));
 			playSound(sfx_portal[r]);
 			PORTALS++;
 		} else playSound(sfx_noPortal);
@@ -1117,15 +1120,16 @@ function launchPortal(p){
 }
 
 function setPortalDir(p, x, y){
-	var vx = portals[p].vx;
-	var vy = portals[p].vy;
-	var i;
-	var oldDir = portals[p].direction;
+	let tile, x2, y2, s;
+	const vx = portals[p].vx;
+	const vy = portals[p].vy;
+	let i;
+	const oldDir = portals[p].direction;
 	
-	var mur = 0;
+	let mur = 0;
 	//first check if the portal is on a left or right wall
 	for(i=y-14;i<y+14;i++){
-		var tile = getTilePortal(x,i);
+		tile = getTilePortal(x,i);
 		if(tile!=0){
 			if((tile>0 && tile<=16) || (tile>=200 && tile<=204)) mur++;
 		}
@@ -1144,8 +1148,8 @@ function setPortalDir(p, x, y){
 		}else portals[p].direction = DROITE;
 		y-=16;
 		
-		var x2 = portals[1-p].x>>8;
-		var y2 = portals[1-p].y>>8;
+		x2 = portals[1-p].x>>8;
+		y2 = portals[1-p].y>>8;
 		if(x==x2){//portals on the same vertical wall?
 			if(y2-y>-32 && y2-y<32 && portals[1-p].used){
 				portals[p].direction = oldDir;
@@ -1161,7 +1165,7 @@ function setPortalDir(p, x, y){
 		removeSparkles(p, 3);
 		
 		for(i=0;i<13;i++){
-			var s = new Sparkle();
+			s = new Sparkle();
 			s.x = portals[p].x;
 			s.y = portals[p].y + ((i*2)<<8);
 			s.xOrig = s.x;
@@ -1183,7 +1187,7 @@ function setPortalDir(p, x, y){
 	}else{//then check if the portal is on a top or bottom wall
 		mur = 0;
 		for(i=x-14;i<x+14;i++){
-			var tile = getTilePortal(i,y);
+			tile = getTilePortal(i,y);
 			if(tile!=0){
 				if((tile>0 && tile<=16) || (tile>=200 && tile<=204)) mur++;
 			}
@@ -1202,8 +1206,8 @@ function setPortalDir(p, x, y){
 			}else portals[p].direction = BAS;
 			x-=16;
 			
-			var x2 = portals[1-p].x>>8;
-			var y2 = portals[1-p].y>>8;
+			x2 = portals[1-p].x>>8;
+			y2 = portals[1-p].y>>8;
 			if(y==y2){//portals on the same horizontal wall?
 				if(x2-x>-32 && x2-x<32  && portals[1-p].used){
 					portals[p].direction = oldDir;
@@ -1219,7 +1223,7 @@ function setPortalDir(p, x, y){
 			removeSparkles(p, 3);
 		
 			for(i=0;i<13;i++){
-				var s = new Sparkle();
+				s = new Sparkle();
 				
 				s.x = portals[p].x + ((i*2)<<8);
 				s.y = portals[p].y;
@@ -1246,16 +1250,16 @@ function setPortalDir(p, x, y){
 }
 
 function checkTeleportGauche(obj){
-	var j;
-	var x = (obj.x)>>8;
-	var y = (obj.y)>>8;
+	let j;
+	let x = (obj.x)>>8;
+	const y = (obj.y)>>8;
 	x-=1;
 	for(j=0;j<2;j++){
-		var tx = (portals[j].x>>8) + 3;
-		var ty = portals[j].y>>8;
+		const tx = (portals[j].x>>8) + 3;
+		const ty = portals[j].y>>8;
 		if(portals[j].used && portals[j].direction==GAUCHE && portals[1-j].used){
 			if(y>=ty-6 && y+obj.pY<=ty+38 && x<tx && tx-x<=20){
-				var ecrt = (32 - obj.pY)>>1;
+				const ecrt = (32 - obj.pY)>>1;
 				obj.y = (ty + ecrt)<<8;
 				if(bossNum == 0 || obj.type != "plasma") obj.vy = 0;
 				if(tx-x>=(obj.pX>>1) && obj.vx<0){
@@ -1270,16 +1274,16 @@ function checkTeleportGauche(obj){
 }
 
 function checkTeleportDroite(obj){
-	var j;
-	var x = (obj.x)>>8;
-	var y = (obj.y)>>8;
+	let j;
+	let x = (obj.x)>>8;
+	const y = (obj.y)>>8;
 	x+=obj.pX;
 	for(j=0;j<2;j++){
-		var tx = portals[j].x>>8;
-		var ty = portals[j].y>>8;
+		const tx = portals[j].x>>8;
+		const ty = portals[j].y>>8;
 		if(portals[j].used && portals[j].direction==DROITE && portals[1-j].used){
 			if(y>=ty-6 && y+obj.pY<=ty+38 && x>tx && x-tx<=20){
-				var ecrt = (32 - obj.pY)>>1;
+				const ecrt = (32 - obj.pY)>>1;
 				obj.y = (ty + ecrt)<<8;
 				if(bossNum == 0 || obj.type != "plasma") obj.vy=0;
 				if(x-tx>=(obj.pX>>1) && obj.vx>0){
@@ -1294,16 +1298,16 @@ function checkTeleportDroite(obj){
 }
 
 function checkTeleportBas(obj){
-	var j;
-	var x = (obj.x)>>8;
-	var y = (obj.y)>>8;
+	let j;
+	const x = (obj.x)>>8;
+	let y = (obj.y)>>8;
 	y+=obj.pY;
 	
 	if(obj.type == "plasma" && (obj.vy == 0)) return 0;
 	
 	for(j=0;j<2;j++){
-		var tx = portals[j].x>>8;
-		var ty = portals[j].y>>8;
+		const tx = portals[j].x>>8;
+		const ty = portals[j].y>>8;
 		if(portals[j].used && portals[j].direction==BAS && portals[1-j].used==1){
 			if(x>=tx-4 && x+obj.pX<tx+36 && y>=ty && y-ty<=20){
 				obj.x = (tx+8)<<8;
@@ -1318,16 +1322,16 @@ function checkTeleportBas(obj){
 }
 
 function checkTeleportHaut(obj){
-	var j;
-	var x = (obj.x)>>8;
-	var y = (obj.y)>>8;
+	let j;
+	const x = (obj.x)>>8;
+	let y = (obj.y)>>8;
 	y-=1;
 	
 	if(obj.type == "plasma" && (obj.vy == 0)) return 0;
 	
 	for(j=0;j<2;j++){
-		var tx = portals[j].x>>8;
-		var ty = (portals[j].y>>8)+4;
+		const tx = portals[j].x>>8;
+		const ty = (portals[j].y>>8)+4;
 		if(portals[j].used && portals[j].direction==HAUT && portals[1-j].used==1){
 			if(x>=tx-4 && x+obj.pX<tx+36 && y<ty && ty-y<=20){
 				obj.x = (tx+8)<<8;
@@ -1342,7 +1346,7 @@ function checkTeleportHaut(obj){
 }
 
 function dansUnPortal(obj){
-	var p = checkTeleportBas(obj);
+	let p = checkTeleportBas(obj);
 	if(p == 0) p = checkTeleportHaut(obj);
 	if(p == 0) p = checkTeleportGauche(obj);
 	if(p == 0) p = checkTeleportDroite(obj);
@@ -1351,8 +1355,9 @@ function dansUnPortal(obj){
 }
 
 function transfertPortal(p, obj){
-	var entree = portals[p].direction;
-	var sortie = portals[1-p].direction;
+	let ecrt, oldx;
+	const entree = portals[p].direction;
+	const sortie = portals[1-p].direction;
 	
 	playSound(sfx_enterPortal);
 	
@@ -1365,11 +1370,11 @@ function transfertPortal(p, obj){
 	}
 
 	if(sortie==DROITE){
-		var ecrt = (32 - obj.pY)>>1;
+		ecrt = (32 - obj.pY)>>1;
 		obj.x = portals[1-p].x - ((obj.pX>>1)<<8);
 		obj.y = portals[1-p].y + (ecrt<<8);
 	}else if(sortie==GAUCHE){
-		var ecrt = (32 - obj.pY)>>1;
+		ecrt = (32 - obj.pY)>>1;
 		obj.x = portals[1-p].x - ((obj.pX>>1)<<8);
 		obj.y = portals[1-p].y + (ecrt<<8);
 	}else if(sortie==HAUT){
@@ -1385,11 +1390,11 @@ function transfertPortal(p, obj){
 			obj.vy = -obj.vy;
 			if(obj.vy>-1100) obj.vy = -1100;
 		}else if(entree==BAS && sortie==GAUCHE){
-			var oldx = obj.vx;
+			oldx = obj.vx;
 			obj.vx = obj.vy;
 			obj.vy =  oldx;
 		}else if(entree==BAS && sortie==DROITE){
-			var oldx = obj.vx;
+			oldx = obj.vx;
 			obj.vx = -obj.vy;
 			obj.vy =  oldx;
 		}else if(entree==GAUCHE && sortie==BAS){
@@ -1423,19 +1428,19 @@ function transfertPortal(p, obj){
 		if((entree==BAS && sortie==BAS) || (entree==HAUT && sortie==HAUT)) {
 			obj.vy = -obj.vy;
 		}else if((entree==BAS && sortie==GAUCHE) || (entree==HAUT && sortie==DROITE)){
-			var oldx = obj.vx;
+			oldx = obj.vx;
 			obj.vx = obj.vy;
 			obj.vy =  oldx;
 		}else if((entree==BAS && sortie==DROITE) || (entree==HAUT && sortie==GAUCHE)){
-			var oldx = obj.vx;
+			oldx = obj.vx;
 			obj.vx = -obj.vy;
 			obj.vy =  oldx;
 		}else if((entree==GAUCHE && sortie==BAS) || (entree==DROITE && sortie==HAUT)){
-			var oldx = obj.vx;
+			oldx = obj.vx;
 			obj.vx = obj.vy;
 			obj.vy =  oldx;
 		}else if((entree==DROITE && sortie==BAS) || (entree==GAUCHE && sortie==HAUT)){
-			var oldx = obj.vx;
+			oldx = obj.vx;
 			obj.vx = obj.vy;
 			obj.vy = -oldx;
 		}else if((entree==DROITE && sortie==DROITE) || (entree==GAUCHE && sortie==GAUCHE)){
@@ -1445,6 +1450,7 @@ function transfertPortal(p, obj){
 }
 
 function removeSparkles(p, used) {
+	let i;
 	for(i=0;i<sparkles.length;i++) {
 		if(sparkles[i].used == used && sparkles[i].color == p) {
 			sparkles.splice(i, 1);
@@ -1481,8 +1487,8 @@ function Tourelle(x, y, dir) {
 				else this.angle = 0;
 				if(this.angle >= 360) this.angle -= 360;
 				
-				var oldVx = this.vx;
-				var oldVy = this.vy;
+				const oldVx = this.vx;
+				const oldVy = this.vy;
 				
 				moveObject(this);
 				
@@ -1502,15 +1508,15 @@ function Tourelle(x, y, dir) {
 					if(TIME%4==0) this.animFrame++;
 				}
 				
-				var plt = onPlateforme(this);
+				let plt = onPlateforme(this);
 				if(plt){
 					plt -= 200;
 					this.x += platforms[plt].vx;
 					
 				}
 				
-				var colLeft = leftCollision(this);
-				var colRight = rightCollision(this);
+				const colLeft = leftCollision(this);
+				const colRight = rightCollision(this);
 				if(!this.mort && ((colLeft>=200 && colLeft<=210) || (colRight>=200 && colRight<=210))){
 					this.mort = 1;
 					this.animeFrame = 2;
@@ -1525,14 +1531,14 @@ function Tourelle(x, y, dir) {
 	}
 	
 	this.shoot = function() {
-		var j;
-		var testShoot = false;
+		let j;
+		let testShoot = false;
 		if(this.dir == -1 && this.x > perso.x) testShoot = true;
 		else if(this.dir == 1 && this.x < perso.x) testShoot = true;
 		
 		if(testShoot) {
-			var y = (this.y >> 8) + 13;
-			var y2 = (perso.y >> 8) + 16;
+			const y = (this.y >> 8) + 13;
+			const y2 = (perso.y >> 8) + 16;
 			
 			if(Math.abs(y - y2) > 32) testShoot = false; 
 			
@@ -1544,13 +1550,13 @@ function Tourelle(x, y, dir) {
 			if(this.coolTime==0){
 				if(this.dir==1) j = (this.x>>8)+16;
 				else j = (this.x>>8);
-				var ySent = (this.y>>8) + 12;
-				var dansLeChamp = 0;
-				var exitt = 0;
-				var oldJ = j;
+				const ySent = (this.y>>8) + 12;
+				let dansLeChamp = 0;
+				let exitt = 0;
+				const oldJ = j;
 				//var freeze = 0;
 				while(j>=0&&j<512&&!dansLeChamp&&!exitt){
-					var tile = getTile(j,ySent);
+					const tile = getTile(j,ySent);
 					if(tile!=0) {
 						exitt = 1;
 						break;
@@ -1561,7 +1567,7 @@ function Tourelle(x, y, dir) {
 							break;
 						}
 						else {
-							var t = toucheJoueur(j,ySent);
+							const t = toucheJoueur(j,ySent);
 							if(t) {
 								dansLeChamp = t;
 								break;
@@ -1589,8 +1595,8 @@ function Tourelle(x, y, dir) {
 						this.coolTime = this.startCool;
 						playSoundIfFinished(sfx_shoot);
 						
-						for(var i=0; i<5; i++) {
-							var s = new Sparkle();
+						for(let i=0; i<5; i++) {
+							const s = new Sparkle();
 							s.x = perso.x + (this.pX<<7) + random(-8<<8,8<<8);
 							s.y = perso.y + (this.pY<<6);
 							s.used = 5;
@@ -1620,8 +1626,8 @@ function Tourelle(x, y, dir) {
 }
 
 function toucheJoueur(j, ySent){
-	var x = perso.x>>8;
-	var y = perso.y>>8;
+	const x = perso.x>>8;
+	const y = perso.y>>8;
 	if(j>=x && j<x+15 && ySent>=y && ySent<y+31) return 1;
 	return 0;
 }
@@ -1771,7 +1777,7 @@ function Camera(x, y) {
 		this.x += this.vx;
 		this.y += this.vy;
 	
-		var angle;
+		let angle;
 		
 		if(perso.flip == -1) {
 			angle = 335;
@@ -1779,8 +1785,8 @@ function Camera(x, y) {
 			angle = 185;
 		}
 		
-		dx = perso.x + Math.cos(angle / 180 * Math.PI) * (40 << 8);
-		dy = perso.y + Math.sin(angle / 180 * Math.PI) * (40 << 8);
+		const dx = perso.x + Math.cos(angle / 180 * Math.PI) * (40 << 8);
+		const dy = perso.y + Math.sin(angle / 180 * Math.PI) * (40 << 8);
 		
 		this.vx = (dx - this.x) >> 4;
 		this.vy = (dy - this.y) >> 4;
@@ -1846,8 +1852,8 @@ function Perso() {
 			playSound(sfx_pain);
 			playSound(sfx_flatline);
 			if(perso.y>>8 < 384) {
-				for(var i=0; i<20; i++) {
-					var s = new Sparkle();
+				for(let i=0; i<20; i++) {
+					const s = new Sparkle();
 					s.x = perso.x + (this.pX<<7) + random(-14<<8,8<<8);
 					s.y = perso.y + (this.pY<<6);
 					s.used = 6;
@@ -1872,10 +1878,11 @@ function Perso() {
 	
 	this.move = function() {
 		//particles around the character
+		let cpt, s, ffi, i;
 		if(this.timePassedPortal < 0) {
 			if(++this.timePassedPortal<0 && this.timePassedPortal%6==0){
-				for(var cpt=0;cpt<3;cpt++){
-					var s = new Sparkle();
+				for(cpt = 0;cpt<3;cpt++){
+					s = new Sparkle();
 					s.x = this.x + (this.pX<<7) + random(-8<<8,8<<8);
 					s.y = this.y + (this.pY<<7) + random(-16<<8,16<<8);
 					s.used = 4;
@@ -1891,8 +1898,8 @@ function Perso() {
 			}
 		}else if(this.timePassedPortal > 0) {
 			if(--this.timePassedPortal>0 && this.timePassedPortal%6==0){
-				for(var cpt=0;cpt<5;cpt++){
-					var s = new Sparkle();
+				for(cpt = 0;cpt<5;cpt++){
+					s = new Sparkle();
 					s.x = this.x + (this.pX<<7) + random(-8<<8,8<<8);
 					s.y = this.y + (this.pY<<7) + random(-16<<8,16<<8);
 					s.used = 4;
@@ -1913,13 +1920,13 @@ function Perso() {
 			this.askClear = false;
 		}
 		
-		var ffield = inForceFieldTp(this);
+		const ffield = inForceFieldTp(this);
 		if(ffield.length > 0) {
 			perso.vx = 0;
 			perso.vy = 0;
 		}
 		for(i in ffield) {
-			var f = ffield[i];
+			const f = ffield[i];
 			if(ffield.length == 1) {
 				if(forceFields[f].vx != 0) {
 					if(checkTeleportHaut(this) || checkTeleportBas(this)) {
@@ -1940,7 +1947,7 @@ function Perso() {
 			if(forceFields[f].vx != 0) {
 				if(this.isJump) {
 					perso.y -= 3<<8;
-					var ffi = inForceFieldTp(this);
+					ffi = inForceFieldTp(this);
 					if(ffi.length == 0) {
 						perso.vy = -800;
 						perso.vx = forceFields[f].vx << 9;
@@ -1952,14 +1959,14 @@ function Perso() {
 			if(forceFields[f].vy != 0) {
 				if(this.isLeft) {
 					perso.x -= 3<<8;
-					var ffi = inForceFieldTp(this);
+					ffi = inForceFieldTp(this);
 					if(ffi.length == 0) {
 						perso.vx = -384;
 					}
 				}
 				if(this.isRight) {
 					perso.x += 3<<8;
-					var ffi = inForceFieldTp(this);
+					ffi = inForceFieldTp(this);
 					if(ffi.length == 0) {
 						perso.vx = 384;
 					}
@@ -1967,8 +1974,8 @@ function Perso() {
 			}
 		}
 		
-		var toucheSol = touchingGround(this);
-		var carp = onCarpet(this);
+		let toucheSol = touchingGround(this);
+		const carp = onCarpet(this);
 		this.x += carp == 3 ? 384 : carp == 4 ? -384 : 0;
 	
 		this.animeTime -= 1 + 2 * (1 - (toucheSol == 2 ? 1 : 0));
@@ -1988,11 +1995,11 @@ function Perso() {
 		}
 		
 		if(this.vie <= (50<<8)) {
-			var h = this.vie >> 8;
-			var r = TIME%h;
+			const h = this.vie >> 8;
+			const r = TIME%h;
 			
-			for(var i=0; r==0 && i<3; i++) {
-				var s = new Sparkle();
+			for(i = 0; r==0 && i<3; i++) {
+				s = new Sparkle();
 				s.x = perso.x + (this.pX<<5) + random(-5<<8,5<<8);;
 				s.y = perso.y + (this.pY<<6) + random(-5<<8,5<<8);
 				s.used = 7;
@@ -2007,7 +2014,7 @@ function Perso() {
 		
 		//console.log(this.timeVie);
 		
-		var dir = (this.isRight - this.isLeft) * 128;
+		let dir = (this.isRight - this.isLeft) * 128;
 		
 		//jump handling
 		if(this.isJump && toucheSol && !checkTeleportBas(this) && ffield.length == 0){
@@ -2056,13 +2063,12 @@ function Perso() {
 			else if(toucheSol==2) this.vx += dir>>2;
 		}
 		
-		var i;
 		for(i=0;i<8;i++){
 			if(!checkTeleportBas(this)&&!checkTeleportHaut(this)) this.x += this.vx>>3;
 			if(!checkTeleportGauche(this)&&!checkTeleportDroite(this)) this.y += this.vy>>3;
 		}
 		
-		var plate = onPlateforme(this);
+		let plate = onPlateforme(this);
 		if(plate){
 			plate-=200;
 			this.x += platforms[plate].vx;
@@ -2070,7 +2076,7 @@ function Perso() {
 		
 		toucheSol = touchingGround(this);
 		
-		var col = 1;		
+		let col = 1;		
 		while(col && !dansUnPortal(this)){
 			col = checkCollisions(this);
 		}
@@ -2096,8 +2102,8 @@ function Perso() {
 		}
 		
 		
-		var colLeft = leftCollision(this);
-		var colRight = rightCollision(this);
+		const colLeft = leftCollision(this);
+		const colRight = rightCollision(this);
 		if(colLeft && colRight && !dansUnPortal(this)){
 			if((colLeft>=200 && colLeft<=210) || (colRight>=200 && colRight<=210)){
 				this.vie = 0;
@@ -2117,7 +2123,7 @@ function Perso() {
 function fieldForceTest() {
 	if(portals[0].used || portals[1].used) {
 		if(inForceField(perso)) {
-			var i;
+			let i;
 			for(i=0;i<2;i++){
 				portals[i].used = 0;
 				removeSparkles(i, 3);
@@ -2127,10 +2133,10 @@ function fieldForceTest() {
 }
 
 function inForceField(obj) {
-	var i, j;
+	let i, j;
 	for(i=0;i<=obj.pY - 1;i+=2){
 		for(j=0;j<=obj.pX - 1;j+=2){
-			var t = getTileSimple((obj.x>>8) + j, (obj.y>>8) + j);
+			const t = getTileSimple((obj.x>>8) + j, (obj.y>>8) + j);
 			if(t>=49 && t<=54) {				
 				return true;
 			}
@@ -2140,6 +2146,7 @@ function inForceField(obj) {
 }
 
 function manageSparkles() {
+	let d, i, sc;
 	for(i=0;i<sparkles.length && quality > 0;i++) {
 		if(sparkles[i].used == 5) sparkles[i].vy += GRAVITY;
 		else if(sparkles[i].used == 6 || sparkles[i].used == 7) sparkles[i].vy += GRAVITY>>1;
@@ -2175,13 +2182,13 @@ function manageSparkles() {
 			if(getTile((sparkles[i].x>>8) + 4, (sparkles[i].y>>8) + 4) != 0) sparkles[i].fading = 0;
 		}else if(sparkles[i].used == 3) {
 			if(sparkles[i].vx != 0) {
-				var d = Math.abs(sparkles[i].xOrig - sparkles[i].x) >> 8;
+				d = Math.abs(sparkles[i].xOrig - sparkles[i].x) >> 8;
 				sparkles[i].fading = 200 - (5 * d);
 			}else if(sparkles[i].vy != 0) {
-				var d = Math.abs(sparkles[i].yOrig - sparkles[i].y) >> 8;
+				d = Math.abs(sparkles[i].yOrig - sparkles[i].y) >> 8;
 				sparkles[i].fading = 200 - (5 * d);
-				var n = sparkles[i].portalNum;
-				var plt = portals[n].plateforme;
+				const n = sparkles[i].portalNum;
+				const plt = portals[n].plateforme;
 				if(plt >= 0) {
 					sparkles[i].x += platforms[plt].vx;
 					sparkles[i].xOrig = sparkles[i].x;
@@ -2193,7 +2200,7 @@ function manageSparkles() {
 		}
 		
 		if(quality > 0 && sparkles[i].fading > 0) {
-			var dt = 9 - (sc * 9);
+			let dt = 9 - (sc * 9);
 			if(sparkles[i].used == 7 || sparkles[i].used == 5) {
 				dt -= 8;
 			}
@@ -2214,8 +2221,8 @@ function manageSparkles() {
 }
 
 function clearPortals(){
-	var ok = 1;
-	var i = 0;
+	let ok = 1;
+	let i = 0;
 	for(i in caisses) {
 		if(!ok) break;
 		if(caisses[i].shrink == 0 && dansUnPortal(caisses[i])) ok = 0;
@@ -2240,7 +2247,7 @@ function clearPortals(){
 }
 
 function validerArrivee(){
-	var i;
+	let i;
 	for(i=0;i<768;i++){
 		if(map[i]==35) {
 			map[i] = 22;
@@ -2251,7 +2258,7 @@ function validerArrivee(){
 }
 
 function toucheCake(){
-	var i;
+	let i;
 	for(i=0;i<cakes.length;i++){
 		if(cakes[i].used){
 			if(persoToucheCake(i)){
@@ -2266,9 +2273,9 @@ function toucheCake(){
 }
 
 function createCakeOrSmokeSparkles(x, y, type, number, size) {
-	var k;
+	let k;
 	for(k=0;k<number;k++){
-		var s = new Sparkle();
+		const s = new Sparkle();
 		s.x = x + parseInt(random(-8<<8,8<<8));
 		s.y = y + parseInt(random(-8<<8,8<<8));
 		s.used = type;
@@ -2284,14 +2291,14 @@ function createCakeOrSmokeSparkles(x, y, type, number, size) {
 
 
 function persoToucheCake(i){
-	var retour = 0;
+	let retour = 0;
 
-	var posx = perso.x>>8;
-	var posy = (perso.y>>8);
-	var pX = perso.pX;
-	var pY = perso.pY;
-	var x = cakes[i].x>>8;
-	var y = cakes[i].y>>8;
+	const posx = perso.x>>8;
+	const posy = (perso.y>>8);
+	const pX = perso.pX;
+	const pY = perso.pY;
+	const x = cakes[i].x>>8;
+	const y = cakes[i].y>>8;
 	
 	if(posx+pX>x && x+16>posx && posy+pY>y && y+16>posy){
 		retour =  1;
@@ -2382,8 +2389,8 @@ function Plasma(x, y, vx, vy) {
 		this.x+=this.vx;
 		this.y+=this.vy;
 		
-		var vx = this.vx;
-		var vy = this.vy;
+		const vx = this.vx;
+		const vy = this.vy;
 		
 		if(!dansUnPortal(this)){
 			this.checkCollision();
@@ -2393,7 +2400,7 @@ function Plasma(x, y, vx, vy) {
 				if(this.y < perso.y) this.vy += 4;
 				else if(this.y > perso.y) this.vy -= 4;
 				
-				var vmx = 3;
+				const vmx = 3;
 				
 				if(this.vx > (vmx<<8)) this.vx = vmx << 8;
 				else if(this.vx < -(vmx<<8)) this.vx = -(vmx << 8);
@@ -2419,7 +2426,7 @@ function Plasma(x, y, vx, vy) {
 			this.vx = this.origVx;
 			this.vy = this.origVy;
 		}else {
-			var t = getTileSimple((this.x>>8) + 8, (this.y>>8) + 8);
+			const t = getTileSimple((this.x>>8) + 8, (this.y>>8) + 8);
 			if(t == 38 || t == 39 || t == 47) {
 				this.x = this.xOrig;
 				this.y = this.yOrig;
@@ -2430,7 +2437,7 @@ function Plasma(x, y, vx, vy) {
 	}
 	
 	this.ouvrirPorte = function(){
-		var i;
+		let i;
 		for(i in animatedTiles) {
 			if(animatedTiles[i].current>=29 && animatedTiles[i].current<=34){
 				animatedTiles[i].used = 0;
@@ -2444,7 +2451,7 @@ function Plasma(x, y, vx, vy) {
 	}
 	
 	this.encore = function() {
-		var i;
+		let i;
 		for(i=0;i<768;i++){
 			if(map[i]==21) return 1;
 		}
@@ -2452,8 +2459,8 @@ function Plasma(x, y, vx, vy) {
 	}
 	
 	this.checkCollision = function() {
-		var i;
-		var dist = getDistance(this.x>>8, this.x>>8, perso.x>>8, perso.y>>8);
+		let x, y, i;
+		let dist = getDistance(this.x>>8, this.x>>8, perso.x>>8, perso.y>>8);
 		if(dist > 384) dist = 384;
 		setSoundVolume(sfx_bounce, 1 - (dist / 384));
 
@@ -2464,8 +2471,8 @@ function Plasma(x, y, vx, vy) {
 			}while(getCollision(this)==GAUCHE);
 			this.vx = -this.vx;
 			
-			var x = (this.x>>8) - 1;
-			var y = this.y>>8;
+			x = (this.x>>8) - 1;
+			y = this.y>>8;
 			for(i=2;i<=14 && bossNum == 0;i++){
 				if(getTileSimple(x,y+i)==21){
 					y+=i;
@@ -2492,8 +2499,8 @@ function Plasma(x, y, vx, vy) {
 			}while(getCollision(this)==DROITE);
 			this.vx = -this.vx;
 			
-			var x = (this.x>>8) + 16;
-			var y = this.y>>8;
+			x = (this.x>>8) + 16;
+			y = this.y>>8;
 			for(i=2;i<=14 && bossNum == 0;i++){
 				if(getTileSimple(x,y+i)==21){
 					y+=i;
@@ -2520,8 +2527,8 @@ function Plasma(x, y, vx, vy) {
 			}while(getCollision(this)==HAUT);
 			this.vy = -this.vy;
 			
-			var x = this.x>>8;
-			var y = (this.y>>8) - 1;
+			x = this.x>>8;
+			y = (this.y>>8) - 1;
 			for(i=4;i<=12 && bossNum == 0;i++){
 				if(getTileSimple(x+i,y)==21){
 					x+=i;
@@ -2548,8 +2555,8 @@ function Plasma(x, y, vx, vy) {
 			}while(getCollision(this)==BAS);
 			this.vy = -this.vy;
 
-			var x = this.x>>8;
-			var y = (this.y>>8) + 16;
+			x = this.x>>8;
+			y = (this.y>>8) + 16;
 			for(i=4;i<=12 && bossNum == 0;i++){
 				if(getTileSimple(x+i,y)==21){
 					x+=i;
@@ -2574,15 +2581,16 @@ function Plasma(x, y, vx, vy) {
 }
 
 function plasmaToucheObjet(obj){
+	let i;
 	for(i in plasmaBall) {
 		if(plasmaBall[i].used) {
-			var posx = obj.x>>8;
-			var posy = obj.y>>8;
-			var px = obj.pX;
-			var py = obj.pY;
+			const posx = obj.x>>8;
+			const posy = obj.y>>8;
+			const px = obj.pX;
+			const py = obj.pY;
 			
-			var x = plasmaBall[i].x>>8;
-			var y = plasmaBall[i].y>>8;
+			const x = plasmaBall[i].x>>8;
+			const y = plasmaBall[i].y>>8;
 			if(posx+px>x && x+16>posx && posy+py>y && y+16>posy) return 1;
 		}
 	}
@@ -2602,7 +2610,7 @@ function Platform(x, y, vx, vy) {
 	
 	this.move = function() {
 		this.x += this.vx;
-		var x = this.x>>8;
+		const x = this.x>>8;
 		//var y = plateForme[i].y>>8;
 		if(x<0 || x>512-48 || (this.vx>0 && rightCollision(this)) || (this.vx<0 && leftCollision(this))){
 			//this.x-=this.vx;
@@ -2612,11 +2620,11 @@ function Platform(x, y, vx, vy) {
 }
 
 function onCarpet(obj) {
-	var toucheSol = touchingGround(obj);
+	const toucheSol = touchingGround(obj);
 	if(toucheSol == 3 || toucheSol == 4) {
 		return toucheSol;
 	}else {
-		var cai = collideCaisse(obj.x>>8,(obj.y>>8) + obj.pY);
+		let cai = collideCaisse(obj.x>>8,(obj.y>>8) + obj.pY);
 		if(!cai) cai = collideCaisse((obj.x>>8)+obj.pX-1,(obj.y>>8) + obj.pY);
 		if(cai){
 			cai-=300;
@@ -2628,10 +2636,10 @@ function onCarpet(obj) {
 }
 
 function onPlateforme(obj){
-	var plate = collidePlateforme(obj.x>>8,(obj.y>>8) + obj.pY);
+	let plate = collidePlateforme(obj.x>>8,(obj.y>>8) + obj.pY);
 	if(!plate) plate = collidePlateforme((obj.x>>8)+obj.pX-1,(obj.y>>8) + obj.pY);
 	if(!plate){
-		var cai = collideCaisse(obj.x>>8,(obj.y>>8) + obj.pY);
+		let cai = collideCaisse(obj.x>>8,(obj.y>>8) + obj.pY);
 		if(!cai) cai = collideCaisse((obj.x>>8)+obj.pX-1,(obj.y>>8) + obj.pY);
 		if(cai){
 			cai-=300;
@@ -2643,11 +2651,12 @@ function onPlateforme(obj){
 }
 
 function collidePlateforme(x, y){
+	let plt;
 	for(plt in platforms){
-		var x2 = platforms[plt].x>>8;
-		var y2 = platforms[plt].y>>8;
+		const x2 = platforms[plt].x>>8;
+		const y2 = platforms[plt].y>>8;
 		if(x>x2 && x<x2+48 && y>=y2 && y<y2+15){
-			var ret = parseInt(plt);
+			const ret = parseInt(plt);
 			return 200 + ret;
 		}
 	}
@@ -2674,10 +2683,10 @@ function Tunnel(x, y, dir) {
 }
 
 function persoTouchBoss() {
-	var x = (perso.x>>8) + perso.pX;
-	var y = (perso.y>>8) + (perso.pY>>1);
-	var x2 = bossX + 15;
-	var y2 = bossY;
+	const x = (perso.x>>8) + perso.pX;
+	const y = (perso.y>>8) + (perso.pY>>1);
+	const x2 = bossX + 15;
+	const y2 = bossY;
 
 	if(x > x2 && y > y2 && y < y2 + 58) return true;
 
@@ -2685,12 +2694,13 @@ function persoTouchBoss() {
 }
 
 function manageToucheBoss(obj) {
-  var posx = obj.x>>8;
-  var posy = (obj.y>>8);
-  var pX = obj.pX;
-  var pY = obj.pY;
-  var x = bossX + 16;
-  var y = bossY;
+  let i;
+  const posx = obj.x>>8;
+  const posy = (obj.y>>8);
+  const pX = obj.pX;
+  const pY = obj.pY;
+  const x = bossX + 16;
+  const y = bossY;
   
   if(bossLife < 3 && posx+pX>x && x+74>posx && posy+pY>y && y+58>posy){
     if(bossNum == 1 || bossNum == 3 || bossNum == 4) obj.needKill = true;
@@ -2722,12 +2732,12 @@ function manageToucheBoss(obj) {
 function manageInTube(obj) {
 	if(obj.vx < 0) return;
 
-	var posx = obj.x>>8;
-	var posy = (obj.y>>8);
-	var pX = obj.pX;
-	var pY = obj.pY;
-	var x = tubeX >> 8;
-	var y = tubeY >> 8;
+	const posx = obj.x>>8;
+	const posy = (obj.y>>8);
+	const pX = obj.pX;
+	const pY = obj.pY;
+	const x = tubeX >> 8;
+	const y = tubeY >> 8;
 
 	if(posx+pX>x && x+64>posx && posy+pY>y && y+48>posy){
 	obj.shrink = 60;
@@ -2754,7 +2764,7 @@ function Projectile(x, y, vx, vy) {
 				if(++this.img == 38) this.img = 36;
 			}
 			
-			var t = getTile((this.x>>8) + 8, (this.y>>8) + 8);
+			const t = getTile((this.x>>8) + 8, (this.y>>8) + 8);
 			
 			if(t) {
 				this.needKill = true;
@@ -2802,6 +2812,7 @@ function Caisse(x, y) {
 	}
 	
 	this.move = function() {
+		let i;
 		if(this.invincibility > 0) this.invincibility--;
 		if(this.noRemove > 0) this.noRemove--;
   
@@ -2812,7 +2823,7 @@ function Caisse(x, y) {
 				if(bossNum > 0) {	//if in boss mode, first level
 					if(bossNum == 1 || bossNum == 4) manageInTube(this);
           
-					var t = getTileSimple((this.x >> 8) + this.pX + 1, this.y >> 8);
+					const t = getTileSimple((this.x >> 8) + this.pX + 1, this.y >> 8);
 					if(t>= 58 && t <= 60) {
 						for(i in map) {
 							if(map[i] == t) {
@@ -2840,7 +2851,7 @@ function Caisse(x, y) {
 					manageToucheBoss(this);
 				}
 				
-				var plt = onPlateforme(this);
+				let plt = onPlateforme(this);
 				if(plt){
 					plt -= 200;
 					this.x += platforms[plt].vx;
@@ -2858,8 +2869,8 @@ function Caisse(x, y) {
 					this.vy = 0;
 					this.angle = 0;
 				}
-				var x = this.x>>8;
-				var y = this.y>>8;
+				const x = this.x>>8;
+				const y = this.y>>8;
 				if(x<-16 || x>512 || y<-16 || y>384 || toucheTileMort(this) || plasmaToucheObjet(this)){
 					if(bossNum == 1 || bossNum == 3 || bossNum == 4) {	//if in boss mode, first, third or fourth level
 						this.needKill = true;
@@ -2896,12 +2907,12 @@ function Caisse(x, y) {
 }
 
 function collideCaisse(x, y){
-	var i;
+	let i;
 	for(i in caisses){
-		var x2 = caisses[i].x>>8;
-		var y2 = caisses[i].y>>8;
+		const x2 = caisses[i].x>>8;
+		const y2 = caisses[i].y>>8;
 		if(!caisses[i].porter && !dansUnPortal(caisses[i]) && x>x2 && x<x2+15 && y>y2 && y<y2+15){
-			var ret = parseInt(i);
+			const ret = parseInt(i);
 			return 300 + ret;
 		}
 	}
@@ -2909,13 +2920,13 @@ function collideCaisse(x, y){
 }
 
 function projoTouchePerso(obj) {
-	var posx = obj.x>>8;
-	var posy = obj.y>>8;
-	var px = obj.pX;
-	var py = obj.pY;
+	const posx = obj.x>>8;
+	const posy = obj.y>>8;
+	const px = obj.pX;
+	const py = obj.pY;
 	
-	var x = perso.x>>8;
-	var y = perso.y>>8;
+	const x = perso.x>>8;
+	const y = perso.y>>8;
 
 	if(posx+px>x && x+perso.pX>posx && posy+py>y && y+perso.pY>posy) {
 		return true;
@@ -2925,12 +2936,12 @@ function projoTouchePerso(obj) {
 }
 
 function collideAnyCaisse(x, y) {
-	var i;
+	let i;
 	for(i in caisses){
-		var x2 = caisses[i].x>>8;
-		var y2 = caisses[i].y>>8;
+		const x2 = caisses[i].x>>8;
+		const y2 = caisses[i].y>>8;
 		if(x>x2 && x<x2+15 && y>y2 && y<y2+15){
-			var ret = parseInt(i);
+			const ret = parseInt(i);
 			return 300 + ret;
 		}
 	}
@@ -2938,6 +2949,7 @@ function collideAnyCaisse(x, y) {
 }
 
 function caisseSurInterrupteur(){
+	let i;
 	for(i in caisses){
 		if(getTileSimple(caisses[i].x>>8,(caisses[i].y>>8)+19)==19){
 			return 1;
@@ -2950,10 +2962,10 @@ function caisseSurInterrupteur(){
 
 function caisseSurPerso(obj){
 	if(obj.type == "caisse" && obj.vy > 0 && !dansUnPortal(obj)){	//the object is a crate
-		var x = (obj.x>>8) + 3;
-		var y = (obj.y>>8) + obj.pY;
-		var x2 = perso.x>>8;
-		var y2 = perso.y>>8;
+		let x = (obj.x>>8) + 3;
+		const y = (obj.y>>8) + obj.pY;
+		const x2 = perso.x>>8;
+		const y2 = perso.y>>8;
 		
 		if(x>=x2 && x<x2+16 && y>=y2 && y<y2+4) return 1;
 		else{
@@ -2965,15 +2977,16 @@ function caisseSurPerso(obj){
 }
 
 function caisseToucheObjet(obj){
-	var posx = obj.x>>8;
-	var posy = obj.y>>8;
-	var px = obj.pX;
-	var py = obj.pY;
+	let i;
+	const posx = obj.x>>8;
+	const posy = obj.y>>8;
+	const px = obj.pX;
+	const py = obj.pY;
 	
 	for(i in caisses){
 		if(caisses[i].porter==0 && (caisses[i].vx!=0 || caisses[i].vy!=0) && !dansUnPortal(caisses[i])){
-			var x = caisses[i].x>>8;
-			var y = caisses[i].y>>8;
+			const x = caisses[i].x>>8;
+			const y = caisses[i].y>>8;
 			if(posx+px>x && x+16>posx && posy+py>y && y+16>posy) return i+1;
 		}
 	}
@@ -2981,14 +2994,15 @@ function caisseToucheObjet(obj){
 }
 
 function placeObject(obj){
-	var x = perso.x + (perso.pX<<7);
-	var y = perso.y + (perso.pY<<7);
+	let po, col;
+	const x = perso.x + (perso.pX<<7);
+	const y = perso.y + (perso.pY<<7);
 	
 	obj.x = x - (obj.pX << 7);
 	obj.y = y - (obj.pY << 7);
 	
-	var cos = getCos(mouseX,mouseY,(x>>8) + ECART_X,(y>>8) + ECART_Y);
-	var sin = getSin(mouseX,mouseY,(x>>8) + ECART_X,(y>>8) + ECART_Y);
+	const cos = getCos(mouseX,mouseY,(x>>8) + ECART_X,(y>>8) + ECART_Y);
+	const sin = getSin(mouseX,mouseY,(x>>8) + ECART_X,(y>>8) + ECART_Y);
 	
 	obj.vx = cos * (16<<8);
 	obj.vy = sin * (16<<8);
@@ -3010,9 +3024,10 @@ function placeObject(obj){
 }
 
 function moveObject(obj) {
-	var ffield = inForceFieldTp(obj);
+	let col, i, c;
+	const ffield = inForceFieldTp(obj);
 	for(i in ffield) {
-		var f = ffield[i];
+		const f = ffield[i];
 		if(forceFields[f].vx != 0) {
 			if(checkTeleportHaut(obj) || checkTeleportBas(obj)) {
 				if((obj.y >> 8) < forceFields[f].y) obj.y += 768;
@@ -3033,7 +3048,7 @@ function moveObject(obj) {
 		}
 	}
 
-	var carp = onCarpet(obj);
+	const carp = onCarpet(obj);
 	if(carp) {
 		obj.x += carp == 3 ? 384 : carp == 4 ? -384 : 0;
 		obj.vx = carp == 3 ? 8 : carp == 4 ? -8 : 0;
@@ -3043,10 +3058,10 @@ function moveObject(obj) {
 		obj.carpet = carp;
 	}
 	
-	var checkTgauche = checkTeleportGauche(obj);
-	var checkTdroite = checkTeleportDroite(obj);
+	const checkTgauche = checkTeleportGauche(obj);
+	const checkTdroite = checkTeleportDroite(obj);
 	
-	var toucheSol = touchingGround(obj);
+	const toucheSol = touchingGround(obj);
 	
 	if(!toucheSol || checkTeleportBas(obj)) {
 		if(ffield.length == 0) obj.vy+=GRAVITY;
@@ -3068,7 +3083,7 @@ function moveObject(obj) {
 	if(obj.vx>512&&toucheSol==1&&!checkTgauche) obj.vx = 512;
 	else if(obj.vx<-512&&toucheSol==1&&!checkTdroite) obj.vx = -512;
 	
-	var j;
+	let j;
 	for(j=0;j<8;j++){
 		if(!checkTeleportBas(obj)&&!checkTeleportHaut(obj)) obj.x+=obj.vx>>3;
 		if(!checkTeleportGauche(obj)&&!checkTeleportDroite(obj)&&!caisseSurPerso(obj)) obj.y+=obj.vy>>3;
@@ -3092,16 +3107,16 @@ function moveObject(obj) {
 		  
 		  if(obj.vx != 0 && !dansUnPortal(obj)) {
 			for(c in caisses) {
-			  var ca = caisses[c];
+			  const ca = caisses[c];
 			  if(dansUnPortal(ca)) continue;
 			  if(obj.x != ca.x && obj.y != ca.y) {
-				var y = obj.y >> 8;
-				var x = obj.x >> 8;
+				const y = obj.y >> 8;
+				let x = obj.x >> 8;
 				
 				if(obj.vx > 0) x += 16;
 				else if(obj.vx < 0) x -= 1;
 				
-				var needReturn = false;
+				let needReturn = false;
 				
 				if(pointDansObjet(x, y + 1, ca)) {
 					if(ca.porter) perso.vx = obj.vx;
@@ -3124,7 +3139,7 @@ function moveObject(obj) {
 				}
 				
 				if(needReturn) {
-				  var col = 1;
+				  col = 1;
 				  while(col && !dansUnPortal(obj)){
 					col = checkCollisions(obj);
 				  }
@@ -3137,14 +3152,14 @@ function moveObject(obj) {
 		}
 	}
 
-	var col = 1;
+	col = 1;
 	while(col && !dansUnPortal(obj)){
 		col = checkCollisions(obj);
 	}
 }
 
 function objetPortee(){
-	var i;
+	let i;
 	for(i in caisses){
 		if(caisses[i].porter==1) return 1;
 	}
@@ -3155,21 +3170,22 @@ function objetPortee(){
 }
 
 function pointDansObjet(x, y, obj){
-	var x2 = obj.x>>8;
-	var y2 = obj.y>>8;
+	const x2 = obj.x>>8;
+	const y2 = obj.y>>8;
 	if(x>=x2 && x<x2+obj.pX && y>=y2 && y<y2+obj.pY) return 1;
 	else return 0;
 }
 
 function grabObject(){
-	var ok = 0;
+	let x1, y1, i;
+	let ok = 0;
 	if(!objetPortee()){
 		if(mousePressed && (mouseButton == LEFT)){
-			var x2 = (perso.x>>8) + (perso.pX>>1);
-			var y2 = (perso.y>>8) + (perso.pY>>1);
+			const x2 = (perso.x>>8) + (perso.pX>>1);
+			const y2 = (perso.y>>8) + (perso.pY>>1);
 			for(i in caisses){
-				var x1 = (caisses[i].x>>8) + (caisses[i].pX>>1);
-				var y1 = (caisses[i].y>>8) + (caisses[i].pY>>1);
+				x1 = (caisses[i].x>>8) + (caisses[i].pX>>1);
+				y1 = (caisses[i].y>>8) + (caisses[i].pY>>1);
 				if(getDistance(x1, y1, x2, y2)<32 && pointDansObjet(mouseX - ECART_X, mouseY - ECART_Y, caisses[i])){
 					caisses[i].porter = 1;
 					ok = 1;
@@ -3178,8 +3194,8 @@ function grabObject(){
 			}
 			if(!ok){
 				for(i in tourelles){
-					var x1 = (tourelles[i].x>>8) + (tourelles[i].pX>>1);
-					var y1 = (tourelles[i].y>>8) + (tourelles[i].pY>>1);
+					x1 = (tourelles[i].x>>8) + (tourelles[i].pX>>1);
+					y1 = (tourelles[i].y>>8) + (tourelles[i].pY>>1);
 					if(!tourelles[i].mort && getDistance(x1, y1, x2, y2)<32 && pointDansObjet(mouseX - ECART_X, mouseY - ECART_Y, tourelles[i])){
 						tourelles[i].porter = 1;
 						break;
@@ -3215,13 +3231,13 @@ function grabObject(){
 }
 
 function downCollision(obj){
-	var x = obj.x>>8;
-	var y = (obj.y>>8) + obj.pY - 1;
-	var pX = obj.pX;
+	const x = obj.x>>8;
+	const y = (obj.y>>8) + obj.pY - 1;
+	const pX = obj.pX;
 	
-	var i;
+	let i;
 	for(i=x;i<x+pX;i++){
-		var tile = getTile(i,y);
+		const tile = getTile(i,y);
 		if(tile) return tile;
 	}
 	
@@ -3229,13 +3245,13 @@ function downCollision(obj){
 }
 
 function upCollision(obj){
-	var x = obj.x>>8;
-	var y = (obj.y>>8);
-	var pX = obj.pX;
+	const x = obj.x>>8;
+	const y = (obj.y>>8);
+	const pX = obj.pX;
 	
-	var i;
+	let i;
 	for(i=x;i<x+pX;i++){
-		var tile = getTile(i,y);
+		const tile = getTile(i,y);
 		if(tile) return tile;
 	}
 	
@@ -3243,13 +3259,13 @@ function upCollision(obj){
 }
 
 function leftCollision(obj){
-	var x = (obj.x>>8) - 1;
-	var y = obj.y>>8;
-	var pY = obj.pY;
+	const x = (obj.x>>8) - 1;
+	const y = obj.y>>8;
+	const pY = obj.pY;
 	
-	var i;
+	let i;
 	for(i=y;i<y+pY;i++){
-		var tile = getTile(x,i);
+		const tile = getTile(x,i);
 		if(tile) return tile;
 	}
 	
@@ -3257,13 +3273,13 @@ function leftCollision(obj){
 }
 
 function rightCollision(obj){
-	var x = (obj.x>>8) + obj.pX;
-	var y = obj.y>>8;
-	var pY = obj.pY;
+	const x = (obj.x>>8) + obj.pX;
+	const y = obj.y>>8;
+	const pY = obj.pY;
 	
-	var i;
+	let i;
 	for(i=y;i<y+pY;i++){
-		var tile = getTile(x,i);
+		const tile = getTile(x,i);
 		if(tile) return tile;
 	}
 	
@@ -3271,13 +3287,13 @@ function rightCollision(obj){
 }
 
 function getCollision(obj){
-	var i;
-	var touche = [0, 0, 0, 0];//top, bottom, left, right
-	var x = obj.x>>8;
-	var y = obj.y>>8;
+	let i;
+	const touche = [0, 0, 0, 0];//top, bottom, left, right
+	const x = obj.x>>8;
+	const y = obj.y>>8;
 	
-	var max = 0;
-	var maxVal = 0;
+	let max = 0;
+	let maxVal = 0;
 	
 	for(i=x;i<x+obj.pX;i+=2){//top
 		if(getTile(i,y)) touche[0]++;
@@ -3320,7 +3336,7 @@ function getCollision(obj){
 
 function checkCollisions(obj) {
 
-	var coll = 0;
+	let coll = 0;
 	
 	if(getCollision(obj)==HAUT){
 		coll = 1;
@@ -3398,24 +3414,24 @@ function max(x, y){
 
 function getAngle(x1, y1, x2, y2)
 {
-	var value = parseFloat(Math.atan2(y2 - y1 , x2 - x1));
+	const value = parseFloat(Math.atan2(y2 - y1 , x2 - x1));
 	return value;
 }
 
 function getCos(x1, y1, x2, y2){
-	var adj = x1-x2;
-	var opp = y1-y2;
-	var hyp = Math.sqrt(opp*opp+adj*adj);
-	var movx = adj/hyp;
+	const adj = x1-x2;
+	const opp = y1-y2;
+	const hyp = Math.sqrt(opp*opp+adj*adj);
+	const movx = adj/hyp;
 
 	return movx;
 }
 
 function getSin(x1, y1, x2, y2){
-	var adj = x1-x2;
-	var opp = y1-y2;
-	var hyp = Math.sqrt(opp*opp+adj*adj);
-	var movy = opp/hyp;
+	const adj = x1-x2;
+	const opp = y1-y2;
+	const hyp = Math.sqrt(opp*opp+adj*adj);
+	const movy = opp/hyp;
 
 	return movy;
 }
@@ -3428,7 +3444,7 @@ function inScreen(x, y){
 
 function finNiveau(){
 	if(!dansUnPortal(perso)){
-		var i, j;
+		let i, j;
 		for(i=4;i<=28;i+=2){
 			for(j=2;j<=14;j+=2){
 				if(getTileSimple((perso.x>>8) + j, (perso.y>>8) + j)==22) return 1;
@@ -3441,18 +3457,19 @@ function finNiveau(){
 
 function getTileSimple(x, y){
 	if(x>=512 || y>=384 || y<0 || x<0) return 0;
-	var tile = map[((y>>4)*32) + (x>>4)];
+	const tile = map[((y>>4)*32) + (x>>4)];
 	
 	return tile;
 }
 
 function getDistance(x1, y1, x2, y2){
-	var adj = x1-x2;
-	var opp = y1-y2;
+	const adj = x1-x2;
+	const opp = y1-y2;
 	return Math.sqrt(opp*opp+adj*adj);
 }
 
 function tabContains(tab, value) {
+	let i;
 	for(i in tab) {
 		if(tab[i] == value) return true;
 	}
@@ -3460,10 +3477,10 @@ function tabContains(tab, value) {
 }
 
 function toTime(time) {
-	var s = time / 60.0;
-	var m = parseInt((s/60.0));
+	let s = time / 60.0;
+	const m = parseInt((s/60.0));
 	s = s - (60.0 * m);
-	var ms = (s - (parseInt(s))) * 1000;
+	const ms = (s - (parseInt(s))) * 1000;
 	
 	return (m<10 ? "0" : "") + m + ":" + (s<10 ? "0" : "") + parseInt(s) + "." + Math.round(ms);
 }
@@ -3476,6 +3493,7 @@ function Campaign(folder) {
 }
 
 function loadCampaigns() {
+	let c;
 	campaigns = new Array();
 	campaigns.push(new Campaign("normal"));
 	campaigns.push(new Campaign("advanced"));
@@ -3494,10 +3512,10 @@ function loadCampaigns() {
  * @param {number} camp The index of the campaign.
  */
 function loadCampaignFiles(camp) {
-	var folder = "maps/" + campaigns[camp].folder + "/";
+	const folder = "maps/" + campaigns[camp].folder + "/";
 	loadJsonFile(folder + "campaign.json", function(data) {
 		levelsToLoad += data.levels.length;
-		for(var i = 0; i < data.levels.length; i++) {
+		for(let i = 0; i < data.levels.length; i++) {
 			loadLevelFile(camp, i, folder + data.levels[i]);
 		}
 		levelsLoaded++;
@@ -3513,7 +3531,7 @@ function loadCampaignFiles(camp) {
  */
 function loadLevelFile(camp, index, url) {
 	loadJsonFile(url, function(data) {
-		var level = parseMap(data);
+		const level = parseMap(data);
 		campaigns[camp].levels[index] = level.tiles;
 		campaigns[camp].backgrounds[index] = level.bg;
 		campaigns[camp].texts[index] = typeof data.text == "string" ? data.text : "";
@@ -3561,15 +3579,16 @@ function loadCreditsText() {
 
 function loadGfx() {
 
+	let i, t, r;
 	body = new Array();
-	for(var i=0; i < 2; i++) {
-		var t = loadImage('sprites/body' + i + '.png');
+	for(i = 0; i < 2; i++) {
+		t = loadImage('sprites/body' + i + '.png');
 		body.push(t);
 	}
 	
 	head = new Array();
-	for(var i=0; i < 2; i++) {
-		var t = loadImage('sprites/head' + i + '.png');
+	for(i = 0; i < 2; i++) {
+		t = loadImage('sprites/head' + i + '.png');
 		head.push(t);
 	}
 	controls = loadImage('decor/controls.png');
@@ -3585,7 +3604,7 @@ function loadGfx() {
 	linesVerti = new Array();
 	for(i=0; i < 128; i++) {
 		do {
-			var r = parseInt(random(0, 129));
+			r = parseInt(random(0, 129));
 		}while(tabContains(linesHoriz, r));
 		linesHoriz.push(r);
 		linesVerti.push(r);
@@ -3594,7 +3613,7 @@ function loadGfx() {
 	
 	bg = new Array();
 	for(i=1; i<12; i++) {
-		var img = loadImage('bg/level' + i + '.png');
+		const img = loadImage('bg/level' + i + '.png');
 		bg.push(img);
 	}
 	
@@ -3635,8 +3654,8 @@ function loadGfx() {
 	tex_button = loadImage('menu/tex_button.png');
 	
 	tourelle = new Array();
-	for(var i=0; i < 2; i++) {
-		var t = loadImage('sprites/tourelle' + i + '.png');
+	for(i = 0; i < 2; i++) {
+		t = loadImage('sprites/tourelle' + i + '.png');
 		tourelle.push(t);
 	}
 	
@@ -3649,8 +3668,8 @@ function loadGfx() {
 	cameraFollow = loadImage('sprites/cameraFollow.png');
 	
 	robotEye = new Array();
-	for(var rob = 1; rob < 5; rob++) {
-		var r = loadImage('sprites/robotEye' + rob + '.png');
+	for(let rob = 1; rob < 5; rob++) {
+		r = loadImage('sprites/robotEye' + rob + '.png');
 		robotEye.push(r);
 	}
 	
@@ -3675,7 +3694,7 @@ function Line(x1, y1, x2, y2, color) {
 }
 
 function random(min, max) {
-	var randomnumber = Math.floor(Math.random()*(max - min)) + min;
+	const randomnumber = Math.floor(Math.random()*(max - min)) + min;
 	return randomnumber;
 }
 

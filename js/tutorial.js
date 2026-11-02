@@ -1,9 +1,11 @@
-var tutoJump = false;
-var tutoPortal = false;
-var tutoPause = false;
-var portalsDisplayed = false;
-var tutoEnded = false;
-var leftPan = ECART_X + 40;
+"use strict";
+
+let tutoJump = false;
+let tutoPortal = false;
+let tutoPause = false;
+let portalsDisplayed = false;
+let tutoEnded = false;
+const leftPan = ECART_X + 40;
 
 function setupTutorial() {
 	tutoJump = false;
@@ -58,7 +60,7 @@ function manageTutorial() {
 	}else if(currentLevel == 2 && !finNiveau()) {
 		drawCakeMessage();
 	}else if(currentLevel == 3 && !finNiveau()) {
-		var sec = 5 - parseInt(TIME / 60);
+		const sec = 5 - parseInt(TIME / 60);
 		if(parseInt(TIME / 60) == 5) {
 			if(!portalsDisplayed) {
 				displayPortals();
@@ -254,6 +256,7 @@ function prepareTxt(x, y, w, h) {
 }
 
 function displayPortals() {
+	let p, i;
 	portals[0].direction = 3;
 	portals[0].frame = 1;
 	portals[0].plateforme = -1;
@@ -280,7 +283,7 @@ function displayPortals() {
 	
 	for(p=0; p<2; p++) {
 		for(i=0;i<13;i++){
-			var s = new Sparkle();
+			const s = new Sparkle();
 			s.x = portals[p].x;
 			s.y = portals[p].y + ((i*2)<<8);
 			s.xOrig = s.x;

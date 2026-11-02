@@ -1,4 +1,7 @@
+"use strict";
+
 function loadLevelEditor() {
+	let vx, haut, bas, gauche, droite, i, y2, vx2, vy2, vy;
 	tubeX = tubeY = -1;
 	displayMap = new Array();
 	for(i in map) {
@@ -30,8 +33,8 @@ function loadLevelEditor() {
 	perso = new Perso();
 	
 	for(i in map) {
-		var y = i >> 5;
-		var x = i - (y << 5);
+		const y = i >> 5;
+		const x = i - (y << 5);
 		
 		if(map[i] == 107) {//right tunnel
 			tunnels.push(new Tunnel((x*16) << 8, (y*16) << 8, DROITE));
@@ -119,17 +122,16 @@ function loadLevelEditor() {
 			camera = new Camera(perso.x, perso.y);
 			continue;
 		}else if(map[i] == 105) {//right platform
-			var vx = 256;
+			vx = 256;
 			platforms.push(new Platform((x * 16) << 8, (y * 16) << 8, vx, 0));
 			map[i] = 0;
 			continue;
 		}else if(map[i] == 106) {//left platform
-			var vx = -256;
+			vx = -256;
 			platforms.push(new Platform((x * 16) << 8, (y * 16) << 8, vx, 0));
 			map[i] = 0;
 			continue;
 		}else if(map[i] == 20) {//plasma start
-			var haut,bas,gauche,droite;
 			if(x+1<32) droite = map[x+1+(y<<5)];
 			else droite = 1;
 			if(x-1>=0) gauche = map[x-1+(y<<5)];
@@ -139,8 +141,8 @@ function loadLevelEditor() {
 			if(y-1>=0) haut = map[x+((y-1)<<5)];
 			else haut = 1;
 			
-			var x2 = y2 = vx2 = vy2 = 0;
-			var push = true;
+			let x2 = y2 = vx2 = vy2 = 0;
+			let push = true;
 			
 			if(haut&&bas&&gauche){
 				vx = 424;
@@ -174,6 +176,7 @@ function loadLevelEditor() {
 }
 
 function loadLevel(level) {
+	let vx, haut, bas, gauche, droite, i, y2, vx2, vy2, vy;
 	tubeX = tubeY = -1;
 	hudLight = null;
 
@@ -235,8 +238,8 @@ function loadLevel(level) {
 	}
 	
 	for(i in map) {
-		var y = i >> 5;
-		var x = i - (y << 5);
+		const y = i >> 5;
+		const x = i - (y << 5);
 		
 		if(map[i] == 107) {//right tunnel
 			tunnels.push(new Tunnel((x*16) << 8, (y*16) << 8, DROITE));
@@ -324,12 +327,12 @@ function loadLevel(level) {
 			camera = new Camera(perso.x, perso.y);
 			continue;
 		}else if(map[i] == 105) {//right platform
-			var vx = 256;
+			vx = 256;
 			platforms.push(new Platform((x * 16) << 8, (y * 16) << 8, vx, 0));
 			map[i] = 0;
 			continue;
 		}else if(map[i] == 106) {//left platform
-			var vx = -256;
+			vx = -256;
 			platforms.push(new Platform((x * 16) << 8, (y * 16) << 8, vx, 0));
 			map[i] = 0;
 			continue;
@@ -340,7 +343,6 @@ function loadLevel(level) {
 			map[i] = 0;
 			continue;
 		}else if(map[i] == 20) {//plasma start
-			var haut,bas,gauche,droite;
 			if(x+1<32) droite = map[x+1+(y<<5)];
 			else droite = 1;
 			if(x-1>=0) gauche = map[x-1+(y<<5)];
@@ -350,8 +352,8 @@ function loadLevel(level) {
 			if(y-1>=0) haut = map[x+((y-1)<<5)];
 			else haut = 1;
 			
-			var x2 = y2 = vx2 = vy2 = 0;
-			var push = true;
+			let x2 = y2 = vx2 = vy2 = 0;
+			let push = true;
 			
 			if(haut&&bas&&gauche){
 				vx = 424;
@@ -400,6 +402,7 @@ function loadLevel(level) {
 }
 
 function loadPreviewMap(level) {
+	let vx, i;
 	tubeX = tubeY = -1;
 
 	if(level > 0) {
@@ -431,8 +434,8 @@ function loadPreviewMap(level) {
 	perso = new Perso();
 	
 	for(i in map) {
-		var y = i >> 5;
-		var x = i - (y << 5);
+		const y = i >> 5;
+		const x = i - (y << 5);
 		
 		if(map[i] == 107) {//right tunnel
 			tunnels.push(new Tunnel((x*16) << 8, (y*16) << 8, DROITE));
@@ -466,11 +469,11 @@ function loadPreviewMap(level) {
 			perso.y = (y * 16) << 8;
 			continue;
 		}else if(map[i] == 105) {//right platform
-			var vx = 256;
+			vx = 256;
 			platforms.push(new Platform((x * 16) << 8, (y * 16) << 8, vx, 0));
 			continue;
 		}else if(map[i] == 106) {//left platform
-			var vx = -256;
+			vx = -256;
 			platforms.push(new Platform((x * 16) << 8, (y * 16) << 8, vx, 0));
 			continue;
 		}

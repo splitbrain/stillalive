@@ -1,3 +1,5 @@
+"use strict";
+
 document.addEventListener('DOMContentLoaded', function() {
 	maxLevel = new Array();
 	maxLevel[0] = 1;
@@ -5,7 +7,7 @@ document.addEventListener('DOMContentLoaded', function() {
 	maxLevel[2] = 1;
 	maxLevel[4] = 1;
 
-	for(var i=0; i<5; i++) {
+	for(let i=0; i<5; i++) {
 		if(localStorage.getItem('sajs_maxLevel_' + i) != null) {
 			maxLevel[i] = parseInt(localStorage.getItem('sajs_maxLevel_' + i));
 		}else {

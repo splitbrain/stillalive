@@ -262,7 +262,6 @@ export function drawAllGame() {
 	drawTunnels();
 
 	const flipDx = game.perso.flip < 0 ? 1 : 0;
-	// image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight
 	if (!flipDx) drawPortalGun();
 	drawRotatedHead(flipDx);
 	ctx.drawImage(
@@ -326,9 +325,7 @@ export function drawAllGame() {
 	if (game.perso.mort) {
 		const a = -(game.perso.vie / 256);
 		ctx.fillStyle = 'rgba(0, 0, 0,' + (1 - a) + ')';
-		//noStroke();
 		ctx.fillRect(game.ECART_X, game.ECART_Y, 512, 384);
-		//ctx.globalAlpha = 1;
 		game.perso.vie += 6;
 		game.perso.checkMort();
 		setSoundVolume(sfx_flatline, a / 2);
@@ -441,7 +438,6 @@ export function createBuff() {
 	game.imgBuff = copyCanvas(game.ECART_X, game.ECART_Y, 512, 384);
 	game.needLoad = false;
 	ctx.fillStyle = 'rgb(0, 0, 0)';
-	//noStroke();
 	ctx.fillRect(game.ECART_X, game.ECART_Y, 512, 384);
 	if (game.perso.intermissionFade < 0) ctx.drawImage(highscore, game.ECART_X, game.ECART_Y);
 }
@@ -484,7 +480,6 @@ export function drawCakes() {
 export function drawTourelles() {
 	let dx, tour;
 	for (tour in game.tourelles) {
-		//if(tourelles[tour].animFrame < 10) {
 		const side = game.tourelles[tour].dir < 0 ? 0 : 1;
 
 		if (settings.quality > 0) {
@@ -546,7 +541,6 @@ export function drawTourelles() {
 			game.tourelles[tour].move();
 			if (game.needRedrawTiles == 0) game.needRedrawTiles = dansUnPortal(game.tourelles[tour]);
 		}
-		//}
 	}
 }
 

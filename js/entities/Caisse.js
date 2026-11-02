@@ -101,7 +101,6 @@ export class Caisse {
 				moveObject(this);
 
 				if (game.bossNum > 0) {
-					//if in boss mode, first level
 					if (game.bossNum == 1 || game.bossNum == 4) manageInTube(this);
 
 					const t = getTileSimple((this.x >> 8) + this.pX + 1, this.y >> 8);
@@ -144,7 +143,6 @@ export class Caisse {
 				else this.angle = 0;
 				if (this.angle >= 360) this.angle -= 360;
 				if (caisseSurPerso(this)) {
-					//this.vx >>= 1;
 					while (caisseSurPerso(this)) this.y -= 256;
 					this.vy = 0;
 					this.angle = 0;
@@ -153,7 +151,6 @@ export class Caisse {
 				const y = this.y >> 8;
 				if (x < -16 || x > 512 || y < -16 || y > 384 || toucheTileMort(this) || plasmaToucheObjet(this)) {
 					if (game.bossNum == 1 || game.bossNum == 3 || game.bossNum == 4) {
-						//if in boss mode, first, third or fourth level
 						this.needKill = true;
 						return;
 					}
@@ -170,7 +167,6 @@ export class Caisse {
 			this.shrink -= 4;
 			if (this.shrink == 0) {
 				if (game.bossNum == 1 || game.bossNum == 4) {
-					//if in boss mode, first or fourth level
 					this.needKill = true;
 					return;
 				}
@@ -236,7 +232,6 @@ export function collideAnyCaisse(x, y) {
  */
 export function caisseSurPerso(obj) {
 	if (obj.type == 'caisse' && obj.vy > 0 && !dansUnPortal(obj)) {
-		//the object is a crate
 		let x = (obj.x >> 8) + 3;
 		const y = (obj.y >> 8) + obj.pY;
 		const x2 = game.perso.x >> 8;

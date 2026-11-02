@@ -172,7 +172,6 @@ function drawTestLevel() {
 	drawTunnels();
 
 	const flipDx = game.perso.flip < 0 ? 1 : 0;
-	// image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight
 	ctx.drawImage(
 		head[flipDx],
 		game.perso.animeFrame * 16,
@@ -340,7 +339,6 @@ function menuSaveMap() {
 		const y = parseInt((input.mouseY - 105) / 12);
 		if (y <= 28) {
 			ctx.fillStyle = 'rgb(15, 112, 144)';
-			//noStroke();
 			ctx.fillRect(529, 105 + y * 12 + 2, 90, 14);
 
 			if (input.mouseNewPress && y != ui.previewMap) {
@@ -358,7 +356,6 @@ function menuSaveMap() {
 
 	if (ui.previewMap > 0) {
 		ctx.fillStyle = 'rgb(15, 112, 144)';
-		//noStroke();
 		ctx.fillRect(529, 105 + ui.previewMap * 12 + 2, 90, 14);
 
 		if (mouseInZone(515, 495, 120, 24)) overMenu = 1;
@@ -472,7 +469,6 @@ function menuLoadMap() {
 		const y = parseInt((input.mouseY - 105) / 12);
 		if (y <= 28 && getEditorMap(y) != null) {
 			ctx.fillStyle = 'rgb(15, 112, 144)';
-			//noStroke();
 			ctx.fillRect(529, 105 + y * 12 + 2, 90, 14);
 
 			if (input.mouseNewPress && y != ui.previewMap) {
@@ -490,7 +486,6 @@ function menuLoadMap() {
 
 	if (ui.previewMap > 0) {
 		ctx.fillStyle = 'rgb(15, 112, 144)';
-		//noStroke();
 		ctx.fillRect(529, 105 + ui.previewMap * 12 + 2, 90, 14);
 
 		if (mouseInZone(515, 495, 120, 24)) overMenu = 1;
@@ -638,8 +633,6 @@ function manageEditor() {
 		} else if (overMenu == 4) {
 			//clear
 			for (i in game.map) game.map[i] = 0;
-			/*undoMap = new Array();
-			undoIndex = -1;*/
 			addUndo();
 			redrawTiles = true;
 		} else if (overMenu == 3) {
@@ -695,44 +688,33 @@ function recreateSprites() {
 		const x = i - (y << 5);
 
 		if (game.map[i] == Tile.TUNNEL_UP) {
-			//top tunnel
 			game.tunnels.push(new Tunnel((x * 16) << 8, (y * 16) << 8, HAUT));
 		} else if (game.map[i] == Tile.TUNNEL_DOWN) {
-			//bottom tunnel
 			game.tunnels.push(new Tunnel((x * 16) << 8, (y * 16) << 8, BAS));
 		} else if (game.map[i] == Tile.TUNNEL_RIGHT) {
-			//right tunnel
 			game.tunnels.push(new Tunnel((x * 16) << 8, (y * 16) << 8, DROITE));
 		} else if (game.map[i] == Tile.TUNNEL_LEFT) {
-			//left tunnel
 			game.tunnels.push(new Tunnel((x * 16) << 8, (y * 16) << 8, GAUCHE));
 		} else if (game.map[i] == Tile.CAKE) {
-			//cake
 			game.cakes.push(new Cake((x * 16) << 8, (y * 16) << 8));
 			continue;
 		} else if (game.map[i] == Tile.TURRET_LEFT) {
-			//left turret
 			game.tourelles.push(new Tourelle((x * 16) << 8, (y * 16) << 8, -1));
 			continue;
 		} else if (game.map[i] == Tile.TURRET_RIGHT) {
-			//right turret
 			game.tourelles.push(new Tourelle((x * 16) << 8, (y * 16) << 8, 1));
 			continue;
 		} else if (game.map[i] == Tile.CRATE) {
-			//crate
 			game.caisses.push(new Caisse((x * 16) << 8, (y * 16) << 8));
 			continue;
 		} else if (game.map[i] == Tile.PLAYER_START) {
-			//player start
 			game.perso.x = (x * 16) << 8;
 			game.perso.y = (y * 16) << 8;
 			continue;
 		} else if (game.map[i] == Tile.PLATFORM_RIGHT) {
-			//platform
 			game.platforms.push(new Platform((x * 16) << 8, (y * 16) << 8, 128, 0));
 			continue;
 		} else if (game.map[i] == Tile.PLATFORM_LEFT) {
-			//platform
 			game.platforms.push(new Platform((x * 16) << 8, (y * 16) << 8, -128, 0));
 			continue;
 		}
@@ -842,19 +824,19 @@ function manageDrawSprite() {
 		}
 
 		if (input.mousePressed) {
-			const arrEquiv = new Array();
-
-			arrEquiv.push(103); // cake
-			arrEquiv.push(102); // crate
-			arrEquiv.push(100); // turret
-			arrEquiv.push(101); // turret
-			arrEquiv.push(105); // platform
-			arrEquiv.push(106); // platform
-			arrEquiv.push(104); // player
-			arrEquiv.push(107); // tunnel
-			arrEquiv.push(108); // tunnel
-			arrEquiv.push(109); // tunnel
-			arrEquiv.push(110); // tunnel
+			const arrEquiv = [
+				Tile.CAKE,
+				Tile.CRATE,
+				Tile.TURRET_LEFT,
+				Tile.TURRET_RIGHT,
+				Tile.PLATFORM_RIGHT,
+				Tile.PLATFORM_LEFT,
+				Tile.PLAYER_START,
+				Tile.TUNNEL_RIGHT,
+				Tile.TUNNEL_LEFT,
+				Tile.TUNNEL_UP,
+				Tile.TUNNEL_DOWN,
+			];
 
 			x -= game.ECART_X;
 			y -= game.ECART_Y;
@@ -905,13 +887,17 @@ function allowTile(tile) {
 		return countTile(tile) < 15;
 	} else if (tile == Tile.TURRET_LEFT || tile == Tile.TURRET_RIGHT) {
 		// turret
-		return countTile(100) + countTile(101) < 15;
+		return countTile(Tile.TURRET_LEFT) + countTile(Tile.TURRET_RIGHT) < 15;
 	} else if (tile == Tile.PLATFORM_RIGHT || tile == Tile.PLATFORM_LEFT) {
-		// platform
-		return countTile(105) + countTile(106) < 8;
+		return countTile(Tile.PLATFORM_RIGHT) + countTile(Tile.PLATFORM_LEFT) < 8;
 	} else if (isTunnelTile(tile)) {
-		// tunnel
-		return countTile(107) + countTile(108) + countTile(109) + countTile(110) < 8;
+		return (
+			countTile(Tile.TUNNEL_RIGHT) +
+				countTile(Tile.TUNNEL_LEFT) +
+				countTile(Tile.TUNNEL_UP) +
+				countTile(Tile.TUNNEL_DOWN) <
+			8
+		);
 	}
 
 	return false;
@@ -944,7 +930,7 @@ function countTile(tile) {
 function eraseSprites(til, xt, yt) {
 	let h, t;
 	if (til == Tile.PLATFORM_RIGHT || til == Tile.PLATFORM_LEFT || til == Tile.TUNNEL_UP || til == Tile.TUNNEL_DOWN) {
-		// sprite horizontal
+		// objects wider than one tile
 		for (h = 1; h < 3; h++) {
 			if (h == 2 && til >= Tile.TUNNEL_UP) continue;
 			if (xt + h < 32) {
@@ -964,7 +950,7 @@ function eraseSprites(til, xt, yt) {
 		til == Tile.TUNNEL_RIGHT ||
 		til == Tile.TUNNEL_LEFT
 	) {
-		// vertical sprite
+		// objects taller than one tile
 		if (yt + 1 < 24) {
 			game.map[(yt + 1) * 32 + xt] = 0;
 			for (h = 1; h < 3; h++) {
@@ -1107,7 +1093,7 @@ function manageSpriteSelection() {
 			inZone = 8;
 			ctx.fillRect(x - 2, y + 142, 20, 36);
 		} else if (mouseInZone(x + 24, y + 144, 16, 32)) {
-			//right tunnel
+			//left tunnel
 			inZone = 9;
 			ctx.fillRect(x + 22, y + 142, 20, 36);
 		} else if (mouseInZone(x, y + 180, 32, 16)) {
@@ -1265,20 +1251,6 @@ function drawLeftTiles() {
 function build() {
 	let haut, bas, gauche, droite, i;
 	for (i = 0; i < 768; i++) {
-		/*if(map[i]==13){
-			var y = (i/32);
-			var x = i - y*32;
-			if(y<23){
-				var j;
-				for(j=y+1;j<24;j++){
-					if(mapColl[j*32+x]==0||mapColl[j*32+x]==13){
-						mapColl[j*32+x] = 18;
-						map[j*32+x] = 47;
-					}else j = 24;
-				}
-			}
-		}*/
-
 		if (isTileMurBleu(i)) {
 			const y = i >> 5;
 			const x = i - (y << 5);

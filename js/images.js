@@ -122,7 +122,6 @@ export function loadGfx() {
 
 	redPortal = loadImage('sprites/redPortal.png');
 
-	//generating transition line order
 	linesHoriz = new Array();
 	linesVerti = new Array();
 	for (i = 0; i < 128; i++) {

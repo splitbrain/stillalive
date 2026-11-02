@@ -305,8 +305,6 @@ export class Perso {
 			}
 		}
 
-		//console.log(this.timeVie);
-
 		let dir = (this.isRight - this.isLeft) * 128;
 
 		//jump handling
@@ -316,7 +314,6 @@ export class Perso {
 		} else if (!this.isJump && this.oldIsJump && this.vy < -200) {
 			this.vy = -200;
 		}
-		//end of jump handling
 
 		if (this.vx > 0) {
 			if (toucheSol == 1 && !checkTeleportGauche(this)) {

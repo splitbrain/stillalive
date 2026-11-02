@@ -76,21 +76,17 @@ export class Robot {
 			if (this.y > 32 << 8) {
 				this.y = 32 << 8;
 				this.movy = -this.movy;
-				//this.ey = this.y + (26 << 8);
 			} else if (this.y < 30 << 8) {
 				this.y = 30 << 8;
 				this.movy = -this.movy;
-				//this.ey = this.y + (26 << 8);
 			}
 
 			if (this.x > 35 << 8) {
 				this.x = 35 << 8;
-				//this.ex = this.x + (29 << 8);
 				this.movx = 0;
 				this.movy = 0;
 			} else if (this.x < 0 << 8) {
 				this.x = 0 << 8;
-				//this.ex = this.x + (29 << 8);
 				this.movx = 0;
 				this.movy = 0;
 			}

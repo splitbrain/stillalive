@@ -85,7 +85,6 @@ export function getTileNoCaisse(x, y) {
 	let tile = game.map[(y >> 4) * 32 + (x >> 4)];
 
 	if (!tile) {
-		//check contact with a platform
 		tile = collidePlateforme(x, y);
 	}
 
@@ -124,10 +123,8 @@ export function getTile(x, y) {
 	let tile = game.map[(y >> 4) * 32 + (x >> 4)];
 
 	if (!tile) {
-		//check contact with a crate
 		tile = collideCaisse(x, y);
 		if (!tile) {
-			//check contact with a platform
 			tile = collidePlateforme(x, y);
 		}
 	}
@@ -149,7 +146,6 @@ export function getTile(x, y) {
 export function getTilePortal(x, y) {
 	if (x >= 512 || y >= 384 || y < 0 || x < 0) return 0;
 	let tile = game.map[(y >> 4) * 32 + (x >> 4)];
-	//passes through: crate, finish, razor wheel, red plasma, cake, start
 	if (
 		tile == Tile.EXIT ||
 		tile == FIRST_OF_KIND[TileKind.WHEEL] ||
@@ -161,7 +157,6 @@ export function getTilePortal(x, y) {
 		tile = Tile.EMPTY;
 
 	if (!tile) {
-		//check contact with a platform
 		tile = collidePlateforme(x, y);
 	}
 
@@ -567,12 +562,6 @@ export function getCollision(obj) {
 		maxVal = touche[3];
 	}
 
-	/*i = 0;
-	for(x=0;x<4;x++){
-		i+=touche[x];
-		;
-	}*/
-
 	if (maxVal == 0) return -1;
 	return max;
 }
@@ -596,7 +585,6 @@ export function checkCollisions(obj) {
 			obj.y += 256;
 			if (getCollision(obj) == BAS) {
 				coll = 0;
-				//*hitbox->y-= 64;
 				break;
 			}
 		} while (getCollision(obj) == HAUT);
@@ -611,7 +599,6 @@ export function checkCollisions(obj) {
 			obj.y -= 256;
 			if (getCollision(obj) == HAUT) {
 				coll = 0;
-				//*hitbox->y+= 64;
 				break;
 			}
 		} while (getCollision(obj) == BAS);
@@ -625,7 +612,6 @@ export function checkCollisions(obj) {
 			if (getCollision(obj) == DROITE) {
 				coll = 0;
 				obj.vy = 0;
-				//*hitbox->x-= 64;
 				break;
 			}
 		} while (getCollision(obj) == GAUCHE);
@@ -639,7 +625,6 @@ export function checkCollisions(obj) {
 			if (getCollision(obj) == GAUCHE) {
 				coll = 0;
 				obj.vy = 0;
-				//*hitbox->x+= 64;
 				break;
 			}
 		} while (getCollision(obj) == DROITE);

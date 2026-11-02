@@ -16,7 +16,7 @@ import { game, ui } from '../state.js';
  */
 export function manageTransitionDraw() {
 	if (finNiveau()) {
-		//if a level is finished, closing transition
+		// closing transition at the level end
 		if (game.perso.fadeNextLevel > 0) {
 			drawTransitionIn();
 		} else {
@@ -25,10 +25,9 @@ export function manageTransitionDraw() {
 			}
 		}
 	} else {
-		//else it is an opening transition
+		// opening transition at the level start
 		if (game.perso.intermissionFade < 0) {
 			ctx.fillStyle = 'rgb(0, 0, 0)';
-			//noStroke();
 			ctx.fillRect(game.ECART_X - 1, game.ECART_Y, 512, 384);
 			const a = -(game.perso.intermissionFade / 20);
 			game.perso.intermissionFade++;
@@ -47,7 +46,6 @@ export function manageTransitionDraw() {
 function drawTransitionIn() {
 	let nb, i;
 	ctx.fillStyle = 'rgb(0, 0, 0)';
-	//noStroke();
 	const scale = 1 - game.perso.fadeNextLevel / 120;
 	if (TRANS == 1) {
 		//top left corner
@@ -132,7 +130,6 @@ function drawTransitionOut() {
 		//square to center
 		ctx.strokeStyle = 'rgb(0, 0, 0)';
 		ctx.lineWidth = 384 * scale;
-		//noFill();
 		ctx.strokeRect(game.ECART_X, game.ECART_Y, 512, 384);
 	}
 }

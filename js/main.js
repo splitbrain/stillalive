@@ -50,7 +50,7 @@ function setup() {
 
 	ui.currentMenu = Menu.LOADING;
 
-	game.perso = new Perso(); //prevents a crash during loading
+	game.perso = new Perso(); // the drawing reads the player before the first level loads
 
 	game.TIME = 0;
 

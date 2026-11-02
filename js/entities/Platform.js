@@ -44,9 +44,7 @@ export class Platform {
 	move() {
 		this.x += this.vx;
 		const x = this.x >> 8;
-		//var y = plateForme[i].y>>8;
 		if (x < 0 || x > 512 - 48 || (this.vx > 0 && rightCollision(this)) || (this.vx < 0 && leftCollision(this))) {
-			//this.x-=this.vx;
 			this.vx = -this.vx;
 		}
 	}

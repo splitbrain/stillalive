@@ -130,7 +130,6 @@ export function manageSparkles() {
 			}
 		} else if (game.sparkles[i].used == 8 || game.sparkles[i].used == 9) {
 			game.sparkles[i].fading -= 8;
-			//if( sparkles[i].used == 9) sparkles[i].vy += GRAVITY;
 		}
 
 		if (settings.quality > 0 && game.sparkles[i].fading > 0) {

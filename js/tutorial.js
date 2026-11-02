@@ -301,7 +301,6 @@ function drawExitMessage() {
 	prepareTxtDefault();
 	ctx.fillText('See this checkered flag on the right ?', leftPan, game.ECART_Y + 56);
 	ctx.fillText('Just touch it to finish the level.', leftPan, game.ECART_Y + 56 + 16);
-	//ctx.fillText("Jump to make this message disappear ...", leftPan, ECART_Y + 48 + 32);
 }
 
 /**

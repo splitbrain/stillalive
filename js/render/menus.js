@@ -128,9 +128,7 @@ function drawPortalGunMenu(x, y, angle) {
  * @returns {void}
  */
 export function drawPauseMenu() {
-	//noStroke();
 	ctx.fillStyle = 'rgb(0, 65, 88)';
-	//ctx.fillRect(ECART_X - 1, ECART_Y, 512, 384);
 	ctx.drawImage(pauseBG, game.ECART_X, game.ECART_Y);
 
 	ctx.fillStyle = 'rgb(255, 255, 255)';
@@ -138,7 +136,7 @@ export function drawPauseMenu() {
 	if (mouseInZone(50 + game.ECART_X, 180 + game.ECART_Y, 120, 24))
 		overMenu = 1; //continue
 	else if (ui.currentMenu != Menu.TUTORIAL && mouseInZone(187 + game.ECART_X, 180 + game.ECART_Y, 120, 24))
-		overMenu = 2; //Restart
+		overMenu = 2; //restart
 	else if (mouseInZone(324 + game.ECART_X, 180 + game.ECART_Y, 120, 24))
 		overMenu = 3; //exit
 	else if (ui.currentMenu != Menu.TUTORIAL && mouseInZone(127 + game.ECART_X, 340 + game.ECART_Y, 120, 24))
@@ -339,7 +337,6 @@ export function drawLoadingScreen() {
 	ctx.fillText('(click here if not loading)', 85, 90);
 	ctx.fillStyle = 'rgb(255, 255, 255)';
 
-	//noFill();
 	ctx.strokeStyle = 'rgb(255, 255, 255)';
 	ctx.strokeRect(10, 20, 202, 14);
 	ctx.strokeRect(10, 60, 202, 14);
@@ -349,7 +346,6 @@ export function drawLoadingScreen() {
 	ctx.fillText('- Use your portal gun to teleport through levels.', 10, 140);
 
 	ctx.fillStyle = 'rgb(255, 0, 0)';
-	//noStroke();
 	ctx.fillRect(11, 21, parseInt(imageProgress() * 200), 12);
 	ctx.fillRect(11, 61, parseInt((levelsLoaded / levelsToLoad) * 200), 12);
 	ctx.fillRect(11, 101, parseInt(soundProgress() * 200), 12);
@@ -365,7 +361,6 @@ export function drawLoadingScreen() {
 		ctx.fillStyle = 'rgb(255, 255, 255)';
 	}
 
-	//make sure img in the menu are loaded
 	const imagesReady = areImagesLoaded([body[0], body[1], head[0], head[1], controls, crosshair, bluePortal, redPortal]);
 	if (imagesReady) {
 		const dx = 225;
@@ -385,17 +380,14 @@ export function drawLoadingScreen() {
 			ctx.fillText('Click to continue ...', 280, 476);
 		}
 		if (input.mousePressed) {
-			//loadLevel(currentLevel);
 			started = 1;
 			ui.goMenu = 0;
 			ui.fadeMenu = 30;
 			unclick();
 			ui.currentMenu = Menu.MAIN;
 			game.sparkles = new Array();
-			//exitFunc();
 		}
 	}
-	//make sure crosshair image is loaded
 	if (imagesReady) ctx.drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
 }
 
@@ -415,7 +407,6 @@ export function drawMapSelection() {
 			const y = parseInt((input.mouseY - 105) / 12);
 			if (y <= maxLevel[ui.campaign]) {
 				ctx.fillStyle = 'rgb(15, 112, 144)';
-				//noStroke();
 				ctx.fillRect(529, 105 + y * 12 + 2, 90, 14);
 
 				if (input.mousePressed && input.mouseButton == LEFT) {
@@ -437,7 +428,6 @@ export function drawMapSelection() {
 
 	if (ui.previewMap > 0) {
 		ctx.fillStyle = 'rgb(15, 112, 144)';
-		//noStroke();
 		ctx.fillRect(529, 105 + ui.previewMap * 12 + 2, 90, 14);
 
 		if (mouseInZone(515, 495, 120, 24)) overMenu = 1;
@@ -464,7 +454,6 @@ export function drawMapSelection() {
 			ui.currentMenu = Menu.PLAY;
 			ui.currentLevel = ui.previewMap;
 			loadLevel(ui.currentLevel);
-			//selectMenu = 0;
 			unclick();
 			return;
 		} else if (overMenu == 2) {
@@ -564,9 +553,7 @@ export function drawMainMenu() {
 	let pX, pY, pX2;
 	ctx.strokeStyle = 'rgb(0, 0, 0)';
 	ctx.fillStyle = 'rgb(0, 65, 88)';
-	//ctx.fillRect(0, 0, 640, 544);
 	ctx.drawImage(menuBG, 0, 0);
-	//draw the menu
 
 	const yStart = 32;
 	const ecart = 18;
@@ -606,14 +593,6 @@ export function drawMainMenu() {
 		drawBigButton(160, yStart + 2 * (64 + ecart), scale3, 'Ultimate Mode');
 		drawBigButton(160, yStart + 3 * (64 + ecart), scale4, 'Level Editor');
 		drawBigButton(160, yStart + 4 * (64 + ecart), scale5, 'Tutorial');
-
-		/*
-		if(maxLevel[0] <= 28 && overMenu > 1 && overMenu < 4) {
-			ctx.fillStyle = "rgb(255, 255, 255)";
-			ctx.font = "bold 16px Arial";
-			ctx.fillText("Finish normal mode to unlock this campaign !", 170, 75 + yStart + (overMenu - 1) * 64 + (overMenu - 1) * ecart);
-			overMenu = -1;
-		}*/
 
 		pX = 130;
 		pY = yStart + 25 + (overMenu - 1) * 64 + (overMenu - 1) * ecart;
@@ -721,7 +700,6 @@ export function drawMainMenu() {
 	} else if (ui.goMenu) {
 		if (--ui.goMenu == 0) {
 			ctx.fillStyle = 'rgb(0, 0, 0)';
-			//noStroke();
 			ctx.fillRect(0, 0, 640, 544);
 			if (ui.menuButton in BUTTON_CAMPAIGN) {
 				ui.selectMenu = 1;
@@ -737,12 +715,10 @@ export function drawMainMenu() {
 				}
 			} else {
 				if (ui.menuButton == MainButton.EDITOR) {
-					//go level editor
 					ui.currentMenu = Menu.EDITOR;
 					lvlEditorSetup();
 					game.sparkles = new Array();
 				} else if (ui.menuButton == MainButton.TUTORIAL) {
-					//go tutorial
 					ui.currentMenu = Menu.TUTORIAL;
 					setupTutorial();
 				}
@@ -750,7 +726,6 @@ export function drawMainMenu() {
 		} else {
 			const a = ui.goMenu / 60;
 			ctx.fillStyle = 'rgba(0, 0, 0,' + (1 - a) + ')';
-			//noStroke();
 			ctx.fillRect(0, 0, 640, 544);
 		}
 	}
@@ -824,7 +799,6 @@ export function doDrawCredits() {
 export function doDrawIntermission() {
 	if (game.perso.intermissionFade > 0) {
 		ctx.fillStyle = 'rgb(0, 0, 0)';
-		//noStroke();
 		ctx.fillRect(game.ECART_X - 1, game.ECART_Y, 512, 384);
 		game.perso.intermissionFade--;
 		const a = game.perso.intermissionFade / 20;
@@ -866,7 +840,6 @@ export function drawPreviewMap() {
 		game.imgBuff = copyCanvas(game.ECART_X, game.ECART_Y, 512, 384);
 		game.needLoad = false;
 		ctx.fillStyle = 'rgb(0, 0, 0)';
-		//noStroke();
 		ctx.fillRect(game.ECART_X, game.ECART_Y, 512, 384);
 	} else {
 		drawCopy(game.imgBuff, game.ECART_X, game.ECART_Y);
@@ -951,10 +924,8 @@ export function drawPreviewMap() {
 		}
 
 		ctx.drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
-		//noFill();
 		ctx.strokeStyle = 'rgb(0, 0, 0)';
 		ctx.lineWidth = 1;
-		/*ctx.strokeRect(0, 0, 640, 544);*/
 	}
 }
 

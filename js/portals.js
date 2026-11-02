@@ -166,7 +166,7 @@ function setPortalDir(p, x, y) {
 		x2 = game.portals[1 - p].x >> 8;
 		y2 = game.portals[1 - p].y >> 8;
 		if (x == x2) {
-			//portals on the same vertical wall?
+			// the other portal is on the same wall and overlaps
 			if (y2 - y > -32 && y2 - y < 32 && game.portals[1 - p].used) {
 				game.portals[p].direction = oldDir;
 				return 0;
@@ -228,7 +228,7 @@ function setPortalDir(p, x, y) {
 			x2 = game.portals[1 - p].x >> 8;
 			y2 = game.portals[1 - p].y >> 8;
 			if (y == y2) {
-				//portals on the same horizontal wall?
+				// the other portal is on the same wall and overlaps
 				if (x2 - x > -32 && x2 - x < 32 && game.portals[1 - p].used) {
 					game.portals[p].direction = oldDir;
 					return 0;
@@ -288,7 +288,6 @@ export function checkTeleportGauche(obj) {
 				obj.y = (ty + ecrt) << 8;
 				if (game.bossNum == 0 || obj.type != 'plasma') obj.vy = 0;
 				if (tx - x >= obj.pX >> 1 && obj.vx < 0) {
-					//perso.vy = 128;
 					transfertPortal(j, obj);
 				}
 				return j + 1;
@@ -318,7 +317,6 @@ export function checkTeleportDroite(obj) {
 				obj.y = (ty + ecrt) << 8;
 				if (game.bossNum == 0 || obj.type != 'plasma') obj.vy = 0;
 				if (x - tx >= obj.pX >> 1 && obj.vx > 0) {
-					//perso.vy = 128;
 					transfertPortal(j, obj);
 				}
 				return j + 1;

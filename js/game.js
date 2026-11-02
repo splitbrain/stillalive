@@ -113,13 +113,12 @@ function draw() {
 				ui.drawCredits = false;
 				game.perso.fadeNextLevel = 120;
 				game.perso.intermissionFade = 20;
-				TRANS = parseInt(random(1, 7)); //7 not included
+				TRANS = parseInt(random(1, 7));
 				playSound(sfx_transition);
 				ui.highscoreMessage = '';
 				unclick();
 				if (ui.currentMenu == Menu.PLAY && !game.replayMode) ui.highscoreMessage = checkBestTime();
 				ui.intermissionChoice = 0;
-				//TRANS = 7;
 				if (ui.currentMenu == Menu.PLAY && !game.replayMode) {
 					if (maxLevel[ui.campaign] < ui.currentLevel + 1) {
 						if (ui.campaign == CampaignId.STORY && maxLevel[ui.campaign] == 28) ui.drawCredits = true;
@@ -216,7 +215,6 @@ function draw() {
 	} else if ((ui.currentMenu == Menu.PLAY || ui.currentMenu == Menu.TUTORIAL) && ui.escapeMenu) {
 		drawPauseMenu();
 	} else if (ui.currentMenu == Menu.LOADING) {
-		//loading is in progress
 		if (canSplash && !overSplash) drawSplash();
 		else if (overSplash) drawLoadingScreen();
 	} else if (ui.currentMenu == Menu.MAIN) {
@@ -242,7 +240,6 @@ export function exitFunc() {
 	unclick();
 	game.sparkles = new Array();
 	if (ui.currentMenu == Menu.PLAY) {
-		//campaign
 		game.ECART_X = 0;
 		game.ECART_Y = 96;
 		ui.currentMenu = Menu.MAIN;

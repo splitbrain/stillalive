@@ -101,7 +101,6 @@ export class Tourelle {
 						this.animeFrame = 2;
 						playSound(sfx_explode);
 						createCakeOrSmokeSparkles(this.x, this.y, 9, 4, 255);
-						//_synth.play();
 					}
 				} else if (this.animFrame < 10) {
 					if (game.TIME % 4 == 0) this.animFrame++;
@@ -156,7 +155,6 @@ export class Tourelle {
 				let dansLeChamp = 0;
 				let exitt = 0;
 				const oldJ = j;
-				//var freeze = 0;
 				while (j >= 0 && j < 512 && !dansLeChamp && !exitt) {
 					const tile = getTile(j, ySent);
 					if (tile != Tile.EMPTY) {
@@ -189,7 +187,7 @@ export class Tourelle {
 					if (this.rotation < 0) this.rotation = 0;
 					if (!this.rotation) {
 						this.animFrame = 1 - this.animFrame;
-						game.perso.vie -= 640; //2.5
+						game.perso.vie -= 640; // 2.5 life points
 						game.perso.timeVie = 300;
 						game.perso.vx += this.dir << 8;
 						this.coolTime = this.startCool;
@@ -207,9 +205,6 @@ export class Tourelle {
 							s.portalNum = -1;
 							game.sparkles.push(s);
 						}
-
-						/*ECART_SHAKE_X = 64 + randMinMax(-5,5);
-						ECART_SHAKE_Y = 96 + randMinMax(-5,5);*/
 					}
 				} else {
 					this.inSight = 0;

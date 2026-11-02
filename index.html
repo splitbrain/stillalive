@@ -1,23 +1,9 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
+<!DOCTYPE html>
+<html>
   <head>
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta charset="utf-8" />
 	<meta name="title" content="StillAliveJS : Portal 2D in your web navigator !" />
-	
-	<meta property="og:title" content="StillAliveJS : Portal 2D in your web navigator !"/>
-	<meta property="og:type" content="game"/>
-	<meta property="og:image" content="http://stillalivejs.t4ils.com/play/decor/logo.jpg"/>
-	<meta property="og:url" content="http://stillalivejs.t4ils.com/play/"/>
-	<meta property="og:site_name" content="StillAliveJS : Portal 2D in your web navigator !"/> 
 
-	
-	<!--<meta name="description" content="StillAliveJS is a puzzle game in JavaScript inspired by Portal: The Flash Version 
-										which is a 2D renewal of Portal, developed by Valve Corporation.
-										StillAliveJS consists of a series of puzzles that must be solved 
-										by teleporting the character and other simple objects by using a Portal Gun.
-										The game features 112 levels, a level editor and a map download center." />
-	<link rel="image_src" href="http://stillalivejs.t4ils.com/decor/logo.jpg" />-->
-	
 	<link rel="shortcut icon" href="favicon2.ico"/> 
   
     <title>StillAliveJS : Portal 2D in your web navigator !</title>
@@ -42,29 +28,6 @@
 			src: url("fonts/yikes.ttf");
 		}
 	</style>
-
-	<!--[if lte IE 8]>
-	<style type="text/css">
-		@font-face {
-			font-family: yikes;
-			src: url("fonts/yikes.eot");
-		}
-		</style>
-	<![endif]-->
-		
-	<script type="text/javascript">
-
-	  var _gaq = _gaq || [];
-	  _gaq.push(['_setAccount', 'UA-20482208-2']);
-	  _gaq.push(['_trackPageview']);
-
-	  (function() {
-		var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-		ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-		var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-	  })();
-
-</script>
   </head>
   <body oncontextmenu="return false;" onload="setup()">	  
   
@@ -142,12 +105,6 @@
 				</div>
 			</div>
 			<div id="social">
-				<div style="adding-bottom:10px;">
-					<iframe src="http://www.facebook.com/plugins/like.php?href=http%3A%2F%2Fstillalivejs.t4ils.com%2Fplay%2F&amp;layout=box_count&amp;show_faces=true&amp;width=2&amp;action=like&amp;font=verdana&amp;colorscheme=light&amp;height=65" scrolling="no" frameborder="0" style="border:none; overflow:hidden; width:80px; height:65px;" allowTransparency="true"></iframe>
-				</div>
-				<div>
-					<a href="http://twitter.com/share" class="twitter-share-button" data-count="vertical">Tweet</a><script type="text/javascript" src="http://platform.twitter.com/widgets.js"></script>
-				</div>
 			</div>
 		</div>
 		<div id="middle" style="float:left">
@@ -156,22 +113,13 @@
 			</canvas>
       <div style="text-align:center; color:white;">
       Copyright (c) 2010 Christophe<br />
-      <a href="http://stillalivejs.t4ils.com/sources/sources.zip">Source code</a> licensed under the <a href="http://www.gnu.org/licenses/agpl.html">GNU Affero General Public License</a><br />
+      Source code licensed under the <a href="http://www.gnu.org/licenses/agpl.html">GNU Affero General Public License</a><br />
       Audio licensed under <a href="http://creativecommons.org/licenses/by-sa/3.0/">Creative Commons Attribution-ShareAlike</a><br />
       Graphics copyright (c) 2010 ZeBlackos
     </div>
       
       
 			<div id="googleAd">
-				<script type="text/javascript"><!--
-					google_ad_client = "ca-pub-8673148551445622";
-					/* StillAliveJS */
-					google_ad_slot = "9094784704";
-					google_ad_width = 468;
-					google_ad_height = 60;
-					//-->
-				</script>
-				<script type="text/javascript" src="http://pagead2.googlesyndication.com/pagead/show_ads.js"></script>
 			</div>
 		</div>
 		<div id="right" style="float:left">
@@ -180,13 +128,5 @@
 			</div>
 		</div>
 	</div>
-	<!--
-	<img style="display:none;position:absolute;" src="decor/tuyauGauche.png" id="tuyauGauche" />
-	<img style="display:none;position:absolute;" src="decor/logo.png" id="imgLogo" />
-	<img style="display:none;position:absolute;" src="decor/perso.png" id="imgPerso" />
-	<img style="display:none;position:absolute;z-index:-1" src="decor/tuyauDroit.png" id="tuyauDroit" />
-	<img style="display:none;position:absolute;" src="decor/portalGun.png" id="portalGun" />
-	<img style="display:none;position:absolute;" src="decor/etagere.png" id="etagere" />
-	-->
   </body>
 </html>

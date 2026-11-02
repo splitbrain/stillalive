@@ -517,34 +517,34 @@ function recreateSprites() {
 		var y = i >> 5;
 		var x = i - (y << 5);
 		
-		if(map[i] == 109) {//tunnel haut
+		if(map[i] == 109) {//top tunnel
 			tunnels.push(new Tunnel((x*16) << 8, (y*16) << 8, HAUT));
-		}else if(map[i] == 110) {//tunnel bas
+		}else if(map[i] == 110) {//bottom tunnel
 			tunnels.push(new Tunnel((x*16) << 8, (y*16) << 8, BAS));
-		}else if(map[i] == 107) {//tunnel droite
+		}else if(map[i] == 107) {//right tunnel
 			tunnels.push(new Tunnel((x*16) << 8, (y*16) << 8, DROITE));
-		}else if(map[i] == 108) {//tunnel gauche
+		}else if(map[i] == 108) {//left tunnel
 			tunnels.push(new Tunnel((x*16) << 8, (y*16) << 8, GAUCHE));
 		}else if(map[i] == 103) {//cake
 			cakes.push(new Cake((x*16) << 8, (y*16) << 8));
 			continue;
-		}else if(map[i] == 100) {//tourelle gauche
+		}else if(map[i] == 100) {//left turret
 			tourelles.push(new Tourelle((x*16) << 8, (y*16) << 8, -1));
 			continue;
-		}else if(map[i] == 101) {//tourelle droite
+		}else if(map[i] == 101) {//right turret
 			tourelles.push(new Tourelle((x*16) << 8, (y*16) << 8, 1));
 			continue;
-		}else if(map[i] == 102) {//caisse
+		}else if(map[i] == 102) {//crate
 			caisses.push(new Caisse((x*16) << 8, (y*16) << 8));
 			continue;
-		}else if(map[i] == 104) {//perso start
+		}else if(map[i] == 104) {//player start
 			perso.x = (x * 16) << 8;
 			perso.y = (y * 16) << 8;
 			continue;
-		}else if(map[i] == 105) {//plateforme
+		}else if(map[i] == 105) {//platform
 			platforms.push(new Platform((x * 16) << 8, (y * 16) << 8, 128, 0));
 			continue;
-		}else if(map[i] == 106) {//plateforme
+		}else if(map[i] == 106) {//platform
 			platforms.push(new Platform((x * 16) << 8, (y * 16) << 8, -128, 0));
 			continue;
 		}
@@ -610,27 +610,27 @@ function manageDrawSprite() {
 		else if(selectedSprite == 2) ctx.drawImage(caisse, x, y);
 		else if(selectedSprite == 3) ctx.drawImage(tourelle[0], 0, 0, 16, 32, x, y, 16, 32);
 		else if(selectedSprite == 4) ctx.drawImage(tourelle[1], 0, 0, 16, 32, x, y, 16, 32);
-		else if(selectedSprite == 5) {//platforme droite
+		else if(selectedSprite == 5) {//right platform
 			ctx.drawImage(platform, x, y);
 			ctx.fillStyle = "rgb(255, 0, 0)";
 			ctx.strokeStyle = "rgb(255, 0, 0)";
 			drawArrow(x + 5, y + 8, x + 15, y + 8, 3, 1);
 		}
-		else if(selectedSprite == 6) {//platforme gauche
+		else if(selectedSprite == 6) {//left platform
 			ctx.drawImage(platform, x, y);
 			ctx.fillStyle = "rgb(255, 0, 0)";
 			ctx.strokeStyle = "rgb(255, 0, 0)";
 			drawArrow(x + 5, y + 8, x + 15, y + 8, 3, -1);
 		}
 		else if(selectedSprite == 7) drawPerso(x, y, 0);
-		else if(selectedSprite == 8) {//tunnel droite
+		else if(selectedSprite == 8) {//right tunnel
 			ctx.drawImage(tunnel, 0, 0, 16, 32, x, y, 16, 32);
 		}
-		else if(selectedSprite == 9) {//tunnel gauche
+		else if(selectedSprite == 9) {//left tunnel
 			ctx.drawImage(tunnel, 0, 32, 16, 32, x, y, 16, 32);
-		}else if(selectedSprite == 10) {//tunnel haut
+		}else if(selectedSprite == 10) {//top tunnel
 			ctx.drawImage(tunnel2, 0, 0, 32, 16, x, y, 32, 16);
-		}else if(selectedSprite == 11) {//tunnel bas
+		}else if(selectedSprite == 11) {//bottom tunnel
 			ctx.drawImage(tunnel2, 32, 0, 32, 16, x, y, 32, 16);
 		}
 		
@@ -638,12 +638,12 @@ function manageDrawSprite() {
 			var arrEquiv = new Array();
 			
 			arrEquiv.push(103); // cake
-			arrEquiv.push(102); // caisse
-			arrEquiv.push(100); // tourelle
-			arrEquiv.push(101); // tourelle
-			arrEquiv.push(105); // platforme
-			arrEquiv.push(106); // platforme
-			arrEquiv.push(104); // perso
+			arrEquiv.push(102); // crate
+			arrEquiv.push(100); // turret
+			arrEquiv.push(101); // turret
+			arrEquiv.push(105); // platform
+			arrEquiv.push(106); // platform
+			arrEquiv.push(104); // player
 			arrEquiv.push(107); // tunnel
 			arrEquiv.push(108); // tunnel
 			arrEquiv.push(109); // tunnel
@@ -688,13 +688,13 @@ function allowTile(tile) {
 
 	if(tile == 103) { // cake
 		return countTile(tile) < 30;
-	}else if(tile == 102) { // caisse
+	}else if(tile == 102) { // crate
 		return countTile(tile) < 15;
-	}else if(tile == 100 || tile == 101) { // tourelle
+	}else if(tile == 100 || tile == 101) { // turret
 		return countTile(100) + countTile(101) < 15;
-	}else if(tile == 105 || tile == 106) { // platforme
+	}else if(tile == 105 || tile == 106) { // platform
 		return countTile(105) + countTile(106) < 8;
-	}else if(tile >= 107 && tile <= 110) { // platforme
+	}else if(tile >= 107 && tile <= 110) { // tunnel
 		return countTile(107) + countTile(108) +  countTile(109) +  countTile(110) < 8;
 	}
 	
@@ -723,7 +723,7 @@ function eraseSprites(til, xt, yt) {
 			}
 		}
 	}
-	if(til == 104 || til == 100 || til == 101 || til == 107 || til == 108) { // sprite verical
+	if(til == 104 || til == 100 || til == 101 || til == 107 || til == 108) { // vertical sprite
 		if(yt + 1 < 24) {
 			map[(yt+1)*32 + xt] = 0;
 			for(var h = 1; h<3; h++) {
@@ -818,34 +818,34 @@ function manageSpriteSelection() {
 		if(mouseInZone(x, y, 16, 16)) {//cake
 			inZone = 1;
 			ctx.fillRect(x - 2, y - 2, 20, 20);
-		}else if(mouseInZone(x + 24, y, 16, 16)) {//caisse
+		}else if(mouseInZone(x + 24, y, 16, 16)) {//crate
 			inZone = 2;
 			ctx.fillRect(x + 24 - 2, y - 2, 20, 20);
-		}else if(mouseInZone(x, y + 24, 16, 32)) {//tourelle gauche
+		}else if(mouseInZone(x, y + 24, 16, 32)) {//left turret
 			inZone = 3;
 			ctx.fillRect(x - 2, y + 24 - 2, 20, 36);
-		}else if(mouseInZone(x + 24, y + 24, 16, 32)) {//tourelle droite
+		}else if(mouseInZone(x + 24, y + 24, 16, 32)) {//right turret
 			inZone = 4;
 			ctx.fillRect(x + 24 - 2, y + 24 - 2, 20, 36);
-		}else if(mouseInZone(x, y + 24 + 40, 48, 16)) {//platforme gauche
+		}else if(mouseInZone(x, y + 24 + 40, 48, 16)) {//left platform
 			inZone = 5;
 			ctx.fillRect(x - 2, y + 24 + 40 - 2, 52, 20);
-		}else if(mouseInZone(x, y + 24 + 40 + 24, 48, 16)) {//platforme droite
+		}else if(mouseInZone(x, y + 24 + 40 + 24, 48, 16)) {//right platform
 			inZone = 6;
 			ctx.fillRect(x - 2, y + 24 + 40 + 24 - 2, 52, 20);
-		}else if(mouseInZone(x, y + 24 + 40 + 24 + 24, 16, 26)) {//perso
+		}else if(mouseInZone(x, y + 24 + 40 + 24 + 24, 16, 26)) {//player
 			inZone = 7;
 			ctx.fillRect(x - 2, y + 24 + 40 + 24 + 24 - 2, 20, 30);
-		}else if(mouseInZone(x, y + 144, 16, 32)) {//tunnel droite
+		}else if(mouseInZone(x, y + 144, 16, 32)) {//right tunnel
 			inZone = 8;
 			ctx.fillRect(x - 2, y + 142, 20, 36);
-		}else if(mouseInZone(x + 24, y + 144, 16, 32)) {//tunnel droite
+		}else if(mouseInZone(x + 24, y + 144, 16, 32)) {//right tunnel
 			inZone = 9;
 			ctx.fillRect(x + 22, y + 142, 20, 36);
-		}else if(mouseInZone(x, y + 180, 32, 16)) {//tunnel haut
+		}else if(mouseInZone(x, y + 180, 32, 16)) {//top tunnel
 			inZone = 10;
 			ctx.fillRect(x - 2, y + 178, 36, 20);
-		}else if(mouseInZone(x, y + 200, 32, 16)) {//tunnel bas
+		}else if(mouseInZone(x, y + 200, 32, 16)) {//bottom tunnel
 			inZone = 11;
 			ctx.fillRect(x - 2, y + 198, 36, 20);
 		}

@@ -502,7 +502,7 @@ function drawDownloadMaps() {
 				
 				txtLines = new Array();
 				timeWriting = 0;
-			}else if(mousePressed && mouseButton == RIGHT && y > 0 && y < mapsOnline.length + 1) { //ajout/retrait aux favoris
+			}else if(mousePressed && mouseButton == RIGHT && y > 0 && y < mapsOnline.length + 1) { //add to or remove from favorites
 				unclick();
 				$.ajax({
 					type: "POST",
@@ -776,7 +776,7 @@ function drawMainMenu() {
 	ctx.fillStyle = "rgb(0, 65, 88)";
 	//ctx.fillRect(0, 0, 640, 544);
 	ctx.drawImage(menuBG, 0, 0);
-	//affichage du menu
+	//draw the menu
 	
 	var yStart = 32;
 	var ecart = 18;
@@ -1463,7 +1463,7 @@ function drawPortals() {
 }
 
 function manageTransitionDraw() {
-	if(finNiveau()) {//si on fini un niveau, transition fermeture
+	if(finNiveau()) {//if a level is finished, closing transition
 		if(perso.fadeNextLevel > 0) {
 			drawTransitionIn();
 		}
@@ -1473,7 +1473,7 @@ function manageTransitionDraw() {
 			}
 		}
 		
-	} else {//sinon, c'est qu'on fait une transition ouverture
+	} else {//else it is an opening transition
 		if(perso.intermissionFade < 0) {
 			ctx.fillStyle = "rgb(0, 0, 0)";
 			//noStroke();
@@ -1712,13 +1712,13 @@ function drawTransitionIn() {
 	ctx.fillStyle = "rgb(0, 0, 0)";;
 	//noStroke();
 	var scale = 1 - (perso.fadeNextLevel / 120);
-	if(TRANS == 1) {//angle sup gauche
+	if(TRANS == 1) {//top left corner
 		ctx.fillRect(ECART_X, ECART_Y, parseInt(512 * scale), parseInt(384 * scale));
-	}else if(TRANS == 2) {//gauche - droite
+	}else if(TRANS == 2) {//left to right
 		ctx.fillRect(ECART_X, ECART_Y, parseInt(512 * scale), 384);
-	}else if(TRANS == 3) {//haut - bas
+	}else if(TRANS == 3) {//top to bottom
 		ctx.fillRect(ECART_X, ECART_Y, 512, parseInt(384 * scale));
-	}else if(TRANS == 4) {//lignes successives horizontales
+	}else if(TRANS == 4) {//successive horizontal lines
 		var nb = 120 - perso.fadeNextLevel;
 		if(nb < linesHoriz.length) {
 			for(i = 0; i < nb; i++) {
@@ -1727,7 +1727,7 @@ function drawTransitionIn() {
 		}else {
 			ctx.fillRect(ECART_X, ECART_Y, 512, 384);
 		}
-	}else if(TRANS == 5) {//lignes successives verticales
+	}else if(TRANS == 5) {//successive vertical lines
 		var nb = 120 - perso.fadeNextLevel;
 		if(nb < linesVerti.length) {
 			for(i = 0; i < nb; i++) {
@@ -1736,7 +1736,7 @@ function drawTransitionIn() {
 		}else {
 			ctx.fillRect(ECART_X, ECART_Y, 512, 384);
 		}
-	}else if(TRANS == 6) {//carré vers centre
+	}else if(TRANS == 6) {//square to center
 		var x = 512 - parseInt(512 * scale);
 		var y = 384 - parseInt(384 * scale);
 		ctx.fillRect(ECART_X + (x>>1), ECART_Y + (y>>1), parseInt(512 * scale), parseInt(384 * scale));
@@ -1750,13 +1750,13 @@ function drawTransitionOut() {
 	var x = 512 - parseInt(512 * scale);
 	var y = 384 - parseInt(384 * scale);
 	
-	if(TRANS == 1) {//angle sup gauche
+	if(TRANS == 1) {//top left corner
 		ctx.fillRect(ECART_X + x, ECART_Y + y, parseInt(512 * scale), parseInt(384 * scale));
-	}else if(TRANS == 2) {//gauche - droite
+	}else if(TRANS == 2) {//left to right
 		ctx.fillRect(ECART_X + x, ECART_Y, parseInt(512 * scale), 384);
-	}else if(TRANS == 3) {//haut - bas
+	}else if(TRANS == 3) {//top to bottom
 		ctx.fillRect(ECART_X, ECART_Y + y, 512, parseInt(384 * scale));
-	}else if(TRANS == 4) {//lignes successives
+	}else if(TRANS == 4) {//successive lines
 		var nb = perso.fadeNextLevel;
 		if(nb < linesHoriz.length) {
 			for(i = 0; i < nb; i++) {
@@ -1765,7 +1765,7 @@ function drawTransitionOut() {
 		}else {
 			ctx.fillRect(ECART_X, ECART_Y, 512, 384);
 		}
-	}else if(TRANS == 5) {//lignes successives verticales
+	}else if(TRANS == 5) {//successive vertical lines
 		var nb = perso.fadeNextLevel;
 		if(nb < linesVerti.length) {
 			for(i = 0; i < nb; i++) {
@@ -1774,7 +1774,7 @@ function drawTransitionOut() {
 		}else {
 			ctx.fillRect(ECART_X, ECART_Y, 512, 384);
 		}
-	}else if(TRANS == 6) {//carré vers centre
+	}else if(TRANS == 6) {//square to center
 		ctx.strokeStyle = "rgb(0, 0, 0)";
 		ctx.lineWidth = 384 * scale;
 		//noFill();

@@ -1,0 +1,15 @@
+{
+  "name": "stillalivejs",
+  "private": true,
+  "type": "module",
+  "license": "AGPL-3.0-only",
+  "scripts": {
+    "start": "http-server . -p 8080 -c-1"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.1",
+    "eslint": "^10.14.0",
+    "http-server": "^14.1.1",
+    "prettier": "^3.9.10"
+  }
+}

@@ -18,7 +18,7 @@ function setupTutorial() {
 }
 
 function manageTutorial() {
-	if(currentLevel == 9) {//tutorial fini
+	if(currentLevel == 9) {//tutorial finished
 		drawEndTutorialMessage();
 	}else if(currentLevel == 1 && !finNiveau()) {
 		if(!tutoJump && (perso.x >> 8) > 100) {

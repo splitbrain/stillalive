@@ -176,14 +176,14 @@ function setup() {
 	
 	ctx.font = "bold 10px Arial";
 	
-	tex_tails = new Image();   // Crée un nouvel objet Image
-	tex_tails.src = 'decor/tails.png'; // Définit le chemin vers sa source
+	tex_tails = new Image();   // Create a new Image object
+	tex_tails.src = 'decor/tails.png'; // Set the path to the source
 	tex_tails.onload = function() {
-		tex_blackos = new Image();   // Crée un nouvel objet Image
-		tex_blackos.src = 'decor/blackos.png'; // Définit le chemin vers sa source
+		tex_blackos = new Image();   // Create a new Image object
+		tex_blackos.src = 'decor/blackos.png'; // Set the path to the source
 		tex_blackos.onload = function() {
-			noLevel = new Image();   // Crée un nouvel objet Image
-			noLevel.src = 'bg/noLevel.png'; // Définit le chemin vers sa source
+			noLevel = new Image();   // Create a new Image object
+			noLevel.src = 'bg/noLevel.png'; // Set the path to the source
 			noLevel.onload = function() {  
 				loadedImg++;
 				canSplash = true;
@@ -208,7 +208,7 @@ function setup() {
 	needLoadSfx = true;
 	sfx_list = new Array();
 				
-	perso = new Perso();//permet de pas faire planter le loading
+	perso = new Perso();//prevents a crash during loading
 	
 	
 	TIME = 0;
@@ -293,7 +293,7 @@ function manageKeys() {
 		}
 	}
 	
-	// test un newpress de click gauche
+	// check for a new left click
 	if((keys & MSE_L)) {
 		if(mousePressed == 0) {
 			mouseNewPress = 1;
@@ -302,7 +302,7 @@ function manageKeys() {
 		}
 	}else mouseNewPress = 0;
 
-	//test si on vient d'appuyer un bouton souris
+	//check if a mouse button was just pressed
 	if(!(oldKeys & MSE_L) && (keys & MSE_L)) {
 		mouseButton = LEFT;
 		mousePressed = 1;
@@ -317,7 +317,7 @@ function manageKeys() {
 		mouseReleased = 0;
 	}
 	
-	//test si on vient de lacher un bouton souris
+	//check if a mouse button was just released
 	if((oldKeys & MSE_L) && !(keys & MSE_L)) {
 		mouseReleased = 1;
 		mousePressed = 0;
@@ -426,7 +426,7 @@ function draw() {
 				drawCredits = false;
 				perso.fadeNextLevel = 120;
 				perso.intermissionFade = 20;
-				TRANS = parseInt(random(1, 7));//7 non inclus
+				TRANS = parseInt(random(1, 7));//7 not included
 				playSfx(sfx_transition);
 				highscoreMessage = "";
 				unclick();
@@ -536,7 +536,7 @@ function draw() {
 		drawPauseMenu();
 	}
 	else if(currentMenu == 0) {
-		//on est en train de charger
+		//loading is in progress
 		if(canSplash && !overSplash) drawSplash();
 		else if(overSplash) drawLoadingScreen();
 	}
@@ -1165,7 +1165,7 @@ function getTileNoCaisse(x, y) {
 	if(x>=512 || y>=384 || y<0 || x<0) return 0;
 	var tile = map[((y>>4)*32) + (x>>4)];
 	
-	if(!tile){//verif touche plateforme
+	if(!tile){//check contact with a platform
 		tile = collidePlateforme(x,y);
 	}
 	
@@ -1189,9 +1189,9 @@ function getTile(x, y) {
 	if(x>=512 || y>=384 || y<0 || x<0) return 0;
 	var tile = map[((y>>4)*32) + (x>>4)];
 	
-	if(!tile){//verif touche caisse
+	if(!tile){//check contact with a crate
 		tile = collideCaisse(x,y);
-		if(!tile){//verif touche plateforme
+		if(!tile){//check contact with a platform
 			tile = collidePlateforme(x,y);
 		}
 	}
@@ -1205,10 +1205,10 @@ function getTile(x, y) {
 function getTilePortal(x, y){
 	if(x>=512 || y>=384 || y<0 || x<0) return 0;
 	var tile = map[((y>>4)*32) + (x>>4)];
-	//passe à travers : caisse, finish, razor wheel, plasma rouge, gateau, départ
+	//passes through: crate, finish, razor wheel, red plasma, cake, start
 	if(tile==22 || tile==36 || (tile>=40 && tile<=45) || tile == 103 || tile == 104 || tile>=300) tile = 0;
 	
-	if(!tile){//verif touche plateforme
+	if(!tile){//check contact with a platform
 		tile = collidePlateforme(x,y);
 	}
 	
@@ -1324,7 +1324,7 @@ function setPortalDir(p, x, y){
 	var oldDir = portals[p].direction;
 	
 	var mur = 0;
-	//on vérifie d'abord si on est sur mur gauche ou droite
+	//first check if the portal is on a left or right wall
 	for(i=y-14;i<y+14;i++){
 		var tile = getTilePortal(x,i);
 		if(tile!=0){
@@ -1333,13 +1333,13 @@ function setPortalDir(p, x, y){
 	}
 	if(mur==28){
 		mur = 0;
-		for(i=x-16;i<x+16;i++){//vérification qu'on ne touche rien à l'horizontal
+		for(i=x-16;i<x+16;i++){//make sure that nothing touches horizontally
 			if(getTile(i,y-14)!=0 && getTile(i,y-14)<300) mur++;
 			if(getTile(i,y+13)!=0 && getTile(i,y+13)<300) mur++;
 		}
 		if(mur>36) return 0;
 		
-		if(vx<0){//si portal à gauche
+		if(vx<0){//if the portal is on the left
 			x-=3;
 			portals[p].direction = GAUCHE;
 		}else portals[p].direction = DROITE;
@@ -1347,7 +1347,7 @@ function setPortalDir(p, x, y){
 		
 		var x2 = portals[1-p].x>>8;
 		var y2 = portals[1-p].y>>8;
-		if(x==x2){//portals sur le même mur vertical ?
+		if(x==x2){//portals on the same vertical wall?
 			if(y2-y>-32 && y2-y<32 && portals[1-p].used){
 				portals[p].direction = oldDir;
 				return 0;
@@ -1381,7 +1381,7 @@ function setPortalDir(p, x, y){
 		}
 		
 		return 1;
-	}else{//on vérifie alors si on est sur mur haut ou bas
+	}else{//then check if the portal is on a top or bottom wall
 		mur = 0;
 		for(i=x-14;i<x+14;i++){
 			var tile = getTilePortal(i,y);
@@ -1391,13 +1391,13 @@ function setPortalDir(p, x, y){
 		}
 		if(mur==28){
 			mur = 0;
-			for(i=y-16;i<y+16;i++){//vérification qu'on ne touche rien à la verticale
+			for(i=y-16;i<y+16;i++){//make sure that nothing touches vertically
 				if(getTile(x-14,i)!=0 && getTile(x-14,i)<300) mur++;
 				if(getTile(x+13,i)!=0 && getTile(x+13,i)<300) mur++;
 			}
 			if(mur>36) return 0;
 			
-			if(vy<0){//si portal en haut
+			if(vy<0){//if the portal is at the top
 				y-=3;
 				portals[p].direction = HAUT;
 			}else portals[p].direction = BAS;
@@ -1405,7 +1405,7 @@ function setPortalDir(p, x, y){
 			
 			var x2 = portals[1-p].x>>8;
 			var y2 = portals[1-p].y>>8;
-			if(y==y2){//portals sur le même mur horizontal ?
+			if(y==y2){//portals on the same horizontal wall?
 				if(x2-x>-32 && x2-x<32  && portals[1-p].used){
 					portals[p].direction = oldDir;
 					return 0;
@@ -2108,7 +2108,7 @@ function Perso() {
 	}
 	
 	this.move = function() {
-		//gestion des particules autour du bonhomme
+		//particles around the character
 		if(this.timePassedPortal < 0) {
 			if(++this.timePassedPortal<0 && this.timePassedPortal%6==0){
 				for(var cpt=0;cpt<3;cpt++){
@@ -2246,14 +2246,14 @@ function Perso() {
 		
 		var dir = (this.isRight - this.isLeft) * 128;
 		
-		//gestion Saut
+		//jump handling
 		if(this.isJump && toucheSol && !checkTeleportBas(this) && ffield.length == 0){
 			this.vy = -1300;
 			playSfx(sfx_jump);
 		}else if(!this.isJump && this.oldIsJump && this.vy<-200){
 			this.vy = -200;
 		}
-		//fin gestion saut
+		//end of jump handling
 		
 		if(this.vx>0){
 			if(toucheSol==1 && !checkTeleportGauche(this)){
@@ -3048,7 +3048,7 @@ function Caisse(x, y) {
 			if(!this.porter){      
 				moveObject(this);
 				
-				if(bossNum > 0) {	//si en mode boss premier niveau
+				if(bossNum > 0) {	//if in boss mode, first level
 					if(bossNum == 1 || bossNum == 4) manageInTube(this);
           
 					var t = getTileSimple((this.x >> 8) + this.pX + 1, this.y >> 8);
@@ -3100,7 +3100,7 @@ function Caisse(x, y) {
 				var x = this.x>>8;
 				var y = this.y>>8;
 				if(x<-16 || x>512 || y<-16 || y>384 || toucheTileMort(this) || plasmaToucheObjet(this)){
-					if(bossNum == 1 || bossNum == 3 || bossNum == 4) {	//si en mode boss premier niveau ou 3e ou 4e
+					if(bossNum == 1 || bossNum == 3 || bossNum == 4) {	//if in boss mode, first, third or fourth level
 						this.needKill = true;
 						return;
 					}
@@ -3116,7 +3116,7 @@ function Caisse(x, y) {
 		} else {
 			this.shrink -= 4;
 			if(this.shrink == 0) {
-				if(bossNum == 1 || bossNum == 4) {	//si en mode boss premier niveau ou 4e
+				if(bossNum == 1 || bossNum == 4) {	//if in boss mode, first or fourth level
 				  this.needKill = true;
 				  return;
 				}
@@ -3188,7 +3188,7 @@ function caisseSurInterrupteur(){
 }
 
 function caisseSurPerso(obj){
-	if(obj.type == "caisse" && obj.vy > 0 && !dansUnPortal(obj)){	//on est en présence d'une caisse
+	if(obj.type == "caisse" && obj.vy > 0 && !dansUnPortal(obj)){	//the object is a crate
 		var x = (obj.x>>8) + 3;
 		var y = (obj.y>>8) + obj.pY;
 		var x2 = perso.x>>8;
@@ -3511,19 +3511,19 @@ function rightCollision(obj){
 
 function getCollision(obj){
 	var i;
-	var touche = [0, 0, 0, 0];//haut, bas, gauche, droite
+	var touche = [0, 0, 0, 0];//top, bottom, left, right
 	var x = obj.x>>8;
 	var y = obj.y>>8;
 	
 	var max = 0;
 	var maxVal = 0;
 	
-	for(i=x;i<x+obj.pX;i+=2){//haut
+	for(i=x;i<x+obj.pX;i+=2){//top
 		if(getTile(i,y)) touche[0]++;
 	}
 	maxVal = touche[0];
 		
-	for(i=x+1;i<x+obj.pX-1;i+=2){//bas
+	for(i=x+1;i<x+obj.pX-1;i+=2){//bottom
 		if(getTile(i,y+obj.pY-1)) touche[1]++;
 	}
 	if(touche[1] > maxVal) {
@@ -3531,7 +3531,7 @@ function getCollision(obj){
 		maxVal = touche[1];
 	}
 	
-	for(i=y;i<y+obj.pY;i+=2){//gauche
+	for(i=y;i<y+obj.pY;i+=2){//left
 		if(getTile(x,i)) touche[2]++;
 	}
 	if(touche[2] > maxVal) {
@@ -3539,7 +3539,7 @@ function getCollision(obj){
 		maxVal = touche[2];
 	}
 	
-	for(i=y;i<y+obj.pY;i+=2){//droite
+	for(i=y;i<y+obj.pY;i+=2){//right
 		if(getTile(x+obj.pX-1,i)) touche[3]++;
 	}
 	if(touche[3] > maxVal) {
@@ -3861,8 +3861,8 @@ function loadGfx() {
 
 	body = new Array();
 	for(var i=0; i < 2; i++) {
-		var t = new Image();   // Crée un nouvel objet Image
-		t.src = 'sprites/body' + i + '.png'; // Définit le chemin vers sa source
+		var t = new Image();   // Create a new Image object
+		t.src = 'sprites/body' + i + '.png'; // Set the path to the source
 		t.onload = function() {
 			loadedImg++;
 			canDrawLoading++;
@@ -3872,36 +3872,36 @@ function loadGfx() {
 	
 	head = new Array();
 	for(var i=0; i < 2; i++) {
-		var t = new Image();   // Crée un nouvel objet Image
-		t.src = 'sprites/head' + i + '.png'; // Définit le chemin vers sa source
+		var t = new Image();   // Create a new Image object
+		t.src = 'sprites/head' + i + '.png'; // Set the path to the source
 		t.onload = function() {
 			loadedImg++;
 			canDrawLoading++;
 		}
 		head.push(t);
 	}
-	controls = new Image();   // Crée un nouvel objet Image
-	controls.src = 'decor/controls.png'; // Définit le chemin vers sa source
+	controls = new Image();   // Create a new Image object
+	controls.src = 'decor/controls.png'; // Set the path to the source
 	controls.onload = function() { 
 		canDrawLoading++;
 	}
 	
-	crosshair = new Image();   // Crée un nouvel objet Image
-	crosshair.src = 'sprites/crosshair.png'; // Définit le chemin vers sa source
+	crosshair = new Image();   // Create a new Image object
+	crosshair.src = 'sprites/crosshair.png'; // Set the path to the source
 	crosshair.onload = function() {  
 		loadedImg++;
 		canDrawLoading++;
 	}
 	
-	bluePortal = new Image();   // Crée un nouvel objet Image
-	bluePortal.src = 'sprites/bluePortal.png'; // Définit le chemin vers sa source
+	bluePortal = new Image();   // Create a new Image object
+	bluePortal.src = 'sprites/bluePortal.png'; // Set the path to the source
 	bluePortal.onload = function() {  
 		loadedImg++; 
 		canDrawLoading++;
 	}
 	
-	redPortal = new Image();   // Crée un nouvel objet Image
-	redPortal.src = 'sprites/redPortal.png'; // Définit le chemin vers sa source
+	redPortal = new Image();   // Create a new Image object
+	redPortal.src = 'sprites/redPortal.png'; // Set the path to the source
 	redPortal.onload = function() {  
 		loadedImg++;
 		canDrawLoading++;
@@ -3921,192 +3921,192 @@ function loadGfx() {
 	
 	bg = new Array();
 	for(i=1; i<12; i++) {
-		var img = new Image();   // Crée un nouvel objet Image
-		img.src = 'bg/level' + i + '.png'; // Définit le chemin vers sa source
+		var img = new Image();   // Create a new Image object
+		img.src = 'bg/level' + i + '.png'; // Set the path to the source
 		img.onload = function() {  
 			loadedImg++; 
 		}
 		bg.push(img);
 	}
 	
-	menuBG = new Image();   // Crée un nouvel objet Image
-	menuBG.src = 'bg/menuBG.png'; // Définit le chemin vers sa source
+	menuBG = new Image();   // Create a new Image object
+	menuBG.src = 'bg/menuBG.png'; // Set the path to the source
 	menuBG.onload = function() {  
 		loadedImg++; 
 	}
 	
-	levelEditorHud = new Image();   // Crée un nouvel objet Image
-	levelEditorHud.src = 'bg/levelEditorHud.png'; // Définit le chemin vers sa source
+	levelEditorHud = new Image();   // Create a new Image object
+	levelEditorHud.src = 'bg/levelEditorHud.png'; // Set the path to the source
 	levelEditorHud.onload = function() {  
 		loadedImg++; 
 	}
 	
-	hud = new Image();   // Crée un nouvel objet Image
-	hud.src = 'bg/hud.png'; // Définit le chemin vers sa source
+	hud = new Image();   // Create a new Image object
+	hud.src = 'bg/hud.png'; // Set the path to the source
 	hud.onload = function() {  
 		loadedImg++; 
 	}
 	
-	mapSelection = new Image();   // Crée un nouvel objet Image
-	mapSelection.src = 'bg/mapSelection.png'; // Définit le chemin vers sa source
+	mapSelection = new Image();   // Create a new Image object
+	mapSelection.src = 'bg/mapSelection.png'; // Set the path to the source
 	mapSelection.onload = function() {  
 		loadedImg++; 
 	}
 	
-	highscore = new Image();   // Crée un nouvel objet Image
-	highscore.src = 'bg/highscore.png'; // Définit le chemin vers sa source
+	highscore = new Image();   // Create a new Image object
+	highscore.src = 'bg/highscore.png'; // Set the path to the source
 	highscore.onload = function() {  
 		loadedImg++; 
 	}
 	
-	tube = new Image();   // Crée un nouvel objet Image
-	tube.src = 'sprites/tube.png'; // Définit le chemin vers sa source
+	tube = new Image();   // Create a new Image object
+	tube.src = 'sprites/tube.png'; // Set the path to the source
 	tube.onload = function() {
 		loadedImg++; 
 	}
 	
-	tube2 = new Image();   // Crée un nouvel objet Image
-	tube2.src = 'sprites/tube2.png'; // Définit le chemin vers sa source
+	tube2 = new Image();   // Create a new Image object
+	tube2.src = 'sprites/tube2.png'; // Set the path to the source
 	tube2.onload = function() {
 		loadedImg++; 
 	}
 	
-	tunnel = new Image();   // Crée un nouvel objet Image
-	tunnel.src = 'sprites/tunnel.png'; // Définit le chemin vers sa source
+	tunnel = new Image();   // Create a new Image object
+	tunnel.src = 'sprites/tunnel.png'; // Set the path to the source
 	tunnel.onload = function() {
 		loadedImg++; 
 	}
 	
-	tunnel2 = new Image();   // Crée un nouvel objet Image
-	tunnel2.src = 'sprites/tunnel2.png'; // Définit le chemin vers sa source
+	tunnel2 = new Image();   // Create a new Image object
+	tunnel2.src = 'sprites/tunnel2.png'; // Set the path to the source
 	tunnel2.onload = function() {
 		loadedImg++; 
 	}
 	
-	mouseIcon = new Image();   // Crée un nouvel objet Image
-	mouseIcon.src = 'images/mouseIcon.png'; // Définit le chemin vers sa source
+	mouseIcon = new Image();   // Create a new Image object
+	mouseIcon.src = 'images/mouseIcon.png'; // Set the path to the source
 	mouseIcon.onload = function() {
 		loadedImg++; 
 	}
 	
-	key = new Image();   // Crée un nouvel objet Image
-	key.src = 'images/key.png'; // Définit le chemin vers sa source
+	key = new Image();   // Create a new Image object
+	key.src = 'images/key.png'; // Set the path to the source
 	key.onload = function() {
 		loadedImg++; 
 	}
 	
-	star = new Image();   // Crée un nouvel objet Image
-	star.src = 'sprites/star.png'; // Définit le chemin vers sa source
+	star = new Image();   // Create a new Image object
+	star.src = 'sprites/star.png'; // Set the path to the source
 	star.onload = function() {
 		loadedImg++; 
 	}
 	
-	caisse = new Image();   // Crée un nouvel objet Image
-	caisse.src = 'sprites/caisse.png'; // Définit le chemin vers sa source
+	caisse = new Image();   // Create a new Image object
+	caisse.src = 'sprites/caisse.png'; // Set the path to the source
 	caisse.onload = function() {
 		loadedImg++; 
 	}
 	
-	pauseBG = new Image();   // Crée un nouvel objet Image
-	pauseBG.src = 'menu/pauseBG.png'; // Définit le chemin vers sa source
+	pauseBG = new Image();   // Create a new Image object
+	pauseBG.src = 'menu/pauseBG.png'; // Set the path to the source
 	pauseBG.onload = function() {
 		loadedImg++;
 	}
 	
-	tex_unregistered = new Image();   // Crée un nouvel objet Image
-	tex_unregistered.src = 'decor/tex_unregistered.png'; // Définit le chemin vers sa source
+	tex_unregistered = new Image();   // Create a new Image object
+	tex_unregistered.src = 'decor/tex_unregistered.png'; // Set the path to the source
 	tex_unregistered.onload = function() {
 		loadedImg++; 
 	}
 	
-	tex_sound = new Image();   // Crée un nouvel objet Image
-	tex_sound.src = 'menu/tex_sound.png'; // Définit le chemin vers sa source
+	tex_sound = new Image();   // Create a new Image object
+	tex_sound.src = 'menu/tex_sound.png'; // Set the path to the source
 	tex_sound.onload = function() {
 		loadedImg++; 
 	}
 	
-	tex_cross = new Image();   // Crée un nouvel objet Image
-	tex_cross.src = 'menu/tex_cross.png'; // Définit le chemin vers sa source
+	tex_cross = new Image();   // Create a new Image object
+	tex_cross.src = 'menu/tex_cross.png'; // Set the path to the source
 	tex_cross.onload = function() {
 		loadedImg++; 
 	}
 	
-	tex_leftBG = new Image();   // Crée un nouvel objet Image
-	tex_leftBG.src = 'menu/tex_leftBG.png'; // Définit le chemin vers sa source
+	tex_leftBG = new Image();   // Create a new Image object
+	tex_leftBG.src = 'menu/tex_leftBG.png'; // Set the path to the source
 	tex_leftBG.onload = function() {
 		loadedImg++; 
 	}
 	
-	tex_rightBG = new Image();   // Crée un nouvel objet Image
-	tex_rightBG.src = 'menu/tex_rightBG.png'; // Définit le chemin vers sa source
+	tex_rightBG = new Image();   // Create a new Image object
+	tex_rightBG.src = 'menu/tex_rightBG.png'; // Set the path to the source
 	tex_rightBG.onload = function() {
 		loadedImg++; 
 	}
 	
-	tex_button = new Image();   // Crée un nouvel objet Image
-	tex_button.src = 'menu/tex_button.png'; // Définit le chemin vers sa source
+	tex_button = new Image();   // Create a new Image object
+	tex_button.src = 'menu/tex_button.png'; // Set the path to the source
 	tex_button.onload = function() {
 		loadedImg++; 
 	}
 	
 	tourelle = new Array();
 	for(var i=0; i < 2; i++) {
-		var t = new Image();   // Crée un nouvel objet Image
-		t.src = 'sprites/tourelle' + i + '.png'; // Définit le chemin vers sa source
+		var t = new Image();   // Create a new Image object
+		t.src = 'sprites/tourelle' + i + '.png'; // Set the path to the source
 		t.onload = function() {
 			loadedImg++; 
 		}
 		tourelle.push(t);
 	}
 	
-	sparkle = new Image();   // Crée un nouvel objet Image
-	sparkle.src = 'sprites/sparkle.png'; // Définit le chemin vers sa source
+	sparkle = new Image();   // Create a new Image object
+	sparkle.src = 'sprites/sparkle.png'; // Set the path to the source
 	sparkle.onload = function() {  
 		loadedImg++; 
 	}
 	
-	cake = new Image();   // Crée un nouvel objet Image
-	cake.src = 'sprites/cake.png'; // Définit le chemin vers sa source
+	cake = new Image();   // Create a new Image object
+	cake.src = 'sprites/cake.png'; // Set the path to the source
 	cake.onload = function() {  
 		loadedImg++;
 	}
 	
-	portalGun = new Image();   // Crée un nouvel objet Image
-	portalGun.src = 'sprites/portalGun.png'; // Définit le chemin vers sa source
+	portalGun = new Image();   // Create a new Image object
+	portalGun.src = 'sprites/portalGun.png'; // Set the path to the source
 	portalGun.onload = function() {  
 		loadedImg++; 
 	}
 	
-	cameraFollow = new Image();   // Crée un nouvel objet Image
-	cameraFollow.src = 'sprites/cameraFollow.png'; // Définit le chemin vers sa source
+	cameraFollow = new Image();   // Create a new Image object
+	cameraFollow.src = 'sprites/cameraFollow.png'; // Set the path to the source
 	cameraFollow.onload = function() {  
 		loadedImg++; 
 	}
 	
 	robotEye = new Array();
 	for(var rob = 1; rob < 5; rob++) {
-		var r = new Image();   // Crée un nouvel objet Image
-		r.src = 'sprites/robotEye' + rob + '.png'; // Définit le chemin vers sa source
+		var r = new Image();   // Create a new Image object
+		r.src = 'sprites/robotEye' + rob + '.png'; // Set the path to the source
 		r.onload = function() {  
 			loadedImg++; 
 		}
 		robotEye.push(r);
 	}
 	
-	robotHead = new Image();   // Crée un nouvel objet Image
-	robotHead.src = 'sprites/robotHead.png'; // Définit le chemin vers sa source
+	robotHead = new Image();   // Create a new Image object
+	robotHead.src = 'sprites/robotHead.png'; // Set the path to the source
 	robotHead.onload = function() {  
 		loadedImg++; 
 	}
 	
-	plasma = new Image();   // Crée un nouvel objet Image
-	plasma.src = 'sprites/plasma.png'; // Définit le chemin vers sa source
+	plasma = new Image();   // Create a new Image object
+	plasma.src = 'sprites/plasma.png'; // Set the path to the source
 	plasma.onload = function() {  
 		loadedImg++; 
 	}
 	
-	platform = new Image();   // Crée un nouvel objet Image
-	platform.src = 'sprites/plateforme.png'; // Définit le chemin vers sa source
+	platform = new Image();   // Create a new Image object
+	platform.src = 'sprites/plateforme.png'; // Set the path to the source
 	platform.onload = function() {  
 		loadedImg++;
 	}

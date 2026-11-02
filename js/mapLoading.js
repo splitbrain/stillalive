@@ -38,39 +38,39 @@ function loadLevelEditor() {
 		var y = i >> 5;
 		var x = i - (y << 5);
 		
-		if(map[i] == 107) {//tunnel droite
+		if(map[i] == 107) {//right tunnel
 			tunnels.push(new Tunnel((x*16) << 8, (y*16) << 8, DROITE));
 			map[i] = 199;
 			map[x+((y+1)<<5)] = 199;
 			displayMap[i] = 0;
 			displayMap[x+((y+1)<<5)] = 0;
-		}else if(map[i] == 108) {//tunnel gauche
+		}else if(map[i] == 108) {//left tunnel
 			tunnels.push(new Tunnel((x*16) << 8, (y*16) << 8, GAUCHE));
 			map[i] = 199;
 			map[x+((y+1)<<5)] = 199;
 			displayMap[i] = 0;
 			displayMap[x+((y+1)<<5)] = 0;
-		}else if(map[i] == 109) {//tunnel haut
+		}else if(map[i] == 109) {//top tunnel
 			tunnels.push(new Tunnel((x*16) << 8, (y*16) << 8, HAUT));
 			map[i] = 199;
 			map[x + 1 + (y<<5)] = 199;
 			displayMap[i] = 0;
 			displayMap[x + 1 + (y<<5)] = 0;
-		}else if(map[i] == 110) {//tunnel bas
+		}else if(map[i] == 110) {//bottom tunnel
 			tunnels.push(new Tunnel((x*16) << 8, (y*16) << 8, BAS));
 			map[i] = 199;
 			map[x + 1 + (y<<5)] = 199;
 			displayMap[i] = 0;
 			displayMap[x + 1 + (y<<5)] = 0;
-		}else if(map[i]==22) {//arrivée
+		}else if(map[i]==22) {//exit
 			map[i] = 35;
 			displayMap[i] = 35;
 			continue;
-		}else if(map[i]>=29 && map[i]<=34) { //tile porte plasma ball
+		}else if(map[i]>=29 && map[i]<=34) { //plasma ball door tile
 			if(quality > 0) displayMap[i] = 0;
 			animatedTiles.push(new AnimatedTile(x, y, 29, 34, RANDOM, i, 6));
 			continue;
-		}else if(map[i]>=23 && map[i]<=28) { //tile porte interrupteur
+		}else if(map[i]>=23 && map[i]<=28) { //switch door tile
 			if(quality > 0) displayMap[i] = 0;
 			animatedTiles.push(new AnimatedTile(x, y, 23, 28, RANDOM, i, 6));
 			continue;
@@ -78,11 +78,11 @@ function loadLevelEditor() {
 			if(quality > 0) displayMap[i] = 0;
 			animatedTiles.push(new AnimatedTile(x, y, 36, 37, ORDERED, i, 15));
 			continue;
-		}else if(map[i]==38 || map[i]==39) { //acide vagues
+		}else if(map[i]==38 || map[i]==39) { //acid waves
 			if(quality > 0) displayMap[i] = 0;
 			animatedTiles.push(new AnimatedTile(x, y, 38, 39, ORDERED, i, 15));
 			continue;
-		}else if(map[i]>=40 && map[i]<=45) { //tile rouge portal
+		}else if(map[i]>=40 && map[i]<=45) { //red portal tile
 			if(quality > 0) displayMap[i] = 0;
 			animatedTiles.push(new AnimatedTile(x, y, 40, 45, RANDOM, i, 6));
 			continue;
@@ -90,11 +90,11 @@ function loadLevelEditor() {
 			if(quality > 0) displayMap[i] = 0;
 			animatedTiles.push(new AnimatedTile(x, y, 48, 53, ORDERED, i, 6));
 			continue;
-		}else if(map[i] == 54 || map[i] == 55) { //tapis droite
+		}else if(map[i] == 54 || map[i] == 55) { //right conveyor belt
 			if(quality > 0) displayMap[i] = 0;
 			animatedTiles.push(new AnimatedTile(x, y, 54, 55, ORDERED, i, 10));
 			continue;
-		}else if(map[i] == 56 || map[i] == 57) { //tapis gauche
+		}else if(map[i] == 56 || map[i] == 57) { //left conveyor belt
 			if(quality > 0) displayMap[i] = 0;
 			animatedTiles.push(new AnimatedTile(x, y, 56, 57, ORDERED, i, 10));
 			continue;
@@ -102,33 +102,33 @@ function loadLevelEditor() {
 			cakes.push(new Cake((x*16) << 8, (y*16) << 8));
 			map[i] = 0;
 			continue;
-		}else if(map[i] == 100) {//tourelle gauche
+		}else if(map[i] == 100) {//left turret
 			displayMap[i] = 0;
 			map[i] = 0;
 			tourelles.push(new Tourelle((x*16) << 8, (y*16) << 8, -1));
 			continue;
-		}else if(map[i] == 101) {//tourelle droite
+		}else if(map[i] == 101) {//right turret
 			displayMap[i] = 0;
 			map[i] = 0;
 			tourelles.push(new Tourelle((x*16) << 8, (y*16) << 8, 1));
 			continue;
-		}else if(map[i] == 102) {//caisse
+		}else if(map[i] == 102) {//crate
 			displayMap[i] = 0;
 			map[i] = 0;
 			caisses.push(new Caisse((x*16) << 8, (y*16) << 8));
 			continue;
-		}else if(map[i] == 104) {//perso start
+		}else if(map[i] == 104) {//player start
 			perso.x = (x * 16) << 8;
 			perso.y = (y * 16) << 8;
 			map[i] = 0;
 			camera = new Camera(perso.x, perso.y);
 			continue;
-		}else if(map[i] == 105) {//plateforme droite
+		}else if(map[i] == 105) {//right platform
 			var vx = 256;
 			platforms.push(new Platform((x * 16) << 8, (y * 16) << 8, vx, 0));
 			map[i] = 0;
 			continue;
-		}else if(map[i] == 106) {//plateforme gauche
+		}else if(map[i] == 106) {//left platform
 			var vx = -256;
 			platforms.push(new Platform((x * 16) << 8, (y * 16) << 8, vx, 0));
 			map[i] = 0;
@@ -252,39 +252,39 @@ function loadLevel(level) {
 		var y = i >> 5;
 		var x = i - (y << 5);
 		
-		if(map[i] == 107) {//tunnel droite
+		if(map[i] == 107) {//right tunnel
 			tunnels.push(new Tunnel((x*16) << 8, (y*16) << 8, DROITE));
 			map[i] = 199;
 			map[x+((y+1)<<5)] = 199;
 			displayMap[i] = 0;
 			displayMap[x+((y+1)<<5)] = 0;
-		}else if(map[i] == 108) {//tunnel gauche
+		}else if(map[i] == 108) {//left tunnel
 			tunnels.push(new Tunnel((x*16) << 8, (y*16) << 8, GAUCHE));
 			map[i] = 199;
 			map[x+((y+1)<<5)] = 199;
 			displayMap[i] = 0;
 			displayMap[x+((y+1)<<5)] = 0;
-		}else if(map[i] == 109) {//tunnel haut
+		}else if(map[i] == 109) {//top tunnel
 			tunnels.push(new Tunnel((x*16) << 8, (y*16) << 8, HAUT));
 			map[i] = 199;
 			map[x + 1 + (y<<5)] = 199;
 			displayMap[i] = 0;
 			displayMap[x + 1 + (y<<5)] = 0;
-		}else if(map[i] == 110) {//tunnel bas
+		}else if(map[i] == 110) {//bottom tunnel
 			tunnels.push(new Tunnel((x*16) << 8, (y*16) << 8, BAS));
 			map[i] = 199;
 			map[x + 1 + (y<<5)] = 199;
 			displayMap[i] = 0;
 			displayMap[x + 1 + (y<<5)] = 0;
-		}else if(map[i]==22) {//arrivée
+		}else if(map[i]==22) {//exit
 			map[i] = 35;
 			displayMap[i] = 35;
 			continue;
-		}else if(map[i]>=29 && map[i]<=34) { //tile porte plasma ball
+		}else if(map[i]>=29 && map[i]<=34) { //plasma ball door tile
 			if(quality > 0) displayMap[i] = 0;
 			animatedTiles.push(new AnimatedTile(x, y, 29, 34, RANDOM, i, 6));
 			continue;
-		}else if(map[i]>=23 && map[i]<=28) { //tile porte interrupteur
+		}else if(map[i]>=23 && map[i]<=28) { //switch door tile
 			if(quality > 0) displayMap[i] = 0;
 			animatedTiles.push(new AnimatedTile(x, y, 23, 28, RANDOM, i, 6));
 			continue;
@@ -292,11 +292,11 @@ function loadLevel(level) {
 			if(quality > 0) displayMap[i] = 0;
 			animatedTiles.push(new AnimatedTile(x, y, 36, 37, ORDERED, i, 15));
 			continue;
-		}else if(map[i]==38 || map[i]==39) { //acide vagues
+		}else if(map[i]==38 || map[i]==39) { //acid waves
 			if(quality > 0) displayMap[i] = 0;
 			animatedTiles.push(new AnimatedTile(x, y, 38, 39, ORDERED, i, 15));
 			continue;
-		}else if(map[i]>=40 && map[i]<=45) { //tile rouge portal
+		}else if(map[i]>=40 && map[i]<=45) { //red portal tile
 			if(quality > 0) displayMap[i] = 0;
 			animatedTiles.push(new AnimatedTile(x, y, 40, 45, RANDOM, i, 6));
 			continue;
@@ -304,11 +304,11 @@ function loadLevel(level) {
 			if(quality > 0) displayMap[i] = 0;
 			animatedTiles.push(new AnimatedTile(x, y, 48, 53, ORDERED, i, 6));
 			continue;
-		}else if(map[i] == 54 || map[i] == 55) { //tapis droite
+		}else if(map[i] == 54 || map[i] == 55) { //right conveyor belt
 			if(quality > 0) displayMap[i] = 0;
 			animatedTiles.push(new AnimatedTile(x, y, 54, 55, ORDERED, i, 10));
 			continue;
-		}else if(map[i] == 56 || map[i] == 57) { //tapis gauche
+		}else if(map[i] == 56 || map[i] == 57) { //left conveyor belt
 			if(quality > 0) displayMap[i] = 0;
 			animatedTiles.push(new AnimatedTile(x, y, 56, 57, ORDERED, i, 10));
 			continue;
@@ -316,33 +316,33 @@ function loadLevel(level) {
 			cakes.push(new Cake((x*16) << 8, (y*16) << 8));
 			map[i] = 0;
 			continue;
-		}else if(map[i] == 100) {//tourelle gauche
+		}else if(map[i] == 100) {//left turret
 			displayMap[i] = 0;
 			map[i] = 0;
 			tourelles.push(new Tourelle((x*16) << 8, (y*16) << 8, -1));
 			continue;
-		}else if(map[i] == 101) {//tourelle droite
+		}else if(map[i] == 101) {//right turret
 			displayMap[i] = 0;
 			map[i] = 0;
 			tourelles.push(new Tourelle((x*16) << 8, (y*16) << 8, 1));
 			continue;
-		}else if(map[i] == 102) {//caisse
+		}else if(map[i] == 102) {//crate
 			displayMap[i] = 0;
 			map[i] = 0;
 			caisses.push(new Caisse((x*16) << 8, (y*16) << 8));
 			continue;
-		}else if(map[i] == 104) {//perso start
+		}else if(map[i] == 104) {//player start
 			perso.x = (x * 16) << 8;
 			perso.y = (y * 16) << 8;
 			map[i] = 0;
 			camera = new Camera(perso.x, perso.y);
 			continue;
-		}else if(map[i] == 105) {//plateforme droite
+		}else if(map[i] == 105) {//right platform
 			var vx = 256;
 			platforms.push(new Platform((x * 16) << 8, (y * 16) << 8, vx, 0));
 			map[i] = 0;
 			continue;
-		}else if(map[i] == 106) {//plateforme gauche
+		}else if(map[i] == 106) {//left platform
 			var vx = -256;
 			platforms.push(new Platform((x * 16) << 8, (y * 16) << 8, vx, 0));
 			map[i] = 0;
@@ -454,13 +454,13 @@ function loadPreviewMap(level) {
 		var y = i >> 5;
 		var x = i - (y << 5);
 		
-		if(map[i] == 107) {//tunnel droite
+		if(map[i] == 107) {//right tunnel
 			tunnels.push(new Tunnel((x*16) << 8, (y*16) << 8, DROITE));
-		}else if(map[i] == 108) {//tunnel gauche
+		}else if(map[i] == 108) {//left tunnel
 			tunnels.push(new Tunnel((x*16) << 8, (y*16) << 8, GAUCHE));
-		}else if(map[i] == 109) {//tunnel haut
+		}else if(map[i] == 109) {//top tunnel
 			tunnels.push(new Tunnel((x*16) << 8, (y*16) << 8, HAUT));
-		}else if(map[i] == 110) {//tunnel bas
+		}else if(map[i] == 110) {//bottom tunnel
 			tunnels.push(new Tunnel((x*16) << 8, (y*16) << 8, BAS));
 		}else if(map[i] == 111) {//tube
 			tubeX = (x*16) << 8;
@@ -472,24 +472,24 @@ function loadPreviewMap(level) {
 		}else if(map[i] == 103) {//cake
 			cakes.push(new Cake((x*16) << 8, (y*16) << 8));
 			continue;
-		}else if(map[i] == 100) {//tourelle gauche
+		}else if(map[i] == 100) {//left turret
 			tourelles.push(new Tourelle((x*16) << 8, (y*16) << 8, -1));
 			continue;
-		}else if(map[i] == 101) {//tourelle droite
+		}else if(map[i] == 101) {//right turret
 			tourelles.push(new Tourelle((x*16) << 8, (y*16) << 8, 1));
 			continue;
-		}else if(map[i] == 102) {//caisse
+		}else if(map[i] == 102) {//crate
 			caisses.push(new Caisse((x*16) << 8, (y*16) << 8));
 			continue;
-		}else if(map[i] == 104) {//perso start
+		}else if(map[i] == 104) {//player start
 			perso.x = (x * 16) << 8;
 			perso.y = (y * 16) << 8;
 			continue;
-		}else if(map[i] == 105) {//plateforme droite
+		}else if(map[i] == 105) {//right platform
 			var vx = 256;
 			platforms.push(new Platform((x * 16) << 8, (y * 16) << 8, vx, 0));
 			continue;
-		}else if(map[i] == 106) {//plateforme gauche
+		}else if(map[i] == 106) {//left platform
 			var vx = -256;
 			platforms.push(new Platform((x * 16) << 8, (y * 16) << 8, vx, 0));
 			continue;

@@ -11,6 +11,7 @@ import { Player } from './entities/Player.js';
 import { render, tick } from './game.js';
 import { loadGfx, loadSplashImages } from './images.js';
 import { unclick } from './input.js';
+import { loadKeyLabels } from './keys.js';
 import {
 	campaigns,
 	levelsLoaded,
@@ -32,13 +33,14 @@ export let canSplash = false;
 /**
  * Start the game.
  *
- * The splash screen waits for its images and the font. Then the other images, the sounds, the credits and the
- * campaigns start to load, and the loading screen shows the progress.
+ * The key labels load at once. The splash screen waits for its images and the font. Then the other images, the
+ * sounds, the credits and the campaigns start to load, and the loading screen shows the progress.
  */
 function setup() {
 	ctx.strokeStyle = 'rgb(255, 0, 0)';
 	ctx.font = 'bold 10px Arial';
 
+	loadKeyLabels();
 	loadSplashImages();
 	Promise.all([whenImagesDone(), document.fonts.load('48px yikes')]).then(function () {
 		canSplash = true;

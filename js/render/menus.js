@@ -52,6 +52,7 @@ import {
 	turretImages,
 } from '../images.js';
 import { mouseInZone, unclick } from '../input.js';
+import { keyLabels } from '../keys.js';
 import { creditsTxt, levelsLoaded, levelsToLoad, loadLevel, loadPreviewMap } from '../level.js';
 import { copyCanvas, drawCopy, drawPlayer, drawRobot, drawTunnels } from './game.js';
 import { drawHudText, drawText } from './hud.js';
@@ -324,6 +325,27 @@ export function drawSplash() {
 }
 
 /**
+ * Draw the labels of the control keys into the empty key caps of the controls picture.
+ *
+ * @param {number} dx The x position of the picture.
+ * @param {number} dy The y position of the picture.
+ * @returns {void}
+ */
+function drawKeyLabels(dx, dy) {
+	ctx.font = 'bold 14px Arial';
+	ctx.textAlign = 'center';
+	ctx.fillStyle = 'rgb(0, 0, 0)';
+	ctx.fillText(keyLabels.KeyW, dx + 70, dy + 81);
+	ctx.fillText(keyLabels.KeyA, dx + 37, dy + 113);
+	ctx.fillText(keyLabels.KeyS, dx + 70, dy + 113);
+	ctx.fillText(keyLabels.KeyD, dx + 103, dy + 113);
+	ctx.fillText(keyLabels.KeyE, dx + 200, dy + 81);
+	ctx.textAlign = 'left';
+	ctx.font = 'bold 10px Arial';
+	ctx.fillStyle = 'rgb(255, 255, 255)';
+}
+
+/**
  * Draw the loading screen with the progress bars, the controls and the missing files, and go to the menu on a click
  * when all files are loaded.
  *
@@ -383,6 +405,7 @@ export function drawLoadingScreen() {
 		const dx = 225;
 		const dy = 190;
 		ctx.drawImage(controls, dx, dy);
+		drawKeyLabels(dx, dy);
 
 		drawPlayer(62 + dx, dy, -1);
 		drawPlayer(124 + dx, 95 + dy, 1);

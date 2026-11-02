@@ -6,6 +6,7 @@ import { ctx } from './canvas.js';
 import { CampaignId, Direction } from './constants.js';
 import { Sparkle } from './entities/Sparkle.js';
 import { unclick } from './input.js';
+import { keyLabels } from './keys.js';
 import { loadLevel } from './level.js';
 import { atExit } from './physics.js';
 import { game, input, ui } from './state.js';
@@ -226,7 +227,7 @@ function drawActivatePortalMessage2() {
 	ctx.fillText('Shoot a portal in the hole on the right and the other one', leftPan, game.offsetY + 48);
 	ctx.fillText('under your feet. That way, you will be able to pass through.', leftPan, game.offsetY + 48 + 12);
 	ctx.fillText('Then, just finish the level to continue the tutorial.', leftPan, game.offsetY + 48 + 24);
-	ctx.fillText('If you want to clear portals, press the E key.', leftPan, game.offsetY + 48 + 36);
+	ctx.fillText('If you want to clear portals, press the ' + keyLabels.KeyE + ' key.', leftPan, game.offsetY + 48 + 36);
 
 	ctx.fillText('Portal', 114, 365);
 	ctx.fillText('Here', 118, 380);
@@ -304,7 +305,11 @@ function drawExitMessage() {
 function drawMoveMessage() {
 	prepareTxtDefault();
 	ctx.fillText('Welcome to the tutorial.', leftPan, game.offsetY + 48);
-	ctx.fillText('First, start moving around the room with Q (A) or D.', leftPan, game.offsetY + 48 + 16);
+	ctx.fillText(
+		'First, start moving around the room with ' + keyLabels.KeyA + ' or ' + keyLabels.KeyD + '.',
+		leftPan,
+		game.offsetY + 48 + 16,
+	);
 	ctx.fillText('Click to continue ...', leftPan, game.offsetY + 48 + 32);
 }
 
@@ -316,7 +321,11 @@ function drawMoveMessage() {
 function drawJumpMessage() {
 	prepareTxtDefault();
 	ctx.fillText("You can't pass these obstacles unless you jump over them.", leftPan, game.offsetY + 48);
-	ctx.fillText('Press Z (W) to perform a jump and hold it to jump higher !', leftPan, game.offsetY + 48 + 16);
+	ctx.fillText(
+		'Press ' + keyLabels.KeyW + ' to perform a jump and hold it to jump higher !',
+		leftPan,
+		game.offsetY + 48 + 16,
+	);
 	ctx.fillText('Click to continue ...', leftPan, game.offsetY + 48 + 32);
 }
 

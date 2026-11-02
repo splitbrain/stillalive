@@ -33,7 +33,6 @@ export const game = {
 	needLoad: undefined,
 	needRedrawTiles: undefined,
 	imgBuff: undefined,
-	hudLight: undefined,
 	tubeX: undefined,
 	tubeY: undefined,
 	plasmaX: undefined,
@@ -87,9 +86,4 @@ export const input = {
 	rightReleased: undefined,
 	replayPauseInput: null,
 	lastTickInGame: false,
-};
-
-/** @type {object} The settings of the player. */
-export const settings = {
-	quality: 1,
 };

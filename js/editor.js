@@ -49,7 +49,6 @@ import {
 	drawCopy,
 	drawCrates,
 	drawFrontTiles,
-	drawLowQualityPortals,
 	drawPlasma,
 	drawPlatforms,
 	drawPlayer,
@@ -59,7 +58,7 @@ import {
 } from './render/game.js';
 import { drawText } from './render/hud.js';
 import { drawPreviewMap, drawTinyButton } from './render/menus.js';
-import { game, input, settings, ui } from './state.js';
+import { game, input, ui } from './state.js';
 import { getEditorMap, saveEditorMap } from './storage.js';
 import { Tile, TileKind, isTileKind, isTunnelTile } from './tiles.js';
 import { getAngle } from './utils.js';
@@ -138,7 +137,7 @@ function levelEditorTestLevel() {
 
 	manageDoors();
 
-	if (settings.quality > 0) animateTiles();
+	animateTiles();
 	game.player.flip = input.mouseX > (game.player.x >> 8) + (game.player.pX >> 1) + game.offsetX ? 1 : -1;
 	rebuildForceFields();
 	updateCakes();
@@ -167,7 +166,7 @@ function drawTestLevel() {
 	if (game.needLoad) createBuff();
 	drawCopy(game.imgBuff, game.offsetX, game.offsetY);
 
-	if (settings.quality > 0) drawAnimatedTiles();
+	drawAnimatedTiles();
 
 	const a = getAngle(
 		(game.player.x >> 8) + (game.player.pX >> 1) + game.offsetX,
@@ -219,7 +218,6 @@ function drawTestLevel() {
 
 	drawFrontTiles();
 	drawPortals();
-	drawLowQualityPortals();
 
 	ctx.drawImage(levelEditorHud, 0, 0);
 

@@ -40,7 +40,7 @@ import {
 } from './render/menus.js';
 import { updateTransition } from './render/transitions.js';
 import { encodeReplay } from './replay.js';
-import { game, input, settings, ui } from './state.js';
+import { game, input, ui } from './state.js';
 import { getBestTime, maxLevel, saveBestTime, saveProgress } from './storage.js';
 import { updateTutorial } from './tutorial.js';
 import { random, toTime } from './utils.js';
@@ -253,7 +253,7 @@ function updateLevelEnd() {
  */
 function updateObjects() {
 	if (game.needLoad && game.CAKELEFT == 0) openExit();
-	if (settings.quality > 0) animateTiles();
+	animateTiles();
 
 	game.player.flip = input.mouseX > (game.player.x >> 8) + (game.player.pX >> 1) + game.offsetX ? 1 : -1;
 

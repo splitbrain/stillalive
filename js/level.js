@@ -20,7 +20,7 @@ import { Turret } from './entities/Turret.js';
 import { parseMap } from './mapFile.js';
 import { getTileSimple } from './physics.js';
 import { Replay } from './replay.js';
-import { game, input, settings, ui } from './state.js';
+import { game, input, ui } from './state.js';
 import { FIRST_OF_KIND, LAST_OF_KIND, Tile, TileKind, isTileKind } from './tiles.js';
 
 /** @type {Campaign[]} The loaded campaigns, by campaign id. */
@@ -134,10 +134,6 @@ function closeSwitchDoors() {
 		if (isTileKind(game.animatedTiles[i].current, TileKind.SWITCH_DOOR)) {
 			game.animatedTiles[i].used = 1;
 			game.map[game.animatedTiles[i].place] = game.animatedTiles[i].min;
-			if (settings.quality == 0) {
-				game.displayMap[game.animatedTiles[i].place] = game.animatedTiles[i].min;
-				game.needLoad = true;
-			}
 		}
 	}
 	clearDoorBlockers();
@@ -155,10 +151,6 @@ function openSwitchDoors() {
 		if (isTileKind(game.animatedTiles[i].current, TileKind.SWITCH_DOOR)) {
 			game.animatedTiles[i].used = 0;
 			game.map[game.animatedTiles[i].place] = 0;
-			if (settings.quality == 0) {
-				game.displayMap[game.animatedTiles[i].place] = 0;
-				game.needLoad = true;
-			}
 		}
 	}
 }
@@ -368,49 +360,49 @@ export function loadLevelEditor() {
 			game.displayMap[i] = Tile.EXIT_CLOSED;
 			continue;
 		} else if (isTileKind(game.map[i], TileKind.PLASMA_DOOR)) {
-			if (settings.quality > 0) game.displayMap[i] = 0;
+			game.displayMap[i] = 0;
 			game.animatedTiles.push(
 				new AnimatedTile(x, y, FIRST_OF_KIND[TileKind.PLASMA_DOOR], LAST_OF_KIND[TileKind.PLASMA_DOOR], RANDOM, i, 6),
 			);
 			continue;
 		} else if (isTileKind(game.map[i], TileKind.SWITCH_DOOR)) {
-			if (settings.quality > 0) game.displayMap[i] = 0;
+			game.displayMap[i] = 0;
 			game.animatedTiles.push(
 				new AnimatedTile(x, y, FIRST_OF_KIND[TileKind.SWITCH_DOOR], LAST_OF_KIND[TileKind.SWITCH_DOOR], RANDOM, i, 6),
 			);
 			continue;
 		} else if (isTileKind(game.map[i], TileKind.WHEEL)) {
-			if (settings.quality > 0) game.displayMap[i] = 0;
+			game.displayMap[i] = 0;
 			game.animatedTiles.push(
 				new AnimatedTile(x, y, FIRST_OF_KIND[TileKind.WHEEL], LAST_OF_KIND[TileKind.WHEEL], ORDERED, i, 15),
 			);
 			continue;
 		} else if (isTileKind(game.map[i], TileKind.ACID)) {
-			if (settings.quality > 0) game.displayMap[i] = 0;
+			game.displayMap[i] = 0;
 			game.animatedTiles.push(
 				new AnimatedTile(x, y, FIRST_OF_KIND[TileKind.ACID], LAST_OF_KIND[TileKind.ACID], ORDERED, i, 15),
 			);
 			continue;
 		} else if (isTileKind(game.map[i], TileKind.NO_PORTAL)) {
-			if (settings.quality > 0) game.displayMap[i] = 0;
+			game.displayMap[i] = 0;
 			game.animatedTiles.push(
 				new AnimatedTile(x, y, FIRST_OF_KIND[TileKind.NO_PORTAL], LAST_OF_KIND[TileKind.NO_PORTAL], RANDOM, i, 6),
 			);
 			continue;
 		} else if (isTileKind(game.map[i], TileKind.FORCE_FIELD)) {
-			if (settings.quality > 0) game.displayMap[i] = 0;
+			game.displayMap[i] = 0;
 			game.animatedTiles.push(
 				new AnimatedTile(x, y, FIRST_OF_KIND[TileKind.FORCE_FIELD], LAST_OF_KIND[TileKind.FORCE_FIELD], ORDERED, i, 6),
 			);
 			continue;
 		} else if (isTileKind(game.map[i], TileKind.BELT_RIGHT)) {
-			if (settings.quality > 0) game.displayMap[i] = 0;
+			game.displayMap[i] = 0;
 			game.animatedTiles.push(
 				new AnimatedTile(x, y, FIRST_OF_KIND[TileKind.BELT_RIGHT], LAST_OF_KIND[TileKind.BELT_RIGHT], ORDERED, i, 10),
 			);
 			continue;
 		} else if (isTileKind(game.map[i], TileKind.BELT_LEFT)) {
-			if (settings.quality > 0) game.displayMap[i] = 0;
+			game.displayMap[i] = 0;
 			game.animatedTiles.push(
 				new AnimatedTile(x, y, FIRST_OF_KIND[TileKind.BELT_LEFT], LAST_OF_KIND[TileKind.BELT_LEFT], ORDERED, i, 10),
 			);
@@ -507,7 +499,6 @@ export function loadLevelEditor() {
 export function loadLevel(level) {
 	let vx, up, down, left, right, i, y2, vx2, vy2, vy;
 	game.tubeX = game.tubeY = -1;
-	game.hudLight = null;
 
 	if (level > -1) {
 		game.map = new Array();
@@ -600,49 +591,49 @@ export function loadLevel(level) {
 			game.displayMap[i] = Tile.EXIT_CLOSED;
 			continue;
 		} else if (isTileKind(game.map[i], TileKind.PLASMA_DOOR)) {
-			if (settings.quality > 0) game.displayMap[i] = 0;
+			game.displayMap[i] = 0;
 			game.animatedTiles.push(
 				new AnimatedTile(x, y, FIRST_OF_KIND[TileKind.PLASMA_DOOR], LAST_OF_KIND[TileKind.PLASMA_DOOR], RANDOM, i, 6),
 			);
 			continue;
 		} else if (isTileKind(game.map[i], TileKind.SWITCH_DOOR)) {
-			if (settings.quality > 0) game.displayMap[i] = 0;
+			game.displayMap[i] = 0;
 			game.animatedTiles.push(
 				new AnimatedTile(x, y, FIRST_OF_KIND[TileKind.SWITCH_DOOR], LAST_OF_KIND[TileKind.SWITCH_DOOR], RANDOM, i, 6),
 			);
 			continue;
 		} else if (isTileKind(game.map[i], TileKind.WHEEL)) {
-			if (settings.quality > 0) game.displayMap[i] = 0;
+			game.displayMap[i] = 0;
 			game.animatedTiles.push(
 				new AnimatedTile(x, y, FIRST_OF_KIND[TileKind.WHEEL], LAST_OF_KIND[TileKind.WHEEL], ORDERED, i, 15),
 			);
 			continue;
 		} else if (isTileKind(game.map[i], TileKind.ACID)) {
-			if (settings.quality > 0) game.displayMap[i] = 0;
+			game.displayMap[i] = 0;
 			game.animatedTiles.push(
 				new AnimatedTile(x, y, FIRST_OF_KIND[TileKind.ACID], LAST_OF_KIND[TileKind.ACID], ORDERED, i, 15),
 			);
 			continue;
 		} else if (isTileKind(game.map[i], TileKind.NO_PORTAL)) {
-			if (settings.quality > 0) game.displayMap[i] = 0;
+			game.displayMap[i] = 0;
 			game.animatedTiles.push(
 				new AnimatedTile(x, y, FIRST_OF_KIND[TileKind.NO_PORTAL], LAST_OF_KIND[TileKind.NO_PORTAL], RANDOM, i, 6),
 			);
 			continue;
 		} else if (isTileKind(game.map[i], TileKind.FORCE_FIELD)) {
-			if (settings.quality > 0) game.displayMap[i] = 0;
+			game.displayMap[i] = 0;
 			game.animatedTiles.push(
 				new AnimatedTile(x, y, FIRST_OF_KIND[TileKind.FORCE_FIELD], LAST_OF_KIND[TileKind.FORCE_FIELD], ORDERED, i, 6),
 			);
 			continue;
 		} else if (isTileKind(game.map[i], TileKind.BELT_RIGHT)) {
-			if (settings.quality > 0) game.displayMap[i] = 0;
+			game.displayMap[i] = 0;
 			game.animatedTiles.push(
 				new AnimatedTile(x, y, FIRST_OF_KIND[TileKind.BELT_RIGHT], LAST_OF_KIND[TileKind.BELT_RIGHT], ORDERED, i, 10),
 			);
 			continue;
 		} else if (isTileKind(game.map[i], TileKind.BELT_LEFT)) {
-			if (settings.quality > 0) game.displayMap[i] = 0;
+			game.displayMap[i] = 0;
 			game.animatedTiles.push(
 				new AnimatedTile(x, y, FIRST_OF_KIND[TileKind.BELT_LEFT], LAST_OF_KIND[TileKind.BELT_LEFT], ORDERED, i, 10),
 			);

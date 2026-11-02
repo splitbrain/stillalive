@@ -6,7 +6,7 @@ import { ctx } from '../canvas.js';
 import { KEY_CLEAR, KEY_DOWN, KEY_JUMP, KEY_LEFT, KEY_RIGHT, MOUSE_LEFT, MOUSE_RIGHT, Menu } from '../constants.js';
 import { key, mouseIcon } from '../images.js';
 import { campaigns } from '../level.js';
-import { game, input, settings, ui } from '../state.js';
+import { game, input, ui } from '../state.js';
 
 /**
  * Draw the pressed keys and mouse buttons during a replay.
@@ -75,11 +75,11 @@ function prepareTextLines() {
  * @returns {void}
  */
 export function updateText() {
-	const visible = ui.currentMenu == Menu.TUTORIAL || (game.player.fadeNextLevel == -1 && settings.quality > 0);
+	const visible = ui.currentMenu == Menu.TUTORIAL || game.player.fadeNextLevel == -1;
 	if (!visible) return;
 	prepareTextLines();
 	let toWrite = parseInt(ui.timeWriting);
-	if (toWrite >= 0 && settings.quality > 0) {
+	if (toWrite >= 0) {
 		for (const line of ui.txtLines) {
 			if (line.length < toWrite) toWrite -= line.length;
 			else return advanceText();
@@ -115,7 +115,7 @@ export function drawText(x, y, size) {
 	let toWrite = parseInt(ui.timeWriting);
 
 	for (i in ui.txtLines) {
-		if (toWrite >= 0 && settings.quality > 0) {
+		if (toWrite >= 0) {
 			if (ui.txtLines[i].length < toWrite) {
 				ctx.fillText(ui.txtLines[i], x, y + i * size);
 				toWrite -= ui.txtLines[i].length;

@@ -7,7 +7,7 @@ import { Direction } from '../constants.js';
 import { getCollision, getTileSimple } from '../physics.js';
 import { inPortal } from '../portals.js';
 import { reloadTiles } from '../render/game.js';
-import { game, settings } from '../state.js';
+import { game } from '../state.js';
 import { Tile, TileKind, isTileKind } from '../tiles.js';
 import { getDistance, random } from '../utils.js';
 
@@ -132,10 +132,6 @@ export class Plasma {
 			if (isTileKind(game.animatedTiles[i].current, TileKind.PLASMA_DOOR)) {
 				game.animatedTiles[i].used = 0;
 				game.map[game.animatedTiles[i].place] = 0;
-				if (settings.quality == 0) {
-					game.displayMap[game.animatedTiles[i].place] = 0;
-					game.needLoad = true;
-				}
 			}
 		}
 	}

@@ -24,7 +24,7 @@ import {
 import { startLoop } from './loop.js';
 import { overSplash } from './render/menus.js';
 import { decodeReplay, encodeReplay } from './replay.js';
-import { game, input, settings, ui } from './state.js';
+import { game, input, ui } from './state.js';
 import { loadProgress } from './storage.js';
 
 /** @type {boolean} True when the images and the font of the splash screen are loaded. */
@@ -70,7 +70,6 @@ function addTestHook() {
 		game,
 		ui,
 		input,
-		settings,
 		tick,
 		loadLevel,
 		loadPreviewMap,

@@ -6,7 +6,7 @@ import { ctx } from '../canvas.js';
 import { GRAVITY } from '../constants.js';
 import { sparkle } from '../images.js';
 import { getTile } from '../physics.js';
-import { game, settings } from '../state.js';
+import { game } from '../state.js';
 import { getCos, getDistance, getSin, random } from '../utils.js';
 
 /**
@@ -75,13 +75,13 @@ export function removeSparkles(p, used) {
 }
 
 /**
- * Move and fade all sparkles for one tick and remove the used up ones. In low quality there are no sparkles.
+ * Move and fade all sparkles for one tick and remove the used up ones.
  *
  * @returns {void}
  */
 export function updateSparkles() {
 	let d, i, sc;
-	for (i = 0; i < game.sparkles.length && settings.quality > 0; i++) {
+	for (i = 0; i < game.sparkles.length; i++) {
 		const s = game.sparkles[i];
 		if (s.used == 5) s.vy += GRAVITY;
 		else if (s.used == 6 || s.used == 7) s.vy += GRAVITY >> 1;
@@ -151,7 +151,6 @@ export function updateSparkles() {
  * @returns {void}
  */
 export function drawSparkles() {
-	if (settings.quality == 0) return;
 	for (const s of game.sparkles) {
 		if (s.fading <= 0) continue;
 		const sc = s.fading / 255;

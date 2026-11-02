@@ -31,10 +31,9 @@ import {
 	tunnel2,
 	turretImages,
 } from '../images.js';
-import { portalLines } from '../portals.js';
 import { drawHudText, drawKeys, drawText } from './hud.js';
 import { drawTransition } from './transitions.js';
-import { game, input, settings, ui } from '../state.js';
+import { game, input, ui } from '../state.js';
 import { drawTutorial } from '../tutorial.js';
 import { degToRad, getAngle, radToDeg, random } from '../utils.js';
 
@@ -45,31 +44,6 @@ import { degToRad, getAngle, radToDeg, random } from '../utils.js';
  */
 export function reloadTiles() {
 	game.needLoad = true;
-}
-
-/**
- * A segment of a portal shot.
- */
-export class Line {
-	/**
-	 * @param {number} x1 The x coordinate of the start in pixels.
-	 * @param {number} y1 The y coordinate of the start in pixels.
-	 * @param {number} x2 The x coordinate of the end in pixels.
-	 * @param {number} y2 The y coordinate of the end in pixels.
-	 * @param {number} color The portal index, 0 for blue and 1 for red.
-	 */
-	constructor(x1, y1, x2, y2, color) {
-		/** @type {number} The x coordinate of the start in pixels. */
-		this.x1 = x1;
-		/** @type {number} The y coordinate of the start in pixels. */
-		this.y1 = y1;
-		/** @type {number} The x coordinate of the end in pixels. */
-		this.x2 = x2;
-		/** @type {number} The y coordinate of the end in pixels. */
-		this.y2 = y2;
-		/** @type {number} The portal index, 0 for blue and 1 for red. */
-		this.color = color;
-	}
 }
 
 /**
@@ -108,31 +82,6 @@ function triangle(x1, y1, x2, y2, x3, y3) {
 	ctx.lineTo(x1, y1);
 	ctx.fill();
 	ctx.closePath();
-}
-
-/**
- * Draw the lines of the last portal shot in low quality.
- *
- * @returns {void}
- */
-export function drawLowQualityPortals() {
-	let i;
-	if (settings.quality == 0 && game.player.portalCooldown < 5) {
-		ctx.lineWidth = 3;
-		for (i in portalLines) {
-			if (portalLines[i].color == 0) {
-				ctx.strokeStyle = 'rgb(0, 255, 255)';
-			} else if (portalLines[i].color == 1) {
-				ctx.strokeStyle = 'rgb(255, 0, 0)';
-			}
-			line(
-				portalLines[i].x1 + game.offsetX,
-				portalLines[i].y1 + game.offsetY,
-				portalLines[i].x2 + game.offsetX,
-				portalLines[i].y2 + game.offsetY,
-			);
-		}
-	}
 }
 
 /**
@@ -235,9 +184,8 @@ export function drawCopy(copy, x, y) {
 export function drawLevel() {
 	if (game.needLoad) createBuff();
 	drawCopy(game.imgBuff, game.offsetX, game.offsetY);
-	if (settings.quality > 0) drawAnimatedTiles();
+	drawAnimatedTiles();
 
-	drawLowQualityPortals();
 	drawTunnels();
 
 	const flipDx = game.player.flip < 0 ? 1 : 0;
@@ -293,17 +241,9 @@ export function drawLevel() {
 
 	if (ui.currentMenu == Menu.TUTORIAL) drawText(146, 28, 11);
 
-	if (settings.quality == 0) {
-		if (game.hudLight == null) {
-			drawText(146, 28, 11);
-			game.hudLight = copyCanvas(132, 12, 473, 78);
-		}
-		drawCopy(game.hudLight, 132, 12);
-	}
-
 	drawRobot();
 
-	if (game.player.fadeNextLevel == -1 && ui.currentMenu == Menu.PLAY && settings.quality > 0) drawText(146, 28, 11);
+	if (game.player.fadeNextLevel == -1 && ui.currentMenu == Menu.PLAY) drawText(146, 28, 11);
 
 	ctx.drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
 
@@ -395,15 +335,11 @@ export function drawTurrets() {
 		const side = t.dir < 0 ? 0 : 1;
 		const x = (t.x >> 8) + game.offsetX;
 		const y = (t.y >> 8) + game.offsetY;
-		if (settings.quality > 0) {
-			ctx.save();
-			ctx.translate(x + (t.pX >> 1), y + (t.pY >> 1));
-			ctx.rotate(degToRad(t.angle));
-			ctx.drawImage(turretImages[side], 0, t.animFrame * 32, 16, 32, -(t.pX >> 1), -(t.pY >> 1), 16, 32);
-			ctx.restore();
-		} else {
-			ctx.drawImage(turretImages[side], 0, t.animFrame * 32, 16, 32, x, y, 16, 32);
-		}
+		ctx.save();
+		ctx.translate(x + (t.pX >> 1), y + (t.pY >> 1));
+		ctx.rotate(degToRad(t.angle));
+		ctx.drawImage(turretImages[side], 0, t.animFrame * 32, 16, 32, -(t.pX >> 1), -(t.pY >> 1), 16, 32);
+		ctx.restore();
 		const dx = t.dir < 0 ? 0 : t.pX;
 		const playerY = (game.player.y >> 8) + game.offsetY + (game.player.pY >> 1);
 		if (t.animFrame == 1 && t.dead == 0) {
@@ -453,7 +389,7 @@ export function drawPlasma() {
 function drawProjectiles() {
 	for (const p of game.projectiles) {
 		const image = tileset[p.img];
-		if (settings.quality > 0 && !p.needKill) {
+		if (!p.needKill) {
 			ctx.globalAlpha = 0.5;
 			ctx.drawImage(image, ((p.x - p.vx * 4) >> 8) + game.offsetX, ((p.y - p.vy * 4) >> 8) + game.offsetY, 16, 16);
 			ctx.globalAlpha = 0.75;
@@ -471,31 +407,12 @@ function drawProjectiles() {
  */
 export function drawCrates() {
 	for (const c of game.crates) {
-		let sc = 1;
-		let dxy = 0;
-		if (c.shrink > 0) {
-			sc = c.shrink / 60;
-			dxy = (16 - parseInt(16 * sc)) / 2;
-		}
-		if (settings.quality > 0) {
-			ctx.save();
-			ctx.translate((c.x >> 8) + (c.pX >> 1) + game.offsetX, (c.y >> 8) + (c.pY >> 1) + game.offsetY);
-			ctx.rotate(degToRad(c.angle));
-			ctx.drawImage(crateImage, 0, 0, 16, 16, -(c.pX >> 1), -(c.pY >> 1), 16 * sc, 16 * sc);
-			ctx.restore();
-		} else {
-			ctx.drawImage(
-				crateImage,
-				0,
-				0,
-				16,
-				16,
-				(c.x >> 8) + game.offsetX + dxy,
-				(c.y >> 8) + game.offsetY + dxy,
-				16 * sc,
-				16 * sc,
-			);
-		}
+		const sc = c.shrink > 0 ? c.shrink / 60 : 1;
+		ctx.save();
+		ctx.translate((c.x >> 8) + (c.pX >> 1) + game.offsetX, (c.y >> 8) + (c.pY >> 1) + game.offsetY);
+		ctx.rotate(degToRad(c.angle));
+		ctx.drawImage(crateImage, 0, 0, 16, 16, -(c.pX >> 1), -(c.pY >> 1), 16 * sc, 16 * sc);
+		ctx.restore();
 	}
 }
 

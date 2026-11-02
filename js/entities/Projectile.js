@@ -4,7 +4,7 @@
 
 import { anyCrateAt } from './Crate.js';
 import { getTile } from '../physics.js';
-import { game, settings } from '../state.js';
+import { game } from '../state.js';
 import { FIRST_OF_KIND, LAST_OF_KIND, PLATFORM_CODE, TileKind } from '../tiles.js';
 
 /**
@@ -109,7 +109,7 @@ export function updateProjectiles() {
 			game.player.recoveryTime = 180;
 			return;
 		}
-		if (p.needKill && (p.timer == 0 || settings.quality == 0)) {
+		if (p.needKill && p.timer == 0) {
 			game.projectiles.splice(pi, 1);
 			pi--;
 		}

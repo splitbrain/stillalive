@@ -18,7 +18,6 @@ import {
 	PauseButton,
 	SelectionButton,
 } from '../constants.js';
-import { confirmDialog } from '../dialog.js';
 import { lvlEditorSetup } from '../editor.js';
 import { updateRobot } from '../entities/Robot.js';
 import { createSparkles, drawSparkles, updateSparkles } from '../entities/Sparkle.js';
@@ -57,7 +56,7 @@ import { creditsTxt, levelsLoaded, levelsToLoad, loadLevel, loadPreviewMap } fro
 import { copyCanvas, drawCopy, drawPlayer, drawRobot, drawTunnels } from './game.js';
 import { drawHudText, drawText } from './hud.js';
 import { rescaleReplay } from '../replay.js';
-import { game, input, settings, ui } from '../state.js';
+import { game, input, ui } from '../state.js';
 import { maxLevel } from '../storage.js';
 import { Tile } from '../tiles.js';
 import { setupTutorial } from '../tutorial.js';
@@ -161,29 +160,19 @@ export function drawPauseMenu() {
 	else if (ui.currentMenu != Menu.TUTORIAL && mouseInZone(187 + game.offsetX, 180 + game.offsetY, 120, 24))
 		overMenu = PauseButton.RESTART;
 	else if (mouseInZone(324 + game.offsetX, 180 + game.offsetY, 120, 24)) overMenu = PauseButton.EXIT;
-	else if (ui.currentMenu != Menu.TUTORIAL && mouseInZone(127 + game.offsetX, 340 + game.offsetY, 120, 24))
-		overMenu = PauseButton.QUALITY;
-	else if (ui.currentMenu != Menu.TUTORIAL && mouseInZone(247 + game.offsetX, 340 + game.offsetY, 120, 24))
+	else if (ui.currentMenu != Menu.TUTORIAL && mouseInZone(187 + game.offsetX, 340 + game.offsetY, 120, 24))
 		overMenu = PauseButton.SOUND;
 
 	const scale1 = overMenu == PauseButton.RESUME ? 0.9 : 1;
 	const scale2 = overMenu == PauseButton.RESTART ? 0.9 : 1;
 	const scale3 = overMenu == PauseButton.EXIT ? 0.9 : 1;
-	const scale4 = overMenu == PauseButton.QUALITY ? 0.9 : 1;
-	const scale5 = overMenu == PauseButton.SOUND ? 0.9 : 1;
+	const scale4 = overMenu == PauseButton.SOUND ? 0.9 : 1;
 
 	drawTinyButton(game.offsetX + 50, game.offsetY + 180, scale1, 'Resume');
 	if (ui.currentMenu != Menu.TUTORIAL) drawTinyButton(game.offsetX + 187, game.offsetY + 180, scale2, 'Restart');
 	drawTinyButton(game.offsetX + 324, game.offsetY + 180, scale3, 'Exit');
-	if (ui.currentMenu != Menu.TUTORIAL)
-		drawTinyButton(
-			127 + game.offsetX,
-			340 + game.offsetY,
-			scale4,
-			'Quality : ' + (settings.quality == 0 ? 'Low' : 'High'),
-		);
 	if (ui.currentMenu != Menu.TUTORIAL && isSoundAvailable())
-		drawTinyButton(247 + game.offsetX, 340 + game.offsetY, scale5, 'Sounds : ' + (isSoundOn() ? 'On' : 'Off'));
+		drawTinyButton(187 + game.offsetX, 340 + game.offsetY, scale4, 'Sounds : ' + (isSoundOn() ? 'On' : 'Off'));
 
 	if (input.mousePressed && input.mouseButton == MouseButton.LEFT && overMenu > 0) {
 		unclick();
@@ -201,25 +190,13 @@ export function drawPauseMenu() {
 		} else if (overMenu == PauseButton.EXIT) {
 			ui.escapeMenu = !ui.escapeMenu;
 			exitFunc();
-		} else if (overMenu == PauseButton.QUALITY) {
-			confirmDialog('Changing quality will restart the map. Are you sure ?', 'Change quality ?').then(function (r) {
-				if (r) {
-					settings.quality = settings.quality ? 0 : 1;
-					ui.escapeMenu = !ui.escapeMenu;
-					if (ui.currentMenu == Menu.PLAY) loadLevel(ui.currentLevel);
-				}
-			});
 		} else if (overMenu == PauseButton.SOUND) {
 			toggleSound();
 		}
 	}
 
 	ctx.drawImage(hud, 0, 0);
-	if (ui.currentMenu == Menu.PLAY && settings.quality > 0) {
-		drawText(146, 28, 11);
-	} else if (ui.currentMenu == Menu.PLAY && settings.quality == 0 && game.hudLight) {
-		drawCopy(game.hudLight, 132, 12);
-	}
+	if (ui.currentMenu == Menu.PLAY) drawText(146, 28, 11);
 	updateRobot();
 	drawRobot();
 
@@ -582,7 +559,7 @@ export function drawTinyButton(x, y, scale, text) {
 }
 
 /**
- * Draw the main menu with the sound and quality buttons, and open the selected screen after the fade.
+ * Draw the main menu with the sound button, and open the selected screen after the fade.
  *
  * @returns {void}
  */
@@ -645,7 +622,7 @@ export function drawMainMenu() {
 	}
 
 	let zoomSound = 1;
-	if (isSoundAvailable() && mouseInZone(20, 300, 29, 48)) {
+	if (isSoundAvailable() && mouseInZone(20, 385, 29, 48)) {
 		zoomSound = 0.9;
 		if (input.mousePressed && input.mouseButton == MouseButton.LEFT) {
 			unclick();
@@ -654,63 +631,24 @@ export function drawMainMenu() {
 
 		ctx.globalAlpha = 0.8;
 		ctx.fillStyle = 'rgb(7, 49, 63)';
-		ctx.fillRect(20, 300, 300, 48);
+		ctx.fillRect(20, 385, 300, 48);
 
 		ctx.fillStyle = 'rgb(255, 255, 255)';
 		ctx.font = 'bold 12px Arial';
-		ctx.fillText('Sound is an experimental feature that might', 55, 312);
-		ctx.fillText('not work very well. Turn it off to increase', 55, 328);
-		ctx.fillText('performances.', 55, 343);
+		ctx.fillText('Sound is an experimental feature that might', 55, 397);
+		ctx.fillText('not work very well. Turn it off to increase', 55, 413);
+		ctx.fillText('performances.', 55, 428);
 
 		ctx.globalAlpha = 1;
 	}
-
-	let zoomQuality = 1;
-	if (mouseInZone(20, 385, 30, 36)) {
-		zoomQuality = 0.9;
-		if (input.mousePressed && input.mouseButton == MouseButton.LEFT) {
-			unclick();
-			settings.quality = settings.quality ? 0 : 1;
-		}
-
-		ctx.globalAlpha = 0.8;
-		ctx.fillStyle = 'rgb(7, 49, 63)';
-		ctx.fillRect(15, 378, 300, 48);
-
-		ctx.fillStyle = 'rgb(255, 255, 255)';
-		ctx.font = 'bold 12px Arial';
-		ctx.fillText('Some animations might slow down your', 55, 392);
-		ctx.fillText('computer. Try to turn them off to increase', 55, 407);
-		ctx.fillText('performances.', 55, 422);
-
-		ctx.globalAlpha = 1;
-	}
-
-	ctx.font = '36px yikes';
-	ctx.fillStyle = 'rgb(0, 0, 0)';
-	ctx.fillText('Q', 25, 415);
-	ctx.fillStyle = 'rgb(253, 233, 0)';
-	ctx.fillText('Q', 23, 412);
-
-	if (!settings.quality)
-		ctx.drawImage(
-			tex_cross,
-			15 + ((1 - zoomQuality) * 40) / 2,
-			385 + ((1 - zoomQuality) * 40) / 2,
-			40 * zoomQuality,
-			34 * zoomQuality,
-		);
-
-	ctx.font = '18px yikes';
-	ctx.fillStyle = 'rgb(253, 233, 0)';
-	ctx.fillText('Quality', 13, 454);
-	ctx.fillText(settings.quality == 0 ? 'Low' : 'High', 20, 438);
 
 	if (isSoundAvailable()) {
+		ctx.font = '18px yikes';
+		ctx.fillStyle = 'rgb(253, 233, 0)';
 		ctx.drawImage(
 			tex_sound,
 			20 + ((1 - zoomSound) * 29) / 2,
-			300 + ((1 - zoomSound) * 48) / 2,
+			385 + ((1 - zoomSound) * 48) / 2,
 			29 * zoomSound,
 			48 * zoomSound,
 		);
@@ -718,11 +656,11 @@ export function drawMainMenu() {
 			ctx.drawImage(
 				tex_cross,
 				15 + ((1 - zoomSound) * 40) / 2,
-				305 + ((1 - zoomSound) * 40) / 2,
+				390 + ((1 - zoomSound) * 40) / 2,
 				40 * zoomSound,
 				34 * zoomSound,
 			);
-		ctx.fillText('SFX', 20, 365);
+		ctx.fillText('SFX', 20, 450);
 	}
 
 	ctx.drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);

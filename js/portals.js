@@ -6,7 +6,6 @@ import { playSound, sfx_enterPortal, sfx_noPortal, sfx_portal } from './audio.js
 import { Direction } from './constants.js';
 import { Sparkle, removeSparkles } from './entities/Sparkle.js';
 import { getTile, getTilePortal } from './physics.js';
-import { Line } from './render/game.js';
 import { game, input } from './state.js';
 import { PLATFORM_CODE, Tile, TileKind, isCrateCode, isPlatformCode, isTileKind } from './tiles.js';
 import { getCos, getSin, inScreen, random } from './utils.js';
@@ -43,8 +42,6 @@ export function launchPortal(p) {
 	let tile;
 	let now = 0;
 
-	portalLines = new Array();
-	portalLines.push(new Line(x >> 8, y >> 8, 0, 0, p));
 	let inScreenOK = false;
 
 	do {
@@ -66,11 +63,6 @@ export function launchPortal(p) {
 			}
 			tile = 0;
 			bounces++;
-
-			portalLines[portalLines.length - 1].x2 = x >> 8;
-			portalLines[portalLines.length - 1].y2 = y >> 8;
-
-			portalLines.push(new Line(x >> 8, y >> 8, 0, 0, p));
 		}
 
 		if (i % 6 == 0 && now > 15) {
@@ -97,9 +89,6 @@ export function launchPortal(p) {
 			if (yy < 0 && game.portals[p].vy > 0) inScreenOK = true;
 		}
 	} while (tile == Tile.EMPTY && inScreenOK && bounces < 5);
-
-	portalLines[portalLines.length - 1].x2 = x >> 8;
-	portalLines[portalLines.length - 1].y2 = y >> 8;
 
 	if (isTileKind(tile, TileKind.WALL) || isPlatformCode(tile)) {
 		const ok = setPortalDir(p, x >> 8, y >> 8);
@@ -575,6 +564,3 @@ export function pointInPortal(x, y) {
 	}
 	return -1;
 }
-
-/** @type {Line[]} The segments of the last portal shot, for the drawing in low quality. */
-export let portalLines;

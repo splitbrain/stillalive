@@ -84,8 +84,7 @@ export const PauseButton = {
 	RESUME: 1,
 	RESTART: 2,
 	EXIT: 3,
-	QUALITY: 4,
-	SOUND: 5,
+	SOUND: 4,
 };
 
 /** @type {Object<string, number>} The buttons of the intermission screen, the value of ui.intermissionChoice. */

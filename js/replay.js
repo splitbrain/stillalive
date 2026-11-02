@@ -14,6 +14,8 @@
  * - bossSpeech: the length of the speech after the boss died, in ticks, or -1
  */
 
+import { downloadJson } from './files.js';
+
 /** @type {number} The length of an input state from captureInput(). */
 const STATE_LENGTH = 8;
 
@@ -111,27 +113,7 @@ export function decodeReplay(data) {
  * @returns {void}
  */
 export function downloadReplay(data) {
-	const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
-	const link = document.createElement('a');
-	link.href = URL.createObjectURL(blob);
-	link.download = `stillalivejs-${data.campaign}-${String(data.level).padStart(2, '0')}.json`;
-	link.click();
-	setTimeout(() => URL.revokeObjectURL(link.href), 0);
+	downloadJson(data, `stillalivejs-${data.campaign}-${String(data.level).padStart(2, '0')}.json`);
 }
 
-/**
- * Read a replay file that the player selected.
- *
- * @param {File} file The selected file.
- * @returns {Promise<object>} The replay in the file format. The data is not checked yet.
- * @throws {Error} If the file is not JSON.
- */
-export async function readReplayFile(file) {
-	try {
-		return JSON.parse(await file.text());
-	} catch {
-		throw new Error('This is not a StillAliveJS replay file.');
-	}
-}
-
-Object.assign(window, { encodeReplay, decodeReplay, downloadReplay, readReplayFile });
+Object.assign(window, { encodeReplay, decodeReplay, downloadReplay });

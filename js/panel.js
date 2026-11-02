@@ -7,16 +7,14 @@
  */
 
 import { getBestTime, getCampaignTotal, loadBestReplay } from './storage.js';
-import { decodeReplay, downloadReplay, readReplayFile } from './replay.js';
+import { decodeReplay, downloadReplay } from './replay.js';
+import { pickJsonFile } from './files.js';
 
 /** @type {number} Number of ticks between two updates of the current time. */
 const TIME_UPDATE_INTERVAL = 30;
 
 /** @type {string} The HTML of the last update, to skip updates without a change. */
 let lastHtml = '';
-
-/** @type {HTMLInputElement} The hidden file input for the replay import. */
-const fileInput = Object.assign(document.createElement('input'), { type: 'file', accept: '.json,application/json' });
 
 /**
  * Format a time for the panel.
@@ -130,7 +128,8 @@ function showError(error) {
 async function runAction(action) {
 	if (!inLevelSelection()) return;
 	if (action === 'import') {
-		fileInput.click();
+		const data = await pickJsonFile();
+		if (inLevelSelection()) startReplay(data);
 		return;
 	}
 
@@ -143,17 +142,6 @@ async function runAction(action) {
 document.getElementById('highscores_in').addEventListener('click', (event) => {
 	const action = event.target.closest('button')?.dataset.action;
 	if (action) runAction(action).catch(showError);
-});
-
-fileInput.addEventListener('change', async () => {
-	const file = fileInput.files[0];
-	fileInput.value = '';
-	if (!file || !inLevelSelection()) return;
-	try {
-		startReplay(await readReplayFile(file));
-	} catch (error) {
-		showError(error);
-	}
 });
 
 Object.assign(window, { updatePanel });

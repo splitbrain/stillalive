@@ -8,7 +8,7 @@ var undoIndex;
 var leftReleased, rightReleased;
 var oldMouseReleased = 0;
 var isTestingLevel;
-var oldMap;
+var oldMap, oldBG;
 var askLoading, askSaving;
 
 function startPlayingLevel() {
@@ -172,7 +172,7 @@ function levelEditorManager() {
 }
 
 function menuSaveMap() {
-	if(previewMap < 1 || localStorage.getItem('sajs_customLevel' + (previewMap)) == null) ctx.drawImage(noLevel, ECART_X, ECART_Y);
+	if(previewMap < 1 || getEditorMap(previewMap) == null) ctx.drawImage(noLevel, ECART_X, ECART_Y);
 	else if(previewMap > 0) drawPreviewMap();	
 	ctx.drawImage(mapSelection, 0, 0);
 	
@@ -186,13 +186,7 @@ function menuSaveMap() {
 			if(mouseNewPress && y != previewMap) {
 				unclick();
 				previewMap = y;
-				if(localStorage.getItem('sajs_customLevel' + (y)) != null) {
-					var msg = localStorage.getItem('sajs_customLevel' + (y));
-					map = new Array();
-					var tmp = msg.split(',', 768);
-					for(j in tmp) map.push(parseInt(tmp[j]));
-					loadPreviewMap(-1);
-				}
+				showEditorMap(y);
 			}
 		}
 	}
@@ -213,13 +207,19 @@ function menuSaveMap() {
 		drawTinyButton(515, 495, scale1, "Save");
 	}
 	
+	if(mouseInZone(180, 495, 120, 24)) overMenu = 3;
+	drawTinyButton(180, 495, overMenu == 3 ? 0.9 : 1, "Export");
+	if(mouseInZone(340, 495, 120, 24)) overMenu = 4;
+	drawTinyButton(340, 495, overMenu == 4 ? 0.9 : 1, "Import");
+	
 	if(mouseNewPress && overMenu > 0) {
 		unclick();
 		if(overMenu == 1) {//save
-			localStorage.setItem('sajs_customLevel' + previewMap, oldMap);
+			saveEditorMap(previewMap, oldMap, oldBG);
 			
 			map = new Array();
 			for(i in oldMap) map.push(oldMap[i]);
+			BG = oldBG;
 			askSaving = false;
 			redrawTiles = true;
 			ECART_X = 64;
@@ -232,15 +232,20 @@ function menuSaveMap() {
 		
 			map = new Array();
 			for(i in oldMap) map.push(oldMap[i]);
+			BG = oldBG;
 			redrawTiles = true;
 			return;
+		}else if(overMenu == 3) {//export
+			exportEditorMap(oldMap, oldBG);
+		}else if(overMenu == 4) {//import
+			startMapImport();
 		}
 	}
 	
 	ctx.font = "bold 12px Arial";
 	for(i=0; i<28;i++) {
 		ctx.strokeStyle = "rgb(0, 0, 0)";
-		if(localStorage.getItem('sajs_customLevel' + (i+1)) != null) {
+		if(getEditorMap(i + 1) != null) {
 			ctx.fillStyle = "rgb(255, 255, 255)";
 		}else {
 			ctx.fillStyle = "rgb(200, 200, 200)";
@@ -251,6 +256,41 @@ function menuSaveMap() {
 	ctx.drawImage(crosshair, mouseX - 8, mouseY - 8, 16, 16);
 }
 
+/**
+ * Show a stored editor map in the preview of the save or load screen.
+ *
+ * @param {number} slot The slot number, starting at 1.
+ */
+function showEditorMap(slot) {
+	var stored = getEditorMap(slot);
+	if(stored == null) return;
+	map = stored.tiles.slice();
+	BG = stored.bg;
+	loadPreviewMap(-1);
+}
+
+/**
+ * Let the player select a map file and open it in the editor.
+ */
+function startMapImport() {
+	importEditorMap().then(function(data) {
+		if(currentMenu != 3 || !(askSaving || askLoading)) return;
+		map = data.tiles.slice();
+		BG = data.bg;
+		loadPreviewMap(-1);
+		askSaving = false;
+		askLoading = false;
+		ECART_X = 64;
+		ECART_Y = 96;
+		redrawTiles = true;
+		undoMap = new Array();
+		undoIndex = -1;
+		addUndo();
+	}).catch(function(e) {
+		jAlert(e.message, 'Import map');
+	});
+}
+
 function menuLoadMap() {
 	if(previewMap < 1) ctx.drawImage(noLevel, ECART_X, ECART_Y);
 	if(previewMap > 0) drawPreviewMap();			
@@ -258,7 +298,7 @@ function menuLoadMap() {
 	
 	if(mouseInZone(529, 117, 90, 29 * 12)) {
 		var y = parseInt((mouseY - 105)/12);
-		if(y <= 28 && localStorage.getItem('sajs_customLevel' + (y)) != null) {
+		if(y <= 28 && getEditorMap(y) != null) {
 			ctx.fillStyle = "rgb(15, 112, 144)";
 			//noStroke();
 			ctx.fillRect(529, 105 + (y * 12) + 2, 90, 14);
@@ -266,11 +306,7 @@ function menuLoadMap() {
 			if(mouseNewPress && y != previewMap) {
 				unclick();
 				previewMap = y;
-				var msg = localStorage.getItem('sajs_customLevel' + (y));
-				map = new Array();
-				var tmp = msg.split(',', 768);
-				for(j in tmp) map.push(parseInt(tmp[j]));
-				loadPreviewMap(-1);
+				showEditorMap(y);
 			}
 		}
 	}
@@ -289,7 +325,13 @@ function menuLoadMap() {
 		var scale1 = overMenu == 1 ? 0.9 : 1;
 
 		drawTinyButton(515, 495, scale1, "Load");
+		
+		if(mouseInZone(180, 495, 120, 24)) overMenu = 3;
+		drawTinyButton(180, 495, overMenu == 3 ? 0.9 : 1, "Export");
 	}
+	
+	if(mouseInZone(340, 495, 120, 24)) overMenu = 4;
+	drawTinyButton(340, 495, overMenu == 4 ? 0.9 : 1, "Import");
 	
 	if(mouseNewPress && overMenu > 0) {
 		unclick();
@@ -309,16 +351,21 @@ function menuLoadMap() {
 		
 			map = new Array();
 			for(i in oldMap) map.push(oldMap[i]);
+			BG = oldBG;
 			askLoading = false;
 			redrawTiles = true;
 			return;
+		}else if(overMenu == 3) {//export
+			exportEditorMap(map, BG);
+		}else if(overMenu == 4) {//import
+			startMapImport();
 		}
 	}
 	
 	ctx.font = "bold 12px Arial";
 	for(i=0; i<28;i++) {
 		ctx.strokeStyle = "rgb(0, 0, 0)";
-		if(localStorage.getItem('sajs_customLevel' + (i+1)) != null) {
+		if(getEditorMap(i + 1) != null) {
 			ctx.fillStyle = "rgb(255, 255, 255)";
 		}else {
 			ctx.fillStyle = "rgb(200, 200, 200)";
@@ -390,6 +437,7 @@ function manageEditor() {
 			ECART_Y = 96;
 			oldMap = new Array();
 			for(i in map) oldMap.push(map[i]);
+			oldBG = BG;
 		}else if(overMenu == 1) {//load
 			askLoading = true;
 			previewMap = -1;
@@ -397,6 +445,7 @@ function manageEditor() {
 			ECART_Y = 96;
 			oldMap = new Array();
 			for(i in map) oldMap.push(map[i]);
+			oldBG = BG;
 		}else if(overMenu == 4) {//clear
 			for(i in map) map[i] = 0;
 			/*undoMap = new Array();

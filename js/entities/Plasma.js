@@ -10,26 +10,28 @@ import { reloadTiles } from '../render/game.js';
 import { game, settings } from '../state.js';
 import { getDistance } from '../utils.js';
 
-export function Plasma(x, y, vx, vy) {
-	this.x = x;
-	this.y = y;
-	this.xOrig = x;
-	this.yOrig = y;
-	this.vx = vx;
-	this.vy = vy;
-	this.origVx = vx;
-	this.origVy = vy;
-	this.vMax = 424;
-	this.pX = 16;
-	this.pY = 16;
-	this.used = 1;
-	this.scale = 1;
-	this.scaleDir = -1;
-	this.type = "plasma";
-	this.animFrame = 0;
-	this.needKill = false;
-	
-	this.move = function() {
+export class Plasma {
+	constructor(x, y, vx, vy) {
+		this.x = x;
+		this.y = y;
+		this.xOrig = x;
+		this.yOrig = y;
+		this.vx = vx;
+		this.vy = vy;
+		this.origVx = vx;
+		this.origVy = vy;
+		this.vMax = 424;
+		this.pX = 16;
+		this.pY = 16;
+		this.used = 1;
+		this.scale = 1;
+		this.scaleDir = -1;
+		this.type = "plasma";
+		this.animFrame = 0;
+		this.needKill = false;
+	}
+
+	move() {
 		if(game.TIME%10==0) {
 			this.scale += 1 * this.scaleDir;
 			if(this.scale < -2 || this.scale > 2) this.scaleDir = -this.scaleDir;
@@ -84,8 +86,8 @@ export function Plasma(x, y, vx, vy) {
 			}
 		}
 	}
-	
-	this.ouvrirPorte = function(){
+
+	ouvrirPorte() {
 		let i;
 		for(i in game.animatedTiles) {
 			if(game.animatedTiles[i].current>=29 && game.animatedTiles[i].current<=34){
@@ -98,16 +100,16 @@ export function Plasma(x, y, vx, vy) {
 			}
 		}
 	}
-	
-	this.encore = function() {
+
+	encore() {
 		let i;
 		for(i=0;i<768;i++){
 			if(game.map[i]==21) return 1;
 		}
 		return 0;
 	}
-	
-	this.checkCollision = function() {
+
+	checkCollision() {
 		let x, y, i;
 		let dist = getDistance(this.x>>8, this.x>>8, game.perso.x>>8, game.perso.y>>8);
 		if(dist > 384) dist = 384;

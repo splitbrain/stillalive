@@ -35,41 +35,43 @@ import {
 import { game, input, ui } from '../state.js';
 import { random } from '../utils.js';
 
-export function Perso() {
-	this.isLeft = 0;
-	this.isRight = 0;
-	this.oldIsJump = 0;
-	this.isJump = 0;
-	this.isDown = 0;
-	this.x = 0;
-	this.y = 0;
-	this.vx = 0;
-	this.vy = 0;
-	this.pX = 15;
-	this.pY = 27;
-	this.flip = 1;
-	this.timePosePortal = 25;
-	this.timePassedPortal = 0;
-	this.porte = 0;
-	this.animeTime = 10;
-	this.animeFrame = 0;
-	this.vie = 100 << 8;
-	this.mort = 0;
-	this.timeVie = 0;
-	this.type = "perso";
-	this.fadeNextLevel = 120;
-	this.intermissionFade = 0;
-	this.askClear = false;
-  
-	this.midX = function() {
+export class Perso {
+	constructor() {
+		this.isLeft = 0;
+		this.isRight = 0;
+		this.oldIsJump = 0;
+		this.isJump = 0;
+		this.isDown = 0;
+		this.x = 0;
+		this.y = 0;
+		this.vx = 0;
+		this.vy = 0;
+		this.pX = 15;
+		this.pY = 27;
+		this.flip = 1;
+		this.timePosePortal = 25;
+		this.timePassedPortal = 0;
+		this.porte = 0;
+		this.animeTime = 10;
+		this.animeFrame = 0;
+		this.vie = 100 << 8;
+		this.mort = 0;
+		this.timeVie = 0;
+		this.type = "perso";
+		this.fadeNextLevel = 120;
+		this.intermissionFade = 0;
+		this.askClear = false;
+	}
+
+	midX() {
 		return (this.x >> 8) + (this.pX>>1);
 	}
-  
-	this.midY = function() {
+
+	midY() {
 		return (this.y >> 8) + (this.pY>>1);
 	}
 
-	this.checkMort = function() {
+	checkMort() {
 		if(this.vie<=0 && !this.mort){
 			if(game.replayMode) {
 				reportBrokenReplay();
@@ -104,8 +106,8 @@ export function Perso() {
 			}
 		}
 	}
-	
-	this.move = function() {
+
+	move() {
 		//particles around the character
 		let cpt, s, ffi, i;
 		if(this.timePassedPortal < 0) {

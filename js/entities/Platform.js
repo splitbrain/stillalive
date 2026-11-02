@@ -6,17 +6,19 @@ import { collideCaisse } from './Caisse.js';
 import { leftCollision, rightCollision, touchingGround } from '../physics.js';
 import { game } from '../state.js';
 
-export function Platform(x, y, vx, vy) {
-	this.x = x;
-	this.y = y;
-	this.pX = 48;
-	this.pY = 16;
-	this.vx = vx;
-	this.vy = vy;
-	this.type = "plateforme";
-	this.dir = vx > 0 ? 1 : -1;
-	
-	this.move = function() {
+export class Platform {
+	constructor(x, y, vx, vy) {
+		this.x = x;
+		this.y = y;
+		this.pX = 48;
+		this.pY = 16;
+		this.vx = vx;
+		this.vy = vy;
+		this.type = "plateforme";
+		this.dir = vx > 0 ? 1 : -1;
+	}
+
+	move() {
 		this.x += this.vx;
 		const x = this.x>>8;
 		//var y = plateForme[i].y>>8;

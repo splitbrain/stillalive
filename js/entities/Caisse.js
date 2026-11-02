@@ -18,34 +18,36 @@ import {
 import { dansUnPortal } from '../portals.js';
 import { game } from '../state.js';
 
-export function Caisse(x, y) {
-	this.x = x;
-	this.y = y;
-	this.pX = 16;
-	this.pY = 16;
-	this.xOrig = x;
-	this.yOrig = y;
-	this.angle = 0;
-	this.vx = 0;
-	this.vy = 0;
-	this.porter = 0;
-	this.plateforme =-1;
-	this.carpet = 0;
-	this.type = "caisse";
-	this.shrink = 0;
-	this.needKill = false;
-	this.invincibility = 0;
-	this.noRemove = 0;
-  
-	this.midX = function() {
+export class Caisse {
+	constructor(x, y) {
+		this.x = x;
+		this.y = y;
+		this.pX = 16;
+		this.pY = 16;
+		this.xOrig = x;
+		this.yOrig = y;
+		this.angle = 0;
+		this.vx = 0;
+		this.vy = 0;
+		this.porter = 0;
+		this.plateforme =-1;
+		this.carpet = 0;
+		this.type = "caisse";
+		this.shrink = 0;
+		this.needKill = false;
+		this.invincibility = 0;
+		this.noRemove = 0;
+	}
+
+	midX() {
 		return (this.x >> 8) + (this.pX>>1);
 	}
 
-	this.midY = function() {
+	midY() {
 		return (this.y >> 8) + (this.pY>>1);
 	}
-	
-	this.move = function() {
+
+	move() {
 		let i;
 		if(this.invincibility > 0) this.invincibility--;
 		if(this.noRemove > 0) this.noRemove--;

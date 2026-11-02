@@ -148,11 +148,13 @@ function caisseSurInterrupteur(){
 	return 0;
 }
 
-function Campaign(folder) {
-	this.folder = folder;
-	this.levels = new Array();
-	this.backgrounds = new Array();
-	this.texts = new Array();
+export class Campaign {
+	constructor(folder) {
+		this.folder = folder;
+		this.levels = new Array();
+		this.backgrounds = new Array();
+		this.texts = new Array();
+	}
 }
 
 export function loadCampaigns() {

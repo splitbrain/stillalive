@@ -31,13 +31,15 @@ export function inForceField(obj) {
 	return false;
 }
 
-export function forceField(x, y, w, h, vx, vy) {
-	this.x = x;
-	this.y = y;
-	this.h = h;
-	this.w = w;
-	this.vx = vx;
-	this.vy = vy;
+export class ForceField {
+	constructor(x, y, w, h, vx, vy) {
+		this.x = x;
+		this.y = y;
+		this.h = h;
+		this.w = w;
+		this.vx = vx;
+		this.vy = vy;
+	}
 }
 
 export function inForceFieldTp(obj) {

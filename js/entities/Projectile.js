@@ -6,18 +6,20 @@ import { collideAnyCaisse } from './Caisse.js';
 import { getTile } from '../physics.js';
 import { game } from '../state.js';
 
-export function Projectile(x, y, vx, vy) {
-	this.x = x;
-	this.y = y;
-	this.vx = vx;
-	this.vy = vy;
-	this.pX = 16;
-	this.pY = 16;
-	this.needKill = false;
-	this.timer = 0;
-	this.img = 36;
-	
-	this.move = function() {
+export class Projectile {
+	constructor(x, y, vx, vy) {
+		this.x = x;
+		this.y = y;
+		this.vx = vx;
+		this.vy = vy;
+		this.pX = 16;
+		this.pY = 16;
+		this.needKill = false;
+		this.timer = 0;
+		this.img = 36;
+	}
+
+	move() {
 		if(!this.needKill) {
 			this.x += this.vx;
 			this.y += this.vy;

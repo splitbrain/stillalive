@@ -51,12 +51,14 @@ function persoToucheCake(i){
 	return retour;
 }
 
-export function Cake(x, y) {
-	this.x = x;
-	this.y = y;
-	this.ox = x;
-	this.oy = y;
-	this.mDir = parseInt(random(0, 1)) == 0 ? -1 : 1;
-	this.vy = random(-3<<8, 3<<8);
-	this.used = true;
+export class Cake {
+	constructor(x, y) {
+		this.x = x;
+		this.y = y;
+		this.ox = x;
+		this.oy = y;
+		this.mDir = parseInt(random(0, 1)) == 0 ? -1 : 1;
+		this.vy = random(-3<<8, 3<<8);
+		this.used = true;
+	}
 }

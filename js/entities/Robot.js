@@ -2,22 +2,24 @@
  * The Robot object and its helper functions.
  */
 
-export function Robot() {
-	this.x = 18 << 8;
-	this.y = 30 << 8;
-	this.ex = this.x + (29 << 8);
-	this.ey = this.y + (26 << 8);
-	this.vx = 0;
-	this.vy = 0;
-	this.doingAction = false;
-	this.actionDir = 0;
-	this.eye = 0;
-	this.eyeDir = 0;
-	this.blinking = 0;
-	this.movx = 128;
-	this.movy = 48;
-	
-	this.move = function() {
+export class Robot {
+	constructor() {
+		this.x = 18 << 8;
+		this.y = 30 << 8;
+		this.ex = this.x + (29 << 8);
+		this.ey = this.y + (26 << 8);
+		this.vx = 0;
+		this.vy = 0;
+		this.doingAction = false;
+		this.actionDir = 0;
+		this.eye = 0;
+		this.eyeDir = 0;
+		this.blinking = 0;
+		this.movx = 128;
+		this.movy = 48;
+	}
+
+	move() {
 		if(this.vy != 0 || this.vx != 0) {
 			this.ex += this.vx;
 			this.ey += this.vy;
@@ -98,24 +100,24 @@ export function Robot() {
 			}
 		}
 	}
-	
-	this.lookLeftRight = function(dir) {
+
+	lookLeftRight(dir) {
 		if(!this.doingAction) {
 			this.doingAction = true;
 			this.vx = 128 * dir;
 			this.actionDir = this.vx;
 		}
 	}
-	
-	this.lookUpDown = function(dir) {
+
+	lookUpDown(dir) {
 		if(!this.doingAction) {
 			this.doingAction = true;
 			this.vy = 128 * dir;
 			this.actionDir = this.vy;
 		}
 	}
-	
-	this.moveRobot = function(dir) {
+
+	moveRobot(dir) {
 		if(!this.doingAction) {
 			if((dir < 0 && this.x < 18 << 8) || (dir > 0 && this.x > 18 << 8 )) dir = -dir;
 			this.doingAction = true;
@@ -124,8 +126,8 @@ export function Robot() {
 			this.movy = 64;
 		}
 	}
-	
-	this.blink = function() {
+
+	blink() {
 		if(this.eye == 0) {
 			this.eye = 1;
 			this.eyeDir = 1;

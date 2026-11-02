@@ -7,7 +7,7 @@ import { drawBoss, shakeScreen } from '../boss.js';
 import { ctx } from '../canvas.js';
 import { BAS, DROITE, GAUCHE, HAUT, NUM_TILES, ORDERED, RANDOM } from '../constants.js';
 import { isTestingLevel } from '../editor.js';
-import { forceField } from '../entities/ForceField.js';
+import { ForceField } from '../entities/ForceField.js';
 import { projoTouchePerso } from '../entities/Projectile.js';
 import { createCakeOrSmokeSparkles, manageSparkles } from '../entities/Sparkle.js';
 import {
@@ -55,12 +55,14 @@ export function reloadTiles() {
 	game.imgBuff = copyCanvas(game.ECART_X, game.ECART_Y, 512, 384);
 }
 
-export function Line(x1, y1, x2, y2, color) {
-	this.x1 = x1;
-	this.y1 = y1;
-	this.x2 = x2;
-	this.y2 = y2;
-	this.color = color;
+export class Line {
+	constructor(x1, y1, x2, y2, color) {
+		this.x1 = x1;
+		this.y1 = y1;
+		this.x2 = x2;
+		this.y2 = y2;
+		this.color = color;
+	}
 }
 
 function line(x1, y1, x2, y2) {
@@ -488,20 +490,20 @@ function drawOneField(sx, sy, nx, ny, vx, vy) {
 	const y = ny;
 	if(vx < 0) {
 		ctx.fillRect(sx + game.ECART_X, sy + game.ECART_Y, - (sx - x - 16), 32);
-		game.forceFields.push(new forceField(sx, sy, - (sx - x - 16), 32, -1, 0));
+		game.forceFields.push(new ForceField(sx, sy, - (sx - x - 16), 32, -1, 0));
 		
 	}
 	else if(vx > 0) {
 		ctx.fillRect(sx + game.ECART_X, sy + game.ECART_Y, x - sx, 32);
-		game.forceFields.push(new forceField(sx, sy, x - sx, 32, 1, 0));
+		game.forceFields.push(new ForceField(sx, sy, x - sx, 32, 1, 0));
 	}
 	else if(vy < 0) {
 		ctx.fillRect(sx + game.ECART_X, sy + game.ECART_Y, 32, - (sy - y - 16));
-		game.forceFields.push(new forceField(sx, sy, 32, - (sy - y - 16), 0, -1));
+		game.forceFields.push(new ForceField(sx, sy, 32, - (sy - y - 16), 0, -1));
 	}
 	else if(vy > 0) {
 		ctx.fillRect(sx + game.ECART_X, sy + game.ECART_Y, 32, y - sy);
-		game.forceFields.push(new forceField(sx, sy, 32, y - sy, 0, 1));
+		game.forceFields.push(new ForceField(sx, sy, 32, y - sy, 0, 1));
 	}
 }
 

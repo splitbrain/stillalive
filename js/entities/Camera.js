@@ -4,16 +4,17 @@
 
 import { game } from '../state.js';
 
-export function Camera(x, y) {
-	this.x = x;
-	this.y = y;
-	this.vx = 0;
-	this.vy = 0;
-	
-	this.inert = 1;
-	this.dy = 0;
-	
-	this.move = function() {
+export class Camera {
+	constructor(x, y) {
+		this.x = x;
+		this.y = y;
+		this.vx = 0;
+		this.vy = 0;
+		this.inert = 1;
+		this.dy = 0;
+	}
+
+	move() {
 		this.x += this.vx;
 		this.y += this.vy;
 	

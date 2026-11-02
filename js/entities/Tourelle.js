@@ -20,28 +20,30 @@ import {
 import { game } from '../state.js';
 import { random } from '../utils.js';
 
-export function Tourelle(x, y, dir) {
-	this.x = x;
-	this.y = y;
-	this.vx = 0;
-	this.vy = 0;
-	this.angle = 0;
-	this.dir = dir;
-	this.coolTime = 0;
-	this.startCool = 3;
-	this.rotation = 10;
-	this.mort = 0;
-	this.used = 1;
-	this.porter = 0;
-	this.inSight = 0;
-	this.pX = 16;
-	this.pY = 32;
-	this.animFrame = 0;
-	this.canExplode = 0;
-	this.type = "tourelle";
-	this.ex = 0;
-	
-	this.move = function() {
+export class Tourelle {
+	constructor(x, y, dir) {
+		this.x = x;
+		this.y = y;
+		this.vx = 0;
+		this.vy = 0;
+		this.angle = 0;
+		this.dir = dir;
+		this.coolTime = 0;
+		this.startCool = 3;
+		this.rotation = 10;
+		this.mort = 0;
+		this.used = 1;
+		this.porter = 0;
+		this.inSight = 0;
+		this.pX = 16;
+		this.pY = 32;
+		this.animFrame = 0;
+		this.canExplode = 0;
+		this.type = "tourelle";
+		this.ex = 0;
+	}
+
+	move() {
 		if(this.used){
 			if(!this.porter){
 				if(!touchingGround(this)) this.angle += (this.vx>>8)<<1;
@@ -90,8 +92,8 @@ export function Tourelle(x, y, dir) {
 			if(!this.mort) this.shoot();
 		}
 	}
-	
-	this.shoot = function() {
+
+	shoot() {
 		let j;
 		let testShoot = false;
 		if(this.dir == -1 && this.x > game.perso.x) testShoot = true;

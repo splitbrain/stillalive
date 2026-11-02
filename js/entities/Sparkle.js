@@ -148,14 +148,16 @@ export function createCakeOrSmokeSparkles(x, y, type, number, size) {
 	}
 }
 
-export function Sparkle() {
-	this.x = 0;
-	this.y = 0;
-	this.xOrig = 0;
-	this.yOrig = 0;
-	this.vx = 0;
-	this.vy = 0;
-	this.used = 0;
-	this.color = 0;
-	this.floorTime = -1;
+export class Sparkle {
+	constructor() {
+		this.x = 0;
+		this.y = 0;
+		this.xOrig = 0;
+		this.yOrig = 0;
+		this.vx = 0;
+		this.vy = 0;
+		this.used = 0;
+		this.color = 0;
+		this.floorTime = -1;
+	}
 }

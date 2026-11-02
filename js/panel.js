@@ -33,7 +33,7 @@ function formatTime(ticks) {
  * @returns {boolean} True in the level selection.
  */
 function inLevelSelection() {
-	return currentMenu === 1 && selectMenu === 1;
+	return ui.currentMenu === 1 && ui.selectMenu === 1;
 }
 
 /**
@@ -42,18 +42,18 @@ function inLevelSelection() {
  * @returns {string} The HTML, or an empty string if the panel has no content.
  */
 function panelHtml() {
-	const playing = currentMenu === 2;
+	const playing = ui.currentMenu === 2;
 	if (!playing && !inLevelSelection()) return '';
 
-	const campaign = campaigns[lvlType].folder;
-	const level = playing ? currentLevel : previewMap;
+	const campaign = campaigns[ui.lvlType].folder;
+	const level = playing ? ui.currentLevel : ui.previewMap;
 	const best = level > 0 ? getBestTime(campaign, level) : null;
 	const total = getCampaignTotal(campaign);
 	let html = '';
 
 	if (playing) {
-		const time = perso.fadeNextLevel === -1 ? TIME - (TIME % TIME_UPDATE_INTERVAL) : TIME;
-		html += `<p class="title">Level ${level}${replayMode ? ' (replay)' : ''}</p>`;
+		const time = game.perso.fadeNextLevel === -1 ? game.TIME - (game.TIME % TIME_UPDATE_INTERVAL) : game.TIME;
+		html += `<p class="title">Level ${level}${game.replayMode ? ' (replay)' : ''}</p>`;
 		html += `<p>Time: ${toTime(time)}</p>`;
 		html += `<p>Best time: ${formatTime(best)}</p>`;
 	} else {
@@ -96,17 +96,17 @@ function startReplay(data) {
 	const campaign = campaigns.findIndex((c) => c.folder === data.campaign && c.folder !== 'tutorial');
 	if (campaign < 0 || data.level < 1 || data.level > 28) throw new Error('The replay is for an unknown level.');
 
-	lvlType = campaign;
-	previewMap = data.level;
-	currentLevel = data.level;
+	ui.lvlType = campaign;
+	ui.previewMap = data.level;
+	ui.currentLevel = data.level;
 	loadPreviewMap(data.level);
 
-	replay = recorded;
-	replayMode = true;
-	ECART_X = 64;
-	ECART_Y = 96;
-	currentMenu = 2;
-	loadLevel(currentLevel);
+	game.replay = recorded;
+	game.replayMode = true;
+	game.ECART_X = 64;
+	game.ECART_Y = 96;
+	ui.currentMenu = 2;
+	loadLevel(ui.currentLevel);
 	unclick();
 }
 
@@ -134,7 +134,7 @@ async function runAction(action) {
 		return;
 	}
 
-	const data = await loadBestReplay(campaigns[lvlType].folder, previewMap);
+	const data = await loadBestReplay(campaigns[ui.lvlType].folder, ui.previewMap);
 	if (!data) throw new Error('There is no stored replay for this level.');
 	if (action === 'watch') startReplay(data);
 	else if (action === 'export') downloadReplay(data);

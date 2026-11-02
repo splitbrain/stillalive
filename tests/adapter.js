@@ -113,50 +113,50 @@ export async function runLevel(page, { campaign, level, ticks, seed, inputs = nu
 				return result;
 			};
 
-			ECART_X = 64;
-			ECART_Y = 96;
-			lvlType = campaign;
-			currentLevel = level;
+			game.ECART_X = 64;
+			game.ECART_Y = 96;
+			ui.lvlType = campaign;
+			ui.currentLevel = level;
 			if (campaign === 3) {
-				bossNum = 0;
-				currentMenu = 6;
-				tutoJump = level > 1;
-				tutoPortal = level > 4;
-				tutoPause = true;
-				portalsDisplayed = false;
-				tutoEnded = false;
+				game.bossNum = 0;
+				ui.currentMenu = 6;
+				ui.tutoJump = level > 1;
+				ui.tutoPortal = level > 4;
+				ui.tutoPause = true;
+				ui.portalsDisplayed = false;
+				ui.tutoEnded = false;
 			} else {
 				// the level selection in the menu loads the preview map before the level
-				currentMenu = 1;
+				ui.currentMenu = 1;
 				loadPreviewMap(level);
-				currentMenu = 2;
+				ui.currentMenu = 2;
 			}
-			replayMode = replayData !== null;
-			if (replayMode) replay = decodeReplay(replayData);
+			game.replayMode = replayData !== null;
+			if (game.replayMode) game.replay = decodeReplay(replayData);
 			loadLevel(level);
-			if (typeof camera === 'undefined') camera = new Camera(perso.x, perso.y);
+			if (typeof game.camera === 'undefined') game.camera = new Camera(game.perso.x, game.perso.y);
 			unclick();
-			const startMap = map.slice();
+			const startMap = game.map.slice();
 
 			const pick = (obj, fields) => fields.map((field) => obj[field]);
 			const snapshot = (tick) =>
 				JSON.stringify({
 					tick,
-					time: TIME,
-					perso: pick(perso, ['x', 'y', 'vx', 'vy', 'vie', 'mort']),
-					caisses: caisses.map((c) => pick(c, ['x', 'y', 'vx', 'vy', 'porter'])),
-					tourelles: tourelles.map((t) => pick(t, ['x', 'y', 'vx', 'vy', 'mort', 'porter'])),
-					plasma: plasmaBall.map((p) => pick(p, ['x', 'y', 'vx', 'vy', 'used'])),
-					platforms: platforms.map((p) => pick(p, ['x', 'y', 'vx'])),
-					portals: portals.map((p) => pick(p, ['x', 'y', 'used', 'direction'])),
-					cakesLeft: CAKELEFT,
-					map: map.flatMap((tile, i) => (tile === startMap[i] ? [] : [[i, tile]])),
+					time: game.TIME,
+					perso: pick(game.perso, ['x', 'y', 'vx', 'vy', 'vie', 'mort']),
+					caisses: game.caisses.map((c) => pick(c, ['x', 'y', 'vx', 'vy', 'porter'])),
+					tourelles: game.tourelles.map((t) => pick(t, ['x', 'y', 'vx', 'vy', 'mort', 'porter'])),
+					plasma: game.plasmaBall.map((p) => pick(p, ['x', 'y', 'vx', 'vy', 'used'])),
+					platforms: game.platforms.map((p) => pick(p, ['x', 'y', 'vx'])),
+					portals: game.portals.map((p) => pick(p, ['x', 'y', 'used', 'direction'])),
+					cakesLeft: game.CAKELEFT,
+					map: game.map.flatMap((tile, i) => (tile === startMap[i] ? [] : [[i, tile]])),
 				});
 
 			const lines = [snapshot(0)];
 			for (let tick = 1; tick <= ticks; tick++) {
 				if (inputs) {
-					[keys, mouseX, mouseY] = inputs[tick - 1];
+					[input.keys, input.mouseX, input.mouseY] = inputs[tick - 1];
 				}
 				myLoop();
 				if (tick % interval === 0 || finished) lines.push(snapshot(tick));
@@ -166,7 +166,7 @@ export async function runLevel(page, { campaign, level, ticks, seed, inputs = nu
 				}
 			}
 			finNiveau = originalFinNiveau;
-			replayMode = false;
+			game.replayMode = false;
 			return lines.join('\n') + '\n';
 		},
 		{ campaign, level, ticks, seed, inputs, replay, interval: SNAPSHOT_INTERVAL },
@@ -181,7 +181,7 @@ export async function runLevel(page, { campaign, level, ticks, seed, inputs = nu
  */
 export async function recordedReplay(page) {
 	const data = await page.evaluate(() =>
-		JSON.stringify(encodeReplay(replay, campaigns[lvlType].folder, currentLevel)),
+		JSON.stringify(encodeReplay(game.replay, campaigns[ui.lvlType].folder, ui.currentLevel)),
 	);
 	return JSON.parse(data);
 }

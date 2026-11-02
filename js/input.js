@@ -45,7 +45,7 @@ function isForeignTarget(event) {
  */
 function onKeyDown(event) {
 	if (isForeignTarget(event)) return;
-	if (event.code in KEY_BITS) keys |= KEY_BITS[event.code];
+	if (event.code in KEY_BITS) input.keys |= KEY_BITS[event.code];
 	if (event.key === 'm' || event.key === 'M') toggleSound();
 }
 
@@ -57,30 +57,30 @@ function onKeyDown(event) {
  */
 function onKeyUp(event) {
 	if (isForeignTarget(event)) return;
-	if (event.code in KEY_BITS && event.code !== 'KeyE') keys &= ~KEY_BITS[event.code];
+	if (event.code in KEY_BITS && event.code !== 'KeyE') input.keys &= ~KEY_BITS[event.code];
 
 	const key = event.key.toLowerCase();
-	if (event.ctrlKey && key === 'z') leftReleased = 1;
-	if (event.ctrlKey && key === 'y') rightReleased = 1;
+	if (event.ctrlKey && key === 'z') input.leftReleased = 1;
+	if (event.ctrlKey && key === 'y') input.rightReleased = 1;
 
 	if (event.key === 'Escape') {
-		if ((currentMenu === 2 || currentMenu === 6) && !drawIntermission) {
-			escapeMenu = !escapeMenu;
-			if (replayMode) {
-				if (escapeMenu) {
-					replayPauseInput = captureInput();
+		if ((ui.currentMenu === 2 || ui.currentMenu === 6) && !ui.drawIntermission) {
+			ui.escapeMenu = !ui.escapeMenu;
+			if (game.replayMode) {
+				if (ui.escapeMenu) {
+					input.replayPauseInput = captureInput();
 					unclick();
-					keys = 0;
+					input.keys = 0;
 				} else {
 					rescaleReplay();
 				}
 			}
-		} else if (currentMenu === 3 && isTestingLevel) {
+		} else if (ui.currentMenu === 3 && isTestingLevel) {
 			stopPlayingLevel();
 		}
 	}
 
-	if (event.key === 'Enter' && currentMenu === 3) {
+	if (event.key === 'Enter' && ui.currentMenu === 3) {
 		if (isTestingLevel) stopPlayingLevel();
 		else startPlayingLevel();
 	}
@@ -106,12 +106,12 @@ function onPointer(event) {
 	if (event.buttons & 1) buttons |= MSE_L;
 	if (event.buttons & 2) buttons |= MSE_R;
 	if (event.buttons & 4) buttons |= MSE_M;
-	keys = (keys & ~MOUSE_BITS) | buttons;
+	input.keys = (input.keys & ~MOUSE_BITS) | buttons;
 
-	if (!replayMode || escapeMenu) {
+	if (!game.replayMode || ui.escapeMenu) {
 		const rect = canvas.getBoundingClientRect();
-		mouseX = ((event.clientX - rect.left - canvas.clientLeft) * canvas.width) / canvas.clientWidth;
-		mouseY = ((event.clientY - rect.top - canvas.clientTop) * canvas.height) / canvas.clientHeight;
+		input.mouseX = ((event.clientX - rect.left - canvas.clientLeft) * canvas.width) / canvas.clientWidth;
+		input.mouseY = ((event.clientY - rect.top - canvas.clientTop) * canvas.height) / canvas.clientHeight;
 	}
 }
 

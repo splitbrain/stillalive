@@ -7,41 +7,40 @@ let tilesBuff;
 let undoMap;
 let undoIndex;
 
-let leftReleased, rightReleased;
 let oldMouseReleased = 0;
 let isTestingLevel;
-let oldMap, oldBG;
+let oldBG;
 let askLoading, askSaving;
 
 function startPlayingLevel() {
 	let i;
 	isTestingLevel = true;
-	oldMap = new Array();
-	for(i in map) oldMap.push(map[i]);
+	game.oldMap = new Array();
+	for(i in game.map) game.oldMap.push(game.map[i]);
 	loadLevelEditor();
-	perso.fadeNextLevel = -1;
+	game.perso.fadeNextLevel = -1;
 	prepareLvlEditorPlayTxt();
 }
 
 function stopPlayingLevel() {
 	let i;
-	portals = new Array();
-	portals.push(new Portal());portals.push(new Portal());
+	game.portals = new Array();
+	game.portals.push(new Portal());game.portals.push(new Portal());
 	unclick();
 	isTestingLevel = false;
-	map = new Array();
-	for(i in oldMap) map.push(oldMap[i]);
+	game.map = new Array();
+	for(i in game.oldMap) game.map.push(game.oldMap[i]);
 	redrawTiles = true;
 	drawTileMap();
 	prepareLvlEditorTxt();
 }
 
 function levelEditorTestLevel() {
-	needRedrawTiles = 0;
-	TIME++;
-	if(!perso.mort && perso.fadeNextLevel == -1) {
-		perso.move();
-		if(needRedrawTiles == 0) needRedrawTiles = dansUnPortal(perso);
+	game.needRedrawTiles = 0;
+	game.TIME++;
+	if(!game.perso.mort && game.perso.fadeNextLevel == -1) {
+		game.perso.move();
+		if(game.needRedrawTiles == 0) game.needRedrawTiles = dansUnPortal(game.perso);
 	}
 	
 	gestionPorte();
@@ -50,26 +49,26 @@ function levelEditorTestLevel() {
 }
 
 function drawTestLevel() {
-	if(needLoad) createBuff();
-	drawCopy(imgBuff, ECART_X, ECART_Y);
+	if(game.needLoad) createBuff();
+	drawCopy(game.imgBuff, game.ECART_X, game.ECART_Y);
 	
-	if(quality > 0) animateTiles();
+	if(settings.quality > 0) animateTiles();
 	
-	perso.flip = mouseX > (perso.x >> 8) + (perso.pX >> 1) + ECART_X ? perso.flip = 1 : perso.flip = -1;
+	game.perso.flip = input.mouseX > (game.perso.x >> 8) + (game.perso.pX >> 1) + game.ECART_X ? game.perso.flip = 1 : game.perso.flip = -1;
 	
-	const a = getAngle((perso.x>>8) + (perso.pX>>1) + ECART_X, (perso.y>>8) + (perso.pY>>1) + ECART_Y, mouseX, mouseY);
+	const a = getAngle((game.perso.x>>8) + (game.perso.pX>>1) + game.ECART_X, (game.perso.y>>8) + (game.perso.pY>>1) + game.ECART_Y, input.mouseX, input.mouseY);
 	ctx.save();
-	ctx.translate((perso.x>>8) + (perso.pX>>1) + ECART_X, (perso.y>>8) + (perso.pY>>1) + ECART_Y);
+	ctx.translate((game.perso.x>>8) + (game.perso.pX>>1) + game.ECART_X, (game.perso.y>>8) + (game.perso.pY>>1) + game.ECART_Y);
 	ctx.rotate(a);
 	ctx.drawImage(portalGun, -5, -5);
 	ctx.restore();
 	
 	drawTunnels();
 
-	const flipDx =  perso.flip < 0 ? 1 : 0;
+	const flipDx =  game.perso.flip < 0 ? 1 : 0;
 	// image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight
-	ctx.drawImage(head[flipDx], perso.animeFrame * 16, 0, 15, 12, ((perso.x>>8) + ECART_X), (perso.y>>8) + ECART_Y, 16, 12); 
-	ctx.drawImage(body[flipDx], perso.animeFrame * 16, 0, 16, 27, ((perso.x>>8) + ECART_X), (perso.y>>8) + ECART_Y, 16, 27);
+	ctx.drawImage(head[flipDx], game.perso.animeFrame * 16, 0, 15, 12, ((game.perso.x>>8) + game.ECART_X), (game.perso.y>>8) + game.ECART_Y, 16, 12); 
+	ctx.drawImage(body[flipDx], game.perso.animeFrame * 16, 0, 16, 27, ((game.perso.x>>8) + game.ECART_X), (game.perso.y>>8) + game.ECART_Y, 16, 27);
 	
 	drawCakes();
 	drawTourelles();
@@ -84,7 +83,7 @@ function drawTestLevel() {
 	drawPortals();
 	drawLowQualityPortals();
 	
-	if(perso.mort) {
+	if(game.perso.mort) {
 		stopPlayingLevel();
 		return;
 	}
@@ -94,21 +93,21 @@ function drawTestLevel() {
 	drawLeftTiles();
 	drawRightSprites();
 	
-	ctx.drawImage(crosshair, mouseX - 8, mouseY - 8, 16, 16);
+	ctx.drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
 }
 
 function lvlEditorSetup() {
 	let i;
-	BG = 0;
+	game.BG = 0;
 	askLoading = false;
 	askSaving = false;
-	bossNum = 0;
+	game.bossNum = 0;
 
-	map = new Array();
-	displayMap = new Array();
+	game.map = new Array();
+	game.displayMap = new Array();
 	for(i=0; i<768; i++) {
-		map.push(0);
-		displayMap.push(0);
+		game.map.push(0);
+		game.displayMap.push(0);
 	}
 	
 	undoMap = new Array();
@@ -135,27 +134,27 @@ function lvlEditorSetup() {
 	selectedTile = 1;
 	selectedSprite = 0;
 	
-	perso = new Perso();
-	perso.x = -(16 << 8);
-	perso.y = 0;
+	game.perso = new Perso();
+	game.perso.x = -(16 << 8);
+	game.perso.y = 0;
 	
 	prepareLvlEditorTxt();
 }
 
 function prepareLvlEditorTxt() {
-	timeWriting = 0;
-	txtLines = new Array();
+	ui.timeWriting = 0;
+	ui.txtLines = new Array();
 	
-	txtLines.push("Welcome to the StillAliveJS Level Editor ! Here is a place where you can easily");
-	txtLines.push("create your own maps. You can use your mouse to select tiles or object and draw");	
-	txtLines.push("them on the screen. Then, try out your map. Have Fun !");
+	ui.txtLines.push("Welcome to the StillAliveJS Level Editor ! Here is a place where you can easily");
+	ui.txtLines.push("create your own maps. You can use your mouse to select tiles or object and draw");	
+	ui.txtLines.push("them on the screen. Then, try out your map. Have Fun !");
 }
 
 function prepareLvlEditorPlayTxt() {
-	timeWriting = 0;
-	txtLines = new Array();
+	ui.timeWriting = 0;
+	ui.txtLines = new Array();
 	
-	txtLines.push("Press <Enter> or <Escape> key to stop testing.");	
+	ui.txtLines.push("Press <Enter> or <Escape> key to stop testing.");	
 }
 
 function drawLevelEditor() {
@@ -178,20 +177,20 @@ function levelEditorManager() {
 
 function menuSaveMap() {
 	let i;
-	if(previewMap < 1 || getEditorMap(previewMap) == null) ctx.drawImage(noLevel, ECART_X, ECART_Y);
-	else if(previewMap > 0) drawPreviewMap();	
+	if(ui.previewMap < 1 || getEditorMap(ui.previewMap) == null) ctx.drawImage(noLevel, game.ECART_X, game.ECART_Y);
+	else if(ui.previewMap > 0) drawPreviewMap();	
 	ctx.drawImage(mapSelection, 0, 0);
 	
 	if(mouseInZone(529, 117, 90, 29 * 12)) {
-		const y = parseInt((mouseY - 105)/12);
+		const y = parseInt((input.mouseY - 105)/12);
 		if(y <= 28) {
 			ctx.fillStyle = "rgb(15, 112, 144)";
 			//noStroke();
 			ctx.fillRect(529, 105 + (y * 12) + 2, 90, 14);
 			
-			if(mouseNewPress && y != previewMap) {
+			if(input.mouseNewPress && y != ui.previewMap) {
 				unclick();
-				previewMap = y;
+				ui.previewMap = y;
 				showEditorMap(y);
 			}
 		}
@@ -202,10 +201,10 @@ function menuSaveMap() {
 	const scale2 = overMenu == 2 ? 0.9 : 1;
 	drawTinyButton(20, 495, scale2, "Exit");
 	
-	if(previewMap > 0) {
+	if(ui.previewMap > 0) {
 		ctx.fillStyle = "rgb(15, 112, 144)";
 		//noStroke();
-		ctx.fillRect(529, 105 + (previewMap * 12) + 2, 90, 14);
+		ctx.fillRect(529, 105 + (ui.previewMap * 12) + 2, 90, 14);
 		
 		if(mouseInZone(515, 495, 120, 24)) overMenu = 1;
 		const scale1 = overMenu == 1 ? 0.9 : 1;
@@ -218,31 +217,31 @@ function menuSaveMap() {
 	if(mouseInZone(340, 495, 120, 24)) overMenu = 4;
 	drawTinyButton(340, 495, overMenu == 4 ? 0.9 : 1, "Import");
 	
-	if(mouseNewPress && overMenu > 0) {
+	if(input.mouseNewPress && overMenu > 0) {
 		unclick();
 		if(overMenu == 1) {//save
-			saveEditorMap(previewMap, oldMap, oldBG);
+			saveEditorMap(ui.previewMap, game.oldMap, oldBG);
 			
-			map = new Array();
-			for(i in oldMap) map.push(oldMap[i]);
-			BG = oldBG;
+			game.map = new Array();
+			for(i in game.oldMap) game.map.push(game.oldMap[i]);
+			game.BG = oldBG;
 			askSaving = false;
 			redrawTiles = true;
-			ECART_X = 64;
-			ECART_Y = 96;
+			game.ECART_X = 64;
+			game.ECART_Y = 96;
 			return;
 		}else if(overMenu == 2) {//exit
-			ECART_X = 64;
-			ECART_Y = 96;
+			game.ECART_X = 64;
+			game.ECART_Y = 96;
 			askSaving = false;
 		
-			map = new Array();
-			for(i in oldMap) map.push(oldMap[i]);
-			BG = oldBG;
+			game.map = new Array();
+			for(i in game.oldMap) game.map.push(game.oldMap[i]);
+			game.BG = oldBG;
 			redrawTiles = true;
 			return;
 		}else if(overMenu == 3) {//export
-			exportEditorMap(oldMap, oldBG);
+			exportEditorMap(game.oldMap, oldBG);
 		}else if(overMenu == 4) {//import
 			startMapImport();
 		}
@@ -259,7 +258,7 @@ function menuSaveMap() {
 		ctx.fillText("Level " + (i + 1),549, 105 + 24 + (i * 12));
 	}
 	
-	ctx.drawImage(crosshair, mouseX - 8, mouseY - 8, 16, 16);
+	ctx.drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
 }
 
 /**
@@ -270,8 +269,8 @@ function menuSaveMap() {
 function showEditorMap(slot) {
 	const stored = getEditorMap(slot);
 	if(stored == null) return;
-	map = stored.tiles.slice();
-	BG = stored.bg;
+	game.map = stored.tiles.slice();
+	game.BG = stored.bg;
 	loadPreviewMap(-1);
 }
 
@@ -280,14 +279,14 @@ function showEditorMap(slot) {
  */
 function startMapImport() {
 	importEditorMap().then(function(data) {
-		if(currentMenu != 3 || !(askSaving || askLoading)) return;
-		map = data.tiles.slice();
-		BG = data.bg;
+		if(ui.currentMenu != 3 || !(askSaving || askLoading)) return;
+		game.map = data.tiles.slice();
+		game.BG = data.bg;
 		loadPreviewMap(-1);
 		askSaving = false;
 		askLoading = false;
-		ECART_X = 64;
-		ECART_Y = 96;
+		game.ECART_X = 64;
+		game.ECART_Y = 96;
 		redrawTiles = true;
 		undoMap = new Array();
 		undoIndex = -1;
@@ -299,20 +298,20 @@ function startMapImport() {
 
 function menuLoadMap() {
 	let i;
-	if(previewMap < 1) ctx.drawImage(noLevel, ECART_X, ECART_Y);
-	if(previewMap > 0) drawPreviewMap();			
+	if(ui.previewMap < 1) ctx.drawImage(noLevel, game.ECART_X, game.ECART_Y);
+	if(ui.previewMap > 0) drawPreviewMap();			
 	ctx.drawImage(mapSelection, 0, 0);
 	
 	if(mouseInZone(529, 117, 90, 29 * 12)) {
-		const y = parseInt((mouseY - 105)/12);
+		const y = parseInt((input.mouseY - 105)/12);
 		if(y <= 28 && getEditorMap(y) != null) {
 			ctx.fillStyle = "rgb(15, 112, 144)";
 			//noStroke();
 			ctx.fillRect(529, 105 + (y * 12) + 2, 90, 14);
 			
-			if(mouseNewPress && y != previewMap) {
+			if(input.mouseNewPress && y != ui.previewMap) {
 				unclick();
-				previewMap = y;
+				ui.previewMap = y;
 				showEditorMap(y);
 			}
 		}
@@ -323,10 +322,10 @@ function menuLoadMap() {
 	const scale2 = overMenu == 2 ? 0.9 : 1;
 	drawTinyButton(20, 495, scale2, "Exit");
 	
-	if(previewMap > 0) {
+	if(ui.previewMap > 0) {
 		ctx.fillStyle = "rgb(15, 112, 144)";
 		//noStroke();
-		ctx.fillRect(529, 105 + (previewMap * 12) + 2, 90, 14);
+		ctx.fillRect(529, 105 + (ui.previewMap * 12) + 2, 90, 14);
 		
 		if(mouseInZone(515, 495, 120, 24)) overMenu = 1;
 		const scale1 = overMenu == 1 ? 0.9 : 1;
@@ -340,30 +339,30 @@ function menuLoadMap() {
 	if(mouseInZone(340, 495, 120, 24)) overMenu = 4;
 	drawTinyButton(340, 495, overMenu == 4 ? 0.9 : 1, "Import");
 	
-	if(mouseNewPress && overMenu > 0) {
+	if(input.mouseNewPress && overMenu > 0) {
 		unclick();
 		if(overMenu == 1) {//load
 			askLoading = false;
 			redrawTiles = true;
-			ECART_X = 64;
-			ECART_Y = 96;
+			game.ECART_X = 64;
+			game.ECART_Y = 96;
 			
 			undoMap = new Array();
 			undoIndex = -1;
 			addUndo();
 			return;
 		}else if(overMenu == 2) {//exit
-			ECART_X = 64;
-			ECART_Y = 96;
+			game.ECART_X = 64;
+			game.ECART_Y = 96;
 		
-			map = new Array();
-			for(i in oldMap) map.push(oldMap[i]);
-			BG = oldBG;
+			game.map = new Array();
+			for(i in game.oldMap) game.map.push(game.oldMap[i]);
+			game.BG = oldBG;
 			askLoading = false;
 			redrawTiles = true;
 			return;
 		}else if(overMenu == 3) {//export
-			exportEditorMap(map, BG);
+			exportEditorMap(game.map, game.BG);
 		}else if(overMenu == 4) {//import
 			startMapImport();
 		}
@@ -380,7 +379,7 @@ function menuLoadMap() {
 		ctx.fillText("Level " + (i + 1),549, 105 + 24 + (i * 12));
 	}
 	
-	ctx.drawImage(crosshair, mouseX - 8, mouseY - 8, 16, 16);
+	ctx.drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
 }
 
 function manageEditor() {
@@ -396,16 +395,16 @@ function manageEditor() {
 	drawLeftTiles();
 	drawRightSprites();
 	
-	if(oldMouseReleased == 1 && mouseReleased == 1) mouseReleased = 0;
-	oldMouseReleased = mouseReleased;
+	if(oldMouseReleased == 1 && input.mouseReleased == 1) input.mouseReleased = 0;
+	oldMouseReleased = input.mouseReleased;
 	
 	let overMenu = -1;
-	if(mouseInZone(ECART_X + 512 - 250, ECART_Y + 394, 120, 24)) overMenu = 1;
-	else if(mouseInZone(ECART_X + 512 - 120, ECART_Y + 394, 120, 24)) overMenu = 2;
-	else if(mouseInZone(ECART_X, ECART_Y + 394, 120, 24)) overMenu = 3;
-	else if(mouseInZone(ECART_X + 130, ECART_Y + 394, 120, 24)) overMenu = 4;
-	else if(mouseInZone(ECART_X + 60, ECART_Y + 420, 120, 24)) overMenu = 5;
-	else if(mouseInZone(ECART_X + 60 + 130, ECART_Y + 420, 120, 24)) overMenu = 6;
+	if(mouseInZone(game.ECART_X + 512 - 250, game.ECART_Y + 394, 120, 24)) overMenu = 1;
+	else if(mouseInZone(game.ECART_X + 512 - 120, game.ECART_Y + 394, 120, 24)) overMenu = 2;
+	else if(mouseInZone(game.ECART_X, game.ECART_Y + 394, 120, 24)) overMenu = 3;
+	else if(mouseInZone(game.ECART_X + 130, game.ECART_Y + 394, 120, 24)) overMenu = 4;
+	else if(mouseInZone(game.ECART_X + 60, game.ECART_Y + 420, 120, 24)) overMenu = 5;
+	else if(mouseInZone(game.ECART_X + 60 + 130, game.ECART_Y + 420, 120, 24)) overMenu = 6;
 	
 	const scale1 = overMenu == 1 ? 0.9 : 1;
 	const scale2 = overMenu == 2 ? 0.9 : 1;
@@ -414,18 +413,18 @@ function manageEditor() {
 	const scale5 = overMenu == 5 ? 0.9 : 1;
 	const scale6 = overMenu == 6 ? 0.9 : 1;
 	
-	drawTinyButton(ECART_X, ECART_Y + 394, scale3, "Exit");
-	drawTinyButton(ECART_X + 512 - 250, ECART_Y + 394, scale1, "Load");
-	drawTinyButton(ECART_X + 512 - 120, ECART_Y + 394, scale2, "Save");
-	drawTinyButton(ECART_X + 130, ECART_Y + 394, scale4, "Clear");
-	drawTinyButton(ECART_X + 60, ECART_Y + 420, scale5, "Try Map");
-	drawTinyButton(ECART_X + 60 + 130, ECART_Y + 420, scale6, "Help");
+	drawTinyButton(game.ECART_X, game.ECART_Y + 394, scale3, "Exit");
+	drawTinyButton(game.ECART_X + 512 - 250, game.ECART_Y + 394, scale1, "Load");
+	drawTinyButton(game.ECART_X + 512 - 120, game.ECART_Y + 394, scale2, "Save");
+	drawTinyButton(game.ECART_X + 130, game.ECART_Y + 394, scale4, "Clear");
+	drawTinyButton(game.ECART_X + 60, game.ECART_Y + 420, scale5, "Try Map");
+	drawTinyButton(game.ECART_X + 60 + 130, game.ECART_Y + 420, scale6, "Help");
 	
 	drawText(70, 38, 11);
 	
-	if(!mouseInZone(ECART_X, ECART_Y, 512, 384)) ctx.drawImage(crosshair, mouseX - 8, mouseY - 8, 16, 16);
+	if(!mouseInZone(game.ECART_X, game.ECART_Y, 512, 384)) ctx.drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
 	
-	if(overMenu > 0 && mouseNewPress) {
+	if(overMenu > 0 && input.mouseNewPress) {
 		unclick();
 		if(overMenu == 5) {//try map
 			startPlayingLevel();
@@ -440,96 +439,96 @@ function manageEditor() {
 					,"Level Editor Shortcuts");
 		}else if(overMenu == 2) {//save
 			askSaving = true;
-			previewMap = -1;
-			ECART_X = 0;
-			ECART_Y = 96;
-			oldMap = new Array();
-			for(i in map) oldMap.push(map[i]);
-			oldBG = BG;
+			ui.previewMap = -1;
+			game.ECART_X = 0;
+			game.ECART_Y = 96;
+			game.oldMap = new Array();
+			for(i in game.map) game.oldMap.push(game.map[i]);
+			oldBG = game.BG;
 		}else if(overMenu == 1) {//load
 			askLoading = true;
-			previewMap = -1;
-			ECART_X = 0;
-			ECART_Y = 96;
-			oldMap = new Array();
-			for(i in map) oldMap.push(map[i]);
-			oldBG = BG;
+			ui.previewMap = -1;
+			game.ECART_X = 0;
+			game.ECART_Y = 96;
+			game.oldMap = new Array();
+			for(i in game.map) game.oldMap.push(game.map[i]);
+			oldBG = game.BG;
 		}else if(overMenu == 4) {//clear
-			for(i in map) map[i] = 0;
+			for(i in game.map) game.map[i] = 0;
 			/*undoMap = new Array();
 			undoIndex = -1;*/
 			addUndo();
 			redrawTiles = true;
 		}else if(overMenu == 3) {//exit
-			currentMenu = 1;
-			sparkles = new Array();
-			fadeMenu = 30;
+			ui.currentMenu = 1;
+			game.sparkles = new Array();
+			ui.fadeMenu = 30;
 		}
 	}
 }
 
 function manageUndoRedo() {
 	let i;
-	if(leftReleased && undoIndex > 0) {
-		map = new Array();
+	if(input.leftReleased && undoIndex > 0) {
+		game.map = new Array();
 		undoIndex--;
-		for(i=0; i<768; i++) map.push(undoMap[undoIndex][i]);
+		for(i=0; i<768; i++) game.map.push(undoMap[undoIndex][i]);
 		redrawTiles = true;
-	}else if(rightReleased && undoIndex + 1 < undoMap.length) {
+	}else if(input.rightReleased && undoIndex + 1 < undoMap.length) {
 		undoIndex++;
-		map = new Array();
-		for(i=0; i<768; i++) map.push(undoMap[undoIndex][i]);
+		game.map = new Array();
+		for(i=0; i<768; i++) game.map.push(undoMap[undoIndex][i]);
 		redrawTiles = true;
 	}
-	leftReleased = 0;
-	rightReleased = 0;
+	input.leftReleased = 0;
+	input.rightReleased = 0;
 }
 
 function recreateSprites() {
 	let i;
-	cakes = new Array();
-	tourelles = new Array();
-	caisses = new Array();
-	tunnels = new Array();
-	forceFields = new Array();
-	platforms = new Array();
-	perso = new Perso();
-	perso.x = -(16 << 8);
-	perso.fadeNextLevel = 0;
+	game.cakes = new Array();
+	game.tourelles = new Array();
+	game.caisses = new Array();
+	game.tunnels = new Array();
+	game.forceFields = new Array();
+	game.platforms = new Array();
+	game.perso = new Perso();
+	game.perso.x = -(16 << 8);
+	game.perso.fadeNextLevel = 0;
 	
-	for(i in map) {
+	for(i in game.map) {
 		const y = i >> 5;
 		const x = i - (y << 5);
 		
-		if(map[i] == 109) {//top tunnel
-			tunnels.push(new Tunnel((x*16) << 8, (y*16) << 8, HAUT));
-		}else if(map[i] == 110) {//bottom tunnel
-			tunnels.push(new Tunnel((x*16) << 8, (y*16) << 8, BAS));
-		}else if(map[i] == 107) {//right tunnel
-			tunnels.push(new Tunnel((x*16) << 8, (y*16) << 8, DROITE));
-		}else if(map[i] == 108) {//left tunnel
-			tunnels.push(new Tunnel((x*16) << 8, (y*16) << 8, GAUCHE));
-		}else if(map[i] == 103) {//cake
-			cakes.push(new Cake((x*16) << 8, (y*16) << 8));
+		if(game.map[i] == 109) {//top tunnel
+			game.tunnels.push(new Tunnel((x*16) << 8, (y*16) << 8, HAUT));
+		}else if(game.map[i] == 110) {//bottom tunnel
+			game.tunnels.push(new Tunnel((x*16) << 8, (y*16) << 8, BAS));
+		}else if(game.map[i] == 107) {//right tunnel
+			game.tunnels.push(new Tunnel((x*16) << 8, (y*16) << 8, DROITE));
+		}else if(game.map[i] == 108) {//left tunnel
+			game.tunnels.push(new Tunnel((x*16) << 8, (y*16) << 8, GAUCHE));
+		}else if(game.map[i] == 103) {//cake
+			game.cakes.push(new Cake((x*16) << 8, (y*16) << 8));
 			continue;
-		}else if(map[i] == 100) {//left turret
-			tourelles.push(new Tourelle((x*16) << 8, (y*16) << 8, -1));
+		}else if(game.map[i] == 100) {//left turret
+			game.tourelles.push(new Tourelle((x*16) << 8, (y*16) << 8, -1));
 			continue;
-		}else if(map[i] == 101) {//right turret
-			tourelles.push(new Tourelle((x*16) << 8, (y*16) << 8, 1));
+		}else if(game.map[i] == 101) {//right turret
+			game.tourelles.push(new Tourelle((x*16) << 8, (y*16) << 8, 1));
 			continue;
-		}else if(map[i] == 102) {//crate
-			caisses.push(new Caisse((x*16) << 8, (y*16) << 8));
+		}else if(game.map[i] == 102) {//crate
+			game.caisses.push(new Caisse((x*16) << 8, (y*16) << 8));
 			continue;
-		}else if(map[i] == 104) {//player start
-			perso.x = (x * 16) << 8;
-			perso.y = (y * 16) << 8;
+		}else if(game.map[i] == 104) {//player start
+			game.perso.x = (x * 16) << 8;
+			game.perso.y = (y * 16) << 8;
 			continue;
-		}else if(map[i] == 105) {//platform
-			platforms.push(new Platform((x * 16) << 8, (y * 16) << 8, 128, 0));
+		}else if(game.map[i] == 105) {//platform
+			game.platforms.push(new Platform((x * 16) << 8, (y * 16) << 8, 128, 0));
 			continue;
-		}else if(map[i] == 106) {//platform
-			platforms.push(new Platform((x * 16) << 8, (y * 16) << 8, -128, 0));
+		}else if(game.map[i] == 106) {//platform
+			game.platforms.push(new Platform((x * 16) << 8, (y * 16) << 8, -128, 0));
 			continue;
 		}
 	}
@@ -541,16 +540,16 @@ function drawSprites() {
 	drawCaisses();
 	drawPlatformes();
 	drawTunnels();
-	drawPerso((perso.x >> 8) + ECART_X, (perso.y >> 8) + ECART_Y, 0);
+	drawPerso((game.perso.x >> 8) + game.ECART_X, (game.perso.y >> 8) + game.ECART_Y, 0);
 }
 
 function drawTileMap() {
 	let y, x, haut, bas, gauche, droite, i;
 	if(redrawTiles) {
-		ctx.drawImage(bg[BG], ECART_X, ECART_Y, 512, 384);
+		ctx.drawImage(bg[game.BG], game.ECART_X, game.ECART_Y, 512, 384);
 		ctx.fillStyle = "rgba(255, 0, 0, 0.7)";
-		for(i in map) {
-			if(map[i] == 20) {
+		for(i in game.map) {
+			if(game.map[i] == 20) {
 				y = i >> 5;
 				x = i - (y << 5);
 				
@@ -560,37 +559,37 @@ function drawTileMap() {
 				droite = isTileHere(x+1,y);
 				
 				if(haut + bas + gauche + droite < 3) {
-					if(y-1 >= 0) ctx.fillRect(x*16 + ECART_X, (y-1)*16 + ECART_Y, 16, 16);
-					if(y+1 < 24) ctx.fillRect(x*16 + ECART_X, (y+1)*16 + ECART_Y, 16, 16);
-					if(x-1 >= 0) ctx.fillRect((x-1)*16 + ECART_X, y*16 + ECART_Y, 16, 16);
-					if(x+1 < 32) ctx.fillRect((x+1)*16 + ECART_X, y*16 + ECART_Y, 16, 16);
+					if(y-1 >= 0) ctx.fillRect(x*16 + game.ECART_X, (y-1)*16 + game.ECART_Y, 16, 16);
+					if(y+1 < 24) ctx.fillRect(x*16 + game.ECART_X, (y+1)*16 + game.ECART_Y, 16, 16);
+					if(x-1 >= 0) ctx.fillRect((x-1)*16 + game.ECART_X, y*16 + game.ECART_Y, 16, 16);
+					if(x+1 < 32) ctx.fillRect((x+1)*16 + game.ECART_X, y*16 + game.ECART_Y, 16, 16);
 				}
 				
 				break;
 			}
 		}
 		
-		for(i in map) {
-			if(map[i] < NUM_TILES && map[i] > 0) {
+		for(i in game.map) {
+			if(game.map[i] < NUM_TILES && game.map[i] > 0) {
 				y = i >> 5;
 				x = i - (y << 5);
-				ctx.drawImage(tileset[map[i]], x*16 + ECART_X, y*16 + ECART_Y);
+				ctx.drawImage(tileset[game.map[i]], x*16 + game.ECART_X, y*16 + game.ECART_Y);
 			}
 		}
 		recreateSprites();
 		drawSprites();
-		tilesBuff = copyCanvas(ECART_X, ECART_Y, 512, 384);
+		tilesBuff = copyCanvas(game.ECART_X, game.ECART_Y, 512, 384);
 		redrawTiles = false;
 	}else {
-		drawCopy(tilesBuff, ECART_X, ECART_Y);
+		drawCopy(tilesBuff, game.ECART_X, game.ECART_Y);
 	}
 }
 
 function manageDrawSprite() {
 	let i;
-	if(mouseInZone(ECART_X, ECART_Y, 512, 384) && selectedSprite > 0) {
-		let x = (mouseX >> 4) << 4;
-		let y = (mouseY >> 4) << 4;
+	if(mouseInZone(game.ECART_X, game.ECART_Y, 512, 384) && selectedSprite > 0) {
+		let x = (input.mouseX >> 4) << 4;
+		let y = (input.mouseY >> 4) << 4;
 		if(selectedSprite == 1) ctx.drawImage(cake, x, y);
 		else if(selectedSprite == 2) ctx.drawImage(caisse, x, y);
 		else if(selectedSprite == 3) ctx.drawImage(tourelle[0], 0, 0, 16, 32, x, y, 16, 32);
@@ -619,7 +618,7 @@ function manageDrawSprite() {
 			ctx.drawImage(tunnel2, 32, 0, 32, 16, x, y, 32, 16);
 		}
 		
-		if(mousePressed) {
+		if(input.mousePressed) {
 			const arrEquiv = new Array();
 			
 			arrEquiv.push(103); // cake
@@ -634,16 +633,16 @@ function manageDrawSprite() {
 			arrEquiv.push(109); // tunnel
 			arrEquiv.push(110); // tunnel
 			
-			x -= ECART_X; 
-			y -= ECART_Y;
+			x -= game.ECART_X; 
+			y -= game.ECART_Y;
 			const xt = x >> 4;
 			const yt = y >> 4;
 			
 			const tile = ((y>>4)*32) + (x>>4);
-			if(mouseButton == LEFT) {
+			if(input.mouseButton == LEFT) {
 				if(arrEquiv[selectedSprite - 1] == 104) {
-					for(i in map) {
-						if(map[i] == 104) map[i] = 0;
+					for(i in game.map) {
+						if(game.map[i] == 104) game.map[i] = 0;
 					}
 				}
 				
@@ -651,17 +650,17 @@ function manageDrawSprite() {
 				
 				
 				if(allowTile(arrEquiv[selectedSprite - 1])) {
-					map[tile] = arrEquiv[selectedSprite - 1];
+					game.map[tile] = arrEquiv[selectedSprite - 1];
 				}
 			}
-			else if(mouseButton == RIGHT) {
-				map[tile] = 0;
+			else if(input.mouseButton == RIGHT) {
+				game.map[tile] = 0;
 				eraseSprites(arrEquiv[selectedSprite - 1], xt, yt);
 			}
 			build();
 			redrawTiles = true;
-		} else if(mouseReleased) {
-			mouseReleased = 0;
+		} else if(input.mouseReleased) {
+			input.mouseReleased = 0;
 			addUndo();
 			redrawTiles = true;
 		}
@@ -689,8 +688,8 @@ function allowTile(tile) {
 function countTile(tile) {
 	let i;
 	let c = 0;
-	for(i in map) {
-		if(map[i] == tile) c++;
+	for(i in game.map) {
+		if(game.map[i] == tile) c++;
 	}
 	
 	return c;
@@ -702,79 +701,79 @@ function eraseSprites(til, xt, yt) {
 		for(h = 1; h<3; h++) {
 			if(h == 2 && til >= 109) continue;
 			if(xt + h < 32) {
-				map[yt*32 + xt + h] = 0;
+				game.map[yt*32 + xt + h] = 0;
 				if(yt - 1 >= 0) {
-					t = map[(yt-1)*32 + xt + h];
-					if(t == 104 || t == 100 || t == 101 || (t >= 107 && t <= 110)) map[(yt-1)*32 + xt + h] = 0;
+					t = game.map[(yt-1)*32 + xt + h];
+					if(t == 104 || t == 100 || t == 101 || (t >= 107 && t <= 110)) game.map[(yt-1)*32 + xt + h] = 0;
 				}
 			}
 		}
 	}
 	if(til == 104 || til == 100 || til == 101 || til == 107 || til == 108) { // vertical sprite
 		if(yt + 1 < 24) {
-			map[(yt+1)*32 + xt] = 0;
+			game.map[(yt+1)*32 + xt] = 0;
 			for(h = 1; h<3; h++) {
 				if(xt - h >= 0) {
-					t = map[(yt+1)*32 + xt - h];
-					if(t == 105 || t == 106 || t == 109 || t == 110) map[(yt+1)*32 + xt - h] = 0;
+					t = game.map[(yt+1)*32 + xt - h];
+					if(t == 105 || t == 106 || t == 109 || t == 110) game.map[(yt+1)*32 + xt - h] = 0;
 				}
 			}
 		}
 	}
 	
 	if(yt - 1 >= 0) {
-		t = map[(yt-1)*32 + xt];
-		if(t == 104 || t == 100 || t == 101 || (t >= 107 && t <= 110)) map[(yt-1)*32 + xt] = 0;
+		t = game.map[(yt-1)*32 + xt];
+		if(t == 104 || t == 100 || t == 101 || (t >= 107 && t <= 110)) game.map[(yt-1)*32 + xt] = 0;
 	}
 	for(h = 1; h<3; h++) {
 		if(xt - h >= 0) {
-			t = map[yt*32 + xt - h];
-			if(t == 105 || t == 106) map[yt*32 + xt - h] = 0;
-			else if((t == 109 || t == 110) && h < 2) map[yt*32 + xt - h] = 0;
+			t = game.map[yt*32 + xt - h];
+			if(t == 105 || t == 106) game.map[yt*32 + xt - h] = 0;
+			else if((t == 109 || t == 110) && h < 2) game.map[yt*32 + xt - h] = 0;
 		}
 	}
 }
 
 function manageDrawTile() {
 	let i;
-	if(mouseInZone(ECART_X, ECART_Y, 512, 384) && selectedTile > -1) {
-		let x = (mouseX >> 4) << 4;
-		let y = (mouseY >> 4) << 4;
+	if(mouseInZone(game.ECART_X, game.ECART_Y, 512, 384) && selectedTile > -1) {
+		let x = (input.mouseX >> 4) << 4;
+		let y = (input.mouseY >> 4) << 4;
 		ctx.drawImage(tileset[tilesToDraw[selectedTile]], x, y);
 		ctx.strokeStyle = "rgb(255, 0, 0)";
 		ctx.lineWidth = 1;
 		ctx.strokeRect(x, y, 16, 16);
 		
-		if(mousePressed) {
-			x -= ECART_X;
-			y -= ECART_Y; 
+		if(input.mousePressed) {
+			x -= game.ECART_X;
+			y -= game.ECART_Y; 
 			const tile = ((y>>4)*32) + (x>>4);
-			if(mouseButton == LEFT) {
+			if(input.mouseButton == LEFT) {
 				if(tilesToDraw[selectedTile] == 20) {
-					for(i in map) {	
-						if(map[i] == 20) {
-							map[i] = 0;
+					for(i in game.map) {	
+						if(game.map[i] == 20) {
+							game.map[i] = 0;
 							break;
 						}
 					}
 				}
-				map[tile] = tilesToDraw[selectedTile];
+				game.map[tile] = tilesToDraw[selectedTile];
 			}
-			else if(mouseButton == RIGHT) map[tile] = 0;
-			else if(mouseButton == MIDDLE) fill(tilesToDraw[selectedTile], map[tile], x >> 4, y >> 4);
+			else if(input.mouseButton == RIGHT) game.map[tile] = 0;
+			else if(input.mouseButton == MIDDLE) fill(tilesToDraw[selectedTile], game.map[tile], x >> 4, y >> 4);
 			
 			const xt = x >> 4;
 			const yt = y >> 4;
 			
 			if(yt - 1 >= 0) {
-				const t = map[(yt-1)*32 + xt];
-				if(t == 104 || t == 100 || t == 101 || (t >= 107 && t <= 110)) map[(yt-1)*32 + xt] = 0;
+				const t = game.map[(yt-1)*32 + xt];
+				if(t == 104 || t == 100 || t == 101 || (t >= 107 && t <= 110)) game.map[(yt-1)*32 + xt] = 0;
 			}
 			
 			build();
 			redrawTiles = true;
-		}else if(mouseReleased) {
-			mouseReleased = 0;
+		}else if(input.mouseReleased) {
+			input.mouseReleased = 0;
 			addUndo();
 		}
 	}
@@ -788,7 +787,7 @@ function addUndo() {
 	}
 	undoIndex++;
 	undoMap[undoIndex] = new Array();
-	for(i=0; i<768; i++) undoMap[undoIndex].push(map[i]);
+	for(i=0; i<768; i++) undoMap[undoIndex].push(game.map[i]);
 	
 	if(undoIndex < undoMap.length - 1) {
 		const r = undoMap.length - 1 - undoIndex;
@@ -838,7 +837,7 @@ function manageSpriteSelection() {
 			ctx.fillRect(x - 2, y + 198, 36, 20);
 		}
 		
-		if(mouseNewPress) {
+		if(input.mouseNewPress) {
 			unclick();
 			selectedSprite =  inZone;
 			selectedTile = -1;
@@ -853,16 +852,16 @@ function manageSpriteSelection() {
 			ctx.fillRect(32, 412, 27, 47);
 		}
 		
-		if(mouseNewPress) {
+		if(input.mouseNewPress) {
 			unclick();
 			if(inZone == 100) {
-				BG--;
+				game.BG--;
 				redrawTiles = true;
-				if(BG < 0) BG = bg.length - 1;
+				if(game.BG < 0) game.BG = bg.length - 1;
 			} else if(inZone == 101) {
-				BG++;
+				game.BG++;
 				redrawTiles++;
-				if(BG == bg.length) BG = 0;
+				if(game.BG == bg.length) game.BG = 0;
 			}
 		}
 	}
@@ -889,15 +888,15 @@ function manageTileSelection() {
 	
 	let x, y;
 	if(mouseInZone(4, 140, 56, 118)) {
-		x = mouseX;
-		y = mouseY;
+		x = input.mouseX;
+		y = input.mouseY;
 		
 		x = (parseInt(x / 20) * 20) + 2;
 		y = (parseInt(y / 20) * 20) - 4;
 		ctx.fillStyle = "rgb(255, 0, 0)";
 		ctx.fillRect(x, y, 20, 20);
 		
-		if(mouseNewPress) {
+		if(input.mouseNewPress) {
 			unclick();
 			selectedSprite = -1;
 			const xt = parseInt(x / 20);
@@ -988,37 +987,37 @@ function build() {
 			droite = isTileHere(x+1,y);
 			
 			if(haut && bas && gauche && !droite){
-				map[x+y*32] = 4;
+				game.map[x+y*32] = 4;
 			}else if(haut && bas && !gauche && droite){
-				map[x+y*32] = 2;
+				game.map[x+y*32] = 2;
 			}else if(haut && !bas && droite && gauche){
-				map[x+y*32] = 5;
+				game.map[x+y*32] = 5;
 			}else if(!haut && bas && droite && gauche){
-				map[x+y*32] = 3;
+				game.map[x+y*32] = 3;
 			}else if(!haut && bas && droite && !gauche){
-				map[x+y*32] = 8;
+				game.map[x+y*32] = 8;
 			}else if(!haut && bas && !droite && gauche){
-				map[x+y*32] = 9;
+				game.map[x+y*32] = 9;
 			}else if(haut && !bas && !droite && gauche){
-				map[x+y*32] = 6;
+				game.map[x+y*32] = 6;
 			}else if(haut && !bas && droite && !gauche){
-				map[x+y*32] = 7;
+				game.map[x+y*32] = 7;
 			}else if(haut && bas && droite && gauche){
-				map[x+y*32] = 1;
+				game.map[x+y*32] = 1;
 			}else if(haut && bas && !droite && !gauche){
-				map[x+y*32] = 11;
+				game.map[x+y*32] = 11;
 			}else if(!haut && !bas && droite && gauche){
-				map[x+y*32] = 10;
+				game.map[x+y*32] = 10;
 			}else if(haut && !bas && !droite && !gauche){
-				map[x+y*32] = 12;
+				game.map[x+y*32] = 12;
 			}else if(!haut && bas && !droite && !gauche){
-				map[x+y*32] = 13;
+				game.map[x+y*32] = 13;
 			}else if(!haut && !bas && !droite && gauche){
-				map[x+y*32] = 14;
+				game.map[x+y*32] = 14;
 			}else if(!haut && !bas && droite && !gauche){
-				map[x+y*32] = 15;
+				game.map[x+y*32] = 15;
 			}else if(!haut && !bas && !droite && !gauche){
-				map[x+y*32] = 16;
+				game.map[x+y*32] = 16;
 			}
 		}
 	}
@@ -1039,29 +1038,29 @@ function fill(tile, toFill, x, y){
 		const t = tmpMap[tileCourant];
 		y = (t>>5);
 		x = t - (y<<5);
-		map[x+(y<<5)] = tile;
-		if(x<31 && map[x+1+(y<<5)] == toFill){
+		game.map[x+(y<<5)] = tile;
+		if(x<31 && game.map[x+1+(y<<5)] == toFill){
 			j = true;
 			for(k=0;k<tTile;k++){
 				if(tmpMap[k]==x+1+(y<<5)) j = false;
 			}
 			if(j) tmpMap[tTile++] = x+1+(y<<5);
 		}
-		if(x>0 && map[x-1+(y<<5)] == toFill){
+		if(x>0 && game.map[x-1+(y<<5)] == toFill){
 			j = true;
 			for(k=0;k<tTile;k++){
 				if(tmpMap[k]==x-1+(y<<5)) j = false;
 			}
 			if(j) tmpMap[tTile++] = x-1+(y<<5);
 		}
-		if(y<23 && map[x+((y+1)<<5)] == toFill){
+		if(y<23 && game.map[x+((y+1)<<5)] == toFill){
 			j = true;
 			for(k=0;k<tTile;k++){
 				if(tmpMap[k]==x+((y+1)<<5)) j = false;
 			}
 			if(j) tmpMap[tTile++] = x+((y+1)<<5);
 		}
-		if(y>0 && map[x+((y-1)<<5)] == toFill){
+		if(y>0 && game.map[x+((y-1)<<5)] == toFill){
 			j = true;
 			for(k=0;k<tTile;k++){
 				if(tmpMap[k]==x+((y-1)<<5)) j = false;
@@ -1075,17 +1074,17 @@ function fill(tile, toFill, x, y){
 function isTileMurBleu(index){
 	let i;
 	for(i=1;i<17;i++){
-		if(map[index]==i) return true;
+		if(game.map[index]==i) return true;
 	}
 	return false;
 }
 
 function isTileHere(x, y){
 	if(x<0||x>31||y<0||y>23) return 1;
-	if(map[x+y*32] >= 54 && map[x+y*32] <= 57) return 1;
+	if(game.map[x+y*32] >= 54 && game.map[x+y*32] <= 57) return 1;
 	let i;
 	for(i=1;i<19;i++){
-		if(map[x+y*32]==i) return 1
+		if(game.map[x+y*32]==i) return 1
 	}
 	return 0;
 }

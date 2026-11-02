@@ -4,6 +4,7 @@ import globals from 'globals';
 
 /** @type {string[]} The classic scripts of the game. They share their top-level declarations. */
 const CLASSIC_SCRIPTS = [
+	'js/state.js',
 	'js/tools.js',
 	'js/apps.js',
 	'js/drawing.js',

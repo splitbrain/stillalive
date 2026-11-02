@@ -46,3 +46,23 @@ body {
 	height: 325px;
 	width: 208px;
 }
+
+#highscores_in p {
+	margin: 0 0 8px;
+	color: white;
+	font: 13px Arial, sans-serif;
+}
+
+#highscores_in p.title {
+	font-weight: bold;
+	font-size: 15px;
+}
+
+#highscores_in p.total {
+	margin-top: 24px;
+}
+
+#highscores_in button {
+	width: 150px;
+	cursor: pointer;
+}

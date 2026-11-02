@@ -101,9 +101,7 @@ $(document).ready(function() {
 				
 				if(replayMode) {
 					if(escapeMenu) {
-						oldmousePressed = mousePressed;
-						oldmouseReleased = mouseReleased;
-						oldmouseButton = mouseButton;
+						replayPauseInput = captureInput();
 						unclick();
 						keys = 0;
 					}else rescaleReplay();

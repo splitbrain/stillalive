@@ -58,7 +58,8 @@ var maxLevel;
 var frameRate = 60;
 
 var mouseX = mouseY = mousePressed = mouseReleased = mouseButton = mouseNewPress = 0;
-var oldmousePressed = oldmouseReleased = oldmouseButton = 0;
+var replayPauseInput = null;
+var lastTickInGame = false;
 var LEFT = 0;
 var RIGHT = 1;
 var MIDDLE = 2;
@@ -204,6 +205,7 @@ function myLoop() {
 		manageKeys();
 		if(!drawCredits) draw();
 		else doDrawCredits();
+		updatePanel();
 	}
 }
 
@@ -225,8 +227,58 @@ function reportBrokenReplay() {
 	exitFunc();
 }
 
+/**
+ * Store the level time and the replay if the time is a new best time.
+ *
+ * @returns {string} The message for the intermission screen.
+ */
+function checkBestTime() {
+	var campaign = campaigns[lvlType].folder;
+	var best = getBestTime(campaign, currentLevel);
+	if(best != null && best <= TIME) return "Best time : " + toTime(best);
+	
+	saveBestTime(campaign, currentLevel, TIME, encodeReplay(replay, campaign, currentLevel)).catch(function(e) {
+		console.error(e);
+	});
+	return "New best time !";
+}
+
+/**
+ * Get the input state that the game derives from the keys of the previous ticks.
+ *
+ * @returns {number[]} The old keys, the mouse state and the jump and clear state of the player.
+ */
+function captureInput() {
+	return [oldKeys, mousePressed, mouseReleased, mouseButton, mouseNewPress,
+			perso.isJump, perso.oldIsJump, perso.askClear ? 1 : 0];
+}
+
+/**
+ * Restore an input state from captureInput().
+ *
+ * @param {number[]} state The input state.
+ */
+function restoreInput(state) {
+	oldKeys = state[0];
+	mousePressed = state[1];
+	mouseReleased = state[2];
+	mouseButton = state[3];
+	mouseNewPress = state[4];
+	perso.isJump = state[5];
+	perso.oldIsJump = state[6];
+	perso.askClear = state[7] == 1;
+}
+
 function manageKeys() {
+	// The input still changes while the level time stands still. A replay restores the input state at the same time.
+	var inGame = perso.fadeNextLevel == -1 && currentMenu == 2 && !escapeMenu;
+	if(inGame && !replayMode && !lastTickInGame) replay.states[TIME] = captureInput();
+	else if(inGame && replayMode && replay.states[TIME]) restoreInput(replay.states[TIME]);
+	lastTickInGame = inGame;
+	
 	if(perso.fadeNextLevel == -1 && currentMenu == 2 && !replayMode) {
+		mouseX = Math.round(mouseX);
+		mouseY = Math.round(mouseY);
 		replay.inputs[TIME] = keys;
 		replay.mouseX[TIME] = mouseX;
 		replay.mouseY[TIME] = mouseY;
@@ -352,6 +404,7 @@ function draw() {
 				playSfx(sfx_transition);
 				highscoreMessage = "";
 				unclick();
+				if(currentMenu == 2 && !replayMode) highscoreMessage = checkBestTime();
 				intermissionChoice = 0;
 				//TRANS = 7;
 				if(currentMenu == 2 && !replayMode) {
@@ -504,7 +557,7 @@ function skipComingBoss() {
 
 function manageBoss() {
 	if(bossNum == 0) return; 
-	if(bossIsComing && !replayMode) {
+	if(bossIsComing) {
 		if(bossIsTalking) {
 			if(bossLife == 0 && perso.fadeNextLevel == 0) {
 				if(bossX > 449) {
@@ -583,9 +636,11 @@ function manageBoss() {
 					ctx.fillText("to know you after all ... So long, and thanks for all the cakes ...", ECART_X + 22, ECART_Y + 30 + 32);
 				}
 				
-				if(mouseNewPress && rumbleTime > 60) {
+				if(replayMode ? rumbleTime >= replay.bossSpeech : mouseNewPress && rumbleTime > 60) {
+					if(!replayMode) replay.bossSpeech = rumbleTime;
 					bossIsTalking = false;
 					bossIsComing = false;
+					shakeScreen();
 					unclick();
 				}
 			}
@@ -1812,16 +1867,8 @@ function Replay() {
 	this.inputs = new Array();
 	this.mouseX = new Array();
 	this.mouseY = new Array();
-	
-	this.toString = function() {
-		var str = "";
-		
-		for(var i=0; i < this.inputs.length; i++) {
-			if(i > 0) str += ";";
-			str += this.inputs[i] + '|' + this.mouseX[i] + '|' + this.mouseY[i];
-		}
-		return str;
-	}
+	this.states = {};
+	this.bossSpeech = -1;
 }
 
 function Perso() {
@@ -2736,11 +2783,9 @@ function manageToucheBoss(obj) {
 	}else {
 		projos = new Array();
 		plasmaBall = new Array();
-		if(!replayMode) {
-			bossIsComing = true;
-			bossIsTalking = true;
-			rumbleTime = 0;
-		}
+		bossIsComing = true;
+		bossIsTalking = true;
+		rumbleTime = 0;
 	}
   }
 }
@@ -3411,9 +3456,7 @@ function checkCollisions(obj) {
 }
 
 function rescaleReplay() {
-	mousePressed = oldmousePressed;
-	mouseReleased = oldmouseReleased;
-	mouseButton = oldmouseButton;
+	restoreInput(replayPauseInput);
 	keys = replay.inputs[TIME];
 	mouseX = replay.mouseX[TIME];
 	mouseY = replay.mouseY[TIME];

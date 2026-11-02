@@ -84,7 +84,8 @@ function drawAllGame() {
 		
 		if(bossLife == 3) {
 			rumbleTime++;
-			if(rumbleTime % 3 == 0) {
+			if(!bossIsComing) shakeScreen();
+			else if(rumbleTime % 3 == 0) {
 				ECART_X = 64 + random(-3, 3);
 				ECART_Y = 96 + random(-3, 3);
 			}
@@ -136,6 +137,32 @@ function drawAllGame() {
 	if(perso.fadeNextLevel == -1 && currentMenu == 2 && quality > 0) drawText(146, 28, 11);
 	
 	ctx.drawImage(crosshair, mouseX - 8, mouseY - 8, 16, 16);
+}
+
+/**
+ * Shake the playfield after the boss died.
+ *
+ * The offset only depends on the level time, so a replay gets the same offsets as the play. The mouse aim uses the
+ * offset, so random offsets would change the result of a replay. The offset changes every third tick.
+ */
+function shakeScreen() {
+	var step = Math.floor(TIME / 3);
+	ECART_X = 64 + shakeOffset(step * 2);
+	ECART_Y = 96 + shakeOffset(step * 2 + 1);
+}
+
+/**
+ * Get a pseudo-random shake offset.
+ *
+ * @param {number} n The index of the offset.
+ * @returns {number} An offset from -3 to 2 pixels, the same range as random(-3, 3).
+ */
+function shakeOffset(n) {
+	var h = Math.imul(n ^ 0x9e3779b9, 0x85ebca6b);
+	h ^= h >>> 13;
+	h = Math.imul(h, 0xc2b2ae35);
+	h ^= h >>> 16;
+	return ((h >>> 0) % 6) - 3;
 }
 
 function drawKeys() {
@@ -515,7 +542,6 @@ function drawMapSelection() {
 		}else if(overMenu == 3) {//hard/normal mode
 			lvlType = 1 - lvlType;
 			previewMap = 0;
-			$('#highscores_in').html('');
 		}
 		
 		unclick();
@@ -714,7 +740,6 @@ function drawMainMenu() {
 				selectMenu = 1;
 				previewMap = 0;
 				prepareSelectionText();
-				$('#highscores_in').html('');
 				$("#highscores").slideDown("slow");
 				ECART_X = 0;
 				ECART_Y = 96;

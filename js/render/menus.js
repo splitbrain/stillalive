@@ -1,0 +1,809 @@
+/**
+ * Drawing and handling of the splash screen, the loading screen, the menus, the intermission and the credits.
+ */
+
+import { allImagesLoaded, areImagesLoaded, imageProgress, missingImages } from '../assets.js';
+import { allSoundsLoaded, disableSound, isSoundAvailable, isSoundOn, soundProgress, toggleSound } from '../audio.js';
+import { drawBoss, setupBoss, skipComingBoss } from '../boss.js';
+import { ctx } from '../canvas.js';
+import { LEFT, NUM_TILES } from '../constants.js';
+import { confirmDialog } from '../dialog.js';
+import { lvlEditorSetup } from '../editor.js';
+import { createSparkles, manageSparkles } from '../entities/Sparkle.js';
+import { exitFunc } from '../game.js';
+import {
+	bg,
+	bluePortal,
+	body,
+	caisse,
+	cake,
+	controls,
+	crosshair,
+	head,
+	highscore,
+	hud,
+	mapSelection,
+	menuBG,
+	noLevel,
+	pauseBG,
+	platform,
+	portalGun,
+	redPortal,
+	tex_blackos,
+	tex_button,
+	tex_cross,
+	tex_sound,
+	tex_tails,
+	tileset,
+	tourelle,
+	tube,
+	tube2,
+} from '../images.js';
+import { mouseInZone, unclick } from '../input.js';
+import { creditsTxt, levelsLoaded, levelsToLoad, loadLevel, loadPreviewMap } from '../level.js';
+import { copyCanvas, drawCopy, drawPerso, drawRobot, drawTunnels } from './game.js';
+import { drawHudText, drawText } from './hud.js';
+import { rescaleReplay } from '../replay.js';
+import { game, input, settings, ui } from '../state.js';
+import { maxLevel } from '../storage.js';
+import { setupTutorial } from '../tutorial.js';
+import { getAngle, toTime } from '../utils.js';
+
+export function prepareSelectionText() {
+	ui.timeWriting = 0;
+	ui.txtLines = new Array();
+	
+	ui.txtLines.push("Welcome to the campaign mode of StillAliveJS. Here you can select a map on the right and click");
+	ui.txtLines.push("'Play' to play it. Good Luck !");
+}
+
+function manageDownMenu() {
+	let overMenu = -1;
+	if(mouseInZone(74, 445, 120, 24)) overMenu = 1;
+	else if(mouseInZone(74 + 130, 445, 120, 24)) overMenu = 2;
+	else if(mouseInZone(74 + 260, 445, 120, 24) && ui.currentMenu < 5 && ui.currentLevel + 1 < 29) {
+		if(maxLevel[ui.lvlType] >= ui.currentLevel + 1) {
+			overMenu = 3;
+		}
+	}else if(mouseInZone(74 + 390, 445, 120, 24)) overMenu = 4;
+	
+	const scale1 = overMenu == 1 ? 0.9 : 1;
+	const scale2 = overMenu == 2 ? 0.9 : 1;
+	const scale3 = overMenu == 3 ? 0.9 : 1;
+	const scale4 = overMenu == 4 ? 0.9 : 1;
+	
+	drawTinyButton(74, 445, scale1, "Exit");
+	drawTinyButton(74 + 130, 445, scale2, "Restart");
+	if(ui.currentMenu < 5 && ui.currentLevel + 1 < 29) {
+		if(maxLevel[ui.lvlType] >= ui.currentLevel + 1) {
+			drawTinyButton(74 + 260, 445, scale3, "Continue");
+		}
+	}
+	if(ui.lvlType == 4 && (ui.currentLevel == 7 || ui.currentLevel == 14 || ui.currentLevel == 21 || ui.currentLevel == 28)) {
+		if(overMenu == 4) overMenu = 0;
+	}else {
+		drawTinyButton(74 + 390, 445, scale4, "Watch Replay");
+	}
+	
+	if(input.mousePressed && input.mouseButton == LEFT && overMenu > 0) {
+		ui.intermissionChoice = overMenu;
+		unclick();
+	}
+}
+
+function drawPortalGunMenu(x, y, angle) {
+	const a = angle;
+	ctx.save();
+	ctx.translate(x + 8, y + 13);
+	ctx.rotate(a);
+	ctx.drawImage(portalGun, -5, -5);
+	ctx.restore();
+}
+
+export function drawPauseMenu() {
+	//noStroke();
+	ctx.fillStyle = "rgb(0, 65, 88)";
+	//ctx.fillRect(ECART_X - 1, ECART_Y, 512, 384);
+	ctx.drawImage(pauseBG, game.ECART_X, game.ECART_Y);
+	
+	ctx.fillStyle = "rgb(255, 255, 255)";
+	let overMenu = -1;
+	if(mouseInZone(50 + game.ECART_X, 180 + game.ECART_Y, 120, 24)) overMenu = 1;//continue
+	else if(ui.currentMenu != 6 && mouseInZone(187 + game.ECART_X, 180 + game.ECART_Y, 120, 24)) overMenu = 2;//Restart
+	else if(mouseInZone(324 + game.ECART_X, 180 + game.ECART_Y, 120, 24)) overMenu = 3;//exit
+	else if(ui.currentMenu != 6 && mouseInZone(127 + game.ECART_X, 340 + game.ECART_Y, 120, 24)) overMenu = 4;//quality
+	else if(ui.currentMenu != 6 && mouseInZone(247 + game.ECART_X, 340 + game.ECART_Y, 120, 24)) overMenu = 5;//sound
+	
+	const scale1 = overMenu == 1 ? 0.9 : 1;
+	const scale2 = overMenu == 2 ? 0.9 : 1;
+	const scale3 = overMenu == 3 ? 0.9 : 1;
+	const scale4 = overMenu == 4 ? 0.9 : 1;
+	const scale5 = overMenu == 5 ? 0.9 : 1;
+	
+	drawTinyButton(game.ECART_X + 50, game.ECART_Y + 180, scale1, "Resume");
+	if(ui.currentMenu != 6) drawTinyButton(game.ECART_X + 187, game.ECART_Y + 180, scale2, "Restart");
+	drawTinyButton(game.ECART_X + 324, game.ECART_Y + 180, scale3, "Exit");
+	if(ui.currentMenu != 6) drawTinyButton(127 + game.ECART_X, 340 + game.ECART_Y, scale4, "Quality : " + (settings.quality==0?"Low":"High"));
+	if(ui.currentMenu != 6 && isSoundAvailable()) drawTinyButton(247 + game.ECART_X, 340 + game.ECART_Y, scale5, "Sounds : " + (isSoundOn()?"On":"Off"));
+	
+	
+	if(input.mousePressed && input.mouseButton == LEFT && overMenu > 0) {
+		unclick();
+		if(overMenu == 1) {//resume
+			ui.escapeMenu = !ui.escapeMenu;
+			if(game.replayMode) {
+				rescaleReplay();
+			}
+		}else if(overMenu == 2) {//restart
+			ui.escapeMenu = !ui.escapeMenu;
+			if(ui.currentMenu == 2) {
+				loadLevel(ui.currentLevel);
+				if(game.bossNum > 0) skipComingBoss();
+			}
+		}else if(overMenu == 3) {//exit
+			ui.escapeMenu = !ui.escapeMenu;
+			exitFunc();
+		}else if(overMenu == 4) {//quality
+			confirmDialog("Changing quality will restart the map. Are you sure ?", 'Change quality ?').then(function(r) {
+				if(r) {
+					settings.quality = 1 - settings.quality;
+					ui.escapeMenu = !ui.escapeMenu;
+					if(ui.currentMenu == 2) loadLevel(ui.currentLevel);
+				}
+			});
+		}else if(overMenu == 5) {//sound
+			toggleSound();
+		}
+	}
+
+	ctx.drawImage(hud, 0, 0);
+	if(ui.currentMenu == 2 && settings.quality > 0) {
+		drawText(146, 28, 11);
+	}else if(ui.currentMenu == 2 && settings.quality == 0 && game.hudLight) {
+		drawCopy(game.hudLight, 132, 12);
+	}
+	drawRobot();
+	
+	drawHudText();
+	
+	ctx.drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
+}
+
+export function drawSplash() {
+	ctx.fillStyle = "rgb(0, 0, 0)";
+	ctx.fillRect(0, 0, 640, 544);
+	
+	ctx.drawImage(noLevel, 0, 32, 640, 480);
+	
+	ctx.font = "bold 48px Yikes";
+	ctx.fillStyle = "rgb(0, 0, 0)";
+	
+	ctx.fillText("Welcome To", 160 + 4 + 60, titleY + 4 - 80);
+	ctx.fillStyle = "rgb(253, 233, 0)";
+	ctx.fillText("Welcome To", 160 + 60, titleY - 80);
+
+	
+	ctx.font = "bold 64px Yikes";
+	ctx.fillStyle = "rgb(0, 0, 0)";
+	
+	ctx.fillText("StillAliveJS", 160 + 4, titleY + 4);
+	ctx.fillStyle = "rgb(253, 233, 0)";
+	ctx.fillText("StillAliveJS", 160, titleY);
+	
+	titleY += titleVY;
+	titleVY += 0.2;
+	if(titleVY > 10) titleVY = 10;
+	else if(titleVY < -10) titleVY = -10;
+	if(titleY > 400 && timeExit < 300) {
+		titleY = 400;
+		titleVY = -(titleVY>>2);
+	}
+	
+	ctx.font = "bold 24px Yikes";
+	ctx.fillStyle = "rgb(0, 65, 88)";
+	
+	if(timeExit > 100) tailsVY += 0.1;
+	if(tailsVY > 10) tailsVY = 10;
+	else if(tailsVY < -10) tailsVY = -10;
+	
+	tailsY += tailsVY;
+	if(tailsY > 100 && timeExit < 330) {
+		tailsY = 100;
+		tailsVY = -(tailsVY>>2);
+	}
+	
+	if(timeExit > 200) blackosVY += 0.1;
+	if(blackosVY > 10) blackosVY = 10;
+	else if(blackosVY < -10) blackosVY = -10;
+	
+	blackosY += blackosVY;
+	if(blackosY > 130 && timeExit < 360) {
+		blackosY = 130;
+		blackosVY = -(blackosVY>>2);
+	}
+	
+	timeExit++;
+	
+	ctx.drawImage(tex_tails, 32, 32 + tailsY);
+	ctx.fillStyle = "rgb(0, 0, 0)";
+	ctx.fillText("Created by t4ils", 100 + 2, 64 + 2 + tailsY);
+	ctx.fillStyle = "rgb(253, 233, 0)";
+	ctx.fillText("Created by t4ils", 100, 64 + tailsY);
+	
+	ctx.fillStyle = "rgb(0, 0, 0)";
+	ctx.fillText("Gfx by ZeBlackos", 360 + 2, 64 + 2 + blackosY);
+	ctx.fillStyle = "rgb(253, 233, 0)";
+	ctx.fillText("Gfx by ZeBlackos", 360, 64 + blackosY);
+	ctx.drawImage(tex_blackos, 550, 32 + blackosY);
+	
+	if(tailsY > 580) {
+		timeSplash--;
+		if(timeSplash == 0) {
+			overSplash = true;
+			if(allImagesLoaded() && levelsLoaded >= levelsToLoad && allSoundsLoaded()) {
+				started = 1;
+				ui.goMenu = 0;
+				ui.fadeMenu = 30;
+				unclick();
+				ui.currentMenu = 1;
+				game.sparkles = new Array();
+			}
+		}
+	}else {
+		if(++timeSplash>60) timeSplash = 60;
+	}
+	ctx.fillStyle = "rgba(0, 0, 0, " + (1-(timeSplash/60)) + ")";
+	ctx.fillRect(0, 0, 640, 544);
+	
+	if(input.mouseNewPress && timeExit < 360) {
+		timeSplash = 60;
+		timeExit = 360;
+	}
+}
+
+export function drawLoadingScreen() {
+	ctx.strokeStyle = "rgb(0, 0, 0)";
+	ctx.fillStyle = "rgb(0, 65, 88)";
+	ctx.fillRect(0, 0, 640, 544);
+	
+	ctx.fillStyle = "rgb(255, 255, 255)";
+	ctx.fillText("Loading gfx ...", 10, 10);
+	ctx.fillText("Loading maps ...", 10, 50);
+	ctx.fillText("Loading sfx ...", 10, 90);
+	
+	ctx.fillStyle = "rgb(255, 0, 0)";
+	if(game.TIME%50 < 25) {
+		ctx.fillStyle = "rgb(0, 0, 0)";
+	}
+	
+	if(mouseInZone(80, 80, 133, 16)) {
+		ctx.fillStyle = "rgb(255, 255, 255)";
+		if(input.mouseNewPress) {
+			disableSound();
+		}
+	}
+	
+	ctx.fillText("(click here if not loading)", 85, 90);
+	ctx.fillStyle = "rgb(255, 255, 255)";
+	
+	//noFill();
+	ctx.strokeStyle = "rgb(255, 255, 255)";
+	ctx.strokeRect(10, 20, 202, 14);
+	ctx.strokeRect(10, 60, 202, 14);
+	ctx.strokeRect(10, 100, 202, 14);
+	
+	ctx.fillText("- Grab cakes and reach the exit of each level.", 10, 130);
+	ctx.fillText("- Use your portal gun to teleport through levels.", 10, 140);
+	
+	ctx.fillStyle = "rgb(255, 0, 0)";
+	//noStroke();
+	ctx.fillRect(11, 21, parseInt(imageProgress() * 200), 12);
+	ctx.fillRect(11, 61, parseInt(levelsLoaded / levelsToLoad * 200), 12);
+	ctx.fillRect(11, 101, parseInt(soundProgress() * 200), 12);
+	ctx.fillStyle = "rgb(255, 255, 255)";
+	ctx.fillText((parseInt(imageProgress() * 100)) + "%", 100, 30);
+	ctx.fillText((parseInt(levelsLoaded / levelsToLoad * 100)) + "%", 100, 70);
+	ctx.fillText((parseInt(soundProgress() * 100)) + "%", 100, 110);
+	
+	const missing = missingImages();
+	if(missing.length > 0) {
+		ctx.fillStyle = "rgb(255, 0, 0)";
+		ctx.fillText("Some images could not be loaded: " + missing.join(", "), 10, 160);
+		ctx.fillStyle = "rgb(255, 255, 255)";
+	}
+	
+	//make sure img in the menu are loaded
+	const imagesReady = areImagesLoaded([body[0], body[1], head[0], head[1], controls, crosshair, bluePortal, redPortal]);
+	if(imagesReady) {
+		const dx = 225;
+		const dy = 190;
+		ctx.drawImage(controls, dx, dy);
+		
+		drawPerso(62 + dx, dy, -1);
+		drawPerso(124 + dx, 95 + dy, 1);
+		drawPerso(dx, 95 + dy, -1);
+		ctx.drawImage(bluePortal, 0, 0, 32, 32, 68 + dx, 177 + dy, 32, 32);
+		ctx.drawImage(redPortal, 0, 0, 32, 32, 171 + dx, 177 + dy, 32, 32);
+	}
+	
+	game.TIME++;
+	if(allImagesLoaded() && levelsLoaded >= levelsToLoad && allSoundsLoaded()) {
+		if(game.TIME%50 < 25) {
+			ctx.fillText("Click to continue ...", 280, 476);
+		}
+		if(input.mousePressed) {
+			//loadLevel(currentLevel);
+			started = 1;
+			ui.goMenu = 0;
+			ui.fadeMenu = 30;
+			unclick();
+			ui.currentMenu = 1;
+			game.sparkles = new Array();
+			//exitFunc();
+		}
+	}
+	//make sure crosshair image is loaded
+	if(imagesReady) ctx.drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
+}
+
+export function drawMapSelection() {
+	let scale3, i;
+	if(ui.previewMap < 1) ctx.drawImage(noLevel, game.ECART_X, game.ECART_Y);
+	if(ui.previewMap > 0) drawPreviewMap();			
+	ctx.drawImage(mapSelection, 0, 0);
+	
+	if(input.mouseX >= 529 && input.mouseX <= 529 + 90) {
+		if(input.mouseY >= 12 + 105 && input.mouseY <= 104 + (29 * 12)) {
+			const y = parseInt((input.mouseY - 105)/12);
+			if(y <= maxLevel[ui.lvlType]) {
+				ctx.fillStyle = "rgb(15, 112, 144)";
+				//noStroke();
+				ctx.fillRect(529, 105 + (y * 12) + 2, 90, 14);
+				
+				if(input.mousePressed && input.mouseButton == LEFT) {
+					if(y != ui.previewMap) {
+						unclick();
+						ui.previewMap = y;
+						ui.currentLevel = y;
+						loadPreviewMap(ui.previewMap);
+					}
+				}
+			}
+		}
+	}
+	
+	let overMenu = -1;
+	if(mouseInZone(20, 495, 120, 24)) overMenu = 2;
+	const scale2 = overMenu == 2 ? 0.9 : 1;
+	drawTinyButton(20, 495, scale2, "Exit");
+	
+	if(ui.previewMap > 0) {
+		ctx.fillStyle = "rgb(15, 112, 144)";
+		//noStroke();
+		ctx.fillRect(529, 105 + (ui.previewMap * 12) + 2, 90, 14);
+		
+		if(mouseInZone(515, 495, 120, 24)) overMenu = 1;
+		const scale1 = overMenu == 1 ? 0.9 : 1;
+
+		drawTinyButton(515, 495, scale1, "Play");
+	}
+	
+	if(ui.lvlType == 0 && maxLevel[0]==29) {
+		if(mouseInZone(380, 495, 120, 24)) overMenu = 3;
+		scale3 = overMenu == 3 ? 0.9 : 1;
+		drawTinyButton(380, 495, scale3, "Hard Mode");
+	}else if(ui.lvlType == 1) {
+		if(mouseInZone(380, 495, 120, 24)) overMenu = 3;
+		scale3 = overMenu == 3 ? 0.9 : 1;
+		drawTinyButton(380, 495, scale3, "Normal Mode");
+	}
+	
+	if(input.mousePressed && input.mouseButton == LEFT && overMenu > 0) {
+		if(overMenu == 1) {//play
+			game.ECART_X = 64;
+			game.ECART_Y = 96;
+			ui.currentMenu = 2;
+			ui.currentLevel = ui.previewMap;
+			loadLevel(ui.currentLevel);
+			//selectMenu = 0;
+			unclick();
+			return;
+		}else if(overMenu == 2) {//exit
+			game.ECART_X = 64;
+			game.ECART_Y = 96;
+			ui.currentMenu = 1;
+			ui.selectMenu = 0;
+			ui.fadeMenu = 30;
+			document.getElementById('highscores').classList.remove('open');
+			unclick();
+			return;
+		}else if(overMenu == 3) {//hard/normal mode
+			ui.lvlType = 1 - ui.lvlType;
+			ui.previewMap = 0;
+		}
+		
+		unclick();
+	}
+	
+	ctx.font = "bold 12px Arial";
+	for(i=0; i<28;i++) {
+		ctx.strokeStyle = "rgb(0, 0, 0)";
+		if((i+1) <= maxLevel[ui.lvlType]) {
+			ctx.fillStyle = "rgb(255, 255, 255)";
+		}else {
+			ctx.fillStyle = "rgb(200, 200, 200)";
+		}
+		ctx.fillText("Level " + (i+1),549, 105 + 24 + (i * 12));
+	}
+	
+	ctx.drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
+}
+
+function drawBigButton(x, y, scale, text) {
+	ctx.drawImage(tex_button, x + ((1-scale)*320) / 2, y + ((1-scale)*64) / 2, 320 * scale, 64 * scale);
+	
+	x += 320 / 2;
+
+	ctx.font = "36px yikes";
+	if(scale != 1) ctx.font = "34px yikes";
+	
+	const metrics = ctx.measureText(text);
+	x -= metrics.width / 2;
+	y += 45;
+	
+	ctx.fillStyle = "rgb(0, 0, 0)";
+	ctx.fillText(text, x + 4, y + 4);
+	ctx.fillStyle = "rgb(253, 233, 0)";
+	
+	ctx.fillText(text, x, y);
+}
+
+export function drawTinyButton(x, y, scale, text) {
+	ctx.drawImage(tex_button, x + ((1-scale)*120) / 2, y + ((1-scale)*24) / 2, 120 * scale, 24 * scale);
+	
+	x += 120 / 2;
+
+	ctx.font = "16px yikes";
+	if(scale != 1) ctx.font = "14px yikes";
+	const metrics = ctx.measureText(text);
+	x -= metrics.width / 2;
+	y += 18;
+	
+	ctx.fillStyle = "rgb(0, 0, 0)";
+	ctx.fillText(text, x + 2, y + 2);
+	ctx.fillStyle = "rgb(253, 233, 0)";
+	
+	ctx.fillText(text, x, y);
+}
+
+export function drawMainMenu() {
+	let pX, pY, pX2;
+	ctx.strokeStyle = "rgb(0, 0, 0)";
+	ctx.fillStyle = "rgb(0, 65, 88)";
+	//ctx.fillRect(0, 0, 640, 544);
+	ctx.drawImage(menuBG, 0, 0);
+	//draw the menu
+	
+	const yStart = 32;
+	const ecart = 18;
+	
+	let overMenu = -1;
+	if(mouseInZone(160, yStart, 320, 64)) overMenu = 1;
+	else if(mouseInZone(160, yStart + (1 * (64 + ecart)), 320, 64)) overMenu = 2;
+	else if(mouseInZone(160, yStart + (2 * (64 + ecart)), 320, 64)) overMenu = 3;
+	else if(mouseInZone(160, yStart + (3 * (64 + ecart)), 320, 64)) overMenu = 4;
+	else if(mouseInZone(160, yStart + (4 * (64 + ecart)), 320, 64)) overMenu = 5;
+	
+	const scale1 = overMenu == 1 ? 0.9 : 1;
+	const scale2 = overMenu == 2 ? 0.9 : 1;
+	const scale3 = overMenu == 3 ? 0.9 : 1;
+	const scale4 = overMenu == 4 ? 0.9 : 1;
+	const scale5 = overMenu == 5 ? 0.9 : 1;
+	
+	if(ui.goMenu) {
+		if(ui.lvlType==0) drawBigButton(160, yStart, scale1, "Classic Mode" + (maxLevel[0]>28?" +":""));
+		else if(ui.lvlType==1) drawBigButton(160, yStart + (1 * (64 + ecart)), scale2, "Enhanced Mode");
+		else if(ui.lvlType==2) drawBigButton(160, yStart + (2 * (64 + ecart)), scale3, "Ultimate Mode");
+		else if(ui.lvlType==3) drawBigButton(160, yStart + (3 * (64 + ecart)), scale4, "Level Editor");
+		else if(ui.lvlType==4) drawBigButton(160, yStart + (4 * (64 + ecart)), scale5, "Tutorial");
+	}else {
+		let dy = 0;
+		if(maxLevel[0] <= 28) dy = 64;
+		drawBigButton(160, yStart, scale1, "Classic Mode" + (maxLevel[0]>28?" +":""));
+		drawBigButton(160, yStart + (1 * (64 + ecart)), scale2, "Enhanced Mode");
+		drawBigButton(160, yStart + (2 * (64 + ecart)), scale3, "Ultimate Mode");
+		drawBigButton(160, yStart + (3 * (64 + ecart)), scale4, "Level Editor");
+		drawBigButton(160, yStart + (4 * (64 + ecart)), scale5, "Tutorial");
+		
+		/*
+		if(maxLevel[0] <= 28 && overMenu > 1 && overMenu < 4) {
+			ctx.fillStyle = "rgb(255, 255, 255)";
+			ctx.font = "bold 16px Arial";
+			ctx.fillText("Finish normal mode to unlock this campaign !", 170, 75 + yStart + (overMenu - 1) * 64 + (overMenu - 1) * ecart);
+			overMenu = -1;
+		}*/
+		
+		pX = 130;
+		pY = yStart + 25 + (overMenu - 1) * 64 + (overMenu - 1) * ecart;
+		
+		pX2 = 150 + 320 + 40 - 16;
+
+		drawPortalGunMenu(pX, pY, getAngle(pX, pY, input.mouseX, input.mouseY));
+		drawPerso(pX, pY, 1);
+		
+		drawPortalGunMenu(pX2, pY, getAngle(pX2, pY, input.mouseX, input.mouseY));
+		drawPerso(pX2, pY, -1);
+	}
+	
+	let zoomSound = 1;
+	if(isSoundAvailable() && mouseInZone(20, 300, 29, 48)) {
+		zoomSound = 0.9;
+		if(input.mousePressed && input.mouseButton == LEFT) {
+			unclick();
+			toggleSound();
+		}
+		
+		ctx.globalAlpha = 0.8;
+		ctx.fillStyle = "rgb(7, 49, 63)";
+		ctx.fillRect(20, 300, 300, 48);
+		
+		ctx.fillStyle = "rgb(255, 255, 255)";
+		ctx.font = "bold 12px Arial";
+		ctx.fillText("Sound is an experimental feature that might", 55, 312);
+		ctx.fillText("not work very well. Turn it off to increase", 55, 328);
+		ctx.fillText("performances.", 55, 343);
+		
+		ctx.globalAlpha = 1;
+	}
+	
+	let zoomQuality = 1;
+	if(mouseInZone(20, 385, 30, 36)) {
+		zoomQuality = 0.9;
+		if(input.mousePressed && input.mouseButton == LEFT) {
+			unclick();
+			settings.quality = !settings.quality;
+		}
+		
+		ctx.globalAlpha = 0.8;
+		ctx.fillStyle = "rgb(7, 49, 63)";
+		ctx.fillRect(15, 378, 300, 48);
+		
+		ctx.fillStyle = "rgb(255, 255, 255)";
+		ctx.font = "bold 12px Arial";
+		ctx.fillText("Some animations might slow down your", 55, 392);
+		ctx.fillText("computer. Try to turn them off to increase", 55, 407);
+		ctx.fillText("performances.", 55, 422);
+		
+		ctx.globalAlpha = 1;
+		
+	}
+	
+	ctx.font = "36px yikes";
+	ctx.fillStyle = "rgb(0, 0, 0)";
+	ctx.fillText("Q", 25, 415); 
+	ctx.fillStyle = "rgb(253, 233, 0)";
+	ctx.fillText("Q", 23, 412); 
+	
+	if(!settings.quality) ctx.drawImage(tex_cross, 15 + ((1-zoomQuality)*40) / 2, 385 + ((1-zoomQuality)*40) / 2, 40 * zoomQuality, 34 * zoomQuality);
+	
+	ctx.font = "18px yikes";
+	ctx.fillStyle = "rgb(253, 233, 0)";
+	ctx.fillText("Quality", 13, 454);
+	ctx.fillText(settings.quality==0?"Low":"High", 20, 438);
+	
+	if(isSoundAvailable()) {
+		ctx.drawImage(tex_sound, 20 + ((1-zoomSound)*29) / 2, 300 + ((1-zoomSound)*48) / 2, 29 * zoomSound, 48 * zoomSound);
+		if(!isSoundOn()) ctx.drawImage(tex_cross, 15 + ((1-zoomSound)*40) / 2, 305 + ((1-zoomSound)*40) / 2, 40 * zoomSound, 34 * zoomSound);
+		ctx.fillText("SFX", 20, 365);
+	}
+	
+	ctx.drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
+	
+	if(input.mousePressed && input.mouseButton == LEFT && overMenu > 0 && ui.goMenu == 0) {
+		ui.lvlType = overMenu - 1;
+		ui.goMenu = 60;
+		createSparkles(pX<<8, (pY<<8) + (13<<8), input.mouseX<<8,input.mouseY<<8, 1, 8);
+		createSparkles(pX<<8, (pY<<8) + (13<<8), input.mouseX<<8,input.mouseY<<8, 1, 9);
+		createSparkles(pX2<<8, (pY<<8) + (13<<8), input.mouseX<<8,input.mouseY<<8, 0, 8);
+		createSparkles(pX2<<8, (pY<<8) + (13<<8), input.mouseX<<8,input.mouseY<<8, 0, 9);
+		unclick();
+    
+	}else if(ui.goMenu) {
+		if(--ui.goMenu == 0) {
+			ctx.fillStyle = "rgb(0, 0, 0)";
+			//noStroke();
+			ctx.fillRect(0, 0, 640, 544);
+			if(ui.lvlType < 3) {
+				ui.selectMenu = 1;
+				ui.previewMap = 0;
+				prepareSelectionText();
+				document.getElementById('highscores').classList.add('open');
+				game.ECART_X = 0;
+				game.ECART_Y = 96;
+				if(ui.lvlType == 2) {
+				  ui.lvlType = 4;
+				  game.bossNum = 0;
+				  setupBoss();
+				}else if(ui.lvlType == 1) {
+					ui.lvlType = 2;
+				}
+			}else {
+				if(ui.lvlType == 3) {//go level editor
+					ui.currentMenu = 3;
+					lvlEditorSetup();
+					game.sparkles = new Array();
+				}else if(ui.lvlType == 4) {//go tutorial
+					ui.currentMenu = 6;
+					setupTutorial();
+				}
+			}
+		}else {
+			const a = ui.goMenu / 60;
+			ctx.fillStyle = "rgba(0, 0, 0," + (1-a) + ")";
+			//noStroke();
+			ctx.fillRect(0, 0, 640, 544);
+		}
+	}
+	
+	manageSparkles();
+	
+	if(ui.fadeMenu > 0) {
+		ui.fadeMenu--;
+		const fa = ui.fadeMenu / 30;
+		ctx.fillStyle = "rgba(0, 0, 0, " + fa + ")";
+		ctx.fillRect(0, 0, 640, 544);
+	}
+}
+
+export function doDrawCredits() {
+	if(input.mouseNewPress && creditsTime > 150) speedScr = 5;
+	creditsTime += speedScr;
+	
+	
+	if(creditsTime > 1800) {
+		if(creditsAlpha > 0) creditsAlpha -= 0.01;
+		if(creditsAlpha < 0) {
+			ui.drawCredits = false;
+		}
+	}else {
+		if(creditsAlpha < 1) creditsAlpha += 0.01;
+		if(creditsAlpha > 1) creditsAlpha = 1;
+	}
+	
+	ctx.drawImage(noLevel, 0, 32, 640, 480);
+	ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+	ctx.fillRect(0, 0, 640, 544);
+	
+	ctx.drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
+
+	ctx.fillStyle = "rgba(0, 0, 0," + (1-creditsAlpha) + ")";
+	ctx.fillRect(0, 0, 640, 544);
+	
+	ctx.font = "24px yikes";	
+	for(const t in creditsTxt) {
+		const txt = creditsTxt[t];
+		const metrics = ctx.measureText(txt);
+		const x = 320 - (metrics.width >> 1);
+		
+		const yLow = creditsTxt.length * 15;
+		
+		const y = t * 32 + (yLow - creditsTime);
+		
+		if(y <= 544) {
+		ctx.fillStyle = "rgb(0, 0, 0)";
+		ctx.fillText(txt, x + 2, y + 2);
+		ctx.fillStyle = "rgb(253, 233, 0)";
+		ctx.fillText(txt, x, y);
+		}
+	}
+	
+	ctx.fillStyle = "rgb(0, 0, 0)";
+	ctx.fillRect(0, 0, 640, 32);
+	ctx.fillRect(0, 544 - 32, 640, 32);
+}
+
+export function doDrawIntermission() {
+	if(game.perso.intermissionFade > 0) {
+		ctx.fillStyle = "rgb(0, 0, 0)";
+		//noStroke();
+		ctx.fillRect(game.ECART_X - 1, game.ECART_Y, 512, 384);
+		game.perso.intermissionFade--;
+		const a = game.perso.intermissionFade / 20;
+		ctx.globalAlpha = 1 - a;
+	}
+	ctx.drawImage(highscore, game.ECART_X, game.ECART_Y);
+	if(game.perso.intermissionFade > 0) ctx.globalAlpha = 1;
+	
+	manageDownMenu();
+	
+	if(game.perso.intermissionFade == 0) {
+		ctx.fillStyle = "rgb(255, 255, 255)";
+		ctx.font = "bold 12px Arial";
+		ctx.fillText("Your time : " + toTime(game.TIME), game.ECART_X + 35, game.ECART_Y + 260);
+		ctx.fillText(ui.highscoreMessage, game.ECART_X + 35, game.ECART_Y + 278);
+	}
+}
+
+export function drawPreviewMap() {
+	let i, tour, cai, pla;
+	if(game.needLoad) {
+		ctx.drawImage(bg[game.BG], game.ECART_X, game.ECART_Y, 512, 384);
+		for(i in game.displayMap) {
+			const y = i >> 5;
+			const x = i - (y << 5);
+			if(game.displayMap[i] < NUM_TILES && game.displayMap[i] > 0 && i < 768) {
+				if(game.CAKELEFT == 0 && game.displayMap[i]==35) {
+					game.displayMap[i] = 22;
+					game.map[i] = 22;
+				}
+				ctx.drawImage(tileset[game.displayMap[i]], x*16 + game.ECART_X, y*16 + game.ECART_Y, 16, 16);
+			}
+		}
+		game.imgBuff = copyCanvas(game.ECART_X, game.ECART_Y, 512, 384);
+		game.needLoad = false;
+		ctx.fillStyle = "rgb(0, 0, 0)";;
+		//noStroke();
+		ctx.fillRect(game.ECART_X, game.ECART_Y, 512, 384);
+	}
+	else 
+	{
+		drawCopy(game.imgBuff, game.ECART_X, game.ECART_Y);
+		
+		game.perso.flip = 1;
+		
+		ctx.save();
+		ctx.translate((game.perso.x>>8) + (game.perso.pX>>1) + game.ECART_X, (game.perso.y>>8) + (game.perso.pY>>1) + game.ECART_Y);
+		ctx.drawImage(portalGun, -5, -5);
+		ctx.restore();
+
+		const flipDx =  game.perso.flip < 0 ? 1 : 0;
+		ctx.drawImage(head[flipDx], game.perso.animeFrame * 16, 0, 15, 12, ((game.perso.x>>8) + game.ECART_X), (game.perso.y>>8) + game.ECART_Y, 16, 12); 
+		ctx.drawImage(body[flipDx], game.perso.animeFrame * 16, 0, 16, 27, ((game.perso.x>>8) + game.ECART_X), (game.perso.y>>8) + game.ECART_Y, 16, 27);
+		
+		for(i in game.cakes) {
+			if(game.cakes[i].used) {
+				ctx.drawImage(cake, (game.cakes[i].x>>8) + game.ECART_X, ((game.cakes[i].y + game.cakes[i].vy)>>8) + game.ECART_Y, 16, 12); 
+			}
+		}
+		
+		for(tour in game.tourelles) {
+			const side = game.tourelles[tour].dir < 0 ? 0 : 1;
+			ctx.drawImage(tourelle[side], 0, game.tourelles[tour].animFrame * 32, 16, 32,(game.tourelles[tour].x>>8) + game.ECART_X, (game.tourelles[tour].y>>8) + game.ECART_Y, 16, 32);
+		}
+
+		for(cai in game.caisses) {
+			ctx.drawImage(caisse, (game.caisses[cai].x>>8) + game.ECART_X, (game.caisses[cai].y>>8) + game.ECART_Y);
+		}
+		
+		for(pla in game.platforms) {
+			ctx.drawImage(platform, (game.platforms[pla].x >> 8) + game.ECART_X, (game.platforms[pla].y >> 8) + game.ECART_Y);
+		}
+		
+		drawTunnels();
+		
+		if(game.bossNum > 0) {
+			if(game.bossNum == 1 || game.bossNum == 3 || game.bossNum == 4) ctx.drawImage(tube, (game.tubeX>>8) + game.ECART_X, (game.tubeY>>8) + game.ECART_Y);
+			else if(game.bossNum == 2) ctx.drawImage(tube2, (game.tubeX>>8) + game.ECART_X, (game.tubeY>>8) + game.ECART_Y);
+			drawBoss();
+		}
+		
+		ctx.drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
+		//noFill();
+		ctx.strokeStyle = "rgb(0, 0, 0)";
+		ctx.lineWidth = 1;
+		/*ctx.strokeRect(0, 0, 640, 544);*/
+	}
+}
+
+let started = false;
+export let overSplash = false;
+let timeSplash = 0;
+let timeExit = 0;
+let tailsVY = 0, blackosVY = 0;
+let tailsY = -100;
+let blackosY  = -100;
+let titleY = -50;
+let titleVY = 0;
+let creditsTime = 0;
+let creditsAlpha = 0;
+let speedScr = 0.4;

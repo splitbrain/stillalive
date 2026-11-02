@@ -1,4 +1,64 @@
-"use strict";
+/**
+ * The level editor.
+ */
+
+import { ctx } from './canvas.js';
+import { BAS, DROITE, GAUCHE, HAUT, LEFT, MIDDLE, NUM_TILES, RIGHT } from './constants.js';
+import { alertDialog } from './dialog.js';
+import { Caisse } from './entities/Caisse.js';
+import { Cake } from './entities/Cake.js';
+import { Perso } from './entities/Perso.js';
+import { Platform } from './entities/Platform.js';
+import { Portal } from './entities/Portal.js';
+import { manageSparkles } from './entities/Sparkle.js';
+import { Tourelle } from './entities/Tourelle.js';
+import { Tunnel } from './entities/Tunnel.js';
+import {
+	bg,
+	body,
+	caisse,
+	cake,
+	crosshair,
+	head,
+	levelEditorHud,
+	mapSelection,
+	noLevel,
+	platform,
+	portalGun,
+	tex_leftBG,
+	tex_rightBG,
+	tileset,
+	tourelle,
+	tunnel,
+	tunnel2,
+} from './images.js';
+import { mouseInZone, unclick } from './input.js';
+import { gestionPorte, loadLevelEditor, loadPreviewMap } from './level.js';
+import { exportEditorMap, importEditorMap } from './mapFile.js';
+import { finNiveau } from './physics.js';
+import { dansUnPortal } from './portals.js';
+import {
+	animateTiles,
+	copyCanvas,
+	createBuff,
+	drawArrow,
+	drawCaisses,
+	drawCakes,
+	drawCopy,
+	drawFrontTiles,
+	drawLowQualityPortals,
+	drawPerso,
+	drawPlasma,
+	drawPlatformes,
+	drawPortals,
+	drawTourelles,
+	drawTunnels,
+} from './render/game.js';
+import { drawText } from './render/hud.js';
+import { drawPreviewMap, drawTinyButton } from './render/menus.js';
+import { game, input, settings, ui } from './state.js';
+import { getEditorMap, saveEditorMap } from './storage.js';
+import { getAngle } from './utils.js';
 
 let selectedTile, selectedSprite;
 let tilesToDraw;
@@ -6,13 +66,12 @@ let redrawTiles;
 let tilesBuff;
 let undoMap;
 let undoIndex;
-
 let oldMouseReleased = 0;
-let isTestingLevel;
+export let isTestingLevel;
 let oldBG;
 let askLoading, askSaving;
 
-function startPlayingLevel() {
+export function startPlayingLevel() {
 	let i;
 	isTestingLevel = true;
 	game.oldMap = new Array();
@@ -22,7 +81,7 @@ function startPlayingLevel() {
 	prepareLvlEditorPlayTxt();
 }
 
-function stopPlayingLevel() {
+export function stopPlayingLevel() {
 	let i;
 	game.portals = new Array();
 	game.portals.push(new Portal());game.portals.push(new Portal());
@@ -96,7 +155,7 @@ function drawTestLevel() {
 	ctx.drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
 }
 
-function lvlEditorSetup() {
+export function lvlEditorSetup() {
 	let i;
 	game.BG = 0;
 	askLoading = false;
@@ -157,7 +216,7 @@ function prepareLvlEditorPlayTxt() {
 	ui.txtLines.push("Press <Enter> or <Escape> key to stop testing.");	
 }
 
-function drawLevelEditor() {
+export function drawLevelEditor() {
 	if(isTestingLevel) {
 		levelEditorTestLevel();
 		if(finNiveau()) stopPlayingLevel();

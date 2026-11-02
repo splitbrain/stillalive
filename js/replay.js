@@ -15,6 +15,8 @@
  */
 
 import { downloadJson } from './files.js';
+import { restoreInput } from './input.js';
+import { game, input } from './state.js';
 
 /** @type {number} The length of an input state from captureInput(). */
 const STATE_LENGTH = 8;
@@ -116,4 +118,17 @@ export function downloadReplay(data) {
 	downloadJson(data, `stillalivejs-${data.campaign}-${String(data.level).padStart(2, '0')}.json`);
 }
 
-Object.assign(window, { encodeReplay, decodeReplay, downloadReplay });
+export function Replay() {
+	this.inputs = new Array();
+	this.mouseX = new Array();
+	this.mouseY = new Array();
+	this.states = {};
+	this.bossSpeech = -1;
+}
+
+export function rescaleReplay() {
+	restoreInput(input.replayPauseInput);
+	input.keys = game.replay.inputs[game.TIME];
+	input.mouseX = game.replay.mouseX[game.TIME];
+	input.mouseY = game.replay.mouseY[game.TIME];
+}

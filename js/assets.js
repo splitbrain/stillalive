@@ -86,5 +86,3 @@ export function allImagesLoaded() {
 export function missingImages() {
 	return missing;
 }
-
-Object.assign(window, { loadImage, whenImagesDone, areImagesLoaded, imageProgress, allImagesLoaded, missingImages });

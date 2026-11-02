@@ -1,11 +1,9 @@
-"use strict";
-
 /**
  * The shared state of the game.
  */
 
 /** @type {object} The state of the current level: the map, the player, the objects, the level time and the boss. */
-const game = {
+export const game = {
 	replay: undefined,
 	replayMode: false,
 	CAKELEFT: undefined,
@@ -51,7 +49,7 @@ const game = {
 };
 
 /** @type {object} The state of the menus, the intermission screen, the level texts and the tutorial. */
-const ui = {
+export const ui = {
 	currentMenu: undefined,
 	selectMenu: 0,
 	previewMap: 0,
@@ -74,7 +72,7 @@ const ui = {
 };
 
 /** @type {object} The keys and the mouse, and the input state that the game derives from them. */
-const input = {
+export const input = {
 	keys: 0,
 	oldKeys: 0,
 	mouseX: 0,
@@ -90,6 +88,6 @@ const input = {
 };
 
 /** @type {object} The settings of the player. */
-const settings = {
+export const settings = {
 	quality: 1,
 };

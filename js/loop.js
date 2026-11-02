@@ -99,5 +99,3 @@ export function startLoop(tick) {
 export function getFps() {
 	return fps;
 }
-
-Object.assign(window, { startLoop, getFps });

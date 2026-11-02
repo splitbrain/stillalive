@@ -1,8 +1,19 @@
-"use strict";
+/**
+ * The tutorial.
+ */
+
+import { ctx } from './canvas.js';
+import { DROITE } from './constants.js';
+import { Sparkle } from './entities/Sparkle.js';
+import { unclick } from './input.js';
+import { loadLevel } from './level.js';
+import { finNiveau } from './physics.js';
+import { game, input, ui } from './state.js';
+import { random } from './utils.js';
 
 const leftPan = game.ECART_X + 40;
 
-function setupTutorial() {
+export function setupTutorial() {
 	ui.tutoJump = false;
 	ui.tutoPortal = false;
 	ui.tutoPause = true;
@@ -14,7 +25,7 @@ function setupTutorial() {
 	loadLevel(ui.currentLevel);
 }
 
-function manageTutorial() {
+export function manageTutorial() {
 	if(ui.currentLevel == 9) {//tutorial finished
 		drawEndTutorialMessage();
 	}else if(ui.currentLevel == 1 && !finNiveau()) {
@@ -227,7 +238,6 @@ function drawMoveMessage() {
 	ctx.fillText("Click to continue ...", leftPan, game.ECART_Y + 48 + 32);
 }
 
-
 function drawJumpMessage() {
 	prepareTxtDefault();
 	ctx.fillText("You can't pass these obstacles unless you jump over them.", leftPan, game.ECART_Y + 48);
@@ -239,7 +249,7 @@ function prepareTxtDefault() {
 	prepareTxt(32, 32, 420, 56);
 }
 
-function prepareTxt(x, y, w, h) {
+export function prepareTxt(x, y, w, h) {
 	ctx.fillStyle = "rgb(7, 49, 63)";
 	ctx.fillRect(game.ECART_X + x, game.ECART_Y + y, w, h);
 	

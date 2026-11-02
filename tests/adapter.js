@@ -1,8 +1,9 @@
 /**
  * Test adapter that reads and writes the game state in the browser.
  *
- * The functions in this file are the only test code that knows the global variables of the game. The test files
- * only use the exported functions.
+ * The game gives the tests access to its state and functions through window.__test when the URL contains "?test".
+ * The functions in this file are the only test code that knows this hook. The test files only use the exported
+ * functions.
  */
 
 /**
@@ -64,12 +65,12 @@ export function hashString(text) {
  */
 export async function openGame(page) {
 	await page.clock.install();
-	await page.goto('./');
+	await page.goto('./?test');
 	await page.waitForFunction(
-		() =>
-			typeof campaigns !== 'undefined' &&
-			levelsLoaded >= levelsToLoad &&
-			allImagesLoaded(),
+		() => {
+			const t = window.__test;
+			return t !== undefined && t.levelsLoaded() >= t.levelsToLoad() && t.allImagesLoaded();
+		},
 		null,
 		{ polling: 50 },
 	);
@@ -80,7 +81,8 @@ export async function openGame(page) {
  *
  * The level starts in the same way as from the level selection in the menu. Math.random() gets a pseudo-random
  * generator with the given seed, so the visual effects that change the game state give the same result in each run.
- * The run stops early in the tick in which the player reaches the exit. More levels can run in the same page.
+ * The run stops early in the tick in which the player reaches the exit. In this tick, the game sets the fade of the
+ * same player object from -1 to 120. More levels can run in the same page.
  *
  * @param {import('@playwright/test').Page} page The Playwright page.
  * @param {object} options The run options.
@@ -96,6 +98,8 @@ export async function openGame(page) {
 export async function runLevel(page, { campaign, level, ticks, seed, inputs = null, replay = null }) {
 	return page.evaluate(
 		({ campaign, level, ticks, seed, inputs, replay: replayData, interval }) => {
+			const t = window.__test;
+			const { game, ui, input } = t;
 			let state = seed >>> 0;
 			Math.random = () => {
 				state = (state + 0x6d2b79f5) >>> 0;
@@ -103,14 +107,6 @@ export async function runLevel(page, { campaign, level, ticks, seed, inputs = nu
 				t = Math.imul(t ^ (t >>> 15), t | 1);
 				t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
 				return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-			};
-
-			let finished = false;
-			const originalFinNiveau = finNiveau;
-			finNiveau = function () {
-				const result = originalFinNiveau();
-				if (result) finished = true;
-				return result;
 			};
 
 			game.ECART_X = 64;
@@ -128,14 +124,14 @@ export async function runLevel(page, { campaign, level, ticks, seed, inputs = nu
 			} else {
 				// the level selection in the menu loads the preview map before the level
 				ui.currentMenu = 1;
-				loadPreviewMap(level);
+				t.loadPreviewMap(level);
 				ui.currentMenu = 2;
 			}
 			game.replayMode = replayData !== null;
-			if (game.replayMode) game.replay = decodeReplay(replayData);
-			loadLevel(level);
-			if (typeof game.camera === 'undefined') game.camera = new Camera(game.perso.x, game.perso.y);
-			unclick();
+			if (game.replayMode) game.replay = t.decodeReplay(replayData);
+			t.loadLevel(level);
+			if (typeof game.camera === 'undefined') game.camera = new t.Camera(game.perso.x, game.perso.y);
+			t.unclick();
 			const startMap = game.map.slice();
 
 			const pick = (obj, fields) => fields.map((field) => obj[field]);
@@ -158,14 +154,16 @@ export async function runLevel(page, { campaign, level, ticks, seed, inputs = nu
 				if (inputs) {
 					[input.keys, input.mouseX, input.mouseY] = inputs[tick - 1];
 				}
-				myLoop();
+				const perso = game.perso;
+				const fade = perso.fadeNextLevel;
+				t.myLoop();
+				const finished = game.perso === perso && fade === -1 && perso.fadeNextLevel === 120;
 				if (tick % interval === 0 || finished) lines.push(snapshot(tick));
 				if (finished) {
 					lines.push('finished');
 					break;
 				}
 			}
-			finNiveau = originalFinNiveau;
 			game.replayMode = false;
 			return lines.join('\n') + '\n';
 		},
@@ -180,8 +178,9 @@ export async function runLevel(page, { campaign, level, ticks, seed, inputs = nu
  * @returns {Promise<object>} The replay in the file format, after a round trip through JSON.
  */
 export async function recordedReplay(page) {
-	const data = await page.evaluate(() =>
-		JSON.stringify(encodeReplay(game.replay, campaigns[ui.lvlType].folder, ui.currentLevel)),
-	);
+	const data = await page.evaluate(() => {
+		const t = window.__test;
+		return JSON.stringify(t.encodeReplay(t.game.replay, t.campaigns()[t.ui.lvlType].folder, t.ui.currentLevel));
+	});
 	return JSON.parse(data);
 }

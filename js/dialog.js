@@ -90,5 +90,3 @@ export function confirmDialog(message, title) {
 export function isDialogOpen() {
 	return openDialogs > 0;
 }
-
-Object.assign(window, { alertDialog, confirmDialog });

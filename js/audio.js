@@ -176,15 +176,26 @@ function resumeAudio() {
 window.addEventListener('pointerdown', resumeAudio);
 window.addEventListener('keydown', resumeAudio);
 
-Object.assign(window, {
-	loadSound,
-	playSound,
-	playSoundIfFinished,
-	setSoundVolume,
-	isSoundOn,
-	isSoundAvailable,
-	toggleSound,
-	disableSound,
-	soundProgress,
-	allSoundsLoaded,
-});
+export let sfx_enterPortal, sfx_flatline, sfx_noPortal, sfx_pain, sfx_shoot;
+
+export let sfx_explode, sfx_jump, sfx_bounce, sfx_grabCake;
+
+export let sfx_throwObject, sfx_tick, sfx_transition;
+
+export let sfx_portal;
+
+export function loadSfx() {
+	sfx_explode = loadSound("explode");
+	sfx_bounce = loadSound("bounce");
+	sfx_grabCake = loadSound("grabCake");
+	sfx_jump = loadSound("jump");
+	sfx_throwObject = loadSound("throwObject");
+	sfx_enterPortal = loadSound("enterPortal");
+	sfx_transition = loadSound("transition");
+	sfx_tick = loadSound("tick");
+	sfx_pain = loadSound("pain");
+	sfx_flatline = loadSound("flatline");
+	sfx_noPortal = loadSound("noPortal");
+	sfx_shoot = loadSound("shoot");
+	sfx_portal = [loadSound("portal1"), loadSound("portal2")];
+}

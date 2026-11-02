@@ -10,7 +10,9 @@
  *   editor does not use the text.
  */
 
+import { NUM_TILES } from './constants.js';
 import { downloadJson, pickJsonFile } from './files.js';
+import { bg } from './images.js';
 
 /** @type {number} The version of the map file format. */
 export const MAP_FORMAT = 1;
@@ -70,5 +72,3 @@ export function parseMap(data) {
 export async function importEditorMap() {
 	return parseMap(await pickJsonFile());
 }
-
-Object.assign(window, { exportEditorMap, importEditorMap, parseMap });

@@ -156,4 +156,36 @@ export function saveEditorMap(slot, tiles, bg) {
 	localStorage.setItem(EDITOR_MAP_PREFIX + slot, JSON.stringify({ tiles, bg }));
 }
 
-Object.assign(window, { getBestTime, getCampaignTotal, saveBestTime, loadBestReplay, getEditorMap, saveEditorMap });
+/**
+ * The highest unlocked level of each campaign, by campaign index.
+ *
+ * @type {number[]}
+ */
+export const maxLevel = [];
+
+/** @type {number} The number of campaign indexes with a stored progress. */
+const PROGRESS_SLOTS = 5;
+
+/**
+ * Load the highest unlocked level of each campaign.
+ *
+ * @returns {void}
+ */
+export function loadProgress() {
+	for (let i = 0; i < PROGRESS_SLOTS; i++) {
+		const stored = localStorage.getItem('sajs_maxLevel_' + i);
+		maxLevel[i] = stored != null ? parseInt(stored) : 1;
+	}
+}
+
+/**
+ * Store a new highest unlocked level of a campaign.
+ *
+ * @param {number} campaign The campaign index.
+ * @param {number} level The highest unlocked level.
+ * @returns {void}
+ */
+export function saveProgress(campaign, level) {
+	maxLevel[campaign] = level;
+	localStorage.setItem('sajs_maxLevel_' + campaign, level);
+}

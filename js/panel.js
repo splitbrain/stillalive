@@ -6,10 +6,14 @@
  * campaign.
  */
 
-import { getBestTime, getCampaignTotal, loadBestReplay } from './storage.js';
-import { decodeReplay, downloadReplay } from './replay.js';
-import { pickJsonFile } from './files.js';
 import { alertDialog } from './dialog.js';
+import { pickJsonFile } from './files.js';
+import { unclick } from './input.js';
+import { campaigns, loadLevel, loadPreviewMap } from './level.js';
+import { decodeReplay, downloadReplay } from './replay.js';
+import { game, ui } from './state.js';
+import { getBestTime, getCampaignTotal, loadBestReplay } from './storage.js';
+import { toTime } from './utils.js';
 
 /** @type {number} Number of ticks between two updates of the current time. */
 const TIME_UPDATE_INTERVAL = 30;
@@ -144,5 +148,3 @@ document.getElementById('highscores_in').addEventListener('click', (event) => {
 	const action = event.target.closest('button')?.dataset.action;
 	if (action) runAction(action).catch(showError);
 });
-
-Object.assign(window, { updatePanel });

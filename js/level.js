@@ -348,7 +348,6 @@ export function loadLevelEditor() {
 			game.perso.x = (x * 16) << 8;
 			game.perso.y = (y * 16) << 8;
 			game.map[i] = 0;
-			game.camera = new Camera(game.perso.x, game.perso.y);
 			continue;
 		}else if(game.map[i] == Tile.PLATFORM_RIGHT) {//right platform
 			vx = 256;
@@ -399,6 +398,7 @@ export function loadLevelEditor() {
 		}
 	}
 	
+	game.camera = new Camera(game.perso.x, game.perso.y);
 	game.CAKELEFT = game.cakes.length;
 	
 	game.needLoad = true;
@@ -553,7 +553,6 @@ export function loadLevel(level) {
 			game.perso.x = (x * 16) << 8;
 			game.perso.y = (y * 16) << 8;
 			game.map[i] = 0;
-			game.camera = new Camera(game.perso.x, game.perso.y);
 			continue;
 		}else if(game.map[i] == Tile.PLATFORM_RIGHT) {//right platform
 			vx = 256;
@@ -614,6 +613,7 @@ export function loadLevel(level) {
 		}
 	}
 	
+	game.camera = new Camera(game.perso.x, game.perso.y);
 	game.CAKELEFT = game.cakes.length;
 	
 	game.needLoad = true;

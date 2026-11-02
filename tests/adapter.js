@@ -130,7 +130,6 @@ export async function runLevel(page, { campaign, level, ticks, seed, inputs = nu
 			game.replayMode = replayData !== null;
 			if (game.replayMode) game.replay = t.decodeReplay(replayData);
 			t.loadLevel(level);
-			if (typeof game.camera === 'undefined') game.camera = new t.Camera(game.perso.x, game.perso.y);
 			t.unclick();
 			const startMap = game.map.slice();
 

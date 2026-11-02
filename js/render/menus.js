@@ -147,7 +147,7 @@ export function drawPauseMenu() {
 		}else if(overMenu == 4) {//quality
 			confirmDialog("Changing quality will restart the map. Are you sure ?", 'Change quality ?').then(function(r) {
 				if(r) {
-					settings.quality = 1 - settings.quality;
+					settings.quality = settings.quality ? 0 : 1;
 					ui.escapeMenu = !ui.escapeMenu;
 					if(ui.currentMenu == Menu.PLAY) loadLevel(ui.currentLevel);
 				}
@@ -562,7 +562,7 @@ export function drawMainMenu() {
 		zoomQuality = 0.9;
 		if(input.mousePressed && input.mouseButton == LEFT) {
 			unclick();
-			settings.quality = !settings.quality;
+			settings.quality = settings.quality ? 0 : 1;
 		}
 		
 		ctx.globalAlpha = 0.8;

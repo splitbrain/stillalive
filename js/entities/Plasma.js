@@ -112,7 +112,7 @@ export class Plasma {
 
 	checkCollision() {
 		let x, y, i;
-		let dist = getDistance(this.x>>8, this.x>>8, game.perso.x>>8, game.perso.y>>8);
+		let dist = getDistance(this.x>>8, this.y>>8, game.perso.x>>8, game.perso.y>>8);
 		if(dist > 384) dist = 384;
 		setSoundVolume(sfx_bounce, 1 - (dist / 384));
 

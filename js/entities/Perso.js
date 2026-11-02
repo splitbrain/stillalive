@@ -123,7 +123,7 @@ export class Perso {
 					s.fading = 200;
 					s.color = 0;
 					s.portalNum = -1;
-					if(parseInt(random(2))==0) s.vx = -s.vx;
+					if(parseInt(random(0, 2))==0) s.vx = -s.vx;
 					if(parseInt(random(0, 2))==0) s.vy = -s.vy;
 					game.sparkles.push(s);
 				}
@@ -140,7 +140,7 @@ export class Perso {
 					s.fading = 255;
 					s.color = 1;
 					s.portalNum = -1;
-					if(parseInt(random(2))==0) s.vx = -s.vx;
+					if(parseInt(random(0, 2))==0) s.vx = -s.vx;
 					if(parseInt(random(0, 2))==0) s.vy = -s.vy;
 					game.sparkles.push(s);
 				}

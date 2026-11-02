@@ -75,7 +75,7 @@ export function launchPortal(p){
 				s.fading = 255;
 				s.color = p;
 				s.portalNum = -1;
-				if(parseInt(random(2))==0) s.vx = -s.vx;
+				if(parseInt(random(0, 2))==0) s.vx = -s.vx;
 				if(parseInt(random(0, 2))==0) s.vy = -s.vy;
 				game.sparkles.push(s);
 			}

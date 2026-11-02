@@ -7,7 +7,6 @@ import { allSoundsLoaded, loadSfx } from './audio.js';
 import { ctx } from './canvas.js';
 import { Menu } from './constants.js';
 import { validerArrivee } from './entities/Cake.js';
-import { Camera } from './entities/Camera.js';
 import { Perso } from './entities/Perso.js';
 import { myLoop } from './game.js';
 import { loadGfx, loadSplashImages } from './images.js';
@@ -83,7 +82,6 @@ function addTestHook() {
 		allSoundsLoaded,
 		encodeReplay,
 		decodeReplay,
-		Camera,
 		validerArrivee,
 		unclick,
 	};

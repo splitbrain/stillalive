@@ -2,23 +2,47 @@
  * The Robot object and its helper functions.
  */
 
+/**
+ * The robot head in the panel at the top of the screen. It looks around and blinks at random.
+ */
 export class Robot {
+	/**
+	 * Create the robot at its place in the panel.
+	 */
 	constructor() {
+		/** @type {number} The x position of the head in 1/256 pixels. */
 		this.x = 18 << 8;
+		/** @type {number} The y position of the head in 1/256 pixels. */
 		this.y = 30 << 8;
+		/** @type {number} The x position of the eye in 1/256 pixels. */
 		this.ex = this.x + (29 << 8);
+		/** @type {number} The y position of the eye in 1/256 pixels. */
 		this.ey = this.y + (26 << 8);
+		/** @type {number} The horizontal speed of the current action in 1/256 pixels per tick. */
 		this.vx = 0;
+		/** @type {number} The vertical speed of the current action in 1/256 pixels per tick. */
 		this.vy = 0;
+		/** @type {boolean} True while the robot looks or moves. */
 		this.doingAction = false;
+		/** @type {number} The speed of the last look action. */
 		this.actionDir = 0;
+		/** @type {number} The frame of the eye image; 0 is the open eye. */
 		this.eye = 0;
+		/** @type {number} The direction of the blink animation, 1 closing or -1 opening. */
 		this.eyeDir = 0;
+		/** @type {number} Ticks until the next frame of the blink animation. */
 		this.blinking = 0;
+		/** @type {number} The horizontal speed of the move action in 1/256 pixels per tick. */
 		this.movx = 128;
+		/** @type {number} The vertical speed of the move action in 1/256 pixels per tick. */
 		this.movy = 48;
 	}
 
+	/**
+	 * Run the current action for one tick and end it at its limit.
+	 *
+	 * @returns {void}
+	 */
 	move() {
 		if (this.vy != 0 || this.vx != 0) {
 			this.ex += this.vx;
@@ -101,6 +125,12 @@ export class Robot {
 		}
 	}
 
+	/**
+	 * Let the eye look to the side, if no action runs.
+	 *
+	 * @param {number} dir The direction, -1 left or 1 right.
+	 * @returns {void}
+	 */
 	lookLeftRight(dir) {
 		if (!this.doingAction) {
 			this.doingAction = true;
@@ -109,6 +139,12 @@ export class Robot {
 		}
 	}
 
+	/**
+	 * Let the eye look up or down, if no action runs.
+	 *
+	 * @param {number} dir The direction, -1 up or 1 down.
+	 * @returns {void}
+	 */
 	lookUpDown(dir) {
 		if (!this.doingAction) {
 			this.doingAction = true;
@@ -117,6 +153,12 @@ export class Robot {
 		}
 	}
 
+	/**
+	 * Move the head to the side and back, if no action runs.
+	 *
+	 * @param {number} dir The direction, -1 left or 1 right.
+	 * @returns {void}
+	 */
 	moveRobot(dir) {
 		if (!this.doingAction) {
 			if ((dir < 0 && this.x < 18 << 8) || (dir > 0 && this.x > 18 << 8)) dir = -dir;
@@ -127,6 +169,11 @@ export class Robot {
 		}
 	}
 
+	/**
+	 * Close and open the eye, if the eye is open.
+	 *
+	 * @returns {void}
+	 */
 	blink() {
 		if (this.eye == 0) {
 			this.eye = 1;

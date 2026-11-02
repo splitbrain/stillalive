@@ -34,6 +34,11 @@ import { getBestTime, maxLevel, saveBestTime, saveProgress } from './storage.js'
 import { manageTutorial } from './tutorial.js';
 import { random, toTime } from './utils.js';
 
+/**
+ * Run one tick of the game: process the input, draw the current screen and update the panel.
+ *
+ * @returns {void}
+ */
 export function myLoop() {
 	manageKeys();
 	if (!ui.drawCredits) draw();
@@ -41,6 +46,11 @@ export function myLoop() {
 	updatePanel();
 }
 
+/**
+ * Stop a replay that has fewer inputs than the level needs, show a message and go back to the level selection.
+ *
+ * @returns {void}
+ */
 export function reportBrokenReplay() {
 	alertDialog(
 		"The replay you're watching seems to be broken -_-;\n" + 'Sorry for any inconveniences.',
@@ -68,6 +78,14 @@ function checkBestTime() {
 	return 'New best time !';
 }
 
+/**
+ * Run the game logic of the current screen and draw it.
+ *
+ * During a level, the function advances the level time, moves the player, handles the doors and the level end, and
+ * draws the level. Each menu screen draws itself and handles its clicks.
+ *
+ * @returns {void}
+ */
 function draw() {
 	if (ui.currentMenu == Menu.EDITOR) {
 		drawLevelEditor();
@@ -215,6 +233,11 @@ function draw() {
 	ctx.fillText('' + getFps(), 5, 10);
 }
 
+/**
+ * Leave the current level or the tutorial and go back to the menu.
+ *
+ * @returns {void}
+ */
 export function exitFunc() {
 	unclick();
 	game.sparkles = new Array();
@@ -236,4 +259,5 @@ export function exitFunc() {
 	game.replayMode = false;
 }
 
+/** @type {number} The transition effect of the level end, chosen at random from 1 to 6. */
 export let TRANS = 4;

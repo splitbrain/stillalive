@@ -118,16 +118,33 @@ export function downloadReplay(data) {
 	downloadJson(data, `stillalivejs-${data.campaign}-${String(data.level).padStart(2, '0')}.json`);
 }
 
+/**
+ * The recording of a level: the input of each tick and the input state at the points where the level time continues
+ * after a stop.
+ */
 export class Replay {
+	/**
+	 * Create an empty recording.
+	 */
 	constructor() {
+		/** @type {number[]} The key bitmask of each tick. */
 		this.inputs = new Array();
+		/** @type {number[]} The mouse x position of each tick. */
 		this.mouseX = new Array();
+		/** @type {number[]} The mouse y position of each tick. */
 		this.mouseY = new Array();
+		/** @type {Object<number, number[]>} The input state from captureInput() by level time. */
 		this.states = {};
+		/** @type {number} The length of the speech after the boss died, in ticks, or -1. */
 		this.bossSpeech = -1;
 	}
 }
 
+/**
+ * Continue a paused replay: restore the input state of the pause and the input of the current tick.
+ *
+ * @returns {void}
+ */
 export function rescaleReplay() {
 	restoreInput(input.replayPauseInput);
 	input.keys = game.replay.inputs[game.TIME];

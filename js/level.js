@@ -23,10 +23,18 @@ import { Replay } from './replay.js';
 import { game, input, settings, ui } from './state.js';
 import { FIRST_OF_KIND, LAST_OF_KIND, Tile, TileKind, isTileKind } from './tiles.js';
 
+/** @type {Campaign[]} The loaded campaigns, by campaign id. */
 export let campaigns;
+/** @type {number} The number of loaded campaign and level files. */
 export let levelsLoaded = 0;
+/** @type {number} The number of campaign and level files to load. The campaign files add their level files. */
 export let levelsToLoad = 5;
 
+/**
+ * Open or close the switch doors when the player or a crate steps on or off a switch.
+ *
+ * @returns {void}
+ */
 export function gestionPorte() {
 	const etatPorte = game.perso.porte;
 
@@ -46,6 +54,12 @@ export function gestionPorte() {
 	}
 }
 
+/**
+ * Remove everything that blocks a closed switch door. Portals on the door go away. Crates and plasma balls in the door
+ * go back to their start positions.
+ *
+ * @returns {void}
+ */
 function retirerBloqueurPorte() {
 	let x, y, i, j;
 	for (i = 0; i < 2; i++) {
@@ -110,6 +124,11 @@ function retirerBloqueurPorte() {
 	}
 }
 
+/**
+ * Close the switch doors.
+ *
+ * @returns {void}
+ */
 function fermerPorte() {
 	let i;
 	playSound(sfx_tick);
@@ -126,6 +145,11 @@ function fermerPorte() {
 	retirerBloqueurPorte();
 }
 
+/**
+ * Open the switch doors.
+ *
+ * @returns {void}
+ */
 function ouvrirPorte() {
 	let i;
 	playSound(sfx_tick);
@@ -141,12 +165,24 @@ function ouvrirPorte() {
 	}
 }
 
+/**
+ * Check if the player stands on a switch.
+ *
+ * @param {number} x The x coordinate of the player in pixels.
+ * @param {number} y The y coordinate of the player in pixels.
+ * @returns {number} 1 if a switch tile is below the player, else 0.
+ */
 function persoSurInterrupteur(x, y) {
 	if (getTileSimple(x, y + 32) == Tile.SWITCH) return 1;
 	else if (getTileSimple(x + 15, y + 32) == Tile.SWITCH) return 1;
 	return 0;
 }
 
+/**
+ * Check if a crate stands on a switch.
+ *
+ * @returns {number} 1 if a switch tile is below a crate, else 0.
+ */
 function caisseSurInterrupteur() {
 	let i;
 	for (i in game.caisses) {
@@ -159,15 +195,30 @@ function caisseSurInterrupteur() {
 	return 0;
 }
 
+/**
+ * A campaign with its levels.
+ */
 export class Campaign {
+	/**
+	 * @param {string} folder The folder name of the campaign below maps/.
+	 */
 	constructor(folder) {
+		/** @type {string} The folder name of the campaign below maps/. */
 		this.folder = folder;
+		/** @type {number[][]} The 768 tile ids of each level. */
 		this.levels = new Array();
+		/** @type {number[]} The background index of each level. */
 		this.backgrounds = new Array();
+		/** @type {string[]} The text that the robot shows in each level. */
 		this.texts = new Array();
 	}
 }
 
+/**
+ * Create the campaigns and start to load their files.
+ *
+ * @returns {void}
+ */
 export function loadCampaigns() {
 	let c;
 	campaigns = new Array();
@@ -233,6 +284,11 @@ function loadJsonFile(url, callback) {
 		});
 }
 
+/**
+ * Start to load the lines of the credits.
+ *
+ * @returns {void}
+ */
 export function loadCreditsText() {
 	creditsTxt = new Array();
 	loadJsonFile('credits.json', function (data) {
@@ -240,8 +296,14 @@ export function loadCreditsText() {
 	});
 }
 
+/** @type {string[]} The lines of the credits. */
 export let creditsTxt = new Array();
 
+/**
+ * Start the map of the level editor as a level for a test run. The map stays in game.map.
+ *
+ * @returns {void}
+ */
 export function loadLevelEditor() {
 	let vx, haut, bas, gauche, droite, i, y2, vx2, vy2, vy;
 	game.tubeX = game.tubeY = -1;
@@ -455,6 +517,16 @@ export function loadLevelEditor() {
 	game.needLoad = true;
 }
 
+/**
+ * Start a level of the current campaign.
+ *
+ * The function copies the map, creates the player, the objects and the animated tiles, resets the level time and starts
+ * a new replay recording. In level 8 of the normal and the advanced campaign, the player drops into the level from a
+ * fixed position.
+ *
+ * @param {number} level The level number, starting at 1.
+ * @returns {void}
+ */
 export function loadLevel(level) {
 	let vx, haut, bas, gauche, droite, i, y2, vx2, vy2, vy;
 	game.tubeX = game.tubeY = -1;
@@ -721,6 +793,13 @@ export function loadLevel(level) {
 	} else game.bossNum = 0;
 }
 
+/**
+ * Prepare a map for the preview in the level selection or in the editor menus. The objects stand at their start
+ * positions.
+ *
+ * @param {number} level The level number of the current campaign, or a value below 1 to use the map in game.map.
+ * @returns {void}
+ */
 export function loadPreviewMap(level) {
 	let vx, i;
 	game.tubeX = game.tubeY = -1;

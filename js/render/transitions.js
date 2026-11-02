@@ -9,6 +9,11 @@ import { finNiveau } from '../physics.js';
 import { doDrawIntermission } from './menus.js';
 import { game, ui } from '../state.js';
 
+/**
+ * Draw the transition at the end of a level or at its start, with the progress of the fade of the player.
+ *
+ * @returns {void}
+ */
 export function manageTransitionDraw() {
 	if (finNiveau()) {
 		//if a level is finished, closing transition
@@ -34,6 +39,11 @@ export function manageTransitionDraw() {
 	}
 }
 
+/**
+ * Draw the closing transition of the current effect.
+ *
+ * @returns {void}
+ */
 function drawTransitionIn() {
 	let nb, i;
 	ctx.fillStyle = 'rgb(0, 0, 0)';
@@ -76,6 +86,11 @@ function drawTransitionIn() {
 	}
 }
 
+/**
+ * Draw the opening transition of the current effect.
+ *
+ * @returns {void}
+ */
 function drawTransitionOut() {
 	let nb, i;
 	ctx.fillStyle = 'rgb(0, 0, 0)';

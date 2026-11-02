@@ -11,6 +11,15 @@ import { game, input } from './state.js';
 import { PLATFORM_CODE, Tile, TileKind, isCrateCode, isPlatformCode, isTileKind } from './tiles.js';
 import { getCos, getSin, inScreen, random } from './utils.js';
 
+/**
+ * Shoot a portal from the player towards the mouse.
+ *
+ * The shot follows a straight line, bounces off mirror tiles, and places the portal on the first wall or platform. The
+ * portal lines of the shot stay for the drawing.
+ *
+ * @param {number} p The portal index, 0 for blue and 1 for red.
+ * @returns {void}
+ */
 export function launchPortal(p) {
 	let i, k;
 	game.perso.timePosePortal = 0;
@@ -113,6 +122,16 @@ export function launchPortal(p) {
 	} else playSound(sfx_noPortal);
 }
 
+/**
+ * Place a portal on the wall at a point and set its direction.
+ *
+ * The wall must be straight along the portal, and the area in front of the portal must be free.
+ *
+ * @param {number} p The portal index.
+ * @param {number} x The x coordinate of the hit in pixels.
+ * @param {number} y The y coordinate of the hit in pixels.
+ * @returns {number} 1 if the portal was placed, else 0.
+ */
 function setPortalDir(p, x, y) {
 	let tile, x2, y2, s;
 	const vx = game.portals[p].vx;
@@ -249,6 +268,12 @@ function setPortalDir(p, x, y) {
 	return 0;
 }
 
+/**
+ * Check if an object is in a portal on a left wall, and teleport it when it moves into the portal far enough.
+ *
+ * @param {object} obj The object with x, y, vx, vy, pX and pY.
+ * @returns {number} The portal index plus 1, or 0 if the object is not in such a portal.
+ */
 export function checkTeleportGauche(obj) {
 	let j;
 	let x = obj.x >> 8;
@@ -273,6 +298,12 @@ export function checkTeleportGauche(obj) {
 	return 0;
 }
 
+/**
+ * Check if an object is in a portal on a right wall, and teleport it when it moves into the portal far enough.
+ *
+ * @param {object} obj The object with x, y, vx, vy, pX and pY.
+ * @returns {number} The portal index plus 1, or 0 if the object is not in such a portal.
+ */
 export function checkTeleportDroite(obj) {
 	let j;
 	let x = obj.x >> 8;
@@ -297,6 +328,12 @@ export function checkTeleportDroite(obj) {
 	return 0;
 }
 
+/**
+ * Check if an object is in a portal on a floor, and teleport it when it moves into the portal far enough.
+ *
+ * @param {object} obj The object with x, y, vx, vy, pX and pY.
+ * @returns {number} The portal index plus 1, or 0 if the object is not in such a portal.
+ */
 export function checkTeleportBas(obj) {
 	let j;
 	const x = obj.x >> 8;
@@ -321,6 +358,12 @@ export function checkTeleportBas(obj) {
 	return 0;
 }
 
+/**
+ * Check if an object is in a portal on a ceiling, and teleport it when it moves into the portal far enough.
+ *
+ * @param {object} obj The object with x, y, vx, vy, pX and pY.
+ * @returns {number} The portal index plus 1, or 0 if the object is not in such a portal.
+ */
 export function checkTeleportHaut(obj) {
 	let j;
 	const x = obj.x >> 8;
@@ -345,6 +388,12 @@ export function checkTeleportHaut(obj) {
 	return 0;
 }
 
+/**
+ * Check if an object is in a portal.
+ *
+ * @param {object} obj The object with x, y, vx, vy, pX and pY.
+ * @returns {number} The portal index plus 1, or 0 if the object is not in a portal.
+ */
 export function dansUnPortal(obj) {
 	let p = checkTeleportBas(obj);
 	if (p == 0) p = checkTeleportHaut(obj);
@@ -354,6 +403,13 @@ export function dansUnPortal(obj) {
 	return p;
 }
 
+/**
+ * Move an object from one portal to the other and turn its speed to the direction of the exit portal.
+ *
+ * @param {number} p The index of the portal that the object enters.
+ * @param {object} obj The object.
+ * @returns {void}
+ */
 function transfertPortal(p, obj) {
 	let ecrt, oldx;
 	const entree = game.portals[p].direction;
@@ -449,6 +505,11 @@ function transfertPortal(p, obj) {
 	}
 }
 
+/**
+ * Remove both portals, unless an object is in a portal.
+ *
+ * @returns {void}
+ */
 export function clearPortals() {
 	let ok = 1;
 	let i = 0;
@@ -475,6 +536,13 @@ export function clearPortals() {
 	}
 }
 
+/**
+ * Find the portal at a point.
+ *
+ * @param {number} x The x coordinate in pixels.
+ * @param {number} y The y coordinate in pixels.
+ * @returns {number} 1 for the blue portal, 0 for the red portal, or -1 if no portal is there.
+ */
 export function pointInPortal(x, y) {
 	let i;
 	for (i in game.portals) {
@@ -494,4 +562,5 @@ export function pointInPortal(x, y) {
 	return -1;
 }
 
+/** @type {Line[]} The segments of the last portal shot, for the drawing in low quality. */
 export let portalLines;

@@ -61,17 +61,36 @@ import { getEditorMap, saveEditorMap } from './storage.js';
 import { Tile, TileKind, isTileKind, isTunnelTile } from './tiles.js';
 import { getAngle } from './utils.js';
 
-let selectedTile, selectedSprite;
+/** @type {number} The index of the selected tile in the palette, or -1. */
+let selectedTile;
+/** @type {number} The selected object of the palette, or 0. */
+let selectedSprite;
+/** @type {number[]} The tile ids of the palette. */
 let tilesToDraw;
+/** @type {boolean} True when the tile layer must be drawn again. */
 let redrawTiles;
+/** @type {OffscreenCanvas} The copy of the tile layer. */
 let tilesBuff;
+/** @type {number[][]} The map after each change, for undo and redo. */
 let undoMap;
+/** @type {number} The index of the current map in undoMap. */
 let undoIndex;
+/** @type {number} The mouse release state of the previous tick. */
 let oldMouseReleased = 0;
+/** @type {boolean} True while the player tests the map. */
 export let isTestingLevel;
+/** @type {number} The background of the map while the save or load screen is open. */
 let oldBG;
-let askLoading, askSaving;
+/** @type {boolean} True while the load screen is open. */
+let askLoading;
+/** @type {boolean} True while the save screen is open. */
+let askSaving;
 
+/**
+ * Start the test run of the map.
+ *
+ * @returns {void}
+ */
 export function startPlayingLevel() {
 	let i;
 	isTestingLevel = true;
@@ -82,6 +101,11 @@ export function startPlayingLevel() {
 	prepareLvlEditorPlayTxt();
 }
 
+/**
+ * End the test run and go back to the editor.
+ *
+ * @returns {void}
+ */
 export function stopPlayingLevel() {
 	let i;
 	game.portals = new Array();
@@ -96,6 +120,11 @@ export function stopPlayingLevel() {
 	prepareLvlEditorTxt();
 }
 
+/**
+ * Run one tick of the test run.
+ *
+ * @returns {void}
+ */
 function levelEditorTestLevel() {
 	game.needRedrawTiles = 0;
 	game.TIME++;
@@ -109,6 +138,11 @@ function levelEditorTestLevel() {
 	drawText(70, 38, 11);
 }
 
+/**
+ * Draw one tick of the test run.
+ *
+ * @returns {void}
+ */
 function drawTestLevel() {
 	if (game.needLoad) createBuff();
 	drawCopy(game.imgBuff, game.ECART_X, game.ECART_Y);
@@ -188,6 +222,11 @@ function drawTestLevel() {
 	ctx.drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
 }
 
+/**
+ * Open the editor with an empty map.
+ *
+ * @returns {void}
+ */
 export function lvlEditorSetup() {
 	let i;
 	game.BG = 0;
@@ -233,6 +272,11 @@ export function lvlEditorSetup() {
 	prepareLvlEditorTxt();
 }
 
+/**
+ * Set the text of the robot panel for the editor.
+ *
+ * @returns {void}
+ */
 function prepareLvlEditorTxt() {
 	ui.timeWriting = 0;
 	ui.txtLines = new Array();
@@ -242,6 +286,11 @@ function prepareLvlEditorTxt() {
 	ui.txtLines.push('them on the screen. Then, try out your map. Have Fun !');
 }
 
+/**
+ * Set the text of the robot panel for the test run.
+ *
+ * @returns {void}
+ */
 function prepareLvlEditorPlayTxt() {
 	ui.timeWriting = 0;
 	ui.txtLines = new Array();
@@ -249,6 +298,11 @@ function prepareLvlEditorPlayTxt() {
 	ui.txtLines.push('Press <Enter> or <Escape> key to stop testing.');
 }
 
+/**
+ * Run one tick of the editor or of the test run.
+ *
+ * @returns {void}
+ */
 export function drawLevelEditor() {
 	if (isTestingLevel) {
 		levelEditorTestLevel();
@@ -256,6 +310,11 @@ export function drawLevelEditor() {
 	} else levelEditorManager();
 }
 
+/**
+ * Draw the editor screen that is open: the load screen, the save screen or the editor.
+ *
+ * @returns {void}
+ */
 function levelEditorManager() {
 	if (askLoading) {
 		menuLoadMap();
@@ -266,6 +325,11 @@ function levelEditorManager() {
 	}
 }
 
+/**
+ * Draw the save screen with the slots and handle its clicks.
+ *
+ * @returns {void}
+ */
 function menuSaveMap() {
 	let i;
 	if (ui.previewMap < 1 || getEditorMap(ui.previewMap) == null) ctx.drawImage(noLevel, game.ECART_X, game.ECART_Y);
@@ -393,6 +457,11 @@ function startMapImport() {
 		});
 }
 
+/**
+ * Draw the load screen with the slots and handle its clicks.
+ *
+ * @returns {void}
+ */
 function menuLoadMap() {
 	let i;
 	if (ui.previewMap < 1) ctx.drawImage(noLevel, game.ECART_X, game.ECART_Y);
@@ -483,6 +552,11 @@ function menuLoadMap() {
 	ctx.drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
 }
 
+/**
+ * Draw the editor and handle the palette, the drawing and the buttons.
+ *
+ * @returns {void}
+ */
 function manageEditor() {
 	let i;
 	drawTileMap();
@@ -577,6 +651,11 @@ function manageEditor() {
 	}
 }
 
+/**
+ * Undo or redo a change when the player released the undo or redo keys.
+ *
+ * @returns {void}
+ */
 function manageUndoRedo() {
 	let i;
 	if (input.leftReleased && undoIndex > 0) {
@@ -594,6 +673,11 @@ function manageUndoRedo() {
 	input.rightReleased = 0;
 }
 
+/**
+ * Create the objects of the map again from the object ids, for the preview in the editor.
+ *
+ * @returns {void}
+ */
 function recreateSprites() {
 	let i;
 	game.cakes = new Array();
@@ -655,6 +739,11 @@ function recreateSprites() {
 	}
 }
 
+/**
+ * Draw the objects of the map in the editor.
+ *
+ * @returns {void}
+ */
 function drawSprites() {
 	drawCakes();
 	drawTourelles();
@@ -664,6 +753,11 @@ function drawSprites() {
 	drawPerso((game.perso.x >> 8) + game.ECART_X, (game.perso.y >> 8) + game.ECART_Y, 0);
 }
 
+/**
+ * Draw the tile layer of the editor with the plasma start markers, and keep a copy for the next ticks.
+ *
+ * @returns {void}
+ */
 function drawTileMap() {
 	let y, x, haut, bas, gauche, droite, i;
 	if (redrawTiles) {
@@ -706,6 +800,11 @@ function drawTileMap() {
 	}
 }
 
+/**
+ * Place or remove an object at the mouse while a button is pressed.
+ *
+ * @returns {void}
+ */
 function manageDrawSprite() {
 	let i;
 	if (mouseInZone(game.ECART_X, game.ECART_Y, 512, 384) && selectedSprite > 0) {
@@ -789,6 +888,12 @@ function manageDrawSprite() {
 	}
 }
 
+/**
+ * Check if the map can take one more object of a type. Each type has a limit.
+ *
+ * @param {number} tile The object id.
+ * @returns {boolean} True if the object can be placed.
+ */
 function allowTile(tile) {
 	if (tile == Tile.PLAYER_START) return true;
 
@@ -812,6 +917,12 @@ function allowTile(tile) {
 	return false;
 }
 
+/**
+ * Count the tiles of an id in the map.
+ *
+ * @param {number} tile The tile id.
+ * @returns {number} The count.
+ */
 function countTile(tile) {
 	let i;
 	let c = 0;
@@ -822,6 +933,14 @@ function countTile(tile) {
 	return c;
 }
 
+/**
+ * Remove the objects that overlap a new object, because an object covers more than one tile.
+ *
+ * @param {number} til The id of the new object.
+ * @param {number} xt The column of the new object.
+ * @param {number} yt The row of the new object.
+ * @returns {void}
+ */
 function eraseSprites(til, xt, yt) {
 	let h, t;
 	if (til == Tile.PLATFORM_RIGHT || til == Tile.PLATFORM_LEFT || til == Tile.TUNNEL_UP || til == Tile.TUNNEL_DOWN) {
@@ -872,6 +991,11 @@ function eraseSprites(til, xt, yt) {
 	}
 }
 
+/**
+ * Draw, remove or fill tiles at the mouse while a button is pressed.
+ *
+ * @returns {void}
+ */
 function manageDrawTile() {
 	let i;
 	if (mouseInZone(game.ECART_X, game.ECART_Y, 512, 384) && selectedTile > -1) {
@@ -917,6 +1041,11 @@ function manageDrawTile() {
 	}
 }
 
+/**
+ * Add the current map to the undo list. The list holds up to eleven maps.
+ *
+ * @returns {void}
+ */
 function addUndo() {
 	let i;
 	if (undoIndex == 10) {
@@ -933,6 +1062,11 @@ function addUndo() {
 	}
 }
 
+/**
+ * Select an object of the palette on a click and draw the selection.
+ *
+ * @returns {void}
+ */
 function manageSpriteSelection() {
 	let x, y, inZone;
 	if (mouseInZone(580, 140, 56, 216)) {
@@ -1033,6 +1167,11 @@ function manageSpriteSelection() {
 	}
 }
 
+/**
+ * Select a tile of the palette on a click and draw the selection.
+ *
+ * @returns {void}
+ */
 function manageTileSelection() {
 	let x, y;
 	if (mouseInZone(4, 140, 56, 118)) {
@@ -1063,6 +1202,11 @@ function manageTileSelection() {
 	}
 }
 
+/**
+ * Draw the object palette on the right.
+ *
+ * @returns {void}
+ */
 function drawRightSprites() {
 	const x = 584;
 	const y = 142;
@@ -1089,6 +1233,11 @@ function drawRightSprites() {
 	ctx.drawImage(tunnel2, 32, 0, 32, 16, x, y + 200, 32, 16);
 }
 
+/**
+ * Draw the tile palette on the left.
+ *
+ * @returns {void}
+ */
 function drawLeftTiles() {
 	let i;
 	let x = 4;
@@ -1108,6 +1257,11 @@ function drawLeftTiles() {
 	ctx.drawImage(tex_rightBG, 32, 412);
 }
 
+/**
+ * Choose the wall tile of each wall from its neighbors.
+ *
+ * @returns {void}
+ */
 function build() {
 	let haut, bas, gauche, droite, i;
 	for (i = 0; i < 768; i++) {
@@ -1171,6 +1325,15 @@ function build() {
 	}
 }
 
+/**
+ * Fill a connected area of one tile id with another tile id.
+ *
+ * @param {number} tile The new tile id.
+ * @param {number} toFill The tile id to replace.
+ * @param {number} x The column of the start.
+ * @param {number} y The row of the start.
+ * @returns {void}
+ */
 function fill(tile, toFill, x, y) {
 	let j, k, i;
 	const tmpMap = new Array();
@@ -1219,10 +1382,23 @@ function fill(tile, toFill, x, y) {
 	}
 }
 
+/**
+ * Check if a map position holds a wall.
+ *
+ * @param {number} index The index in the map.
+ * @returns {boolean} True for a wall tile.
+ */
 function isTileMurBleu(index) {
 	return isTileKind(game.map[index], TileKind.WALL);
 }
 
+/**
+ * Check if a map position is solid for the edges of the walls. Positions outside the map count as solid.
+ *
+ * @param {number} x The column.
+ * @param {number} y The row.
+ * @returns {number} 1 for a wall, a decor tile or a conveyor belt, else 0.
+ */
 function isTileHere(x, y) {
 	if (x < 0 || x > 31 || y < 0 || y > 23) return 1;
 	if (isTileKind(game.map[x + y * 32], TileKind.BELT_RIGHT, TileKind.BELT_LEFT)) return 1;

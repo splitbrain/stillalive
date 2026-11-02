@@ -4,16 +4,34 @@
 
 import { game } from '../state.js';
 
+/**
+ * The security camera that follows the player with its look.
+ */
 export class Camera {
+	/**
+	 * @param {number} x The x position in 1/256 pixels.
+	 * @param {number} y The y position in 1/256 pixels.
+	 */
 	constructor(x, y) {
+		/** @type {number} The x position in 1/256 pixels. */
 		this.x = x;
+		/** @type {number} The y position in 1/256 pixels. */
 		this.y = y;
+		/** @type {number} The horizontal speed in 1/256 pixels per tick. */
 		this.vx = 0;
+		/** @type {number} The vertical speed in 1/256 pixels per tick. */
 		this.vy = 0;
+		/** @type {number} The direction of the swing, 1 or -1. */
 		this.inert = 1;
+		/** @type {number} The speed of the swing in 1/256 pixels per tick. */
 		this.dy = 0;
 	}
 
+	/**
+	 * Move the camera towards a point near the player and let it swing.
+	 *
+	 * @returns {void}
+	 */
 	move() {
 		this.x += this.vx;
 		this.y += this.vy;

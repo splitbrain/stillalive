@@ -19,35 +19,78 @@ import { dansUnPortal } from '../portals.js';
 import { game } from '../state.js';
 import { CRATE_CODE, LAST_OF_KIND, TileKind, isTileKind } from '../tiles.js';
 
+/**
+ * A crate. The player can carry and throw it, and it can press switches and stop turret shots.
+ */
 export class Caisse {
+	/**
+	 * @param {number} x The x position in 1/256 pixels.
+	 * @param {number} y The y position in 1/256 pixels.
+	 */
 	constructor(x, y) {
+		/** @type {number} The x position in 1/256 pixels. */
 		this.x = x;
+		/** @type {number} The y position in 1/256 pixels. */
 		this.y = y;
+		/** @type {number} The width in pixels. */
 		this.pX = 16;
+		/** @type {number} The height in pixels. */
 		this.pY = 16;
+		/** @type {number} The x position of the start, where the crate returns when a door closes on it. */
 		this.xOrig = x;
+		/** @type {number} The y position of the start, where the crate returns when a door closes on it. */
 		this.yOrig = y;
+		/** @type {number} The rotation in degrees while the crate flies. */
 		this.angle = 0;
+		/** @type {number} The horizontal speed in 1/256 pixels per tick. */
 		this.vx = 0;
+		/** @type {number} The vertical speed in 1/256 pixels per tick. */
 		this.vy = 0;
+		/** @type {number} 1 while the player carries the crate. */
 		this.porter = 0;
+		/** @type {number} The index of the platform that the crate stands on, or -1. */
 		this.plateforme = -1;
+		/** @type {number} The conveyor belt that the crate stands on: 3 to the right, 4 to the left, 0 for none. */
 		this.carpet = 0;
+		/** @type {string} The entity type, used by the shared object functions. */
 		this.type = 'caisse';
+		/**
+		 * @type {number} Ticks left of the shrink animation after a force field destroyed the crate, 0 for a normal
+		 * crate.
+		 */
 		this.shrink = 0;
+		/** @type {boolean} True when the crate must go away in the next tick. */
 		this.needKill = false;
+		/** @type {number} Ticks after a throw before the crate can push the player again. */
 		this.invincibility = 0;
+		/** @type {number} Ticks after a throw in which the crate stays when the boss has too many crates. */
 		this.noRemove = 0;
 	}
 
+	/**
+	 * Get the horizontal center of the crate.
+	 *
+	 * @returns {number} The x coordinate of the center in pixels.
+	 */
 	midX() {
 		return (this.x >> 8) + (this.pX >> 1);
 	}
 
+	/**
+	 * Get the vertical center of the crate.
+	 *
+	 * @returns {number} The y coordinate of the center in pixels.
+	 */
 	midY() {
 		return (this.y >> 8) + (this.pY >> 1);
 	}
 
+	/**
+	 * Move the crate for one tick. The crate advances the boss blocks that it touches. It goes away outside the
+	 * playfield and on deadly tiles, and it shrinks in a force field.
+	 *
+	 * @returns {void}
+	 */
 	move() {
 		let i;
 		if (this.invincibility > 0) this.invincibility--;
@@ -145,6 +188,13 @@ export class Caisse {
 	}
 }
 
+/**
+ * Find the crate at a point. Carried crates and crates in a portal do not count.
+ *
+ * @param {number} x The x coordinate in pixels.
+ * @param {number} y The y coordinate in pixels.
+ * @returns {number} The crate code of the crate, or 0.
+ */
 export function collideCaisse(x, y) {
 	let i;
 	for (i in game.caisses) {
@@ -158,6 +208,13 @@ export function collideCaisse(x, y) {
 	return 0;
 }
 
+/**
+ * Find the crate at a point, including carried crates and crates in a portal.
+ *
+ * @param {number} x The x coordinate in pixels.
+ * @param {number} y The y coordinate in pixels.
+ * @returns {number} The crate code of the crate, or 0.
+ */
 export function collideAnyCaisse(x, y) {
 	let i;
 	for (i in game.caisses) {
@@ -171,6 +228,12 @@ export function collideAnyCaisse(x, y) {
 	return 0;
 }
 
+/**
+ * Check if a falling crate lands on the head of the player.
+ *
+ * @param {object} obj The moving object.
+ * @returns {number} 1 if the object is a crate that falls onto the player, else 0.
+ */
 export function caisseSurPerso(obj) {
 	if (obj.type == 'caisse' && obj.vy > 0 && !dansUnPortal(obj)) {
 		//the object is a crate
@@ -188,6 +251,12 @@ export function caisseSurPerso(obj) {
 	return 0;
 }
 
+/**
+ * Find a moving crate that overlaps an object.
+ *
+ * @param {object} obj The object with x, y, pX and pY.
+ * @returns {number} The crate index plus 1, or 0 if no moving crate overlaps the object.
+ */
 export function caisseToucheObjet(obj) {
 	let i;
 	const posx = obj.x >> 8;

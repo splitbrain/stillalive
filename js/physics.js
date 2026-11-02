@@ -18,6 +18,13 @@ import { game, input } from './state.js';
 import { FIRST_OF_KIND, Tile, TileKind, inForceFieldRange, isCrateCode, isDeadlyTile, isTileKind } from './tiles.js';
 import { getCos, getDistance, getSin } from './utils.js';
 
+/**
+ * Check what an object stands on.
+ *
+ * @param {object} obj The object with x, y, pX and pY.
+ * @returns {number} 0 if the object is in the air, 1 for normal ground, 2 for a mirror tile, 3 for a conveyor belt to
+ *     the right and 4 for a conveyor belt to the left.
+ */
 export function touchingGround(obj) {
 	if (obj.vy >= 0) {
 		const touche = getTile((obj.x >> 8) + 1, (obj.y >> 8) + obj.pY);
@@ -31,12 +38,25 @@ export function touchingGround(obj) {
 	return 0;
 }
 
+/**
+ * Check if a point is on a deadly tile.
+ *
+ * @param {number} x The x coordinate in pixels.
+ * @param {number} y The y coordinate in pixels.
+ * @returns {boolean} True if the tile at the point is deadly.
+ */
 function objetToucheTileMort(x, y) {
 	if (x >= 512 || y >= 384 || y < 0 || x < 0) return 0;
 	const tile = game.map[(y >> 4) * 32 + (x >> 4)];
 	return isDeadlyTile(tile);
 }
 
+/**
+ * Check if an object touches a deadly tile at one of its six test points.
+ *
+ * @param {object} obj The object with x, y, pX and pY.
+ * @returns {boolean} True if the object touches a deadly tile.
+ */
 export function toucheTileMort(obj) {
 	const x = obj.x >> 8;
 	const y = obj.y >> 8;
@@ -53,6 +73,13 @@ export function toucheTileMort(obj) {
 	return touche;
 }
 
+/**
+ * Get the solid tile or platform at a point, without the crates.
+ *
+ * @param {number} x The x coordinate in pixels.
+ * @param {number} y The y coordinate in pixels.
+ * @returns {number} The tile id, a platform code, or Tile.EMPTY if nothing solid is there.
+ */
 export function getTileNoCaisse(x, y) {
 	if (x >= 512 || y >= 384 || y < 0 || x < 0) return 0;
 	let tile = game.map[(y >> 4) * 32 + (x >> 4)];
@@ -68,6 +95,13 @@ export function getTileNoCaisse(x, y) {
 	return tile;
 }
 
+/**
+ * Get the solid tile at a point, without the crates and the platforms.
+ *
+ * @param {number} x The x coordinate in pixels.
+ * @param {number} y The y coordinate in pixels.
+ * @returns {number} The tile id, or Tile.EMPTY if nothing solid is there.
+ */
 export function getTileNoCaisseNoPlate(x, y) {
 	if (x >= 512 || y >= 384 || y < 0 || x < 0) return 0;
 	let tile = game.map[(y >> 4) * 32 + (x >> 4)];
@@ -78,6 +112,13 @@ export function getTileNoCaisseNoPlate(x, y) {
 	return tile;
 }
 
+/**
+ * Get the solid tile, crate or platform at a point.
+ *
+ * @param {number} x The x coordinate in pixels.
+ * @param {number} y The y coordinate in pixels.
+ * @returns {number} The tile id, a crate code, a platform code, or Tile.EMPTY if nothing solid is there.
+ */
 export function getTile(x, y) {
 	if (x >= 512 || y >= 384 || y < 0 || x < 0) return 0;
 	let tile = game.map[(y >> 4) * 32 + (x >> 4)];
@@ -97,6 +138,14 @@ export function getTile(x, y) {
 	return tile;
 }
 
+/**
+ * Get the tile or platform at a point for a portal shot. The shot passes through the exit, the first wheel frame, the
+ * red portal tiles, the cakes and the player start.
+ *
+ * @param {number} x The x coordinate in pixels.
+ * @param {number} y The y coordinate in pixels.
+ * @returns {number} The tile id, a platform code, or Tile.EMPTY if the shot passes.
+ */
 export function getTilePortal(x, y) {
 	if (x >= 512 || y >= 384 || y < 0 || x < 0) return 0;
 	let tile = game.map[(y >> 4) * 32 + (x >> 4)];
@@ -119,6 +168,12 @@ export function getTilePortal(x, y) {
 	return tile;
 }
 
+/**
+ * Throw a carried object from the center of the player towards the mouse.
+ *
+ * @param {object} obj The crate or turret.
+ * @returns {void}
+ */
 export function placeObject(obj) {
 	let po, col;
 	const x = game.perso.x + (game.perso.pX << 7);
@@ -146,6 +201,13 @@ export function placeObject(obj) {
 	obj.vy = (sin * (30 << 8)) >> 2;
 }
 
+/**
+ * Move a crate or turret for one tick: force fields, conveyor belts, gravity, friction, the push of the player and
+ * other crates, and the collisions.
+ *
+ * @param {object} obj The crate or turret.
+ * @returns {void}
+ */
 export function moveObject(obj) {
 	let col, i, c;
 	const ffield = inForceFieldTp(obj);
@@ -279,6 +341,11 @@ export function moveObject(obj) {
 	}
 }
 
+/**
+ * Check if the player carries an object.
+ *
+ * @returns {number} 1 if the player carries a crate or a turret, else 0.
+ */
 export function objetPortee() {
 	let i;
 	for (i in game.caisses) {
@@ -290,6 +357,14 @@ export function objetPortee() {
 	return 0;
 }
 
+/**
+ * Check if a point is inside an object.
+ *
+ * @param {number} x The x coordinate in pixels.
+ * @param {number} y The y coordinate in pixels.
+ * @param {object} obj The object with x, y, pX and pY.
+ * @returns {number} 1 if the point is inside, else 0.
+ */
 function pointDansObjet(x, y, obj) {
 	const x2 = obj.x >> 8;
 	const y2 = obj.y >> 8;
@@ -297,6 +372,12 @@ function pointDansObjet(x, y, obj) {
 	else return 0;
 }
 
+/**
+ * Pick up a crate or turret under the mouse while the left button is pressed, and throw the carried object when the
+ * button is released.
+ *
+ * @returns {void}
+ */
 export function grabObject() {
 	let x1, y1, i;
 	let ok = 0;
@@ -358,6 +439,12 @@ export function grabObject() {
 	}
 }
 
+/**
+ * Get the solid tile below an object.
+ *
+ * @param {object} obj The object with x, y, pX and pY.
+ * @returns {number} The tile id or code of the first solid point along the bottom edge, else 0.
+ */
 export function downCollision(obj) {
 	const x = obj.x >> 8;
 	const y = (obj.y >> 8) + obj.pY - 1;
@@ -372,6 +459,12 @@ export function downCollision(obj) {
 	return 0;
 }
 
+/**
+ * Get the solid tile above an object.
+ *
+ * @param {object} obj The object with x, y, pX and pY.
+ * @returns {number} The tile id or code of the first solid point along the top edge, else 0.
+ */
 export function upCollision(obj) {
 	const x = obj.x >> 8;
 	const y = obj.y >> 8;
@@ -386,6 +479,12 @@ export function upCollision(obj) {
 	return 0;
 }
 
+/**
+ * Get the solid tile left of an object.
+ *
+ * @param {object} obj The object with x, y, pX and pY.
+ * @returns {number} The tile id or code of the first solid point along the left edge, else 0.
+ */
 export function leftCollision(obj) {
 	const x = (obj.x >> 8) - 1;
 	const y = obj.y >> 8;
@@ -400,6 +499,12 @@ export function leftCollision(obj) {
 	return 0;
 }
 
+/**
+ * Get the solid tile right of an object.
+ *
+ * @param {object} obj The object with x, y, pX and pY.
+ * @returns {number} The tile id or code of the first solid point along the right edge, else 0.
+ */
 export function rightCollision(obj) {
 	const x = (obj.x >> 8) + obj.pX;
 	const y = obj.y >> 8;
@@ -414,6 +519,12 @@ export function rightCollision(obj) {
 	return 0;
 }
 
+/**
+ * Find the side of an object that is deepest in a solid tile.
+ *
+ * @param {object} obj The object with x, y, pX and pY.
+ * @returns {number} HAUT, BAS, GAUCHE or DROITE, or -1 if the object touches nothing.
+ */
 export function getCollision(obj) {
 	let i;
 	const touche = [0, 0, 0, 0]; //top, bottom, left, right
@@ -466,6 +577,12 @@ export function getCollision(obj) {
 	return max;
 }
 
+/**
+ * Push an object out of the solid tiles and stop its speed in that direction.
+ *
+ * @param {object} obj The object with x, y, vx, vy, pX and pY.
+ * @returns {number} 1 if a collision was resolved, 0 if there was none or the object is stuck between two sides.
+ */
 export function checkCollisions(obj) {
 	let coll = 0;
 
@@ -531,6 +648,11 @@ export function checkCollisions(obj) {
 	return coll;
 }
 
+/**
+ * Check if the player touches the exit.
+ *
+ * @returns {number} 1 if the player is on the open exit, else 0.
+ */
 export function finNiveau() {
 	if (!dansUnPortal(game.perso)) {
 		let i, j;
@@ -544,6 +666,13 @@ export function finNiveau() {
 	return 0;
 }
 
+/**
+ * Get the tile id of the map at a point.
+ *
+ * @param {number} x The x coordinate in pixels.
+ * @param {number} y The y coordinate in pixels.
+ * @returns {number} The tile id, or 0 outside the playfield.
+ */
 export function getTileSimple(x, y) {
 	if (x >= 512 || y >= 384 || y < 0 || x < 0) return 0;
 	const tile = game.map[(y >> 4) * 32 + (x >> 4)];

@@ -8,6 +8,11 @@ import { key, mouseIcon } from '../images.js';
 import { campaigns } from '../level.js';
 import { game, input, settings, ui } from '../state.js';
 
+/**
+ * Draw the pressed keys and mouse buttons during a replay.
+ *
+ * @returns {void}
+ */
 export function drawKeys() {
 	ctx.font = 'bold 12px Arial';
 	ctx.fillStyle = 'rgb(0, 0, 0)';
@@ -35,6 +40,14 @@ export function drawKeys() {
 	ctx.drawImage(mouseIcon, 0, mr * 40, 24, 40, 525 + 26 + 26, 485, 24, 40);
 }
 
+/**
+ * Draw the text of the robot panel line by line, with a typewriter effect for the current line.
+ *
+ * @param {number} x The x coordinate of the text in canvas pixels.
+ * @param {number} y The y coordinate of the first line in canvas pixels.
+ * @param {number} size The line height in pixels.
+ * @returns {void}
+ */
 export function drawText(x, y, size) {
 	let i;
 	ctx.fillStyle = 'rgb(255, 255, 255)';
@@ -83,6 +96,11 @@ export function drawText(x, y, size) {
 	if (ui.timeWriting >= 0 && !ui.escapeMenu) ui.timeWriting += 0.75;
 }
 
+/**
+ * Draw the life, the cakes left, the steps and the number of portal shots in the HUD.
+ *
+ * @returns {void}
+ */
 export function drawHudText() {
 	ctx.font = 'bold 14px Arial';
 	ctx.fillStyle = 'rgb(255, 255, 255)';

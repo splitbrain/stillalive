@@ -176,14 +176,41 @@ function resumeAudio() {
 window.addEventListener('pointerdown', resumeAudio);
 window.addEventListener('keydown', resumeAudio);
 
-export let sfx_enterPortal, sfx_flatline, sfx_noPortal, sfx_pain, sfx_shoot;
+/** @type {Sound} An object enters a portal. */
+export let sfx_enterPortal;
+/** @type {Sound} The player dies. */
+export let sfx_flatline;
+/** @type {Sound} A portal shot hits an invalid wall. */
+export let sfx_noPortal;
+/** @type {Sound} The player takes damage. */
+export let sfx_pain;
+/** @type {Sound} A turret shoots. */
+export let sfx_shoot;
 
-export let sfx_explode, sfx_jump, sfx_bounce, sfx_grabCake;
+/** @type {Sound} A turret explodes. */
+export let sfx_explode;
+/** @type {Sound} The player jumps. */
+export let sfx_jump;
+/** @type {Sound} A plasma ball bounces. */
+export let sfx_bounce;
+/** @type {Sound} The player collects a cake. */
+export let sfx_grabCake;
 
-export let sfx_throwObject, sfx_tick, sfx_transition;
+/** @type {Sound} The player throws an object. */
+export let sfx_throwObject;
+/** @type {Sound} A switch door opens or closes. */
+export let sfx_tick;
+/** @type {Sound} A level ends. */
+export let sfx_transition;
 
+/** @type {Sound[]} A portal is placed, two variants. */
 export let sfx_portal;
 
+/**
+ * Start to load all sounds of the game.
+ *
+ * @returns {void}
+ */
 export function loadSfx() {
 	sfx_explode = loadSound('explode');
 	sfx_bounce = loadSound('bounce');

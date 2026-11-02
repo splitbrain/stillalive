@@ -50,6 +50,11 @@ import { Tile } from '../tiles.js';
 import { setupTutorial } from '../tutorial.js';
 import { getAngle, toTime } from '../utils.js';
 
+/**
+ * Set the text of the robot panel for the level selection.
+ *
+ * @returns {void}
+ */
 export function prepareSelectionText() {
 	ui.timeWriting = 0;
 	ui.txtLines = new Array();
@@ -58,6 +63,11 @@ export function prepareSelectionText() {
 	ui.txtLines.push("'Play' to play it. Good Luck !");
 }
 
+/**
+ * Draw the buttons of the intermission screen and handle their clicks.
+ *
+ * @returns {void}
+ */
 function manageDownMenu() {
 	let overMenu = -1;
 	if (mouseInZone(74, 445, 120, 24)) overMenu = 1;
@@ -95,6 +105,14 @@ function manageDownMenu() {
 	}
 }
 
+/**
+ * Draw a portal gun in the main menu.
+ *
+ * @param {number} x The x coordinate in canvas pixels.
+ * @param {number} y The y coordinate in canvas pixels.
+ * @param {number} angle The angle of the gun in radians.
+ * @returns {void}
+ */
 function drawPortalGunMenu(x, y, angle) {
 	const a = angle;
 	ctx.save();
@@ -104,6 +122,11 @@ function drawPortalGunMenu(x, y, angle) {
 	ctx.restore();
 }
 
+/**
+ * Draw the pause menu and handle its clicks.
+ *
+ * @returns {void}
+ */
 export function drawPauseMenu() {
 	//noStroke();
 	ctx.fillStyle = 'rgb(0, 65, 88)';
@@ -189,6 +212,11 @@ export function drawPauseMenu() {
 	ctx.drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
 }
 
+/**
+ * Draw the splash screen with its animation and go to the menu when it ends and all files are loaded.
+ *
+ * @returns {void}
+ */
 export function drawSplash() {
 	ctx.fillStyle = 'rgb(0, 0, 0)';
 	ctx.fillRect(0, 0, 640, 544);
@@ -280,6 +308,12 @@ export function drawSplash() {
 	}
 }
 
+/**
+ * Draw the loading screen with the progress bars, the controls and the missing files, and go to the menu on a click
+ * when all files are loaded.
+ *
+ * @returns {void}
+ */
 export function drawLoadingScreen() {
 	ctx.strokeStyle = 'rgb(0, 0, 0)';
 	ctx.fillStyle = 'rgb(0, 65, 88)';
@@ -365,6 +399,11 @@ export function drawLoadingScreen() {
 	if (imagesReady) ctx.drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
 }
 
+/**
+ * Draw the level selection of a campaign and handle its clicks.
+ *
+ * @returns {void}
+ */
 export function drawMapSelection() {
 	let scale3, i;
 	if (ui.previewMap < 1) ctx.drawImage(noLevel, game.ECART_X, game.ECART_Y);
@@ -461,6 +500,15 @@ export function drawMapSelection() {
 	ctx.drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
 }
 
+/**
+ * Draw a large button with a text.
+ *
+ * @param {number} x The x coordinate in canvas pixels.
+ * @param {number} y The y coordinate in canvas pixels.
+ * @param {number} scale The size, 1 for normal and smaller when the mouse is over the button.
+ * @param {string} text The text on the button.
+ * @returns {void}
+ */
 function drawBigButton(x, y, scale, text) {
 	ctx.drawImage(tex_button, x + ((1 - scale) * 320) / 2, y + ((1 - scale) * 64) / 2, 320 * scale, 64 * scale);
 
@@ -480,6 +528,15 @@ function drawBigButton(x, y, scale, text) {
 	ctx.fillText(text, x, y);
 }
 
+/**
+ * Draw a small button with a text.
+ *
+ * @param {number} x The x coordinate in canvas pixels.
+ * @param {number} y The y coordinate in canvas pixels.
+ * @param {number} scale The size, 1 for normal and smaller when the mouse is over the button.
+ * @param {string} text The text on the button.
+ * @returns {void}
+ */
 export function drawTinyButton(x, y, scale, text) {
 	ctx.drawImage(tex_button, x + ((1 - scale) * 120) / 2, y + ((1 - scale) * 24) / 2, 120 * scale, 24 * scale);
 
@@ -498,6 +555,11 @@ export function drawTinyButton(x, y, scale, text) {
 	ctx.fillText(text, x, y);
 }
 
+/**
+ * Draw the main menu with the sound and quality buttons, and open the selected screen after the fade.
+ *
+ * @returns {void}
+ */
 export function drawMainMenu() {
 	let pX, pY, pX2;
 	ctx.strokeStyle = 'rgb(0, 0, 0)';
@@ -703,6 +765,11 @@ export function drawMainMenu() {
 	}
 }
 
+/**
+ * Draw the credits that scroll up, and go back to the menu at the end or on a click.
+ *
+ * @returns {void}
+ */
 export function doDrawCredits() {
 	if (input.mouseNewPress && creditsTime > 150) speedScr = 5;
 	creditsTime += speedScr;
@@ -749,6 +816,11 @@ export function doDrawCredits() {
 	ctx.fillRect(0, 544 - 32, 640, 32);
 }
 
+/**
+ * Draw the intermission screen after a level with the time and the message.
+ *
+ * @returns {void}
+ */
 export function doDrawIntermission() {
 	if (game.perso.intermissionFade > 0) {
 		ctx.fillStyle = 'rgb(0, 0, 0)';
@@ -771,6 +843,11 @@ export function doDrawIntermission() {
 	}
 }
 
+/**
+ * Draw the preview of a map with its objects.
+ *
+ * @returns {void}
+ */
 export function drawPreviewMap() {
 	let i, tour, cai, pla;
 	if (game.needLoad) {
@@ -881,16 +958,29 @@ export function drawPreviewMap() {
 	}
 }
 
+/** @type {boolean} True after the player left the splash or loading screen. */
 let started = false;
+/** @type {boolean} True after the splash screen ended. */
 export let overSplash = false;
+/** @type {number} The fade of the splash screen, up to 60. */
 let timeSplash = 0;
+/** @type {number} Ticks of the splash screen; a click sets it to the end. */
 let timeExit = 0;
-let tailsVY = 0,
-	blackosVY = 0;
+/** @type {number} The vertical speed of the first author name on the splash screen. */
+let tailsVY = 0;
+/** @type {number} The vertical speed of the second author name on the splash screen. */
+let blackosVY = 0;
+/** @type {number} The y position of the first author name on the splash screen. */
 let tailsY = -100;
+/** @type {number} The y position of the second author name on the splash screen. */
 let blackosY = -100;
+/** @type {number} The y position of the title on the splash screen. */
 let titleY = -50;
+/** @type {number} The vertical speed of the title on the splash screen. */
 let titleVY = 0;
+/** @type {number} The scroll position of the credits. */
 let creditsTime = 0;
+/** @type {number} The fade of the credits. */
 let creditsAlpha = 0;
+/** @type {number} The scroll speed of the credits in pixels per tick. */
 let speedScr = 0.4;

@@ -11,8 +11,14 @@ import { finNiveau } from './physics.js';
 import { game, input, ui } from './state.js';
 import { random } from './utils.js';
 
+/** @type {number} The x coordinate of the text in the robot panel. */
 const leftPan = game.ECART_X + 40;
 
+/**
+ * Start the tutorial at its first level.
+ *
+ * @returns {void}
+ */
 export function setupTutorial() {
 	ui.tutoJump = false;
 	ui.tutoPortal = false;
@@ -25,6 +31,11 @@ export function setupTutorial() {
 	loadLevel(ui.currentLevel);
 }
 
+/**
+ * Run the tutorial for one tick: the messages of the current level and the pauses that wait for a click.
+ *
+ * @returns {void}
+ */
 export function manageTutorial() {
 	if (ui.currentLevel == 9) {
 		//tutorial finished
@@ -122,6 +133,11 @@ export function manageTutorial() {
 	}
 }
 
+/**
+ * Draw the message at the end of the tutorial.
+ *
+ * @returns {void}
+ */
 function drawEndTutorialMessage() {
 	prepareTxt(32, 152, 512 - 32, 72);
 	ctx.font = '16px Arial';
@@ -131,6 +147,11 @@ function drawEndTutorialMessage() {
 	ctx.fillText('Click to continue and start an amazing journey !', leftPan, game.ECART_Y + 170 + 48);
 }
 
+/**
+ * Draw the message about the plasma balls.
+ *
+ * @returns {void}
+ */
 function drawPlasmaMessage() {
 	prepareTxt(32, 16, 420, 56);
 	ctx.font = '14px Arial';
@@ -144,6 +165,11 @@ function drawPlasmaMessage() {
 	ctx.fillText('Portal =>', 115, 204);
 }
 
+/**
+ * Draw the message about the turrets and the crates.
+ *
+ * @returns {void}
+ */
 function drawTurretsCrateMessage() {
 	prepareTxt(32, 32, 420, 68);
 	ctx.font = '14px Arial';
@@ -158,6 +184,11 @@ function drawTurretsCrateMessage() {
 	ctx.fillText('Be careful', 90, 430);
 }
 
+/**
+ * Draw the message about the switches.
+ *
+ * @returns {void}
+ */
 function drawInterruptorMessage() {
 	prepareTxtDefault();
 	ctx.fillText('This special blue wall can be deactivated thanks to a switch.', leftPan, game.ECART_Y + 48);
@@ -165,6 +196,11 @@ function drawInterruptorMessage() {
 	ctx.fillText('portal behind it. Cross the finish line to continue the tutorial.', leftPan, game.ECART_Y + 48 + 32);
 }
 
+/**
+ * Draw the step numbers on the playfield of the momentum level.
+ *
+ * @returns {void}
+ */
 function drawIndications() {
 	ctx.font = '14px Arial';
 	ctx.fillText('First', 277, 136);
@@ -172,6 +208,11 @@ function drawIndications() {
 	ctx.fillText('First again (while falling)', 359, 465);
 }
 
+/**
+ * Draw the message about the momentum through portals.
+ *
+ * @returns {void}
+ */
 function drawMementum() {
 	prepareTxtDefault();
 	ctx.font = '14px Arial';
@@ -181,6 +222,11 @@ function drawMementum() {
 	ctx.fillText('to grab cakes on your way. Click to continue ...', leftPan, game.ECART_Y + 46 + 36);
 }
 
+/**
+ * Draw the hints for the portal level after the player continued.
+ *
+ * @returns {void}
+ */
 function drawActivatePortalMessage2() {
 	prepareTxtDefault();
 	ctx.font = '14px Arial';
@@ -196,6 +242,11 @@ function drawActivatePortalMessage2() {
 	ctx.fillText('Here', 322, 330);
 }
 
+/**
+ * Draw the message that the portal gun is active now.
+ *
+ * @returns {void}
+ */
 function drawActivatePortalMessage() {
 	prepareTxtDefault();
 	ctx.font = '14px Arial';
@@ -205,6 +256,12 @@ function drawActivatePortalMessage() {
 	ctx.fillText('walls. Click to continue ...', leftPan, game.ECART_Y + 48 + 36);
 }
 
+/**
+ * Draw the message after the portals appeared.
+ *
+ * @param {number} sec Ignored.
+ * @returns {void}
+ */
 function drawOpenPortalMessage(sec) {
 	prepareTxtDefault();
 	ctx.fillText('Fully loaded ! Technology is beautiful.', leftPan, game.ECART_Y + 48);
@@ -212,12 +269,23 @@ function drawOpenPortalMessage(sec) {
 	ctx.fillText('Enter the blue portal to pass through the wall.', leftPan, game.ECART_Y + 48 + 32);
 }
 
+/**
+ * Draw the message that asks the player to wait for the portals.
+ *
+ * @param {number} sec The seconds left of the wait.
+ * @returns {void}
+ */
 function drawPortalMessage(sec) {
 	prepareTxtDefault();
 	ctx.fillText("Let's get familiar with portals now. Please wait " + sec + ' seconds', leftPan, game.ECART_Y + 56);
 	ctx.fillText('while we are gathering energy to activate them ...', leftPan, game.ECART_Y + 56 + 16);
 }
 
+/**
+ * Draw the message about the cakes.
+ *
+ * @returns {void}
+ */
 function drawCakeMessage() {
 	prepareTxtDefault();
 	ctx.fillText('In StillAliveJS, grabing cakes enables the finish line.', leftPan, game.ECART_Y + 48);
@@ -225,6 +293,11 @@ function drawCakeMessage() {
 	ctx.fillText('Take that cake on the left and leave this room.', leftPan, game.ECART_Y + 48 + 32);
 }
 
+/**
+ * Draw the message about the exit.
+ *
+ * @returns {void}
+ */
 function drawExitMessage() {
 	prepareTxtDefault();
 	ctx.fillText('See this checkered flag on the right ?', leftPan, game.ECART_Y + 56);
@@ -232,6 +305,11 @@ function drawExitMessage() {
 	//ctx.fillText("Jump to make this message disappear ...", leftPan, ECART_Y + 48 + 32);
 }
 
+/**
+ * Draw the welcome message with the movement keys.
+ *
+ * @returns {void}
+ */
 function drawMoveMessage() {
 	prepareTxtDefault();
 	ctx.fillText('Welcome to the tutorial.', leftPan, game.ECART_Y + 48);
@@ -239,6 +317,11 @@ function drawMoveMessage() {
 	ctx.fillText('Click to continue ...', leftPan, game.ECART_Y + 48 + 32);
 }
 
+/**
+ * Draw the message about the jump.
+ *
+ * @returns {void}
+ */
 function drawJumpMessage() {
 	prepareTxtDefault();
 	ctx.fillText("You can't pass these obstacles unless you jump over them.", leftPan, game.ECART_Y + 48);
@@ -246,10 +329,24 @@ function drawJumpMessage() {
 	ctx.fillText('Click to continue ...', leftPan, game.ECART_Y + 48 + 32);
 }
 
+/**
+ * Draw the text box of the robot panel at its default position.
+ *
+ * @returns {void}
+ */
 function prepareTxtDefault() {
 	prepareTxt(32, 32, 420, 56);
 }
 
+/**
+ * Draw a text box on the playfield and set the font and the color for the text.
+ *
+ * @param {number} x The left edge in playfield pixels.
+ * @param {number} y The top edge in playfield pixels.
+ * @param {number} w The width in pixels.
+ * @param {number} h The height in pixels.
+ * @returns {void}
+ */
 export function prepareTxt(x, y, w, h) {
 	ctx.fillStyle = 'rgb(7, 49, 63)';
 	ctx.fillRect(game.ECART_X + x, game.ECART_Y + y, w, h);
@@ -261,6 +358,11 @@ export function prepareTxt(x, y, w, h) {
 	ctx.font = '16px Arial';
 }
 
+/**
+ * Place the two portals of the portal level with their sparkles.
+ *
+ * @returns {void}
+ */
 function displayPortals() {
 	let p, i;
 	game.portals[0].direction = 3;

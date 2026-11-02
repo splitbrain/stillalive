@@ -13,6 +13,11 @@ import { FIRST_OF_KIND, TileKind } from './tiles.js';
 import { prepareTxt } from './tutorial.js';
 import { getCos, getDistance, getSin, random } from './utils.js';
 
+/**
+ * Put the boss in its start state. In a boss level, the boss comes in and speaks first.
+ *
+ * @returns {void}
+ */
 export function setupBoss() {
 	game.bossX = 449;
 	game.bossY = 150;
@@ -29,6 +34,11 @@ export function setupBoss() {
 	if (game.replayMode) skipComingBoss();
 }
 
+/**
+ * Skip the entrance and the speech of the boss.
+ *
+ * @returns {void}
+ */
 export function skipComingBoss() {
 	if (game.bossNum != 0) {
 		game.bossIsComing = false;
@@ -39,6 +49,12 @@ export function skipComingBoss() {
 	}
 }
 
+/**
+ * Run the boss for one tick: the entrance with its speech, the attacks of each boss, the damage to the player and the
+ * end of the fight.
+ *
+ * @returns {void}
+ */
 export function manageBoss() {
 	let d, vx1, vy1, i;
 	if (game.bossNum == 0) return;
@@ -450,6 +466,11 @@ export function manageBoss() {
 	}
 }
 
+/**
+ * Check if the player touches the boss.
+ *
+ * @returns {boolean} True if the player touches the boss.
+ */
 function persoTouchBoss() {
 	const x = (game.perso.x >> 8) + game.perso.pX;
 	const y = (game.perso.y >> 8) + (game.perso.pY >> 1);
@@ -461,6 +482,12 @@ function persoTouchBoss() {
 	return false;
 }
 
+/**
+ * Let an object hit the boss. The boss dies after three hits.
+ *
+ * @param {object} obj The crate or turret.
+ * @returns {void}
+ */
 export function manageToucheBoss(obj) {
 	let i;
 	const posx = obj.x >> 8;
@@ -497,6 +524,12 @@ export function manageToucheBoss(obj) {
 	}
 }
 
+/**
+ * Shrink a crate that enters the tube of the boss.
+ *
+ * @param {object} obj The crate.
+ * @returns {void}
+ */
 export function manageInTube(obj) {
 	if (obj.vx < 0) return;
 
@@ -538,6 +571,11 @@ function shakeOffset(n) {
 	return ((h >>> 0) % 6) - 3;
 }
 
+/**
+ * Draw the boss with the eye of the current boss.
+ *
+ * @returns {void}
+ */
 export function drawBoss() {
 	ctx.drawImage(robotHead, game.bossX + game.ECART_X, game.bossY + game.ECART_Y, 74, 58);
 

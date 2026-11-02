@@ -43,6 +43,11 @@ import { PLATFORM_CODE, Tile } from '../tiles.js';
 import { manageTutorial } from '../tutorial.js';
 import { degToRad, getAngle, radToDeg, random } from '../utils.js';
 
+/**
+ * Draw the background and the tile layer again and keep a copy for the next ticks.
+ *
+ * @returns {void}
+ */
 export function reloadTiles() {
 	let i;
 	ctx.drawImage(bg[game.BG], game.ECART_X, game.ECART_Y, 512, 384);
@@ -56,16 +61,40 @@ export function reloadTiles() {
 	game.imgBuff = copyCanvas(game.ECART_X, game.ECART_Y, 512, 384);
 }
 
+/**
+ * A segment of a portal shot.
+ */
 export class Line {
+	/**
+	 * @param {number} x1 The x coordinate of the start in pixels.
+	 * @param {number} y1 The y coordinate of the start in pixels.
+	 * @param {number} x2 The x coordinate of the end in pixels.
+	 * @param {number} y2 The y coordinate of the end in pixels.
+	 * @param {number} color The portal index, 0 for blue and 1 for red.
+	 */
 	constructor(x1, y1, x2, y2, color) {
+		/** @type {number} The x coordinate of the start in pixels. */
 		this.x1 = x1;
+		/** @type {number} The y coordinate of the start in pixels. */
 		this.y1 = y1;
+		/** @type {number} The x coordinate of the end in pixels. */
 		this.x2 = x2;
+		/** @type {number} The y coordinate of the end in pixels. */
 		this.y2 = y2;
+		/** @type {number} The portal index, 0 for blue and 1 for red. */
 		this.color = color;
 	}
 }
 
+/**
+ * Draw a line with the current stroke style.
+ *
+ * @param {number} x1 The x coordinate of the start in canvas pixels.
+ * @param {number} y1 The y coordinate of the start in canvas pixels.
+ * @param {number} x2 The x coordinate of the end in canvas pixels.
+ * @param {number} y2 The y coordinate of the end in canvas pixels.
+ * @returns {void}
+ */
 function line(x1, y1, x2, y2) {
 	ctx.beginPath();
 	ctx.moveTo(x1, y1);
@@ -74,6 +103,17 @@ function line(x1, y1, x2, y2) {
 	ctx.closePath();
 }
 
+/**
+ * Fill a triangle with the current fill style.
+ *
+ * @param {number} x1 The x coordinate of the first corner in canvas pixels.
+ * @param {number} y1 The y coordinate of the first corner in canvas pixels.
+ * @param {number} x2 The x coordinate of the second corner in canvas pixels.
+ * @param {number} y2 The y coordinate of the second corner in canvas pixels.
+ * @param {number} x3 The x coordinate of the third corner in canvas pixels.
+ * @param {number} y3 The y coordinate of the third corner in canvas pixels.
+ * @returns {void}
+ */
 function triangle(x1, y1, x2, y2, x3, y3) {
 	ctx.beginPath();
 	ctx.moveTo(x1, y1);
@@ -84,6 +124,11 @@ function triangle(x1, y1, x2, y2, x3, y3) {
 	ctx.closePath();
 }
 
+/**
+ * Draw the lines of the last portal shot in low quality.
+ *
+ * @returns {void}
+ */
 export function drawLowQualityPortals() {
 	let i;
 	if (settings.quality == 0 && game.perso.timePosePortal < 5) {
@@ -104,6 +149,11 @@ export function drawLowQualityPortals() {
 	}
 }
 
+/**
+ * Draw the portal gun of the player, turned towards the mouse.
+ *
+ * @returns {void}
+ */
 function drawPortalGun() {
 	if (ui.currentMenu != Menu.TUTORIAL || ui.tutoPortal) {
 		const a = getAngle(
@@ -123,6 +173,12 @@ function drawPortalGun() {
 	}
 }
 
+/**
+ * Draw the head of the player, turned towards the mouse.
+ *
+ * @param {number} flipDx 1 when the player faces left, else 0.
+ * @returns {void}
+ */
 function drawRotatedHead(flipDx) {
 	let a = getAngle(
 		(game.perso.x >> 8) + (game.perso.pX >> 1) + game.ECART_X,
@@ -185,6 +241,12 @@ export function drawCopy(copy, x, y) {
 	ctx.restore();
 }
 
+/**
+ * Draw one tick of a level and run the logic that is part of the drawing: the tiles, the player, the objects, the boss,
+ * the force fields, the death fade, the transition and the HUD.
+ *
+ * @returns {void}
+ */
 export function drawAllGame() {
 	if (game.needLoad) createBuff();
 	drawCopy(game.imgBuff, game.ECART_X, game.ECART_Y);
@@ -293,6 +355,11 @@ export function drawAllGame() {
 	ctx.drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
 }
 
+/**
+ * Draw the robot in the panel and let it look around at random, outside the boss levels.
+ *
+ * @returns {void}
+ */
 export function drawRobot() {
 	if (game.bossNum <= 0) {
 		let eye = 0;
@@ -320,6 +387,11 @@ export function drawRobot() {
 	}
 }
 
+/**
+ * Advance the frames of the animated tiles and draw them.
+ *
+ * @returns {void}
+ */
 export function animateTiles() {
 	let r, i;
 	for (i in game.animatedTiles) {
@@ -347,6 +419,11 @@ export function animateTiles() {
 	}
 }
 
+/**
+ * Draw the background and the tile layer and keep a copy for the next ticks.
+ *
+ * @returns {void}
+ */
 export function createBuff() {
 	let i;
 	ctx.drawImage(bg[game.BG], game.ECART_X, game.ECART_Y, 512, 384);
@@ -369,6 +446,11 @@ export function createBuff() {
 	if (game.perso.intermissionFade < 0) ctx.drawImage(highscore, game.ECART_X, game.ECART_Y);
 }
 
+/**
+ * Draw the cakes and let them float.
+ *
+ * @returns {void}
+ */
 export function drawCakes() {
 	let i;
 	for (i in game.cakes) {
@@ -394,6 +476,11 @@ export function drawCakes() {
 	}
 }
 
+/**
+ * Draw the turrets with their laser sights and move them.
+ *
+ * @returns {void}
+ */
 export function drawTourelles() {
 	let dx, tour;
 	for (tour in game.tourelles) {
@@ -463,6 +550,11 @@ export function drawTourelles() {
 	}
 }
 
+/**
+ * Draw the plasma balls and move them.
+ *
+ * @returns {void}
+ */
 export function drawPlasma() {
 	let r, vy;
 	for (let plasm = 0; plasm < game.plasmaBall.length; plasm++) {
@@ -499,6 +591,11 @@ export function drawPlasma() {
 	}
 }
 
+/**
+ * Draw the razor wheels of the boss, move them and apply their damage to the player.
+ *
+ * @returns {void}
+ */
 function drawProjos() {
 	let pr;
 	for (pr = 0; pr < game.projos.length; pr++) {
@@ -548,6 +645,11 @@ function drawProjos() {
 	}
 }
 
+/**
+ * Draw the crates and move them.
+ *
+ * @returns {void}
+ */
 export function drawCaisses() {
 	let cai;
 	for (cai = 0; cai < game.caisses.length; cai++) {
@@ -595,6 +697,17 @@ export function drawCaisses() {
 	}
 }
 
+/**
+ * Draw a horizontal arrow.
+ *
+ * @param {number} x1 The x coordinate of the start in canvas pixels.
+ * @param {number} y1 The y coordinate of the line in canvas pixels.
+ * @param {number} x2 The x coordinate of the end in canvas pixels.
+ * @param {number} y2 The y coordinate of the end in canvas pixels.
+ * @param {number} lineWidth The width of the line.
+ * @param {number} dir The direction of the arrow head, -1 left or 1 right.
+ * @returns {void}
+ */
 export function drawArrow(x1, y1, x2, y2, lineWidth, dir) {
 	ctx.lineWidth = lineWidth;
 	line(x1, y1, x2, y2);
@@ -603,6 +716,17 @@ export function drawArrow(x1, y1, x2, y2, lineWidth, dir) {
 	else triangle(xa + 6, y1, xa, y1 - 6, xa, y1 + 6);
 }
 
+/**
+ * Draw the area of a tunnel field and add it to the force fields.
+ *
+ * @param {number} sx The x coordinate of the tunnel in pixels.
+ * @param {number} sy The y coordinate of the tunnel in pixels.
+ * @param {number} nx The x coordinate where the field ends in pixels.
+ * @param {number} ny The y coordinate where the field ends in pixels.
+ * @param {number} vx The horizontal direction of the push, -1, 0 or 1.
+ * @param {number} vy The vertical direction of the push, -1, 0 or 1.
+ * @returns {void}
+ */
 function drawOneField(sx, sy, nx, ny, vx, vy) {
 	const x = nx;
 	const y = ny;
@@ -621,6 +745,16 @@ function drawOneField(sx, sy, nx, ny, vx, vy) {
 	}
 }
 
+/**
+ * Find the end of a tunnel field and draw it. The field ends at the first wall or platform, or at a portal, where it
+ * continues from the other portal.
+ *
+ * @param {number} sx The x coordinate of the tunnel in pixels.
+ * @param {number} sy The y coordinate of the tunnel in pixels.
+ * @param {number} vx The horizontal direction of the push, -1, 0 or 1.
+ * @param {number} vy The vertical direction of the push, -1, 0 or 1.
+ * @returns {void}
+ */
 function drawTunnelField(sx, sy, vx, vy) {
 	let tile, p1, p2;
 	ctx.globalAlpha = 0.5;
@@ -708,6 +842,11 @@ function drawTunnelField(sx, sy, vx, vy) {
 	ctx.globalAlpha = 1;
 }
 
+/**
+ * Draw the tunnels and rebuild their force fields.
+ *
+ * @returns {void}
+ */
 export function drawTunnels() {
 	let tu;
 	if (game.tunnels.length > 0) {
@@ -784,6 +923,11 @@ export function drawTunnels() {
 	}
 }
 
+/**
+ * Draw the platforms and move them.
+ *
+ * @returns {void}
+ */
 export function drawPlatformes() {
 	let pla;
 	for (pla in game.platforms) {
@@ -802,6 +946,11 @@ export function drawPlatformes() {
 	}
 }
 
+/**
+ * Draw the tiles around the portals over the objects that are half in a portal.
+ *
+ * @returns {void}
+ */
 export function drawFrontTiles() {
 	let tx, ty, t, p, i;
 	if (game.needRedrawTiles > 0) {
@@ -849,6 +998,11 @@ export function drawFrontTiles() {
 	}
 }
 
+/**
+ * Move the security camera and draw it turned towards the player.
+ *
+ * @returns {void}
+ */
 function drawCamera() {
 	game.camera.move();
 
@@ -865,6 +1019,11 @@ function drawCamera() {
 	ctx.restore();
 }
 
+/**
+ * Draw the portals with their opening animation and move them with their platforms.
+ *
+ * @returns {void}
+ */
 export function drawPortals() {
 	let prt, dy;
 	for (prt in game.portals) {
@@ -895,6 +1054,14 @@ export function drawPortals() {
 	}
 }
 
+/**
+ * Draw the standing player figure, e.g. in the menus.
+ *
+ * @param {number} x The x coordinate in canvas pixels.
+ * @param {number} y The y coordinate in canvas pixels.
+ * @param {number} flipX The direction, 1 right or -1 left.
+ * @returns {void}
+ */
 export function drawPerso(x, y, flipX) {
 	const flipDx = flipX < 0 ? 1 : 0;
 	ctx.drawImage(body[flipDx], 16, 0, 16, 27, x, y, 16, 27);

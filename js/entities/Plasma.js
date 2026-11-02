@@ -11,27 +11,60 @@ import { game, settings } from '../state.js';
 import { Tile, TileKind, isTileKind } from '../tiles.js';
 import { getDistance } from '../utils.js';
 
+/**
+ * A plasma ball. It moves in a straight line, bounces off walls, opens the plasma doors in its slot, and kills the
+ * player and the turrets.
+ */
 export class Plasma {
+	/**
+	 * @param {number} x The x position in 1/256 pixels.
+	 * @param {number} y The y position in 1/256 pixels.
+	 * @param {number} vx The horizontal speed in 1/256 pixels per tick.
+	 * @param {number} vy The vertical speed in 1/256 pixels per tick.
+	 */
 	constructor(x, y, vx, vy) {
+		/** @type {number} The x position in 1/256 pixels. */
 		this.x = x;
+		/** @type {number} The y position in 1/256 pixels. */
 		this.y = y;
+		/** @type {number} The x position of the start, where the ball returns after a reset. */
 		this.xOrig = x;
+		/** @type {number} The y position of the start, where the ball returns after a reset. */
 		this.yOrig = y;
+		/** @type {number} The horizontal speed in 1/256 pixels per tick. */
 		this.vx = vx;
+		/** @type {number} The vertical speed in 1/256 pixels per tick. */
 		this.vy = vy;
+		/** @type {number} The horizontal speed of the start. */
 		this.origVx = vx;
+		/** @type {number} The vertical speed of the start. */
 		this.origVy = vy;
+		/** @type {number} The speed limit in 1/256 pixels per tick. */
 		this.vMax = 424;
+		/** @type {number} The width in pixels. */
 		this.pX = 16;
+		/** @type {number} The height in pixels. */
 		this.pY = 16;
+		/** @type {number} 1 while the ball exists. */
 		this.used = 1;
+		/** @type {number} The pulse of the drawn size, from -2 to 2 pixels. */
 		this.scale = 1;
+		/** @type {number} The direction of the pulse, 1 or -1. */
 		this.scaleDir = -1;
+		/** @type {string} The entity type, used by the shared object functions. */
 		this.type = 'plasma';
+		/** @type {number} The frame of the ball image. */
 		this.animFrame = 0;
+		/** @type {boolean} True when the ball must go away in the next tick. */
 		this.needKill = false;
 	}
 
+	/**
+	 * Move the ball for one tick: the pulse, the position, the portals and the collisions. In acid and goo, the ball
+	 * returns to its start position.
+	 *
+	 * @returns {void}
+	 */
 	move() {
 		if (game.TIME % 10 == 0) {
 			this.scale += 1 * this.scaleDir;
@@ -88,6 +121,11 @@ export class Plasma {
 		}
 	}
 
+	/**
+	 * Open the plasma doors.
+	 *
+	 * @returns {void}
+	 */
 	ouvrirPorte() {
 		let i;
 		for (i in game.animatedTiles) {
@@ -102,6 +140,11 @@ export class Plasma {
 		}
 	}
 
+	/**
+	 * Check if the map still has a plasma slot.
+	 *
+	 * @returns {number} 1 if a slot exists, else 0.
+	 */
 	encore() {
 		let i;
 		for (i = 0; i < 768; i++) {
@@ -110,6 +153,12 @@ export class Plasma {
 		return 0;
 	}
 
+	/**
+	 * Bounce the ball off walls and open the plasma doors when the ball hits its slot. The bounce sound is louder near
+	 * the player.
+	 *
+	 * @returns {void}
+	 */
 	checkCollision() {
 		let x, y, i;
 		let dist = getDistance(this.x >> 8, this.y >> 8, game.perso.x >> 8, game.perso.y >> 8);
@@ -232,6 +281,12 @@ export class Plasma {
 	}
 }
 
+/**
+ * Check if a plasma ball overlaps an object.
+ *
+ * @param {object} obj The object with x, y, pX and pY.
+ * @returns {number} 1 if a ball overlaps the object, else 0.
+ */
 export function plasmaToucheObjet(obj) {
 	let i;
 	for (i in game.plasmaBall) {

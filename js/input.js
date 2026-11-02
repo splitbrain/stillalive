@@ -138,6 +138,11 @@ function setupInput() {
 
 setupInput();
 
+/**
+ * Release all mouse buttons and clear the pressed and released state.
+ *
+ * @returns {void}
+ */
 export function unclick() {
 	input.mousePressed = 0;
 	input.mouseReleased = 0;
@@ -182,6 +187,14 @@ export function restoreInput(state) {
 	game.perso.askClear = state[7] == 1;
 }
 
+/**
+ * Process the input of one tick.
+ *
+ * The function records or plays back the replay. It derives the mouse button state from the key bitmask of this tick
+ * and the previous tick. It sets the movement flags of the player.
+ *
+ * @returns {void}
+ */
 export function manageKeys() {
 	// The input still changes while the level time stands still. A replay restores the input state at the same time.
 	const inGame = game.perso.fadeNextLevel == -1 && ui.currentMenu == Menu.PLAY && !ui.escapeMenu;
@@ -273,6 +286,15 @@ export function manageKeys() {
 	input.oldKeys = input.keys;
 }
 
+/**
+ * Check if the mouse is inside a rectangle of the canvas.
+ *
+ * @param {number} x The left edge of the rectangle in canvas pixels.
+ * @param {number} y The top edge of the rectangle in canvas pixels.
+ * @param {number} w The width of the rectangle.
+ * @param {number} h The height of the rectangle.
+ * @returns {boolean} True if the mouse is inside.
+ */
 export function mouseInZone(x, y, w, h) {
 	if (input.mouseX >= x && input.mouseX < x + w && input.mouseY >= y && input.mouseY < y + h) return true;
 	return false;

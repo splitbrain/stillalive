@@ -6,29 +6,85 @@ import { loadImage } from './assets.js';
 import { NUM_TILES } from './constants.js';
 import { random, tabContains } from './utils.js';
 
-export let linesHoriz, linesVerti;
-export let tex_blackos, tex_tails;
-export let tex_button, tex_sound, tex_cross, tex_leftBG, tex_rightBG;
-export let key, mouseIcon;
-export let cameraFollow, robotEye, robotHead;
-export let levelEditorHud, menuBG, pauseBG, mapSelection;
+/** @type {number[]} The random order of the rows for the line transitions. */
+export let linesHoriz;
+/** @type {number[]} The random order of the columns for the line transitions. */
+export let linesVerti;
+/** @type {HTMLImageElement} The picture of the graphics author on the splash screen. */
+export let tex_blackos;
+/** @type {HTMLImageElement} The picture of the code author on the splash screen. */
+export let tex_tails;
+/** @type {HTMLImageElement} The button background of the menus. */
+export let tex_button;
+/** @type {HTMLImageElement} The sound icon of the main menu. */
+export let tex_sound;
+/** @type {HTMLImageElement} The cross over a disabled icon. */
+export let tex_cross;
+/** @type {HTMLImageElement} The left arrow of the background selection in the editor. */
+export let tex_leftBG;
+/** @type {HTMLImageElement} The right arrow of the background selection in the editor. */
+export let tex_rightBG;
+/** @type {HTMLImageElement} The key image for the replay keys. */
+export let key;
+/** @type {HTMLImageElement} The mouse image for the replay keys. */
+export let mouseIcon;
+/** @type {HTMLImageElement} The security camera. */
+export let cameraFollow;
+/** @type {HTMLImageElement[]} The eye of the robot, one image for each boss. */
+export let robotEye;
+/** @type {HTMLImageElement} The head of the robot. */
+export let robotHead;
+/** @type {HTMLImageElement} The frame of the level editor. */
+export let levelEditorHud;
+/** @type {HTMLImageElement} The background of the main menu. */
+export let menuBG;
+/** @type {HTMLImageElement} The background of the pause menu. */
+export let pauseBG;
+/** @type {HTMLImageElement} The frame of the level selection. */
+export let mapSelection;
+/** @type {HTMLImageElement} The picture of the splash screen and of an empty preview. */
 export let noLevel;
+/** @type {HTMLImageElement} The background of the intermission screen. */
 export let highscore;
+/** @type {HTMLImageElement} The platform. */
 export let platform;
-export let head, body;
-export let tunnel, tunnel2, tube, tube2;
+/** @type {HTMLImageElement[]} The head of the player, facing right and left. */
+export let head;
+/** @type {HTMLImageElement[]} The body of the player, facing right and left. */
+export let body;
+/** @type {HTMLImageElement} The tunnels that push to the left and to the right. */
+export let tunnel;
+/** @type {HTMLImageElement} The tunnels that push up and down. */
+export let tunnel2;
+/** @type {HTMLImageElement} The tube of the first, third and fourth boss. */
+export let tube;
+/** @type {HTMLImageElement} The tube of the second boss. */
+export let tube2;
+/** @type {HTMLImageElement} The controls picture of the loading screen. */
 export let controls;
+/** @type {HTMLImageElement[]} The turret, facing left and right. */
 export let tourelle;
+/** @type {HTMLImageElement} The plasma ball frames. */
 export let plasma;
+/** @type {HTMLImageElement} The crate. */
 export let caisse;
+/** @type {HTMLImageElement} The sparkle colors. */
 export let sparkle;
+/** @type {HTMLImageElement} The blue portal frames. */
 export let bluePortal;
+/** @type {HTMLImageElement} The red portal frames. */
 export let redPortal;
+/** @type {HTMLImageElement} The mouse cursor. */
 export let crosshair;
+/** @type {HTMLImageElement[]} The level backgrounds. */
 export let bg;
+/** @type {HTMLImageElement} The frame around the playfield. */
 export let hud;
+/** @type {HTMLImageElement} The cake. */
 export let cake;
+/** @type {HTMLImageElement} The portal gun. */
 export let portalGun;
+/** @type {HTMLImageElement[]} The tile images by tile id. */
 export let tileset;
 
 /**
@@ -40,6 +96,11 @@ export function loadSplashImages() {
 	noLevel = loadImage('bg/noLevel.png');
 }
 
+/**
+ * Start to load all images of the game and create the random line order of the transitions.
+ *
+ * @returns {void}
+ */
 export function loadGfx() {
 	let i, t, r;
 	body = new Array();

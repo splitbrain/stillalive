@@ -9,6 +9,17 @@ import { getTile } from '../physics.js';
 import { game, settings } from '../state.js';
 import { getCos, getDistance, getSin, random } from '../utils.js';
 
+/**
+ * Create a trail of sparkles along a line.
+ *
+ * @param {number} xFrom The x position of the start in 1/256 pixels.
+ * @param {number} yFrom The y position of the start in 1/256 pixels.
+ * @param {number} xTo The x position of the end in 1/256 pixels.
+ * @param {number} yTo The y position of the end in 1/256 pixels.
+ * @param {number} color The color index.
+ * @param {number} used The sparkle type.
+ * @returns {void}
+ */
 export function createSparkles(xFrom, yFrom, xTo, yTo, color, used) {
 	let k;
 	let x = xFrom;
@@ -46,6 +57,13 @@ export function createSparkles(xFrom, yFrom, xTo, yTo, color, used) {
 	} while (getDistance(x, y, x2, y2) > 256);
 }
 
+/**
+ * Remove the sparkles of one type and color.
+ *
+ * @param {number} p The color index.
+ * @param {number} used The sparkle type.
+ * @returns {void}
+ */
 export function removeSparkles(p, used) {
 	let i;
 	for (i = 0; i < game.sparkles.length; i++) {
@@ -56,6 +74,11 @@ export function removeSparkles(p, used) {
 	}
 }
 
+/**
+ * Move, fade and draw all sparkles for one tick in high quality.
+ *
+ * @returns {void}
+ */
 export function manageSparkles() {
 	let d, i, sc;
 	for (i = 0; i < game.sparkles.length && settings.quality > 0; i++) {
@@ -141,6 +164,16 @@ export function manageSparkles() {
 	}
 }
 
+/**
+ * Create sparkles around a point, e.g. for a collected cake or for smoke.
+ *
+ * @param {number} x The x position in 1/256 pixels.
+ * @param {number} y The y position in 1/256 pixels.
+ * @param {number} type The sparkle type; 8 and 9 select the colors of the cake and the smoke.
+ * @param {number} number The number of sparkles.
+ * @param {number} size The start value of the fade, which also sets the size.
+ * @returns {void}
+ */
 export function createCakeOrSmokeSparkles(x, y, type, number, size) {
 	let k;
 	for (k = 0; k < number; k++) {
@@ -158,16 +191,31 @@ export function createCakeOrSmokeSparkles(x, y, type, number, size) {
 	}
 }
 
+/**
+ * A particle for the visual effects: portal trails, teleports, deaths, cakes and smoke.
+ */
 export class Sparkle {
+	/**
+	 * Create a sparkle at the origin.
+	 */
 	constructor() {
+		/** @type {number} The x position in 1/256 pixels. */
 		this.x = 0;
+		/** @type {number} The y position in 1/256 pixels. */
 		this.y = 0;
+		/** @type {number} Always 0. */
 		this.xOrig = 0;
+		/** @type {number} Always 0. */
 		this.yOrig = 0;
+		/** @type {number} The horizontal speed in 1/256 pixels per tick. */
 		this.vx = 0;
+		/** @type {number} The vertical speed in 1/256 pixels per tick. */
 		this.vy = 0;
+		/** @type {number} The sparkle type, which selects the movement, the fade and the image. */
 		this.used = 0;
+		/** @type {number} The color index. */
 		this.color = 0;
+		/** @type {number} Ticks since the sparkle landed on the floor, or -1 while it flies. */
 		this.floorTime = -1;
 	}
 }

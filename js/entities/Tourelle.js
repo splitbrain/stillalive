@@ -21,29 +21,62 @@ import { game } from '../state.js';
 import { Tile, isPlatformCode } from '../tiles.js';
 import { random } from '../utils.js';
 
+/**
+ * A turret. It shoots at the player in its line of sight, and the player can carry and throw it.
+ */
 export class Tourelle {
+	/**
+	 * @param {number} x The x position in 1/256 pixels.
+	 * @param {number} y The y position in 1/256 pixels.
+	 * @param {number} dir The direction that the turret faces, -1 left or 1 right.
+	 */
 	constructor(x, y, dir) {
+		/** @type {number} The x position in 1/256 pixels. */
 		this.x = x;
+		/** @type {number} The y position in 1/256 pixels. */
 		this.y = y;
+		/** @type {number} The horizontal speed in 1/256 pixels per tick. */
 		this.vx = 0;
+		/** @type {number} The vertical speed in 1/256 pixels per tick. */
 		this.vy = 0;
+		/** @type {number} The rotation in degrees while the turret flies. */
 		this.angle = 0;
+		/** @type {number} The direction that the turret faces, -1 left or 1 right. */
 		this.dir = dir;
+		/** @type {number} Ticks until the next shot. */
 		this.coolTime = 0;
+		/** @type {number} The number of ticks between two shots. */
 		this.startCool = 3;
+		/** @type {number} Ticks until the turret shoots after it saw the player, from 10 down to 0. */
 		this.rotation = 10;
+		/** @type {number} 1 when the turret is destroyed. */
 		this.mort = 0;
+		/** @type {number} 1 while the turret exists. */
 		this.used = 1;
+		/** @type {number} 1 while the player carries the turret. */
 		this.porter = 0;
+		/** @type {number} 1 while the turret sees the player. */
 		this.inSight = 0;
+		/** @type {number} The width in pixels. */
 		this.pX = 16;
+		/** @type {number} The height in pixels. */
 		this.pY = 32;
+		/** @type {number} The frame of the turret image; 1 is the shot flash. */
 		this.animFrame = 0;
+		/** @type {number} 1 after the turret passed a portal or a force field; a hard landing then destroys it. */
 		this.canExplode = 0;
+		/** @type {string} The entity type, used by the shared object functions. */
 		this.type = 'tourelle';
+		/** @type {number} The x position where the laser sight ends, in 1/256 pixels. */
 		this.ex = 0;
 	}
 
+	/**
+	 * Move the turret for one tick: the rotation in the air, the destruction and the shot at the player. A hard
+	 * landing, a deadly tile, a moving crate, a plasma ball or a platform destroys the turret.
+	 *
+	 * @returns {void}
+	 */
 	move() {
 		if (this.used) {
 			if (!this.porter) {
@@ -95,6 +128,11 @@ export class Tourelle {
 		}
 	}
 
+	/**
+	 * Shoot at the player if the player is in the line of sight. The shot stops at walls and crates.
+	 *
+	 * @returns {void}
+	 */
 	shoot() {
 		let j;
 		let testShoot = false;
@@ -187,6 +225,13 @@ export class Tourelle {
 	}
 }
 
+/**
+ * Check if a point of the laser line is inside the player.
+ *
+ * @param {number} j The x coordinate in pixels.
+ * @param {number} ySent The y coordinate in pixels.
+ * @returns {number} 1 if the point is inside the player, else 0.
+ */
 function toucheJoueur(j, ySent) {
 	const x = game.perso.x >> 8;
 	const y = game.perso.y >> 8;

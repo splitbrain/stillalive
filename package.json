@@ -6,7 +6,9 @@
   "scripts": {
     "start": "http-server . -p 8080 -c-1",
     "test": "playwright test",
-    "lint": "eslint"
+    "lint": "eslint",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "devDependencies": {
     "@playwright/test": "^1.64.1",

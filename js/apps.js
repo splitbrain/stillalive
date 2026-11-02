@@ -42,8 +42,6 @@ var ECART_X = 64;
 var ECART_Y = 96;
 
 var TIME;
-var AVGFPS;
-var RATE = 0.166666;
 var timeWriting = 0;
 
 var RANDOM = 1;
@@ -55,7 +53,6 @@ var quality = 1;
 
 var maxLevel;
 
-var frameRate = 60;
 
 var mouseX = mouseY = mousePressed = mouseReleased = mouseButton = mouseNewPress = 0;
 var replayPauseInput = null;
@@ -64,7 +61,6 @@ var LEFT = 0;
 var RIGHT = 1;
 var MIDDLE = 2;
 
-var framesSinceLastFPS = timeSinceLastFPS = 0;
 
 var tex_blackos, tex_tails;
 
@@ -117,7 +113,6 @@ var perso;
 var GRAVITY = 60;
 var portals;
 var plasmaBall;
-var lastTime = new Date().getTime();
 var camera, robot;
 
 var needRedrawTiles;
@@ -134,7 +129,6 @@ var sfx_explode, sfx_jump, sfx_bounce, sfx_grabCake, sfx_holdObject;
 var sfx_throwObject, sfx_tick, sfx_transition;
 var sfx_portal;
 var ctx;
-var finishedLastDraw = true;
 
 var txtLines;
 
@@ -195,18 +189,16 @@ function setup() {
 	
 	TIME = 0;
 	
-	setInterval("myLoop()", 1000 / 60);
+	startLoop(myLoop);
 	
 	//maxLevel[4] = 29;
 }
 
 function myLoop() {
-	if(finishedLastDraw) {
-		manageKeys();
-		if(!drawCredits) draw();
-		else doDrawCredits();
-		updatePanel();
-	}
+	manageKeys();
+	if(!drawCredits) draw();
+	else doDrawCredits();
+	updatePanel();
 }
 
 function unclick() {
@@ -352,34 +344,15 @@ function manageKeys() {
 	oldKeys = keys;
 }
 
-function calculateFPS() {
-	var now = new Date().getTime();
-	RATE = (now - lastTime) / 1000;
-	lastTime = now;
-	framesSinceLastFPS++;
-	
-	var sec = (new Date().getTime() - timeSinceLastFPS) / 1000;
-	if (sec > 0.5) {
-		var fps = framesSinceLastFPS / sec;
-		timeSinceLastFPS = new Date().getTime();
-		framesSinceLastFPS = 0;
-		frameRate = fps;
-	}	
-}
-
 var drawCredits = false;
 
 function draw() {
-	finishedLastDraw = false;
-	calculateFPS();
-	
 	if(currentMenu == 3) {
 		drawLevelEditor();
 	} else if((currentMenu == 2 || currentMenu == 6) && !escapeMenu) {	
 		if(!finNiveau() && perso.fadeNextLevel == -1) {
 			if(TIME==0) unclick();
 			TIME++;
-			AVGFPS += parseInt(frameRate);
 		}
 		needRedrawTiles = 0;
 		if(!perso.mort && perso.fadeNextLevel == -1) {
@@ -518,10 +491,7 @@ function draw() {
 	ctx.font = "bold 10px Arial";
 	ctx.strokeStyle = "rgb(255, 255, 255)";
 	ctx.fillStyle = "rgb(255, 255, 255)";
-	ctx.fillText("" + (parseInt(frameRate)), 5, 10);
-	//ctx.fillText("rate : " + (RATE), 60, 10);
-	
-	finishedLastDraw = true;
+	ctx.fillText("" + getFps(), 5, 10);
 }
 
 var bossLife;

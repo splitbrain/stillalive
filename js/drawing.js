@@ -526,7 +526,6 @@ function drawMapSelection() {
 			loadLevel(currentLevel);
 			//$("#highscores").slideDown("slow");
 			//selectMenu = 0;
-			finishedLastDraw = true;
 			unclick();
 			return;
 		}else if(overMenu == 2) {//exit
@@ -536,7 +535,6 @@ function drawMapSelection() {
 			selectMenu = 0;
 			fadeMenu = 30;
 			$("#highscores").slideUp("slow");
-			finishedLastDraw = true;
 			unclick();
 			return;
 		}else if(overMenu == 3) {//hard/normal mode

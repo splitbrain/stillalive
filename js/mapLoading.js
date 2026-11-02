@@ -20,7 +20,6 @@ function loadLevelEditor() {
 	tourelles = new Array();
 	txtLines = new Array();
 	TIME = 0;
-	AVGFPS = 0;
 	STEPS = 0;
 	PORTALS = 0;
 	timeWriting = 0;
@@ -217,7 +216,6 @@ function loadLevel(level) {
 	}
 	
 	TIME = 0;
-	AVGFPS = 0;
 	STEPS = 0;
 	PORTALS = 0;
 	timeWriting = 0;

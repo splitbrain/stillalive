@@ -17,29 +17,44 @@ const TICKS = 300;
 const INTRO_TICKS = 30;
 
 /**
- * The boss levels of the story campaign. A replay skips the boss intro, so the ticks of play and replay differ.
+ * The boss levels of the story campaign. A replay skips the boss intro, so the played run skips it too.
  *
  * @type {string[]}
  */
 const BOSS_LEVELS = ['story-07', 'story-14', 'story-21', 'story-28'];
 
+/**
+ * The number of input sequences that a boss level tries. The random inputs often die in a boss level, so a boss level
+ * tries more sequences until one run has no death.
+ *
+ * @type {number}
+ */
+const BOSS_ATTEMPTS = 30;
+
 for (const campaign of CAMPAIGNS.filter((c) => c.name !== 'tutorial')) {
 	test(`replay ${campaign.name}`, async ({ page }) => {
 		await openGame(page);
 		let checked = 0;
-		const levels = campaignLevels(campaign).filter(({ level, id }) => level % 2 === 1 && !BOSS_LEVELS.includes(id));
+		const levels = campaignLevels(campaign).filter(({ level, id }) => level % 2 === 1 || BOSS_LEVELS.includes(id));
 		for (const { level, id } of levels) {
-			const played = await runLevel(page, {
-				campaign: campaign.index,
-				level,
-				ticks: TICKS,
-				seed: hashString(`replay ${id}`),
-				inputs: generateInputs(hashString(`replay inputs ${id}`), TICKS),
-			});
+			const isBoss = BOSS_LEVELS.includes(id);
+			let played = null;
+			for (let attempt = 0; attempt < (isBoss ? BOSS_ATTEMPTS : 1) && played === null; attempt++) {
+				const run = await runLevel(page, {
+					campaign: campaign.index,
+					level,
+					ticks: TICKS,
+					seed: hashString(`replay ${id}`),
+					inputs: generateInputs(hashString(`replay inputs ${id}` + (attempt ? ` ${attempt}` : '')), TICKS),
+					skipBossIntro: isBoss,
+				});
 
-			// the replay only holds the last attempt, so only a run without a death can be compared
-			const last = JSON.parse(played.trim().split('\n').at(-1));
-			if (last.time !== TICKS - INTRO_TICKS || last.player[5]) continue;
+				// the replay only holds the last attempt, so only a run without a death can be compared
+				const last = JSON.parse(run.trim().split('\n').at(-1));
+				if (last.time === TICKS - INTRO_TICKS && !last.player[5]) played = run;
+			}
+			if (isBoss) expect.soft(played, `${id} has a run without a death`).not.toBeNull();
+			if (played === null) continue;
 
 			const replay = await recordedReplay(page);
 			const replayed = await runLevel(page, {

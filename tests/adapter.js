@@ -93,11 +93,16 @@ export async function openGame(page) {
  * @param {number[][]} [options.inputs] For each tick the key bitmask, the mouse x and the mouse y position. Without
  *     inputs, the run does not change the input state.
  * @param {object} [options.replay] A replay in the file format. The run plays the replay instead of using inputs.
+ * @param {boolean} [options.skipBossIntro] True to skip the entrance and the speech of the boss, as a replay does.
  * @returns {Promise<string>} One JSON line for each snapshot, and the line "finished" if the player reached the exit.
  */
-export async function runLevel(page, { campaign, level, ticks, seed, inputs = null, replay = null }) {
+export async function runLevel(
+	page,
+	{ campaign, level, ticks, seed, inputs = null, replay = null, skipBossIntro = false },
+) {
 	return page.evaluate(
-		({ campaign, level, ticks, seed, inputs, replay: replayData, interval }) => {
+		async ({ campaign, level, ticks, seed, inputs, replay: replayData, skipBossIntro, interval }) => {
+			const { skipComingBoss } = await import('/js/boss.js');
 			const t = window.__test;
 			const { game, ui, input } = t;
 			let state = seed >>> 0;
@@ -130,6 +135,7 @@ export async function runLevel(page, { campaign, level, ticks, seed, inputs = nu
 			game.replayMode = replayData !== null;
 			if (game.replayMode) game.replay = t.decodeReplay(replayData);
 			t.loadLevel(level);
+			if (skipBossIntro) skipComingBoss();
 			t.unclick();
 			const startMap = game.map.slice();
 
@@ -166,7 +172,7 @@ export async function runLevel(page, { campaign, level, ticks, seed, inputs = nu
 			game.replayMode = false;
 			return lines.join('\n') + '\n';
 		},
-		{ campaign, level, ticks, seed, inputs, replay, interval: SNAPSHOT_INTERVAL },
+		{ campaign, level, ticks, seed, inputs, replay, skipBossIntro, interval: SNAPSHOT_INTERVAL },
 	);
 }
 

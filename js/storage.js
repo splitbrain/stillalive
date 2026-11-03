@@ -104,7 +104,7 @@ export function getCampaignTotal(campaign) {
 }
 
 /**
- * Store a new best time and its replay.
+ * Store a new best time and its replay. The time is only stored after the replay, so each stored time has a replay.
  *
  * @param {string} campaign The folder name of the campaign.
  * @param {number} level The level number, starting at 1.
@@ -113,10 +113,10 @@ export function getCampaignTotal(campaign) {
  * @returns {Promise<void>} Resolves when the replay is stored.
  */
 export async function saveBestTime(campaign, level, ticks, replayData) {
+	await replayRequest('readwrite', (store) => store.put(replayData, levelKey(campaign, level)));
 	const times = readBestTimes();
 	times[levelKey(campaign, level)] = ticks;
 	localStorage.setItem(BEST_TIMES_KEY, JSON.stringify(times));
-	await replayRequest('readwrite', (store) => store.put(replayData, levelKey(campaign, level)));
 }
 
 /**

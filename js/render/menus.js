@@ -83,14 +83,13 @@ export function prepareSelectionText() {
 export function updateIntermissionButtons() {
 	let overMenu = -1;
 	if (mouseInZone(74, 445, 120, 24)) overMenu = IntermissionButton.EXIT;
-	else if (mouseInZone(74 + 130, 445, 120, 24)) overMenu = IntermissionButton.RESTART;
+	else if (mouseInZone(74 + 130, 445, 120, 24) && !isLevelLocked()) overMenu = IntermissionButton.RESTART;
 	else if (mouseInZone(74 + 260, 445, 120, 24) && ui.currentMenu == Menu.PLAY && ui.currentLevel + 1 < 29) {
 		if (maxLevel[ui.campaign] >= ui.currentLevel + 1) {
 			overMenu = IntermissionButton.CONTINUE;
 		}
 	} else if (mouseInZone(74 + 390, 445, 120, 24)) overMenu = IntermissionButton.REPLAY;
 
-	if (isBossLevel() && overMenu == IntermissionButton.REPLAY) overMenu = IntermissionButton.NONE;
 	ui.intermissionHover = overMenu;
 
 	if (input.mousePressed && input.mouseButton == MouseButton.LEFT && overMenu > 0) {
@@ -100,15 +99,13 @@ export function updateIntermissionButtons() {
 }
 
 /**
- * Check if the current level is a boss level of the story campaign. A boss level has no replay button.
+ * Check if the current level is not unlocked yet. This is the case after the replay of a level that the player has
+ * not reached. The player can then not play the level from the intermission screen.
  *
- * @returns {boolean} True for a boss level.
+ * @returns {boolean} True for a locked level.
  */
-function isBossLevel() {
-	return (
-		ui.campaign == CampaignId.STORY &&
-		(ui.currentLevel == 7 || ui.currentLevel == 14 || ui.currentLevel == 21 || ui.currentLevel == 28)
-	);
+function isLevelLocked() {
+	return ui.currentMenu == Menu.PLAY && ui.currentLevel > maxLevel[ui.campaign];
 }
 
 /**
@@ -119,13 +116,11 @@ function isBossLevel() {
 function drawIntermissionButtons() {
 	const hover = ui.intermissionHover;
 	drawTinyButton(74, 445, hover == IntermissionButton.EXIT ? 0.9 : 1, 'Exit');
-	drawTinyButton(74 + 130, 445, hover == IntermissionButton.RESTART ? 0.9 : 1, 'Restart');
+	if (!isLevelLocked()) drawTinyButton(74 + 130, 445, hover == IntermissionButton.RESTART ? 0.9 : 1, 'Restart');
 	if (ui.currentMenu == Menu.PLAY && ui.currentLevel + 1 < 29 && maxLevel[ui.campaign] >= ui.currentLevel + 1) {
 		drawTinyButton(74 + 260, 445, hover == IntermissionButton.CONTINUE ? 0.9 : 1, 'Continue');
 	}
-	if (!isBossLevel()) {
-		drawTinyButton(74 + 390, 445, hover == IntermissionButton.REPLAY ? 0.9 : 1, 'Watch Replay');
-	}
+	drawTinyButton(74 + 390, 445, hover == IntermissionButton.REPLAY ? 0.9 : 1, 'Watch Replay');
 }
 
 /**

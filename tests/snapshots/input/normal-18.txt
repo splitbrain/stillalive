@@ -7,8 +7,8 @@
 {"tick":360,"time":21,"player":[-2512,62368,-219,-520,25600,0],"crates":[],"turrets":[],"plasma":[],"platforms":[],"portals":[[0,0,false,0],[0,0,false,0]],"cakesLeft":19,"map":[]}
 {"tick":420,"time":81,"player":[7384,65416,435,640,25600,0],"crates":[],"turrets":[],"plasma":[],"platforms":[],"portals":[[0,0,false,0],[0,0,false,0]],"cakesLeft":19,"map":[]}
 {"tick":480,"time":141,"player":[10472,110016,0,2380,-64,1],"crates":[],"turrets":[],"plasma":[],"platforms":[],"portals":[[0,0,false,0],[0,0,false,0]],"cakesLeft":19,"map":[]}
-{"tick":540,"time":19,"player":[-5696,75488,-597,180,25600,0],"crates":[],"turrets":[],"plasma":[],"platforms":[],"portals":[[0,0,0,0],[0,0,0,0]],"cakesLeft":19,"map":[]}
-{"tick":600,"time":79,"player":[-12560,108728,0,1980,-70,1],"crates":[],"turrets":[],"plasma":[],"platforms":[],"portals":[[0,0,0,0],[0,0,0,0]],"cakesLeft":19,"map":[]}
+{"tick":540,"time":19,"player":[-5696,75488,-597,180,25600,0],"crates":[],"turrets":[],"plasma":[],"platforms":[],"portals":[[0,0,false,0],[0,0,false,0]],"cakesLeft":19,"map":[]}
+{"tick":600,"time":79,"player":[-12560,108728,0,1980,-70,1],"crates":[],"turrets":[],"plasma":[],"platforms":[],"portals":[[0,0,false,0],[0,0,false,0]],"cakesLeft":19,"map":[]}
 {"tick":660,"time":18,"player":[1008,75136,499,0,25600,0],"crates":[],"turrets":[],"plasma":[],"platforms":[],"portals":[[0,0,false,0],[0,0,false,0]],"cakesLeft":19,"map":[]}
 {"tick":720,"time":78,"player":[43952,83536,919,1640,25600,0],"crates":[],"turrets":[],"plasma":[],"platforms":[],"portals":[[0,0,false,0],[0,0,false,0]],"cakesLeft":18,"map":[]}
 {"tick":780,"time":0,"player":[0,73728,0,0,25600,0],"crates":[],"turrets":[],"plasma":[],"platforms":[],"portals":[[0,0,false,0],[0,0,false,0]],"cakesLeft":19,"map":[]}
@@ -17,10 +17,10 @@
 {"tick":960,"time":155,"player":[12560,80648,0,780,25600,0],"crates":[],"turrets":[],"plasma":[],"platforms":[],"portals":[[0,0,false,0],[0,0,false,0]],"cakesLeft":19,"map":[]}
 {"tick":1020,"time":215,"player":[13112,108808,91,1980,-10,1],"crates":[],"turrets":[],"plasma":[],"platforms":[],"portals":[[0,0,false,0],[0,0,false,0]],"cakesLeft":19,"map":[]}
 {"tick":1080,"time":28,"player":[0,72392,0,700,25600,0],"crates":[],"turrets":[],"plasma":[],"platforms":[],"portals":[[0,0,false,0],[0,0,false,0]],"cakesLeft":19,"map":[]}
-{"tick":1140,"time":88,"player":[6968,63120,0,460,25600,0],"crates":[],"turrets":[],"plasma":[],"platforms":[],"portals":[[0,0,0,0],[32768,46080,0,3]],"cakesLeft":19,"map":[]}
-{"tick":1200,"time":148,"player":[-1544,73800,0,-1300,25600,0],"crates":[],"turrets":[],"plasma":[],"platforms":[],"portals":[[0,0,0,0],[32768,46080,0,3]],"cakesLeft":19,"map":[]}
-{"tick":1260,"time":208,"player":[8240,68232,611,-1000,25600,0],"crates":[],"turrets":[],"plasma":[],"platforms":[],"portals":[[0,0,0,0],[32768,46080,0,3]],"cakesLeft":19,"map":[]}
-{"tick":1320,"time":268,"player":[31360,110296,-140,2420,-232,1],"crates":[],"turrets":[],"plasma":[],"platforms":[],"portals":[[0,0,0,0],[32768,46080,0,3]],"cakesLeft":19,"map":[]}
+{"tick":1140,"time":88,"player":[6968,63120,0,460,25600,0],"crates":[],"turrets":[],"plasma":[],"platforms":[],"portals":[[0,0,false,0],[32768,46080,false,3]],"cakesLeft":19,"map":[]}
+{"tick":1200,"time":148,"player":[-1544,73800,0,-1300,25600,0],"crates":[],"turrets":[],"plasma":[],"platforms":[],"portals":[[0,0,false,0],[32768,46080,false,3]],"cakesLeft":19,"map":[]}
+{"tick":1260,"time":208,"player":[8240,68232,611,-1000,25600,0],"crates":[],"turrets":[],"plasma":[],"platforms":[],"portals":[[0,0,false,0],[32768,46080,false,3]],"cakesLeft":19,"map":[]}
+{"tick":1320,"time":268,"player":[31360,110296,-140,2420,-232,1],"crates":[],"turrets":[],"plasma":[],"platforms":[],"portals":[[0,0,false,0],[32768,46080,false,3]],"cakesLeft":19,"map":[]}
 {"tick":1380,"time":0,"player":[0,73728,0,0,25600,0],"crates":[],"turrets":[],"plasma":[],"platforms":[],"portals":[[0,0,false,0],[0,0,false,0]],"cakesLeft":19,"map":[]}
 {"tick":1440,"time":51,"player":[-26968,108728,-807,1980,-238,1],"crates":[],"turrets":[],"plasma":[],"platforms":[],"portals":[[0,0,false,0],[0,0,false,0]],"cakesLeft":19,"map":[]}
 {"tick":1500,"time":0,"player":[0,73728,0,0,25600,0],"crates":[],"turrets":[],"plasma":[],"platforms":[],"portals":[[0,0,false,0],[0,0,false,0]],"cakesLeft":19,"map":[]}

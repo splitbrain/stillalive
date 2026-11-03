@@ -24,7 +24,7 @@ export class Portal {
 		this.scaleX = 1;
 		/** @type {number} The vertical size of the opening animation, from 0 to 1. */
 		this.scaleY = 1;
-		/** @type {boolean|number} True or 1 while the portal is placed on a wall. */
+		/** @type {boolean} True while the portal is placed on a wall. */
 		this.used = false;
 		/** @type {number} The side of the wall that the portal is on: Direction.UP, Direction.DOWN, Direction.LEFT or Direction.RIGHT. */
 		this.direction = 0;

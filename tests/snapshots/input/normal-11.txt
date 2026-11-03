@@ -15,7 +15,7 @@
 {"tick":840,"time":388,"player":[36744,68248,667,780,25600,0],"crates":[[118784,86200,0,0,0]],"turrets":[],"plasma":[],"platforms":[],"portals":[[0,0,false,0],[0,0,false,0]],"cakesLeft":7,"map":[]}
 {"tick":900,"time":448,"player":[45280,109536,79,2340,-46,1],"crates":[[118784,86200,0,0,0]],"turrets":[],"plasma":[],"platforms":[],"portals":[[0,0,false,0],[0,0,false,0]],"cakesLeft":7,"map":[]}
 {"tick":960,"time":22,"player":[-7544,35424,-618,360,25600,0],"crates":[[118784,86200,0,0,0]],"turrets":[],"plasma":[],"platforms":[],"portals":[[0,0,false,0],[0,0,false,0]],"cakesLeft":8,"map":[]}
-{"tick":1020,"time":82,"player":[-28648,109616,0,2688,-154,1],"crates":[[118784,86200,0,0,0]],"turrets":[],"plasma":[],"platforms":[],"portals":[[0,0,0,0],[0,0,0,0]],"cakesLeft":8,"map":[]}
+{"tick":1020,"time":82,"player":[-28648,109616,0,2688,-154,1],"crates":[[118784,86200,0,0,0]],"turrets":[],"plasma":[],"platforms":[],"portals":[[0,0,false,0],[0,0,false,0]],"cakesLeft":8,"map":[]}
 {"tick":1080,"time":4,"player":[0,33360,0,240,25600,0],"crates":[[118784,78712,0,300,0]],"turrets":[],"plasma":[],"platforms":[],"portals":[[0,0,false,0],[0,0,false,0]],"cakesLeft":8,"map":[]}
 {"tick":1140,"time":64,"player":[-128,32872,-128,-1300,25600,0],"crates":[[118784,86200,0,0,0]],"turrets":[],"plasma":[],"platforms":[],"portals":[[0,0,false,0],[0,0,false,0]],"cakesLeft":8,"map":[]}
 {"tick":1200,"time":124,"player":[-8552,59040,70,1960,25600,0],"crates":[[118784,86200,0,0,0]],"turrets":[],"plasma":[],"platforms":[],"portals":[[0,0,false,0],[0,0,false,0]],"cakesLeft":8,"map":[]}
@@ -26,6 +26,6 @@
 {"tick":1500,"time":71,"player":[-1856,29400,-254,-1120,25600,0],"crates":[[118784,86200,0,0,0]],"turrets":[],"plasma":[],"platforms":[],"portals":[[0,0,false,0],[0,0,false,0]],"cakesLeft":8,"map":[]}
 {"tick":1560,"time":131,"player":[-3336,109664,84,2688,-208,1],"crates":[[118784,86200,0,0,0]],"turrets":[],"plasma":[],"platforms":[],"portals":[[0,0,false,0],[0,0,false,0]],"cakesLeft":8,"map":[]}
 {"tick":1620,"time":0,"player":[0,32768,0,0,25600,0],"crates":[[118784,77824,0,0,0]],"turrets":[],"plasma":[],"platforms":[],"portals":[[0,0,false,0],[0,0,false,0]],"cakesLeft":8,"map":[]}
-{"tick":1680,"time":55,"player":[-29888,80896,-359,2340,25600,0],"crates":[[118784,86200,0,0,0]],"turrets":[],"plasma":[],"platforms":[],"portals":[[0,0,0,0],[0,0,0,0]],"cakesLeft":8,"map":[]}
+{"tick":1680,"time":55,"player":[-29888,80896,-359,2340,25600,0],"crates":[[118784,86200,0,0,0]],"turrets":[],"plasma":[],"platforms":[],"portals":[[0,0,false,0],[0,0,false,0]],"cakesLeft":8,"map":[]}
 {"tick":1740,"time":0,"player":[0,32768,0,0,25600,0],"crates":[[118784,77824,0,0,0]],"turrets":[],"plasma":[],"platforms":[],"portals":[[0,0,false,0],[0,0,false,0]],"cakesLeft":8,"map":[]}
-{"tick":1800,"time":37,"player":[2528,34216,-529,0,25600,0],"crates":[[118784,86200,0,0,0]],"turrets":[],"plasma":[],"platforms":[],"portals":[[0,0,0,0],[0,0,0,0]],"cakesLeft":8,"map":[]}
+{"tick":1800,"time":37,"player":[2528,34216,-529,0,25600,0],"crates":[[118784,86200,0,0,0]],"turrets":[],"plasma":[],"platforms":[],"portals":[[0,0,false,0],[0,0,false,0]],"cakesLeft":8,"map":[]}

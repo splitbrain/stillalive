@@ -19,7 +19,7 @@ export function fieldForceTest() {
 		if (inForceField(game.player)) {
 			let i;
 			for (i = 0; i < 2; i++) {
-				game.portals[i].used = 0;
+				game.portals[i].used = false;
 				removeSparkles(i, 3);
 			}
 		}

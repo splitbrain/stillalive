@@ -370,7 +370,7 @@ function displayPortals() {
 	game.portals[0].platformIndex = -1;
 	game.portals[0].scaleX = 1;
 	game.portals[0].scaleY = 1;
-	game.portals[0].used = 1;
+	game.portals[0].used = true;
 	game.portals[0].vx = 255;
 	game.portals[0].vy = -12;
 	game.portals[0].x = 144 << 8;
@@ -381,7 +381,7 @@ function displayPortals() {
 	game.portals[1].platformIndex = -1;
 	game.portals[1].scaleX = 1;
 	game.portals[1].scaleY = 1;
-	game.portals[1].used = 1;
+	game.portals[1].used = true;
 	game.portals[1].vx = -255;
 	game.portals[1].vy = -12;
 	game.portals[1].x = 188 << 8;

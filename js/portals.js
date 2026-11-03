@@ -165,7 +165,7 @@ function setPortalDir(p, x, y) {
 		game.portals[p].frame = 1;
 		game.portals[p].y = y << 8;
 		game.portals[p].x = x << 8;
-		game.portals[p].used = 1;
+		game.portals[p].used = true;
 
 		removeSparkles(p, 3);
 
@@ -226,7 +226,7 @@ function setPortalDir(p, x, y) {
 
 			game.portals[p].y = y << 8;
 			game.portals[p].x = x << 8;
-			game.portals[p].used = 1;
+			game.portals[p].used = true;
 			game.portals[p].frame = 0;
 
 			removeSparkles(p, 3);
@@ -332,7 +332,7 @@ export function checkTeleportDown(obj) {
 	for (j = 0; j < 2; j++) {
 		const tx = game.portals[j].x >> 8;
 		const ty = game.portals[j].y >> 8;
-		if (game.portals[j].used && game.portals[j].direction == Direction.DOWN && game.portals[1 - j].used == 1) {
+		if (game.portals[j].used && game.portals[j].direction == Direction.DOWN && game.portals[1 - j].used) {
 			if (x >= tx - 4 && x + obj.pX < tx + 36 && y >= ty && y - ty <= 20) {
 				obj.x = (tx + 8) << 8;
 				if (y - ty >= 16 && obj.vy > 0) {
@@ -362,7 +362,7 @@ export function checkTeleportUp(obj) {
 	for (j = 0; j < 2; j++) {
 		const tx = game.portals[j].x >> 8;
 		const ty = (game.portals[j].y >> 8) + 4;
-		if (game.portals[j].used && game.portals[j].direction == Direction.UP && game.portals[1 - j].used == 1) {
+		if (game.portals[j].used && game.portals[j].direction == Direction.UP && game.portals[1 - j].used) {
 			if (x >= tx - 4 && x + obj.pX < tx + 36 && y < ty && ty - y <= 20) {
 				obj.x = (tx + 8) << 8;
 				if (ty - y >= 16 && obj.vy < 0) {
@@ -530,7 +530,7 @@ export function clearPortals() {
 
 	if (ok) {
 		for (i = 0; i < 2; i++) {
-			game.portals[i].used = 0;
+			game.portals[i].used = false;
 			removeSparkles(i, 3);
 		}
 	}

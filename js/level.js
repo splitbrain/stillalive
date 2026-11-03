@@ -74,7 +74,7 @@ function clearDoorBlockers() {
 			if (game.portals[i].direction == Direction.LEFT || game.portals[i].direction == Direction.RIGHT) {
 				for (j = 0; j < 32; j++) {
 					if (getTileSimple(x, y + j) == FIRST_OF_KIND[TileKind.SWITCH_DOOR]) {
-						game.portals[i].used = 0;
+						game.portals[i].used = false;
 						removeSparkles(i, 3);
 						j = 32;
 					}
@@ -82,7 +82,7 @@ function clearDoorBlockers() {
 			} else {
 				for (j = 0; j < 32; j++) {
 					if (getTileSimple(x + j, y) == FIRST_OF_KIND[TileKind.SWITCH_DOOR]) {
-						game.portals[i].used = 0;
+						game.portals[i].used = false;
 						removeSparkles(i, 3);
 						j = 32;
 					}

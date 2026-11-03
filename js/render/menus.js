@@ -3,7 +3,7 @@
  */
 
 import { allImagesLoaded, areImagesLoaded, imageProgress, missingImages } from '../assets.js';
-import { allSoundsLoaded, disableSound, isSoundAvailable, isSoundOn, soundProgress, toggleSound } from '../audio.js';
+import { allSoundsLoaded, isSoundAvailable, isSoundOn, soundProgress, toggleSound } from '../audio.js';
 import { setupBoss } from '../boss.js';
 import { ctx } from '../canvas.js';
 import {
@@ -138,11 +138,12 @@ export function drawPauseMenu() {
 }
 
 /**
- * Draw the splash screen with its animation and go to the menu when it ends and all files are loaded.
+ * Draw the splash screen with its animation.
  *
  * @returns {void}
  */
 export function drawSplash() {
+	const sp = ui.splash;
 	ctx.fillStyle = 'rgb(0, 0, 0)';
 	ctx.fillRect(0, 0, 640, 544);
 
@@ -151,85 +152,32 @@ export function drawSplash() {
 	ctx.font = 'bold 48px Yikes';
 	ctx.fillStyle = 'rgb(0, 0, 0)';
 
-	ctx.fillText('Welcome To', 160 + 4 + 60, titleY + 4 - 80);
+	ctx.fillText('Welcome To', 160 + 4 + 60, sp.titleY + 4 - 80);
 	ctx.fillStyle = 'rgb(253, 233, 0)';
-	ctx.fillText('Welcome To', 160 + 60, titleY - 80);
+	ctx.fillText('Welcome To', 160 + 60, sp.titleY - 80);
 
 	ctx.font = 'bold 64px Yikes';
 	ctx.fillStyle = 'rgb(0, 0, 0)';
 
-	ctx.fillText('StillAliveJS', 160 + 4, titleY + 4);
+	ctx.fillText('StillAliveJS', 160 + 4, sp.titleY + 4);
 	ctx.fillStyle = 'rgb(253, 233, 0)';
-	ctx.fillText('StillAliveJS', 160, titleY);
-
-	titleY += titleVY;
-	titleVY += 0.2;
-	if (titleVY > 10) titleVY = 10;
-	else if (titleVY < -10) titleVY = -10;
-	if (titleY > 400 && timeExit < 300) {
-		titleY = 400;
-		titleVY = -(titleVY >> 2);
-	}
+	ctx.fillText('StillAliveJS', 160, sp.titleY);
 
 	ctx.font = 'bold 24px Yikes';
-	ctx.fillStyle = 'rgb(0, 65, 88)';
-
-	if (timeExit > 100) tailsVY += 0.1;
-	if (tailsVY > 10) tailsVY = 10;
-	else if (tailsVY < -10) tailsVY = -10;
-
-	tailsY += tailsVY;
-	if (tailsY > 100 && timeExit < 330) {
-		tailsY = 100;
-		tailsVY = -(tailsVY >> 2);
-	}
-
-	if (timeExit > 200) blackosVY += 0.1;
-	if (blackosVY > 10) blackosVY = 10;
-	else if (blackosVY < -10) blackosVY = -10;
-
-	blackosY += blackosVY;
-	if (blackosY > 130 && timeExit < 360) {
-		blackosY = 130;
-		blackosVY = -(blackosVY >> 2);
-	}
-
-	timeExit++;
-
-	ctx.drawImage(tex_tails, 32, 32 + tailsY);
+	ctx.drawImage(tex_tails, 32, 32 + sp.tailsY);
 	ctx.fillStyle = 'rgb(0, 0, 0)';
-	ctx.fillText('Created by t4ils', 100 + 2, 64 + 2 + tailsY);
+	ctx.fillText('Created by t4ils', 100 + 2, 64 + 2 + sp.tailsY);
 	ctx.fillStyle = 'rgb(253, 233, 0)';
-	ctx.fillText('Created by t4ils', 100, 64 + tailsY);
+	ctx.fillText('Created by t4ils', 100, 64 + sp.tailsY);
 
 	ctx.fillStyle = 'rgb(0, 0, 0)';
-	ctx.fillText('Gfx by ZeBlackos', 360 + 2, 64 + 2 + blackosY);
+	ctx.fillText('Gfx by ZeBlackos', 360 + 2, 64 + 2 + sp.blackosY);
 	ctx.fillStyle = 'rgb(253, 233, 0)';
-	ctx.fillText('Gfx by ZeBlackos', 360, 64 + blackosY);
-	ctx.drawImage(tex_blackos, 550, 32 + blackosY);
+	ctx.fillText('Gfx by ZeBlackos', 360, 64 + sp.blackosY);
+	ctx.drawImage(tex_blackos, 550, 32 + sp.blackosY);
 
-	if (tailsY > 580) {
-		timeSplash--;
-		if (timeSplash == 0) {
-			overSplash = true;
-			if (allImagesLoaded() && levelsLoaded >= levelsToLoad && allSoundsLoaded()) {
-				ui.goMenu = 0;
-				ui.fadeMenu = 30;
-				unclick();
-				ui.currentMenu = Menu.MAIN;
-				game.sparkles = new Array();
-			}
-		}
-	} else {
-		if (++timeSplash > 60) timeSplash = 60;
-	}
-	ctx.fillStyle = 'rgba(0, 0, 0, ' + (1 - timeSplash / 60) + ')';
+	ctx.fillStyle = 'rgba(0, 0, 0, ' + (1 - sp.fade / 60) + ')';
 	ctx.fillRect(0, 0, 640, 544);
-
-	if (input.mouseNewPress && timeExit < 360) {
-		timeSplash = 60;
-		timeExit = 360;
-	}
 }
 
 /**
@@ -254,8 +202,7 @@ function drawKeyLabels(dx, dy) {
 }
 
 /**
- * Draw the loading screen with the progress bars, the controls and the missing files, and go to the menu on a click
- * when all files are loaded.
+ * Draw the loading screen with the progress bars, the controls and the missing files.
  *
  * @returns {void}
  */
@@ -274,12 +221,7 @@ export function drawLoadingScreen() {
 		ctx.fillStyle = 'rgb(0, 0, 0)';
 	}
 
-	if (mouseInZone(80, 80, 133, 16)) {
-		ctx.fillStyle = 'rgb(255, 255, 255)';
-		if (input.mouseNewPress) {
-			disableSound();
-		}
-	}
+	if (ui.loadingHover) ctx.fillStyle = 'rgb(255, 255, 255)';
 
 	ctx.fillText('(click here if not loading)', 85, 90);
 	ctx.fillStyle = 'rgb(255, 255, 255)';
@@ -330,17 +272,9 @@ export function drawLoadingScreen() {
 		ctx.drawImage(redPortal, 0, 0, 32, 32, 171 + dx, 177 + dy, 32, 32);
 	}
 
-	game.time++;
 	if (allImagesLoaded() && levelsLoaded >= levelsToLoad && allSoundsLoaded()) {
 		if (game.time % 50 < 25) {
 			ctx.fillText('Click to continue ...', 280, 476);
-		}
-		if (input.mousePressed) {
-			ui.goMenu = 0;
-			ui.fadeMenu = 30;
-			unclick();
-			ui.currentMenu = Menu.MAIN;
-			game.sparkles = new Array();
 		}
 	}
 	if (imagesReady) ctx.drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
@@ -834,24 +768,6 @@ export function drawPreviewMap() {
 	}
 }
 
-/** @type {boolean} True after the splash screen ended. */
-export let overSplash = false;
-/** @type {number} The fade of the splash screen, up to 60. */
-let timeSplash = 0;
-/** @type {number} Ticks of the splash screen; a click sets it to the end. */
-let timeExit = 0;
-/** @type {number} The vertical speed of the first author name on the splash screen. */
-let tailsVY = 0;
-/** @type {number} The vertical speed of the second author name on the splash screen. */
-let blackosVY = 0;
-/** @type {number} The y position of the first author name on the splash screen. */
-let tailsY = -100;
-/** @type {number} The y position of the second author name on the splash screen. */
-let blackosY = -100;
-/** @type {number} The y position of the title on the splash screen. */
-let titleY = -50;
-/** @type {number} The vertical speed of the title on the splash screen. */
-let titleVY = 0;
 /** @type {number} The scroll position of the credits. */
 let creditsTime = 0;
 /** @type {number} The fade of the credits. */

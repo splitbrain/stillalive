@@ -70,6 +70,23 @@ export const ui = {
 	intermissionHover: -1,
 	/** @type {number} The hovered button of the pause menu, a value of PauseButton, or -1. */
 	pauseHover: -1,
+	/** @type {boolean} True while the mouse is over the link of the loading screen that turns the sound off. */
+	loadingHover: false,
+	/**
+	 * @type {object} The animation of the splash screen: the fade from 0 to 60, the ticks since the start, and the
+	 *     positions and the speeds of the title and of the two names. over becomes true at its end.
+	 */
+	splash: {
+		over: false,
+		fade: 0,
+		time: 0,
+		titleY: -50,
+		titleVY: 0,
+		tailsY: -100,
+		tailsVY: 0,
+		blackosY: -100,
+		blackosVY: 0,
+	},
 	highscoreMessage: undefined,
 	drawCredits: false,
 	timeWriting: 0,

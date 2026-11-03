@@ -23,7 +23,6 @@ import {
 	loadPreviewMap,
 } from './level.js';
 import { startLoop } from './loop.js';
-import { overSplash } from './render/menus.js';
 import { decodeReplay, encodeReplay } from './replay.js';
 import { game, input, ui } from './state.js';
 import { loadProgress } from './storage.js';
@@ -76,7 +75,7 @@ function addTestHook() {
 		campaigns: () => campaigns,
 		levelsLoaded: () => levelsLoaded,
 		levelsToLoad: () => levelsToLoad,
-		overSplash: () => overSplash,
+		overSplash: () => ui.splash.over,
 		allImagesLoaded,
 		allSoundsLoaded,
 		encodeReplay,

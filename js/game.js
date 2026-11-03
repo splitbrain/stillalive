@@ -31,7 +31,7 @@ import { manageKeys, unclick } from './inputState.js';
 import { updateTransition } from './intermission.js';
 import { campaigns, loadLevel, manageDoors } from './level.js';
 import { getFps } from './loop.js';
-import { updatePauseMenu } from './menus.js';
+import { updateLoadingScreen, updatePauseMenu, updateSplash } from './menus.js';
 import { exitFunc } from './navigation.js';
 import { updatePanel } from './panel.js';
 import { atExit } from './physics.js';
@@ -45,7 +45,6 @@ import {
 	drawMapSelection,
 	drawPauseMenu,
 	drawSplash,
-	overSplash,
 } from './render/menus.js';
 import { encodeReplay } from './replay.js';
 import { updateText } from './robotText.js';
@@ -76,6 +75,9 @@ export function render() {
 	if (!ui.drawCredits && (ui.currentMenu == Menu.PLAY || ui.currentMenu == Menu.TUTORIAL)) {
 		if (ui.escapeMenu) drawPauseMenu();
 		else drawLevel();
+	} else if (!ui.drawCredits && ui.currentMenu == Menu.LOADING) {
+		if (ui.canSplash && !ui.splash.over) drawSplash();
+		else if (ui.splash.over) drawLoadingScreen();
 	}
 	ctx.font = 'bold 10px Arial';
 	ctx.strokeStyle = 'rgb(255, 255, 255)';
@@ -114,8 +116,8 @@ function updateScreen() {
 	} else if ((ui.currentMenu == Menu.PLAY || ui.currentMenu == Menu.TUTORIAL) && ui.escapeMenu) {
 		updatePauseMenu();
 	} else if (ui.currentMenu == Menu.LOADING) {
-		if (ui.canSplash && !overSplash) drawSplash();
-		else if (overSplash) drawLoadingScreen();
+		if (ui.canSplash && !ui.splash.over) updateSplash();
+		else if (ui.splash.over) updateLoadingScreen();
 	} else if (ui.currentMenu == Menu.MAIN) {
 		if (ui.selectMenu == 0) drawMainMenu();
 		else {

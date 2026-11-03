@@ -298,7 +298,7 @@ export function drawAnimatedTiles() {
 export function createBuff() {
 	let i;
 	ctx.drawImage(bg[game.BG], game.offsetX, game.offsetY, 512, 384);
-	for (i in game.displayMap) {
+	for (i = 0; i < game.displayMap.length; i++) {
 		const y = i >> 5;
 		const x = i - (y << 5);
 		if (game.displayMap[i] < NUM_TILES && game.displayMap[i] > 0 && i < 768) {
@@ -492,7 +492,7 @@ export function drawPlatforms() {
 export function drawFrontTiles() {
 	let tx, ty, t, p, i;
 	if (game.needRedrawTiles > 0) {
-		for (p in game.portals) {
+		for (p = 0; p < game.portals.length; p++) {
 			if (game.portals[p].platformIndex == -1) {
 				const x = game.portals[p].x >> 8;
 				const y = game.portals[p].y >> 8;

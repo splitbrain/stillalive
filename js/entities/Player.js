@@ -218,7 +218,7 @@ export class Player {
 			game.player.vx = 0;
 			game.player.vy = 0;
 		}
-		for (i in fields) {
+		for (i = 0; i < fields.length; i++) {
 			const f = fields[i];
 			if (fields.length == 1) {
 				if (game.forceFields[f].vx != 0) {

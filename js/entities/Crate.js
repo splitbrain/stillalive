@@ -105,7 +105,7 @@ export class Crate {
 
 					const t = getTileSimple((this.x >> 8) + this.pX + 1, this.y >> 8);
 					if (isTileKind(t, TileKind.BOSS_BLOCK)) {
-						for (i in game.map) {
+						for (i = 0; i < game.map.length; i++) {
 							if (game.map[i] == t) {
 								if (t < LAST_OF_KIND[TileKind.BOSS_BLOCK]) {
 									game.map[i]++;
@@ -193,7 +193,7 @@ export class Crate {
  */
 export function crateAt(x, y) {
 	let i;
-	for (i in game.crates) {
+	for (i = 0; i < game.crates.length; i++) {
 		const x2 = game.crates[i].x >> 8;
 		const y2 = game.crates[i].y >> 8;
 		if (!game.crates[i].carried && !inPortal(game.crates[i]) && x > x2 && x < x2 + 15 && y > y2 && y < y2 + 15) {
@@ -213,7 +213,7 @@ export function crateAt(x, y) {
  */
 export function anyCrateAt(x, y) {
 	let i;
-	for (i in game.crates) {
+	for (i = 0; i < game.crates.length; i++) {
 		const x2 = game.crates[i].x >> 8;
 		const y2 = game.crates[i].y >> 8;
 		if (x > x2 && x < x2 + 15 && y > y2 && y < y2 + 15) {
@@ -259,7 +259,7 @@ export function movingCrateTouching(obj) {
 	const px = obj.pX;
 	const py = obj.pY;
 
-	for (i in game.crates) {
+	for (i = 0; i < game.crates.length; i++) {
 		if (
 			game.crates[i].carried == 0 &&
 			(game.crates[i].vx != 0 || game.crates[i].vy != 0) &&

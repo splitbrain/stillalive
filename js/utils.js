@@ -109,7 +109,7 @@ export function getDistance(x1, y1, x2, y2) {
  */
 export function tabContains(tab, value) {
 	let i;
-	for (i in tab) {
+	for (i = 0; i < tab.length; i++) {
 		if (tab[i] == value) return true;
 	}
 	return false;

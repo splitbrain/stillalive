@@ -745,7 +745,7 @@ export function doDrawCredits() {
 	ctx.fillRect(0, 0, 640, 544);
 
 	ctx.font = '24px yikes';
-	for (const t in creditsTxt) {
+	for (let t = 0; t < creditsTxt.length; t++) {
 		const txt = creditsTxt[t];
 		const metrics = ctx.measureText(txt);
 		const x = 320 - (metrics.width >> 1);
@@ -810,7 +810,7 @@ export function drawPreviewMap() {
 	let i, ti, ci, pi;
 	if (game.needLoad) {
 		ctx.drawImage(bg[game.BG], game.offsetX, game.offsetY, 512, 384);
-		for (i in game.displayMap) {
+		for (i = 0; i < game.displayMap.length; i++) {
 			const y = i >> 5;
 			const x = i - (y << 5);
 			if (game.displayMap[i] < NUM_TILES && game.displayMap[i] > 0 && i < 768) {
@@ -860,7 +860,7 @@ export function drawPreviewMap() {
 			27,
 		);
 
-		for (i in game.cakes) {
+		for (i = 0; i < game.cakes.length; i++) {
 			if (game.cakes[i].used) {
 				ctx.drawImage(
 					cake,
@@ -872,7 +872,7 @@ export function drawPreviewMap() {
 			}
 		}
 
-		for (ti in game.turrets) {
+		for (ti = 0; ti < game.turrets.length; ti++) {
 			const side = game.turrets[ti].dir < 0 ? 0 : 1;
 			ctx.drawImage(
 				turretImages[side],
@@ -887,11 +887,11 @@ export function drawPreviewMap() {
 			);
 		}
 
-		for (ci in game.crates) {
+		for (ci = 0; ci < game.crates.length; ci++) {
 			ctx.drawImage(crateImage, (game.crates[ci].x >> 8) + game.offsetX, (game.crates[ci].y >> 8) + game.offsetY);
 		}
 
-		for (pi in game.platforms) {
+		for (pi = 0; pi < game.platforms.length; pi++) {
 			ctx.drawImage(platform, (game.platforms[pi].x >> 8) + game.offsetX, (game.platforms[pi].y >> 8) + game.offsetY);
 		}
 

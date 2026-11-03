@@ -97,7 +97,7 @@ export function startPlayingLevel() {
 	let i;
 	isTestingLevel = true;
 	game.oldMap = new Array();
-	for (i in game.map) game.oldMap.push(game.map[i]);
+	for (i = 0; i < game.map.length; i++) game.oldMap.push(game.map[i]);
 	loadLevelEditor();
 	if (game.CAKELEFT == 0) openExit();
 	game.player.fadeNextLevel = -1;
@@ -117,7 +117,7 @@ export function stopPlayingLevel() {
 	unclick();
 	isTestingLevel = false;
 	game.map = new Array();
-	for (i in game.oldMap) game.map.push(game.oldMap[i]);
+	for (i = 0; i < game.oldMap.length; i++) game.map.push(game.oldMap[i]);
 	redrawTiles = true;
 	drawTileMap();
 	prepareLvlEditorTxt();
@@ -389,7 +389,7 @@ function menuSaveMap() {
 			}
 
 			game.map = new Array();
-			for (i in game.oldMap) game.map.push(game.oldMap[i]);
+			for (i = 0; i < game.oldMap.length; i++) game.map.push(game.oldMap[i]);
 			game.BG = oldBG;
 			askSaving = false;
 			redrawTiles = true;
@@ -402,7 +402,7 @@ function menuSaveMap() {
 			askSaving = false;
 
 			game.map = new Array();
-			for (i in game.oldMap) game.map.push(game.oldMap[i]);
+			for (i = 0; i < game.oldMap.length; i++) game.map.push(game.oldMap[i]);
 			game.BG = oldBG;
 			redrawTiles = true;
 			return;
@@ -527,7 +527,7 @@ function menuLoadMap() {
 			game.offsetY = 96;
 
 			game.map = new Array();
-			for (i in game.oldMap) game.map.push(game.oldMap[i]);
+			for (i = 0; i < game.oldMap.length; i++) game.map.push(game.oldMap[i]);
 			game.BG = oldBG;
 			askLoading = false;
 			redrawTiles = true;
@@ -622,7 +622,7 @@ function manageEditor() {
 			game.offsetX = 0;
 			game.offsetY = 96;
 			game.oldMap = new Array();
-			for (i in game.map) game.oldMap.push(game.map[i]);
+			for (i = 0; i < game.map.length; i++) game.oldMap.push(game.map[i]);
 			oldBG = game.BG;
 		} else if (overMenu == EditorButton.LOAD) {
 			askLoading = true;
@@ -630,10 +630,10 @@ function manageEditor() {
 			game.offsetX = 0;
 			game.offsetY = 96;
 			game.oldMap = new Array();
-			for (i in game.map) game.oldMap.push(game.map[i]);
+			for (i = 0; i < game.map.length; i++) game.oldMap.push(game.map[i]);
 			oldBG = game.BG;
 		} else if (overMenu == EditorButton.CLEAR) {
-			for (i in game.map) game.map[i] = 0;
+			for (i = 0; i < game.map.length; i++) game.map[i] = 0;
 			addUndo();
 			redrawTiles = true;
 		} else if (overMenu == EditorButton.EXIT) {
@@ -683,7 +683,7 @@ function recreateSprites() {
 	game.player.x = -(16 << 8);
 	game.player.fadeNextLevel = 0;
 
-	for (i in game.map) {
+	for (i = 0; i < game.map.length; i++) {
 		const y = i >> 5;
 		const x = i - (y << 5);
 
@@ -745,7 +745,7 @@ function drawTileMap() {
 	if (redrawTiles) {
 		ctx.drawImage(bg[game.BG], game.offsetX, game.offsetY, 512, 384);
 		ctx.fillStyle = 'rgba(255, 0, 0, 0.7)';
-		for (i in game.map) {
+		for (i = 0; i < game.map.length; i++) {
 			if (game.map[i] == Tile.PLASMA_START) {
 				y = i >> 5;
 				x = i - (y << 5);
@@ -766,7 +766,7 @@ function drawTileMap() {
 			}
 		}
 
-		for (i in game.map) {
+		for (i = 0; i < game.map.length; i++) {
 			if (game.map[i] < NUM_TILES && game.map[i] > 0) {
 				y = i >> 5;
 				x = i - (y << 5);
@@ -826,7 +826,7 @@ function manageDrawSprite() {
 			const tile = (y >> 4) * 32 + (x >> 4);
 			if (input.mouseButton == MouseButton.LEFT) {
 				if (selectedSprite == Tile.PLAYER_START) {
-					for (i in game.map) {
+					for (i = 0; i < game.map.length; i++) {
 						if (game.map[i] == Tile.PLAYER_START) game.map[i] = Tile.EMPTY;
 					}
 				}
@@ -889,7 +889,7 @@ function allowTile(tile) {
 function countTile(tile) {
 	let i;
 	let c = 0;
-	for (i in game.map) {
+	for (i = 0; i < game.map.length; i++) {
 		if (game.map[i] == tile) c++;
 	}
 
@@ -975,7 +975,7 @@ function manageDrawTile() {
 			const tile = (y >> 4) * 32 + (x >> 4);
 			if (input.mouseButton == MouseButton.LEFT) {
 				if (tilesToDraw[selectedTile] == Tile.PLASMA_START) {
-					for (i in game.map) {
+					for (i = 0; i < game.map.length; i++) {
 						if (game.map[i] == Tile.PLASMA_START) {
 							game.map[i] = 0;
 							break;
@@ -1198,7 +1198,7 @@ function drawLeftTiles() {
 	let x = 4;
 	let y = 138;
 
-	for (i in tilesToDraw) {
+	for (i = 0; i < tilesToDraw.length; i++) {
 		ctx.drawImage(tileset[tilesToDraw[i]], x, y);
 		x += 20;
 		if (x > 44) {

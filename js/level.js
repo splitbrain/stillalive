@@ -91,7 +91,7 @@ function clearDoorBlockers() {
 		}
 	}
 
-	for (i in game.crates) {
+	for (i = 0; i < game.crates.length; i++) {
 		x = game.crates[i].x >> 8;
 		y = game.crates[i].y >> 8;
 		if (
@@ -107,7 +107,7 @@ function clearDoorBlockers() {
 		}
 	}
 
-	for (i in game.plasmaBall) {
+	for (i = 0; i < game.plasmaBall.length; i++) {
 		x = game.plasmaBall[i].x >> 8;
 		y = game.plasmaBall[i].y >> 8;
 		if (
@@ -132,7 +132,7 @@ function clearDoorBlockers() {
 function closeSwitchDoors() {
 	let i;
 	playSound(sfx_tick);
-	for (i in game.animatedTiles) {
+	for (i = 0; i < game.animatedTiles.length; i++) {
 		if (isTileKind(game.animatedTiles[i].current, TileKind.SWITCH_DOOR)) {
 			game.animatedTiles[i].used = 1;
 			game.map[game.animatedTiles[i].place] = game.animatedTiles[i].min;
@@ -149,7 +149,7 @@ function closeSwitchDoors() {
 function openSwitchDoors() {
 	let i;
 	playSound(sfx_tick);
-	for (i in game.animatedTiles) {
+	for (i = 0; i < game.animatedTiles.length; i++) {
 		if (isTileKind(game.animatedTiles[i].current, TileKind.SWITCH_DOOR)) {
 			game.animatedTiles[i].used = 0;
 			game.map[game.animatedTiles[i].place] = 0;
@@ -177,7 +177,7 @@ function playerOnSwitch(x, y) {
  */
 function crateOnSwitch() {
 	let i;
-	for (i in game.crates) {
+	for (i = 0; i < game.crates.length; i++) {
 		if (getTileSimple(game.crates[i].x >> 8, (game.crates[i].y >> 8) + 19) == 19) {
 			return 1;
 		} else if (getTileSimple((game.crates[i].x >> 8) + 15, (game.crates[i].y >> 8) + 19) == 19) {
@@ -215,7 +215,7 @@ export function loadCampaigns() {
 	let c;
 	campaigns = CAMPAIGN_FOLDERS.map((folder) => new Campaign(folder));
 
-	for (c in campaigns) {
+	for (c = 0; c < campaigns.length; c++) {
 		loadCampaignFiles(c);
 	}
 }
@@ -317,7 +317,7 @@ export function loadLevelEditor() {
 	let vx, up, down, left, right, i, y2, vy;
 	game.tubeX = game.tubeY = -1;
 	game.displayMap = new Array();
-	for (i in game.map) {
+	for (i = 0; i < game.map.length; i++) {
 		game.displayMap.push(game.map[i]);
 	}
 
@@ -346,7 +346,7 @@ export function loadLevelEditor() {
 
 	game.player = new Player();
 
-	for (i in game.map) {
+	for (i = 0; i < game.map.length; i++) {
 		const y = i >> 5;
 		const x = i - (y << 5);
 
@@ -523,7 +523,7 @@ export function loadLevel(level) {
 		game.map = new Array();
 		game.oldMap = new Array();
 		game.displayMap = new Array();
-		for (i in campaigns[ui.campaign].levels[level - 1]) {
+		for (i = 0; i < campaigns[ui.campaign].levels[level - 1].length; i++) {
 			game.map.push(campaigns[ui.campaign].levels[level - 1][i]);
 			game.oldMap.push(campaigns[ui.campaign].levels[level - 1][i]);
 			game.displayMap.push(campaigns[ui.campaign].levels[level - 1][i]);
@@ -531,7 +531,7 @@ export function loadLevel(level) {
 	} else {
 		game.displayMap = new Array();
 		game.map = new Array();
-		for (i in game.oldMap) {
+		for (i = 0; i < game.oldMap.length; i++) {
 			game.map.push(game.oldMap[i]);
 			game.displayMap.push(game.oldMap[i]);
 		}
@@ -577,7 +577,7 @@ export function loadLevel(level) {
 		}
 	}
 
-	for (i in game.map) {
+	for (i = 0; i < game.map.length; i++) {
 		const y = i >> 5;
 		const x = i - (y << 5);
 
@@ -771,13 +771,13 @@ export function loadPreviewMap(level) {
 	if (level > 0) {
 		game.map = new Array();
 		game.displayMap = new Array();
-		for (i in campaigns[ui.campaign].levels[level - 1]) {
+		for (i = 0; i < campaigns[ui.campaign].levels[level - 1].length; i++) {
 			game.map.push(campaigns[ui.campaign].levels[level - 1][i]);
 			game.displayMap.push(campaigns[ui.campaign].levels[level - 1][i]);
 		}
 	} else {
 		game.displayMap = new Array();
-		for (i in game.map) {
+		for (i = 0; i < game.map.length; i++) {
 			game.displayMap.push(game.map[i]);
 		}
 	}
@@ -796,7 +796,7 @@ export function loadPreviewMap(level) {
 
 	game.player = new Player();
 
-	for (i in game.map) {
+	for (i = 0; i < game.map.length; i++) {
 		const y = i >> 5;
 		const x = i - (y << 5);
 

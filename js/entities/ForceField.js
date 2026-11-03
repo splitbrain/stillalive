@@ -88,7 +88,7 @@ export function inForceFieldTp(obj) {
 
 	const fields = new Array();
 
-	for (i in game.forceFields) {
+	for (i = 0; i < game.forceFields.length; i++) {
 		let x = game.forceFields[i].x;
 		let y = game.forceFields[i].y;
 		let w = game.forceFields[i].w;

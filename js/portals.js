@@ -512,14 +512,14 @@ function teleport(p, obj) {
  */
 export function clearPortals() {
 	let ok = 1;
-	let i = 0;
-	for (i in game.crates) {
+	let i;
+	for (i = 0; i < game.crates.length; i++) {
 		if (!ok) break;
 		if (game.crates[i].shrink == 0 && inPortal(game.crates[i])) ok = 0;
 	}
 
 	if (ok) {
-		for (i in game.turrets) {
+		for (i = 0; i < game.turrets.length; i++) {
 			if (game.turrets[i].dead == 0 && inPortal(game.turrets[i])) ok = 0;
 		}
 	}
@@ -545,7 +545,7 @@ export function clearPortals() {
  */
 export function pointInPortal(x, y) {
 	let i;
-	for (i in game.portals) {
+	for (i = 0; i < game.portals.length; i++) {
 		const xp = game.portals[i].x >> 8;
 		const yp = game.portals[i].y >> 8;
 

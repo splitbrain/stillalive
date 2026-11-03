@@ -12,6 +12,7 @@ export default [
 		},
 		rules: {
 			'no-var': 'error',
+			'guard-for-in': 'error',
 		},
 	},
 	{

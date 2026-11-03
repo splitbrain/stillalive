@@ -200,7 +200,7 @@ export function placeObject(obj) {
 export function moveObject(obj) {
 	let col, i, c;
 	const fields = inForceFieldTp(obj);
-	for (i in fields) {
+	for (i = 0; i < fields.length; i++) {
 		const f = fields[i];
 		if (game.forceFields[f].vx != 0) {
 			if (checkTeleportUp(obj) || checkTeleportDown(obj)) {
@@ -279,7 +279,7 @@ export function moveObject(obj) {
 			}
 
 			if (obj.vx != 0 && !inPortal(obj)) {
-				for (c in game.crates) {
+				for (c = 0; c < game.crates.length; c++) {
 					const ca = game.crates[c];
 					if (inPortal(ca)) continue;
 					if (obj.x != ca.x && obj.y != ca.y) {
@@ -337,10 +337,10 @@ export function moveObject(obj) {
  */
 export function carriesObject() {
 	let i;
-	for (i in game.crates) {
+	for (i = 0; i < game.crates.length; i++) {
 		if (game.crates[i].carried == 1) return 1;
 	}
-	for (i in game.turrets) {
+	for (i = 0; i < game.turrets.length; i++) {
 		if (game.turrets[i].carried == 1) return 1;
 	}
 	return 0;
@@ -374,7 +374,7 @@ export function grabObject() {
 		if (input.mousePressed && input.mouseButton == MouseButton.LEFT) {
 			const x2 = (game.player.x >> 8) + (game.player.pX >> 1);
 			const y2 = (game.player.y >> 8) + (game.player.pY >> 1);
-			for (i in game.crates) {
+			for (i = 0; i < game.crates.length; i++) {
 				x1 = (game.crates[i].x >> 8) + (game.crates[i].pX >> 1);
 				y1 = (game.crates[i].y >> 8) + (game.crates[i].pY >> 1);
 				if (
@@ -387,7 +387,7 @@ export function grabObject() {
 				}
 			}
 			if (!ok) {
-				for (i in game.turrets) {
+				for (i = 0; i < game.turrets.length; i++) {
 					x1 = (game.turrets[i].x >> 8) + (game.turrets[i].pX >> 1);
 					y1 = (game.turrets[i].y >> 8) + (game.turrets[i].pY >> 1);
 					if (
@@ -404,7 +404,7 @@ export function grabObject() {
 	} else {
 		if (!input.mousePressed) {
 			ok = 0;
-			for (i in game.crates) {
+			for (i = 0; i < game.crates.length; i++) {
 				if (game.crates[i].carried == 1) {
 					game.crates[i].carried = 0;
 					ok = 1;
@@ -415,7 +415,7 @@ export function grabObject() {
 				}
 			}
 			if (!ok) {
-				for (i in game.turrets) {
+				for (i = 0; i < game.turrets.length; i++) {
 					if (game.turrets[i].carried == 1) {
 						game.turrets[i].carried = 0;
 						game.turrets[i].canExplode = 1;

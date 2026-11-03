@@ -117,7 +117,7 @@ export function drawText(x, y, size) {
 
 	let toWrite = parseInt(ui.timeWriting);
 
-	for (i in ui.txtLines) {
+	for (i = 0; i < ui.txtLines.length; i++) {
 		if (toWrite >= 0) {
 			if (ui.txtLines[i].length < toWrite) {
 				ctx.fillText(ui.txtLines[i], x, y + i * size);

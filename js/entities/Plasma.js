@@ -128,7 +128,7 @@ export class Plasma {
 	 */
 	openSwitchDoors() {
 		let i;
-		for (i in game.animatedTiles) {
+		for (i = 0; i < game.animatedTiles.length; i++) {
 			if (isTileKind(game.animatedTiles[i].current, TileKind.PLASMA_DOOR)) {
 				game.animatedTiles[i].used = 0;
 				game.map[game.animatedTiles[i].place] = 0;
@@ -285,7 +285,7 @@ export class Plasma {
  */
 export function plasmaTouching(obj) {
 	let i;
-	for (i in game.plasmaBall) {
+	for (i = 0; i < game.plasmaBall.length; i++) {
 		if (game.plasmaBall[i].used) {
 			const posx = obj.x >> 8;
 			const posy = obj.y >> 8;

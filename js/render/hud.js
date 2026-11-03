@@ -5,6 +5,7 @@
 import { ctx } from '../canvas.js';
 import { KEY_CLEAR, KEY_DOWN, KEY_JUMP, KEY_LEFT, KEY_RIGHT, MOUSE_LEFT, MOUSE_RIGHT, Menu } from '../constants.js';
 import { key, mouseIcon } from '../images.js';
+import { keyLabels } from '../keys.js';
 import { campaigns } from '../level.js';
 import { game, input, ui } from '../state.js';
 
@@ -17,24 +18,26 @@ export function drawKeys() {
 	ctx.font = 'bold 12px Arial';
 	ctx.fillStyle = 'rgb(0, 0, 0)';
 
-	const z = KEY_JUMP & input.keys ? 1 : 0;
-	const q = KEY_LEFT & input.keys ? 1 : 0;
+	const w = KEY_JUMP & input.keys ? 1 : 0;
+	const a = KEY_LEFT & input.keys ? 1 : 0;
 	const d = KEY_RIGHT & input.keys ? 1 : 0;
 	const e = KEY_CLEAR & input.keys ? 1 : 0;
 	const s = KEY_DOWN & input.keys ? 1 : 0;
 	const ml = MOUSE_LEFT & input.keys ? 1 : 0;
 	const mr = MOUSE_RIGHT & input.keys ? 1 : 0;
 
-	ctx.drawImage(key, 0, z * 24, 24, 24, 525, 485, 24, 24);
-	ctx.fillText('Z', 525 + 6, 485 + 16);
+	ctx.textAlign = 'center';
+	ctx.drawImage(key, 0, w * 24, 24, 24, 525, 485, 24, 24);
+	ctx.fillText(keyLabels.KeyW, 525 + 12, 485 + 16);
 	ctx.drawImage(key, 0, e * 24, 24, 24, 525 + 26, 485, 24, 24);
-	ctx.fillText('E', 525 + 26 + 6, 485 + 16);
-	ctx.drawImage(key, 0, q * 24, 24, 24, 525 - 26, 485 + 26, 24, 24);
-	ctx.fillText('Q', 525 - 26 + 6, 485 + 26 + 16);
+	ctx.fillText(keyLabels.KeyE, 525 + 26 + 12, 485 + 16);
+	ctx.drawImage(key, 0, a * 24, 24, 24, 525 - 26, 485 + 26, 24, 24);
+	ctx.fillText(keyLabels.KeyA, 525 - 26 + 12, 485 + 26 + 16);
 	ctx.drawImage(key, 0, s * 24, 24, 24, 525, 485 + 26, 24, 24);
-	ctx.fillText('S', 525 + 6, 485 + 26 + 16);
+	ctx.fillText(keyLabels.KeyS, 525 + 12, 485 + 26 + 16);
 	ctx.drawImage(key, 0, d * 24, 24, 24, 525 + 26, 485 + 26, 24, 24);
-	ctx.fillText('D', 525 + 26 + 6, 485 + 26 + 16);
+	ctx.fillText(keyLabels.KeyD, 525 + 26 + 12, 485 + 26 + 16);
+	ctx.textAlign = 'left';
 
 	ctx.drawImage(mouseIcon, 0, ml * 40, 24, 40, 525 - 26 - 26, 485, 24, 40);
 	ctx.drawImage(mouseIcon, 0, mr * 40, 24, 40, 525 + 26 + 26, 485, 24, 40);

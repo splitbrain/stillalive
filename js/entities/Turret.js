@@ -99,7 +99,7 @@ export class Turret {
 						this.dead = 1;
 					}
 					if (this.dead) {
-						this.animationFrame = 2;
+						this.animFrame = 2;
 						playSound(sfx_explode);
 						createCakeOrSmokeSparkles(this.x, this.y, 9, 4, 255);
 					}
@@ -117,7 +117,7 @@ export class Turret {
 				const colRight = rightCollision(this);
 				if (!this.dead && (isPlatformCode(colLeft) || isPlatformCode(colRight))) {
 					this.dead = 1;
-					this.animationFrame = 2;
+					this.animFrame = 2;
 					playSound(sfx_explode);
 					createCakeOrSmokeSparkles(this.x, this.y, 9, 4, 255);
 				}

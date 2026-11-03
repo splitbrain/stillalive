@@ -567,7 +567,7 @@ export function drawPortals() {
 		let dx = 0;
 		let dy = 0;
 		if (p.direction == Direction.LEFT || p.direction == Direction.RIGHT) dy = 16 - p.scaleY * 16;
-		else if (p.direction == Direction.UP || p.direction == Direction.UP) dx = 16 - p.scaleX * 16;
+		else if (p.direction == Direction.UP || p.direction == Direction.DOWN) dx = 16 - p.scaleX * 16;
 		ctx.drawImage(
 			pi == 0 ? bluePortal : redPortal,
 			0,

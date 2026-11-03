@@ -134,12 +134,12 @@ export function tabContains(tab, value) {
  * @returns {string} The time as minutes, seconds and milliseconds, e.g. "01:05.500".
  */
 export function toTime(time) {
-	let s = time / 60.0;
-	const m = parseInt(s / 60.0);
-	s = s - 60.0 * m;
-	const ms = (s - parseInt(s)) * 1000;
+	const total = Math.round((time * 1000) / 60);
+	const m = Math.floor(total / 60000);
+	const s = Math.floor(total / 1000) % 60;
+	const ms = total % 1000;
 
-	return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + parseInt(s) + '.' + Math.round(ms);
+	return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0') + '.' + String(ms).padStart(3, '0');
 }
 
 /**

@@ -86,7 +86,7 @@ export class Cake {
 		/** @type {number} The y position of the start. */
 		this.oy = y;
 		/** @type {number} The direction of the float, 1 down or -1 up. */
-		this.mDir = parseInt(random(0, 1)) == 0 ? -1 : 1;
+		this.mDir = parseInt(random(0, 2)) == 0 ? -1 : 1;
 		/** @type {number} The vertical offset of the float in 1/256 pixels. */
 		this.vy = random(-3 << 8, 3 << 8);
 		/** @type {boolean} True until the player collects the cake. */

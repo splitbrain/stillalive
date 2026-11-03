@@ -57,7 +57,7 @@ export class Projectile {
 			if (t) {
 				this.needKill = true;
 				this.timer = 180;
-				if (t > PLATFORM_CODE) {
+				if (t >= PLATFORM_CODE) {
 					this.timer = 0;
 				}
 			} else {

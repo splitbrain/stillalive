@@ -133,6 +133,23 @@ test.describe('units', () => {
 		}
 	});
 
+	test('toTime() shows minutes, seconds and three digits for the milliseconds', async () => {
+		const cases = {
+			0: '00:00.000',
+			1: '00:00.017',
+			6: '00:00.100',
+			59: '00:00.983',
+			60: '00:01.000',
+			3599: '00:59.983',
+			3600: '01:00.000',
+			36001: '10:00.017',
+		};
+		for (const [ticks, expected] of Object.entries(cases)) {
+			const { result } = await call(page, '/js/utils.js', 'toTime', Number(ticks));
+			expect(result, `${ticks} ticks`).toBe(expected);
+		}
+	});
+
 	test('a tunnel field between two facing portals ends', async () => {
 		test.setTimeout(10000);
 		const fields = await page.evaluate(async () => {

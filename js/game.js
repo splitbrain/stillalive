@@ -15,7 +15,7 @@ import {
 	Transition,
 	TUTORIAL_END_LEVEL,
 } from './constants.js';
-import { drawLevelEditor } from './editor.js';
+import { updateLevelEditor } from './editor.js';
 import { animateTiles } from './entities/AnimatedTile.js';
 import { openExit, updateCakes } from './entities/Cake.js';
 import { updateCrates } from './entities/Crate.js';
@@ -43,6 +43,7 @@ import { exitFunc } from './navigation.js';
 import { updatePanel } from './panel.js';
 import { atExit } from './physics.js';
 import { inPortal } from './portals.js';
+import { drawLevelEditor } from './render/editor.js';
 import { drawLevel } from './render/game.js';
 import { drawText } from './render/hud.js';
 import {
@@ -81,6 +82,8 @@ export function tick() {
 export function render() {
 	if (ui.drawCredits) {
 		drawCredits();
+	} else if (ui.currentMenu == Menu.EDITOR) {
+		drawLevelEditor();
 	} else if (ui.currentMenu == Menu.PLAY || ui.currentMenu == Menu.TUTORIAL) {
 		if (ui.escapeMenu) drawPauseMenu();
 		else drawLevel();
@@ -125,7 +128,7 @@ function checkBestTime() {
  */
 function updateScreen() {
 	if (ui.currentMenu == Menu.EDITOR) {
-		drawLevelEditor();
+		updateLevelEditor();
 	} else if ((ui.currentMenu == Menu.PLAY || ui.currentMenu == Menu.TUTORIAL) && !ui.escapeMenu) {
 		updateLevel();
 	} else if ((ui.currentMenu == Menu.PLAY || ui.currentMenu == Menu.TUTORIAL) && ui.escapeMenu) {

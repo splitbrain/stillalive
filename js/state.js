@@ -112,6 +112,38 @@ export const ui = {
 	canSplash: false,
 	/** @type {boolean} True while the player tests the map in the editor. */
 	isTestingLevel: false,
+	/**
+	 * @type {object} The state of the level editor: the selected tile and object, the tiles of the palette, the open
+	 *     save or load screen, the flags for the drawing and the objects of the map, and the hovered parts.
+	 */
+	editor: {
+		/** @type {number} The index of the selected tile in tilesToDraw, or -1 while an object is selected. */
+		selectedTile: 1,
+		/** @type {number} The id of the selected object, or 0 or -1 while a tile is selected. */
+		selectedSprite: 0,
+		/** @type {number[]} The tile ids of the tile palette. */
+		tilesToDraw: [],
+		/** @type {boolean} True while the load screen is open. */
+		askLoading: false,
+		/** @type {boolean} True while the save screen is open. */
+		askSaving: false,
+		/** @type {boolean} True when the drawing must draw the tile layer of the editor again. */
+		redrawTiles: true,
+		/** @type {boolean} True when the objects of the editor map must be created again. */
+		objectsChanged: false,
+		/** @type {number} The hovered button of the editor, a value of EditorButton, or -1. */
+		buttonHover: -1,
+		/** @type {number} The hovered button of the save or load screen, a value of EditorMenuButton, or -1. */
+		menuHover: -1,
+		/** @type {number} The hovered slot of the save or load screen, or -1. */
+		slotHover: -1,
+		/** @type {number} The id of the hovered object of the object palette, or 0. */
+		spriteHover: 0,
+		/** @type {number} The hovered arrow of the background, -1 or 1, or 0. */
+		arrowHover: 0,
+		/** @type {boolean} True while the mouse is over the tile palette. */
+		tileHover: false,
+	},
 };
 
 /** @type {object} The keys and the mouse, and the input state that the game derives from them. */

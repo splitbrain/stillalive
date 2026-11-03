@@ -2,7 +2,6 @@
  * The level editor.
  */
 
-import { ctx } from './canvas.js';
 import {
 	EditorButton,
 	EditorMenuButton,
@@ -12,7 +11,6 @@ import {
 	MAP_WIDTH,
 	Menu,
 	MouseButton,
-	NUM_TILES,
 	PLAYFIELD_HEIGHT,
 	PLAYFIELD_WIDTH,
 	PLAYFIELD_X,
@@ -29,65 +27,16 @@ import { Player } from './entities/Player.js';
 import { Portal, updatePortals } from './entities/Portal.js';
 import { updateSparkles } from './entities/Sparkle.js';
 import { updateTurrets } from './entities/Turret.js';
-import {
-	bg,
-	body,
-	cake,
-	crateImage,
-	crosshair,
-	head,
-	levelEditorHud,
-	mapSelection,
-	noLevel,
-	platform,
-	portalGun,
-	tex_leftBG,
-	tex_rightBG,
-	tileset,
-	tunnel,
-	tunnel2,
-	turretImages,
-} from './images.js';
+import { bg } from './images.js';
 import { mouseInZone, unclick } from './inputState.js';
-import { loadEditorObjects, loadLevelEditor, loadPreviewMap, manageDoors } from './level.js';
+import { isTileHere, isWallAt, loadEditorObjects, loadLevelEditor, loadPreviewMap, manageDoors } from './level.js';
 import { exportEditorMap, importEditorMap } from './mapFile.js';
 import { atExit } from './physics.js';
 import { inPortal } from './portals.js';
-import {
-	copyCanvas,
-	createBuff,
-	drawAnimatedTiles,
-	drawArrow,
-	drawCakes,
-	drawCopy,
-	drawCrates,
-	drawFrontTiles,
-	drawPlasma,
-	drawPlatforms,
-	drawPlayer,
-	drawPortals,
-	drawSparkles,
-	drawTileLayer,
-	drawTunnels,
-	drawTurrets,
-} from './render/game.js';
-import { drawText } from './render/hud.js';
-import { drawPreviewMap, drawTinyButton } from './render/menus.js';
 import { game, input, ui } from './state.js';
 import { getEditorMap, saveEditorMap } from './storage.js';
-import { Tile, TileKind, isTileKind, isTunnelTile } from './tiles.js';
-import { getAngle } from './utils.js';
+import { Tile, isTunnelTile } from './tiles.js';
 
-/** @type {number} The index of the selected tile in the palette, or -1. */
-let selectedTile;
-/** @type {number} The tile id of the selected object of the palette, or 0. */
-let selectedSprite;
-/** @type {number[]} The tile ids of the palette. */
-let tilesToDraw;
-/** @type {boolean} True when the tile layer must be drawn again. */
-let redrawTiles;
-/** @type {OffscreenCanvas} The copy of the tile layer. */
-let tilesBuff;
 /** @type {number[][]} The map after each change, for undo and redo. */
 let undoMap;
 /** @type {number} The index of the current map in undoMap. */
@@ -96,10 +45,6 @@ let undoIndex;
 let oldMouseReleased = 0;
 /** @type {number} The background of the map while the save or load screen is open. */
 let oldBG;
-/** @type {boolean} True while the load screen is open. */
-let askLoading;
-/** @type {boolean} True while the save screen is open. */
-let askSaving;
 
 /**
  * Start the test run of the map.
@@ -131,17 +76,17 @@ export function stopPlayingLevel() {
 	ui.isTestingLevel = false;
 	game.map = new Array();
 	for (i = 0; i < game.oldMap.length; i++) game.map.push(game.oldMap[i]);
-	redrawTiles = true;
-	drawTileMap();
+	ui.editor.redrawTiles = true;
+	rebuildObjects();
 	prepareLvlEditorTxt();
 }
 
 /**
- * Run one tick of the test run and draw it. The test run ends when the player dies.
+ * Run one tick of the test run. The test run ends when the player dies.
  *
  * @returns {void}
  */
-function levelEditorTestLevel() {
+function updateTestLevel() {
 	game.needRedrawTiles = 0;
 	game.time++;
 	if (!game.player.dead && game.player.fadeNextLevel == -1) {
@@ -162,83 +107,27 @@ function levelEditorTestLevel() {
 	updatePlatforms();
 	updatePortals();
 
-	if (game.player.dead) {
-		stopPlayingLevel();
-		return;
-	}
-
-	drawTestLevel();
-	drawText(70, 38, 11);
+	if (game.player.dead) stopPlayingLevel();
 }
 
 /**
- * Draw one tick of the test run.
+ * Mark the map as changed, so the update creates the objects again and the drawing draws the tile layer again.
  *
  * @returns {void}
  */
-function drawTestLevel() {
-	if (game.tilesChanged) createBuff();
-	drawTileLayer();
+function mapChanged() {
+	ui.editor.redrawTiles = true;
+	ui.editor.objectsChanged = true;
+}
 
-	drawAnimatedTiles();
-
-	const a = getAngle(
-		(game.player.x >> 8) + (game.player.pX >> 1) + game.offsetX,
-		(game.player.y >> 8) + (game.player.pY >> 1) + game.offsetY,
-		input.mouseX,
-		input.mouseY,
-	);
-	ctx.save();
-	ctx.translate(
-		(game.player.x >> 8) + (game.player.pX >> 1) + game.offsetX,
-		(game.player.y >> 8) + (game.player.pY >> 1) + game.offsetY,
-	);
-	ctx.rotate(a);
-	ctx.drawImage(portalGun, -5, -5);
-	ctx.restore();
-
-	drawTunnels();
-
-	const flipDx = game.player.flip < 0 ? 1 : 0;
-	ctx.drawImage(
-		head[flipDx],
-		game.player.animationFrame * 16,
-		0,
-		15,
-		12,
-		(game.player.x >> 8) + game.offsetX,
-		(game.player.y >> 8) + game.offsetY,
-		16,
-		12,
-	);
-	ctx.drawImage(
-		body[flipDx],
-		game.player.animationFrame * 16,
-		0,
-		16,
-		27,
-		(game.player.x >> 8) + game.offsetX,
-		(game.player.y >> 8) + game.offsetY,
-		16,
-		27,
-	);
-
-	drawCakes();
-	drawTurrets();
-	drawPlasma();
-	drawSparkles();
-	drawCrates();
-	drawPlatforms();
-
-	drawFrontTiles();
-	drawPortals();
-
-	ctx.drawImage(levelEditorHud, 0, 0);
-
-	drawLeftTiles();
-	drawRightSprites();
-
-	ctx.drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
+/**
+ * Create the objects of the editor map again.
+ *
+ * @returns {void}
+ */
+function rebuildObjects() {
+	loadEditorObjects();
+	ui.editor.objectsChanged = false;
 }
 
 /**
@@ -248,9 +137,10 @@ function drawTestLevel() {
  */
 export function lvlEditorSetup() {
 	let i;
+	const editor = ui.editor;
 	game.background = 0;
-	askLoading = false;
-	askSaving = false;
+	editor.askLoading = false;
+	editor.askSaving = false;
 	game.bossNum = 0;
 
 	game.map = new Array();
@@ -264,31 +154,31 @@ export function lvlEditorSetup() {
 	undoIndex = -1;
 	addUndo();
 
-	tilesToDraw = new Array();
-	tilesToDraw.push(0);
-	tilesToDraw.push(1);
-	for (i = 17; i < 24; i++) tilesToDraw.push(i);
-	tilesToDraw.push(29);
-	tilesToDraw.push(36);
-	tilesToDraw.push(38);
-	tilesToDraw.push(40);
-	tilesToDraw.push(46);
-	tilesToDraw.push(47);
-	tilesToDraw.push(49);
-	tilesToDraw.push(55);
-	tilesToDraw.push(57);
-
-	redrawTiles = true;
+	editor.tilesToDraw = new Array();
+	editor.tilesToDraw.push(0);
+	editor.tilesToDraw.push(1);
+	for (i = 17; i < 24; i++) editor.tilesToDraw.push(i);
+	editor.tilesToDraw.push(29);
+	editor.tilesToDraw.push(36);
+	editor.tilesToDraw.push(38);
+	editor.tilesToDraw.push(40);
+	editor.tilesToDraw.push(46);
+	editor.tilesToDraw.push(47);
+	editor.tilesToDraw.push(49);
+	editor.tilesToDraw.push(55);
+	editor.tilesToDraw.push(57);
 
 	unclick();
-	selectedTile = 1;
-	selectedSprite = 0;
+	editor.selectedTile = 1;
+	editor.selectedSprite = 0;
 
 	game.player = new Player();
 	game.player.x = -(16 << 8);
 	game.player.y = 0;
 
 	prepareLvlEditorTxt();
+	editor.redrawTiles = true;
+	rebuildObjects();
 }
 
 /**
@@ -318,49 +208,39 @@ function prepareLvlEditorPlayTxt() {
 }
 
 /**
- * Run one tick of the editor or of the test run.
+ * Run one tick of the editor screen that is open: the test run, the load screen, the save screen or the editor. When
+ * the map of the editor changed, its objects are created again.
  *
  * @returns {void}
  */
-export function drawLevelEditor() {
+export function updateLevelEditor() {
+	const editor = ui.editor;
 	if (ui.isTestingLevel) {
-		levelEditorTestLevel();
+		updateTestLevel();
 		if (atExit()) stopPlayingLevel();
-	} else levelEditorManager();
-}
-
-/**
- * Draw the editor screen that is open: the load screen, the save screen or the editor.
- *
- * @returns {void}
- */
-function levelEditorManager() {
-	if (askLoading) {
-		menuLoadMap();
-	} else if (askSaving) {
-		menuSaveMap();
+	} else if (editor.askLoading) {
+		updateLoadScreen();
+	} else if (editor.askSaving) {
+		updateSaveScreen();
 	} else {
-		manageEditor();
+		updateEditor();
 	}
+	if (!ui.isTestingLevel && !editor.askLoading && !editor.askSaving && editor.objectsChanged) rebuildObjects();
 }
 
 /**
- * Draw the save screen with the slots and handle its clicks.
+ * Find the hovered slot and button of the save screen and take the clicks.
  *
  * @returns {void}
  */
-function menuSaveMap() {
+function updateSaveScreen() {
+	const editor = ui.editor;
 	let i;
-	if (ui.previewMap < 1 || getEditorMap(ui.previewMap) == null) ctx.drawImage(noLevel, game.offsetX, game.offsetY);
-	else if (ui.previewMap > 0) drawPreviewMap();
-	ctx.drawImage(mapSelection, 0, 0);
-
+	editor.slotHover = -1;
 	if (mouseInZone(529, 117, 90, 29 * 12)) {
 		const y = Math.trunc((input.mouseY - 105) / 12);
 		if (y <= LEVELS_PER_CAMPAIGN) {
-			ctx.fillStyle = 'rgb(15, 112, 144)';
-			ctx.fillRect(529, 105 + y * 12 + 2, 90, 14);
-
+			editor.slotHover = y;
 			if (input.mouseNewPress && y != ui.previewMap) {
 				unclick();
 				ui.previewMap = y;
@@ -371,23 +251,10 @@ function menuSaveMap() {
 
 	let overMenu = -1;
 	if (mouseInZone(20, 495, 120, 24)) overMenu = EditorMenuButton.EXIT;
-	const scale2 = overMenu == EditorMenuButton.EXIT ? 0.9 : 1;
-	drawTinyButton(20, 495, scale2, 'Exit');
-
-	if (ui.previewMap > 0) {
-		ctx.fillStyle = 'rgb(15, 112, 144)';
-		ctx.fillRect(529, 105 + ui.previewMap * 12 + 2, 90, 14);
-
-		if (mouseInZone(515, 495, 120, 24)) overMenu = EditorMenuButton.ACCEPT;
-		const scale1 = overMenu == EditorMenuButton.ACCEPT ? 0.9 : 1;
-
-		drawTinyButton(515, 495, scale1, 'Save');
-	}
-
+	if (ui.previewMap > 0 && mouseInZone(515, 495, 120, 24)) overMenu = EditorMenuButton.ACCEPT;
 	if (mouseInZone(180, 495, 120, 24)) overMenu = EditorMenuButton.EXPORT;
-	drawTinyButton(180, 495, overMenu == EditorMenuButton.EXPORT ? 0.9 : 1, 'Export');
 	if (mouseInZone(340, 495, 120, 24)) overMenu = EditorMenuButton.IMPORT;
-	drawTinyButton(340, 495, overMenu == EditorMenuButton.IMPORT ? 0.9 : 1, 'Import');
+	editor.menuHover = overMenu;
 
 	if (input.mouseNewPress && overMenu > 0) {
 		unclick();
@@ -404,40 +271,25 @@ function menuSaveMap() {
 			game.map = new Array();
 			for (i = 0; i < game.oldMap.length; i++) game.map.push(game.oldMap[i]);
 			game.background = oldBG;
-			askSaving = false;
-			redrawTiles = true;
+			editor.askSaving = false;
+			mapChanged();
 			game.offsetX = PLAYFIELD_X;
 			game.offsetY = PLAYFIELD_Y;
-			return;
 		} else if (overMenu == EditorMenuButton.EXIT) {
 			game.offsetX = PLAYFIELD_X;
 			game.offsetY = PLAYFIELD_Y;
-			askSaving = false;
+			editor.askSaving = false;
 
 			game.map = new Array();
 			for (i = 0; i < game.oldMap.length; i++) game.map.push(game.oldMap[i]);
 			game.background = oldBG;
-			redrawTiles = true;
-			return;
+			mapChanged();
 		} else if (overMenu == EditorMenuButton.EXPORT) {
 			exportEditorMap(game.oldMap, oldBG);
 		} else if (overMenu == EditorMenuButton.IMPORT) {
 			startMapImport();
 		}
 	}
-
-	ctx.font = 'bold 12px Arial';
-	for (i = 0; i < LEVELS_PER_CAMPAIGN; i++) {
-		ctx.strokeStyle = 'rgb(0, 0, 0)';
-		if (getEditorMap(i + 1) != null) {
-			ctx.fillStyle = 'rgb(255, 255, 255)';
-		} else {
-			ctx.fillStyle = 'rgb(200, 200, 200)';
-		}
-		ctx.fillText('Level ' + (i + 1), 549, 105 + 24 + i * 12);
-	}
-
-	ctx.drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
 }
 
 /**
@@ -459,15 +311,15 @@ function showEditorMap(slot) {
 function startMapImport() {
 	importEditorMap()
 		.then(function (data) {
-			if (ui.currentMenu != Menu.EDITOR || !(askSaving || askLoading)) return;
+			if (ui.currentMenu != Menu.EDITOR || !(ui.editor.askSaving || ui.editor.askLoading)) return;
 			game.map = data.tiles.slice();
 			game.background = data.bg;
 			loadPreviewMap(-1);
-			askSaving = false;
-			askLoading = false;
+			ui.editor.askSaving = false;
+			ui.editor.askLoading = false;
 			game.offsetX = PLAYFIELD_X;
 			game.offsetY = PLAYFIELD_Y;
-			redrawTiles = true;
+			mapChanged();
 			undoMap = new Array();
 			undoIndex = -1;
 			addUndo();
@@ -478,22 +330,18 @@ function startMapImport() {
 }
 
 /**
- * Draw the load screen with the slots and handle its clicks.
+ * Find the hovered slot and button of the load screen and take the clicks.
  *
  * @returns {void}
  */
-function menuLoadMap() {
+function updateLoadScreen() {
+	const editor = ui.editor;
 	let i;
-	if (ui.previewMap < 1) ctx.drawImage(noLevel, game.offsetX, game.offsetY);
-	if (ui.previewMap > 0) drawPreviewMap();
-	ctx.drawImage(mapSelection, 0, 0);
-
+	editor.slotHover = -1;
 	if (mouseInZone(529, 117, 90, 29 * 12)) {
 		const y = Math.trunc((input.mouseY - 105) / 12);
 		if (y <= LEVELS_PER_CAMPAIGN && getEditorMap(y) != null) {
-			ctx.fillStyle = 'rgb(15, 112, 144)';
-			ctx.fillRect(529, 105 + y * 12 + 2, 90, 14);
-
+			editor.slotHover = y;
 			if (input.mouseNewPress && y != ui.previewMap) {
 				unclick();
 				ui.previewMap = y;
@@ -504,37 +352,24 @@ function menuLoadMap() {
 
 	let overMenu = -1;
 	if (mouseInZone(20, 495, 120, 24)) overMenu = EditorMenuButton.EXIT;
-	const scale2 = overMenu == EditorMenuButton.EXIT ? 0.9 : 1;
-	drawTinyButton(20, 495, scale2, 'Exit');
-
 	if (ui.previewMap > 0) {
-		ctx.fillStyle = 'rgb(15, 112, 144)';
-		ctx.fillRect(529, 105 + ui.previewMap * 12 + 2, 90, 14);
-
 		if (mouseInZone(515, 495, 120, 24)) overMenu = EditorMenuButton.ACCEPT;
-		const scale1 = overMenu == EditorMenuButton.ACCEPT ? 0.9 : 1;
-
-		drawTinyButton(515, 495, scale1, 'Load');
-
 		if (mouseInZone(180, 495, 120, 24)) overMenu = EditorMenuButton.EXPORT;
-		drawTinyButton(180, 495, overMenu == EditorMenuButton.EXPORT ? 0.9 : 1, 'Export');
 	}
-
 	if (mouseInZone(340, 495, 120, 24)) overMenu = EditorMenuButton.IMPORT;
-	drawTinyButton(340, 495, overMenu == EditorMenuButton.IMPORT ? 0.9 : 1, 'Import');
+	editor.menuHover = overMenu;
 
 	if (input.mouseNewPress && overMenu > 0) {
 		unclick();
 		if (overMenu == EditorMenuButton.ACCEPT) {
-			askLoading = false;
-			redrawTiles = true;
+			editor.askLoading = false;
+			mapChanged();
 			game.offsetX = PLAYFIELD_X;
 			game.offsetY = PLAYFIELD_Y;
 
 			undoMap = new Array();
 			undoIndex = -1;
 			addUndo();
-			return;
 		} else if (overMenu == EditorMenuButton.EXIT) {
 			game.offsetX = PLAYFIELD_X;
 			game.offsetY = PLAYFIELD_Y;
@@ -542,47 +377,29 @@ function menuLoadMap() {
 			game.map = new Array();
 			for (i = 0; i < game.oldMap.length; i++) game.map.push(game.oldMap[i]);
 			game.background = oldBG;
-			askLoading = false;
-			redrawTiles = true;
-			return;
+			editor.askLoading = false;
+			mapChanged();
 		} else if (overMenu == EditorMenuButton.EXPORT) {
 			exportEditorMap(game.map, game.background);
 		} else if (overMenu == EditorMenuButton.IMPORT) {
 			startMapImport();
 		}
 	}
-
-	ctx.font = 'bold 12px Arial';
-	for (i = 0; i < LEVELS_PER_CAMPAIGN; i++) {
-		ctx.strokeStyle = 'rgb(0, 0, 0)';
-		if (getEditorMap(i + 1) != null) {
-			ctx.fillStyle = 'rgb(255, 255, 255)';
-		} else {
-			ctx.fillStyle = 'rgb(200, 200, 200)';
-		}
-		ctx.fillText('Level ' + (i + 1), 549, 105 + 24 + i * 12);
-	}
-
-	ctx.drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
 }
 
 /**
- * Draw the editor and handle the palette, the drawing and the buttons.
+ * Take the edits of the map, the selections in the palettes and the clicks on the buttons.
  *
  * @returns {void}
  */
-function manageEditor() {
+function updateEditor() {
 	let i;
-	drawTileMap();
-	manageDrawTile();
-	manageDrawSprite();
+	updateDrawTile();
+	updateDrawSprite();
 	manageUndoRedo();
 
-	ctx.drawImage(levelEditorHud, 0, 0);
-	manageTileSelection();
-	manageSpriteSelection();
-	drawLeftTiles();
-	drawRightSprites();
+	updateTileSelection();
+	updateSpriteSelection();
 
 	if (oldMouseReleased == 1 && input.mouseReleased == 1) input.mouseReleased = 0;
 	oldMouseReleased = input.mouseReleased;
@@ -595,24 +412,7 @@ function manageEditor() {
 	else if (mouseInZone(game.offsetX + 60, game.offsetY + 420, 120, 24)) overMenu = EditorButton.TRY;
 	else if (mouseInZone(game.offsetX + 60 + 130, game.offsetY + 420, 120, 24)) overMenu = EditorButton.HELP;
 
-	const scale1 = overMenu == EditorButton.LOAD ? 0.9 : 1;
-	const scale2 = overMenu == EditorButton.SAVE ? 0.9 : 1;
-	const scale3 = overMenu == EditorButton.EXIT ? 0.9 : 1;
-	const scale4 = overMenu == EditorButton.CLEAR ? 0.9 : 1;
-	const scale5 = overMenu == EditorButton.TRY ? 0.9 : 1;
-	const scale6 = overMenu == EditorButton.HELP ? 0.9 : 1;
-
-	drawTinyButton(game.offsetX, game.offsetY + 394, scale3, 'Exit');
-	drawTinyButton(game.offsetX + PLAYFIELD_WIDTH - 250, game.offsetY + 394, scale1, 'Load');
-	drawTinyButton(game.offsetX + PLAYFIELD_WIDTH - 120, game.offsetY + 394, scale2, 'Save');
-	drawTinyButton(game.offsetX + 130, game.offsetY + 394, scale4, 'Clear');
-	drawTinyButton(game.offsetX + 60, game.offsetY + 420, scale5, 'Try Map');
-	drawTinyButton(game.offsetX + 60 + 130, game.offsetY + 420, scale6, 'Help');
-
-	drawText(70, 38, 11);
-
-	if (!mouseInZone(game.offsetX, game.offsetY, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT))
-		ctx.drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
+	ui.editor.buttonHover = overMenu;
 
 	if (overMenu > 0 && input.mouseNewPress) {
 		unclick();
@@ -630,7 +430,7 @@ function manageEditor() {
 				'Level Editor Shortcuts',
 			);
 		} else if (overMenu == EditorButton.SAVE) {
-			askSaving = true;
+			ui.editor.askSaving = true;
 			ui.previewMap = -1;
 			game.offsetX = 0;
 			game.offsetY = PLAYFIELD_Y;
@@ -638,7 +438,7 @@ function manageEditor() {
 			for (i = 0; i < game.map.length; i++) game.oldMap.push(game.map[i]);
 			oldBG = game.background;
 		} else if (overMenu == EditorButton.LOAD) {
-			askLoading = true;
+			ui.editor.askLoading = true;
 			ui.previewMap = -1;
 			game.offsetX = 0;
 			game.offsetY = PLAYFIELD_Y;
@@ -648,7 +448,7 @@ function manageEditor() {
 		} else if (overMenu == EditorButton.CLEAR) {
 			for (i = 0; i < game.map.length; i++) game.map[i] = 0;
 			addUndo();
-			redrawTiles = true;
+			mapChanged();
 		} else if (overMenu == EditorButton.EXIT) {
 			ui.currentMenu = Menu.MAIN;
 			game.sparkles = new Array();
@@ -668,76 +468,15 @@ function manageUndoRedo() {
 		game.map = new Array();
 		undoIndex--;
 		for (i = 0; i < MAP_SIZE; i++) game.map.push(undoMap[undoIndex][i]);
-		redrawTiles = true;
+		mapChanged();
 	} else if (input.rightReleased && undoIndex + 1 < undoMap.length) {
 		undoIndex++;
 		game.map = new Array();
 		for (i = 0; i < MAP_SIZE; i++) game.map.push(undoMap[undoIndex][i]);
-		redrawTiles = true;
+		mapChanged();
 	}
 	input.leftReleased = 0;
 	input.rightReleased = 0;
-}
-
-/**
- * Draw the objects of the map in the editor.
- *
- * @returns {void}
- */
-function drawSprites() {
-	drawCakes();
-	drawTurrets();
-	drawCrates();
-	drawPlatforms();
-	drawTunnels();
-	drawPlayer((game.player.x >> 8) + game.offsetX, (game.player.y >> 8) + game.offsetY, 0);
-}
-
-/**
- * Draw the tile layer of the editor with the plasma start markers, and keep a copy for the next ticks.
- *
- * @returns {void}
- */
-function drawTileMap() {
-	let y, x, up, down, left, right, i;
-	if (redrawTiles) {
-		ctx.drawImage(bg[game.background], game.offsetX, game.offsetY, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
-		ctx.fillStyle = 'rgba(255, 0, 0, 0.7)';
-		for (i = 0; i < game.map.length; i++) {
-			if (game.map[i] == Tile.PLASMA_START) {
-				y = i >> 5;
-				x = i - (y << 5);
-
-				up = isTileHere(x, y - 1);
-				down = isTileHere(x, y + 1);
-				left = isTileHere(x - 1, y);
-				right = isTileHere(x + 1, y);
-
-				if (up + down + left + right < 3) {
-					if (y - 1 >= 0) ctx.fillRect(x * 16 + game.offsetX, (y - 1) * 16 + game.offsetY, 16, 16);
-					if (y + 1 < MAP_HEIGHT) ctx.fillRect(x * 16 + game.offsetX, (y + 1) * 16 + game.offsetY, 16, 16);
-					if (x - 1 >= 0) ctx.fillRect((x - 1) * 16 + game.offsetX, y * 16 + game.offsetY, 16, 16);
-					if (x + 1 < MAP_WIDTH) ctx.fillRect((x + 1) * 16 + game.offsetX, y * 16 + game.offsetY, 16, 16);
-				}
-
-				break;
-			}
-		}
-
-		for (i = 0; i < game.map.length; i++) {
-			if (game.map[i] < NUM_TILES && game.map[i] > 0) {
-				y = i >> 5;
-				x = i - (y << 5);
-				ctx.drawImage(tileset[game.map[i]], x * 16 + game.offsetX, y * 16 + game.offsetY);
-			}
-		}
-		loadEditorObjects();
-		drawSprites();
-		tilesBuff = copyCanvas(game.offsetX, game.offsetY, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
-		redrawTiles = false;
-	} else {
-		drawCopy(tilesBuff, game.offsetX, game.offsetY);
-	}
 }
 
 /**
@@ -745,36 +484,12 @@ function drawTileMap() {
  *
  * @returns {void}
  */
-function manageDrawSprite() {
+function updateDrawSprite() {
+	const editor = ui.editor;
 	let i;
-	if (mouseInZone(game.offsetX, game.offsetY, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT) && selectedSprite > 0) {
+	if (mouseInZone(game.offsetX, game.offsetY, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT) && editor.selectedSprite > 0) {
 		let x = (input.mouseX >> 4) << 4;
 		let y = (input.mouseY >> 4) << 4;
-		if (selectedSprite == Tile.CAKE) ctx.drawImage(cake, x, y);
-		else if (selectedSprite == Tile.CRATE) ctx.drawImage(crateImage, x, y);
-		else if (selectedSprite == Tile.TURRET_LEFT) ctx.drawImage(turretImages[0], 0, 0, 16, 32, x, y, 16, 32);
-		else if (selectedSprite == Tile.TURRET_RIGHT) ctx.drawImage(turretImages[1], 0, 0, 16, 32, x, y, 16, 32);
-		else if (selectedSprite == Tile.PLATFORM_RIGHT) {
-			ctx.drawImage(platform, x, y);
-			ctx.fillStyle = 'rgb(255, 0, 0)';
-			ctx.strokeStyle = 'rgb(255, 0, 0)';
-			drawArrow(x + 5, y + 8, x + 15, y + 8, 3, 1);
-		} else if (selectedSprite == Tile.PLATFORM_LEFT) {
-			ctx.drawImage(platform, x, y);
-			ctx.fillStyle = 'rgb(255, 0, 0)';
-			ctx.strokeStyle = 'rgb(255, 0, 0)';
-			drawArrow(x + 5, y + 8, x + 15, y + 8, 3, -1);
-		} else if (selectedSprite == Tile.PLAYER_START) drawPlayer(x, y, 0);
-		else if (selectedSprite == Tile.TUNNEL_RIGHT) {
-			ctx.drawImage(tunnel, 0, 0, 16, 32, x, y, 16, 32);
-		} else if (selectedSprite == Tile.TUNNEL_LEFT) {
-			ctx.drawImage(tunnel, 0, 32, 16, 32, x, y, 16, 32);
-		} else if (selectedSprite == Tile.TUNNEL_UP) {
-			ctx.drawImage(tunnel2, 0, 0, 32, 16, x, y, 32, 16);
-		} else if (selectedSprite == Tile.TUNNEL_DOWN) {
-			ctx.drawImage(tunnel2, 32, 0, 32, 16, x, y, 32, 16);
-		}
-
 		if (input.mousePressed) {
 			x -= game.offsetX;
 			y -= game.offsetY;
@@ -783,27 +498,27 @@ function manageDrawSprite() {
 
 			const tile = (y >> 4) * 32 + (x >> 4);
 			if (input.mouseButton == MouseButton.LEFT) {
-				if (selectedSprite == Tile.PLAYER_START) {
+				if (editor.selectedSprite == Tile.PLAYER_START) {
 					for (i = 0; i < game.map.length; i++) {
 						if (game.map[i] == Tile.PLAYER_START) game.map[i] = Tile.EMPTY;
 					}
 				}
 
-				eraseSprites(selectedSprite, xt, yt);
+				eraseSprites(editor.selectedSprite, xt, yt);
 
-				if (allowTile(selectedSprite)) {
-					game.map[tile] = selectedSprite;
+				if (allowTile(editor.selectedSprite)) {
+					game.map[tile] = editor.selectedSprite;
 				}
 			} else if (input.mouseButton == MouseButton.RIGHT) {
 				game.map[tile] = 0;
-				eraseSprites(selectedSprite, xt, yt);
+				eraseSprites(editor.selectedSprite, xt, yt);
 			}
 			build();
-			redrawTiles = true;
+			mapChanged();
 		} else if (input.mouseReleased) {
 			input.mouseReleased = 0;
 			addUndo();
-			redrawTiles = true;
+			mapChanged();
 		}
 	}
 }
@@ -917,22 +632,18 @@ function eraseSprites(til, xt, yt) {
  *
  * @returns {void}
  */
-function manageDrawTile() {
+function updateDrawTile() {
+	const editor = ui.editor;
 	let i;
-	if (mouseInZone(game.offsetX, game.offsetY, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT) && selectedTile > -1) {
+	if (mouseInZone(game.offsetX, game.offsetY, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT) && editor.selectedTile > -1) {
 		let x = (input.mouseX >> 4) << 4;
 		let y = (input.mouseY >> 4) << 4;
-		ctx.drawImage(tileset[tilesToDraw[selectedTile]], x, y);
-		ctx.strokeStyle = 'rgb(255, 0, 0)';
-		ctx.lineWidth = 1;
-		ctx.strokeRect(x, y, 16, 16);
-
 		if (input.mousePressed) {
 			x -= game.offsetX;
 			y -= game.offsetY;
 			const tile = (y >> 4) * 32 + (x >> 4);
 			if (input.mouseButton == MouseButton.LEFT) {
-				if (tilesToDraw[selectedTile] == Tile.PLASMA_START) {
+				if (editor.tilesToDraw[editor.selectedTile] == Tile.PLASMA_START) {
 					for (i = 0; i < game.map.length; i++) {
 						if (game.map[i] == Tile.PLASMA_START) {
 							game.map[i] = 0;
@@ -940,9 +651,10 @@ function manageDrawTile() {
 						}
 					}
 				}
-				game.map[tile] = tilesToDraw[selectedTile];
+				game.map[tile] = editor.tilesToDraw[editor.selectedTile];
 			} else if (input.mouseButton == MouseButton.RIGHT) game.map[tile] = 0;
-			else if (input.mouseButton == MouseButton.MIDDLE) fill(tilesToDraw[selectedTile], game.map[tile], x >> 4, y >> 4);
+			else if (input.mouseButton == MouseButton.MIDDLE)
+				fill(editor.tilesToDraw[editor.selectedTile], game.map[tile], x >> 4, y >> 4);
 
 			const xt = x >> 4;
 			const yt = y >> 4;
@@ -954,7 +666,7 @@ function manageDrawTile() {
 			}
 
 			build();
-			redrawTiles = true;
+			mapChanged();
 		} else if (input.mouseReleased) {
 			input.mouseReleased = 0;
 			addUndo();
@@ -984,190 +696,72 @@ function addUndo() {
 }
 
 /**
- * Select an object of the palette on a click and draw the selection.
+ * Find the hovered object of the object palette and the hovered arrow of the background, and take the clicks on them.
  *
  * @returns {void}
  */
-function manageSpriteSelection() {
-	let x,
-		y,
-		inZone,
-		arrow = 0;
+function updateSpriteSelection() {
+	const editor = ui.editor;
+	editor.spriteHover = 0;
+	editor.arrowHover = 0;
 	if (mouseInZone(580, 140, 56, 216)) {
-		x = 584;
-		y = 142;
-		inZone = 0;
-		ctx.fillStyle = 'rgb(255, 0, 0)';
-		if (mouseInZone(x, y, 16, 16)) {
-			inZone = Tile.CAKE;
-			ctx.fillRect(x - 2, y - 2, 20, 20);
-		} else if (mouseInZone(x + 24, y, 16, 16)) {
-			inZone = Tile.CRATE;
-			ctx.fillRect(x + 24 - 2, y - 2, 20, 20);
-		} else if (mouseInZone(x, y + 24, 16, 32)) {
-			inZone = Tile.TURRET_LEFT;
-			ctx.fillRect(x - 2, y + 24 - 2, 20, 36);
-		} else if (mouseInZone(x + 24, y + 24, 16, 32)) {
-			inZone = Tile.TURRET_RIGHT;
-			ctx.fillRect(x + 24 - 2, y + 24 - 2, 20, 36);
-		} else if (mouseInZone(x, y + 24 + 40, 48, 16)) {
-			inZone = Tile.PLATFORM_RIGHT;
-			ctx.fillRect(x - 2, y + 24 + 40 - 2, 52, 20);
-		} else if (mouseInZone(x, y + 24 + 40 + 24, 48, 16)) {
-			inZone = Tile.PLATFORM_LEFT;
-			ctx.fillRect(x - 2, y + 24 + 40 + 24 - 2, 52, 20);
-		} else if (mouseInZone(x, y + 24 + 40 + 24 + 24, 16, 26)) {
-			inZone = Tile.PLAYER_START;
-			ctx.fillRect(x - 2, y + 24 + 40 + 24 + 24 - 2, 20, 30);
-		} else if (mouseInZone(x, y + 144, 16, 32)) {
-			inZone = Tile.TUNNEL_RIGHT;
-			ctx.fillRect(x - 2, y + 142, 20, 36);
-		} else if (mouseInZone(x + 24, y + 144, 16, 32)) {
-			inZone = Tile.TUNNEL_LEFT;
-			ctx.fillRect(x + 22, y + 142, 20, 36);
-		} else if (mouseInZone(x, y + 180, 32, 16)) {
-			inZone = Tile.TUNNEL_UP;
-			ctx.fillRect(x - 2, y + 178, 36, 20);
-		} else if (mouseInZone(x, y + 200, 32, 16)) {
-			inZone = Tile.TUNNEL_DOWN;
-			ctx.fillRect(x - 2, y + 198, 36, 20);
-		}
+		const x = 584;
+		const y = 142;
+		let inZone = 0;
+		if (mouseInZone(x, y, 16, 16)) inZone = Tile.CAKE;
+		else if (mouseInZone(x + 24, y, 16, 16)) inZone = Tile.CRATE;
+		else if (mouseInZone(x, y + 24, 16, 32)) inZone = Tile.TURRET_LEFT;
+		else if (mouseInZone(x + 24, y + 24, 16, 32)) inZone = Tile.TURRET_RIGHT;
+		else if (mouseInZone(x, y + 24 + 40, 48, 16)) inZone = Tile.PLATFORM_RIGHT;
+		else if (mouseInZone(x, y + 24 + 40 + 24, 48, 16)) inZone = Tile.PLATFORM_LEFT;
+		else if (mouseInZone(x, y + 24 + 40 + 24 + 24, 16, 26)) inZone = Tile.PLAYER_START;
+		else if (mouseInZone(x, y + 144, 16, 32)) inZone = Tile.TUNNEL_RIGHT;
+		else if (mouseInZone(x + 24, y + 144, 16, 32)) inZone = Tile.TUNNEL_LEFT;
+		else if (mouseInZone(x, y + 180, 32, 16)) inZone = Tile.TUNNEL_UP;
+		else if (mouseInZone(x, y + 200, 32, 16)) inZone = Tile.TUNNEL_DOWN;
+		editor.spriteHover = inZone;
 
 		if (input.mouseNewPress) {
 			unclick();
-			selectedSprite = inZone;
-			selectedTile = -1;
+			editor.selectedSprite = inZone;
+			editor.selectedTile = -1;
 		}
 	} else if (mouseInZone(0, 400, 62, 48)) {
-		ctx.fillStyle = 'rgb(3, 108, 134)';
-		if (mouseInZone(3, 412, 27, 47)) {
-			arrow = -1;
-			ctx.fillRect(3, 412, 27, 47);
-		} else if (mouseInZone(32, 412, 27, 47)) {
-			arrow = 1;
-			ctx.fillRect(32, 412, 27, 47);
-		}
+		if (mouseInZone(3, 412, 27, 47)) editor.arrowHover = -1;
+		else if (mouseInZone(32, 412, 27, 47)) editor.arrowHover = 1;
 
 		if (input.mouseNewPress) {
 			unclick();
-			if (arrow < 0) {
+			if (editor.arrowHover < 0) {
 				game.background--;
-				redrawTiles = true;
+				mapChanged();
 				if (game.background < 0) game.background = bg.length - 1;
-			} else if (arrow > 0) {
+			} else if (editor.arrowHover > 0) {
 				game.background++;
-				redrawTiles = true;
+				mapChanged();
 				if (game.background == bg.length) game.background = 0;
 			}
 		}
 	}
-
-	if (selectedSprite > 0) {
-		x = 584;
-		y = 142;
-		ctx.fillStyle = 'rgb(0, 255, 0)';
-		if (selectedSprite == Tile.CAKE) ctx.fillRect(x - 2, y - 2, 20, 20);
-		else if (selectedSprite == Tile.CRATE) ctx.fillRect(x + 24 - 2, y - 2, 20, 20);
-		else if (selectedSprite == Tile.TURRET_LEFT) ctx.fillRect(x - 2, y + 24 - 2, 20, 36);
-		else if (selectedSprite == Tile.TURRET_RIGHT) ctx.fillRect(x + 24 - 2, y + 24 - 2, 20, 36);
-		else if (selectedSprite == Tile.PLATFORM_RIGHT) ctx.fillRect(x - 2, y + 24 + 40 - 2, 52, 20);
-		else if (selectedSprite == Tile.PLATFORM_LEFT) ctx.fillRect(x - 2, y + 24 + 40 + 24 - 2, 52, 20);
-		else if (selectedSprite == Tile.PLAYER_START) ctx.fillRect(x - 2, y + 24 + 40 + 24 + 24 - 2, 20, 30);
-		else if (selectedSprite == Tile.TUNNEL_RIGHT) ctx.fillRect(x - 2, y + 142, 20, 36);
-		else if (selectedSprite == Tile.TUNNEL_LEFT) ctx.fillRect(x + 22, y + 142, 20, 36);
-		else if (selectedSprite == Tile.TUNNEL_UP) ctx.fillRect(x - 2, y + 178, 36, 20);
-		else if (selectedSprite == Tile.TUNNEL_DOWN) ctx.fillRect(x - 2, y + 198, 36, 20);
-	}
 }
 
 /**
- * Select a tile of the palette on a click and draw the selection.
+ * Find out if the mouse is over the tile palette, and select the tile under the mouse on a click.
  *
  * @returns {void}
  */
-function manageTileSelection() {
-	let x, y;
-	if (mouseInZone(4, 140, 56, 118)) {
-		x = input.mouseX;
-		y = input.mouseY;
-
-		x = Math.trunc(x / 20) * 20 + 2;
-		y = Math.trunc(y / 20) * 20 - 4;
-		ctx.fillStyle = 'rgb(255, 0, 0)';
-		ctx.fillRect(x, y, 20, 20);
-
-		if (input.mouseNewPress) {
-			unclick();
-			selectedSprite = -1;
-			const xt = Math.trunc(x / 20);
-			const yt = Math.trunc((y - 136) / 20);
-			selectedTile = xt + yt * 3;
-		}
+function updateTileSelection() {
+	const editor = ui.editor;
+	editor.tileHover = mouseInZone(4, 140, 56, 118);
+	if (editor.tileHover && input.mouseNewPress) {
+		unclick();
+		editor.selectedSprite = -1;
+		const x = Math.trunc(input.mouseX / 20) * 20 + 2;
+		const y = Math.trunc(input.mouseY / 20) * 20 - 4;
+		const xt = Math.trunc(x / 20);
+		const yt = Math.trunc((y - 136) / 20);
+		editor.selectedTile = xt + yt * 3;
 	}
-
-	if (selectedTile > -1) {
-		ctx.fillStyle = 'rgb(0, 255, 0)';
-
-		x = (selectedTile % 3) * 20 + 2;
-		y = Math.trunc(selectedTile / 3) * 20 + 136;
-
-		ctx.fillRect(x, y, 20, 20);
-	}
-}
-
-/**
- * Draw the object palette on the right.
- *
- * @returns {void}
- */
-function drawRightSprites() {
-	const x = 584;
-	const y = 142;
-
-	ctx.drawImage(cake, x, y);
-	ctx.drawImage(crateImage, x + 24, y);
-	ctx.drawImage(turretImages[0], 0, 0, 16, 32, x, y + 24, 16, 32);
-	ctx.drawImage(turretImages[1], 0, 0, 16, 32, x + 24, y + 24, 16, 32);
-
-	ctx.fillStyle = 'rgb(255, 0, 0)';
-	ctx.strokeStyle = 'rgb(255, 0, 0)';
-
-	ctx.drawImage(platform, x, y + 24 + 40);
-	drawArrow(x + 5, y + 72, x + 15, y + 72, 3, 1);
-	ctx.drawImage(platform, x, y + 88);
-	drawArrow(x + 5, y + 96, x + 14, y + 96, 3, -1);
-
-	drawPlayer(x, y + 112, 0);
-
-	ctx.drawImage(tunnel, 0, 0, 16, 32, x, y + 144, 16, 32);
-	ctx.drawImage(tunnel, 0, 32, 16, 32, x + 24, y + 144, 16, 32);
-
-	ctx.drawImage(tunnel2, 0, 0, 32, 16, x, y + 180, 32, 16);
-	ctx.drawImage(tunnel2, 32, 0, 32, 16, x, y + 200, 32, 16);
-}
-
-/**
- * Draw the tile palette on the left.
- *
- * @returns {void}
- */
-function drawLeftTiles() {
-	let i;
-	let x = 4;
-	let y = 138;
-
-	for (i = 0; i < tilesToDraw.length; i++) {
-		ctx.drawImage(tileset[tilesToDraw[i]], x, y);
-		x += 20;
-		if (x > 44) {
-			x = 4;
-			y += 20;
-		}
-		if (i == selectedTile) ctx.drawImage(tileset[tilesToDraw[i]], 14, 315, 36, 36);
-	}
-
-	ctx.drawImage(tex_leftBG, 3, 412);
-	ctx.drawImage(tex_rightBG, 32, 412);
 }
 
 /**
@@ -1279,27 +873,4 @@ function fill(tile, toFill, x, y) {
 		}
 		current++;
 	}
-}
-
-/**
- * Check if a map position holds a wall.
- *
- * @param {number} index The index in the map.
- * @returns {boolean} True for a wall tile.
- */
-function isWallAt(index) {
-	return isTileKind(game.map[index], TileKind.WALL);
-}
-
-/**
- * Check if a map position is solid for the edges of the walls. Positions outside the map count as solid.
- *
- * @param {number} x The column.
- * @param {number} y The row.
- * @returns {number} 1 for a wall, a decor tile or a conveyor belt, else 0.
- */
-function isTileHere(x, y) {
-	if (x < 0 || x > 31 || y < 0 || y > 23) return 1;
-	if (isTileKind(game.map[x + y * 32], TileKind.BELT_RIGHT, TileKind.BELT_LEFT)) return 1;
-	return isTileKind(game.map[x + y * 32], TileKind.WALL, TileKind.DECOR) ? 1 : 0;
 }

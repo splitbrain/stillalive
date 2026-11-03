@@ -613,3 +613,26 @@ export function loadEditorObjects() {
 	game.player.fadeNextLevel = 0;
 	parseObjects('editor');
 }
+
+/**
+ * Check if a map position holds a wall.
+ *
+ * @param {number} index The index in the map.
+ * @returns {boolean} True for a wall tile.
+ */
+export function isWallAt(index) {
+	return isTileKind(game.map[index], TileKind.WALL);
+}
+
+/**
+ * Check if a map position is solid for the edges of the walls. Positions outside the map count as solid.
+ *
+ * @param {number} x The column.
+ * @param {number} y The row.
+ * @returns {number} 1 for a wall, a decor tile or a conveyor belt, else 0.
+ */
+export function isTileHere(x, y) {
+	if (x < 0 || x > 31 || y < 0 || y > 23) return 1;
+	if (isTileKind(game.map[x + y * 32], TileKind.BELT_RIGHT, TileKind.BELT_LEFT)) return 1;
+	return isTileKind(game.map[x + y * 32], TileKind.WALL, TileKind.DECOR) ? 1 : 0;
+}

@@ -17,13 +17,6 @@ const TICKS = 300;
 const INTRO_TICKS = 30;
 
 /**
- * The boss levels of the story campaign. A replay skips the boss intro, so the played run skips it too.
- *
- * @type {string[]}
- */
-const BOSS_LEVELS = ['story-07', 'story-14', 'story-21', 'story-28'];
-
-/**
  * The number of input sequences that a boss level tries. The random inputs often die in a boss level, so a boss level
  * tries more sequences until one run has no death.
  *
@@ -35,9 +28,11 @@ for (const campaign of CAMPAIGNS.filter((c) => c.name !== 'tutorial')) {
 	test(`replay ${campaign.name}`, async ({ page }) => {
 		await openGame(page);
 		let checked = 0;
-		const levels = campaignLevels(campaign).filter(({ level, id }) => level % 2 === 1 || BOSS_LEVELS.includes(id));
-		for (const { level, id } of levels) {
-			const isBoss = BOSS_LEVELS.includes(id);
+		// all boss levels, and the other levels with an odd number
+		const levels = campaignLevels(campaign).filter(({ level, boss }) => level % 2 === 1 || boss > 0);
+		for (const { level, id, boss } of levels) {
+			// a replay skips the boss intro, so the played run skips it too
+			const isBoss = boss > 0;
 			let played = null;
 			for (let attempt = 0; attempt < (isBoss ? BOSS_ATTEMPTS : 1) && played === null; attempt++) {
 				const run = await runLevel(page, {

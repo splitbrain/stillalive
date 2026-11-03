@@ -201,6 +201,8 @@ export class Campaign {
 		this.levels = new Array();
 		/** @type {number[]} The background index of each level. */
 		this.backgrounds = new Array();
+		/** @type {number[]} The boss of each level, or 0 for a level without a boss. */
+		this.bosses = new Array();
 		/** @type {string[]} The text that the robot shows in each level. */
 		this.texts = new Array();
 	}
@@ -245,9 +247,10 @@ function loadCampaignFiles(camp) {
  */
 function loadLevelFile(camp, index, url) {
 	loadLevelJsonFile(url, function (data) {
-		const level = parseMap(data, true);
+		const level = parseMap(data);
 		campaigns[camp].levels[index] = level.tiles;
 		campaigns[camp].backgrounds[index] = level.bg;
+		campaigns[camp].bosses[index] = level.boss;
 		campaigns[camp].texts[index] = typeof data.text == 'string' ? data.text : '';
 		levelsLoaded++;
 	});
@@ -749,12 +752,8 @@ export function loadLevel(level) {
 		game.BG = campaigns[ui.campaign].backgrounds[level - 1];
 	}
 
-	if (ui.campaign == CampaignId.STORY) {
-		if (level == 7 || level == 14 || level == 21 || level == 28) {
-			game.bossNum = level / 7;
-			setupBoss();
-		} else game.bossNum = 0;
-	} else game.bossNum = 0;
+	game.bossNum = level > 0 ? campaigns[ui.campaign].bosses[level - 1] : 0;
+	if (game.bossNum > 0) setupBoss();
 }
 
 /**
@@ -847,12 +846,8 @@ export function loadPreviewMap(level) {
 		game.player.y = 384 << 8;
 	}
 
-	if (ui.campaign == CampaignId.STORY) {
-		if (level == 7 || level == 14 || level == 21 || level == 28) {
-			game.bossNum = level / 7;
-			setupBoss();
-		} else game.bossNum = 0;
-	} else game.bossNum = 0;
+	game.bossNum = level > 0 ? campaigns[ui.campaign].bosses[level - 1] : 0;
+	if (game.bossNum > 0) setupBoss();
 
 	game.CAKELEFT = game.cakes.length;
 	game.needLoad = true;

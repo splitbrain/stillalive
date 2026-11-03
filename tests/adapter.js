@@ -6,6 +6,8 @@
  * functions.
  */
 
+import { readFileSync } from 'node:fs';
+
 /**
  * The campaigns with their index in the campaigns array of the game and their number of levels.
  *
@@ -30,13 +32,16 @@ export const SNAPSHOT_INTERVAL = 60;
  * Get the levels of a campaign.
  *
  * @param {{name: string, index: number, levels: number}} campaign The campaign.
- * @returns {{level: number, id: string}[]} One entry for each level. The id is the campaign name and the level number
- *     with two digits, e.g. "normal-07".
+ * @returns {{level: number, id: string, boss: number}[]} One entry for each level. The id is the campaign name and the
+ *     level number with two digits, e.g. "normal-07". The boss comes from the level file, 0 for a level without a boss.
  */
 export function campaignLevels(campaign) {
+	const folder = new URL(`../maps/${campaign.name}/`, import.meta.url);
+	const files = JSON.parse(readFileSync(new URL('campaign.json', folder))).levels;
 	return Array.from({ length: campaign.levels }, (_, i) => ({
 		level: i + 1,
 		id: `${campaign.name}-${String(i + 1).padStart(2, '0')}`,
+		boss: JSON.parse(readFileSync(new URL(files[i], folder))).boss ?? 0,
 	}));
 }
 

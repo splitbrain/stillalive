@@ -110,16 +110,18 @@ test.describe('units', () => {
 		data.tiles[1] = 110;
 		const { result, error } = await call(page, '/js/mapFile.js', 'parseMap', data);
 		expect(error).toBeUndefined();
-		expect(result).toEqual({ tiles: data.tiles, bg: 0 });
+		expect(result).toEqual({ tiles: data.tiles, bg: 0, boss: 0 });
 	});
 
-	test('parseMap() accepts the tube only in campaign levels', async () => {
+	test('parseMap() reads the boss and accepts the tube only in a boss level', async () => {
 		const data = validMap();
+		expect((await call(page, '/js/mapFile.js', 'parseMap', data)).result.boss).toBe(0);
 		data.tiles[1] = 111;
-		const campaign = await call(page, '/js/mapFile.js', 'parseMap', data, true);
-		expect(campaign.error).toBeUndefined();
-		const editor = await call(page, '/js/mapFile.js', 'parseMap', data);
-		expect(editor.error).toBe('This is not a valid StillAliveJS map file.');
+		const boss = await call(page, '/js/mapFile.js', 'parseMap', { ...data, boss: 4 });
+		expect(boss.error).toBeUndefined();
+		expect(boss.result.boss).toBe(4);
+		const noBoss = await call(page, '/js/mapFile.js', 'parseMap', data);
+		expect(noBoss.error).toBe('This is not a valid StillAliveJS map file.');
 	});
 
 	test('parseMap() rejects a damaged map', async () => {
@@ -135,6 +137,9 @@ test.describe('units', () => {
 			'tile id as text': { ...validMap(), tiles: tiles(5, '1') },
 			'negative background': { ...validMap(), bg: -1 },
 			'background out of range': { ...validMap(), bg: 1000 },
+			'unknown boss': { ...validMap(), boss: 5 },
+			'negative boss': { ...validMap(), boss: -1 },
+			'boss as text': { ...validMap(), boss: '1' },
 		};
 		for (const [name, data] of Object.entries(cases)) {
 			const { error } = await call(page, '/js/mapFile.js', 'parseMap', data);

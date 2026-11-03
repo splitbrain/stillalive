@@ -209,6 +209,7 @@ export function moveObject(obj) {
 			} else if (obj.y >> 8 < game.tunnelFields[f].y + (16 - (obj.pY >> 1))) obj.y += 512;
 			else if ((obj.y >> 8) + obj.pY > game.tunnelFields[f].y + 32 - (16 - (obj.pY >> 1))) obj.y -= 512;
 		} else if (game.tunnelFields[f].vy != 0) {
+			// the height pY centers the object on the x axis; a fix would change the gameplay for the turrets
 			if (obj.x >> 8 < game.tunnelFields[f].x + (16 - (obj.pY >> 1))) obj.x += 256;
 			else if ((obj.x >> 8) + obj.pX > game.tunnelFields[f].x + 32 - (16 - (obj.pY >> 1))) obj.x -= 256;
 		}
@@ -282,6 +283,7 @@ export function moveObject(obj) {
 				for (c = 0; c < game.crates.length; c++) {
 					const ca = game.crates[c];
 					if (inPortal(ca)) continue;
+					// a crate with the same x or the same y position is skipped; a fix would change the gameplay
 					if (obj.x != ca.x && obj.y != ca.y) {
 						const y = obj.y >> 8;
 						let x = obj.x >> 8;
@@ -633,6 +635,7 @@ export function checkCollisions(obj) {
  */
 export function atExit() {
 	if (!inPortal(game.player)) {
+		// only the diagonal line through the player is checked; a full check would change the gameplay
 		for (let j = 2; j <= 14; j += 2) {
 			if (getTileSimple((game.player.x >> 8) + j, (game.player.y >> 8) + j) == Tile.EXIT) return 1;
 		}

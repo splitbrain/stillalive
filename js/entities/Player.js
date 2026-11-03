@@ -229,6 +229,7 @@ export class Player {
 					} else if (game.player.y >> 8 < game.tunnelFields[f].y) game.player.y += 512;
 					else if ((game.player.y >> 8) + game.player.pY > game.tunnelFields[f].y + 32) game.player.y -= 512;
 				} else if (game.tunnelFields[f].vy != 0) {
+					// the height pY centers the player on the x axis, in the same way as moveObject()
 					if (game.player.x >> 8 < game.tunnelFields[f].x + (16 - (game.player.pY >> 1))) game.player.x += 256;
 					else if ((game.player.x >> 8) + game.player.pX > game.tunnelFields[f].x + 32 - (16 - (game.player.pY >> 1)))
 						game.player.x -= 256;

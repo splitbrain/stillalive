@@ -17,7 +17,7 @@ import {
 	SparkleType,
 } from './constants.js';
 import { AnimatedTile } from './entities/AnimatedTile.js';
-import { Cake } from './entities/Cake.js';
+import { Cake, openExit } from './entities/Cake.js';
 import { Camera } from './entities/Camera.js';
 import { Crate } from './entities/Crate.js';
 import { Plasma } from './entities/Plasma.js';
@@ -561,6 +561,7 @@ export function loadLevel(level) {
 	game.camera = new Camera(game.player.x, game.player.y);
 	game.cakesLeft = game.cakes.length;
 	game.tilesChanged = true;
+	if (game.cakesLeft == 0) openExit();
 
 	if (level > -1) game.background = campaigns[ui.campaign].backgrounds[level - 1];
 	if (game.bossNum > 0) setupBoss();

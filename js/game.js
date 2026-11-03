@@ -16,7 +16,7 @@ import {
 } from './constants.js';
 import { updateLevelEditor } from './editor.js';
 import { animateTiles } from './entities/AnimatedTile.js';
-import { openExit, updateCakes } from './entities/Cake.js';
+import { updateCakes } from './entities/Cake.js';
 import { updateCrates } from './entities/Crate.js';
 import { rebuildTunnelFields } from './entities/TunnelField.js';
 import { updatePlasma } from './entities/Plasma.js';
@@ -223,7 +223,6 @@ function updateLevelEnd() {
  * @returns {void}
  */
 function updateObjects() {
-	if (game.tilesChanged && game.cakesLeft == 0) openExit();
 	animateTiles();
 
 	game.player.flip = input.mouseX > (game.player.x >> 8) + (game.player.pX >> 1) + game.offsetX ? 1 : -1;

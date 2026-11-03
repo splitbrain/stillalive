@@ -4,7 +4,6 @@
 
 import { ctx } from './canvas.js';
 import {
-	Direction,
 	EditorButton,
 	EditorMenuButton,
 	LEVELS_PER_CAMPAIGN,
@@ -19,16 +18,15 @@ import {
 } from './constants.js';
 import { alertDialog } from './dialog.js';
 import { animateTiles } from './entities/AnimatedTile.js';
-import { Cake, openExit, updateCakes } from './entities/Cake.js';
-import { Crate, updateCrates } from './entities/Crate.js';
+import { openExit, updateCakes } from './entities/Cake.js';
+import { updateCrates } from './entities/Crate.js';
 import { rebuildTunnelFields } from './entities/TunnelField.js';
 import { updatePlasma } from './entities/Plasma.js';
-import { Platform, updatePlatforms } from './entities/Platform.js';
+import { updatePlatforms } from './entities/Platform.js';
 import { Player } from './entities/Player.js';
 import { Portal, updatePortals } from './entities/Portal.js';
 import { drawSparkles, updateSparkles } from './entities/Sparkle.js';
-import { Tunnel } from './entities/Tunnel.js';
-import { Turret, updateTurrets } from './entities/Turret.js';
+import { updateTurrets } from './entities/Turret.js';
 import {
 	bg,
 	body,
@@ -49,7 +47,7 @@ import {
 	turretImages,
 } from './images.js';
 import { mouseInZone, unclick } from './input.js';
-import { loadLevelEditor, loadPreviewMap, manageDoors } from './level.js';
+import { loadEditorObjects, loadLevelEditor, loadPreviewMap, manageDoors } from './level.js';
 import { exportEditorMap, importEditorMap } from './mapFile.js';
 import { atExit } from './physics.js';
 import { inPortal } from './portals.js';
@@ -680,61 +678,6 @@ function manageUndoRedo() {
 }
 
 /**
- * Create the objects of the map again from the object ids, for the preview in the editor.
- *
- * @returns {void}
- */
-function recreateSprites() {
-	let i;
-	game.cakes = new Array();
-	game.turrets = new Array();
-	game.crates = new Array();
-	game.tunnels = new Array();
-	game.tunnelFields = new Array();
-	game.platforms = new Array();
-	game.player = new Player();
-	game.player.x = -(16 << 8);
-	game.player.fadeNextLevel = 0;
-
-	for (i = 0; i < game.map.length; i++) {
-		const y = i >> 5;
-		const x = i - (y << 5);
-
-		if (game.map[i] == Tile.TUNNEL_UP) {
-			game.tunnels.push(new Tunnel((x * 16) << 8, (y * 16) << 8, Direction.UP));
-		} else if (game.map[i] == Tile.TUNNEL_DOWN) {
-			game.tunnels.push(new Tunnel((x * 16) << 8, (y * 16) << 8, Direction.DOWN));
-		} else if (game.map[i] == Tile.TUNNEL_RIGHT) {
-			game.tunnels.push(new Tunnel((x * 16) << 8, (y * 16) << 8, Direction.RIGHT));
-		} else if (game.map[i] == Tile.TUNNEL_LEFT) {
-			game.tunnels.push(new Tunnel((x * 16) << 8, (y * 16) << 8, Direction.LEFT));
-		} else if (game.map[i] == Tile.CAKE) {
-			game.cakes.push(new Cake((x * 16) << 8, (y * 16) << 8));
-			continue;
-		} else if (game.map[i] == Tile.TURRET_LEFT) {
-			game.turrets.push(new Turret((x * 16) << 8, (y * 16) << 8, -1));
-			continue;
-		} else if (game.map[i] == Tile.TURRET_RIGHT) {
-			game.turrets.push(new Turret((x * 16) << 8, (y * 16) << 8, 1));
-			continue;
-		} else if (game.map[i] == Tile.CRATE) {
-			game.crates.push(new Crate((x * 16) << 8, (y * 16) << 8));
-			continue;
-		} else if (game.map[i] == Tile.PLAYER_START) {
-			game.player.x = (x * 16) << 8;
-			game.player.y = (y * 16) << 8;
-			continue;
-		} else if (game.map[i] == Tile.PLATFORM_RIGHT) {
-			game.platforms.push(new Platform((x * 16) << 8, (y * 16) << 8, 128, 0));
-			continue;
-		} else if (game.map[i] == Tile.PLATFORM_LEFT) {
-			game.platforms.push(new Platform((x * 16) << 8, (y * 16) << 8, -128, 0));
-			continue;
-		}
-	}
-}
-
-/**
  * Draw the objects of the map in the editor.
  *
  * @returns {void}
@@ -786,7 +729,7 @@ function drawTileMap() {
 				ctx.drawImage(tileset[game.map[i]], x * 16 + game.offsetX, y * 16 + game.offsetY);
 			}
 		}
-		recreateSprites();
+		loadEditorObjects();
 		drawSprites();
 		tilesBuff = copyCanvas(game.offsetX, game.offsetY, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 		redrawTiles = false;

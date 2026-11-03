@@ -196,3 +196,88 @@ export async function recordedReplay(page) {
 	});
 	return JSON.parse(data);
 }
+
+/**
+ * Run a scene with portals on an empty map with walls on all four borders.
+ *
+ * The scene starts the first level of the normal campaign, replaces its map, and lets the player shoot the two
+ * portals from a position toward a target. Then it places the object of the scene and runs the game. Each tick adds
+ * one line with the position and the speed of the object and of the player.
+ *
+ * @param {import('@playwright/test').Page} page The Playwright page.
+ * @param {object} scene The scene.
+ * @param {number[][]} scene.portals For each portal the x and the y position of the shot and of its target, in
+ *     playfield pixels.
+ * @param {object} [scene.object] The object: type "crate", "turret" or "plasma", the position x and y in playfield
+ *     pixels, and for a plasma ball the speed vx and vy in 1/256 pixels per tick.
+ * @param {number[]} scene.player The x and the y position of the player in playfield pixels.
+ * @param {number} scene.keys The key bitmask during the scene.
+ * @param {number} scene.ticks The number of ticks to run.
+ * @param {number} scene.seed The seed for Math.random().
+ * @returns {Promise<string>} One line for each tick.
+ */
+export async function runPortalScene(page, scene) {
+	return page.evaluate(async (scene) => {
+		const t = window.__test;
+		const { game, input } = t;
+		const { launchPortal } = await import('/js/portals.js');
+		const { Crate } = await import('/js/entities/Crate.js');
+		const { Turret } = await import('/js/entities/Turret.js');
+		const { Plasma } = await import('/js/entities/Plasma.js');
+		const { MAP_HEIGHT, MAP_WIDTH, PLAYFIELD_X, PLAYFIELD_Y } = await import('/js/constants.js');
+		let state = scene.seed >>> 0;
+		Math.random = () => {
+			state = (state + 0x6d2b79f5) >>> 0;
+			let r = state;
+			r = Math.imul(r ^ (r >>> 15), r | 1);
+			r ^= r + Math.imul(r ^ (r >>> 7), r | 61);
+			return ((r ^ (r >>> 14)) >>> 0) / 4294967296;
+		};
+
+		t.startLevel(0, 1);
+		for (let i = 0; i < game.map.length; i++) {
+			const x = i % MAP_WIDTH;
+			const y = Math.floor(i / MAP_WIDTH);
+			game.map[i] = x === 0 || y === 0 || x === MAP_WIDTH - 1 || y === MAP_HEIGHT - 1 ? 1 : 0;
+		}
+		game.displayMap = game.map.slice();
+		for (const list of [
+			'cakes',
+			'crates',
+			'turrets',
+			'plasmaBall',
+			'platforms',
+			'tunnels',
+			'tunnelFields',
+			'animatedTiles',
+		])
+			game[list] = [];
+		game.tilesChanged = true;
+		input.keys = 0;
+		for (let i = 0; i < 40; i++) t.tick();
+
+		scene.portals.forEach(([sx, sy, tx, ty], p) => {
+			game.player.x = sx << 8;
+			game.player.y = sy << 8;
+			input.mouseX = PLAYFIELD_X + tx;
+			input.mouseY = PLAYFIELD_Y + ty;
+			launchPortal(p);
+		});
+		Object.assign(game.player, { x: scene.player[0] << 8, y: scene.player[1] << 8, vx: 0, vy: 0 });
+		const o = scene.object;
+		let obj = null;
+		if (o?.type === 'crate') game.crates.push((obj = new Crate(o.x << 8, o.y << 8)));
+		else if (o?.type === 'turret') game.turrets.push((obj = new Turret(o.x << 8, o.y << 8, -1)));
+		else if (o?.type === 'plasma') game.plasmaBall.push((obj = new Plasma(o.x << 8, o.y << 8, o.vx, o.vy)));
+
+		const p = game.portals.map((portal) => [portal.used, portal.direction, portal.x >> 8, portal.y >> 8]);
+		const lines = [JSON.stringify({ portals: p })];
+		for (let tick = 1; tick <= scene.ticks; tick++) {
+			input.keys = scene.keys;
+			t.tick();
+			const pick = (e) => (e ? [e.x, e.y, e.vx, e.vy] : null);
+			lines.push(JSON.stringify([tick, pick(obj), pick(game.player)]));
+		}
+		return lines.join('\n') + '\n';
+	}, scene);
+}

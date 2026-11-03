@@ -68,6 +68,8 @@ export const ui = {
 	drawIntermission: false,
 	intermissionChoice: undefined,
 	intermissionHover: -1,
+	/** @type {number} The hovered button of the pause menu, a value of PauseButton, or -1. */
+	pauseHover: -1,
 	highscoreMessage: undefined,
 	drawCredits: false,
 	timeWriting: 0,

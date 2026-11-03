@@ -31,6 +31,7 @@ import { manageKeys, unclick } from './inputState.js';
 import { updateTransition } from './intermission.js';
 import { campaigns, loadLevel, manageDoors } from './level.js';
 import { getFps } from './loop.js';
+import { updatePauseMenu } from './menus.js';
 import { exitFunc } from './navigation.js';
 import { updatePanel } from './panel.js';
 import { atExit } from './physics.js';
@@ -72,8 +73,10 @@ export function tick() {
  * @returns {void}
  */
 export function render() {
-	if (!ui.drawCredits && (ui.currentMenu == Menu.PLAY || ui.currentMenu == Menu.TUTORIAL) && !ui.escapeMenu)
-		drawLevel();
+	if (!ui.drawCredits && (ui.currentMenu == Menu.PLAY || ui.currentMenu == Menu.TUTORIAL)) {
+		if (ui.escapeMenu) drawPauseMenu();
+		else drawLevel();
+	}
 	ctx.font = 'bold 10px Arial';
 	ctx.strokeStyle = 'rgb(255, 255, 255)';
 	ctx.fillStyle = 'rgb(255, 255, 255)';
@@ -109,7 +112,7 @@ function updateScreen() {
 	} else if ((ui.currentMenu == Menu.PLAY || ui.currentMenu == Menu.TUTORIAL) && !ui.escapeMenu) {
 		updateLevel();
 	} else if ((ui.currentMenu == Menu.PLAY || ui.currentMenu == Menu.TUTORIAL) && ui.escapeMenu) {
-		drawPauseMenu();
+		updatePauseMenu();
 	} else if (ui.currentMenu == Menu.LOADING) {
 		if (ui.canSplash && !overSplash) drawSplash();
 		else if (overSplash) drawLoadingScreen();

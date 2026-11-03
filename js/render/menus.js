@@ -4,7 +4,7 @@
 
 import { allImagesLoaded, areImagesLoaded, imageProgress, missingImages } from '../assets.js';
 import { allSoundsLoaded, disableSound, isSoundAvailable, isSoundOn, soundProgress, toggleSound } from '../audio.js';
-import { setupBoss, skipComingBoss } from '../boss.js';
+import { setupBoss } from '../boss.js';
 import { ctx } from '../canvas.js';
 import {
 	BUTTON_CAMPAIGN,
@@ -26,7 +26,6 @@ import {
 	SparkleType,
 } from '../constants.js';
 import { lvlEditorSetup } from '../editor.js';
-import { updateRobot } from '../entities/Robot.js';
 import { createSparkles, updateSparkles } from '../entities/Sparkle.js';
 import { startLevel } from '../game.js';
 import {
@@ -61,11 +60,10 @@ import { mouseInZone, unclick } from '../inputState.js';
 import { isLevelLocked } from '../intermission.js';
 import { keyLabels } from '../keys.js';
 import { creditsTxt, levelsLoaded, levelsToLoad, loadPreviewMap, missingLevelFiles } from '../level.js';
-import { exitFunc, prepareSelectionText } from '../navigation.js';
+import { prepareSelectionText } from '../navigation.js';
 import { drawBoss } from './boss.js';
 import { drawPlayer, drawRobot, drawSparkles, drawTileLayer, drawTunnels, saveTileLayer } from './game.js';
 import { drawHudText, drawText } from './hud.js';
-import { resumeReplay } from '../replay.js';
 import { game, input, ui } from '../state.js';
 import { maxLevel } from '../storage.js';
 import { Tile } from '../tiles.js';
@@ -109,7 +107,7 @@ function drawPortalGunMenu(x, y, angle) {
 }
 
 /**
- * Draw the pause menu and handle its clicks.
+ * Draw the pause menu.
  *
  * @returns {void}
  */
@@ -118,18 +116,11 @@ export function drawPauseMenu() {
 	ctx.drawImage(pauseBG, game.offsetX, game.offsetY);
 
 	ctx.fillStyle = 'rgb(255, 255, 255)';
-	let overMenu = -1;
-	if (mouseInZone(50 + game.offsetX, 180 + game.offsetY, 120, 24)) overMenu = PauseButton.RESUME;
-	else if (ui.currentMenu != Menu.TUTORIAL && mouseInZone(187 + game.offsetX, 180 + game.offsetY, 120, 24))
-		overMenu = PauseButton.RESTART;
-	else if (mouseInZone(324 + game.offsetX, 180 + game.offsetY, 120, 24)) overMenu = PauseButton.EXIT;
-	else if (ui.currentMenu != Menu.TUTORIAL && mouseInZone(187 + game.offsetX, 340 + game.offsetY, 120, 24))
-		overMenu = PauseButton.SOUND;
-
-	const scale1 = overMenu == PauseButton.RESUME ? 0.9 : 1;
-	const scale2 = overMenu == PauseButton.RESTART ? 0.9 : 1;
-	const scale3 = overMenu == PauseButton.EXIT ? 0.9 : 1;
-	const scale4 = overMenu == PauseButton.SOUND ? 0.9 : 1;
+	const hover = ui.pauseHover;
+	const scale1 = hover == PauseButton.RESUME ? 0.9 : 1;
+	const scale2 = hover == PauseButton.RESTART ? 0.9 : 1;
+	const scale3 = hover == PauseButton.EXIT ? 0.9 : 1;
+	const scale4 = hover == PauseButton.SOUND ? 0.9 : 1;
 
 	drawTinyButton(game.offsetX + 50, game.offsetY + 180, scale1, 'Resume');
 	if (ui.currentMenu != Menu.TUTORIAL) drawTinyButton(game.offsetX + 187, game.offsetY + 180, scale2, 'Restart');
@@ -137,30 +128,8 @@ export function drawPauseMenu() {
 	if (ui.currentMenu != Menu.TUTORIAL && isSoundAvailable())
 		drawTinyButton(187 + game.offsetX, 340 + game.offsetY, scale4, 'Sounds : ' + (isSoundOn() ? 'On' : 'Off'));
 
-	if (input.mousePressed && input.mouseButton == MouseButton.LEFT && overMenu > 0) {
-		unclick();
-		if (overMenu == PauseButton.RESUME) {
-			ui.escapeMenu = !ui.escapeMenu;
-			if (game.replayMode) {
-				resumeReplay();
-			}
-		} else if (overMenu == PauseButton.RESTART) {
-			ui.escapeMenu = !ui.escapeMenu;
-			if (ui.currentMenu == Menu.PLAY) {
-				startLevel(ui.campaign, ui.currentLevel, game.replayMode ? game.replay : null);
-				if (game.bossNum > 0) skipComingBoss();
-			}
-		} else if (overMenu == PauseButton.EXIT) {
-			ui.escapeMenu = !ui.escapeMenu;
-			exitFunc();
-		} else if (overMenu == PauseButton.SOUND) {
-			toggleSound();
-		}
-	}
-
 	ctx.drawImage(hud, 0, 0);
 	if (ui.currentMenu == Menu.PLAY) drawText(146, 28, 11);
-	updateRobot();
 	drawRobot();
 
 	drawHudText();

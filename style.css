@@ -6,14 +6,14 @@
 #canvas {
 	cursor: url('./blank.png'), none;
 	touch-action: none;
-	margin: auto;
-	border: 1px solid black;
+	display: block;
+	width: min(100%, calc(100vh * 640 / 544));
+	aspect-ratio: 640 / 544;
 	background: black;
-	margin-left: 10px;
-	margin-right: 10px;
 }
 
 body {
+	margin: 0;
 	background-image: url('decor/bg.png');
 	background-position: center top;
 	background-color: #005674;
@@ -21,26 +21,14 @@ body {
 }
 
 #content {
-	background-image: url('decor/bg2.png');
-	background-position: center top;
-	background-repeat: no-repeat;
-	width: 1248px;
-	height: 570px;
-	margin: auto;
-}
-
-#middle {
-	float: left;
-	margin-left: 291px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
 }
 
 #footer {
 	text-align: center;
 	color: white;
-}
-
-#right {
-	float: left;
 }
 
 #highscores {

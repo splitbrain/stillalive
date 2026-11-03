@@ -4,7 +4,7 @@
 
 import { allImagesLoaded, whenImagesDone } from './assets.js';
 import { allSoundsLoaded, loadSfx } from './audio.js';
-import { ctx } from './canvas.js';
+import { ctx, watchCanvasSize } from './canvas.js';
 import { Menu } from './constants.js';
 import { openExit } from './entities/Cake.js';
 import { Player } from './entities/Player.js';
@@ -38,6 +38,7 @@ function setup() {
 	ctx.strokeStyle = 'rgb(255, 0, 0)';
 	ctx.font = 'bold 10px Arial';
 
+	watchCanvasSize();
 	setupInput();
 	loadKeyLabels();
 	loadSplashImages();

@@ -3,7 +3,7 @@
  * test run.
  */
 
-import { ctx } from '../canvas.js';
+import { copyCanvas, ctx, drawCopy, drawImage } from '../canvas.js';
 import {
 	EditorButton,
 	EditorMenuButton,
@@ -40,12 +40,10 @@ import { getEditorMap } from '../storage.js';
 import { Tile } from '../tiles.js';
 import { getAngle } from '../utils.js';
 import {
-	copyCanvas,
 	createBuff,
 	drawAnimatedTiles,
 	drawArrow,
 	drawCakes,
-	drawCopy,
 	drawCrates,
 	drawFrontTiles,
 	drawPlasma,
@@ -104,13 +102,13 @@ function drawTestLevel() {
 		(game.player.y >> 8) + (game.player.pY >> 1) + game.offsetY,
 	);
 	ctx.rotate(a);
-	ctx.drawImage(portalGun, -5, -5);
+	drawImage(portalGun, -5, -5);
 	ctx.restore();
 
 	drawTunnels();
 
 	const flipDx = game.player.flip < 0 ? 1 : 0;
-	ctx.drawImage(
+	drawImage(
 		head[flipDx],
 		game.player.animationFrame * 16,
 		0,
@@ -121,7 +119,7 @@ function drawTestLevel() {
 		16,
 		12,
 	);
-	ctx.drawImage(
+	drawImage(
 		body[flipDx],
 		game.player.animationFrame * 16,
 		0,
@@ -143,12 +141,12 @@ function drawTestLevel() {
 	drawFrontTiles();
 	drawPortals();
 
-	ctx.drawImage(levelEditorHud, 0, 0);
+	drawImage(levelEditorHud, 0, 0);
 
 	drawLeftTiles();
 	drawRightSprites();
 
-	ctx.drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
+	drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
 	drawText(70, 38, 11);
 }
 
@@ -169,7 +167,7 @@ function drawSlots() {
 		ctx.fillText('Level ' + (i + 1), 549, 105 + 24 + i * 12);
 	}
 
-	ctx.drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
+	drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
 }
 
 /**
@@ -200,9 +198,9 @@ function drawSelectedSlot() {
  */
 function drawSaveScreen() {
 	const hover = ui.editor.menuHover;
-	if (ui.previewMap < 1 || getEditorMap(ui.previewMap) == null) ctx.drawImage(noLevel, game.offsetX, game.offsetY);
+	if (ui.previewMap < 1 || getEditorMap(ui.previewMap) == null) drawImage(noLevel, game.offsetX, game.offsetY);
 	else if (ui.previewMap > 0) drawPreviewMap();
-	ctx.drawImage(mapSelection, 0, 0);
+	drawImage(mapSelection, 0, 0);
 
 	drawSlotHover();
 	drawTinyButton(20, 495, hover == EditorMenuButton.EXIT ? 0.9 : 1, 'Exit');
@@ -225,9 +223,9 @@ function drawSaveScreen() {
  */
 function drawLoadScreen() {
 	const hover = ui.editor.menuHover;
-	if (ui.previewMap < 1) ctx.drawImage(noLevel, game.offsetX, game.offsetY);
+	if (ui.previewMap < 1) drawImage(noLevel, game.offsetX, game.offsetY);
 	if (ui.previewMap > 0) drawPreviewMap();
-	ctx.drawImage(mapSelection, 0, 0);
+	drawImage(mapSelection, 0, 0);
 
 	drawSlotHover();
 	drawTinyButton(20, 495, hover == EditorMenuButton.EXIT ? 0.9 : 1, 'Exit');
@@ -254,7 +252,7 @@ function drawEditor() {
 	drawTileCursor();
 	drawSpriteCursor();
 
-	ctx.drawImage(levelEditorHud, 0, 0);
+	drawImage(levelEditorHud, 0, 0);
 	drawTileSelection();
 	drawSpriteSelection();
 	drawLeftTiles();
@@ -280,7 +278,7 @@ function drawEditor() {
 	drawText(70, 38, 11);
 
 	if (!mouseInZone(game.offsetX, game.offsetY, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT))
-		ctx.drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
+		drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
 }
 
 /**
@@ -306,7 +304,7 @@ function drawSprites() {
 function drawTileMap() {
 	let y, x, up, down, left, right, i;
 	if (ui.editor.redrawTiles) {
-		ctx.drawImage(bg[game.background], game.offsetX, game.offsetY, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
+		drawImage(bg[game.background], game.offsetX, game.offsetY, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 		ctx.fillStyle = 'rgba(255, 0, 0, 0.7)';
 		for (i = 0; i < game.map.length; i++) {
 			if (game.map[i] == Tile.PLASMA_START) {
@@ -333,7 +331,7 @@ function drawTileMap() {
 			if (game.map[i] < NUM_TILES && game.map[i] > 0) {
 				y = i >> 5;
 				x = i - (y << 5);
-				ctx.drawImage(tileset[game.map[i]], x * 16 + game.offsetX, y * 16 + game.offsetY);
+				drawImage(tileset[game.map[i]], x * 16 + game.offsetX, y * 16 + game.offsetY);
 			}
 		}
 		drawSprites();
@@ -354,7 +352,7 @@ function drawTileCursor() {
 	if (!mouseInZone(game.offsetX, game.offsetY, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT) || editor.selectedTile < 0) return;
 	const x = (input.mouseX >> 4) << 4;
 	const y = (input.mouseY >> 4) << 4;
-	ctx.drawImage(tileset[editor.tilesToDraw[editor.selectedTile]], x, y);
+	drawImage(tileset[editor.tilesToDraw[editor.selectedTile]], x, y);
 	ctx.strokeStyle = 'rgb(255, 0, 0)';
 	ctx.lineWidth = 1;
 	ctx.strokeRect(x, y, 16, 16);
@@ -370,29 +368,29 @@ function drawSpriteCursor() {
 	if (!mouseInZone(game.offsetX, game.offsetY, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT) || sprite <= 0) return;
 	const x = (input.mouseX >> 4) << 4;
 	const y = (input.mouseY >> 4) << 4;
-	if (sprite == Tile.CAKE) ctx.drawImage(cake, x, y);
-	else if (sprite == Tile.CRATE) ctx.drawImage(crateImage, x, y);
-	else if (sprite == Tile.TURRET_LEFT) ctx.drawImage(turretImages[0], 0, 0, 16, 32, x, y, 16, 32);
-	else if (sprite == Tile.TURRET_RIGHT) ctx.drawImage(turretImages[1], 0, 0, 16, 32, x, y, 16, 32);
+	if (sprite == Tile.CAKE) drawImage(cake, x, y);
+	else if (sprite == Tile.CRATE) drawImage(crateImage, x, y);
+	else if (sprite == Tile.TURRET_LEFT) drawImage(turretImages[0], 0, 0, 16, 32, x, y, 16, 32);
+	else if (sprite == Tile.TURRET_RIGHT) drawImage(turretImages[1], 0, 0, 16, 32, x, y, 16, 32);
 	else if (sprite == Tile.PLATFORM_RIGHT) {
-		ctx.drawImage(platform, x, y);
+		drawImage(platform, x, y);
 		ctx.fillStyle = 'rgb(255, 0, 0)';
 		ctx.strokeStyle = 'rgb(255, 0, 0)';
 		drawArrow(x + 5, y + 8, x + 15, y + 8, 3, 1);
 	} else if (sprite == Tile.PLATFORM_LEFT) {
-		ctx.drawImage(platform, x, y);
+		drawImage(platform, x, y);
 		ctx.fillStyle = 'rgb(255, 0, 0)';
 		ctx.strokeStyle = 'rgb(255, 0, 0)';
 		drawArrow(x + 5, y + 8, x + 15, y + 8, 3, -1);
 	} else if (sprite == Tile.PLAYER_START) drawPlayer(x, y, 0);
 	else if (sprite == Tile.TUNNEL_RIGHT) {
-		ctx.drawImage(tunnel, 0, 0, 16, 32, x, y, 16, 32);
+		drawImage(tunnel, 0, 0, 16, 32, x, y, 16, 32);
 	} else if (sprite == Tile.TUNNEL_LEFT) {
-		ctx.drawImage(tunnel, 0, 32, 16, 32, x, y, 16, 32);
+		drawImage(tunnel, 0, 32, 16, 32, x, y, 16, 32);
 	} else if (sprite == Tile.TUNNEL_UP) {
-		ctx.drawImage(tunnel2, 0, 0, 32, 16, x, y, 32, 16);
+		drawImage(tunnel2, 0, 0, 32, 16, x, y, 32, 16);
 	} else if (sprite == Tile.TUNNEL_DOWN) {
-		ctx.drawImage(tunnel2, 32, 0, 32, 16, x, y, 32, 16);
+		drawImage(tunnel2, 32, 0, 32, 16, x, y, 32, 16);
 	}
 }
 
@@ -469,26 +467,26 @@ function drawRightSprites() {
 	const x = SPRITES_X;
 	const y = SPRITES_Y;
 
-	ctx.drawImage(cake, x, y);
-	ctx.drawImage(crateImage, x + 24, y);
-	ctx.drawImage(turretImages[0], 0, 0, 16, 32, x, y + 24, 16, 32);
-	ctx.drawImage(turretImages[1], 0, 0, 16, 32, x + 24, y + 24, 16, 32);
+	drawImage(cake, x, y);
+	drawImage(crateImage, x + 24, y);
+	drawImage(turretImages[0], 0, 0, 16, 32, x, y + 24, 16, 32);
+	drawImage(turretImages[1], 0, 0, 16, 32, x + 24, y + 24, 16, 32);
 
 	ctx.fillStyle = 'rgb(255, 0, 0)';
 	ctx.strokeStyle = 'rgb(255, 0, 0)';
 
-	ctx.drawImage(platform, x, y + 24 + 40);
+	drawImage(platform, x, y + 24 + 40);
 	drawArrow(x + 5, y + 72, x + 15, y + 72, 3, 1);
-	ctx.drawImage(platform, x, y + 88);
+	drawImage(platform, x, y + 88);
 	drawArrow(x + 5, y + 96, x + 14, y + 96, 3, -1);
 
 	drawPlayer(x, y + 112, 0);
 
-	ctx.drawImage(tunnel, 0, 0, 16, 32, x, y + 144, 16, 32);
-	ctx.drawImage(tunnel, 0, 32, 16, 32, x + 24, y + 144, 16, 32);
+	drawImage(tunnel, 0, 0, 16, 32, x, y + 144, 16, 32);
+	drawImage(tunnel, 0, 32, 16, 32, x + 24, y + 144, 16, 32);
 
-	ctx.drawImage(tunnel2, 0, 0, 32, 16, x, y + 180, 32, 16);
-	ctx.drawImage(tunnel2, 32, 0, 32, 16, x, y + 200, 32, 16);
+	drawImage(tunnel2, 0, 0, 32, 16, x, y + 180, 32, 16);
+	drawImage(tunnel2, 32, 0, 32, 16, x, y + 200, 32, 16);
 }
 
 /**
@@ -502,15 +500,15 @@ function drawLeftTiles() {
 	let y = 138;
 
 	for (let i = 0; i < editor.tilesToDraw.length; i++) {
-		ctx.drawImage(tileset[editor.tilesToDraw[i]], x, y);
+		drawImage(tileset[editor.tilesToDraw[i]], x, y);
 		x += 20;
 		if (x > 44) {
 			x = 4;
 			y += 20;
 		}
-		if (i == editor.selectedTile) ctx.drawImage(tileset[editor.tilesToDraw[i]], 14, 315, 36, 36);
+		if (i == editor.selectedTile) drawImage(tileset[editor.tilesToDraw[i]], 14, 315, 36, 36);
 	}
 
-	ctx.drawImage(tex_leftBG, 3, 412);
-	ctx.drawImage(tex_rightBG, 32, 412);
+	drawImage(tex_leftBG, 3, 412);
+	drawImage(tex_rightBG, 32, 412);
 }

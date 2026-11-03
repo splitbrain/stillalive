@@ -2,7 +2,7 @@
  * Drawing of a frame: the current screen and the frame rate.
  */
 
-import { ctx } from '../canvas.js';
+import { beginFrame, ctx } from '../canvas.js';
 import { Menu } from '../constants.js';
 import { getFps } from '../loop.js';
 import { ui } from '../state.js';
@@ -17,6 +17,7 @@ import { drawCredits, drawLoadingScreen, drawMainMenu, drawMapSelection, drawPau
  * @returns {void}
  */
 export function render() {
+	beginFrame();
 	if (ui.drawCredits) {
 		drawCredits();
 	} else if (ui.currentMenu == Menu.EDITOR) {

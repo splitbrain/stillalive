@@ -2,7 +2,7 @@
  * Drawing of the boss and of its speech.
  */
 
-import { ctx } from '../canvas.js';
+import { ctx, drawImage } from '../canvas.js';
 import { robotEye, robotHead } from '../images.js';
 import { game, ui } from '../state.js';
 import { prepareTxt } from './hud.js';
@@ -99,7 +99,7 @@ export function drawBossSpeech() {
  * @returns {void}
  */
 export function drawBoss() {
-	ctx.drawImage(robotHead, game.bossX + game.offsetX, game.bossY + game.offsetY, 74, 58);
+	drawImage(robotHead, game.bossX + game.offsetX, game.bossY + game.offsetY, 74, 58);
 
 	let eye;
 	if (ui.currentLevel <= 7) eye = 0;
@@ -107,7 +107,7 @@ export function drawBoss() {
 	else if (ui.currentLevel <= 21) eye = 2;
 	else eye = 3;
 
-	ctx.drawImage(
+	drawImage(
 		robotEye[eye],
 		0,
 		19 * game.bossLife,

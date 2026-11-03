@@ -2,7 +2,7 @@
  * Drawing of the HUD texts and the replay keys.
  */
 
-import { ctx } from '../canvas.js';
+import { ctx, drawImage } from '../canvas.js';
 import { KEY_CLEAR, KEY_DOWN, KEY_JUMP, KEY_LEFT, KEY_RIGHT, MOUSE_LEFT, MOUSE_RIGHT } from '../constants.js';
 import { key, mouseIcon } from '../images.js';
 import { keyLabels } from '../keys.js';
@@ -27,20 +27,20 @@ export function drawKeys() {
 	const mr = MOUSE_RIGHT & input.keys ? 1 : 0;
 
 	ctx.textAlign = 'center';
-	ctx.drawImage(key, 0, w * 24, 24, 24, 525, 485, 24, 24);
+	drawImage(key, 0, w * 24, 24, 24, 525, 485, 24, 24);
 	ctx.fillText(keyLabels.KeyW, 525 + 12, 485 + 16);
-	ctx.drawImage(key, 0, e * 24, 24, 24, 525 + 26, 485, 24, 24);
+	drawImage(key, 0, e * 24, 24, 24, 525 + 26, 485, 24, 24);
 	ctx.fillText(keyLabels.KeyE, 525 + 26 + 12, 485 + 16);
-	ctx.drawImage(key, 0, a * 24, 24, 24, 525 - 26, 485 + 26, 24, 24);
+	drawImage(key, 0, a * 24, 24, 24, 525 - 26, 485 + 26, 24, 24);
 	ctx.fillText(keyLabels.KeyA, 525 - 26 + 12, 485 + 26 + 16);
-	ctx.drawImage(key, 0, s * 24, 24, 24, 525, 485 + 26, 24, 24);
+	drawImage(key, 0, s * 24, 24, 24, 525, 485 + 26, 24, 24);
 	ctx.fillText(keyLabels.KeyS, 525 + 12, 485 + 26 + 16);
-	ctx.drawImage(key, 0, d * 24, 24, 24, 525 + 26, 485 + 26, 24, 24);
+	drawImage(key, 0, d * 24, 24, 24, 525 + 26, 485 + 26, 24, 24);
 	ctx.fillText(keyLabels.KeyD, 525 + 26 + 12, 485 + 26 + 16);
 	ctx.textAlign = 'left';
 
-	ctx.drawImage(mouseIcon, 0, ml * 40, 24, 40, 525 - 26 - 26, 485, 24, 40);
-	ctx.drawImage(mouseIcon, 0, mr * 40, 24, 40, 525 + 26 + 26, 485, 24, 40);
+	drawImage(mouseIcon, 0, ml * 40, 24, 40, 525 - 26 - 26, 485, 24, 40);
+	drawImage(mouseIcon, 0, mr * 40, 24, 40, 525 + 26 + 26, 485, 24, 40);
 }
 
 /**

@@ -2,7 +2,7 @@
  * Keyboard and pointer input.
  *
  * The handlers write the pressed keys and mouse buttons into the key bitmask of the game, and the mouse position in
- * canvas pixels. The game reads both once per tick.
+ * screen units. The game reads both once per tick.
  */
 
 import { toggleSound } from './audio.js';
@@ -16,6 +16,8 @@ import {
 	MOUSE_MIDDLE,
 	MOUSE_RIGHT,
 	Menu,
+	SCREEN_HEIGHT,
+	SCREEN_WIDTH,
 } from './constants.js';
 import { startPlayingLevel, stopPlayingLevel } from './editor.js';
 import { captureInput, unclick } from './inputState.js';
@@ -154,8 +156,8 @@ function onPointer(event) {
 
 	if (!game.replayMode || ui.escapeMenu) {
 		const rect = canvas.getBoundingClientRect();
-		input.mouseX = ((event.clientX - rect.left - canvas.clientLeft) * canvas.width) / canvas.clientWidth;
-		input.mouseY = ((event.clientY - rect.top - canvas.clientTop) * canvas.height) / canvas.clientHeight;
+		input.mouseX = ((event.clientX - rect.left - canvas.clientLeft) * SCREEN_WIDTH) / canvas.clientWidth;
+		input.mouseY = ((event.clientY - rect.top - canvas.clientTop) * SCREEN_HEIGHT) / canvas.clientHeight;
 	}
 }
 

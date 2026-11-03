@@ -2,7 +2,7 @@
  * Drawing of the transitions between levels.
  */
 
-import { ctx } from '../canvas.js';
+import { ctx, drawImage } from '../canvas.js';
 import { PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, Transition } from '../constants.js';
 import { highscore, linesHoriz, linesVerti } from '../images.js';
 import { atExit } from '../physics.js';
@@ -29,7 +29,7 @@ export function drawTransition() {
 			ctx.fillRect(game.offsetX - 1, game.offsetY, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 			const a = -(game.player.intermissionFade / 20);
 			ctx.globalAlpha = a;
-			ctx.drawImage(highscore, game.offsetX, game.offsetY);
+			drawImage(highscore, game.offsetX, game.offsetY);
 			ctx.globalAlpha = 1;
 		} else drawTransitionOut();
 	}

@@ -32,8 +32,7 @@ export function radToDeg(r) {
  * @returns {number} The angle in radians.
  */
 export function getAngle(x1, y1, x2, y2) {
-	const value = parseFloat(Math.atan2(y2 - y1, x2 - x1));
-	return value;
+	return Math.atan2(y2 - y1, x2 - x1);
 }
 
 /**
@@ -98,21 +97,6 @@ export function getDistance(x1, y1, x2, y2) {
 	const adj = x1 - x2;
 	const opp = y1 - y2;
 	return Math.sqrt(opp * opp + adj * adj);
-}
-
-/**
- * Check if a list contains a value.
- *
- * @param {Array} tab The list.
- * @param {*} value The value to find, compared with ==.
- * @returns {boolean} True if the list contains the value.
- */
-export function tabContains(tab, value) {
-	let i;
-	for (i = 0; i < tab.length; i++) {
-		if (tab[i] == value) return true;
-	}
-	return false;
 }
 
 /**

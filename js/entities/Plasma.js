@@ -314,7 +314,7 @@ export function updatePlasma() {
 		if (!ball.used) continue;
 		if (game.TIME % 10 == 0) {
 			do {
-				r = parseInt(random(0, 3));
+				r = random(0, 3);
 			} while (ball.animFrame == r);
 			ball.animFrame = r;
 		}

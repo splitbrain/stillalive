@@ -179,13 +179,13 @@ export class Player {
 					s.x = this.x + (this.pX << 7) + random(-8 << 8, 8 << 8);
 					s.y = this.y + (this.pY << 7) + random(-16 << 8, 16 << 8);
 					s.used = 4;
-					s.vx = parseInt(random(32, 64));
-					s.vy = parseInt(random(32, 64));
+					s.vx = random(32, 64);
+					s.vy = random(32, 64);
 					s.fading = 200;
 					s.color = 0;
 					s.portalNum = -1;
-					if (parseInt(random(0, 2)) == 0) s.vx = -s.vx;
-					if (parseInt(random(0, 2)) == 0) s.vy = -s.vy;
+					if (random(0, 2) == 0) s.vx = -s.vx;
+					if (random(0, 2) == 0) s.vy = -s.vy;
 					game.sparkles.push(s);
 				}
 			}
@@ -196,13 +196,13 @@ export class Player {
 					s.x = this.x + (this.pX << 7) + random(-8 << 8, 8 << 8);
 					s.y = this.y + (this.pY << 7) + random(-16 << 8, 16 << 8);
 					s.used = 4;
-					s.vx = parseInt(random(32, 64));
-					s.vy = parseInt(random(32, 64));
+					s.vx = random(32, 64);
+					s.vy = random(32, 64);
 					s.fading = 255;
 					s.color = 1;
 					s.portalNum = -1;
-					if (parseInt(random(0, 2)) == 0) s.vx = -s.vx;
-					if (parseInt(random(0, 2)) == 0) s.vy = -s.vy;
+					if (random(0, 2) == 0) s.vx = -s.vx;
+					if (random(0, 2) == 0) s.vy = -s.vy;
 					game.sparkles.push(s);
 				}
 			}
@@ -344,7 +344,7 @@ export class Player {
 
 		if (!ground || checkTeleportDown(this)) {
 			if (fields.length == 0) this.vy += GRAVITY;
-			dir = parseInt(dir * 0.28);
+			dir = Math.trunc(dir * 0.28);
 			if (this.vy > (10 << 8) + 128) this.vy = (10 << 8) + 128;
 		}
 

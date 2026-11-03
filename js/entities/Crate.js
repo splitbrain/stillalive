@@ -197,7 +197,7 @@ export function crateAt(x, y) {
 		const x2 = game.crates[i].x >> 8;
 		const y2 = game.crates[i].y >> 8;
 		if (!game.crates[i].carried && !inPortal(game.crates[i]) && x > x2 && x < x2 + 15 && y > y2 && y < y2 + 15) {
-			const ret = parseInt(i);
+			const ret = i;
 			return CRATE_CODE + ret;
 		}
 	}
@@ -217,7 +217,7 @@ export function anyCrateAt(x, y) {
 		const x2 = game.crates[i].x >> 8;
 		const y2 = game.crates[i].y >> 8;
 		if (x > x2 && x < x2 + 15 && y > y2 && y < y2 + 15) {
-			const ret = parseInt(i);
+			const ret = i;
 			return CRATE_CODE + ret;
 		}
 	}

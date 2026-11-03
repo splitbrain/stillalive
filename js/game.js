@@ -189,7 +189,7 @@ function updateLevelEnd() {
 		ui.drawCredits = false;
 		game.player.fadeNextLevel = 120;
 		game.player.intermissionFade = 20;
-		TRANS = parseInt(random(Transition.TOP_LEFT, Transition.SQUARE + 1));
+		TRANS = random(Transition.TOP_LEFT, Transition.SQUARE + 1);
 		playSound(sfx_transition);
 		ui.highscoreMessage = '';
 		unclick();

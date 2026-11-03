@@ -40,16 +40,16 @@ export function createSparkles(xFrom, yFrom, xTo, yTo, color, used) {
 		if (i % 6 == 0 && now > 15) {
 			for (k = 0; k < 3; k++) {
 				const s = new Sparkle();
-				s.x = x + parseInt(random(-5 << 8, 5 << 8)) - (8 << 8) - (game.offsetX << 8);
-				s.y = y + parseInt(random(-5 << 8, 5 << 8)) - (8 << 8) - (game.offsetY << 8);
+				s.x = x + random(-5 << 8, 5 << 8) - (8 << 8) - (game.offsetX << 8);
+				s.y = y + random(-5 << 8, 5 << 8) - (8 << 8) - (game.offsetY << 8);
 				s.used = used;
-				s.vx = parseInt(random(96, 192));
-				s.vy = parseInt(random(96, 192));
+				s.vx = random(96, 192);
+				s.vy = random(96, 192);
 				s.fading = 255;
 				s.color = color;
 				s.portalNum = -1;
-				if (parseInt(random(0, 2)) == 0) s.vx = -s.vx;
-				if (parseInt(random(0, 2)) == 0) s.vy = -s.vy;
+				if (random(0, 2) == 0) s.vx = -s.vx;
+				if (random(0, 2) == 0) s.vy = -s.vy;
 				game.sparkles.push(s);
 			}
 		}
@@ -184,11 +184,11 @@ export function createCakeOrSmokeSparkles(x, y, type, number, size) {
 	let k;
 	for (k = 0; k < number; k++) {
 		const s = new Sparkle();
-		s.x = x + parseInt(random(-8 << 8, 8 << 8));
-		s.y = y + parseInt(random(-8 << 8, 8 << 8));
+		s.x = x + random(-8 << 8, 8 << 8);
+		s.y = y + random(-8 << 8, 8 << 8);
 		s.used = type;
-		s.vx = parseInt(random(-192, 192));
-		s.vy = parseInt(random(-192, -96));
+		s.vx = random(-192, 192);
+		s.vy = random(-192, -96);
 		s.fading = size;
 		if (type == 8) s.color = 2;
 		else if (type == 9) s.color = 3;

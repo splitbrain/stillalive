@@ -49,7 +49,7 @@ export function animateTiles() {
 		if (!tile.used || game.TIME % tile.speed != 0) continue;
 		if (tile.type == RANDOM) {
 			do {
-				r = parseInt(random(tile.min, tile.max) + 1);
+				r = random(tile.min, tile.max) + 1;
 			} while (r == tile.current);
 			tile.current = r;
 		} else if (tile.type == ORDERED) {

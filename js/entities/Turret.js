@@ -192,7 +192,7 @@ export class Turret {
 							s.x = game.player.x + (this.pX << 7) + random(-8 << 8, 8 << 8);
 							s.y = game.player.y + (this.pY << 6);
 							s.used = 5;
-							s.vx = parseInt(random(512, 1024) * this.dir);
+							s.vx = random(512, 1024) * this.dir;
 							s.vy = random(-3 << 8, 0);
 							s.fading = 50;
 							s.color = 1;

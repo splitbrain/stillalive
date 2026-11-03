@@ -4,7 +4,7 @@
 
 import { loadImage } from './assets.js';
 import { NUM_TILES } from './constants.js';
-import { random, tabContains } from './utils.js';
+import { random } from './utils.js';
 
 /** @type {number[]} The random order of the rows for the line transitions. */
 export let linesHoriz;
@@ -126,8 +126,8 @@ export function loadGfx() {
 	linesVerti = new Array();
 	for (i = 0; i < 128; i++) {
 		do {
-			r = parseInt(random(0, 129));
-		} while (tabContains(linesHoriz, r));
+			r = random(0, 129);
+		} while (linesHoriz.includes(r));
 		linesHoriz.push(r);
 		linesVerti.push(r);
 	}

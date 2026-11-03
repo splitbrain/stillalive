@@ -60,11 +60,11 @@ function drawTransitionIn() {
 	ctx.fillStyle = 'rgb(0, 0, 0)';
 	const scale = 1 - game.player.fadeNextLevel / 120;
 	if (TRANS == Transition.TOP_LEFT) {
-		ctx.fillRect(game.offsetX, game.offsetY, parseInt(512 * scale), parseInt(384 * scale));
+		ctx.fillRect(game.offsetX, game.offsetY, Math.trunc(512 * scale), Math.trunc(384 * scale));
 	} else if (TRANS == Transition.LEFT_TO_RIGHT) {
-		ctx.fillRect(game.offsetX, game.offsetY, parseInt(512 * scale), 384);
+		ctx.fillRect(game.offsetX, game.offsetY, Math.trunc(512 * scale), 384);
 	} else if (TRANS == Transition.TOP_TO_BOTTOM) {
-		ctx.fillRect(game.offsetX, game.offsetY, 512, parseInt(384 * scale));
+		ctx.fillRect(game.offsetX, game.offsetY, 512, Math.trunc(384 * scale));
 	} else if (TRANS == Transition.HORIZONTAL_LINES) {
 		lineCount = 120 - game.player.fadeNextLevel;
 		if (lineCount < linesHoriz.length) {
@@ -84,9 +84,9 @@ function drawTransitionIn() {
 			ctx.fillRect(game.offsetX, game.offsetY, 512, 384);
 		}
 	} else if (TRANS == Transition.SQUARE) {
-		const x = 512 - parseInt(512 * scale);
-		const y = 384 - parseInt(384 * scale);
-		ctx.fillRect(game.offsetX + (x >> 1), game.offsetY + (y >> 1), parseInt(512 * scale), parseInt(384 * scale));
+		const x = 512 - Math.trunc(512 * scale);
+		const y = 384 - Math.trunc(384 * scale);
+		ctx.fillRect(game.offsetX + (x >> 1), game.offsetY + (y >> 1), Math.trunc(512 * scale), Math.trunc(384 * scale));
 	}
 }
 
@@ -100,15 +100,15 @@ function drawTransitionOut() {
 	ctx.fillStyle = 'rgb(0, 0, 0)';
 	ctx.strokeStyle = 'rgb(0, 0, 0)';
 	const scale = game.player.fadeNextLevel / 120;
-	const x = 512 - parseInt(512 * scale);
-	const y = 384 - parseInt(384 * scale);
+	const x = 512 - Math.trunc(512 * scale);
+	const y = 384 - Math.trunc(384 * scale);
 
 	if (TRANS == Transition.TOP_LEFT) {
-		ctx.fillRect(game.offsetX + x, game.offsetY + y, parseInt(512 * scale), parseInt(384 * scale));
+		ctx.fillRect(game.offsetX + x, game.offsetY + y, Math.trunc(512 * scale), Math.trunc(384 * scale));
 	} else if (TRANS == Transition.LEFT_TO_RIGHT) {
-		ctx.fillRect(game.offsetX + x, game.offsetY, parseInt(512 * scale), 384);
+		ctx.fillRect(game.offsetX + x, game.offsetY, Math.trunc(512 * scale), 384);
 	} else if (TRANS == Transition.TOP_TO_BOTTOM) {
-		ctx.fillRect(game.offsetX, game.offsetY + y, 512, parseInt(384 * scale));
+		ctx.fillRect(game.offsetX, game.offsetY + y, 512, Math.trunc(384 * scale));
 	} else if (TRANS == Transition.HORIZONTAL_LINES) {
 		lineCount = game.player.fadeNextLevel;
 		if (lineCount < linesHoriz.length) {

@@ -197,7 +197,7 @@ export function updateBoss() {
 					game.crates[game.crates.length - 1].x >> 8,
 					game.crates[game.crates.length - 1].y >> 8,
 				);
-				d = parseInt(d / 18);
+				d = Math.trunc(d / 18);
 				if (d > 16) d = 16;
 				if (d < 3) d = 3;
 				game.crates[game.crates.length - 1].vx = -(d << 8);
@@ -219,7 +219,7 @@ export function updateBoss() {
 						435 + 8,
 						50 + 8,
 					) * 1200;
-				game.projectiles.push(new Projectile(435 << 8, 50 << 8, parseInt(vx1), parseInt(vy1)));
+				game.projectiles.push(new Projectile(435 << 8, 50 << 8, Math.trunc(vx1), Math.trunc(vy1)));
 
 				if (game.bossLife == 2) {
 					const vx2 =
@@ -236,7 +236,7 @@ export function updateBoss() {
 							16 + 8,
 							48 + 8,
 						) * 1200;
-					game.projectiles.push(new Projectile(16 << 8, 48 << 8, parseInt(vx2), parseInt(vy2)));
+					game.projectiles.push(new Projectile(16 << 8, 48 << 8, Math.trunc(vx2), Math.trunc(vy2)));
 				}
 			}
 		} else if (game.bossLife < 3 && game.bossNum == 3) {
@@ -286,7 +286,7 @@ export function updateBoss() {
 					game.crates[game.crates.length - 1].x >> 8,
 					game.crates[game.crates.length - 1].y >> 8,
 				);
-				d = parseInt(d / 20);
+				d = Math.trunc(d / 20);
 				if (d > 16) d = 16;
 				if (d < 3) d = 3;
 				game.crates[game.crates.length - 1].vx = -(d << 8);
@@ -307,7 +307,7 @@ export function updateBoss() {
 						432 + 8,
 						32 + 8,
 					) * 600;
-				game.projectiles.push(new Projectile(432 << 8, 32 << 8, parseInt(vx1), parseInt(vy1)));
+				game.projectiles.push(new Projectile(432 << 8, 32 << 8, Math.trunc(vx1), Math.trunc(vy1)));
 			}
 
 			if (game.bossLife > 1 && game.player.fadeNextLevel == -1 && game.plasmaBall.length == 0) {

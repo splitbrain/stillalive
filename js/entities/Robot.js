@@ -186,7 +186,7 @@ export class Robot {
 export function updateRobot() {
 	game.robot.move();
 	if (game.robot.doingAction) return;
-	const r = parseInt(random(1, 800));
+	const r = random(1, 800);
 	if (r == 1) game.robot.lookLeftRight(-1);
 	else if (r == 2) game.robot.lookLeftRight(1);
 	else if (r == 3) game.robot.lookUpDown(-1);

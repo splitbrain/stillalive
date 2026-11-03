@@ -68,16 +68,16 @@ export function launchPortal(p) {
 		if (i % 6 == 0 && now > 15) {
 			for (k = 0; k < 1; k++) {
 				const s = new Sparkle();
-				s.x = x + parseInt(random(-5 << 8, 5 << 8)) - (8 << 8);
-				s.y = y + parseInt(random(-5 << 8, 5 << 8)) - (8 << 8);
+				s.x = x + random(-5 << 8, 5 << 8) - (8 << 8);
+				s.y = y + random(-5 << 8, 5 << 8) - (8 << 8);
 				s.used = 1;
-				s.vx = parseInt(random(96, 192));
-				s.vy = parseInt(random(96, 192));
+				s.vx = random(96, 192);
+				s.vy = random(96, 192);
 				s.fading = 255;
 				s.color = p;
 				s.portalNum = -1;
-				if (parseInt(random(0, 2)) == 0) s.vx = -s.vx;
-				if (parseInt(random(0, 2)) == 0) s.vy = -s.vy;
+				if (random(0, 2) == 0) s.vx = -s.vx;
+				if (random(0, 2) == 0) s.vy = -s.vy;
 				game.sparkles.push(s);
 			}
 		}
@@ -104,7 +104,7 @@ export function launchPortal(p) {
 				if (isPlatformCode(platformCode)) game.portals[p].platformIndex = platformCode - PLATFORM_CODE;
 				else game.portals[p].platformIndex = -1;
 			}
-			const r = parseInt(random(0, 2));
+			const r = random(0, 2);
 			playSound(sfx_portal[r]);
 			game.PORTALS++;
 		} else playSound(sfx_noPortal);
@@ -178,9 +178,9 @@ function setPortalDir(p, x, y) {
 			s.portalNum = p;
 			s.used = 3;
 			if (game.portals[p].direction == Direction.RIGHT) {
-				s.vx = -parseInt(random(128, 384));
+				s.vx = -random(128, 384);
 				s.xOrig -= 7 << 8;
-			} else s.vx = parseInt(random(128, 384));
+			} else s.vx = random(128, 384);
 			s.vy = 0;
 			s.fading = 200;
 			s.color = p;
@@ -241,9 +241,9 @@ function setPortalDir(p, x, y) {
 				s.used = 3;
 				s.portalNum = p;
 				if (game.portals[p].direction == Direction.DOWN) {
-					s.vy = -parseInt(random(128, 384));
+					s.vy = -random(128, 384);
 					s.yOrig -= 8 << 8;
-				} else s.vy = parseInt(random(128, 384));
+				} else s.vy = random(128, 384);
 				s.vx = 0;
 				s.fading = 200;
 				s.color = p;

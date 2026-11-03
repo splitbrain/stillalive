@@ -343,7 +343,7 @@ function menuSaveMap() {
 	ctx.drawImage(mapSelection, 0, 0);
 
 	if (mouseInZone(529, 117, 90, 29 * 12)) {
-		const y = parseInt((input.mouseY - 105) / 12);
+		const y = Math.trunc((input.mouseY - 105) / 12);
 		if (y <= 28) {
 			ctx.fillStyle = 'rgb(15, 112, 144)';
 			ctx.fillRect(529, 105 + y * 12 + 2, 90, 14);
@@ -476,7 +476,7 @@ function menuLoadMap() {
 	ctx.drawImage(mapSelection, 0, 0);
 
 	if (mouseInZone(529, 117, 90, 29 * 12)) {
-		const y = parseInt((input.mouseY - 105) / 12);
+		const y = Math.trunc((input.mouseY - 105) / 12);
 		if (y <= 28 && getEditorMap(y) != null) {
 			ctx.fillStyle = 'rgb(15, 112, 144)';
 			ctx.fillRect(529, 105 + y * 12 + 2, 90, 14);
@@ -1133,16 +1133,16 @@ function manageTileSelection() {
 		x = input.mouseX;
 		y = input.mouseY;
 
-		x = parseInt(x / 20) * 20 + 2;
-		y = parseInt(y / 20) * 20 - 4;
+		x = Math.trunc(x / 20) * 20 + 2;
+		y = Math.trunc(y / 20) * 20 - 4;
 		ctx.fillStyle = 'rgb(255, 0, 0)';
 		ctx.fillRect(x, y, 20, 20);
 
 		if (input.mouseNewPress) {
 			unclick();
 			selectedSprite = -1;
-			const xt = parseInt(x / 20);
-			const yt = parseInt((y - 136) / 20);
+			const xt = Math.trunc(x / 20);
+			const yt = Math.trunc((y - 136) / 20);
 			selectedTile = xt + yt * 3;
 		}
 	}
@@ -1151,7 +1151,7 @@ function manageTileSelection() {
 		ctx.fillStyle = 'rgb(0, 255, 0)';
 
 		x = (selectedTile % 3) * 20 + 2;
-		y = parseInt(selectedTile / 3) * 20 + 136;
+		y = Math.trunc(selectedTile / 3) * 20 + 136;
 
 		ctx.fillRect(x, y, 20, 20);
 	}

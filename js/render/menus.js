@@ -356,13 +356,13 @@ export function drawLoadingScreen() {
 	ctx.fillText('- Use your portal gun to teleport through levels.', 10, 140);
 
 	ctx.fillStyle = 'rgb(255, 0, 0)';
-	ctx.fillRect(11, 21, parseInt(imageProgress() * 200), 12);
-	ctx.fillRect(11, 61, parseInt((levelsLoaded / levelsToLoad) * 200), 12);
-	ctx.fillRect(11, 101, parseInt(soundProgress() * 200), 12);
+	ctx.fillRect(11, 21, Math.trunc(imageProgress() * 200), 12);
+	ctx.fillRect(11, 61, Math.trunc((levelsLoaded / levelsToLoad) * 200), 12);
+	ctx.fillRect(11, 101, Math.trunc(soundProgress() * 200), 12);
 	ctx.fillStyle = 'rgb(255, 255, 255)';
-	ctx.fillText(parseInt(imageProgress() * 100) + '%', 100, 30);
-	ctx.fillText(parseInt((levelsLoaded / levelsToLoad) * 100) + '%', 100, 70);
-	ctx.fillText(parseInt(soundProgress() * 100) + '%', 100, 110);
+	ctx.fillText(Math.trunc(imageProgress() * 100) + '%', 100, 30);
+	ctx.fillText(Math.trunc((levelsLoaded / levelsToLoad) * 100) + '%', 100, 70);
+	ctx.fillText(Math.trunc(soundProgress() * 100) + '%', 100, 110);
 
 	const missing = missingImages();
 	if (missing.length > 0) {
@@ -422,7 +422,7 @@ export function drawMapSelection() {
 
 	if (input.mouseX >= 529 && input.mouseX <= 529 + 90) {
 		if (input.mouseY >= 12 + 105 && input.mouseY <= 104 + 29 * 12) {
-			const y = parseInt((input.mouseY - 105) / 12);
+			const y = Math.trunc((input.mouseY - 105) / 12);
 			if (y <= maxLevel[ui.campaign]) {
 				ctx.fillStyle = 'rgb(15, 112, 144)';
 				ctx.fillRect(529, 105 + y * 12 + 2, 90, 14);

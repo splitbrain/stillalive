@@ -345,7 +345,7 @@ export function drawTurrets() {
 		if (t.animFrame == 1 && t.dead == 0) {
 			ctx.strokeStyle = 'rgb(255, 255, 0)';
 			ctx.lineWidth = 3;
-			const dy = parseInt(random(-16, 16));
+			const dy = random(-16, 16);
 			line(x + dx, y + 13, (game.player.x >> 8) + game.offsetX, playerY + dy);
 		} else if (t.rotation < 10 && t.dead == 0) {
 			ctx.strokeStyle = 'rgb(255, 0, 0)';

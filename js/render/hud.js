@@ -81,7 +81,7 @@ export function updateText() {
 	const visible = ui.currentMenu == Menu.TUTORIAL || game.player.fadeNextLevel == -1;
 	if (!visible) return;
 	prepareTextLines();
-	let toWrite = parseInt(ui.timeWriting);
+	let toWrite = Math.trunc(ui.timeWriting);
 	if (toWrite >= 0) {
 		for (const line of ui.txtLines) {
 			if (line.length < toWrite) toWrite -= line.length;
@@ -115,7 +115,7 @@ export function drawText(x, y, size) {
 	ctx.fillStyle = 'rgb(255, 255, 255)';
 	ctx.font = '13px Arial';
 
-	let toWrite = parseInt(ui.timeWriting);
+	let toWrite = Math.trunc(ui.timeWriting);
 
 	for (i = 0; i < ui.txtLines.length; i++) {
 		if (toWrite >= 0) {

@@ -29,6 +29,8 @@ export let campaigns;
 export let levelsLoaded = 0;
 /** @type {number} The number of campaign and level files to load. The campaign files add their level files. */
 export let levelsToLoad = 5;
+/** @type {string[]} The URLs of the campaign and level files that could not be loaded. */
+const missingFiles = [];
 
 /**
  * Open or close the switch doors when the player or a crate steps on or off a switch.
@@ -230,7 +232,7 @@ export function loadCampaigns() {
  */
 function loadCampaignFiles(camp) {
 	const folder = 'maps/' + campaigns[camp].folder + '/';
-	loadJsonFile(folder + 'campaign.json', function (data) {
+	loadLevelJsonFile(folder + 'campaign.json', function (data) {
 		levelsToLoad += data.levels.length;
 		for (let i = 0; i < data.levels.length; i++) {
 			loadLevelFile(camp, i, folder + data.levels[i]);
@@ -247,7 +249,7 @@ function loadCampaignFiles(camp) {
  * @param {string} url The URL of the level file.
  */
 function loadLevelFile(camp, index, url) {
-	loadJsonFile(url, function (data) {
+	loadLevelJsonFile(url, function (data) {
 		const level = parseMap(data);
 		campaigns[camp].levels[index] = level.tiles;
 		campaigns[camp].backgrounds[index] = level.bg;
@@ -257,12 +259,24 @@ function loadLevelFile(camp, index, url) {
 }
 
 /**
- * Load a JSON file.
+ * Load a campaign or level file. A file that fails to load or that the callback rejects goes into the list of missing
+ * level files.
  *
  * @param {string} url The URL of the file.
  * @param {function(*)} callback Gets the content of the file.
  */
-function loadJsonFile(url, callback) {
+function loadLevelJsonFile(url, callback) {
+	loadJsonFile(url, callback, () => missingFiles.push(url));
+}
+
+/**
+ * Load a JSON file.
+ *
+ * @param {string} url The URL of the file.
+ * @param {function(*)} callback Gets the content of the file.
+ * @param {function(): void} [onError] Called if the file fails to load or the callback throws an error.
+ */
+function loadJsonFile(url, callback, onError = () => {}) {
 	fetch(url, { cache: 'no-cache' })
 		.then(function (response) {
 			if (!response.ok) throw new Error(url + ': ' + response.status);
@@ -271,7 +285,17 @@ function loadJsonFile(url, callback) {
 		.then(callback)
 		.catch(function (e) {
 			console.error(url, e);
+			onError();
 		});
+}
+
+/**
+ * Get the campaign and level files that could not be loaded.
+ *
+ * @returns {string[]} The URLs of the missing files.
+ */
+export function missingLevelFiles() {
+	return missingFiles;
 }
 
 /**

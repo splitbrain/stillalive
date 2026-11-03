@@ -52,7 +52,7 @@ import {
 } from '../images.js';
 import { mouseInZone, unclick } from '../input.js';
 import { keyLabels } from '../keys.js';
-import { creditsTxt, levelsLoaded, levelsToLoad, loadLevel, loadPreviewMap } from '../level.js';
+import { creditsTxt, levelsLoaded, levelsToLoad, loadLevel, loadPreviewMap, missingLevelFiles } from '../level.js';
 import { copyCanvas, drawCopy, drawPlayer, drawRobot, drawTunnels } from './game.js';
 import { drawHudText, drawText } from './hud.js';
 import { rescaleReplay } from '../replay.js';
@@ -374,6 +374,14 @@ export function drawLoadingScreen() {
 	if (missing.length > 0) {
 		ctx.fillStyle = 'rgb(255, 0, 0)';
 		ctx.fillText('Some images could not be loaded: ' + missing.join(', '), 10, 160);
+		ctx.fillStyle = 'rgb(255, 255, 255)';
+	}
+
+	const missingLevels = missingLevelFiles();
+	if (missingLevels.length > 0) {
+		const more = missingLevels.length > 3 ? ' and ' + (missingLevels.length - 3) + ' more' : '';
+		ctx.fillStyle = 'rgb(255, 0, 0)';
+		ctx.fillText('Some levels could not be loaded: ' + missingLevels.slice(0, 3).join(', ') + more, 10, 172);
 		ctx.fillStyle = 'rgb(255, 255, 255)';
 	}
 

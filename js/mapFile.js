@@ -77,12 +77,14 @@ export function parseMap(data) {
 /**
  * Let the player select a map file and read it.
  *
- * @returns {Promise<{tiles: number[], bg: number, boss: number}>} The tile ids, the background index and the boss,
- *     which is always 0.
+ * @returns {Promise<{tiles: number[], bg: number, boss: number}|null>} The tile ids, the background index and the
+ *     boss, which is always 0, or null if the player cancels the dialog.
  * @throws {Error} If the file is not a valid map file or is a boss level.
  */
 export async function importEditorMap() {
-	const map = parseMap(await pickJsonFile());
+	const data = await pickJsonFile();
+	if (data === null) return null;
+	const map = parseMap(data);
 	if (map.boss > 0) throw new Error('The editor does not support boss levels.');
 	return map;
 }

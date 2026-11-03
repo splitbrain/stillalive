@@ -1,5 +1,11 @@
+@font-face {
+	font-family: yikes;
+	src: url('fonts/yikes.ttf');
+}
+
 #canvas {
 	cursor: url('./blank.png'), none;
+	touch-action: none;
 	margin: auto;
 	border: 1px solid black;
 	background: black;
@@ -24,11 +30,17 @@ body {
 }
 
 #middle {
+	float: left;
 	margin-left: 291px;
 }
 
+#footer {
+	text-align: center;
+	color: white;
+}
+
 #right {
-	float: right;
+	float: left;
 }
 
 #highscores {

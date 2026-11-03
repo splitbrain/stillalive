@@ -126,7 +126,7 @@ async function runAction(action) {
 	if (!inLevelSelection()) return;
 	if (action === 'import') {
 		const data = await pickJsonFile();
-		if (inLevelSelection()) startReplay(data);
+		if (data !== null && inLevelSelection()) startReplay(data);
 		return;
 	}
 

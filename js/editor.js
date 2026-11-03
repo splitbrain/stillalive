@@ -311,7 +311,7 @@ function showEditorMap(slot) {
 function startMapImport() {
 	importEditorMap()
 		.then(function (data) {
-			if (ui.currentMenu != Menu.EDITOR || !(ui.editor.askSaving || ui.editor.askLoading)) return;
+			if (data === null || ui.currentMenu != Menu.EDITOR || !(ui.editor.askSaving || ui.editor.askLoading)) return;
 			game.map = data.tiles.slice();
 			game.background = data.bg;
 			loadPreviewMap(-1);

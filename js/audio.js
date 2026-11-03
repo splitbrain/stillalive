@@ -3,17 +3,23 @@
  *
  * Each sound is decoded once into an audio buffer, so the same sound can play more than once at the same time. Each
  * sound has its own gain node for its volume. Browsers block sound until the player clicks or presses a key on the
- * page, so the module resumes the audio context on the first click or key press.
+ * page, so the module creates the audio context on the first click or key press. Until then, an offline audio context
+ * decodes the sounds.
  */
 
 import { loadSoundSetting, saveSoundSetting } from './storage.js';
 
-/** @type {AudioContext} The audio context of the game. */
-const context = new AudioContext();
+/** @type {OfflineAudioContext} The context that decodes the sounds before the audio context exists. */
+const decoder = new OfflineAudioContext(1, 1, 44100);
 
-/** @type {GainNode} The gain node that all sounds use. */
-const master = context.createGain();
-master.connect(context.destination);
+/** @type {AudioContext|null} The audio context of the game, or null before the first click or key press. */
+let context = null;
+
+/** @type {GainNode|null} The gain node that all sounds use. Its volume is 0 while the sound is off. */
+let master = null;
+
+/** @type {Sound[]} All sounds, so their gain nodes can be created with the audio context. */
+const sounds = [];
 
 /** @type {boolean} True if the player wants to hear the sounds. */
 let enabled = loadSoundSetting();
@@ -39,9 +45,10 @@ class Sound {
 		this.name = name;
 		/** @type {AudioBuffer|null} The decoded sound, or null until it is loaded. */
 		this.buffer = null;
-		/** @type {GainNode} The volume of the sound. */
-		this.gain = context.createGain();
-		this.gain.connect(master);
+		/** @type {GainNode|null} The volume of the sound, or null before the audio context exists. */
+		this.gain = null;
+		/** @type {number} The volume of the sound, from 0 to 1. */
+		this.volume = 1;
 		/** @type {number} The number of playbacks of the sound that have not ended. */
 		this.playing = 0;
 	}
@@ -55,13 +62,15 @@ class Sound {
  */
 export function loadSound(name) {
 	const sound = new Sound(name);
+	sounds.push(sound);
+	if (context) connectSound(sound);
 	requested++;
 	fetch(`sounds/${name}.ogg`)
 		.then((response) => {
 			if (!response.ok) throw new Error(`${response.status}`);
 			return response.arrayBuffer();
 		})
-		.then((data) => context.decodeAudioData(data))
+		.then((data) => decoder.decodeAudioData(data))
 		.then((buffer) => {
 			sound.buffer = buffer;
 		})
@@ -77,7 +86,7 @@ export function loadSound(name) {
  * @returns {void}
  */
 export function playSound(sound) {
-	if (!isSoundOn() || !sound.buffer) return;
+	if (!context || !isSoundOn() || !sound.buffer) return;
 	const source = context.createBufferSource();
 	source.buffer = sound.buffer;
 	source.connect(sound.gain);
@@ -104,7 +113,8 @@ export function playSoundIfFinished(sound) {
  * @returns {void}
  */
 export function setSoundVolume(sound, volume) {
-	sound.gain.gain.value = volume;
+	sound.volume = volume;
+	if (sound.gain) sound.gain.gain.value = volume;
 }
 
 /**
@@ -134,6 +144,7 @@ export function toggleSound() {
 	if (disabled) return;
 	enabled = !enabled;
 	saveSoundSetting(enabled);
+	updateMasterVolume();
 }
 
 /**
@@ -143,6 +154,7 @@ export function toggleSound() {
  */
 export function disableSound() {
 	disabled = true;
+	updateMasterVolume();
 }
 
 /**
@@ -164,11 +176,39 @@ export function allSoundsLoaded() {
 }
 
 /**
- * Resume the audio context after a click or key press of the player.
+ * Set the master volume from the sound setting. Turning the sound off also silences the sounds that play.
+ *
+ * @returns {void}
+ */
+function updateMasterVolume() {
+	if (master) master.gain.value = isSoundOn() ? 1 : 0;
+}
+
+/**
+ * Create the gain node of a sound and connect it to the master gain node.
+ *
+ * @param {Sound} sound The sound.
+ * @returns {void}
+ */
+function connectSound(sound) {
+	sound.gain = context.createGain();
+	sound.gain.gain.value = sound.volume;
+	sound.gain.connect(master);
+}
+
+/**
+ * Create the audio context on the first click or key press of the player, and resume it if the browser suspended it.
  *
  * @returns {void}
  */
 function resumeAudio() {
+	if (!context) {
+		context = new AudioContext();
+		master = context.createGain();
+		master.connect(context.destination);
+		updateMasterVolume();
+		sounds.forEach(connectSound);
+	}
 	if (context.state === 'suspended') context.resume();
 }
 

@@ -23,12 +23,13 @@ export function downloadJson(data, filename) {
  *
  * The browser only opens the file dialog shortly after a click or a key press of the player.
  *
- * @returns {Promise<*>} The parsed content of the file. The promise does not settle if the player cancels the dialog.
+ * @returns {Promise<*>} The parsed content of the file, or null if the player cancels the dialog.
  * @throws {Error} If the file is not JSON.
  */
 export function pickJsonFile() {
 	const input = Object.assign(document.createElement('input'), { type: 'file', accept: '.json,application/json' });
 	const result = new Promise((resolve, reject) => {
+		input.addEventListener('cancel', () => resolve(null));
 		input.addEventListener('change', async () => {
 			try {
 				resolve(JSON.parse(await input.files[0].text()));

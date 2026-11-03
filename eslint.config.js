@@ -13,7 +13,13 @@ const LAYERS = [
 		name: 'base',
 		files: ['./js/{assets,audio,canvas,constants,dialog,files,images,keys,loop,state,storage,tiles,utils}.js'],
 	},
-	{ name: 'logic', files: ['./js/entities/*.js', './js/{boss,level,mapFile,physics,portals,replay}.js'] },
+	{
+		name: 'logic',
+		files: [
+			'./js/entities/*.js',
+			'./js/{boss,inputState,intermission,level,mapFile,navigation,physics,portals,replay,robotText}.js',
+		],
+	},
 	{ name: 'drawing', files: ['./js/render/*.js'] },
 	{ name: 'flow', files: ['./js/{editor,game,input,main,panel,tutorial}.js'] },
 ];

@@ -28,6 +28,7 @@ import { updateRobot } from './entities/Robot.js';
 import { updateSparkles } from './entities/Sparkle.js';
 import { updateTurrets } from './entities/Turret.js';
 import { manageKeys, unclick } from './inputState.js';
+import { updateTransition } from './intermission.js';
 import { campaigns, loadLevel, manageDoors } from './level.js';
 import { getFps } from './loop.js';
 import { exitFunc } from './navigation.js';
@@ -35,7 +36,7 @@ import { updatePanel } from './panel.js';
 import { atExit } from './physics.js';
 import { inPortal } from './portals.js';
 import { drawLevel } from './render/game.js';
-import { drawText, updateText } from './render/hud.js';
+import { drawText } from './render/hud.js';
 import {
 	doDrawCredits,
 	drawLoadingScreen,
@@ -45,8 +46,8 @@ import {
 	drawSplash,
 	overSplash,
 } from './render/menus.js';
-import { updateTransition } from './render/transitions.js';
 import { encodeReplay } from './replay.js';
+import { updateText } from './robotText.js';
 import { game, input, ui } from './state.js';
 import { getBestTime, maxLevel, saveBestTime, saveProgress } from './storage.js';
 import { updateTutorial } from './tutorial.js';

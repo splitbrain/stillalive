@@ -6,22 +6,8 @@ import { ctx } from '../canvas.js';
 import { PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, Transition } from '../constants.js';
 import { highscore, linesHoriz, linesVerti } from '../images.js';
 import { atExit } from '../physics.js';
-import { drawIntermission, updateIntermission } from './menus.js';
+import { drawIntermission } from './menus.js';
 import { game, ui } from '../state.js';
-
-/**
- * Advance the transitions between the levels: the fade of the intermission screen at the level end and the fade in
- * of the next level.
- *
- * @returns {void}
- */
-export function updateTransition() {
-	if (atExit()) {
-		if (game.player.fadeNextLevel <= 0 && ui.drawIntermission) updateIntermission();
-	} else if (game.player.intermissionFade < 0) {
-		game.player.intermissionFade++;
-	}
-}
 
 /**
  * Draw the transition at the end of a level or at its start, with the progress of the fade of the player.

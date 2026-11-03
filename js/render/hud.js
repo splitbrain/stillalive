@@ -3,10 +3,10 @@
  */
 
 import { ctx } from '../canvas.js';
-import { KEY_CLEAR, KEY_DOWN, KEY_JUMP, KEY_LEFT, KEY_RIGHT, MOUSE_LEFT, MOUSE_RIGHT, Menu } from '../constants.js';
+import { KEY_CLEAR, KEY_DOWN, KEY_JUMP, KEY_LEFT, KEY_RIGHT, MOUSE_LEFT, MOUSE_RIGHT } from '../constants.js';
 import { key, mouseIcon } from '../images.js';
 import { keyLabels } from '../keys.js';
-import { campaigns } from '../level.js';
+import { prepareTextLines } from '../robotText.js';
 import { game, input, ui } from '../state.js';
 
 /**
@@ -41,64 +41,6 @@ export function drawKeys() {
 
 	ctx.drawImage(mouseIcon, 0, ml * 40, 24, 40, 525 - 26 - 26, 485, 24, 40);
 	ctx.drawImage(mouseIcon, 0, mr * 40, 24, 40, 525 + 26 + 26, 485, 24, 40);
-}
-
-/**
- * Wrap the text of the current level into lines, if the lines are empty. The tutorial sets its own lines.
- *
- * @returns {void}
- */
-function prepareTextLines() {
-	if (ui.txtLines.length > 0 || ui.currentMenu == Menu.TUTORIAL) return;
-	ctx.font = '13px Arial';
-	const txt = campaigns[ui.campaign].texts[ui.currentLevel - 1];
-	let l = 0;
-	let line = '';
-	while (l < txt.length) {
-		let word = '';
-		while (txt[l] != ' ' && l < txt.length) {
-			word += txt[l];
-			l++;
-		}
-		const metrics = ctx.measureText(line + ' ' + word);
-		if (metrics.width < 447) {
-			line += word + ' ';
-		} else {
-			ui.txtLines.push(line);
-			line = word + ' ';
-		}
-		l++;
-	}
-	ui.txtLines.push(line);
-}
-
-/**
- * Advance the typewriter effect of the robot text while the text is on the screen.
- *
- * @returns {void}
- */
-export function updateText() {
-	const visible = ui.currentMenu == Menu.TUTORIAL || game.player.fadeNextLevel == -1;
-	if (!visible) return;
-	prepareTextLines();
-	let toWrite = Math.trunc(ui.timeWriting);
-	if (toWrite >= 0) {
-		for (const line of ui.txtLines) {
-			if (line.length < toWrite) toWrite -= line.length;
-			else return advanceText();
-		}
-		ui.timeWriting = -1;
-	}
-	advanceText();
-}
-
-/**
- * Advance the typewriter effect by one tick.
- *
- * @returns {void}
- */
-function advanceText() {
-	if (ui.timeWriting >= 0 && !ui.escapeMenu) ui.timeWriting += 0.75;
 }
 
 /**

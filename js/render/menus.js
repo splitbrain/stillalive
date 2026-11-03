@@ -58,6 +58,7 @@ import {
 	turretImages,
 } from '../images.js';
 import { mouseInZone, unclick } from '../inputState.js';
+import { isLevelLocked } from '../intermission.js';
 import { keyLabels } from '../keys.js';
 import { creditsTxt, levelsLoaded, levelsToLoad, loadPreviewMap, missingLevelFiles } from '../level.js';
 import { exitFunc, prepareSelectionText } from '../navigation.js';
@@ -70,43 +71,6 @@ import { maxLevel } from '../storage.js';
 import { Tile } from '../tiles.js';
 import { setupTutorial } from '../tutorial.js';
 import { getAngle, toTime } from '../utils.js';
-
-/**
- * Find the hovered button of the intermission screen and take the click on it.
- *
- * @returns {void}
- */
-export function updateIntermissionButtons() {
-	let overMenu = -1;
-	if (mouseInZone(74, 445, 120, 24)) overMenu = IntermissionButton.EXIT;
-	else if (mouseInZone(74 + 130, 445, 120, 24) && !isLevelLocked()) overMenu = IntermissionButton.RESTART;
-	else if (
-		mouseInZone(74 + 260, 445, 120, 24) &&
-		ui.currentMenu == Menu.PLAY &&
-		ui.currentLevel < LEVELS_PER_CAMPAIGN
-	) {
-		if (maxLevel[ui.campaign] >= ui.currentLevel + 1) {
-			overMenu = IntermissionButton.CONTINUE;
-		}
-	} else if (mouseInZone(74 + 390, 445, 120, 24)) overMenu = IntermissionButton.REPLAY;
-
-	ui.intermissionHover = overMenu;
-
-	if (input.mousePressed && input.mouseButton == MouseButton.LEFT && overMenu > 0) {
-		ui.intermissionChoice = overMenu;
-		unclick();
-	}
-}
-
-/**
- * Check if the current level is not unlocked yet. This is the case after the replay of a level that the player has
- * not reached. The player can then not play the level from the intermission screen.
- *
- * @returns {boolean} True for a locked level.
- */
-function isLevelLocked() {
-	return ui.currentMenu == Menu.PLAY && ui.currentLevel > maxLevel[ui.campaign];
-}
 
 /**
  * Draw the buttons of the intermission screen. The hovered button is smaller.
@@ -766,16 +730,6 @@ export function doDrawCredits() {
 	ctx.fillStyle = 'rgb(0, 0, 0)';
 	ctx.fillRect(0, 0, 640, 32);
 	ctx.fillRect(0, 544 - 32, 640, 32);
-}
-
-/**
- * Advance the fade of the intermission screen and handle its buttons.
- *
- * @returns {void}
- */
-export function updateIntermission() {
-	if (game.player.intermissionFade > 0) game.player.intermissionFade--;
-	updateIntermissionButtons();
 }
 
 /**

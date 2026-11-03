@@ -9,8 +9,8 @@
 import { LEVELS_PER_CAMPAIGN, Menu } from './constants.js';
 import { alertDialog } from './dialog.js';
 import { pickJsonFile } from './files.js';
-import { unclick } from './input.js';
-import { campaigns, loadLevel, loadPreviewMap } from './level.js';
+import { startLevel } from './game.js';
+import { campaigns } from './level.js';
 import { decodeReplay, downloadReplay } from './replay.js';
 import { game, ui } from './state.js';
 import { getBestTime, getCampaignTotal, loadBestReplay } from './storage.js';
@@ -102,18 +102,8 @@ function startReplay(data) {
 	if (campaign < 0 || data.level < 1 || data.level > LEVELS_PER_CAMPAIGN)
 		throw new Error('The replay is for an unknown level.');
 
-	ui.campaign = campaign;
 	ui.previewMap = data.level;
-	ui.currentLevel = data.level;
-	loadPreviewMap(data.level);
-
-	game.replay = recorded;
-	game.replayMode = true;
-	game.offsetX = 64;
-	game.offsetY = 96;
-	ui.currentMenu = Menu.PLAY;
-	loadLevel(ui.currentLevel);
-	unclick();
+	startLevel(campaign, data.level, recorded);
 }
 
 /**

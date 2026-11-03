@@ -132,17 +132,16 @@ export async function runLevel(
 				ui.tutoPause = true;
 				ui.portalsDisplayed = false;
 				ui.tutoEnded = false;
+				game.replayMode = false;
+				t.loadLevel(level);
+				t.unclick();
 			} else {
 				// the level selection in the menu loads the preview map before the level
 				ui.currentMenu = Menu.MAIN;
 				t.loadPreviewMap(level);
-				ui.currentMenu = Menu.PLAY;
+				t.startLevel(campaign, level, replayData === null ? null : t.decodeReplay(replayData));
 			}
-			game.replayMode = replayData !== null;
-			if (game.replayMode) game.replay = t.decodeReplay(replayData);
-			t.loadLevel(level);
 			if (skipBossIntro) skipComingBoss();
-			t.unclick();
 			const startMap = game.map.slice();
 
 			const pick = (obj, fields) => fields.map((field) => obj[field]);

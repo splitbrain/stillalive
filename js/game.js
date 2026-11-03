@@ -229,13 +229,13 @@ function updateLevelEnd() {
 			if (ui.intermissionChoice == IntermissionButton.CONTINUE) {
 				unclick();
 				if (ui.currentMenu == Menu.PLAY) {
-					loadLevel(++ui.currentLevel);
+					startLevel(ui.campaign, ui.currentLevel + 1);
 					game.player.intermissionFade = -20;
 				}
 			} else if (ui.intermissionChoice == IntermissionButton.RESTART) {
 				unclick();
 				if (ui.currentMenu == Menu.PLAY) {
-					loadLevel(ui.currentLevel);
+					startLevel(ui.campaign, ui.currentLevel);
 					if (game.bossNum > 0) skipComingBoss();
 				}
 				game.player.intermissionFade = -20;
@@ -243,8 +243,7 @@ function updateLevelEnd() {
 				exitFunc();
 			} else if (ui.intermissionChoice == IntermissionButton.REPLAY) {
 				unclick();
-				game.replayMode = true;
-				if (ui.currentMenu == Menu.PLAY) loadLevel(ui.currentLevel);
+				if (ui.currentMenu == Menu.PLAY) startLevel(ui.campaign, ui.currentLevel, game.replay);
 				game.player.intermissionFade = -20;
 			}
 		}
@@ -291,6 +290,26 @@ function updateObjects() {
 	if (game.player.fadeNextLevel >= 0) updateTransition();
 	updateText();
 	if (game.bossNum <= 0) updateRobot();
+}
+
+/**
+ * Start a level of a campaign, or the playback of a replay of the level.
+ *
+ * @param {number} campaign The index of the campaign.
+ * @param {number} level The level number, starting at 1.
+ * @param {Replay|null} [replay] The replay to play, or null to let the player play.
+ * @returns {void}
+ */
+export function startLevel(campaign, level, replay = null) {
+	ui.campaign = campaign;
+	ui.currentLevel = level;
+	ui.currentMenu = Menu.PLAY;
+	game.offsetX = 64;
+	game.offsetY = 96;
+	game.replayMode = replay !== null;
+	if (replay) game.replay = replay;
+	loadLevel(level);
+	unclick();
 }
 
 /**

@@ -26,7 +26,7 @@ import {
 import { lvlEditorSetup } from '../editor.js';
 import { updateRobot } from '../entities/Robot.js';
 import { createSparkles, drawSparkles, updateSparkles } from '../entities/Sparkle.js';
-import { exitFunc } from '../game.js';
+import { exitFunc, startLevel } from '../game.js';
 import {
 	bg,
 	bluePortal,
@@ -57,7 +57,7 @@ import {
 } from '../images.js';
 import { mouseInZone, unclick } from '../input.js';
 import { keyLabels } from '../keys.js';
-import { creditsTxt, levelsLoaded, levelsToLoad, loadLevel, loadPreviewMap, missingLevelFiles } from '../level.js';
+import { creditsTxt, levelsLoaded, levelsToLoad, loadPreviewMap, missingLevelFiles } from '../level.js';
 import { copyCanvas, drawCopy, drawPlayer, drawRobot, drawTunnels } from './game.js';
 import { drawHudText, drawText } from './hud.js';
 import { resumeReplay } from '../replay.js';
@@ -192,7 +192,7 @@ export function drawPauseMenu() {
 		} else if (overMenu == PauseButton.RESTART) {
 			ui.escapeMenu = !ui.escapeMenu;
 			if (ui.currentMenu == Menu.PLAY) {
-				loadLevel(ui.currentLevel);
+				startLevel(ui.campaign, ui.currentLevel, game.replayMode ? game.replay : null);
 				if (game.bossNum > 0) skipComingBoss();
 			}
 		} else if (overMenu == PauseButton.EXIT) {
@@ -479,12 +479,7 @@ export function drawMapSelection() {
 
 	if (input.mousePressed && input.mouseButton == MouseButton.LEFT && overMenu > 0) {
 		if (overMenu == SelectionButton.PLAY) {
-			game.offsetX = 64;
-			game.offsetY = 96;
-			ui.currentMenu = Menu.PLAY;
-			ui.currentLevel = ui.previewMap;
-			loadLevel(ui.currentLevel);
-			unclick();
+			startLevel(ui.campaign, ui.previewMap);
 			return;
 		} else if (overMenu == SelectionButton.EXIT) {
 			game.offsetX = 64;

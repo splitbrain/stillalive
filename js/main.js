@@ -8,7 +8,7 @@ import { ctx } from './canvas.js';
 import { Menu } from './constants.js';
 import { openExit } from './entities/Cake.js';
 import { Player } from './entities/Player.js';
-import { render, tick } from './game.js';
+import { render, startLevel, tick } from './game.js';
 import { loadGfx, loadSplashImages } from './images.js';
 import { unclick } from './input.js';
 import { loadKeyLabels } from './keys.js';
@@ -73,6 +73,7 @@ function addTestHook() {
 		tick,
 		loadLevel,
 		loadPreviewMap,
+		startLevel,
 		campaigns: () => campaigns,
 		levelsLoaded: () => levelsLoaded,
 		levelsToLoad: () => levelsToLoad,

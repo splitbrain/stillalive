@@ -8,7 +8,7 @@ import { ctx } from './canvas.js';
 import { Menu } from './constants.js';
 import { openExit } from './entities/Cake.js';
 import { Player } from './entities/Player.js';
-import { render, startLevel, tick } from './game.js';
+import { startLevel, tick } from './game.js';
 import { loadGfx, loadSplashImages } from './images.js';
 import { setupInput } from './input.js';
 import { unclick } from './inputState.js';
@@ -23,6 +23,7 @@ import {
 	loadPreviewMap,
 } from './level.js';
 import { startLoop } from './loop.js';
+import { render } from './render/frame.js';
 import { decodeReplay, encodeReplay } from './replay.js';
 import { game, input, ui } from './state.js';
 import { loadProgress } from './storage.js';

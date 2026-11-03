@@ -45,7 +45,7 @@ export default [
 			'no-var': 'error',
 			'guard-for-in': 'error',
 			'import-x/no-cycle': 'warn',
-			'import-x/no-restricted-paths': ['warn', { zones: LAYER_ZONES }],
+			'import-x/no-restricted-paths': ['error', { zones: LAYER_ZONES }],
 		},
 	},
 	{

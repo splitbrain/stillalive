@@ -107,10 +107,19 @@ test.describe('units', () => {
 	test('parseMap() accepts a valid map', async () => {
 		const data = validMap();
 		data.tiles[0] = 22;
-		data.tiles[1] = 111;
+		data.tiles[1] = 110;
 		const { result, error } = await call(page, '/js/mapFile.js', 'parseMap', data);
 		expect(error).toBeUndefined();
 		expect(result).toEqual({ tiles: data.tiles, bg: 0 });
+	});
+
+	test('parseMap() accepts the tube only in campaign levels', async () => {
+		const data = validMap();
+		data.tiles[1] = 111;
+		const campaign = await call(page, '/js/mapFile.js', 'parseMap', data, true);
+		expect(campaign.error).toBeUndefined();
+		const editor = await call(page, '/js/mapFile.js', 'parseMap', data);
+		expect(editor.error).toBe('This is not a valid StillAliveJS map file.');
 	});
 
 	test('parseMap() rejects a damaged map', async () => {

@@ -6,7 +6,7 @@ import { ctx } from './canvas.js';
 import { Direction, EditorButton, EditorMenuButton, Menu, MouseButton, NUM_TILES } from './constants.js';
 import { alertDialog } from './dialog.js';
 import { animateTiles } from './entities/AnimatedTile.js';
-import { Cake, updateCakes } from './entities/Cake.js';
+import { Cake, openExit, updateCakes } from './entities/Cake.js';
 import { Crate, updateCrates } from './entities/Crate.js';
 import { rebuildForceFields } from './entities/ForceField.js';
 import { updatePlasma } from './entities/Plasma.js';
@@ -99,6 +99,7 @@ export function startPlayingLevel() {
 	game.oldMap = new Array();
 	for (i in game.map) game.oldMap.push(game.map[i]);
 	loadLevelEditor();
+	if (game.CAKELEFT == 0) openExit();
 	game.player.fadeNextLevel = -1;
 	prepareLvlEditorPlayTxt();
 }

@@ -818,11 +818,9 @@ export function drawPreviewMap() {
 			const y = i >> 5;
 			const x = i - (y << 5);
 			if (game.displayMap[i] < NUM_TILES && game.displayMap[i] > 0 && i < 768) {
-				if (game.CAKELEFT == 0 && game.displayMap[i] == Tile.EXIT_CLOSED) {
-					game.displayMap[i] = Tile.EXIT;
-					game.map[i] = Tile.EXIT;
-				}
-				ctx.drawImage(tileset[game.displayMap[i]], x * 16 + game.offsetX, y * 16 + game.offsetY, 16, 16);
+				const open = game.CAKELEFT == 0 && game.displayMap[i] == Tile.EXIT_CLOSED;
+				const tile = open ? Tile.EXIT : game.displayMap[i];
+				ctx.drawImage(tileset[tile], x * 16 + game.offsetX, y * 16 + game.offsetY, 16, 16);
 			}
 		}
 		game.imgBuff = copyCanvas(game.offsetX, game.offsetY, 512, 384);

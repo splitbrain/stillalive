@@ -13,7 +13,7 @@
 import { NUM_TILES } from './constants.js';
 import { downloadJson, pickJsonFile } from './files.js';
 import { bg } from './images.js';
-import { isObjectTile } from './tiles.js';
+import { Tile, isObjectTile } from './tiles.js';
 
 /** @type {number} The version of the map file format. */
 export const MAP_FORMAT = 1;
@@ -22,12 +22,15 @@ export const MAP_FORMAT = 1;
 const MAP_SIZE = 768;
 
 /**
- * Check if a tile id is valid in an editor map.
+ * Check if a tile id is valid in a map.
  *
  * @param {*} tile The tile id.
- * @returns {boolean} True for a tile id of the tile set or an object id from 100 to 111.
+ * @param {boolean} allowTube True to accept the tube of the boss levels.
+ * @returns {boolean} True for a tile id of the tile set or an object id from 100 to 111. The tube 111 is only valid
+ *     with allowTube.
  */
-function isValidTile(tile) {
+function isValidTile(tile, allowTube) {
+	if (tile === Tile.TUBE && !allowTube) return false;
 	return Number.isInteger(tile) && ((tile >= 0 && tile < NUM_TILES) || isObjectTile(tile));
 }
 
@@ -43,18 +46,20 @@ export function exportEditorMap(tiles, bg) {
 }
 
 /**
- * Check the data of a map file.
+ * Check the data of a map file. Only the campaign levels can contain the tube of the boss levels, because the editor
+ * does not support it.
  *
  * @param {*} data The parsed content of a map file.
+ * @param {boolean} [allowTube] True to accept the tube.
  * @returns {{tiles: number[], bg: number}} The tile ids and the background index.
  * @throws {Error} If the data is not a valid map.
  */
-export function parseMap(data) {
+export function parseMap(data, allowTube = false) {
 	if (
 		data?.format !== MAP_FORMAT ||
 		!Array.isArray(data.tiles) ||
 		data.tiles.length !== MAP_SIZE ||
-		!data.tiles.every(isValidTile) ||
+		!data.tiles.every((tile) => isValidTile(tile, allowTube)) ||
 		!Number.isInteger(data.bg) ||
 		data.bg < 0 ||
 		data.bg >= bg.length

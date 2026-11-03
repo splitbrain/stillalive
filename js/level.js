@@ -250,7 +250,7 @@ function loadCampaignFiles(camp) {
  */
 function loadLevelFile(camp, index, url) {
 	loadLevelJsonFile(url, function (data) {
-		const level = parseMap(data);
+		const level = parseMap(data, true);
 		campaigns[camp].levels[index] = level.tiles;
 		campaigns[camp].backgrounds[index] = level.bg;
 		campaigns[camp].texts[index] = typeof data.text == 'string' ? data.text : '';
@@ -817,7 +817,6 @@ export function loadPreviewMap(level) {
 			game.tubeX = (x * 16) << 8;
 			game.tubeY = (y * 16) << 8;
 		} else if (game.map[i] == Tile.EXIT) {
-			game.map[i] = Tile.EXIT_CLOSED;
 			game.displayMap[i] = Tile.EXIT_CLOSED;
 			continue;
 		} else if (game.map[i] == Tile.CAKE) {
@@ -860,6 +859,7 @@ export function loadPreviewMap(level) {
 		} else game.bossNum = 0;
 	} else game.bossNum = 0;
 
+	game.CAKELEFT = game.cakes.length;
 	game.needLoad = true;
 
 	if (level > 0) game.BG = campaigns[ui.campaign].backgrounds[level - 1];

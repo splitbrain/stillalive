@@ -91,6 +91,17 @@ function frame(now) {
 }
 
 /**
+ * Forget the time of the previous frame. The browser shows no frames while the tab is hidden, so the game continues
+ * without a catch-up when the tab is visible again.
+ *
+ * @returns {void}
+ */
+function onVisibilityChange() {
+	lastFrameTime = null;
+	pendingTime = 0;
+}
+
+/**
  * Start the game loop.
  *
  * @param {function(): void} tick The function that runs one tick.
@@ -100,6 +111,7 @@ function frame(now) {
 export function startLoop(tick, render) {
 	tickFunction = tick;
 	renderFunction = render;
+	document.addEventListener('visibilitychange', onVisibilityChange);
 	requestAnimationFrame(frame);
 }
 

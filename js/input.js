@@ -54,6 +54,44 @@ function isForeignTarget(event) {
 }
 
 /**
+ * Check if a level or the tutorial runs and the pause menu can open.
+ *
+ * @returns {boolean} True outside the menus, the editor and the intermission screen.
+ */
+function canPause() {
+	return (ui.currentMenu === Menu.PLAY || ui.currentMenu === Menu.TUTORIAL) && !ui.drawIntermission;
+}
+
+/**
+ * Open or close the pause menu. A replay stores its input state when it pauses and restores it when it continues.
+ *
+ * @returns {void}
+ */
+function togglePause() {
+	ui.escapeMenu = !ui.escapeMenu;
+	if (!game.replayMode) return;
+	if (ui.escapeMenu) {
+		input.replayPauseInput = captureInput();
+		unclick();
+		input.keys = 0;
+	} else {
+		rescaleReplay();
+	}
+}
+
+/**
+ * Release all keys and mouse buttons when the game loses the focus, because the release events do not reach the
+ * game, and open the pause menu in a running level. A replay continues, because it sets the keys from the recording.
+ *
+ * @returns {void}
+ */
+function onFocusLost() {
+	if (game.replayMode) return;
+	input.keys = 0;
+	if (canPause() && !ui.escapeMenu) togglePause();
+}
+
+/**
  * Handle a key press.
  *
  * @param {KeyboardEvent} event The key event.
@@ -62,7 +100,8 @@ function isForeignTarget(event) {
 function onKeyDown(event) {
 	if (isForeignTarget(event)) return;
 	if (event.code in KEY_BITS) input.keys |= KEY_BITS[event.code];
-	if (event.key === 'm' || event.key === 'M') toggleSound();
+	const modified = event.ctrlKey || event.altKey || event.metaKey;
+	if ((event.key === 'm' || event.key === 'M') && !event.repeat && !modified) toggleSound();
 }
 
 /**
@@ -80,17 +119,8 @@ function onKeyUp(event) {
 	if (event.ctrlKey && key === 'y') input.rightReleased = 1;
 
 	if (event.key === 'Escape') {
-		if ((ui.currentMenu === Menu.PLAY || ui.currentMenu === Menu.TUTORIAL) && !ui.drawIntermission) {
-			ui.escapeMenu = !ui.escapeMenu;
-			if (game.replayMode) {
-				if (ui.escapeMenu) {
-					input.replayPauseInput = captureInput();
-					unclick();
-					input.keys = 0;
-				} else {
-					rescaleReplay();
-				}
-			}
+		if (canPause()) {
+			togglePause();
 		} else if (ui.currentMenu === Menu.EDITOR && isTestingLevel) {
 			stopPlayingLevel();
 		}
@@ -139,6 +169,10 @@ function onPointer(event) {
 function setupInput() {
 	window.addEventListener('keydown', onKeyDown);
 	window.addEventListener('keyup', onKeyUp);
+	window.addEventListener('blur', onFocusLost);
+	document.addEventListener('visibilitychange', () => {
+		if (document.hidden) onFocusLost();
+	});
 
 	const canvas = document.getElementById('canvas');
 	for (const type of ['pointerdown', 'pointermove', 'pointerup', 'pointercancel']) {

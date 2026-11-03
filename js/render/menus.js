@@ -1,13 +1,11 @@
 /**
- * Drawing and handling of the splash screen, the loading screen, the menus, the intermission and the credits.
+ * Drawing of the splash screen, the loading screen, the menus, the intermission screen and the credits.
  */
 
 import { allImagesLoaded, areImagesLoaded, imageProgress, missingImages } from '../assets.js';
-import { allSoundsLoaded, isSoundAvailable, isSoundOn, soundProgress, toggleSound } from '../audio.js';
-import { setupBoss } from '../boss.js';
+import { allSoundsLoaded, isSoundAvailable, isSoundOn, soundProgress } from '../audio.js';
 import { ctx } from '../canvas.js';
 import {
-	BUTTON_CAMPAIGN,
 	CAMPAIGN_FINISHED,
 	CampaignId,
 	IntermissionButton,
@@ -15,19 +13,12 @@ import {
 	MainButton,
 	MAP_SIZE,
 	Menu,
-	MouseButton,
 	NUM_TILES,
 	PauseButton,
 	PLAYFIELD_HEIGHT,
 	PLAYFIELD_WIDTH,
-	PLAYFIELD_X,
-	PLAYFIELD_Y,
 	SelectionButton,
-	SparkleType,
 } from '../constants.js';
-import { lvlEditorSetup } from '../editor.js';
-import { createSparkles, updateSparkles } from '../entities/Sparkle.js';
-import { startLevel } from '../game.js';
 import {
 	bg,
 	bluePortal,
@@ -56,18 +47,15 @@ import {
 	tube2,
 	turretImages,
 } from '../images.js';
-import { mouseInZone, unclick } from '../inputState.js';
 import { isLevelLocked } from '../intermission.js';
 import { keyLabels } from '../keys.js';
-import { creditsTxt, levelsLoaded, levelsToLoad, loadPreviewMap, missingLevelFiles } from '../level.js';
-import { prepareSelectionText } from '../navigation.js';
+import { creditsTxt, levelsLoaded, levelsToLoad, missingLevelFiles } from '../level.js';
 import { drawBoss } from './boss.js';
 import { drawPlayer, drawRobot, drawSparkles, drawTileLayer, drawTunnels, saveTileLayer } from './game.js';
 import { drawHudText, drawText } from './hud.js';
 import { game, input, ui } from '../state.js';
 import { maxLevel } from '../storage.js';
 import { Tile } from '../tiles.js';
-import { setupTutorial } from '../tutorial.js';
 import { getAngle, toTime } from '../utils.js';
 
 /**
@@ -281,79 +269,35 @@ export function drawLoadingScreen() {
 }
 
 /**
- * Draw the level selection of a campaign and handle its clicks.
+ * Draw the level selection of a campaign.
  *
  * @returns {void}
  */
 export function drawMapSelection() {
-	let scale3, i;
+	let i;
 	if (ui.previewMap < 1) ctx.drawImage(noLevel, game.offsetX, game.offsetY);
 	if (ui.previewMap > 0) drawPreviewMap();
 	ctx.drawImage(mapSelection, 0, 0);
 
-	if (input.mouseX >= 529 && input.mouseX <= 529 + 90) {
-		if (input.mouseY >= 12 + 105 && input.mouseY <= 104 + 29 * 12) {
-			const y = Math.trunc((input.mouseY - 105) / 12);
-			if (y <= maxLevel[ui.campaign]) {
-				ctx.fillStyle = 'rgb(15, 112, 144)';
-				ctx.fillRect(529, 105 + y * 12 + 2, 90, 14);
-
-				if (input.mousePressed && input.mouseButton == MouseButton.LEFT) {
-					if (y != ui.previewMap) {
-						unclick();
-						ui.previewMap = y;
-						ui.currentLevel = y;
-						loadPreviewMap(ui.previewMap);
-					}
-				}
-			}
-		}
+	if (ui.selectionListHover >= 0) {
+		ctx.fillStyle = 'rgb(15, 112, 144)';
+		ctx.fillRect(529, 105 + ui.selectionListHover * 12 + 2, 90, 14);
 	}
 
-	let overMenu = -1;
-	if (mouseInZone(20, 495, 120, 24)) overMenu = SelectionButton.EXIT;
-	const scale2 = overMenu == SelectionButton.EXIT ? 0.9 : 1;
-	drawTinyButton(20, 495, scale2, 'Exit');
+	const hover = ui.selectionHover;
+	drawTinyButton(20, 495, hover == SelectionButton.EXIT ? 0.9 : 1, 'Exit');
 
 	if (ui.previewMap > 0) {
 		ctx.fillStyle = 'rgb(15, 112, 144)';
 		ctx.fillRect(529, 105 + ui.previewMap * 12 + 2, 90, 14);
 
-		if (mouseInZone(515, 495, 120, 24)) overMenu = SelectionButton.PLAY;
-		const scale1 = overMenu == SelectionButton.PLAY ? 0.9 : 1;
-
-		drawTinyButton(515, 495, scale1, 'Play');
+		drawTinyButton(515, 495, hover == SelectionButton.PLAY ? 0.9 : 1, 'Play');
 	}
 
 	if (ui.campaign == CampaignId.NORMAL && maxLevel[CampaignId.NORMAL] == CAMPAIGN_FINISHED) {
-		if (mouseInZone(380, 495, 120, 24)) overMenu = SelectionButton.MODE;
-		scale3 = overMenu == SelectionButton.MODE ? 0.9 : 1;
-		drawTinyButton(380, 495, scale3, 'Hard Mode');
+		drawTinyButton(380, 495, hover == SelectionButton.MODE ? 0.9 : 1, 'Hard Mode');
 	} else if (ui.campaign == CampaignId.ADVANCED) {
-		if (mouseInZone(380, 495, 120, 24)) overMenu = SelectionButton.MODE;
-		scale3 = overMenu == SelectionButton.MODE ? 0.9 : 1;
-		drawTinyButton(380, 495, scale3, 'Normal Mode');
-	}
-
-	if (input.mousePressed && input.mouseButton == MouseButton.LEFT && overMenu > 0) {
-		if (overMenu == SelectionButton.PLAY) {
-			startLevel(ui.campaign, ui.previewMap);
-			return;
-		} else if (overMenu == SelectionButton.EXIT) {
-			game.offsetX = PLAYFIELD_X;
-			game.offsetY = PLAYFIELD_Y;
-			ui.currentMenu = Menu.MAIN;
-			ui.selectMenu = 0;
-			ui.fadeMenu = 30;
-			document.getElementById('highscores').classList.remove('open');
-			unclick();
-			return;
-		} else if (overMenu == SelectionButton.MODE) {
-			ui.campaign = ui.campaign == CampaignId.NORMAL ? CampaignId.ADVANCED : CampaignId.NORMAL;
-			ui.previewMap = 0;
-		}
-
-		unclick();
+		drawTinyButton(380, 495, hover == SelectionButton.MODE ? 0.9 : 1, 'Normal Mode');
 	}
 
 	ctx.font = 'bold 12px Arial';
@@ -425,62 +369,70 @@ export function drawTinyButton(x, y, scale, text) {
 	ctx.fillText(text, x, y);
 }
 
+/** @type {number} The y position of the first button of the main menu. */
+export const MAIN_MENU_Y = 32;
+/** @type {number} The distance between the buttons of the main menu. */
+export const MAIN_MENU_STEP = 64 + 18;
+
 /**
- * Draw the main menu with the sound button, and open the selected screen after the fade.
+ * Get the positions of the two players next to a button of the main menu.
+ *
+ * @param {number} button The button, a value of MainButton.
+ * @returns {number[]} The x position of the left player, the y position of both players and the x position of the
+ *     right player.
+ */
+export function mainMenuPlayers(button) {
+	return [130, MAIN_MENU_Y + 25 + button * MAIN_MENU_STEP, 150 + 320 + 40 - 16];
+}
+
+/**
+ * Draw the main menu with the sound button and the fades.
  *
  * @returns {void}
  */
 export function drawMainMenu() {
-	let pX, pY, pX2;
 	ctx.strokeStyle = 'rgb(0, 0, 0)';
 	ctx.fillStyle = 'rgb(0, 65, 88)';
 	ctx.drawImage(menuBG, 0, 0);
 
-	const yStart = 32;
-	const spacing = 18;
-
-	let overMenu = -1;
-	if (mouseInZone(160, yStart, 320, 64)) overMenu = MainButton.CLASSIC;
-	else if (mouseInZone(160, yStart + 1 * (64 + spacing), 320, 64)) overMenu = MainButton.ENHANCED;
-	else if (mouseInZone(160, yStart + 2 * (64 + spacing), 320, 64)) overMenu = MainButton.ULTIMATE;
-	else if (mouseInZone(160, yStart + 3 * (64 + spacing), 320, 64)) overMenu = MainButton.EDITOR;
-	else if (mouseInZone(160, yStart + 4 * (64 + spacing), 320, 64)) overMenu = MainButton.TUTORIAL;
-
-	const scale1 = overMenu == MainButton.CLASSIC ? 0.9 : 1;
-	const scale2 = overMenu == MainButton.ENHANCED ? 0.9 : 1;
-	const scale3 = overMenu == MainButton.ULTIMATE ? 0.9 : 1;
-	const scale4 = overMenu == MainButton.EDITOR ? 0.9 : 1;
-	const scale5 = overMenu == MainButton.TUTORIAL ? 0.9 : 1;
+	const hover = ui.mainHover;
+	const scale1 = hover == MainButton.CLASSIC ? 0.9 : 1;
+	const scale2 = hover == MainButton.ENHANCED ? 0.9 : 1;
+	const scale3 = hover == MainButton.ULTIMATE ? 0.9 : 1;
+	const scale4 = hover == MainButton.EDITOR ? 0.9 : 1;
+	const scale5 = hover == MainButton.TUTORIAL ? 0.9 : 1;
 
 	if (ui.goMenu) {
 		if (ui.menuButton == MainButton.CLASSIC)
 			drawBigButton(
 				160,
-				yStart,
+				MAIN_MENU_Y,
 				scale1,
 				'Classic Mode' + (maxLevel[CampaignId.NORMAL] == CAMPAIGN_FINISHED ? ' +' : ''),
 			);
 		else if (ui.menuButton == MainButton.ENHANCED)
-			drawBigButton(160, yStart + 1 * (64 + spacing), scale2, 'Enhanced Mode');
+			drawBigButton(160, MAIN_MENU_Y + 1 * MAIN_MENU_STEP, scale2, 'Enhanced Mode');
 		else if (ui.menuButton == MainButton.ULTIMATE)
-			drawBigButton(160, yStart + 2 * (64 + spacing), scale3, 'Ultimate Mode');
+			drawBigButton(160, MAIN_MENU_Y + 2 * MAIN_MENU_STEP, scale3, 'Ultimate Mode');
 		else if (ui.menuButton == MainButton.EDITOR)
-			drawBigButton(160, yStart + 3 * (64 + spacing), scale4, 'Level Editor');
-		else if (ui.menuButton == MainButton.TUTORIAL) drawBigButton(160, yStart + 4 * (64 + spacing), scale5, 'Tutorial');
+			drawBigButton(160, MAIN_MENU_Y + 3 * MAIN_MENU_STEP, scale4, 'Level Editor');
+		else if (ui.menuButton == MainButton.TUTORIAL)
+			drawBigButton(160, MAIN_MENU_Y + 4 * MAIN_MENU_STEP, scale5, 'Tutorial');
 	} else {
-		drawBigButton(160, yStart, scale1, 'Classic Mode' + (maxLevel[CampaignId.NORMAL] == CAMPAIGN_FINISHED ? ' +' : ''));
-		drawBigButton(160, yStart + 1 * (64 + spacing), scale2, 'Enhanced Mode');
-		drawBigButton(160, yStart + 2 * (64 + spacing), scale3, 'Ultimate Mode');
-		drawBigButton(160, yStart + 3 * (64 + spacing), scale4, 'Level Editor');
-		drawBigButton(160, yStart + 4 * (64 + spacing), scale5, 'Tutorial');
-
-		pX = 130;
-		pY = yStart + 25 + overMenu * (64 + spacing);
-
-		pX2 = 150 + 320 + 40 - 16;
+		drawBigButton(
+			160,
+			MAIN_MENU_Y,
+			scale1,
+			'Classic Mode' + (maxLevel[CampaignId.NORMAL] == CAMPAIGN_FINISHED ? ' +' : ''),
+		);
+		drawBigButton(160, MAIN_MENU_Y + 1 * MAIN_MENU_STEP, scale2, 'Enhanced Mode');
+		drawBigButton(160, MAIN_MENU_Y + 2 * MAIN_MENU_STEP, scale3, 'Ultimate Mode');
+		drawBigButton(160, MAIN_MENU_Y + 3 * MAIN_MENU_STEP, scale4, 'Level Editor');
+		drawBigButton(160, MAIN_MENU_Y + 4 * MAIN_MENU_STEP, scale5, 'Tutorial');
 
 		// the players stand next to the hovered button
-		if (overMenu >= 0) {
+		if (hover >= 0) {
+			const [pX, pY, pX2] = mainMenuPlayers(hover);
 			drawPortalGunMenu(pX, pY, getAngle(pX, pY, input.mouseX, input.mouseY));
 			drawPlayer(pX, pY, 1);
 
@@ -489,14 +441,8 @@ export function drawMainMenu() {
 		}
 	}
 
-	let zoomSound = 1;
-	if (isSoundAvailable() && mouseInZone(20, 385, 29, 48)) {
-		zoomSound = 0.9;
-		if (input.mousePressed && input.mouseButton == MouseButton.LEFT) {
-			unclick();
-			toggleSound();
-		}
-
+	const zoomSound = ui.soundHover ? 0.9 : 1;
+	if (ui.soundHover) {
 		ctx.globalAlpha = 0.8;
 		ctx.fillStyle = 'rgb(7, 49, 63)';
 		ctx.fillRect(20, 385, 300, 48);
@@ -532,52 +478,16 @@ export function drawMainMenu() {
 
 	ctx.drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
 
-	if (input.mousePressed && input.mouseButton == MouseButton.LEFT && overMenu >= 0 && ui.goMenu == 0) {
-		ui.menuButton = overMenu;
-		ui.goMenu = 60;
-		createSparkles(pX << 8, (pY << 8) + (13 << 8), input.mouseX << 8, input.mouseY << 8, 1, SparkleType.CAKE);
-		createSparkles(pX << 8, (pY << 8) + (13 << 8), input.mouseX << 8, input.mouseY << 8, 1, SparkleType.SMOKE);
-		createSparkles(pX2 << 8, (pY << 8) + (13 << 8), input.mouseX << 8, input.mouseY << 8, 0, SparkleType.CAKE);
-		createSparkles(pX2 << 8, (pY << 8) + (13 << 8), input.mouseX << 8, input.mouseY << 8, 0, SparkleType.SMOKE);
-		unclick();
-	} else if (ui.goMenu) {
-		if (--ui.goMenu == 0) {
-			ctx.fillStyle = 'rgb(0, 0, 0)';
-			ctx.fillRect(0, 0, 640, 544);
-			if (ui.menuButton in BUTTON_CAMPAIGN) {
-				ui.selectMenu = 1;
-				ui.previewMap = 0;
-				prepareSelectionText();
-				document.getElementById('highscores').classList.add('open');
-				game.offsetX = 0;
-				game.offsetY = PLAYFIELD_Y;
-				ui.campaign = BUTTON_CAMPAIGN[ui.menuButton];
-				if (ui.campaign == CampaignId.STORY) {
-					game.bossNum = 0;
-					setupBoss();
-				}
-			} else {
-				if (ui.menuButton == MainButton.EDITOR) {
-					ui.currentMenu = Menu.EDITOR;
-					lvlEditorSetup();
-					game.sparkles = new Array();
-				} else if (ui.menuButton == MainButton.TUTORIAL) {
-					ui.currentMenu = Menu.TUTORIAL;
-					setupTutorial();
-				}
-			}
-		} else {
-			const a = ui.goMenu / 60;
-			ctx.fillStyle = 'rgba(0, 0, 0,' + (1 - a) + ')';
-			ctx.fillRect(0, 0, 640, 544);
-		}
+	// the fade to the selected screen
+	if (ui.goMenu) {
+		const a = ui.goMenu / 60;
+		ctx.fillStyle = 'rgba(0, 0, 0,' + (1 - a) + ')';
+		ctx.fillRect(0, 0, 640, 544);
 	}
 
-	updateSparkles();
 	drawSparkles();
 
 	if (ui.fadeMenu > 0) {
-		ui.fadeMenu--;
 		const fa = ui.fadeMenu / 30;
 		ctx.fillStyle = 'rgba(0, 0, 0, ' + fa + ')';
 		ctx.fillRect(0, 0, 640, 544);
@@ -585,31 +495,19 @@ export function drawMainMenu() {
 }
 
 /**
- * Draw the credits that scroll up, and go back to the menu at the end or on a click.
+ * Draw the credits that scroll up.
  *
  * @returns {void}
  */
-export function doDrawCredits() {
-	if (input.mouseNewPress && creditsTime > 150) speedScr = 5;
-	creditsTime += speedScr;
-
-	if (creditsTime > 1800) {
-		if (creditsAlpha > 0) creditsAlpha -= 0.01;
-		if (creditsAlpha < 0) {
-			ui.drawCredits = false;
-		}
-	} else {
-		if (creditsAlpha < 1) creditsAlpha += 0.01;
-		if (creditsAlpha > 1) creditsAlpha = 1;
-	}
-
+export function drawCredits() {
+	const credits = ui.credits;
 	ctx.drawImage(noLevel, 0, 32, 640, 480);
 	ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
 	ctx.fillRect(0, 0, 640, 544);
 
 	ctx.drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
 
-	ctx.fillStyle = 'rgba(0, 0, 0,' + (1 - creditsAlpha) + ')';
+	ctx.fillStyle = 'rgba(0, 0, 0,' + (1 - credits.alpha) + ')';
 	ctx.fillRect(0, 0, 640, 544);
 
 	ctx.font = '24px yikes';
@@ -620,7 +518,7 @@ export function doDrawCredits() {
 
 		const yLow = creditsTxt.length * 15;
 
-		const y = t * 32 + (yLow - creditsTime);
+		const y = t * 32 + (yLow - credits.time);
 
 		if (y <= 544) {
 			ctx.fillStyle = 'rgb(0, 0, 0)';
@@ -767,10 +665,3 @@ export function drawPreviewMap() {
 		ctx.lineWidth = 1;
 	}
 }
-
-/** @type {number} The scroll position of the credits. */
-let creditsTime = 0;
-/** @type {number} The fade of the credits. */
-let creditsAlpha = 0;
-/** @type {number} The scroll speed of the credits in pixels per tick. */
-let speedScr = 0.4;

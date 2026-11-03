@@ -31,7 +31,14 @@ import { manageKeys, unclick } from './inputState.js';
 import { updateTransition } from './intermission.js';
 import { campaigns, loadLevel, manageDoors } from './level.js';
 import { getFps } from './loop.js';
-import { updateLoadingScreen, updatePauseMenu, updateSplash } from './menus.js';
+import {
+	updateCredits,
+	updateLoadingScreen,
+	updateMainMenu,
+	updateMapSelection,
+	updatePauseMenu,
+	updateSplash,
+} from './menus.js';
 import { exitFunc } from './navigation.js';
 import { updatePanel } from './panel.js';
 import { atExit } from './physics.js';
@@ -39,7 +46,7 @@ import { inPortal } from './portals.js';
 import { drawLevel } from './render/game.js';
 import { drawText } from './render/hud.js';
 import {
-	doDrawCredits,
+	drawCredits,
 	drawLoadingScreen,
 	drawMainMenu,
 	drawMapSelection,
@@ -62,7 +69,7 @@ import { random, toTime } from './utils.js';
 export function tick() {
 	manageKeys();
 	if (!ui.drawCredits) updateScreen();
-	else doDrawCredits();
+	else updateCredits();
 	updatePanel();
 }
 
@@ -72,12 +79,20 @@ export function tick() {
  * @returns {void}
  */
 export function render() {
-	if (!ui.drawCredits && (ui.currentMenu == Menu.PLAY || ui.currentMenu == Menu.TUTORIAL)) {
+	if (ui.drawCredits) {
+		drawCredits();
+	} else if (ui.currentMenu == Menu.PLAY || ui.currentMenu == Menu.TUTORIAL) {
 		if (ui.escapeMenu) drawPauseMenu();
 		else drawLevel();
-	} else if (!ui.drawCredits && ui.currentMenu == Menu.LOADING) {
+	} else if (ui.currentMenu == Menu.LOADING) {
 		if (ui.canSplash && !ui.splash.over) drawSplash();
 		else if (ui.splash.over) drawLoadingScreen();
+	} else if (ui.currentMenu == Menu.MAIN) {
+		if (ui.selectMenu == 0) drawMainMenu();
+		else {
+			drawMapSelection();
+			drawText(30, 25, 14);
+		}
 	}
 	ctx.font = 'bold 10px Arial';
 	ctx.strokeStyle = 'rgb(255, 255, 255)';
@@ -119,11 +134,8 @@ function updateScreen() {
 		if (ui.canSplash && !ui.splash.over) updateSplash();
 		else if (ui.splash.over) updateLoadingScreen();
 	} else if (ui.currentMenu == Menu.MAIN) {
-		if (ui.selectMenu == 0) drawMainMenu();
-		else {
-			drawMapSelection();
-			drawText(30, 25, 14);
-		}
+		if (ui.selectMenu == 0) updateMainMenu();
+		else updateMapSelection();
 	}
 }
 

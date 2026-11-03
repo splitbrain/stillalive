@@ -70,6 +70,16 @@ export const ui = {
 	intermissionHover: -1,
 	/** @type {number} The hovered button of the pause menu, a value of PauseButton, or -1. */
 	pauseHover: -1,
+	/** @type {number} The hovered button of the main menu, a value of MainButton, or -1. */
+	mainHover: -1,
+	/** @type {boolean} True while the mouse is over the sound icon of the main menu. */
+	soundHover: false,
+	/** @type {number} The hovered button of the level selection, a value of SelectionButton, or -1. */
+	selectionHover: -1,
+	/** @type {number} The hovered level in the list of the level selection, or -1. */
+	selectionListHover: -1,
+	/** @type {{time: number, alpha: number, speed: number}} The scroll position, the fade and the scroll speed of the credits. */
+	credits: { time: 0, alpha: 0, speed: 0.4 },
 	/** @type {boolean} True while the mouse is over the link of the loading screen that turns the sound off. */
 	loadingHover: false,
 	/**

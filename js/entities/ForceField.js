@@ -132,7 +132,7 @@ export function rebuildForceFields() {
 
 /**
  * Find the end of a tunnel field and add the field. At a portal, the trace continues from the other portal with a
- * second field.
+ * second field. The trace leaves each portal only once, so the field between two facing portals ends.
  *
  * @param {number} sx The x coordinate of the tunnel in pixels.
  * @param {number} sy The y coordinate of the tunnel in pixels.
@@ -142,6 +142,7 @@ export function rebuildForceFields() {
  */
 function traceTunnelField(sx, sy, vx, vy) {
 	let tile, p1, p2;
+	const exits = [];
 	let y = sy;
 	let x = sx;
 
@@ -177,8 +178,9 @@ function traceTunnelField(sx, sy, vx, vy) {
 					p1 = pointInPortal(x + 4, y + dy);
 					p2 = pointInPortal(x + 28, y + dy);
 				}
-				if (p1 == p2 && p1 > -1) {
+				if (p1 == p2 && p1 > -1 && !exits.includes(p1)) {
 					const p = p1;
+					exits.push(p);
 					if (game.portals[p].direction == Direction.RIGHT) {
 						sx = game.portals[p].x >> 8;
 						sy = game.portals[p].y >> 8;

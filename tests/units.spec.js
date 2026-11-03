@@ -132,4 +132,29 @@ test.describe('units', () => {
 			expect(error, name).toBe('This is not a valid StillAliveJS map file.');
 		}
 	});
+
+	test('a tunnel field between two facing portals ends', async () => {
+		test.setTimeout(10000);
+		const fields = await page.evaluate(async () => {
+			const { Direction, Menu } = await import('/js/constants.js');
+			const { Tile } = await import('/js/tiles.js');
+			const t = window.__test;
+			t.ui.campaign = 4;
+			t.ui.currentMenu = Menu.PLAY;
+			t.ui.currentLevel = 4;
+			t.loadLevel(4);
+			const g = t.game;
+			// an empty map with walls on the left and the right side
+			for (let i = 0; i < 768; i++) g.map[i] = i % 32 === 0 || i % 32 === 31 ? Tile.WALL : Tile.EMPTY;
+			g.tunnels = [Object.assign(g.tunnels[0], { x: 32 << 8, y: 160 << 8, dir: Direction.RIGHT })];
+			Object.assign(g.portals[0], { used: true, direction: Direction.RIGHT, x: 496 << 8, y: 160 << 8 });
+			Object.assign(g.portals[1], { used: true, direction: Direction.LEFT, x: 12 << 8, y: 160 << 8 });
+			g.player.x = 200 << 8;
+			g.player.y = 300 << 8;
+			t.tick();
+			return g.forceFields.length;
+		});
+		// one field from the tunnel to the right portal, one field from the left portal back to the right portal
+		expect(fields).toBe(2);
+	});
 });

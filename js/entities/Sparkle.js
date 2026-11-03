@@ -133,13 +133,13 @@ export function updateSparkles() {
 		}
 
 		if (s.fading <= 0) {
-			if (s.used == 1 || s.used == 4) {
-				game.sparkles.splice(i, 1);
-				i--;
-			} else if (s.used == 3) {
+			if (s.used == 3) {
 				s.x = s.xOrig;
 				s.y = s.yOrig;
 				s.fading = 200;
+			} else {
+				game.sparkles.splice(i, 1);
+				i--;
 			}
 		}
 	}

@@ -314,7 +314,7 @@ export let creditsTxt = new Array();
  * @returns {void}
  */
 export function loadLevelEditor() {
-	let vx, up, down, left, right, i, y2, vx2, vy2, vy;
+	let vx, up, down, left, right, i, y2, vy;
 	game.tubeX = game.tubeY = -1;
 	game.displayMap = new Array();
 	for (i in game.map) {
@@ -470,7 +470,7 @@ export function loadLevelEditor() {
 			if (y - 1 >= 0) up = game.map[x + ((y - 1) << 5)];
 			else up = 1;
 
-			let x2 = (y2 = vx2 = vy2 = 0);
+			let x2 = (y2 = 0);
 			let push = true;
 
 			if (up && down && left) {
@@ -516,7 +516,7 @@ export function loadLevelEditor() {
  * @returns {void}
  */
 export function loadLevel(level) {
-	let vx, up, down, left, right, i, y2, vx2, vy2, vy;
+	let vx, up, down, left, right, i, y2, vy;
 	game.tubeX = game.tubeY = -1;
 
 	if (level > -1) {
@@ -707,7 +707,7 @@ export function loadLevel(level) {
 			if (y - 1 >= 0) up = game.map[x + ((y - 1) << 5)];
 			else up = 1;
 
-			let x2 = (y2 = vx2 = vy2 = 0);
+			let x2 = (y2 = 0);
 			let push = true;
 
 			if (up && down && left) {

@@ -364,7 +364,7 @@ export class Player {
 			this.x += game.platforms[platformCode].vx;
 		}
 
-		ground = touchingGround(this);
+		touchingGround(this); // getTile() can move a crate into a portal, so the call stays
 
 		let col = 1;
 		while (col && !inPortal(this)) {

@@ -477,7 +477,7 @@ function shakeOffset(n) {
 export function drawBoss() {
 	ctx.drawImage(robotHead, game.bossX + game.offsetX, game.bossY + game.offsetY, 74, 58);
 
-	let eye = 0;
+	let eye;
 	if (ui.currentLevel <= 7) eye = 0;
 	else if (ui.currentLevel <= 14) eye = 1;
 	else if (ui.currentLevel <= 21) eye = 2;

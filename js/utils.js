@@ -23,18 +23,6 @@ export function radToDeg(r) {
 }
 
 /**
- * Get the larger of two numbers.
- *
- * @param {number} x The first number.
- * @param {number} y The second number.
- * @returns {number} The larger number.
- */
-function max(x, y) {
-	if (x > y) return x;
-	else return y;
-}
-
-/**
  * Get the angle of the line from one point to another.
  *
  * @param {number} x1 The x coordinate of the start point.

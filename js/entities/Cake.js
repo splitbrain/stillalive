@@ -81,10 +81,6 @@ export class Cake {
 		this.x = x;
 		/** @type {number} The y position in 1/256 pixels. */
 		this.y = y;
-		/** @type {number} The x position of the start. */
-		this.ox = x;
-		/** @type {number} The y position of the start. */
-		this.oy = y;
 		/** @type {number} The direction of the float, 1 down or -1 up. */
 		this.mDir = parseInt(random(0, 2)) == 0 ? -1 : 1;
 		/** @type {number} The vertical offset of the float in 1/256 pixels. */

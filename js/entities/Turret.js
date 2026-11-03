@@ -22,6 +22,9 @@ import { game } from '../state.js';
 import { Tile, isPlatformCode } from '../tiles.js';
 import { random } from '../utils.js';
 
+/** @type {number} The number of ticks between two shots. */
+const COOL_TIME = 3;
+
 /**
  * A turret. It shoots at the player in its line of sight, and the player can carry and throw it.
  */
@@ -46,18 +49,12 @@ export class Turret {
 		this.dir = dir;
 		/** @type {number} Ticks until the next shot. */
 		this.coolTime = 0;
-		/** @type {number} The number of ticks between two shots. */
-		this.startCool = 3;
 		/** @type {number} Ticks until the turret shoots after it saw the player, from 10 down to 0. */
 		this.rotation = 10;
 		/** @type {number} 1 when the turret is destroyed. */
 		this.dead = 0;
-		/** @type {number} 1 while the turret exists. */
-		this.used = 1;
 		/** @type {number} 1 while the player carries the turret. */
 		this.carried = 0;
-		/** @type {number} 1 while the turret sees the player. */
-		this.inSight = 0;
 		/** @type {number} The width in pixels. */
 		this.pX = 16;
 		/** @type {number} The height in pixels. */
@@ -79,53 +76,51 @@ export class Turret {
 	 * @returns {void}
 	 */
 	move() {
-		if (this.used) {
-			if (!this.carried) {
-				if (!touchingGround(this)) this.angle += (this.vx >> 8) << 1;
-				else this.angle = 0;
-				if (this.angle >= 360) this.angle -= 360;
+		if (!this.carried) {
+			if (!touchingGround(this)) this.angle += (this.vx >> 8) << 1;
+			else this.angle = 0;
+			if (this.angle >= 360) this.angle -= 360;
 
-				const oldVx = this.vx;
-				const oldVy = this.vy;
+			const oldVx = this.vx;
+			const oldVy = this.vy;
 
-				moveObject(this);
+			moveObject(this);
 
-				if (!this.dead) {
-					if (this.vx == 0 && Math.abs(oldVx) > 3 << 8 && this.canExplode && inForceFieldTp(this).length == 0)
-						this.dead = 1;
-					else if (this.vy == 0 && Math.abs(oldVy) > 4 << 8 && this.canExplode && inForceFieldTp(this).length == 0)
-						this.dead = 1;
-					else if (touchesDeadlyTile(this) || movingCrateTouching(this) || plasmaTouching(this)) {
-						this.dead = 1;
-					}
-					if (this.dead) {
-						this.animFrame = 2;
-						playSound(sfx_explode);
-						createCakeOrSmokeSparkles(this.x, this.y, 9, 4, 255);
-					}
-				} else if (this.animFrame < 10) {
-					if (game.TIME % 4 == 0) this.animFrame++;
-				}
-
-				let pi = onPlatform(this);
-				if (pi) {
-					pi -= 200;
-					this.x += game.platforms[pi].vx;
-				}
-
-				const colLeft = leftCollision(this);
-				const colRight = rightCollision(this);
-				if (!this.dead && (isPlatformCode(colLeft) || isPlatformCode(colRight))) {
+			if (!this.dead) {
+				if (this.vx == 0 && Math.abs(oldVx) > 3 << 8 && this.canExplode && inForceFieldTp(this).length == 0)
 					this.dead = 1;
+				else if (this.vy == 0 && Math.abs(oldVy) > 4 << 8 && this.canExplode && inForceFieldTp(this).length == 0)
+					this.dead = 1;
+				else if (touchesDeadlyTile(this) || movingCrateTouching(this) || plasmaTouching(this)) {
+					this.dead = 1;
+				}
+				if (this.dead) {
 					this.animFrame = 2;
 					playSound(sfx_explode);
 					createCakeOrSmokeSparkles(this.x, this.y, 9, 4, 255);
 				}
-			} else {
-				placeObject(this);
+			} else if (this.animFrame < 10) {
+				if (game.TIME % 4 == 0) this.animFrame++;
 			}
-			if (!this.dead) this.shoot();
+
+			let pi = onPlatform(this);
+			if (pi) {
+				pi -= 200;
+				this.x += game.platforms[pi].vx;
+			}
+
+			const colLeft = leftCollision(this);
+			const colRight = rightCollision(this);
+			if (!this.dead && (isPlatformCode(colLeft) || isPlatformCode(colRight))) {
+				this.dead = 1;
+				this.animFrame = 2;
+				playSound(sfx_explode);
+				createCakeOrSmokeSparkles(this.x, this.y, 9, 4, 255);
+			}
+		} else {
+			placeObject(this);
 		}
+		if (!this.dead) this.shoot();
 	}
 
 	/**
@@ -183,15 +178,13 @@ export class Turret {
 				} else if (playerInSight) {
 					this.ex = j << 8;
 					this.rotation--;
-					this.inSight = playerInSight;
-					playerInSight--;
 					if (this.rotation < 0) this.rotation = 0;
 					if (!this.rotation) {
 						this.animFrame = 1 - this.animFrame;
 						game.player.life -= 640; // 2.5 life points
 						game.player.recoveryTime = 300;
 						game.player.vx += this.dir << 8;
-						this.coolTime = this.startCool;
+						this.coolTime = COOL_TIME;
 						playSoundIfFinished(sfx_shoot);
 
 						for (let i = 0; i < 5; i++) {
@@ -208,7 +201,6 @@ export class Turret {
 						}
 					}
 				} else {
-					this.inSight = 0;
 					if (++this.rotation > 10) this.rotation = 10;
 				}
 			} else this.animFrame = 0;

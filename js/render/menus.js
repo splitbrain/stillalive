@@ -276,7 +276,6 @@ export function drawSplash() {
 		if (timeSplash == 0) {
 			overSplash = true;
 			if (allImagesLoaded() && levelsLoaded >= levelsToLoad && allSoundsLoaded()) {
-				started = 1;
 				ui.goMenu = 0;
 				ui.fadeMenu = 30;
 				unclick();
@@ -400,7 +399,6 @@ export function drawLoadingScreen() {
 			ctx.fillText('Click to continue ...', 280, 476);
 		}
 		if (input.mousePressed) {
-			started = 1;
 			ui.goMenu = 0;
 			ui.fadeMenu = 30;
 			unclick();
@@ -604,8 +602,6 @@ export function drawMainMenu() {
 			drawBigButton(160, yStart + 3 * (64 + spacing), scale4, 'Level Editor');
 		else if (ui.menuButton == MainButton.TUTORIAL) drawBigButton(160, yStart + 4 * (64 + spacing), scale5, 'Tutorial');
 	} else {
-		let dy = 0;
-		if (maxLevel[CampaignId.NORMAL] < CAMPAIGN_FINISHED) dy = 64;
 		drawBigButton(160, yStart, scale1, 'Classic Mode' + (maxLevel[CampaignId.NORMAL] == CAMPAIGN_FINISHED ? ' +' : ''));
 		drawBigButton(160, yStart + 1 * (64 + spacing), scale2, 'Enhanced Mode');
 		drawBigButton(160, yStart + 2 * (64 + spacing), scale3, 'Ultimate Mode');
@@ -915,8 +911,6 @@ export function drawPreviewMap() {
 	}
 }
 
-/** @type {boolean} True after the player left the splash or loading screen. */
-let started = false;
 /** @type {boolean} True after the splash screen ended. */
 export let overSplash = false;
 /** @type {number} The fade of the splash screen, up to 60. */

@@ -42,7 +42,7 @@ export function launchPortal(p) {
 	let tile;
 	let now = 0;
 
-	let inScreenOK = false;
+	let inScreenOK;
 
 	do {
 		inScreenOK = false;
@@ -464,9 +464,6 @@ function teleport(p, obj) {
 			obj.vx = -650;
 		} else if (entry == Direction.UP && exit == Direction.DOWN) {
 			obj.vy = -1000;
-			// eslint-disable-next-line no-dupe-else-if -- the branch is unreachable
-		} else if (entry == Direction.UP && exit == Direction.UP) {
-			obj.vy = -obj.vy;
 		}
 	} else if ((game.bossNum == 3 || game.bossNum == 4) && obj.type == 'plasma') {
 		if ((entry == Direction.DOWN && exit == Direction.DOWN) || (entry == Direction.UP && exit == Direction.UP)) {

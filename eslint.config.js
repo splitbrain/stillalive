@@ -12,8 +12,6 @@ export default [
 		},
 		rules: {
 			'no-var': 'error',
-			'no-unused-vars': 'warn',
-			'no-useless-assignment': 'warn',
 		},
 	},
 	{

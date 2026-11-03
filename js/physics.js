@@ -164,7 +164,7 @@ export function getTilePortal(x, y) {
  * @returns {void}
  */
 export function placeObject(obj) {
-	let step, col;
+	let step;
 	const x = game.player.x + (game.player.pX << 7);
 	const y = game.player.y + (game.player.pY << 7);
 
@@ -182,7 +182,7 @@ export function placeObject(obj) {
 		obj.y += obj.vy >> 1;
 
 		if (!checkTeleportLeft(obj) && !checkTeleportDown(obj) && !checkTeleportUp(obj) && !checkTeleportRight(obj)) {
-			col = checkCollisions(obj);
+			checkCollisions(obj);
 		}
 	}
 
@@ -521,13 +521,12 @@ export function getCollision(obj) {
 	const y = obj.y >> 8;
 
 	let max = 0;
-	let maxVal = 0;
 
 	for (i = x; i < x + obj.pX; i += 2) {
 		//top
 		if (getTile(i, y)) hit[0]++;
 	}
-	maxVal = hit[0];
+	let maxVal = hit[0];
 
 	for (i = x + 1; i < x + obj.pX - 1; i += 2) {
 		//bottom
@@ -634,11 +633,8 @@ export function checkCollisions(obj) {
  */
 export function atExit() {
 	if (!inPortal(game.player)) {
-		let i, j;
-		for (i = 4; i <= 28; i += 2) {
-			for (j = 2; j <= 14; j += 2) {
-				if (getTileSimple((game.player.x >> 8) + j, (game.player.y >> 8) + j) == 22) return 1;
-			}
+		for (let j = 2; j <= 14; j += 2) {
+			if (getTileSimple((game.player.x >> 8) + j, (game.player.y >> 8) + j) == 22) return 1;
 		}
 	}
 

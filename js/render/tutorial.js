@@ -57,12 +57,13 @@ export function drawTutorial() {
  * @returns {void}
  */
 function drawEndTutorialMessage() {
-	prepareTxt(32, 152, PLAYFIELD_WIDTH - 32, 72);
+	prepareTxt(4, 152, PLAYFIELD_WIDTH - 8, 72);
+	const left = PLAYFIELD_X + 14;
 	ctx.font = '16px Arial';
-	ctx.fillText('Congratulations ! You just learned the basics of StillAliveJS.', leftPan, game.offsetY + 170);
-	ctx.fillText('You have now a better understanding of the mechanics of the game.', leftPan, game.offsetY + 170 + 16);
-	ctx.fillText('However, there are still a lot more features waiting for you.', leftPan, game.offsetY + 170 + 32);
-	ctx.fillText('Click to continue and start an amazing journey !', leftPan, game.offsetY + 170 + 48);
+	ctx.fillText('Congratulations ! You just learned the basics of StillAliveJS.', left, game.offsetY + 170);
+	ctx.fillText('You have now a better understanding of the mechanics of the game.', left, game.offsetY + 170 + 16);
+	ctx.fillText('However, there are still a lot more features waiting for you.', left, game.offsetY + 170 + 32);
+	ctx.fillText('Click to continue and start an amazing journey !', left, game.offsetY + 170 + 48);
 }
 
 /**
@@ -259,5 +260,5 @@ function drawJumpMessage() {
  * @returns {void}
  */
 function prepareTxtDefault() {
-	prepareTxt(32, 32, 420, 56);
+	prepareTxt(32, 32, 440, 56);
 }

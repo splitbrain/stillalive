@@ -66,7 +66,7 @@ export class Plasma {
 	 * @returns {void}
 	 */
 	move() {
-		if (game.TIME % 10 == 0) {
+		if (game.time % 10 == 0) {
 			this.scale += 1 * this.scaleDir;
 			if (this.scale < -2 || this.scale > 2) this.scaleDir = -this.scaleDir;
 		}
@@ -312,7 +312,7 @@ export function updatePlasma() {
 	for (let pi = 0; pi < game.plasmaBall.length; pi++) {
 		const ball = game.plasmaBall[pi];
 		if (!ball.used) continue;
-		if (game.TIME % 10 == 0) {
+		if (game.time % 10 == 0) {
 			do {
 				r = random(0, 3);
 			} while (ball.animFrame == r);

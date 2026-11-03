@@ -52,6 +52,10 @@ export const MAP_SIZE = MAP_WIDTH * MAP_HEIGHT;
 export const PLAYFIELD_WIDTH = MAP_WIDTH * 16;
 /** @type {number} The height of the playfield in pixels. */
 export const PLAYFIELD_HEIGHT = MAP_HEIGHT * 16;
+/** @type {number} The x position of the playfield on the canvas in a level. */
+export const PLAYFIELD_X = 64;
+/** @type {number} The y position of the playfield on the canvas. */
+export const PLAYFIELD_Y = 96;
 
 /** @type {Object<string, number>} The types of the sparkles, which select their movement, their fade and their size. */
 export const SparkleType = {

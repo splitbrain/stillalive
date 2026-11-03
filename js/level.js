@@ -49,7 +49,7 @@ const missingFiles = [];
  * @returns {void}
  */
 export function reloadTiles() {
-	game.needLoad = true;
+	game.tilesChanged = true;
 }
 
 /**
@@ -496,9 +496,9 @@ function resetLevelState() {
 	game.portals.push(new Portal());
 	game.sparkles = new Array();
 	ui.txtLines = new Array();
-	game.TIME = 0;
-	game.STEPS = 0;
-	game.PORTALS = 0;
+	game.time = 0;
+	game.steps = 0;
+	game.portalShots = 0;
 	ui.timeWriting = 0;
 	ui.escapeMenu = false;
 	input.keys = 0;
@@ -517,8 +517,8 @@ export function loadLevelEditor() {
 	parseObjects('play');
 
 	game.camera = new Camera(game.player.x, game.player.y);
-	game.CAKELEFT = game.cakes.length;
-	game.needLoad = true;
+	game.cakesLeft = game.cakes.length;
+	game.tilesChanged = true;
 }
 
 /**
@@ -559,10 +559,10 @@ export function loadLevel(level) {
 	parseObjects('play', game.bossNum);
 
 	game.camera = new Camera(game.player.x, game.player.y);
-	game.CAKELEFT = game.cakes.length;
-	game.needLoad = true;
+	game.cakesLeft = game.cakes.length;
+	game.tilesChanged = true;
 
-	if (level > -1) game.BG = campaigns[ui.campaign].backgrounds[level - 1];
+	if (level > -1) game.background = campaigns[ui.campaign].backgrounds[level - 1];
 	if (game.bossNum > 0) setupBoss();
 }
 
@@ -595,10 +595,10 @@ export function loadPreviewMap(level) {
 	game.bossNum = level > 0 ? campaigns[ui.campaign].bosses[level - 1] : 0;
 	if (game.bossNum > 0) setupBoss();
 
-	game.CAKELEFT = game.cakes.length;
-	game.needLoad = true;
+	game.cakesLeft = game.cakes.length;
+	game.tilesChanged = true;
 
-	if (level > 0) game.BG = campaigns[ui.campaign].backgrounds[level - 1];
+	if (level > 0) game.background = campaigns[ui.campaign].backgrounds[level - 1];
 }
 
 /**

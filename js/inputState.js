@@ -81,21 +81,21 @@ export function restoreInput(state) {
 export function manageKeys() {
 	// The input still changes while the level time stands still. A replay restores the input state at the same time.
 	const inGame = game.player.fadeNextLevel == -1 && ui.currentMenu == Menu.PLAY && !ui.escapeMenu;
-	if (inGame && !game.replayMode && !input.lastTickInGame) game.replay.states[game.TIME] = captureInput();
-	else if (inGame && game.replayMode && game.replay.states[game.TIME]) restoreInput(game.replay.states[game.TIME]);
+	if (inGame && !game.replayMode && !input.lastTickInGame) game.replay.states[game.time] = captureInput();
+	else if (inGame && game.replayMode && game.replay.states[game.time]) restoreInput(game.replay.states[game.time]);
 	input.lastTickInGame = inGame;
 
 	if (game.player.fadeNextLevel == -1 && ui.currentMenu == Menu.PLAY && !game.replayMode) {
 		input.mouseX = Math.round(input.mouseX);
 		input.mouseY = Math.round(input.mouseY);
-		game.replay.inputs[game.TIME] = input.keys;
-		game.replay.mouseX[game.TIME] = input.mouseX;
-		game.replay.mouseY[game.TIME] = input.mouseY;
+		game.replay.inputs[game.time] = input.keys;
+		game.replay.mouseX[game.time] = input.mouseX;
+		game.replay.mouseY[game.time] = input.mouseY;
 	} else if (game.player.fadeNextLevel == -1 && ui.currentMenu == Menu.PLAY && game.replayMode && !ui.escapeMenu) {
-		if (game.TIME < game.replay.inputs.length) {
-			input.keys = game.replay.inputs[game.TIME];
-			input.mouseX = game.replay.mouseX[game.TIME];
-			input.mouseY = game.replay.mouseY[game.TIME];
+		if (game.time < game.replay.inputs.length) {
+			input.keys = game.replay.inputs[game.time];
+			input.mouseX = game.replay.mouseX[game.time];
+			input.mouseY = game.replay.mouseY[game.time];
 		} else {
 			reportBrokenReplay();
 		}

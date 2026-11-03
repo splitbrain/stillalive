@@ -3,7 +3,7 @@
  */
 
 import { ctx } from './canvas.js';
-import { SparkleType } from './constants.js';
+import { PLAYFIELD_X, PLAYFIELD_Y, SparkleType } from './constants.js';
 import { Crate } from './entities/Crate.js';
 import { Plasma } from './entities/Plasma.js';
 import { Projectile } from './entities/Projectile.js';
@@ -157,12 +157,12 @@ export function updateBoss() {
 			game.bossX = 449 + 50 - (game.bossComingTime >> 8);
 			if (game.bossX == 449) {
 				game.bossIsTalking = true;
-				game.offsetX = 64;
-				game.offsetY = 96;
+				game.offsetX = PLAYFIELD_X;
+				game.offsetY = PLAYFIELD_Y;
 			}
 			if (game.rumbleTime % 3 == 0) {
-				game.offsetX = 64 + random(-3, 3);
-				game.offsetY = 96 + random(-3, 3);
+				game.offsetX = PLAYFIELD_X + random(-3, 3);
+				game.offsetY = PLAYFIELD_Y + random(-3, 3);
 			}
 		}
 	} else {
@@ -181,7 +181,7 @@ export function updateBoss() {
 		}
 
 		if (game.bossLife < 3 && game.bossNum == 1) {
-			if (game.player.fadeNextLevel == -1 && game.TIME % (90 - 30 * game.bossLife) == 0) {
+			if (game.player.fadeNextLevel == -1 && game.time % (90 - 30 * game.bossLife) == 0) {
 				game.crates.push(new Crate((31 * 16) << 8, (6 * 16) << 8));
 				if (game.crates.length > 10) {
 					for (i = 0; i < 10; i++) {
@@ -204,7 +204,7 @@ export function updateBoss() {
 				game.crates[game.crates.length - 1].vx = -(d << 8);
 			}
 		} else if (game.bossLife < 3 && game.bossNum == 2) {
-			if (game.player.fadeNextLevel == -1 && game.TIME % (90 - 15 * game.bossLife) == 0) {
+			if (game.player.fadeNextLevel == -1 && game.time % (90 - 15 * game.bossLife) == 0) {
 				vx1 =
 					getCos(
 						(game.player.x >> 8) + (game.player.pX >> 1),
@@ -244,7 +244,7 @@ export function updateBoss() {
 			const limit = game.bossLife + 1;
 			if (
 				game.player.fadeNextLevel == -1 &&
-				game.TIME % (90 - 30 * game.bossLife) == 0 &&
+				game.time % (90 - 30 * game.bossLife) == 0 &&
 				game.plasmaBall.length < limit
 			) {
 				vx1 =
@@ -264,13 +264,13 @@ export function updateBoss() {
 				game.plasmaBall.push(new Plasma(game.plasmaX, game.plasmaY, vx1, vy1));
 			}
 
-			if (game.player.fadeNextLevel == -1 && game.TIME % (90 - 30 * game.bossLife) == 0 && game.crates.length == 0) {
+			if (game.player.fadeNextLevel == -1 && game.time % (90 - 30 * game.bossLife) == 0 && game.crates.length == 0) {
 				game.crates.push(new Crate((31 * 16) << 8, (18 * 16) << 8));
 				game.crates[game.crates.length - 1].vx = -(12 << 8);
 				game.crates[game.crates.length - 1].vy = -(2 << 8);
 			}
 		} else if (game.bossLife < 3 && game.bossNum == 4) {
-			if (game.player.fadeNextLevel == -1 && game.TIME % (90 - 20 * game.bossLife) == 0) {
+			if (game.player.fadeNextLevel == -1 && game.time % (90 - 20 * game.bossLife) == 0) {
 				game.crates.push(new Crate((31 * 16) << 8, (5 * 16) << 8));
 				if (game.crates.length > 10) {
 					for (i = 0; i < 10; i++) {
@@ -293,7 +293,7 @@ export function updateBoss() {
 				game.crates[game.crates.length - 1].vx = -(d << 8);
 			}
 
-			if (game.bossLife > 0 && game.player.fadeNextLevel == -1 && game.TIME % (180 - 20 * game.bossLife) == 0) {
+			if (game.bossLife > 0 && game.player.fadeNextLevel == -1 && game.time % (180 - 20 * game.bossLife) == 0) {
 				vx1 =
 					getCos(
 						(game.player.x >> 8) + (game.player.pX >> 1),
@@ -342,10 +342,10 @@ export function updateBossRumble() {
 	game.rumbleTime++;
 	if (!game.bossIsComing) shakeScreen();
 	else if (game.rumbleTime % 3 == 0) {
-		game.offsetX = 64 + random(-3, 3);
-		game.offsetY = 96 + random(-3, 3);
+		game.offsetX = PLAYFIELD_X + random(-3, 3);
+		game.offsetY = PLAYFIELD_Y + random(-3, 3);
 	}
-	if (!game.bossIsComing && game.TIME % 10 == 0 && game.bossX < 530) {
+	if (!game.bossIsComing && game.time % 10 == 0 && game.bossX < 530) {
 		createCakeOrSmokeSparkles((game.bossX + 14) << 8, (game.bossY + 18) << 8, SparkleType.SMOKE, 3, 300);
 		game.bossX += 1;
 	}
@@ -412,7 +412,7 @@ export function hitBoss(obj) {
 					game.displayMap[i] = FIRST_OF_KIND[TileKind.BOSS_BLOCK];
 				}
 			}
-			game.needLoad = true;
+			game.tilesChanged = true;
 		} else {
 			game.projectiles = new Array();
 			game.plasmaBall = new Array();
@@ -451,9 +451,9 @@ export function manageInTube(obj) {
  * offset, so random offsets would change the result of a replay. The offset changes every third tick.
  */
 export function shakeScreen() {
-	const step = Math.floor(game.TIME / 3);
-	game.offsetX = 64 + shakeOffset(step * 2);
-	game.offsetY = 96 + shakeOffset(step * 2 + 1);
+	const step = Math.floor(game.time / 3);
+	game.offsetX = PLAYFIELD_X + shakeOffset(step * 2);
+	game.offsetY = PLAYFIELD_Y + shakeOffset(step * 2 + 1);
 }
 
 /**

@@ -15,6 +15,8 @@ import {
 	NUM_TILES,
 	PLAYFIELD_HEIGHT,
 	PLAYFIELD_WIDTH,
+	PLAYFIELD_X,
+	PLAYFIELD_Y,
 } from './constants.js';
 import { alertDialog } from './dialog.js';
 import { animateTiles } from './entities/AnimatedTile.js';
@@ -65,6 +67,7 @@ import {
 	drawPlayer,
 	drawPortals,
 	drawSparkles,
+	drawTileLayer,
 	drawTunnels,
 	drawTurrets,
 } from './render/game.js';
@@ -109,7 +112,7 @@ export function startPlayingLevel() {
 	game.oldMap = new Array();
 	for (i = 0; i < game.map.length; i++) game.oldMap.push(game.map[i]);
 	loadLevelEditor();
-	if (game.CAKELEFT == 0) openExit();
+	if (game.cakesLeft == 0) openExit();
 	game.player.fadeNextLevel = -1;
 	prepareLvlEditorPlayTxt();
 }
@@ -140,7 +143,7 @@ export function stopPlayingLevel() {
  */
 function levelEditorTestLevel() {
 	game.needRedrawTiles = 0;
-	game.TIME++;
+	game.time++;
 	if (!game.player.dead && game.player.fadeNextLevel == -1) {
 		game.player.move();
 		if (game.needRedrawTiles == 0) game.needRedrawTiles = inPortal(game.player);
@@ -174,8 +177,8 @@ function levelEditorTestLevel() {
  * @returns {void}
  */
 function drawTestLevel() {
-	if (game.needLoad) createBuff();
-	drawCopy(game.imgBuff, game.offsetX, game.offsetY);
+	if (game.tilesChanged) createBuff();
+	drawTileLayer();
 
 	drawAnimatedTiles();
 
@@ -245,7 +248,7 @@ function drawTestLevel() {
  */
 export function lvlEditorSetup() {
 	let i;
-	game.BG = 0;
+	game.background = 0;
 	askLoading = false;
 	askSaving = false;
 	game.bossNum = 0;
@@ -400,20 +403,20 @@ function menuSaveMap() {
 
 			game.map = new Array();
 			for (i = 0; i < game.oldMap.length; i++) game.map.push(game.oldMap[i]);
-			game.BG = oldBG;
+			game.background = oldBG;
 			askSaving = false;
 			redrawTiles = true;
-			game.offsetX = 64;
-			game.offsetY = 96;
+			game.offsetX = PLAYFIELD_X;
+			game.offsetY = PLAYFIELD_Y;
 			return;
 		} else if (overMenu == EditorMenuButton.EXIT) {
-			game.offsetX = 64;
-			game.offsetY = 96;
+			game.offsetX = PLAYFIELD_X;
+			game.offsetY = PLAYFIELD_Y;
 			askSaving = false;
 
 			game.map = new Array();
 			for (i = 0; i < game.oldMap.length; i++) game.map.push(game.oldMap[i]);
-			game.BG = oldBG;
+			game.background = oldBG;
 			redrawTiles = true;
 			return;
 		} else if (overMenu == EditorMenuButton.EXPORT) {
@@ -446,7 +449,7 @@ function showEditorMap(slot) {
 	const stored = getEditorMap(slot);
 	if (stored == null) return;
 	game.map = stored.tiles.slice();
-	game.BG = stored.bg;
+	game.background = stored.bg;
 	loadPreviewMap(-1);
 }
 
@@ -458,12 +461,12 @@ function startMapImport() {
 		.then(function (data) {
 			if (ui.currentMenu != Menu.EDITOR || !(askSaving || askLoading)) return;
 			game.map = data.tiles.slice();
-			game.BG = data.bg;
+			game.background = data.bg;
 			loadPreviewMap(-1);
 			askSaving = false;
 			askLoading = false;
-			game.offsetX = 64;
-			game.offsetY = 96;
+			game.offsetX = PLAYFIELD_X;
+			game.offsetY = PLAYFIELD_Y;
 			redrawTiles = true;
 			undoMap = new Array();
 			undoIndex = -1;
@@ -525,25 +528,25 @@ function menuLoadMap() {
 		if (overMenu == EditorMenuButton.ACCEPT) {
 			askLoading = false;
 			redrawTiles = true;
-			game.offsetX = 64;
-			game.offsetY = 96;
+			game.offsetX = PLAYFIELD_X;
+			game.offsetY = PLAYFIELD_Y;
 
 			undoMap = new Array();
 			undoIndex = -1;
 			addUndo();
 			return;
 		} else if (overMenu == EditorMenuButton.EXIT) {
-			game.offsetX = 64;
-			game.offsetY = 96;
+			game.offsetX = PLAYFIELD_X;
+			game.offsetY = PLAYFIELD_Y;
 
 			game.map = new Array();
 			for (i = 0; i < game.oldMap.length; i++) game.map.push(game.oldMap[i]);
-			game.BG = oldBG;
+			game.background = oldBG;
 			askLoading = false;
 			redrawTiles = true;
 			return;
 		} else if (overMenu == EditorMenuButton.EXPORT) {
-			exportEditorMap(game.map, game.BG);
+			exportEditorMap(game.map, game.background);
 		} else if (overMenu == EditorMenuButton.IMPORT) {
 			startMapImport();
 		}
@@ -630,18 +633,18 @@ function manageEditor() {
 			askSaving = true;
 			ui.previewMap = -1;
 			game.offsetX = 0;
-			game.offsetY = 96;
+			game.offsetY = PLAYFIELD_Y;
 			game.oldMap = new Array();
 			for (i = 0; i < game.map.length; i++) game.oldMap.push(game.map[i]);
-			oldBG = game.BG;
+			oldBG = game.background;
 		} else if (overMenu == EditorButton.LOAD) {
 			askLoading = true;
 			ui.previewMap = -1;
 			game.offsetX = 0;
-			game.offsetY = 96;
+			game.offsetY = PLAYFIELD_Y;
 			game.oldMap = new Array();
 			for (i = 0; i < game.map.length; i++) game.oldMap.push(game.map[i]);
-			oldBG = game.BG;
+			oldBG = game.background;
 		} else if (overMenu == EditorButton.CLEAR) {
 			for (i = 0; i < game.map.length; i++) game.map[i] = 0;
 			addUndo();
@@ -698,7 +701,7 @@ function drawSprites() {
 function drawTileMap() {
 	let y, x, up, down, left, right, i;
 	if (redrawTiles) {
-		ctx.drawImage(bg[game.BG], game.offsetX, game.offsetY, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
+		ctx.drawImage(bg[game.background], game.offsetX, game.offsetY, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 		ctx.fillStyle = 'rgba(255, 0, 0, 0.7)';
 		for (i = 0; i < game.map.length; i++) {
 			if (game.map[i] == Tile.PLASMA_START) {
@@ -1048,13 +1051,13 @@ function manageSpriteSelection() {
 		if (input.mouseNewPress) {
 			unclick();
 			if (arrow < 0) {
-				game.BG--;
+				game.background--;
 				redrawTiles = true;
-				if (game.BG < 0) game.BG = bg.length - 1;
+				if (game.background < 0) game.background = bg.length - 1;
 			} else if (arrow > 0) {
-				game.BG++;
+				game.background++;
 				redrawTiles = true;
-				if (game.BG == bg.length) game.BG = 0;
+				if (game.background == bg.length) game.background = 0;
 			}
 		}
 	}

@@ -106,7 +106,7 @@ export function launchPortal(p) {
 			}
 			const r = random(0, 2);
 			playSound(sfx_portal[r]);
-			game.PORTALS++;
+			game.portalShots++;
 		} else playSound(sfx_noPortal);
 	} else playSound(sfx_noPortal);
 }

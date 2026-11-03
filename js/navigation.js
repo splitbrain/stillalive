@@ -2,7 +2,7 @@
  * The way back from a level to the menus.
  */
 
-import { Menu } from './constants.js';
+import { Menu, PLAYFIELD_Y } from './constants.js';
 import { alertDialog } from './dialog.js';
 import { unclick } from './inputState.js';
 import { loadPreviewMap } from './level.js';
@@ -31,7 +31,7 @@ export function exitFunc() {
 	game.sparkles = new Array();
 	if (ui.currentMenu == Menu.PLAY) {
 		game.offsetX = 0;
-		game.offsetY = 96;
+		game.offsetY = PLAYFIELD_Y;
 		ui.currentMenu = Menu.MAIN;
 		prepareSelectionText();
 		ui.previewMap = ui.currentLevel;

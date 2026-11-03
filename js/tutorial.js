@@ -54,7 +54,7 @@ export function updateTutorial() {
 			if (input.mousePressed) endPause();
 		}
 	} else if (ui.currentLevel == 3) {
-		if (Math.trunc(game.TIME / 60) == 5 && !ui.portalsDisplayed) {
+		if (Math.trunc(game.time / 60) == 5 && !ui.portalsDisplayed) {
 			displayPortals();
 			ui.portalsDisplayed = true;
 		}
@@ -106,8 +106,8 @@ export function drawTutorial() {
 	} else if (ui.currentLevel == 2) {
 		drawCakeMessage();
 	} else if (ui.currentLevel == 3) {
-		const sec = 5 - Math.trunc(game.TIME / 60);
-		if (Math.trunc(game.TIME / 60) == 5) return;
+		const sec = 5 - Math.trunc(game.time / 60);
+		if (Math.trunc(game.time / 60) == 5) return;
 		if (sec >= 0) drawPortalMessage(sec);
 		else drawOpenPortalMessage();
 	} else if (ui.currentLevel == 4) {

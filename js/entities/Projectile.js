@@ -48,7 +48,7 @@ export class Projectile {
 			this.x += this.vx;
 			this.y += this.vy;
 
-			if (game.TIME % 6 == 0) {
+			if (game.time % 6 == 0) {
 				if (++this.img > LAST_OF_KIND[TileKind.WHEEL]) this.img = FIRST_OF_KIND[TileKind.WHEEL];
 			}
 

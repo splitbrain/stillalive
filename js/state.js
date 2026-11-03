@@ -2,19 +2,24 @@
  * The shared state of the game.
  */
 
-import { Transition } from './constants.js';
+import { PLAYFIELD_X, PLAYFIELD_Y, Transition } from './constants.js';
 
 /** @type {object} The state of the current level: the map, the player, the objects, the level time and the boss. */
 export const game = {
 	replay: undefined,
 	replayMode: false,
-	CAKELEFT: undefined,
-	STEPS: undefined,
-	PORTALS: undefined,
-	BG: undefined,
-	offsetX: 64,
-	offsetY: 96,
-	TIME: undefined,
+	cakesLeft: undefined,
+	steps: undefined,
+	portalShots: undefined,
+	background: undefined,
+	/**
+	 * @type {number} The x position of the playfield on the canvas: PLAYFIELD_X in a level, 0 in the level selection
+	 *     and in the editor menus. The screen shake of the boss levels adds a few pixels.
+	 */
+	offsetX: PLAYFIELD_X,
+	/** @type {number} The y position of the playfield on the canvas, PLAYFIELD_Y plus the screen shake of the boss levels. */
+	offsetY: PLAYFIELD_Y,
+	time: undefined,
 	cakes: undefined,
 	crates: undefined,
 	tunnels: undefined,
@@ -32,9 +37,9 @@ export const game = {
 	plasmaBall: undefined,
 	camera: undefined,
 	robot: undefined,
-	needLoad: undefined,
+	/** @type {boolean} True when the tiles changed, so the drawing must draw the tile layer again. */
+	tilesChanged: undefined,
 	needRedrawTiles: undefined,
-	imgBuff: undefined,
 	tubeX: undefined,
 	tubeY: undefined,
 	plasmaX: undefined,

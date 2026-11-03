@@ -20,6 +20,8 @@ import {
 	PauseButton,
 	PLAYFIELD_HEIGHT,
 	PLAYFIELD_WIDTH,
+	PLAYFIELD_X,
+	PLAYFIELD_Y,
 	SelectionButton,
 	SparkleType,
 } from '../constants.js';
@@ -59,7 +61,7 @@ import { mouseInZone, unclick } from '../inputState.js';
 import { keyLabels } from '../keys.js';
 import { creditsTxt, levelsLoaded, levelsToLoad, loadPreviewMap, missingLevelFiles } from '../level.js';
 import { exitFunc, prepareSelectionText } from '../navigation.js';
-import { copyCanvas, drawCopy, drawPlayer, drawRobot, drawSparkles, drawTunnels } from './game.js';
+import { drawPlayer, drawRobot, drawSparkles, drawTileLayer, drawTunnels, saveTileLayer } from './game.js';
 import { drawHudText, drawText } from './hud.js';
 import { resumeReplay } from '../replay.js';
 import { game, input, ui } from '../state.js';
@@ -334,7 +336,7 @@ export function drawLoadingScreen() {
 	ctx.fillText('Loading sfx ...', 10, 90);
 
 	ctx.fillStyle = 'rgb(255, 0, 0)';
-	if (game.TIME % 50 < 25) {
+	if (game.time % 50 < 25) {
 		ctx.fillStyle = 'rgb(0, 0, 0)';
 	}
 
@@ -394,9 +396,9 @@ export function drawLoadingScreen() {
 		ctx.drawImage(redPortal, 0, 0, 32, 32, 171 + dx, 177 + dy, 32, 32);
 	}
 
-	game.TIME++;
+	game.time++;
 	if (allImagesLoaded() && levelsLoaded >= levelsToLoad && allSoundsLoaded()) {
-		if (game.TIME % 50 < 25) {
+		if (game.time % 50 < 25) {
 			ctx.fillText('Click to continue ...', 280, 476);
 		}
 		if (input.mousePressed) {
@@ -470,8 +472,8 @@ export function drawMapSelection() {
 			startLevel(ui.campaign, ui.previewMap);
 			return;
 		} else if (overMenu == SelectionButton.EXIT) {
-			game.offsetX = 64;
-			game.offsetY = 96;
+			game.offsetX = PLAYFIELD_X;
+			game.offsetY = PLAYFIELD_Y;
 			ui.currentMenu = Menu.MAIN;
 			ui.selectMenu = 0;
 			ui.fadeMenu = 30;
@@ -680,7 +682,7 @@ export function drawMainMenu() {
 				prepareSelectionText();
 				document.getElementById('highscores').classList.add('open');
 				game.offsetX = 0;
-				game.offsetY = 96;
+				game.offsetY = PLAYFIELD_Y;
 				ui.campaign = BUTTON_CAMPAIGN[ui.menuButton];
 				if (ui.campaign == CampaignId.STORY) {
 					game.bossNum = 0;
@@ -794,7 +796,7 @@ export function drawIntermission() {
 	if (game.player.intermissionFade == 0) {
 		ctx.fillStyle = 'rgb(255, 255, 255)';
 		ctx.font = 'bold 12px Arial';
-		ctx.fillText('Your time : ' + toTime(game.TIME), game.offsetX + 35, game.offsetY + 260);
+		ctx.fillText('Your time : ' + toTime(game.time), game.offsetX + 35, game.offsetY + 260);
 		ctx.fillText(ui.highscoreMessage, game.offsetX + 35, game.offsetY + 278);
 	}
 }
@@ -806,23 +808,22 @@ export function drawIntermission() {
  */
 export function drawPreviewMap() {
 	let i, ti, ci, pi;
-	if (game.needLoad) {
-		ctx.drawImage(bg[game.BG], game.offsetX, game.offsetY, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
+	if (game.tilesChanged) {
+		ctx.drawImage(bg[game.background], game.offsetX, game.offsetY, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 		for (i = 0; i < game.displayMap.length; i++) {
 			const y = i >> 5;
 			const x = i - (y << 5);
 			if (game.displayMap[i] < NUM_TILES && game.displayMap[i] > 0 && i < MAP_SIZE) {
-				const open = game.CAKELEFT == 0 && game.displayMap[i] == Tile.EXIT_CLOSED;
+				const open = game.cakesLeft == 0 && game.displayMap[i] == Tile.EXIT_CLOSED;
 				const tile = open ? Tile.EXIT : game.displayMap[i];
 				ctx.drawImage(tileset[tile], x * 16 + game.offsetX, y * 16 + game.offsetY, 16, 16);
 			}
 		}
-		game.imgBuff = copyCanvas(game.offsetX, game.offsetY, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
-		game.needLoad = false;
+		saveTileLayer();
 		ctx.fillStyle = 'rgb(0, 0, 0)';
 		ctx.fillRect(game.offsetX, game.offsetY, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 	} else {
-		drawCopy(game.imgBuff, game.offsetX, game.offsetY);
+		drawTileLayer();
 
 		game.player.flip = 1;
 

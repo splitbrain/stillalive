@@ -209,8 +209,8 @@ export function drawSparkles() {
  * @returns {void}
  */
 export function drawLevel() {
-	if (game.needLoad) createBuff();
-	drawCopy(game.imgBuff, game.offsetX, game.offsetY);
+	if (game.tilesChanged) createBuff();
+	drawTileLayer();
 	drawAnimatedTiles();
 
 	drawTunnels();
@@ -317,6 +317,28 @@ export function drawAnimatedTiles() {
 	}
 }
 
+/** @type {OffscreenCanvas|null} The copy of the background and the tile layer from saveTileLayer(). */
+let tileLayer = null;
+
+/**
+ * Keep a copy of the background and the tile layer, which are drawn in the playfield.
+ *
+ * @returns {void}
+ */
+export function saveTileLayer() {
+	tileLayer = copyCanvas(game.offsetX, game.offsetY, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
+	game.tilesChanged = false;
+}
+
+/**
+ * Draw the copy of the background and the tile layer into the playfield.
+ *
+ * @returns {void}
+ */
+export function drawTileLayer() {
+	drawCopy(tileLayer, game.offsetX, game.offsetY);
+}
+
 /**
  * Draw the background and the tile layer and keep a copy for the next ticks.
  *
@@ -324,7 +346,7 @@ export function drawAnimatedTiles() {
  */
 export function createBuff() {
 	let i;
-	ctx.drawImage(bg[game.BG], game.offsetX, game.offsetY, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
+	ctx.drawImage(bg[game.background], game.offsetX, game.offsetY, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 	for (i = 0; i < game.displayMap.length; i++) {
 		const y = i >> 5;
 		const x = i - (y << 5);
@@ -332,8 +354,7 @@ export function createBuff() {
 			ctx.drawImage(tileset[game.displayMap[i]], x * 16 + game.offsetX, y * 16 + game.offsetY, 16, 16);
 		}
 	}
-	game.imgBuff = copyCanvas(game.offsetX, game.offsetY, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
-	game.needLoad = false;
+	saveTileLayer();
 	ctx.fillStyle = 'rgb(0, 0, 0)';
 	ctx.fillRect(game.offsetX, game.offsetY, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 	if (game.player.intermissionFade < 0) ctx.drawImage(highscore, game.offsetX, game.offsetY);

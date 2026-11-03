@@ -46,7 +46,7 @@ export class AnimatedTile {
 export function animateTiles() {
 	let r;
 	for (const tile of game.animatedTiles) {
-		if (!tile.used || game.TIME % tile.speed != 0) continue;
+		if (!tile.used || game.time % tile.speed != 0) continue;
 		if (tile.type == RANDOM) {
 			do {
 				r = random(tile.min, tile.max) + 1;

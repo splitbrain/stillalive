@@ -142,7 +142,7 @@ export function drawHudText() {
 	ctx.fillStyle = 'rgb(255, 255, 255)';
 
 	ctx.fillText((game.player.life >> 8 > 0 ? game.player.life >> 8 : 0) + '', 20, 150);
-	ctx.fillText(game.CAKELEFT + '', 26, 215);
-	ctx.fillText((game.STEPS >> 8) + '', 26, 275);
-	ctx.fillText(game.PORTALS + '', 26, 335);
+	ctx.fillText(game.cakesLeft + '', 26, 215);
+	ctx.fillText((game.steps >> 8) + '', 26, 275);
+	ctx.fillText(game.portalShots + '', 26, 335);
 }

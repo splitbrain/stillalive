@@ -147,7 +147,7 @@ export class Replay {
  */
 export function resumeReplay() {
 	restoreInput(input.replayPauseInput);
-	input.keys = game.replay.inputs[game.TIME];
-	input.mouseX = game.replay.mouseX[game.TIME];
-	input.mouseY = game.replay.mouseY[game.TIME];
+	input.keys = game.replay.inputs[game.time];
+	input.mouseX = game.replay.mouseX[game.time];
+	input.mouseY = game.replay.mouseY[game.time];
 }

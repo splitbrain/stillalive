@@ -10,6 +10,8 @@ import {
 	IntermissionButton,
 	LEVELS_PER_CAMPAIGN,
 	Menu,
+	PLAYFIELD_X,
+	PLAYFIELD_Y,
 	Transition,
 	TUTORIAL_END_LEVEL,
 } from './constants.js';
@@ -85,9 +87,9 @@ export function render() {
 function checkBestTime() {
 	const campaign = campaigns[ui.campaign].folder;
 	const best = getBestTime(campaign, ui.currentLevel);
-	if (best != null && best <= game.TIME) return 'Best time : ' + toTime(best);
+	if (best != null && best <= game.time) return 'Best time : ' + toTime(best);
 
-	saveBestTime(campaign, ui.currentLevel, game.TIME, encodeReplay(game.replay, campaign, ui.currentLevel)).catch(
+	saveBestTime(campaign, ui.currentLevel, game.time, encodeReplay(game.replay, campaign, ui.currentLevel)).catch(
 		function (e) {
 			console.error(e);
 		},
@@ -127,8 +129,8 @@ function updateScreen() {
  */
 function updateLevel() {
 	if (!atExit() && game.player.fadeNextLevel == -1) {
-		if (game.TIME == 0) unclick();
-		game.TIME++;
+		if (game.time == 0) unclick();
+		game.time++;
 	}
 	game.needRedrawTiles = 0;
 	if (!game.player.dead && game.player.fadeNextLevel == -1) {
@@ -170,8 +172,8 @@ function updateLevel() {
  */
 function updateLevelEnd() {
 	game.bossNum = 0;
-	game.offsetX = 64;
-	game.offsetY = 96;
+	game.offsetX = PLAYFIELD_X;
+	game.offsetY = PLAYFIELD_Y;
 
 	if (game.player.fadeNextLevel > 0) {
 		game.player.fadeNextLevel -= 4;
@@ -242,7 +244,7 @@ function updateLevelEnd() {
  * @returns {void}
  */
 function updateObjects() {
-	if (game.needLoad && game.CAKELEFT == 0) openExit();
+	if (game.tilesChanged && game.cakesLeft == 0) openExit();
 	animateTiles();
 
 	game.player.flip = input.mouseX > (game.player.x >> 8) + (game.player.pX >> 1) + game.offsetX ? 1 : -1;
@@ -288,8 +290,8 @@ export function startLevel(campaign, level, replay = null) {
 	ui.campaign = campaign;
 	ui.currentLevel = level;
 	ui.currentMenu = Menu.PLAY;
-	game.offsetX = 64;
-	game.offsetY = 96;
+	game.offsetX = PLAYFIELD_X;
+	game.offsetY = PLAYFIELD_Y;
 	game.replayMode = replay !== null;
 	if (replay) game.replay = replay;
 	loadLevel(level);

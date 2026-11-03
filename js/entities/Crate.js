@@ -116,7 +116,7 @@ export class Crate {
 								}
 							}
 						}
-						game.needLoad = true;
+						game.tilesChanged = true;
 						if (game.bossNum == 1 || game.bossNum == 3 || game.bossNum == 4) this.needKill = true;
 						else if (game.bossNum == 2) {
 							this.x = 80 << 8;

@@ -57,7 +57,7 @@ function panelHtml() {
 	let html = '';
 
 	if (playing) {
-		const time = game.player.fadeNextLevel === -1 ? game.TIME - (game.TIME % TIME_UPDATE_INTERVAL) : game.TIME;
+		const time = game.player.fadeNextLevel === -1 ? game.time - (game.time % TIME_UPDATE_INTERVAL) : game.time;
 		html += `<p class="title">Level ${level}${game.replayMode ? ' (replay)' : ''}</p>`;
 		html += `<p>Time: ${toTime(time)}</p>`;
 		html += `<p>Best time: ${formatTime(best)}</p>`;

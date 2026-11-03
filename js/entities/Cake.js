@@ -37,10 +37,10 @@ export function collectCakes() {
 		if (game.cakes[i].used) {
 			if (playerTouchesCake(i)) {
 				game.cakes[i].used = false;
-				game.CAKELEFT--;
+				game.cakesLeft--;
 				createCakeOrSmokeSparkles(game.cakes[i].x, game.cakes[i].y, SparkleType.CAKE, 2, 180);
 				playSound(sfx_grabCake);
-				if (game.CAKELEFT == 0) openExit();
+				if (game.cakesLeft == 0) openExit();
 			}
 		}
 	}

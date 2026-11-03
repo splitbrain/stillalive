@@ -108,7 +108,7 @@ export async function runLevel(
 	return page.evaluate(
 		async ({ campaign, level, ticks, seed, inputs, replay: replayData, skipBossIntro, interval }) => {
 			const { skipComingBoss } = await import('/js/boss.js');
-			const { CampaignId, Menu } = await import('/js/constants.js');
+			const { CampaignId, Menu, PLAYFIELD_X, PLAYFIELD_Y } = await import('/js/constants.js');
 			const t = window.__test;
 			const { game, ui, input } = t;
 			let state = seed >>> 0;
@@ -120,8 +120,8 @@ export async function runLevel(
 				return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
 			};
 
-			game.offsetX = 64;
-			game.offsetY = 96;
+			game.offsetX = PLAYFIELD_X;
+			game.offsetY = PLAYFIELD_Y;
 			ui.campaign = campaign;
 			ui.currentLevel = level;
 			if (campaign === CampaignId.TUTORIAL) {
@@ -150,14 +150,14 @@ export async function runLevel(
 			const snapshot = (tick) =>
 				JSON.stringify({
 					tick,
-					time: game.TIME,
+					time: game.time,
 					player: pickNumbers(game.player, ['x', 'y', 'vx', 'vy', 'life', 'dead']),
 					crates: game.crates.map((c) => pickNumbers(c, ['x', 'y', 'vx', 'vy', 'carried'])),
 					turrets: game.turrets.map((t) => pickNumbers(t, ['x', 'y', 'vx', 'vy', 'dead', 'carried'])),
 					plasma: game.plasmaBall.map((p) => pickNumbers(p, ['x', 'y', 'vx', 'vy', 'used'])),
 					platforms: game.platforms.map((p) => pick(p, ['x', 'y', 'vx'])),
 					portals: game.portals.map((p) => pick(p, ['x', 'y', 'used', 'direction'])),
-					cakesLeft: game.CAKELEFT,
+					cakesLeft: game.cakesLeft,
 					map: game.map.flatMap((tile, i) => (tile === startMap[i] ? [] : [[i, tile]])),
 				});
 

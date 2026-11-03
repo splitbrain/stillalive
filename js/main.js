@@ -53,7 +53,7 @@ function setup() {
 
 	game.player = new Player(); // the drawing reads the player before the first level loads
 
-	game.TIME = 0;
+	game.time = 0;
 
 	startLoop(tick, render);
 }

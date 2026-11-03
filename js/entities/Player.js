@@ -291,7 +291,7 @@ export class Player {
 
 		if (this.life <= 50 << 8) {
 			const h = this.life >> 8;
-			const r = game.TIME % h;
+			const r = game.time % h;
 
 			for (i = 0; r == 0 && i < 3; i++) {
 				s = new Sparkle();
@@ -319,7 +319,7 @@ export class Player {
 
 		if (this.vx > 0) {
 			if (ground == 1 && !checkTeleportLeft(this)) {
-				game.STEPS += game.player.vx >> 4;
+				game.steps += game.player.vx >> 4;
 				this.vx -= 64;
 			} else {
 				this.vx -= ground == 2 ? 14 : 28;
@@ -327,7 +327,7 @@ export class Player {
 			if (this.vx < 0) this.vx = 0;
 		} else if (this.vx < 0) {
 			if (ground == 1 && !checkTeleportRight(this)) {
-				game.STEPS -= game.player.vx >> 4;
+				game.steps -= game.player.vx >> 4;
 				this.vx += 64;
 			} else {
 				this.vx += ground == 2 ? 14 : 28;

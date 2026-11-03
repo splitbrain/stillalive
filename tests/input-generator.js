@@ -15,10 +15,12 @@ import {
 	MOUSE_RIGHT,
 	PLAYFIELD_HEIGHT,
 	PLAYFIELD_WIDTH,
+	PLAYFIELD_X,
+	PLAYFIELD_Y,
 } from '../js/constants.js';
 
 /** @type {{x: number, y: number, width: number, height: number}} Position of the playfield on the canvas. */
-const PLAYFIELD = { x: 64, y: 96, width: PLAYFIELD_WIDTH, height: PLAYFIELD_HEIGHT };
+const PLAYFIELD = { x: PLAYFIELD_X, y: PLAYFIELD_Y, width: PLAYFIELD_WIDTH, height: PLAYFIELD_HEIGHT };
 
 /**
  * Create a pseudo-random generator with the mulberry32 algorithm.

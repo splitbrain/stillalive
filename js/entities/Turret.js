@@ -101,7 +101,7 @@ export class Turret {
 					createCakeOrSmokeSparkles(this.x, this.y, SparkleType.SMOKE, 4, 255);
 				}
 			} else if (this.animFrame < 10) {
-				if (game.TIME % 4 == 0) this.animFrame++;
+				if (game.time % 4 == 0) this.animFrame++;
 			}
 
 			let pi = onPlatform(this);

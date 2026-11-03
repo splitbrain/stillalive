@@ -3,7 +3,7 @@
  */
 
 import { ctx } from '../canvas.js';
-import { GRAVITY } from '../constants.js';
+import { GRAVITY, SparkleType } from '../constants.js';
 import { sparkle } from '../images.js';
 import { getTile } from '../physics.js';
 import { game } from '../state.js';
@@ -17,10 +17,10 @@ import { getCos, getDistance, getSin, random } from '../utils.js';
  * @param {number} xTo The x position of the end in 1/256 pixels.
  * @param {number} yTo The y position of the end in 1/256 pixels.
  * @param {number} color The color index.
- * @param {number} used The sparkle type.
+ * @param {number} type The sparkle type, a value of SparkleType.
  * @returns {void}
  */
-export function createSparkles(xFrom, yFrom, xTo, yTo, color, used) {
+export function createSparkles(xFrom, yFrom, xTo, yTo, color, type) {
 	let k;
 	let x = xFrom;
 	let y = yFrom;
@@ -42,7 +42,7 @@ export function createSparkles(xFrom, yFrom, xTo, yTo, color, used) {
 				const s = new Sparkle();
 				s.x = x + random(-5 << 8, 5 << 8) - (8 << 8) - (game.offsetX << 8);
 				s.y = y + random(-5 << 8, 5 << 8) - (8 << 8) - (game.offsetY << 8);
-				s.used = used;
+				s.type = type;
 				s.vx = random(96, 192);
 				s.vy = random(96, 192);
 				s.fading = 255;
@@ -61,13 +61,13 @@ export function createSparkles(xFrom, yFrom, xTo, yTo, color, used) {
  * Remove the sparkles of one type and color.
  *
  * @param {number} p The color index.
- * @param {number} used The sparkle type.
+ * @param {number} type The sparkle type, a value of SparkleType.
  * @returns {void}
  */
-export function removeSparkles(p, used) {
+export function removeSparkles(p, type) {
 	let i;
 	for (i = 0; i < game.sparkles.length; i++) {
-		if (game.sparkles[i].used == used && game.sparkles[i].color == p) {
+		if (game.sparkles[i].type == type && game.sparkles[i].color == p) {
 			game.sparkles.splice(i, 1);
 			i--;
 		}
@@ -83,27 +83,27 @@ export function updateSparkles() {
 	let d, i, sc;
 	for (i = 0; i < game.sparkles.length; i++) {
 		const s = game.sparkles[i];
-		if (s.used == 5) s.vy += GRAVITY;
-		else if (s.used == 6 || s.used == 7) s.vy += GRAVITY >> 1;
+		if (s.type == SparkleType.SHOT_HIT) s.vy += GRAVITY;
+		else if (s.type == SparkleType.DEATH || s.type == SparkleType.LOW_LIFE) s.vy += GRAVITY >> 1;
 
 		if (s.floorTime < 0) {
 			s.x += s.vx;
 			s.y += s.vy;
 			sc = s.fading / 255;
 		} else {
-			if (s.used == 7) {
+			if (s.type == SparkleType.LOW_LIFE) {
 				s.fading -= 0.7;
 				sc = s.fading / 255;
-			} else if (s.used == 5) {
+			} else if (s.type == SparkleType.SHOT_HIT) {
 				if (++s.floorTime >= 120) s.fading -= 0.7;
 				sc = s.fading / 255;
 			}
 		}
 
-		if (s.used >= 5 && s.used < 8) {
+		if (s.type == SparkleType.SHOT_HIT || s.type == SparkleType.DEATH || s.type == SparkleType.LOW_LIFE) {
 			if (getTile((s.x >> 8) + ((16 * sc) >> 1), (s.y >> 8) + ((16 * sc) >> 1)) != 0) {
 				if (s.floorTime < 0) {
-					if (s.used == 7 || s.used == 5) {
+					if (s.type == SparkleType.LOW_LIFE || s.type == SparkleType.SHOT_HIT) {
 						s.floorTime = 0;
 					} else {
 						s.fading = 0;
@@ -112,10 +112,10 @@ export function updateSparkles() {
 			}
 		}
 
-		if (s.used == 1 || s.used == 4) {
+		if (s.type == SparkleType.PORTAL_SHOT || s.type == SparkleType.TELEPORT) {
 			s.fading -= 8;
 			if (getTile((s.x >> 8) + 4, (s.y >> 8) + 4) != 0) s.fading = 0;
-		} else if (s.used == 3) {
+		} else if (s.type == SparkleType.PORTAL_GLOW) {
 			if (s.vx != 0) {
 				d = Math.abs(s.xOrig - s.x) >> 8;
 				s.fading = 200 - 5 * d;
@@ -128,12 +128,12 @@ export function updateSparkles() {
 					s.xOrig = s.x;
 				}
 			}
-		} else if (s.used == 8 || s.used == 9) {
+		} else if (s.type == SparkleType.CAKE || s.type == SparkleType.SMOKE) {
 			s.fading -= 8;
 		}
 
 		if (s.fading <= 0) {
-			if (s.used == 3) {
+			if (s.type == SparkleType.PORTAL_GLOW) {
 				s.x = s.xOrig;
 				s.y = s.yOrig;
 				s.fading = 200;
@@ -155,7 +155,7 @@ export function drawSparkles() {
 		if (s.fading <= 0) continue;
 		const sc = s.fading / 255;
 		let dt = 9 - sc * 9;
-		if (s.used == 7 || s.used == 5) dt -= 8;
+		if (s.type == SparkleType.LOW_LIFE || s.type == SparkleType.SHOT_HIT) dt -= 8;
 		ctx.drawImage(
 			sparkle,
 			0,
@@ -175,7 +175,7 @@ export function drawSparkles() {
  *
  * @param {number} x The x position in 1/256 pixels.
  * @param {number} y The y position in 1/256 pixels.
- * @param {number} type The sparkle type; 8 and 9 select the colors of the cake and the smoke.
+ * @param {number} type SparkleType.CAKE or SparkleType.SMOKE, which also selects the color.
  * @param {number} number The number of sparkles.
  * @param {number} size The start value of the fade, which also sets the size.
  * @returns {void}
@@ -186,12 +186,12 @@ export function createCakeOrSmokeSparkles(x, y, type, number, size) {
 		const s = new Sparkle();
 		s.x = x + random(-8 << 8, 8 << 8);
 		s.y = y + random(-8 << 8, 8 << 8);
-		s.used = type;
+		s.type = type;
 		s.vx = random(-192, 192);
 		s.vy = random(-192, -96);
 		s.fading = size;
-		if (type == 8) s.color = 2;
-		else if (type == 9) s.color = 3;
+		if (type == SparkleType.CAKE) s.color = 2;
+		else if (type == SparkleType.SMOKE) s.color = 3;
 		s.portalNum = -1;
 		game.sparkles.push(s);
 	}
@@ -217,8 +217,8 @@ export class Sparkle {
 		this.vx = 0;
 		/** @type {number} The vertical speed in 1/256 pixels per tick. */
 		this.vy = 0;
-		/** @type {number} The sparkle type, which selects the movement, the fade and the image. */
-		this.used = 0;
+		/** @type {number} The sparkle type, a value of SparkleType. */
+		this.type = 0;
 		/** @type {number} The color index. */
 		this.color = 0;
 		/** @type {number} Ticks since the sparkle landed on the floor, or -1 while it flies. */

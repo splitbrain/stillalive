@@ -3,6 +3,7 @@
  */
 
 import { ctx } from './canvas.js';
+import { SparkleType } from './constants.js';
 import { Crate } from './entities/Crate.js';
 import { Plasma } from './entities/Plasma.js';
 import { Projectile } from './entities/Projectile.js';
@@ -345,7 +346,7 @@ export function updateBossRumble() {
 		game.offsetY = 96 + random(-3, 3);
 	}
 	if (!game.bossIsComing && game.TIME % 10 == 0 && game.bossX < 530) {
-		createCakeOrSmokeSparkles((game.bossX + 14) << 8, (game.bossY + 18) << 8, 9, 3, 300);
+		createCakeOrSmokeSparkles((game.bossX + 14) << 8, (game.bossY + 18) << 8, SparkleType.SMOKE, 3, 300);
 		game.bossX += 1;
 	}
 }

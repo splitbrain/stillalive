@@ -6,7 +6,7 @@
  * campaign.
  */
 
-import { Menu } from './constants.js';
+import { LEVELS_PER_CAMPAIGN, Menu } from './constants.js';
 import { alertDialog } from './dialog.js';
 import { pickJsonFile } from './files.js';
 import { unclick } from './input.js';
@@ -73,7 +73,7 @@ function panelHtml() {
 		html += '<p><button data-action="import">Import replay</button></p>';
 	}
 
-	html += `<p class="total">Campaign total: ${toTime(total.ticks)}<br>${total.levels} of 28 levels</p>`;
+	html += `<p class="total">Campaign total: ${toTime(total.ticks)}<br>${total.levels} of ${LEVELS_PER_CAMPAIGN} levels</p>`;
 	return html;
 }
 
@@ -99,7 +99,8 @@ export function updatePanel() {
 function startReplay(data) {
 	const recorded = decodeReplay(data);
 	const campaign = campaigns.findIndex((c) => c.folder === data.campaign && c.folder !== 'tutorial');
-	if (campaign < 0 || data.level < 1 || data.level > 28) throw new Error('The replay is for an unknown level.');
+	if (campaign < 0 || data.level < 1 || data.level > LEVELS_PER_CAMPAIGN)
+		throw new Error('The replay is for an unknown level.');
 
 	ui.campaign = campaign;
 	ui.previewMap = data.level;

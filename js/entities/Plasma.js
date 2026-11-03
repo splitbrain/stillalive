@@ -3,7 +3,7 @@
  */
 
 import { playSound, setSoundVolume, sfx_bounce } from '../audio.js';
-import { Direction } from '../constants.js';
+import { Direction, MAP_SIZE, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH } from '../constants.js';
 import { getCollision, getTileSimple } from '../physics.js';
 import { inPortal } from '../portals.js';
 import { reloadTiles } from '../render/game.js';
@@ -105,7 +105,7 @@ export class Plasma {
 			else if (this.vy < -this.vMax) this.vy = -this.vMax;
 		}
 
-		if (this.y >> 8 > 384 || this.y >> 8 <= -16 || this.x >> 8 > 512 || this.x >> 8 < -16) {
+		if (this.y >> 8 > PLAYFIELD_HEIGHT || this.y >> 8 <= -16 || this.x >> 8 > PLAYFIELD_WIDTH || this.x >> 8 < -16) {
 			this.x = this.xOrig;
 			this.y = this.yOrig;
 			this.vx = this.origVx;
@@ -143,7 +143,7 @@ export class Plasma {
 	 */
 	hasSlot() {
 		let i;
-		for (i = 0; i < 768; i++) {
+		for (i = 0; i < MAP_SIZE; i++) {
 			if (game.map[i] == Tile.PLASMA_SLOT) return 1;
 		}
 		return 0;

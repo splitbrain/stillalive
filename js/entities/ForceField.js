@@ -2,7 +2,7 @@
  * The ForceField object and its helper functions.
  */
 
-import { Direction, NUM_TILES } from '../constants.js';
+import { Direction, NUM_TILES, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, SparkleType } from '../constants.js';
 import { removeSparkles } from './Sparkle.js';
 import { getTileSimple, getTileWithoutCrates, getTileWithoutObjects } from '../physics.js';
 import { pointInPortal } from '../portals.js';
@@ -20,7 +20,7 @@ export function fieldForceTest() {
 			let i;
 			for (i = 0; i < 2; i++) {
 				game.portals[i].used = false;
-				removeSparkles(i, 3);
+				removeSparkles(i, SparkleType.PORTAL_GLOW);
 			}
 		}
 	}
@@ -149,7 +149,7 @@ function traceTunnelField(sx, sy, vx, vy) {
 	x += vx * 16;
 	y += vy * 16;
 
-	while (x >= 0 && x < 512 && y >= 0 && y < 384) {
+	while (x >= 0 && x < PLAYFIELD_WIDTH && y >= 0 && y < PLAYFIELD_HEIGHT) {
 		if (vx != 0) {
 			tile = getTileWithoutObjects(x, y);
 			if (tile == Tile.EMPTY) tile = getTileWithoutObjects(x, y + 8);

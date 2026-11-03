@@ -3,13 +3,13 @@
  */
 
 import { playSound, sfx_throwObject } from './audio.js';
-import { Direction, GRAVITY, MouseButton } from './constants.js';
+import { Direction, GRAVITY, MouseButton, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH } from './constants.js';
 import { crateAt, crateLandsOnPlayer, movingCrateTouching } from './entities/Crate.js';
 import { inForceFieldTp } from './entities/ForceField.js';
 import { onCarpet, platformAt } from './entities/Platform.js';
 import { checkTeleportDown, checkTeleportLeft, checkTeleportRight, checkTeleportUp, inPortal } from './portals.js';
 import { game, input } from './state.js';
-import { FIRST_OF_KIND, Tile, TileKind, inForceFieldRange, isCrateCode, isDeadlyTile, isTileKind } from './tiles.js';
+import { FIRST_OF_KIND, inForceFieldRange, isCrateCode, isDeadlyTile, isTileKind, Tile, TileKind } from './tiles.js';
 import { getCos, getDistance, getSin } from './utils.js';
 
 /**
@@ -40,7 +40,7 @@ export function touchingGround(obj) {
  * @returns {boolean} True if the tile at the point is deadly.
  */
 function pointOnDeadlyTile(x, y) {
-	if (x >= 512 || y >= 384 || y < 0 || x < 0) return 0;
+	if (x >= PLAYFIELD_WIDTH || y >= PLAYFIELD_HEIGHT || y < 0 || x < 0) return 0;
 	const tile = game.map[(y >> 4) * 32 + (x >> 4)];
 	return isDeadlyTile(tile);
 }
@@ -75,7 +75,7 @@ export function touchesDeadlyTile(obj) {
  * @returns {number} The tile id, a platform code, or Tile.EMPTY if nothing solid is there.
  */
 export function getTileWithoutCrates(x, y) {
-	if (x >= 512 || y >= 384 || y < 0 || x < 0) return 0;
+	if (x >= PLAYFIELD_WIDTH || y >= PLAYFIELD_HEIGHT || y < 0 || x < 0) return 0;
 	let tile = game.map[(y >> 4) * 32 + (x >> 4)];
 
 	if (!tile) {
@@ -96,7 +96,7 @@ export function getTileWithoutCrates(x, y) {
  * @returns {number} The tile id, or Tile.EMPTY if nothing solid is there.
  */
 export function getTileWithoutObjects(x, y) {
-	if (x >= 512 || y >= 384 || y < 0 || x < 0) return 0;
+	if (x >= PLAYFIELD_WIDTH || y >= PLAYFIELD_HEIGHT || y < 0 || x < 0) return 0;
 	let tile = game.map[(y >> 4) * 32 + (x >> 4)];
 
 	if (tile == Tile.EXIT || isDeadlyTile(tile) || tile == Tile.PLAYER_START || inForceFieldRange(tile))
@@ -113,7 +113,7 @@ export function getTileWithoutObjects(x, y) {
  * @returns {number} The tile id, a crate code, a platform code, or Tile.EMPTY if nothing solid is there.
  */
 export function getTile(x, y) {
-	if (x >= 512 || y >= 384 || y < 0 || x < 0) return 0;
+	if (x >= PLAYFIELD_WIDTH || y >= PLAYFIELD_HEIGHT || y < 0 || x < 0) return 0;
 	let tile = game.map[(y >> 4) * 32 + (x >> 4)];
 
 	if (!tile) {
@@ -138,7 +138,7 @@ export function getTile(x, y) {
  * @returns {number} The tile id, a platform code, or Tile.EMPTY if the shot passes.
  */
 export function getTilePortal(x, y) {
-	if (x >= 512 || y >= 384 || y < 0 || x < 0) return 0;
+	if (x >= PLAYFIELD_WIDTH || y >= PLAYFIELD_HEIGHT || y < 0 || x < 0) return 0;
 	let tile = game.map[(y >> 4) * 32 + (x >> 4)];
 	if (
 		tile == Tile.EXIT ||
@@ -634,7 +634,7 @@ export function checkCollisions(obj) {
 export function atExit() {
 	if (!inPortal(game.player)) {
 		for (let j = 2; j <= 14; j += 2) {
-			if (getTileSimple((game.player.x >> 8) + j, (game.player.y >> 8) + j) == 22) return 1;
+			if (getTileSimple((game.player.x >> 8) + j, (game.player.y >> 8) + j) == Tile.EXIT) return 1;
 		}
 	}
 
@@ -649,7 +649,7 @@ export function atExit() {
  * @returns {number} The tile id, or 0 outside the playfield.
  */
 export function getTileSimple(x, y) {
-	if (x >= 512 || y >= 384 || y < 0 || x < 0) return 0;
+	if (x >= PLAYFIELD_WIDTH || y >= PLAYFIELD_HEIGHT || y < 0 || x < 0) return 0;
 	const tile = game.map[(y >> 4) * 32 + (x >> 4)];
 
 	return tile;

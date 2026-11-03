@@ -3,7 +3,7 @@
  */
 
 import { ctx } from './canvas.js';
-import { CampaignId, Direction } from './constants.js';
+import { CampaignId, Direction, PLAYFIELD_WIDTH, SparkleType, TUTORIAL_END_LEVEL } from './constants.js';
 import { Sparkle } from './entities/Sparkle.js';
 import { unclick } from './input.js';
 import { keyLabels } from './keys.js';
@@ -94,13 +94,13 @@ function endPause() {
  * @returns {void}
  */
 export function drawTutorial() {
-	if (ui.currentLevel == 9) {
+	if (ui.currentLevel == TUTORIAL_END_LEVEL) {
 		drawEndTutorialMessage();
 		return;
 	}
 	if (atExit()) return;
 	if (ui.currentLevel == 1) {
-		if (game.player.x >> 8 > 512 - 256) drawExitMessage();
+		if (game.player.x >> 8 > PLAYFIELD_WIDTH / 2) drawExitMessage();
 		if (ui.tutoPause && ui.tutoJump) drawJumpMessage();
 		else if (ui.tutoPause && game.player.fadeNextLevel < 1) drawMoveMessage();
 	} else if (ui.currentLevel == 2) {
@@ -133,7 +133,7 @@ export function drawTutorial() {
  * @returns {void}
  */
 function drawEndTutorialMessage() {
-	prepareTxt(32, 152, 512 - 32, 72);
+	prepareTxt(32, 152, PLAYFIELD_WIDTH - 32, 72);
 	ctx.font = '16px Arial';
 	ctx.fillText('Congratulations ! You just learned the basics of StillAliveJS.', leftPan, game.offsetY + 170);
 	ctx.fillText('You have now a better understanding of the mechanics of the game.', leftPan, game.offsetY + 170 + 16);
@@ -365,7 +365,7 @@ export function prepareTxt(x, y, w, h) {
  */
 function displayPortals() {
 	let p, i;
-	game.portals[0].direction = 3;
+	game.portals[0].direction = Direction.RIGHT;
 	game.portals[0].frame = 1;
 	game.portals[0].platformIndex = -1;
 	game.portals[0].scaleX = 1;
@@ -376,7 +376,7 @@ function displayPortals() {
 	game.portals[0].x = 144 << 8;
 	game.portals[0].y = 225 << 8;
 
-	game.portals[1].direction = 2;
+	game.portals[1].direction = Direction.LEFT;
 	game.portals[1].frame = 1;
 	game.portals[1].platformIndex = -1;
 	game.portals[1].scaleX = 1;
@@ -395,7 +395,7 @@ function displayPortals() {
 			s.xOrig = s.x;
 			s.yOrig = s.y;
 			s.portalNum = p;
-			s.used = 3;
+			s.type = SparkleType.PORTAL_GLOW;
 			if (game.portals[p].direction == Direction.RIGHT) {
 				s.vx = -random(128, 384);
 				s.xOrig -= 7 << 8;

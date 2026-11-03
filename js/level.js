@@ -4,7 +4,18 @@
 
 import { playSound, sfx_tick } from './audio.js';
 import { setupBoss } from './boss.js';
-import { CAMPAIGN_FOLDERS, CampaignId, Direction, Menu, ORDERED, RANDOM } from './constants.js';
+import {
+	CAMPAIGN_FOLDERS,
+	CampaignId,
+	Direction,
+	MAP_HEIGHT,
+	MAP_WIDTH,
+	Menu,
+	ORDERED,
+	PLAYFIELD_HEIGHT,
+	RANDOM,
+	SparkleType,
+} from './constants.js';
 import { AnimatedTile } from './entities/AnimatedTile.js';
 import { Cake } from './entities/Cake.js';
 import { Camera } from './entities/Camera.js';
@@ -75,7 +86,7 @@ function clearDoorBlockers() {
 				for (j = 0; j < 32; j++) {
 					if (getTileSimple(x, y + j) == FIRST_OF_KIND[TileKind.SWITCH_DOOR]) {
 						game.portals[i].used = false;
-						removeSparkles(i, 3);
+						removeSparkles(i, SparkleType.PORTAL_GLOW);
 						j = 32;
 					}
 				}
@@ -83,7 +94,7 @@ function clearDoorBlockers() {
 				for (j = 0; j < 32; j++) {
 					if (getTileSimple(x + j, y) == FIRST_OF_KIND[TileKind.SWITCH_DOOR]) {
 						game.portals[i].used = false;
-						removeSparkles(i, 3);
+						removeSparkles(i, SparkleType.PORTAL_GLOW);
 						j = 32;
 					}
 				}
@@ -178,9 +189,9 @@ function playerOnSwitch(x, y) {
 function crateOnSwitch() {
 	let i;
 	for (i = 0; i < game.crates.length; i++) {
-		if (getTileSimple(game.crates[i].x >> 8, (game.crates[i].y >> 8) + 19) == 19) {
+		if (getTileSimple(game.crates[i].x >> 8, (game.crates[i].y >> 8) + 19) == Tile.SWITCH) {
 			return 1;
-		} else if (getTileSimple((game.crates[i].x >> 8) + 15, (game.crates[i].y >> 8) + 19) == 19) {
+		} else if (getTileSimple((game.crates[i].x >> 8) + 15, (game.crates[i].y >> 8) + 19) == Tile.SWITCH) {
 			return 1;
 		}
 	}
@@ -356,25 +367,25 @@ export function loadLevelEditor() {
 		if (game.map[i] == Tile.TUNNEL_RIGHT) {
 			game.tunnels.push(new Tunnel((x * 16) << 8, (y * 16) << 8, Direction.RIGHT));
 			game.map[i] = Tile.TUNNEL_BLOCK;
-			game.map[x + ((y + 1) << 5)] = 199;
+			game.map[x + ((y + 1) << 5)] = Tile.TUNNEL_BLOCK;
 			game.displayMap[i] = 0;
 			game.displayMap[x + ((y + 1) << 5)] = 0;
 		} else if (game.map[i] == Tile.TUNNEL_LEFT) {
 			game.tunnels.push(new Tunnel((x * 16) << 8, (y * 16) << 8, Direction.LEFT));
 			game.map[i] = Tile.TUNNEL_BLOCK;
-			game.map[x + ((y + 1) << 5)] = 199;
+			game.map[x + ((y + 1) << 5)] = Tile.TUNNEL_BLOCK;
 			game.displayMap[i] = 0;
 			game.displayMap[x + ((y + 1) << 5)] = 0;
 		} else if (game.map[i] == Tile.TUNNEL_UP) {
 			game.tunnels.push(new Tunnel((x * 16) << 8, (y * 16) << 8, Direction.UP));
 			game.map[i] = Tile.TUNNEL_BLOCK;
-			game.map[x + 1 + (y << 5)] = 199;
+			game.map[x + 1 + (y << 5)] = Tile.TUNNEL_BLOCK;
 			game.displayMap[i] = 0;
 			game.displayMap[x + 1 + (y << 5)] = 0;
 		} else if (game.map[i] == Tile.TUNNEL_DOWN) {
 			game.tunnels.push(new Tunnel((x * 16) << 8, (y * 16) << 8, Direction.DOWN));
 			game.map[i] = Tile.TUNNEL_BLOCK;
-			game.map[x + 1 + (y << 5)] = 199;
+			game.map[x + 1 + (y << 5)] = Tile.TUNNEL_BLOCK;
 			game.displayMap[i] = 0;
 			game.displayMap[x + 1 + (y << 5)] = 0;
 		} else if (game.map[i] == Tile.EXIT) {
@@ -464,11 +475,11 @@ export function loadLevelEditor() {
 			game.map[i] = 0;
 			continue;
 		} else if (game.map[i] == Tile.PLASMA_START) {
-			if (x + 1 < 32) right = game.map[x + 1 + (y << 5)];
+			if (x + 1 < MAP_WIDTH) right = game.map[x + 1 + (y << 5)];
 			else right = 1;
 			if (x - 1 >= 0) left = game.map[x - 1 + (y << 5)];
 			else left = 1;
-			if (y + 1 < 24) down = game.map[x + ((y + 1) << 5)];
+			if (y + 1 < MAP_HEIGHT) down = game.map[x + ((y + 1) << 5)];
 			else down = 1;
 			if (y - 1 >= 0) up = game.map[x + ((y - 1) << 5)];
 			else up = 1;
@@ -576,7 +587,7 @@ export function loadLevel(level) {
 		if (level == 8 && ui.campaign <= CampaignId.ADVANCED) {
 			game.player.vy = -2400;
 			game.player.x = 128 << 8;
-			game.player.y = 384 << 8;
+			game.player.y = PLAYFIELD_HEIGHT << 8;
 		}
 	}
 
@@ -587,25 +598,25 @@ export function loadLevel(level) {
 		if (game.map[i] == Tile.TUNNEL_RIGHT) {
 			game.tunnels.push(new Tunnel((x * 16) << 8, (y * 16) << 8, Direction.RIGHT));
 			game.map[i] = Tile.TUNNEL_BLOCK;
-			game.map[x + ((y + 1) << 5)] = 199;
+			game.map[x + ((y + 1) << 5)] = Tile.TUNNEL_BLOCK;
 			game.displayMap[i] = 0;
 			game.displayMap[x + ((y + 1) << 5)] = 0;
 		} else if (game.map[i] == Tile.TUNNEL_LEFT) {
 			game.tunnels.push(new Tunnel((x * 16) << 8, (y * 16) << 8, Direction.LEFT));
 			game.map[i] = Tile.TUNNEL_BLOCK;
-			game.map[x + ((y + 1) << 5)] = 199;
+			game.map[x + ((y + 1) << 5)] = Tile.TUNNEL_BLOCK;
 			game.displayMap[i] = 0;
 			game.displayMap[x + ((y + 1) << 5)] = 0;
 		} else if (game.map[i] == Tile.TUNNEL_UP) {
 			game.tunnels.push(new Tunnel((x * 16) << 8, (y * 16) << 8, Direction.UP));
 			game.map[i] = Tile.TUNNEL_BLOCK;
-			game.map[x + 1 + (y << 5)] = 199;
+			game.map[x + 1 + (y << 5)] = Tile.TUNNEL_BLOCK;
 			game.displayMap[i] = 0;
 			game.displayMap[x + 1 + (y << 5)] = 0;
 		} else if (game.map[i] == Tile.TUNNEL_DOWN) {
 			game.tunnels.push(new Tunnel((x * 16) << 8, (y * 16) << 8, Direction.DOWN));
 			game.map[i] = Tile.TUNNEL_BLOCK;
-			game.map[x + 1 + (y << 5)] = 199;
+			game.map[x + 1 + (y << 5)] = Tile.TUNNEL_BLOCK;
 			game.displayMap[i] = 0;
 			game.displayMap[x + 1 + (y << 5)] = 0;
 		} else if (game.map[i] == Tile.EXIT) {
@@ -701,11 +712,11 @@ export function loadLevel(level) {
 			game.map[i] = 0;
 			continue;
 		} else if (game.map[i] == Tile.PLASMA_START) {
-			if (x + 1 < 32) right = game.map[x + 1 + (y << 5)];
+			if (x + 1 < MAP_WIDTH) right = game.map[x + 1 + (y << 5)];
 			else right = 1;
 			if (x - 1 >= 0) left = game.map[x - 1 + (y << 5)];
 			else left = 1;
-			if (y + 1 < 24) down = game.map[x + ((y + 1) << 5)];
+			if (y + 1 < MAP_HEIGHT) down = game.map[x + ((y + 1) << 5)];
 			else down = 1;
 			if (y - 1 >= 0) up = game.map[x + ((y - 1) << 5)];
 			else up = 1;
@@ -843,7 +854,7 @@ export function loadPreviewMap(level) {
 	if (level == 8 && ui.campaign <= CampaignId.ADVANCED) {
 		game.player.vy = -2400;
 		game.player.x = 128 << 8;
-		game.player.y = 384 << 8;
+		game.player.y = PLAYFIELD_HEIGHT << 8;
 	}
 
 	game.bossNum = level > 0 ? campaigns[ui.campaign].bosses[level - 1] : 0;

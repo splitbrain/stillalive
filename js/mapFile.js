@@ -12,16 +12,13 @@
  *   editor does not use the text.
  */
 
-import { NUM_TILES } from './constants.js';
+import { MAP_SIZE, NUM_TILES } from './constants.js';
 import { downloadJson, pickJsonFile } from './files.js';
 import { bg } from './images.js';
 import { Tile, isObjectTile } from './tiles.js';
 
 /** @type {number} The version of the map file format. */
 export const MAP_FORMAT = 1;
-
-/** @type {number} The number of tiles of a map. */
-const MAP_SIZE = 768;
 
 /** @type {number} The number of bosses. */
 const BOSS_COUNT = 4;

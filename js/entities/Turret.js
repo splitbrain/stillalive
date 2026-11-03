@@ -3,6 +3,7 @@
  */
 
 import { playSound, playSoundIfFinished, sfx_explode, sfx_shoot } from '../audio.js';
+import { PLAYFIELD_WIDTH, SparkleType } from '../constants.js';
 import { anyCrateAt, movingCrateTouching } from './Crate.js';
 import { inForceFieldTp } from './ForceField.js';
 import { plasmaTouching } from './Plasma.js';
@@ -19,7 +20,7 @@ import {
 } from '../physics.js';
 import { inPortal } from '../portals.js';
 import { game } from '../state.js';
-import { Tile, isPlatformCode } from '../tiles.js';
+import { isPlatformCode, PLATFORM_CODE, Tile } from '../tiles.js';
 import { random } from '../utils.js';
 
 /** @type {number} The number of ticks between two shots. */
@@ -97,7 +98,7 @@ export class Turret {
 				if (this.dead) {
 					this.animFrame = 2;
 					playSound(sfx_explode);
-					createCakeOrSmokeSparkles(this.x, this.y, 9, 4, 255);
+					createCakeOrSmokeSparkles(this.x, this.y, SparkleType.SMOKE, 4, 255);
 				}
 			} else if (this.animFrame < 10) {
 				if (game.TIME % 4 == 0) this.animFrame++;
@@ -105,7 +106,7 @@ export class Turret {
 
 			let pi = onPlatform(this);
 			if (pi) {
-				pi -= 200;
+				pi -= PLATFORM_CODE;
 				this.x += game.platforms[pi].vx;
 			}
 
@@ -115,7 +116,7 @@ export class Turret {
 				this.dead = true;
 				this.animFrame = 2;
 				playSound(sfx_explode);
-				createCakeOrSmokeSparkles(this.x, this.y, 9, 4, 255);
+				createCakeOrSmokeSparkles(this.x, this.y, SparkleType.SMOKE, 4, 255);
 			}
 		} else {
 			placeObject(this);
@@ -151,7 +152,7 @@ export class Turret {
 				let playerInSight = 0;
 				let stop = 0;
 				const oldJ = j;
-				while (j >= 0 && j < 512 && !playerInSight && !stop) {
+				while (j >= 0 && j < PLAYFIELD_WIDTH && !playerInSight && !stop) {
 					const tile = getTile(j, beamY);
 					if (tile != Tile.EMPTY) {
 						stop = 1;
@@ -191,7 +192,7 @@ export class Turret {
 							const s = new Sparkle();
 							s.x = game.player.x + (this.pX << 7) + random(-8 << 8, 8 << 8);
 							s.y = game.player.y + (this.pY << 6);
-							s.used = 5;
+							s.type = SparkleType.SHOT_HIT;
 							s.vx = random(512, 1024) * this.dir;
 							s.vy = random(-3 << 8, 0);
 							s.fading = 50;

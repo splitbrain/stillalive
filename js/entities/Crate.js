@@ -3,6 +3,7 @@
  */
 
 import { hitBoss, manageInTube } from '../boss.js';
+import { PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH } from '../constants.js';
 import { inForceField } from './ForceField.js';
 import { plasmaTouching } from './Plasma.js';
 import { onPlatform } from './Platform.js';
@@ -17,7 +18,7 @@ import {
 } from '../physics.js';
 import { inPortal } from '../portals.js';
 import { game } from '../state.js';
-import { CRATE_CODE, LAST_OF_KIND, TileKind, isTileKind } from '../tiles.js';
+import { CRATE_CODE, isTileKind, LAST_OF_KIND, PLATFORM_CODE, TileKind } from '../tiles.js';
 
 /**
  * A crate. The player can carry and throw it, and it can press switches and stop turret shots.
@@ -132,7 +133,7 @@ export class Crate {
 
 				let pi = onPlatform(this);
 				if (pi) {
-					pi -= 200;
+					pi -= PLATFORM_CODE;
 					this.x += game.platforms[pi].vx;
 					this.platformIndex = pi;
 					if (game.platforms[pi].vx < 0 && leftCollision(this)) this.x -= game.platforms[pi].vx;
@@ -149,7 +150,14 @@ export class Crate {
 				}
 				const x = this.x >> 8;
 				const y = this.y >> 8;
-				if (x < -16 || x > 512 || y < -16 || y > 384 || touchesDeadlyTile(this) || plasmaTouching(this)) {
+				if (
+					x < -16 ||
+					x > PLAYFIELD_WIDTH ||
+					y < -16 ||
+					y > PLAYFIELD_HEIGHT ||
+					touchesDeadlyTile(this) ||
+					plasmaTouching(this)
+				) {
 					if (game.bossNum == 1 || game.bossNum == 3 || game.bossNum == 4) {
 						this.needKill = true;
 						return;

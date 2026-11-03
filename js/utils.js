@@ -2,6 +2,8 @@
  * Math and helper functions.
  */
 
+import { PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH } from './constants.js';
+
 /**
  * Convert degrees to radians.
  *
@@ -79,8 +81,8 @@ export function getSin(x1, y1, x2, y2) {
  * @returns {number} 1 if the point is inside the 512 x 384 pixels of the playfield, else 0.
  */
 export function inScreen(x, y) {
-	if (x < 0 || x >= 512) return 0;
-	if (y < 0 || y >= 384) return 0;
+	if (x < 0 || x >= PLAYFIELD_WIDTH) return 0;
+	if (y < 0 || y >= PLAYFIELD_HEIGHT) return 0;
 	return 1;
 }
 

@@ -5,7 +5,14 @@
 import { playSound, setSoundVolume, sfx_flatline, sfx_transition } from './audio.js';
 import { skipComingBoss, updateBoss, updateBossRumble } from './boss.js';
 import { ctx } from './canvas.js';
-import { CampaignId, IntermissionButton, LEVELS_PER_CAMPAIGN, Menu, Transition } from './constants.js';
+import {
+	CampaignId,
+	IntermissionButton,
+	LEVELS_PER_CAMPAIGN,
+	Menu,
+	Transition,
+	TUTORIAL_END_LEVEL,
+} from './constants.js';
 import { alertDialog } from './dialog.js';
 import { drawLevelEditor } from './editor.js';
 import { animateTiles } from './entities/AnimatedTile.js';
@@ -162,7 +169,7 @@ function updateLevel() {
 	updateObjects();
 	updateBoss();
 
-	if (ui.currentMenu == Menu.TUTORIAL && ui.currentLevel == 9 && input.mousePressed) {
+	if (ui.currentMenu == Menu.TUTORIAL && ui.currentLevel == TUTORIAL_END_LEVEL && input.mousePressed) {
 		unclick();
 		ui.currentMenu = Menu.MAIN;
 		ui.selectMenu = 0;
@@ -209,11 +216,11 @@ function updateLevelEnd() {
 
 		if (ui.currentMenu == Menu.TUTORIAL) {
 			ui.currentLevel++;
-			if (ui.currentLevel < 9) {
+			if (ui.currentLevel < TUTORIAL_END_LEVEL) {
 				unclick();
 				loadLevel(ui.currentLevel);
 			} else {
-				ui.currentLevel = 9;
+				ui.currentLevel = TUTORIAL_END_LEVEL;
 				if (!ui.tutoEnded) game.player.fadeNextLevel = 1;
 			}
 			ui.tutoPause = true;

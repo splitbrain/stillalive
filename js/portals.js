@@ -3,7 +3,7 @@
  */
 
 import { playSound, sfx_enterPortal, sfx_noPortal, sfx_portal } from './audio.js';
-import { Direction } from './constants.js';
+import { Direction, SparkleType } from './constants.js';
 import { Sparkle, removeSparkles } from './entities/Sparkle.js';
 import { getTile, getTilePortal } from './physics.js';
 import { game, input } from './state.js';
@@ -31,7 +31,7 @@ export function launchPortal(p) {
 	game.portals[p].vy = getSin(input.mouseX, input.mouseY, (x >> 8) + game.offsetX, (y >> 8) + game.offsetY) * 256;
 
 	for (i = 0; i < game.sparkles.length; i++) {
-		if (game.sparkles[i].color == p && game.sparkles[i].used == 1) {
+		if (game.sparkles[i].color == p && game.sparkles[i].type == SparkleType.PORTAL_SHOT) {
 			game.sparkles.splice(i, 1);
 			i--;
 		}
@@ -70,7 +70,7 @@ export function launchPortal(p) {
 				const s = new Sparkle();
 				s.x = x + random(-5 << 8, 5 << 8) - (8 << 8);
 				s.y = y + random(-5 << 8, 5 << 8) - (8 << 8);
-				s.used = 1;
+				s.type = SparkleType.PORTAL_SHOT;
 				s.vx = random(96, 192);
 				s.vy = random(96, 192);
 				s.fading = 255;
@@ -167,7 +167,7 @@ function setPortalDir(p, x, y) {
 		game.portals[p].x = x << 8;
 		game.portals[p].used = true;
 
-		removeSparkles(p, 3);
+		removeSparkles(p, SparkleType.PORTAL_GLOW);
 
 		for (i = 0; i < 13; i++) {
 			s = new Sparkle();
@@ -176,7 +176,7 @@ function setPortalDir(p, x, y) {
 			s.xOrig = s.x;
 			s.yOrig = s.y;
 			s.portalNum = p;
-			s.used = 3;
+			s.type = SparkleType.PORTAL_GLOW;
 			if (game.portals[p].direction == Direction.RIGHT) {
 				s.vx = -random(128, 384);
 				s.xOrig -= 7 << 8;
@@ -229,7 +229,7 @@ function setPortalDir(p, x, y) {
 			game.portals[p].used = true;
 			game.portals[p].frame = 0;
 
-			removeSparkles(p, 3);
+			removeSparkles(p, SparkleType.PORTAL_GLOW);
 
 			for (i = 0; i < 13; i++) {
 				s = new Sparkle();
@@ -238,7 +238,7 @@ function setPortalDir(p, x, y) {
 				s.y = game.portals[p].y;
 				s.xOrig = s.x;
 				s.yOrig = s.y;
-				s.used = 3;
+				s.type = SparkleType.PORTAL_GLOW;
 				s.portalNum = p;
 				if (game.portals[p].direction == Direction.DOWN) {
 					s.vy = -random(128, 384);
@@ -531,7 +531,7 @@ export function clearPortals() {
 	if (ok) {
 		for (i = 0; i < 2; i++) {
 			game.portals[i].used = false;
-			removeSparkles(i, 3);
+			removeSparkles(i, SparkleType.PORTAL_GLOW);
 		}
 	}
 }

@@ -3,7 +3,7 @@
  */
 
 import { ctx } from '../canvas.js';
-import { Transition } from '../constants.js';
+import { PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, Transition } from '../constants.js';
 import { TRANS } from '../game.js';
 import { highscore, linesHoriz, linesVerti } from '../images.js';
 import { atExit } from '../physics.js';
@@ -41,7 +41,7 @@ export function drawTransition() {
 		// opening transition at the level start
 		if (game.player.intermissionFade < 0) {
 			ctx.fillStyle = 'rgb(0, 0, 0)';
-			ctx.fillRect(game.offsetX - 1, game.offsetY, 512, 384);
+			ctx.fillRect(game.offsetX - 1, game.offsetY, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 			const a = -(game.player.intermissionFade / 20);
 			ctx.globalAlpha = a;
 			ctx.drawImage(highscore, game.offsetX, game.offsetY);
@@ -60,33 +60,38 @@ function drawTransitionIn() {
 	ctx.fillStyle = 'rgb(0, 0, 0)';
 	const scale = 1 - game.player.fadeNextLevel / 120;
 	if (TRANS == Transition.TOP_LEFT) {
-		ctx.fillRect(game.offsetX, game.offsetY, Math.trunc(512 * scale), Math.trunc(384 * scale));
+		ctx.fillRect(game.offsetX, game.offsetY, Math.trunc(PLAYFIELD_WIDTH * scale), Math.trunc(PLAYFIELD_HEIGHT * scale));
 	} else if (TRANS == Transition.LEFT_TO_RIGHT) {
-		ctx.fillRect(game.offsetX, game.offsetY, Math.trunc(512 * scale), 384);
+		ctx.fillRect(game.offsetX, game.offsetY, Math.trunc(PLAYFIELD_WIDTH * scale), PLAYFIELD_HEIGHT);
 	} else if (TRANS == Transition.TOP_TO_BOTTOM) {
-		ctx.fillRect(game.offsetX, game.offsetY, 512, Math.trunc(384 * scale));
+		ctx.fillRect(game.offsetX, game.offsetY, PLAYFIELD_WIDTH, Math.trunc(PLAYFIELD_HEIGHT * scale));
 	} else if (TRANS == Transition.HORIZONTAL_LINES) {
 		lineCount = 120 - game.player.fadeNextLevel;
 		if (lineCount < linesHoriz.length) {
 			for (i = 0; i < lineCount; i++) {
-				ctx.fillRect(game.offsetX, game.offsetY + linesHoriz[i] * 3, 512, 3);
+				ctx.fillRect(game.offsetX, game.offsetY + linesHoriz[i] * 3, PLAYFIELD_WIDTH, 3);
 			}
 		} else {
-			ctx.fillRect(game.offsetX, game.offsetY, 512, 384);
+			ctx.fillRect(game.offsetX, game.offsetY, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 		}
 	} else if (TRANS == Transition.VERTICAL_LINES) {
 		lineCount = 120 - game.player.fadeNextLevel;
 		if (lineCount < linesVerti.length) {
 			for (i = 0; i < lineCount; i++) {
-				ctx.fillRect(game.offsetX + linesVerti[i] * 4, game.offsetY, 6, 384);
+				ctx.fillRect(game.offsetX + linesVerti[i] * 4, game.offsetY, 6, PLAYFIELD_HEIGHT);
 			}
 		} else {
-			ctx.fillRect(game.offsetX, game.offsetY, 512, 384);
+			ctx.fillRect(game.offsetX, game.offsetY, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 		}
 	} else if (TRANS == Transition.SQUARE) {
-		const x = 512 - Math.trunc(512 * scale);
-		const y = 384 - Math.trunc(384 * scale);
-		ctx.fillRect(game.offsetX + (x >> 1), game.offsetY + (y >> 1), Math.trunc(512 * scale), Math.trunc(384 * scale));
+		const x = PLAYFIELD_WIDTH - Math.trunc(PLAYFIELD_WIDTH * scale);
+		const y = PLAYFIELD_HEIGHT - Math.trunc(PLAYFIELD_HEIGHT * scale);
+		ctx.fillRect(
+			game.offsetX + (x >> 1),
+			game.offsetY + (y >> 1),
+			Math.trunc(PLAYFIELD_WIDTH * scale),
+			Math.trunc(PLAYFIELD_HEIGHT * scale),
+		);
 	}
 }
 
@@ -100,36 +105,41 @@ function drawTransitionOut() {
 	ctx.fillStyle = 'rgb(0, 0, 0)';
 	ctx.strokeStyle = 'rgb(0, 0, 0)';
 	const scale = game.player.fadeNextLevel / 120;
-	const x = 512 - Math.trunc(512 * scale);
-	const y = 384 - Math.trunc(384 * scale);
+	const x = PLAYFIELD_WIDTH - Math.trunc(PLAYFIELD_WIDTH * scale);
+	const y = PLAYFIELD_HEIGHT - Math.trunc(PLAYFIELD_HEIGHT * scale);
 
 	if (TRANS == Transition.TOP_LEFT) {
-		ctx.fillRect(game.offsetX + x, game.offsetY + y, Math.trunc(512 * scale), Math.trunc(384 * scale));
+		ctx.fillRect(
+			game.offsetX + x,
+			game.offsetY + y,
+			Math.trunc(PLAYFIELD_WIDTH * scale),
+			Math.trunc(PLAYFIELD_HEIGHT * scale),
+		);
 	} else if (TRANS == Transition.LEFT_TO_RIGHT) {
-		ctx.fillRect(game.offsetX + x, game.offsetY, Math.trunc(512 * scale), 384);
+		ctx.fillRect(game.offsetX + x, game.offsetY, Math.trunc(PLAYFIELD_WIDTH * scale), PLAYFIELD_HEIGHT);
 	} else if (TRANS == Transition.TOP_TO_BOTTOM) {
-		ctx.fillRect(game.offsetX, game.offsetY + y, 512, Math.trunc(384 * scale));
+		ctx.fillRect(game.offsetX, game.offsetY + y, PLAYFIELD_WIDTH, Math.trunc(PLAYFIELD_HEIGHT * scale));
 	} else if (TRANS == Transition.HORIZONTAL_LINES) {
 		lineCount = game.player.fadeNextLevel;
 		if (lineCount < linesHoriz.length) {
 			for (i = 0; i < lineCount; i++) {
-				ctx.fillRect(game.offsetX, game.offsetY + linesHoriz[i] * 3, 512, 5);
+				ctx.fillRect(game.offsetX, game.offsetY + linesHoriz[i] * 3, PLAYFIELD_WIDTH, 5);
 			}
 		} else {
-			ctx.fillRect(game.offsetX, game.offsetY, 512, 384);
+			ctx.fillRect(game.offsetX, game.offsetY, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 		}
 	} else if (TRANS == Transition.VERTICAL_LINES) {
 		lineCount = game.player.fadeNextLevel;
 		if (lineCount < linesVerti.length) {
 			for (i = 0; i < lineCount; i++) {
-				ctx.fillRect(game.offsetX + linesVerti[i] * 4, game.offsetY, 6, 384);
+				ctx.fillRect(game.offsetX + linesVerti[i] * 4, game.offsetY, 6, PLAYFIELD_HEIGHT);
 			}
 		} else {
-			ctx.fillRect(game.offsetX, game.offsetY, 512, 384);
+			ctx.fillRect(game.offsetX, game.offsetY, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 		}
 	} else if (TRANS == Transition.SQUARE) {
 		ctx.strokeStyle = 'rgb(0, 0, 0)';
-		ctx.lineWidth = 384 * scale;
-		ctx.strokeRect(game.offsetX, game.offsetY, 512, 384);
+		ctx.lineWidth = PLAYFIELD_HEIGHT * scale;
+		ctx.strokeRect(game.offsetX, game.offsetY, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 	}
 }

@@ -2,6 +2,7 @@
  * The Platform object and its helper functions.
  */
 
+import { PLAYFIELD_WIDTH } from '../constants.js';
 import { crateAt } from './Crate.js';
 import { leftCollision, rightCollision, touchingGround } from '../physics.js';
 import { game } from '../state.js';
@@ -44,7 +45,12 @@ export class Platform {
 	move() {
 		this.x += this.vx;
 		const x = this.x >> 8;
-		if (x < 0 || x > 512 - 48 || (this.vx > 0 && rightCollision(this)) || (this.vx < 0 && leftCollision(this))) {
+		if (
+			x < 0 ||
+			x > PLAYFIELD_WIDTH - 48 ||
+			(this.vx > 0 && rightCollision(this)) ||
+			(this.vx < 0 && leftCollision(this))
+		) {
 			this.vx = -this.vx;
 		}
 	}

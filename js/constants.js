@@ -42,6 +42,29 @@ export const GRAVITY = 60;
 /** @type {number} The number of tiles in the tile set. */
 export const NUM_TILES = 61;
 
+/** @type {number} The width of a map in tiles. */
+export const MAP_WIDTH = 32;
+/** @type {number} The height of a map in tiles. */
+export const MAP_HEIGHT = 24;
+/** @type {number} The number of tiles of a map. */
+export const MAP_SIZE = MAP_WIDTH * MAP_HEIGHT;
+/** @type {number} The width of the playfield in pixels. */
+export const PLAYFIELD_WIDTH = MAP_WIDTH * 16;
+/** @type {number} The height of the playfield in pixels. */
+export const PLAYFIELD_HEIGHT = MAP_HEIGHT * 16;
+
+/** @type {Object<string, number>} The types of the sparkles, which select their movement, their fade and their size. */
+export const SparkleType = {
+	PORTAL_SHOT: 1,
+	PORTAL_GLOW: 3,
+	TELEPORT: 4,
+	SHOT_HIT: 5,
+	DEATH: 6,
+	LOW_LIFE: 7,
+	CAKE: 8,
+	SMOKE: 9,
+};
+
 /** @type {Object<string, number>} The screens of the game, the value of ui.currentMenu. */
 export const Menu = {
 	LOADING: 0,
@@ -129,6 +152,9 @@ export const LEVELS_PER_CAMPAIGN = 28;
 
 /** @type {number} The value of the highest unlocked level after the player finished the last level of a campaign. */
 export const CAMPAIGN_FINISHED = LEVELS_PER_CAMPAIGN + 1;
+
+/** @type {number} The level number of the end screen of the tutorial, after its last level. */
+export const TUTORIAL_END_LEVEL = 9;
 
 /** @type {Object<number, number>} The campaign that each campaign button of the main menu opens. */
 export const BUTTON_CAMPAIGN = {

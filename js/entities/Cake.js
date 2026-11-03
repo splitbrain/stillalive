@@ -3,6 +3,7 @@
  */
 
 import { playSound, sfx_grabCake } from '../audio.js';
+import { MAP_SIZE, SparkleType } from '../constants.js';
 import { createCakeOrSmokeSparkles } from './Sparkle.js';
 import { reloadTiles } from '../render/game.js';
 import { game } from '../state.js';
@@ -16,7 +17,7 @@ import { random } from '../utils.js';
  */
 export function openExit() {
 	let i;
-	for (i = 0; i < 768; i++) {
+	for (i = 0; i < MAP_SIZE; i++) {
 		if (game.map[i] == Tile.EXIT_CLOSED) {
 			game.map[i] = Tile.EXIT;
 			game.displayMap[i] = Tile.EXIT;
@@ -37,7 +38,7 @@ export function collectCakes() {
 			if (playerTouchesCake(i)) {
 				game.cakes[i].used = false;
 				game.CAKELEFT--;
-				createCakeOrSmokeSparkles(game.cakes[i].x, game.cakes[i].y, 8, 2, 180);
+				createCakeOrSmokeSparkles(game.cakes[i].x, game.cakes[i].y, SparkleType.CAKE, 2, 180);
 				playSound(sfx_grabCake);
 				if (game.CAKELEFT == 0) openExit();
 			}

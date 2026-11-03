@@ -11,12 +11,17 @@ import {
 	CAMPAIGN_FINISHED,
 	CampaignId,
 	IntermissionButton,
+	LEVELS_PER_CAMPAIGN,
 	MainButton,
+	MAP_SIZE,
 	Menu,
 	MouseButton,
 	NUM_TILES,
 	PauseButton,
+	PLAYFIELD_HEIGHT,
+	PLAYFIELD_WIDTH,
 	SelectionButton,
+	SparkleType,
 } from '../constants.js';
 import { lvlEditorSetup } from '../editor.js';
 import { updateRobot } from '../entities/Robot.js';
@@ -84,7 +89,11 @@ export function updateIntermissionButtons() {
 	let overMenu = -1;
 	if (mouseInZone(74, 445, 120, 24)) overMenu = IntermissionButton.EXIT;
 	else if (mouseInZone(74 + 130, 445, 120, 24) && !isLevelLocked()) overMenu = IntermissionButton.RESTART;
-	else if (mouseInZone(74 + 260, 445, 120, 24) && ui.currentMenu == Menu.PLAY && ui.currentLevel + 1 < 29) {
+	else if (
+		mouseInZone(74 + 260, 445, 120, 24) &&
+		ui.currentMenu == Menu.PLAY &&
+		ui.currentLevel < LEVELS_PER_CAMPAIGN
+	) {
 		if (maxLevel[ui.campaign] >= ui.currentLevel + 1) {
 			overMenu = IntermissionButton.CONTINUE;
 		}
@@ -117,7 +126,11 @@ function drawIntermissionButtons() {
 	const hover = ui.intermissionHover;
 	drawTinyButton(74, 445, hover == IntermissionButton.EXIT ? 0.9 : 1, 'Exit');
 	if (!isLevelLocked()) drawTinyButton(74 + 130, 445, hover == IntermissionButton.RESTART ? 0.9 : 1, 'Restart');
-	if (ui.currentMenu == Menu.PLAY && ui.currentLevel + 1 < 29 && maxLevel[ui.campaign] >= ui.currentLevel + 1) {
+	if (
+		ui.currentMenu == Menu.PLAY &&
+		ui.currentLevel < LEVELS_PER_CAMPAIGN &&
+		maxLevel[ui.campaign] >= ui.currentLevel + 1
+	) {
 		drawTinyButton(74 + 260, 445, hover == IntermissionButton.CONTINUE ? 0.9 : 1, 'Continue');
 	}
 	drawTinyButton(74 + 390, 445, hover == IntermissionButton.REPLAY ? 0.9 : 1, 'Watch Replay');
@@ -491,7 +504,7 @@ export function drawMapSelection() {
 	}
 
 	ctx.font = 'bold 12px Arial';
-	for (i = 0; i < 28; i++) {
+	for (i = 0; i < LEVELS_PER_CAMPAIGN; i++) {
 		ctx.strokeStyle = 'rgb(0, 0, 0)';
 		if (i + 1 <= maxLevel[ui.campaign]) {
 			ctx.fillStyle = 'rgb(255, 255, 255)';
@@ -574,17 +587,17 @@ export function drawMainMenu() {
 	const spacing = 18;
 
 	let overMenu = -1;
-	if (mouseInZone(160, yStart, 320, 64)) overMenu = 1;
-	else if (mouseInZone(160, yStart + 1 * (64 + spacing), 320, 64)) overMenu = 2;
-	else if (mouseInZone(160, yStart + 2 * (64 + spacing), 320, 64)) overMenu = 3;
-	else if (mouseInZone(160, yStart + 3 * (64 + spacing), 320, 64)) overMenu = 4;
-	else if (mouseInZone(160, yStart + 4 * (64 + spacing), 320, 64)) overMenu = 5;
+	if (mouseInZone(160, yStart, 320, 64)) overMenu = MainButton.CLASSIC;
+	else if (mouseInZone(160, yStart + 1 * (64 + spacing), 320, 64)) overMenu = MainButton.ENHANCED;
+	else if (mouseInZone(160, yStart + 2 * (64 + spacing), 320, 64)) overMenu = MainButton.ULTIMATE;
+	else if (mouseInZone(160, yStart + 3 * (64 + spacing), 320, 64)) overMenu = MainButton.EDITOR;
+	else if (mouseInZone(160, yStart + 4 * (64 + spacing), 320, 64)) overMenu = MainButton.TUTORIAL;
 
-	const scale1 = overMenu == 1 ? 0.9 : 1;
-	const scale2 = overMenu == 2 ? 0.9 : 1;
-	const scale3 = overMenu == 3 ? 0.9 : 1;
-	const scale4 = overMenu == 4 ? 0.9 : 1;
-	const scale5 = overMenu == 5 ? 0.9 : 1;
+	const scale1 = overMenu == MainButton.CLASSIC ? 0.9 : 1;
+	const scale2 = overMenu == MainButton.ENHANCED ? 0.9 : 1;
+	const scale3 = overMenu == MainButton.ULTIMATE ? 0.9 : 1;
+	const scale4 = overMenu == MainButton.EDITOR ? 0.9 : 1;
+	const scale5 = overMenu == MainButton.TUTORIAL ? 0.9 : 1;
 
 	if (ui.goMenu) {
 		if (ui.menuButton == MainButton.CLASSIC)
@@ -609,15 +622,18 @@ export function drawMainMenu() {
 		drawBigButton(160, yStart + 4 * (64 + spacing), scale5, 'Tutorial');
 
 		pX = 130;
-		pY = yStart + 25 + (overMenu - 1) * 64 + (overMenu - 1) * spacing;
+		pY = yStart + 25 + overMenu * (64 + spacing);
 
 		pX2 = 150 + 320 + 40 - 16;
 
-		drawPortalGunMenu(pX, pY, getAngle(pX, pY, input.mouseX, input.mouseY));
-		drawPlayer(pX, pY, 1);
+		// the players stand next to the hovered button
+		if (overMenu >= 0) {
+			drawPortalGunMenu(pX, pY, getAngle(pX, pY, input.mouseX, input.mouseY));
+			drawPlayer(pX, pY, 1);
 
-		drawPortalGunMenu(pX2, pY, getAngle(pX2, pY, input.mouseX, input.mouseY));
-		drawPlayer(pX2, pY, -1);
+			drawPortalGunMenu(pX2, pY, getAngle(pX2, pY, input.mouseX, input.mouseY));
+			drawPlayer(pX2, pY, -1);
+		}
 	}
 
 	let zoomSound = 1;
@@ -664,13 +680,13 @@ export function drawMainMenu() {
 
 	ctx.drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
 
-	if (input.mousePressed && input.mouseButton == MouseButton.LEFT && overMenu > 0 && ui.goMenu == 0) {
-		ui.menuButton = overMenu - 1;
+	if (input.mousePressed && input.mouseButton == MouseButton.LEFT && overMenu >= 0 && ui.goMenu == 0) {
+		ui.menuButton = overMenu;
 		ui.goMenu = 60;
-		createSparkles(pX << 8, (pY << 8) + (13 << 8), input.mouseX << 8, input.mouseY << 8, 1, 8);
-		createSparkles(pX << 8, (pY << 8) + (13 << 8), input.mouseX << 8, input.mouseY << 8, 1, 9);
-		createSparkles(pX2 << 8, (pY << 8) + (13 << 8), input.mouseX << 8, input.mouseY << 8, 0, 8);
-		createSparkles(pX2 << 8, (pY << 8) + (13 << 8), input.mouseX << 8, input.mouseY << 8, 0, 9);
+		createSparkles(pX << 8, (pY << 8) + (13 << 8), input.mouseX << 8, input.mouseY << 8, 1, SparkleType.CAKE);
+		createSparkles(pX << 8, (pY << 8) + (13 << 8), input.mouseX << 8, input.mouseY << 8, 1, SparkleType.SMOKE);
+		createSparkles(pX2 << 8, (pY << 8) + (13 << 8), input.mouseX << 8, input.mouseY << 8, 0, SparkleType.CAKE);
+		createSparkles(pX2 << 8, (pY << 8) + (13 << 8), input.mouseX << 8, input.mouseY << 8, 0, SparkleType.SMOKE);
 		unclick();
 	} else if (ui.goMenu) {
 		if (--ui.goMenu == 0) {
@@ -785,7 +801,7 @@ export function updateIntermission() {
 export function drawIntermission() {
 	if (game.player.intermissionFade > 0) {
 		ctx.fillStyle = 'rgb(0, 0, 0)';
-		ctx.fillRect(game.offsetX - 1, game.offsetY, 512, 384);
+		ctx.fillRect(game.offsetX - 1, game.offsetY, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 		ctx.globalAlpha = 1 - game.player.intermissionFade / 20;
 	}
 	ctx.drawImage(highscore, game.offsetX, game.offsetY);
@@ -809,20 +825,20 @@ export function drawIntermission() {
 export function drawPreviewMap() {
 	let i, ti, ci, pi;
 	if (game.needLoad) {
-		ctx.drawImage(bg[game.BG], game.offsetX, game.offsetY, 512, 384);
+		ctx.drawImage(bg[game.BG], game.offsetX, game.offsetY, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 		for (i = 0; i < game.displayMap.length; i++) {
 			const y = i >> 5;
 			const x = i - (y << 5);
-			if (game.displayMap[i] < NUM_TILES && game.displayMap[i] > 0 && i < 768) {
+			if (game.displayMap[i] < NUM_TILES && game.displayMap[i] > 0 && i < MAP_SIZE) {
 				const open = game.CAKELEFT == 0 && game.displayMap[i] == Tile.EXIT_CLOSED;
 				const tile = open ? Tile.EXIT : game.displayMap[i];
 				ctx.drawImage(tileset[tile], x * 16 + game.offsetX, y * 16 + game.offsetY, 16, 16);
 			}
 		}
-		game.imgBuff = copyCanvas(game.offsetX, game.offsetY, 512, 384);
+		game.imgBuff = copyCanvas(game.offsetX, game.offsetY, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 		game.needLoad = false;
 		ctx.fillStyle = 'rgb(0, 0, 0)';
-		ctx.fillRect(game.offsetX, game.offsetY, 512, 384);
+		ctx.fillRect(game.offsetX, game.offsetY, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 	} else {
 		drawCopy(game.imgBuff, game.offsetX, game.offsetY);
 

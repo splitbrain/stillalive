@@ -4,7 +4,7 @@
 
 import { playSound, setSoundVolume, sfx_flatline, sfx_jump, sfx_pain } from '../audio.js';
 import { skipComingBoss } from '../boss.js';
-import { GRAVITY, Menu, MouseButton } from '../constants.js';
+import { GRAVITY, Menu, MouseButton, PLAYFIELD_HEIGHT, SparkleType } from '../constants.js';
 import { collectCakes } from './Cake.js';
 import { fieldForceTest, inForceFieldTp } from './ForceField.js';
 import { plasmaTouching } from './Plasma.js';
@@ -33,7 +33,7 @@ import {
 	launchPortal,
 } from '../portals.js';
 import { game, input, ui } from '../state.js';
-import { isPlatformCode } from '../tiles.js';
+import { isPlatformCode, PLATFORM_CODE } from '../tiles.js';
 import { random } from '../utils.js';
 
 /**
@@ -138,12 +138,12 @@ export class Player {
 			this.life = -256;
 			playSound(sfx_pain);
 			playSound(sfx_flatline);
-			if (game.player.y >> 8 < 384) {
+			if (game.player.y >> 8 < PLAYFIELD_HEIGHT) {
 				for (let i = 0; i < 20; i++) {
 					const s = new Sparkle();
 					s.x = game.player.x + (this.pX << 7) + random(-14 << 8, 8 << 8);
 					s.y = game.player.y + (this.pY << 6);
-					s.used = 6;
+					s.type = SparkleType.DEATH;
 					s.vx = 0;
 					s.vy = random(-2 << 8, 0);
 					s.fading = 150;
@@ -178,7 +178,7 @@ export class Player {
 					s = new Sparkle();
 					s.x = this.x + (this.pX << 7) + random(-8 << 8, 8 << 8);
 					s.y = this.y + (this.pY << 7) + random(-16 << 8, 16 << 8);
-					s.used = 4;
+					s.type = SparkleType.TELEPORT;
 					s.vx = random(32, 64);
 					s.vy = random(32, 64);
 					s.fading = 200;
@@ -195,7 +195,7 @@ export class Player {
 					s = new Sparkle();
 					s.x = this.x + (this.pX << 7) + random(-8 << 8, 8 << 8);
 					s.y = this.y + (this.pY << 7) + random(-16 << 8, 16 << 8);
-					s.used = 4;
+					s.type = SparkleType.TELEPORT;
 					s.vx = random(32, 64);
 					s.vy = random(32, 64);
 					s.fading = 255;
@@ -295,7 +295,7 @@ export class Player {
 				s = new Sparkle();
 				s.x = game.player.x + (this.pX << 5) + random(-5 << 8, 5 << 8);
 				s.y = game.player.y + (this.pY << 6) + random(-5 << 8, 5 << 8);
-				s.used = 7;
+				s.type = SparkleType.LOW_LIFE;
 				s.vx = 0;
 				s.vy = 0;
 				s.fading = 100;
@@ -360,7 +360,7 @@ export class Player {
 
 		let platformCode = onPlatform(this);
 		if (platformCode) {
-			platformCode -= 200;
+			platformCode -= PLATFORM_CODE;
 			this.x += game.platforms[platformCode].vx;
 		}
 
@@ -403,7 +403,7 @@ export class Player {
 			this.life = 0;
 		}
 
-		if (this.y > (384 + 40) << 8) this.life = 0;
+		if (this.y > (PLAYFIELD_HEIGHT + 40) << 8) this.life = 0;
 		this.oldIsJump = this.isJump;
 		this.checkMort();
 	}

@@ -4,7 +4,18 @@
 
 import { drawBoss, drawBossSpeech } from '../boss.js';
 import { ctx } from '../canvas.js';
-import { CampaignId, Direction, Menu, NUM_TILES } from '../constants.js';
+import {
+	CampaignId,
+	Direction,
+	MAP_HEIGHT,
+	MAP_SIZE,
+	MAP_WIDTH,
+	Menu,
+	NUM_TILES,
+	PLAYFIELD_HEIGHT,
+	PLAYFIELD_WIDTH,
+	TUTORIAL_END_LEVEL,
+} from '../constants.js';
 import { isTestingLevel } from '../editor.js';
 import { drawSparkles } from '../entities/Sparkle.js';
 import {
@@ -232,7 +243,7 @@ export function drawLevel() {
 	if (game.player.dead) {
 		const a = -(game.player.life / 256);
 		ctx.fillStyle = 'rgba(0, 0, 0,' + (1 - a) + ')';
-		ctx.fillRect(game.offsetX, game.offsetY, 512, 384);
+		ctx.fillRect(game.offsetX, game.offsetY, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 	}
 
 	if (game.player.fadeNextLevel >= 0) drawTransition();
@@ -251,9 +262,9 @@ export function drawLevel() {
 	drawBossSpeech();
 	if (game.replayMode) drawKeys();
 
-	if (ui.currentMenu == Menu.TUTORIAL && ui.currentLevel == 9) {
+	if (ui.currentMenu == Menu.TUTORIAL && ui.currentLevel == TUTORIAL_END_LEVEL) {
 		ctx.fillStyle = 'rgb(0, 0, 0)';
-		ctx.fillRect(game.offsetX, game.offsetY, 544, 384);
+		ctx.fillRect(game.offsetX, game.offsetY, 544, PLAYFIELD_HEIGHT);
 		drawTutorial();
 		drawText(146, 28, 11);
 		ctx.drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
@@ -297,18 +308,18 @@ export function drawAnimatedTiles() {
  */
 export function createBuff() {
 	let i;
-	ctx.drawImage(bg[game.BG], game.offsetX, game.offsetY, 512, 384);
+	ctx.drawImage(bg[game.BG], game.offsetX, game.offsetY, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 	for (i = 0; i < game.displayMap.length; i++) {
 		const y = i >> 5;
 		const x = i - (y << 5);
-		if (game.displayMap[i] < NUM_TILES && game.displayMap[i] > 0 && i < 768) {
+		if (game.displayMap[i] < NUM_TILES && game.displayMap[i] > 0 && i < MAP_SIZE) {
 			ctx.drawImage(tileset[game.displayMap[i]], x * 16 + game.offsetX, y * 16 + game.offsetY, 16, 16);
 		}
 	}
-	game.imgBuff = copyCanvas(game.offsetX, game.offsetY, 512, 384);
+	game.imgBuff = copyCanvas(game.offsetX, game.offsetY, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 	game.needLoad = false;
 	ctx.fillStyle = 'rgb(0, 0, 0)';
-	ctx.fillRect(game.offsetX, game.offsetY, 512, 384);
+	ctx.fillRect(game.offsetX, game.offsetY, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 	if (game.player.intermissionFade < 0) ctx.drawImage(highscore, game.offsetX, game.offsetY);
 }
 
@@ -500,7 +511,7 @@ export function drawFrontTiles() {
 					tx = x >> 4;
 					ty = y >> 4;
 					for (i = 0; i < 4; i++) {
-						if (tx + i < 32 && tx + i >= 0) {
+						if (tx + i < MAP_WIDTH && tx + i >= 0) {
 							t = tx + i + (ty << 5);
 							if (tileset[game.displayMap[t]]) {
 								ctx.drawImage(
@@ -517,7 +528,7 @@ export function drawFrontTiles() {
 					tx = x >> 4;
 					ty = y >> 4;
 					for (i = 0; i < 4; i++) {
-						if (ty + i < 24 && ty + i >= 0) {
+						if (ty + i < MAP_HEIGHT && ty + i >= 0) {
 							t = tx + ((ty + i) << 5);
 							if (game.displayMap[t] < tileset.length) {
 								ctx.drawImage(

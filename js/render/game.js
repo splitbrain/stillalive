@@ -2,7 +2,6 @@
  * Drawing of a level: tiles, objects, the player and the portals.
  */
 
-import { drawBoss, drawBossSpeech } from '../boss.js';
 import { ctx } from '../canvas.js';
 import {
 	CampaignId,
@@ -42,11 +41,12 @@ import {
 	tunnel2,
 	turretImages,
 } from '../images.js';
+import { drawBoss, drawBossSpeech } from './boss.js';
 import { drawHudText, drawKeys, drawText } from './hud.js';
 import { drawTransition } from './transitions.js';
 import { game, input, ui } from '../state.js';
-import { drawTutorial } from '../tutorial.js';
 import { degToRad, getAngle, radToDeg, random } from '../utils.js';
+import { drawTutorial } from './tutorial.js';
 
 /**
  * Draw a line with the current stroke style.

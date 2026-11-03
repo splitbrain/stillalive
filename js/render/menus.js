@@ -4,7 +4,7 @@
 
 import { allImagesLoaded, areImagesLoaded, imageProgress, missingImages } from '../assets.js';
 import { allSoundsLoaded, disableSound, isSoundAvailable, isSoundOn, soundProgress, toggleSound } from '../audio.js';
-import { drawBoss, setupBoss, skipComingBoss } from '../boss.js';
+import { setupBoss, skipComingBoss } from '../boss.js';
 import { ctx } from '../canvas.js';
 import {
 	BUTTON_CAMPAIGN,
@@ -61,6 +61,7 @@ import { mouseInZone, unclick } from '../inputState.js';
 import { keyLabels } from '../keys.js';
 import { creditsTxt, levelsLoaded, levelsToLoad, loadPreviewMap, missingLevelFiles } from '../level.js';
 import { exitFunc, prepareSelectionText } from '../navigation.js';
+import { drawBoss } from './boss.js';
 import { drawPlayer, drawRobot, drawSparkles, drawTileLayer, drawTunnels, saveTileLayer } from './game.js';
 import { drawHudText, drawText } from './hud.js';
 import { resumeReplay } from '../replay.js';

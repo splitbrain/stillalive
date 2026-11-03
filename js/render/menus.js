@@ -25,8 +25,8 @@ import {
 } from '../constants.js';
 import { lvlEditorSetup } from '../editor.js';
 import { updateRobot } from '../entities/Robot.js';
-import { createSparkles, drawSparkles, updateSparkles } from '../entities/Sparkle.js';
-import { exitFunc, startLevel } from '../game.js';
+import { createSparkles, updateSparkles } from '../entities/Sparkle.js';
+import { startLevel } from '../game.js';
 import {
 	bg,
 	bluePortal,
@@ -55,10 +55,11 @@ import {
 	tube2,
 	turretImages,
 } from '../images.js';
-import { mouseInZone, unclick } from '../input.js';
+import { mouseInZone, unclick } from '../inputState.js';
 import { keyLabels } from '../keys.js';
 import { creditsTxt, levelsLoaded, levelsToLoad, loadPreviewMap, missingLevelFiles } from '../level.js';
-import { copyCanvas, drawCopy, drawPlayer, drawRobot, drawTunnels } from './game.js';
+import { exitFunc, prepareSelectionText } from '../navigation.js';
+import { copyCanvas, drawCopy, drawPlayer, drawRobot, drawSparkles, drawTunnels } from './game.js';
 import { drawHudText, drawText } from './hud.js';
 import { resumeReplay } from '../replay.js';
 import { game, input, ui } from '../state.js';
@@ -66,19 +67,6 @@ import { maxLevel } from '../storage.js';
 import { Tile } from '../tiles.js';
 import { setupTutorial } from '../tutorial.js';
 import { getAngle, toTime } from '../utils.js';
-
-/**
- * Set the text of the robot panel for the level selection.
- *
- * @returns {void}
- */
-export function prepareSelectionText() {
-	ui.timeWriting = 0;
-	ui.txtLines = new Array();
-
-	ui.txtLines.push('Welcome to the campaign mode of StillAliveJS. Here you can select a map on the right and click');
-	ui.txtLines.push("'Play' to play it. Good Luck !");
-}
 
 /**
  * Find the hovered button of the intermission screen and take the click on it.

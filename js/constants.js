@@ -95,7 +95,7 @@ export const MainButton = {
 	TUTORIAL: 4,
 };
 
-/** @type {Object<string, number>} The transition effects at the end and the start of a level, the value of TRANS. */
+/** @type {Object<string, number>} The transition effects at the end and the start of a level, the value of ui.transition. */
 export const Transition = {
 	TOP_LEFT: 1,
 	LEFT_TO_RIGHT: 2,

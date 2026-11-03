@@ -5,7 +5,7 @@
 import { ctx } from './canvas.js';
 import { CampaignId, Direction, PLAYFIELD_WIDTH, SparkleType, TUTORIAL_END_LEVEL } from './constants.js';
 import { Sparkle } from './entities/Sparkle.js';
-import { unclick } from './input.js';
+import { unclick } from './inputState.js';
 import { keyLabels } from './keys.js';
 import { loadLevel } from './level.js';
 import { atExit } from './physics.js';

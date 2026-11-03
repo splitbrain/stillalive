@@ -2,6 +2,8 @@
  * The shared state of the game.
  */
 
+import { Transition } from './constants.js';
+
 /** @type {object} The state of the current level: the map, the player, the objects, the level time and the boss. */
 export const game = {
 	replay: undefined,
@@ -70,6 +72,12 @@ export const ui = {
 	tutoPause: false,
 	portalsDisplayed: false,
 	tutoEnded: false,
+	/** @type {number} The transition effect of the level end, chosen at random. */
+	transition: Transition.HORIZONTAL_LINES,
+	/** @type {boolean} True when the images and the font of the splash screen are loaded. */
+	canSplash: false,
+	/** @type {boolean} True while the player tests the map in the editor. */
+	isTestingLevel: false,
 };
 
 /** @type {object} The keys and the mouse, and the input state that the game derives from them. */

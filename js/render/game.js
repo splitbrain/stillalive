@@ -14,10 +14,9 @@ import {
 	NUM_TILES,
 	PLAYFIELD_HEIGHT,
 	PLAYFIELD_WIDTH,
+	SparkleType,
 	TUTORIAL_END_LEVEL,
 } from '../constants.js';
-import { isTestingLevel } from '../editor.js';
-import { drawSparkles } from '../entities/Sparkle.js';
 import {
 	bg,
 	bluePortal,
@@ -35,6 +34,7 @@ import {
 	redPortal,
 	robotEye,
 	robotHead,
+	sparkle,
 	tileset,
 	tube,
 	tube2,
@@ -47,15 +47,6 @@ import { drawTransition } from './transitions.js';
 import { game, input, ui } from '../state.js';
 import { drawTutorial } from '../tutorial.js';
 import { degToRad, getAngle, radToDeg, random } from '../utils.js';
-
-/**
- * Mark the tile layer as changed, so the next frame draws it again.
- *
- * @returns {void}
- */
-export function reloadTiles() {
-	game.needLoad = true;
-}
 
 /**
  * Draw a line with the current stroke style.
@@ -185,6 +176,31 @@ export function drawCopy(copy, x, y) {
 	ctx.globalCompositeOperation = 'copy';
 	ctx.drawImage(copy, x, y);
 	ctx.restore();
+}
+
+/**
+ * Draw the sparkles. The size follows the fade.
+ *
+ * @returns {void}
+ */
+export function drawSparkles() {
+	for (const s of game.sparkles) {
+		if (s.fading <= 0) continue;
+		const sc = s.fading / 255;
+		let dt = 9 - sc * 9;
+		if (s.type == SparkleType.LOW_LIFE || s.type == SparkleType.SHOT_HIT) dt -= 8;
+		ctx.drawImage(
+			sparkle,
+			0,
+			s.color * 9,
+			9,
+			9,
+			(s.x >> 8) + dt + game.offsetX,
+			(s.y >> 8) + dt + game.offsetY,
+			16 * sc,
+			16 * sc,
+		);
+	}
 }
 
 /**
@@ -487,7 +503,7 @@ export function drawPlatforms() {
 		const x = (p.x >> 8) + game.offsetX;
 		const y = (p.y >> 8) + game.offsetY;
 		ctx.drawImage(platform, x, y);
-		if (ui.currentMenu == Menu.EDITOR && !isTestingLevel) {
+		if (ui.currentMenu == Menu.EDITOR && !ui.isTestingLevel) {
 			ctx.fillStyle = 'rgb(255, 0, 0)';
 			ctx.strokeStyle = 'rgb(255, 0, 0)';
 			drawArrow(x + 5, y + 8, x + 15, y + 8, 3, p.dir);

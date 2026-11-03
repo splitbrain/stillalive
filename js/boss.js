@@ -9,7 +9,7 @@ import { Plasma } from './entities/Plasma.js';
 import { Projectile } from './entities/Projectile.js';
 import { createCakeOrSmokeSparkles } from './entities/Sparkle.js';
 import { robotEye, robotHead } from './images.js';
-import { unclick } from './input.js';
+import { unclick } from './inputState.js';
 import { game, input, ui } from './state.js';
 import { FIRST_OF_KIND, TileKind } from './tiles.js';
 import { prepareTxt } from './tutorial.js';

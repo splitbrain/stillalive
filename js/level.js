@@ -44,6 +44,15 @@ export let levelsToLoad = 5;
 const missingFiles = [];
 
 /**
+ * Mark the tile layer as changed, so the next frame draws it again.
+ *
+ * @returns {void}
+ */
+export function reloadTiles() {
+	game.needLoad = true;
+}
+
+/**
  * Open or close the switch doors when the player or a crate steps on or off a switch.
  *
  * @returns {void}

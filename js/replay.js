@@ -15,7 +15,7 @@
  */
 
 import { downloadJson } from './files.js';
-import { restoreInput } from './input.js';
+import { restoreInput } from './inputState.js';
 import { game, input } from './state.js';
 
 /** @type {number} The length of an input state from captureInput(). */

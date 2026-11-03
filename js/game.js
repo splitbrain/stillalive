@@ -13,7 +13,6 @@ import {
 	Transition,
 	TUTORIAL_END_LEVEL,
 } from './constants.js';
-import { alertDialog } from './dialog.js';
 import { drawLevelEditor } from './editor.js';
 import { animateTiles } from './entities/AnimatedTile.js';
 import { openExit, updateCakes } from './entities/Cake.js';
@@ -26,10 +25,10 @@ import { updateProjectiles } from './entities/Projectile.js';
 import { updateRobot } from './entities/Robot.js';
 import { updateSparkles } from './entities/Sparkle.js';
 import { updateTurrets } from './entities/Turret.js';
-import { manageKeys, unclick } from './input.js';
-import { campaigns, loadLevel, loadPreviewMap, manageDoors } from './level.js';
+import { manageKeys, unclick } from './inputState.js';
+import { campaigns, loadLevel, manageDoors } from './level.js';
 import { getFps } from './loop.js';
-import { canSplash } from './main.js';
+import { exitFunc } from './navigation.js';
 import { updatePanel } from './panel.js';
 import { atExit } from './physics.js';
 import { inPortal } from './portals.js';
@@ -43,7 +42,6 @@ import {
 	drawPauseMenu,
 	drawSplash,
 	overSplash,
-	prepareSelectionText,
 } from './render/menus.js';
 import { updateTransition } from './render/transitions.js';
 import { encodeReplay } from './replay.js';
@@ -80,20 +78,6 @@ export function render() {
 }
 
 /**
- * Stop a replay that has fewer inputs than the level needs, show a message and go back to the level selection.
- *
- * @returns {void}
- */
-export function reportBrokenReplay() {
-	alertDialog(
-		"The replay you're watching seems to be broken -_-;\n" + 'Sorry for any inconveniences.',
-		'An error occurred',
-	);
-	game.replayMode = false;
-	exitFunc();
-}
-
-/**
  * Store the level time and the replay if the time is a new best time.
  *
  * @returns {string} The message for the intermission screen.
@@ -124,7 +108,7 @@ function updateScreen() {
 	} else if ((ui.currentMenu == Menu.PLAY || ui.currentMenu == Menu.TUTORIAL) && ui.escapeMenu) {
 		drawPauseMenu();
 	} else if (ui.currentMenu == Menu.LOADING) {
-		if (canSplash && !overSplash) drawSplash();
+		if (ui.canSplash && !overSplash) drawSplash();
 		else if (overSplash) drawLoadingScreen();
 	} else if (ui.currentMenu == Menu.MAIN) {
 		if (ui.selectMenu == 0) drawMainMenu();
@@ -196,7 +180,7 @@ function updateLevelEnd() {
 		ui.drawCredits = false;
 		game.player.fadeNextLevel = 120;
 		game.player.intermissionFade = 20;
-		TRANS = random(Transition.TOP_LEFT, Transition.SQUARE + 1);
+		ui.transition = random(Transition.TOP_LEFT, Transition.SQUARE + 1);
 		playSound(sfx_transition);
 		ui.highscoreMessage = '';
 		unclick();
@@ -311,31 +295,3 @@ export function startLevel(campaign, level, replay = null) {
 	loadLevel(level);
 	unclick();
 }
-
-/**
- * Leave the current level or the tutorial and go back to the menu.
- *
- * @returns {void}
- */
-export function exitFunc() {
-	unclick();
-	game.sparkles = new Array();
-	if (ui.currentMenu == Menu.PLAY) {
-		game.offsetX = 0;
-		game.offsetY = 96;
-		ui.currentMenu = Menu.MAIN;
-		prepareSelectionText();
-		ui.previewMap = ui.currentLevel;
-		loadPreviewMap(ui.previewMap);
-	} else if (ui.currentMenu == Menu.TUTORIAL) {
-		ui.currentMenu = Menu.MAIN;
-		ui.selectMenu = 0;
-		ui.fadeMenu = 30;
-		game.sparkles = new Array();
-	}
-
-	game.replayMode = false;
-}
-
-/** @type {number} The transition effect of the level end, chosen at random. */
-export let TRANS = Transition.HORIZONTAL_LINES;

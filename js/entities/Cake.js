@@ -4,8 +4,8 @@
 
 import { playSound, sfx_grabCake } from '../audio.js';
 import { MAP_SIZE, SparkleType } from '../constants.js';
+import { reloadTiles } from '../level.js';
 import { createCakeOrSmokeSparkles } from './Sparkle.js';
-import { reloadTiles } from '../render/game.js';
 import { game } from '../state.js';
 import { Tile } from '../tiles.js';
 import { random } from '../utils.js';

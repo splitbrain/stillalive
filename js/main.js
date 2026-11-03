@@ -10,7 +10,8 @@ import { openExit } from './entities/Cake.js';
 import { Player } from './entities/Player.js';
 import { render, startLevel, tick } from './game.js';
 import { loadGfx, loadSplashImages } from './images.js';
-import { unclick } from './input.js';
+import { setupInput } from './input.js';
+import { unclick } from './inputState.js';
 import { loadKeyLabels } from './keys.js';
 import {
 	campaigns,
@@ -27,9 +28,6 @@ import { decodeReplay, encodeReplay } from './replay.js';
 import { game, input, ui } from './state.js';
 import { loadProgress } from './storage.js';
 
-/** @type {boolean} True when the images and the font of the splash screen are loaded. */
-export let canSplash = false;
-
 /**
  * Start the game.
  *
@@ -40,10 +38,11 @@ function setup() {
 	ctx.strokeStyle = 'rgb(255, 0, 0)';
 	ctx.font = 'bold 10px Arial';
 
+	setupInput();
 	loadKeyLabels();
 	loadSplashImages();
 	Promise.all([whenImagesDone(), document.fonts.load('48px yikes')]).then(function () {
-		canSplash = true;
+		ui.canSplash = true;
 		loadGfx();
 		loadSfx();
 		loadCreditsText();

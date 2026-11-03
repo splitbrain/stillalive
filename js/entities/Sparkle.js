@@ -2,9 +2,7 @@
  * The Sparkle object and its helper functions.
  */
 
-import { ctx } from '../canvas.js';
 import { GRAVITY, SparkleType } from '../constants.js';
-import { sparkle } from '../images.js';
 import { getTile } from '../physics.js';
 import { game } from '../state.js';
 import { getCos, getDistance, getSin, random } from '../utils.js';
@@ -142,31 +140,6 @@ export function updateSparkles() {
 				i--;
 			}
 		}
-	}
-}
-
-/**
- * Draw the sparkles. The size follows the fade.
- *
- * @returns {void}
- */
-export function drawSparkles() {
-	for (const s of game.sparkles) {
-		if (s.fading <= 0) continue;
-		const sc = s.fading / 255;
-		let dt = 9 - sc * 9;
-		if (s.type == SparkleType.LOW_LIFE || s.type == SparkleType.SHOT_HIT) dt -= 8;
-		ctx.drawImage(
-			sparkle,
-			0,
-			s.color * 9,
-			9,
-			9,
-			(s.x >> 8) + dt + game.offsetX,
-			(s.y >> 8) + dt + game.offsetY,
-			16 * sc,
-			16 * sc,
-		);
 	}
 }
 

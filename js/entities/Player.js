@@ -5,12 +5,12 @@
 import { playSound, setSoundVolume, sfx_flatline, sfx_jump, sfx_pain } from '../audio.js';
 import { skipComingBoss } from '../boss.js';
 import { GRAVITY, Menu, MouseButton, PLAYFIELD_HEIGHT, SparkleType } from '../constants.js';
+import { reportBrokenReplay } from '../navigation.js';
 import { collectCakes } from './Cake.js';
 import { tunnelFieldsAt } from './TunnelField.js';
 import { plasmaTouching } from './Plasma.js';
 import { onBelt, onPlatform } from './Platform.js';
 import { Sparkle } from './Sparkle.js';
-import { reportBrokenReplay } from '../game.js';
 import { loadLevel } from '../level.js';
 import {
 	carriesObject,

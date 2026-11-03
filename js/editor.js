@@ -25,7 +25,7 @@ import { updatePlasma } from './entities/Plasma.js';
 import { updatePlatforms } from './entities/Platform.js';
 import { Player } from './entities/Player.js';
 import { Portal, updatePortals } from './entities/Portal.js';
-import { drawSparkles, updateSparkles } from './entities/Sparkle.js';
+import { updateSparkles } from './entities/Sparkle.js';
 import { updateTurrets } from './entities/Turret.js';
 import {
 	bg,
@@ -46,7 +46,7 @@ import {
 	tunnel2,
 	turretImages,
 } from './images.js';
-import { mouseInZone, unclick } from './input.js';
+import { mouseInZone, unclick } from './inputState.js';
 import { loadEditorObjects, loadLevelEditor, loadPreviewMap, manageDoors } from './level.js';
 import { exportEditorMap, importEditorMap } from './mapFile.js';
 import { atExit } from './physics.js';
@@ -64,6 +64,7 @@ import {
 	drawPlatforms,
 	drawPlayer,
 	drawPortals,
+	drawSparkles,
 	drawTunnels,
 	drawTurrets,
 } from './render/game.js';
@@ -90,8 +91,6 @@ let undoMap;
 let undoIndex;
 /** @type {number} The mouse release state of the previous tick. */
 let oldMouseReleased = 0;
-/** @type {boolean} True while the player tests the map. */
-export let isTestingLevel;
 /** @type {number} The background of the map while the save or load screen is open. */
 let oldBG;
 /** @type {boolean} True while the load screen is open. */
@@ -106,7 +105,7 @@ let askSaving;
  */
 export function startPlayingLevel() {
 	let i;
-	isTestingLevel = true;
+	ui.isTestingLevel = true;
 	game.oldMap = new Array();
 	for (i = 0; i < game.map.length; i++) game.oldMap.push(game.map[i]);
 	loadLevelEditor();
@@ -126,7 +125,7 @@ export function stopPlayingLevel() {
 	game.portals.push(new Portal());
 	game.portals.push(new Portal());
 	unclick();
-	isTestingLevel = false;
+	ui.isTestingLevel = false;
 	game.map = new Array();
 	for (i = 0; i < game.oldMap.length; i++) game.map.push(game.oldMap[i]);
 	redrawTiles = true;
@@ -321,7 +320,7 @@ function prepareLvlEditorPlayTxt() {
  * @returns {void}
  */
 export function drawLevelEditor() {
-	if (isTestingLevel) {
+	if (ui.isTestingLevel) {
 		levelEditorTestLevel();
 		if (atExit()) stopPlayingLevel();
 	} else levelEditorManager();

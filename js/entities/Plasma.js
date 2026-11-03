@@ -4,9 +4,9 @@
 
 import { playSound, setSoundVolume, sfx_bounce } from '../audio.js';
 import { Direction, MAP_SIZE, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH } from '../constants.js';
+import { reloadTiles } from '../level.js';
 import { getCollision, getTileSimple } from '../physics.js';
 import { inPortal } from '../portals.js';
-import { reloadTiles } from '../render/game.js';
 import { game } from '../state.js';
 import { Tile, TileKind, isTileKind } from '../tiles.js';
 import { getDistance, random } from '../utils.js';

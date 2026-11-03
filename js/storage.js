@@ -29,6 +29,9 @@ const REPLAY_STORE = 'replays';
 /** @type {Promise<IDBDatabase>|null} The open database, created on first use. */
 let database = null;
 
+/** @type {Object<string, number>|null} The parsed best times, or null before the first read. */
+let bestTimes = null;
+
 /**
  * Get the storage key of a level.
  *
@@ -86,13 +89,18 @@ function writeItem(key, value) {
 }
 
 /**
- * Read all best times.
+ * Read all best times. The parsed times stay in memory until a different browser tab changes the storage.
  *
  * @returns {Object<string, number>} The best time in ticks for each level key.
  */
 function readBestTimes() {
-	return readJsonItem(BEST_TIMES_KEY) ?? {};
+	bestTimes ??= readJsonItem(BEST_TIMES_KEY) ?? {};
+	return bestTimes;
 }
+
+window.addEventListener('storage', () => {
+	bestTimes = null;
+});
 
 /**
  * Open the database and create the object store if necessary.

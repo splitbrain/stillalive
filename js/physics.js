@@ -338,10 +338,10 @@ export function moveObject(obj) {
 export function carriesObject() {
 	let i;
 	for (i = 0; i < game.crates.length; i++) {
-		if (game.crates[i].carried == 1) return 1;
+		if (game.crates[i].carried) return 1;
 	}
 	for (i = 0; i < game.turrets.length; i++) {
-		if (game.turrets[i].carried == 1) return 1;
+		if (game.turrets[i].carried) return 1;
 	}
 	return 0;
 }
@@ -381,7 +381,7 @@ export function grabObject() {
 					getDistance(x1, y1, x2, y2) < 32 &&
 					pointInObject(input.mouseX - game.offsetX, input.mouseY - game.offsetY, game.crates[i])
 				) {
-					game.crates[i].carried = 1;
+					game.crates[i].carried = true;
 					ok = 1;
 					break;
 				}
@@ -395,7 +395,7 @@ export function grabObject() {
 						getDistance(x1, y1, x2, y2) < 32 &&
 						pointInObject(input.mouseX - game.offsetX, input.mouseY - game.offsetY, game.turrets[i])
 					) {
-						game.turrets[i].carried = 1;
+						game.turrets[i].carried = true;
 						break;
 					}
 				}
@@ -405,8 +405,8 @@ export function grabObject() {
 		if (!input.mousePressed) {
 			ok = 0;
 			for (i = 0; i < game.crates.length; i++) {
-				if (game.crates[i].carried == 1) {
-					game.crates[i].carried = 0;
+				if (game.crates[i].carried) {
+					game.crates[i].carried = false;
 					ok = 1;
 					game.crates[i].invincibility = 3;
 					game.crates[i].noRemove = 90;
@@ -416,9 +416,9 @@ export function grabObject() {
 			}
 			if (!ok) {
 				for (i = 0; i < game.turrets.length; i++) {
-					if (game.turrets[i].carried == 1) {
-						game.turrets[i].carried = 0;
-						game.turrets[i].canExplode = 1;
+					if (game.turrets[i].carried) {
+						game.turrets[i].carried = false;
+						game.turrets[i].canExplode = true;
 						playSound(sfx_throwObject);
 						break;
 					}

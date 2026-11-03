@@ -342,12 +342,12 @@ export function drawTurrets() {
 		ctx.restore();
 		const dx = t.dir < 0 ? 0 : t.pX;
 		const playerY = (game.player.y >> 8) + game.offsetY + (game.player.pY >> 1);
-		if (t.animFrame == 1 && t.dead == 0) {
+		if (t.animFrame == 1 && !t.dead) {
 			ctx.strokeStyle = 'rgb(255, 255, 0)';
 			ctx.lineWidth = 3;
 			const dy = random(-16, 16);
 			line(x + dx, y + 13, (game.player.x >> 8) + game.offsetX, playerY + dy);
-		} else if (t.rotation < 10 && t.dead == 0) {
+		} else if (t.rotation < 10 && !t.dead) {
 			ctx.strokeStyle = 'rgb(255, 0, 0)';
 			ctx.lineWidth = 1;
 			line(x + dx, y + 13, (t.ex >> 8) + game.offsetX, playerY);

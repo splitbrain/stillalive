@@ -405,7 +405,7 @@ function teleport(p, obj) {
 	playSound(sfx_enterPortal);
 
 	if (obj.type == 'turret') {
-		obj.canExplode = 1;
+		obj.canExplode = true;
 	}
 
 	if (obj.type == 'player') {
@@ -520,7 +520,7 @@ export function clearPortals() {
 
 	if (ok) {
 		for (i = 0; i < game.turrets.length; i++) {
-			if (game.turrets[i].dead == 0 && inPortal(game.turrets[i])) ok = 0;
+			if (!game.turrets[i].dead && inPortal(game.turrets[i])) ok = 0;
 		}
 	}
 

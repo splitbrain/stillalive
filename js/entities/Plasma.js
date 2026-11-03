@@ -45,8 +45,8 @@ export class Plasma {
 		this.pX = 16;
 		/** @type {number} The height in pixels. */
 		this.pY = 16;
-		/** @type {number} 1 while the ball exists. */
-		this.used = 1;
+		/** @type {boolean} True while the ball exists. */
+		this.used = true;
 		/** @type {number} The pulse of the drawn size, from -2 to 2 pixels. */
 		this.scale = 1;
 		/** @type {number} The direction of the pulse, 1 or -1. */
@@ -130,7 +130,7 @@ export class Plasma {
 		let i;
 		for (i = 0; i < game.animatedTiles.length; i++) {
 			if (isTileKind(game.animatedTiles[i].current, TileKind.PLASMA_DOOR)) {
-				game.animatedTiles[i].used = 0;
+				game.animatedTiles[i].used = false;
 				game.map[game.animatedTiles[i].place] = 0;
 			}
 		}
@@ -179,7 +179,7 @@ export class Plasma {
 					game.displayMap[x + (y << 5)] = Tile.WALL;
 					reloadTiles();
 					if (!this.hasSlot()) {
-						this.used = 0;
+						this.used = false;
 						this.openSwitchDoors();
 					} else {
 						this.x = this.xOrig;
@@ -207,7 +207,7 @@ export class Plasma {
 					game.displayMap[x + (y << 5)] = Tile.WALL;
 					reloadTiles();
 					if (!this.hasSlot()) {
-						this.used = 0;
+						this.used = false;
 						this.openSwitchDoors();
 					} else {
 						this.x = this.xOrig;
@@ -235,7 +235,7 @@ export class Plasma {
 					game.displayMap[x + (y << 5)] = Tile.WALL;
 					reloadTiles();
 					if (!this.hasSlot()) {
-						this.used = 0;
+						this.used = false;
 						this.openSwitchDoors();
 					} else {
 						this.x = this.xOrig;
@@ -263,7 +263,7 @@ export class Plasma {
 					game.displayMap[x + (y << 5)] = Tile.WALL;
 					reloadTiles();
 					if (!this.hasSlot()) {
-						this.used = 0;
+						this.used = false;
 						this.openSwitchDoors();
 					} else {
 						this.x = this.xOrig;

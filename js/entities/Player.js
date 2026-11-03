@@ -83,8 +83,8 @@ export class Player {
 		this.animationFrame = 0;
 		/** @type {number} The life in 1/256 points; 100 points is full life. */
 		this.life = 100 << 8;
-		/** @type {number} 1 while the player is dead and the screen fades to the restart. */
-		this.dead = 0;
+		/** @type {boolean} True while the player is dead and the screen fades to the restart. */
+		this.dead = false;
 		/** @type {number} Ticks until the life starts to recover after damage. */
 		this.recoveryTime = 0;
 		/** @type {string} The entity type, used by the shared object functions. */
@@ -134,7 +134,7 @@ export class Player {
 				return;
 			}
 
-			this.dead = 1;
+			this.dead = true;
 			this.life = -256;
 			playSound(sfx_pain);
 			playSound(sfx_flatline);

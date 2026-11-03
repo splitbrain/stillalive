@@ -46,8 +46,8 @@ export class Crate {
 		this.vx = 0;
 		/** @type {number} The vertical speed in 1/256 pixels per tick. */
 		this.vy = 0;
-		/** @type {number} 1 while the player carries the crate. */
-		this.carried = 0;
+		/** @type {boolean} True while the player carries the crate. */
+		this.carried = false;
 		/** @type {number} The index of the platform that the crate stands on, or -1. */
 		this.platformIndex = -1;
 		/** @type {number} The conveyor belt that the crate stands on: 3 to the right, 4 to the left, 0 for none. */
@@ -178,7 +178,7 @@ export class Crate {
 		}
 
 		if (this.shrink == 0 && inForceField(this)) {
-			this.carried = 0;
+			this.carried = false;
 			this.shrink = 60;
 		}
 	}
@@ -260,11 +260,7 @@ export function movingCrateTouching(obj) {
 	const py = obj.pY;
 
 	for (i = 0; i < game.crates.length; i++) {
-		if (
-			game.crates[i].carried == 0 &&
-			(game.crates[i].vx != 0 || game.crates[i].vy != 0) &&
-			!inPortal(game.crates[i])
-		) {
+		if (!game.crates[i].carried && (game.crates[i].vx != 0 || game.crates[i].vy != 0) && !inPortal(game.crates[i])) {
 			const x = game.crates[i].x >> 8;
 			const y = game.crates[i].y >> 8;
 			if (posx + px > x && x + 16 > posx && posy + py > y && y + 16 > posy) return i + 1;

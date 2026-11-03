@@ -1098,7 +1098,7 @@ function manageSpriteSelection() {
 				if (game.BG < 0) game.BG = bg.length - 1;
 			} else if (arrow > 0) {
 				game.BG++;
-				redrawTiles++;
+				redrawTiles = true;
 				if (game.BG == bg.length) game.BG = 0;
 			}
 		}

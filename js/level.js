@@ -134,7 +134,7 @@ function closeSwitchDoors() {
 	playSound(sfx_tick);
 	for (i = 0; i < game.animatedTiles.length; i++) {
 		if (isTileKind(game.animatedTiles[i].current, TileKind.SWITCH_DOOR)) {
-			game.animatedTiles[i].used = 1;
+			game.animatedTiles[i].used = true;
 			game.map[game.animatedTiles[i].place] = game.animatedTiles[i].min;
 		}
 	}
@@ -151,7 +151,7 @@ function openSwitchDoors() {
 	playSound(sfx_tick);
 	for (i = 0; i < game.animatedTiles.length; i++) {
 		if (isTileKind(game.animatedTiles[i].current, TileKind.SWITCH_DOOR)) {
-			game.animatedTiles[i].used = 0;
+			game.animatedTiles[i].used = false;
 			game.map[game.animatedTiles[i].place] = 0;
 		}
 	}

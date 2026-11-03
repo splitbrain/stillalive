@@ -21,8 +21,8 @@ export class AnimatedTile {
 		this.x = x;
 		/** @type {number} The row of the tile in the map. */
 		this.y = y;
-		/** @type {number} 1 while the tile is drawn and solid; an open door is 0. */
-		this.used = 1;
+		/** @type {boolean} True while the tile is drawn and solid; an open door is false. */
+		this.used = true;
 		/** @type {number} The current frame, as a tile id. */
 		this.current = min;
 		/** @type {number} The first frame, as a tile id. */

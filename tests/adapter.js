@@ -140,14 +140,16 @@ export async function runLevel(
 			const startMap = game.map.slice();
 
 			const pick = (obj, fields) => fields.map((field) => obj[field]);
+			// the snapshots store the flags of the player, the crates, the turrets and the plasma balls as 0 and 1
+			const pickNumbers = (obj, fields) => pick(obj, fields).map((v) => (typeof v === 'boolean' ? Number(v) : v));
 			const snapshot = (tick) =>
 				JSON.stringify({
 					tick,
 					time: game.TIME,
-					player: pick(game.player, ['x', 'y', 'vx', 'vy', 'life', 'dead']),
-					crates: game.crates.map((c) => pick(c, ['x', 'y', 'vx', 'vy', 'carried'])),
-					turrets: game.turrets.map((t) => pick(t, ['x', 'y', 'vx', 'vy', 'dead', 'carried'])),
-					plasma: game.plasmaBall.map((p) => pick(p, ['x', 'y', 'vx', 'vy', 'used'])),
+					player: pickNumbers(game.player, ['x', 'y', 'vx', 'vy', 'life', 'dead']),
+					crates: game.crates.map((c) => pickNumbers(c, ['x', 'y', 'vx', 'vy', 'carried'])),
+					turrets: game.turrets.map((t) => pickNumbers(t, ['x', 'y', 'vx', 'vy', 'dead', 'carried'])),
+					plasma: game.plasmaBall.map((p) => pickNumbers(p, ['x', 'y', 'vx', 'vy', 'used'])),
 					platforms: game.platforms.map((p) => pick(p, ['x', 'y', 'vx'])),
 					portals: game.portals.map((p) => pick(p, ['x', 'y', 'used', 'direction'])),
 					cakesLeft: game.CAKELEFT,

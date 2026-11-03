@@ -51,18 +51,18 @@ export class Turret {
 		this.coolTime = 0;
 		/** @type {number} Ticks until the turret shoots after it saw the player, from 10 down to 0. */
 		this.rotation = 10;
-		/** @type {number} 1 when the turret is destroyed. */
-		this.dead = 0;
-		/** @type {number} 1 while the player carries the turret. */
-		this.carried = 0;
+		/** @type {boolean} True when the turret is destroyed. */
+		this.dead = false;
+		/** @type {boolean} True while the player carries the turret. */
+		this.carried = false;
 		/** @type {number} The width in pixels. */
 		this.pX = 16;
 		/** @type {number} The height in pixels. */
 		this.pY = 32;
 		/** @type {number} The frame of the turret image; 1 is the shot flash. */
 		this.animFrame = 0;
-		/** @type {number} 1 after the turret passed a portal or a force field; a hard landing then destroys it. */
-		this.canExplode = 0;
+		/** @type {boolean} True after the turret passed a portal or a force field; a hard landing then destroys it. */
+		this.canExplode = false;
 		/** @type {string} The entity type, used by the shared object functions. */
 		this.type = 'turret';
 		/** @type {number} The x position where the laser sight ends, in 1/256 pixels. */
@@ -88,11 +88,11 @@ export class Turret {
 
 			if (!this.dead) {
 				if (this.vx == 0 && Math.abs(oldVx) > 3 << 8 && this.canExplode && inForceFieldTp(this).length == 0)
-					this.dead = 1;
+					this.dead = true;
 				else if (this.vy == 0 && Math.abs(oldVy) > 4 << 8 && this.canExplode && inForceFieldTp(this).length == 0)
-					this.dead = 1;
+					this.dead = true;
 				else if (touchesDeadlyTile(this) || movingCrateTouching(this) || plasmaTouching(this)) {
-					this.dead = 1;
+					this.dead = true;
 				}
 				if (this.dead) {
 					this.animFrame = 2;
@@ -112,7 +112,7 @@ export class Turret {
 			const colLeft = leftCollision(this);
 			const colRight = rightCollision(this);
 			if (!this.dead && (isPlatformCode(colLeft) || isPlatformCode(colRight))) {
-				this.dead = 1;
+				this.dead = true;
 				this.animFrame = 2;
 				playSound(sfx_explode);
 				createCakeOrSmokeSparkles(this.x, this.y, 9, 4, 255);
@@ -141,7 +141,7 @@ export class Turret {
 			if (Math.abs(y - y2) > 32) testShoot = false;
 		}
 
-		if (this.dead == 0 && testShoot && !game.player.dead) {
+		if (!this.dead && testShoot && !game.player.dead) {
 			this.coolTime--;
 			if (this.coolTime < 0) this.coolTime = 0;
 			if (this.coolTime == 0) {
@@ -205,7 +205,7 @@ export class Turret {
 				}
 			} else this.animFrame = 0;
 		} else {
-			if (this.dead == 0) {
+			if (!this.dead) {
 				this.animFrame = 0;
 				this.rotation = 10;
 			}

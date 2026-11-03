@@ -35,7 +35,7 @@ export function collectCakes() {
 	for (i = 0; i < game.cakes.length; i++) {
 		if (game.cakes[i].used) {
 			if (playerTouchesCake(i)) {
-				game.cakes[i].used = 0;
+				game.cakes[i].used = false;
 				game.CAKELEFT--;
 				createCakeOrSmokeSparkles(game.cakes[i].x, game.cakes[i].y, 8, 2, 180);
 				playSound(sfx_grabCake);

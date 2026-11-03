@@ -650,9 +650,8 @@ export function drawMainMenu() {
 
 		ctx.fillStyle = 'rgb(255, 255, 255)';
 		ctx.font = 'bold 12px Arial';
-		ctx.fillText('Sound is an experimental feature that might', 55, 397);
-		ctx.fillText('not work very well. Turn it off to increase', 55, 413);
-		ctx.fillText('performances.', 55, 428);
+		ctx.fillText('Click here or press M to turn the sound', 55, 404);
+		ctx.fillText('on and off.', 55, 420);
 
 		ctx.globalAlpha = 1;
 	}

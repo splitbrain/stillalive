@@ -281,7 +281,7 @@ function drawPortalMessage(sec) {
  */
 function drawCakeMessage() {
 	prepareTxtDefault();
-	ctx.fillText('In StillAliveJS, grabing cakes enables the finish line.', leftPan, game.offsetY + 48);
+	ctx.fillText('In StillAliveJS, grabbing cakes enables the finish line.', leftPan, game.offsetY + 48);
 	ctx.fillText('When no cakes are left in a level, finish line turns white.', leftPan, game.offsetY + 48 + 16);
 	ctx.fillText('Take that cake on the left and leave this room.', leftPan, game.offsetY + 48 + 32);
 }

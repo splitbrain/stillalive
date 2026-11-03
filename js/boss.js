@@ -55,7 +55,7 @@ export function skipComingBoss() {
 const ENTRY_SPEECH = {
 	1: [
 		"Enough is enough little man. I've decided that you can no longer",
-		'continue to progress through or laboratories anymore. Launching',
+		'continue to progress through our laboratories anymore. Launching',
 		'termination program in 3 ... 2 ... 1 .............',
 	],
 	2: [
@@ -112,7 +112,7 @@ const DEATH_SPEECH = {
 		'....... and tell my cousin I forgot to buy some milk ...........',
 	],
 	3: [
-		"I don't understand ... all my calculations where perfect ! You were",
+		"I don't understand ... all my calculations were perfect ! You were",
 		'supposed to die and ... oh wait ! I remember that movie now, that',
 		'guy with a scar on his face .. guess I was wrong after all ..........',
 	],

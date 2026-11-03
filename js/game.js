@@ -87,7 +87,7 @@ export function render() {
 export function reportBrokenReplay() {
 	alertDialog(
 		"The replay you're watching seems to be broken -_-;\n" + 'Sorry for any inconveniences.',
-		'An error occured',
+		'An error occurred',
 	);
 	game.replayMode = false;
 	exitFunc();

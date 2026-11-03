@@ -17,8 +17,8 @@ import {
 	Menu,
 	MouseButton,
 } from './constants.js';
-import { inPortal } from './portals.js';
 import { reportBrokenReplay } from './navigation.js';
+import { isInPortal } from './portals.js';
 import { game, input, ui } from './state.js';
 
 /**
@@ -156,7 +156,7 @@ export function manageKeys() {
 	if (
 		input.keys & KEY_JUMP &&
 		(ui.isTestingLevel || ui.currentMenu == Menu.PLAY || (ui.currentMenu == Menu.TUTORIAL && ui.tutoJump)) &&
-		!inPortal(game.player)
+		!isInPortal(game.player)
 	) {
 		if (!(input.oldKeys & KEY_JUMP)) game.player.oldIsJump = game.player.isJump;
 		game.player.isJump = 1;

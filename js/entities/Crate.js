@@ -15,7 +15,7 @@ import {
 	touchesDeadlyTile,
 	touchingGround,
 } from '../physics.js';
-import { inForceField, inPortal } from '../portals.js';
+import { inForceField, isInPortal } from '../portals.js';
 import { game } from '../state.js';
 import { CRATE_CODE, isTileKind, LAST_OF_KIND, PLATFORM_CODE, TileKind } from '../tiles.js';
 
@@ -203,7 +203,7 @@ export function crateAt(x, y) {
 	for (i = 0; i < game.crates.length; i++) {
 		const x2 = game.crates[i].x >> 8;
 		const y2 = game.crates[i].y >> 8;
-		if (!game.crates[i].carried && !inPortal(game.crates[i]) && x > x2 && x < x2 + 15 && y > y2 && y < y2 + 15) {
+		if (!game.crates[i].carried && !isInPortal(game.crates[i]) && x > x2 && x < x2 + 15 && y > y2 && y < y2 + 15) {
 			const ret = i;
 			return CRATE_CODE + ret;
 		}
@@ -238,7 +238,7 @@ export function anyCrateAt(x, y) {
  * @returns {number} 1 if the object is a crate that falls onto the player, else 0.
  */
 export function crateLandsOnPlayer(obj) {
-	if (obj.type == 'crate' && obj.vy > 0 && !inPortal(obj)) {
+	if (obj.type == 'crate' && obj.vy > 0 && !isInPortal(obj)) {
 		let x = (obj.x >> 8) + 3;
 		const y = (obj.y >> 8) + obj.pY;
 		const x2 = game.player.x >> 8;
@@ -267,7 +267,7 @@ export function movingCrateTouching(obj) {
 	const py = obj.pY;
 
 	for (i = 0; i < game.crates.length; i++) {
-		if (!game.crates[i].carried && (game.crates[i].vx != 0 || game.crates[i].vy != 0) && !inPortal(game.crates[i])) {
+		if (!game.crates[i].carried && (game.crates[i].vx != 0 || game.crates[i].vy != 0) && !isInPortal(game.crates[i])) {
 			const x = game.crates[i].x >> 8;
 			const y = game.crates[i].y >> 8;
 			if (posx + px > x && x + 16 > posx && posy + py > y && y + 16 > posy) return i + 1;
@@ -296,7 +296,7 @@ export function updateCrates() {
 				ci--;
 				continue;
 			}
-			if (game.needRedrawTiles == 0) game.needRedrawTiles = inPortal(c);
+			if (game.needRedrawTiles == 0) game.needRedrawTiles = isInPortal(c);
 		}
 	}
 }

@@ -32,7 +32,7 @@ import { mouseInZone, unclick } from './inputState.js';
 import { isTileHere, isWallAt, loadEditorObjects, loadLevelEditor, loadPreviewMap, manageDoors } from './level.js';
 import { exportEditorMap, importEditorMap } from './mapFile.js';
 import { atExit } from './physics.js';
-import { inPortal } from './portals.js';
+import { isInPortal } from './portals.js';
 import { game, input, ui } from './state.js';
 import { getEditorMap, saveEditorMap } from './storage.js';
 import { Tile, isTunnelTile } from './tiles.js';
@@ -91,7 +91,7 @@ function updateTestLevel() {
 	game.time++;
 	if (!game.player.dead && game.player.fadeNextLevel == -1) {
 		game.player.move();
-		if (game.needRedrawTiles == 0) game.needRedrawTiles = inPortal(game.player);
+		if (game.needRedrawTiles == 0) game.needRedrawTiles = isInPortal(game.player);
 	}
 
 	manageDoors();

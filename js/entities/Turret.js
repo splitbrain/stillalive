@@ -4,6 +4,7 @@
 
 import { playSound, playSoundIfFinished, sfx_explode, sfx_shoot } from '../audio.js';
 import { PLAYFIELD_WIDTH, SparkleType } from '../constants.js';
+import { isInPortal } from '../portals.js';
 import { anyCrateAt, movingCrateTouching } from './Crate.js';
 import { tunnelFieldsAt } from './TunnelField.js';
 import { plasmaTouching } from './Plasma.js';
@@ -18,7 +19,6 @@ import {
 	touchesDeadlyTile,
 	touchingGround,
 } from '../physics.js';
-import { inPortal } from '../portals.js';
 import { game } from '../state.js';
 import { isPlatformCode, PLATFORM_CODE, Tile } from '../tiles.js';
 import { random } from '../utils.js';
@@ -237,6 +237,6 @@ export function updateTurrets() {
 	if (game.player.fadeNextLevel != -1) return;
 	for (const t of game.turrets) {
 		t.move();
-		if (game.needRedrawTiles == 0) game.needRedrawTiles = inPortal(t);
+		if (game.needRedrawTiles == 0) game.needRedrawTiles = isInPortal(t);
 	}
 }

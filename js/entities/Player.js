@@ -4,7 +4,7 @@
 
 import { playSound, setSoundVolume, sfx_flatline, sfx_jump, sfx_pain } from '../audio.js';
 import { skipComingBoss } from '../boss.js';
-import { GRAVITY, Menu, MouseButton, PLAYFIELD_HEIGHT, SparkleType } from '../constants.js';
+import { Direction, GRAVITY, Menu, MouseButton, PLAYFIELD_HEIGHT, SparkleType } from '../constants.js';
 import { reportBrokenReplay } from '../navigation.js';
 import { collectCakes } from './Cake.js';
 import { tunnelFieldsAt } from './TunnelField.js';
@@ -23,16 +23,7 @@ import {
 	touchingGround,
 	upCollision,
 } from '../physics.js';
-import {
-	checkTeleportDown,
-	checkTeleportLeft,
-	checkTeleportRight,
-	checkTeleportUp,
-	clearPortals,
-	clearPortalsAtForceField,
-	inPortal,
-	launchPortal,
-} from '../portals.js';
+import { clearPortals, clearPortalsAtForceField, isInPortal, launchPortal, passPortal, portalAt } from '../portals.js';
 import { game, input, ui } from '../state.js';
 import { isPlatformCode, PLATFORM_CODE } from '../tiles.js';
 import { random } from '../utils.js';
@@ -223,7 +214,7 @@ export class Player {
 			const f = fields[i];
 			if (fields.length == 1) {
 				if (game.tunnelFields[f].vx != 0) {
-					if (checkTeleportUp(this) || checkTeleportDown(this)) {
+					if (portalAt(this, Direction.UP) || portalAt(this, Direction.DOWN)) {
 						if (game.player.y >> 8 < game.tunnelFields[f].y) game.player.y += 768;
 						else if ((game.player.y >> 8) + game.player.pY > game.tunnelFields[f].y + 32) game.player.y -= 768;
 					} else if (game.player.y >> 8 < game.tunnelFields[f].y) game.player.y += 512;
@@ -310,7 +301,7 @@ export class Player {
 		let dir = (this.isRight - this.isLeft) * 128;
 
 		//jump handling
-		if (this.isJump && ground && !checkTeleportDown(this) && fields.length == 0) {
+		if (this.isJump && ground && !portalAt(this, Direction.DOWN) && fields.length == 0) {
 			this.vy = -1300;
 			playSound(sfx_jump);
 		} else if (!this.isJump && this.oldIsJump && this.vy < -200) {
@@ -318,7 +309,7 @@ export class Player {
 		}
 
 		if (this.vx > 0) {
-			if (ground == 1 && !checkTeleportLeft(this)) {
+			if (ground == 1 && !portalAt(this, Direction.LEFT)) {
 				game.steps += game.player.vx >> 4;
 				this.vx -= 64;
 			} else {
@@ -326,7 +317,7 @@ export class Player {
 			}
 			if (this.vx < 0) this.vx = 0;
 		} else if (this.vx < 0) {
-			if (ground == 1 && !checkTeleportRight(this)) {
+			if (ground == 1 && !portalAt(this, Direction.RIGHT)) {
 				game.steps -= game.player.vx >> 4;
 				this.vx += 64;
 			} else {
@@ -338,13 +329,17 @@ export class Player {
 		if (dir == 0 && ground) this.animationFrame = 0;
 
 		if (fields.length == 0) {
-			if (this.vx > 448 && ground == 1 && !checkTeleportLeft(this) && !checkTeleportRight(this)) this.vx = 448;
-			else if (this.vx < -448 && ground == 1 && !checkTeleportLeft(this) && !checkTeleportRight(this)) this.vx = -448;
-			if (this.vx > 672 && ground > 1 && !checkTeleportLeft(this) && !checkTeleportRight(this)) this.vx = 672;
-			else if (this.vx < -672 && ground > 1 && !checkTeleportLeft(this) && !checkTeleportRight(this)) this.vx = -672;
+			if (this.vx > 448 && ground == 1 && !portalAt(this, Direction.LEFT) && !portalAt(this, Direction.RIGHT))
+				this.vx = 448;
+			else if (this.vx < -448 && ground == 1 && !portalAt(this, Direction.LEFT) && !portalAt(this, Direction.RIGHT))
+				this.vx = -448;
+			if (this.vx > 672 && ground > 1 && !portalAt(this, Direction.LEFT) && !portalAt(this, Direction.RIGHT))
+				this.vx = 672;
+			else if (this.vx < -672 && ground > 1 && !portalAt(this, Direction.LEFT) && !portalAt(this, Direction.RIGHT))
+				this.vx = -672;
 		}
 
-		if (!ground || checkTeleportDown(this)) {
+		if (!ground || portalAt(this, Direction.DOWN)) {
 			if (fields.length == 0) this.vy += GRAVITY;
 			dir = Math.trunc(dir * 0.28);
 			if (this.vy > (10 << 8) + 128) this.vy = (10 << 8) + 128;
@@ -356,8 +351,8 @@ export class Player {
 		}
 
 		for (i = 0; i < 8; i++) {
-			if (!checkTeleportDown(this) && !checkTeleportUp(this)) this.x += this.vx >> 3;
-			if (!checkTeleportLeft(this) && !checkTeleportRight(this)) this.y += this.vy >> 3;
+			if (!passPortal(this, Direction.DOWN) && !passPortal(this, Direction.UP)) this.x += this.vx >> 3;
+			if (!passPortal(this, Direction.LEFT) && !passPortal(this, Direction.RIGHT)) this.y += this.vy >> 3;
 		}
 
 		let platformCode = onPlatform(this);
@@ -366,16 +361,14 @@ export class Player {
 			this.x += game.platforms[platformCode].vx;
 		}
 
-		touchingGround(this); // getTile() can move a crate into a portal, so the call stays
-
 		let col = 1;
-		while (col && !inPortal(this)) {
+		while (col && !isInPortal(this)) {
 			col = checkCollisions(this);
 		}
 
-		if (checkTeleportUp(this) && this.vy > 0) {
+		if (portalAt(this, Direction.UP) && this.vy > 0) {
 			if (downCollision(this)) this.vy = -this.vy;
-		} else if (checkTeleportDown(this) && this.vy < 0) {
+		} else if (portalAt(this, Direction.DOWN) && this.vy < 0) {
 			if (upCollision(this)) this.vy = -this.vy;
 		}
 
@@ -384,7 +377,7 @@ export class Player {
 		clearPortalsAtForceField();
 
 		if (ui.currentMenu != Menu.TUTORIAL || ui.tutoPortal) {
-			if (input.mousePressed && this.portalCooldown == 25 && !inPortal(this) && !carriesObject()) {
+			if (input.mousePressed && this.portalCooldown == 25 && !isInPortal(this) && !carriesObject()) {
 				if (input.mouseButton == MouseButton.LEFT) {
 					launchPortal(0);
 				} else if (input.mouseButton == MouseButton.RIGHT) {
@@ -395,7 +388,7 @@ export class Player {
 
 		const colLeft = leftCollision(this);
 		const colRight = rightCollision(this);
-		if (colLeft && colRight && !inPortal(this)) {
+		if (colLeft && colRight && !isInPortal(this)) {
 			if (isPlatformCode(colLeft) || isPlatformCode(colRight)) {
 				this.life = 0;
 			}

@@ -40,7 +40,7 @@ import {
 import { exitFunc } from './navigation.js';
 import { updatePanel } from './panel.js';
 import { atExit } from './physics.js';
-import { inPortal } from './portals.js';
+import { isInPortal } from './portals.js';
 import { encodeReplay } from './replay.js';
 import { updateText } from './robotText.js';
 import { game, input, ui } from './state.js';
@@ -114,7 +114,7 @@ function updateLevel() {
 	game.needRedrawTiles = 0;
 	if (!game.player.dead && game.player.fadeNextLevel == -1) {
 		game.player.move();
-		if (game.needRedrawTiles == 0) game.needRedrawTiles = inPortal(game.player);
+		if (game.needRedrawTiles == 0) game.needRedrawTiles = isInPortal(game.player);
 	}
 
 	manageDoors();

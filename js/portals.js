@@ -257,137 +257,113 @@ function setPortalDir(p, x, y) {
 	return 0;
 }
 
-/**
- * Check if an object is in a portal on a left wall, and teleport it when it moves into the portal far enough.
- *
- * @param {object} obj The object with x, y, vx, vy, pX and pY.
- * @returns {number} The portal index plus 1, or 0 if the object is not in such a portal.
- */
-export function checkTeleportLeft(obj) {
-	let j;
-	let x = obj.x >> 8;
-	const y = obj.y >> 8;
-	x -= 1;
-	for (j = 0; j < 2; j++) {
-		const tx = (game.portals[j].x >> 8) + 3;
-		const ty = game.portals[j].y >> 8;
-		if (game.portals[j].used && game.portals[j].direction == Direction.LEFT && game.portals[1 - j].used) {
-			if (y >= ty - 6 && y + obj.pY <= ty + 38 && x < tx && tx - x <= 20) {
-				const gap = (32 - obj.pY) >> 1;
-				obj.y = (ty + gap) << 8;
-				if (game.bossNum == 0 || obj.type != 'plasma') obj.vy = 0;
-				if (tx - x >= obj.pX >> 1 && obj.vx < 0) {
-					teleport(j, obj);
-				}
-				return j + 1;
-			}
-		}
-	}
-	return 0;
-}
+/** @type {number[]} The sides of the walls with portals, in the order of the portal checks. */
+const PORTAL_SIDES = [Direction.DOWN, Direction.UP, Direction.LEFT, Direction.RIGHT];
 
 /**
- * Check if an object is in a portal on a right wall, and teleport it when it moves into the portal far enough.
+ * Find the portal on one side that an object touches. The function does not change the object.
  *
- * @param {object} obj The object with x, y, vx, vy, pX and pY.
- * @returns {number} The portal index plus 1, or 0 if the object is not in such a portal.
+ * @param {object} obj The object with x, y, vx, vy, pX, pY and type.
+ * @param {number} side The side of the wall with the portal: Direction.LEFT, Direction.RIGHT, Direction.DOWN for a
+ *     floor or Direction.UP for a ceiling.
+ * @returns {{index: number, deep: boolean}|null} The index of the portal, and true in deep if the object moves into
+ *     the portal far enough for a teleport, or null if the object touches no portal on this side.
  */
-export function checkTeleportRight(obj) {
-	let j;
-	let x = obj.x >> 8;
-	const y = obj.y >> 8;
-	x += obj.pX;
-	for (j = 0; j < 2; j++) {
-		const tx = game.portals[j].x >> 8;
-		const ty = game.portals[j].y >> 8;
-		if (game.portals[j].used && game.portals[j].direction == Direction.RIGHT && game.portals[1 - j].used) {
-			if (y >= ty - 6 && y + obj.pY <= ty + 38 && x > tx && x - tx <= 20) {
-				const gap = (32 - obj.pY) >> 1;
-				obj.y = (ty + gap) << 8;
-				if (game.bossNum == 0 || obj.type != 'plasma') obj.vy = 0;
-				if (x - tx >= obj.pX >> 1 && obj.vx > 0) {
-					teleport(j, obj);
-				}
-				return j + 1;
-			}
-		}
-	}
-	return 0;
-}
-
-/**
- * Check if an object is in a portal on a floor, and teleport it when it moves into the portal far enough.
- *
- * @param {object} obj The object with x, y, vx, vy, pX and pY.
- * @returns {number} The portal index plus 1, or 0 if the object is not in such a portal.
- */
-export function checkTeleportDown(obj) {
-	let j;
+function findPortal(obj, side) {
 	const x = obj.x >> 8;
-	let y = obj.y >> 8;
-	y += obj.pY;
+	const y = obj.y >> 8;
+	const vertical = side == Direction.DOWN || side == Direction.UP;
+	if (vertical && obj.type == 'plasma' && obj.vy == 0) return null;
 
-	if (obj.type == 'plasma' && obj.vy == 0) return 0;
-
-	for (j = 0; j < 2; j++) {
-		const tx = game.portals[j].x >> 8;
-		const ty = game.portals[j].y >> 8;
-		if (game.portals[j].used && game.portals[j].direction == Direction.DOWN && game.portals[1 - j].used) {
-			if (x >= tx - 4 && x + obj.pX < tx + 36 && y >= ty && y - ty <= 20) {
-				obj.x = (tx + 8) << 8;
-				if (y - ty >= 16 && obj.vy > 0) {
-					teleport(j, obj);
-				}
-				return j + 1;
-			}
+	for (let j = 0; j < 2; j++) {
+		const portal = game.portals[j];
+		if (!portal.used || portal.direction != side || !game.portals[1 - j].used) continue;
+		const px = portal.x >> 8;
+		const py = portal.y >> 8;
+		if (side == Direction.LEFT) {
+			const tx = px + 3;
+			const edge = x - 1;
+			if (y >= py - 6 && y + obj.pY <= py + 38 && edge < tx && tx - edge <= 20)
+				return { index: j, deep: tx - edge >= obj.pX >> 1 && obj.vx < 0 };
+		} else if (side == Direction.RIGHT) {
+			const edge = x + obj.pX;
+			if (y >= py - 6 && y + obj.pY <= py + 38 && edge > px && edge - px <= 20)
+				return { index: j, deep: edge - px >= obj.pX >> 1 && obj.vx > 0 };
+		} else if (side == Direction.DOWN) {
+			const edge = y + obj.pY;
+			if (x >= px - 4 && x + obj.pX < px + 36 && edge >= py && edge - py <= 20)
+				return { index: j, deep: edge - py >= 16 && obj.vy > 0 };
+		} else if (side == Direction.UP) {
+			const ty = py + 4;
+			const edge = y - 1;
+			if (x >= px - 4 && x + obj.pX < px + 36 && edge < ty && ty - edge <= 20)
+				return { index: j, deep: ty - edge >= 16 && obj.vy < 0 };
 		}
+	}
+	return null;
+}
+
+/**
+ * Check if an object touches a portal on one side. The function does not change the object.
+ *
+ * @param {object} obj The object with x, y, vx, vy, pX, pY and type.
+ * @param {number} side The side of the wall with the portal, a value of Direction.
+ * @returns {number} The portal index plus 1, or 0 if the object touches no portal on this side.
+ */
+export function portalAt(obj, side) {
+	const found = findPortal(obj, side);
+	return found ? found.index + 1 : 0;
+}
+
+/**
+ * Check if an object touches a portal. The function does not change the object.
+ *
+ * @param {object} obj The object with x, y, vx, vy, pX, pY and type.
+ * @returns {number} The portal index plus 1, or 0 if the object touches no portal.
+ */
+export function isInPortal(obj) {
+	for (const side of PORTAL_SIDES) {
+		const p = portalAt(obj, side);
+		if (p) return p;
 	}
 	return 0;
 }
 
 /**
- * Check if an object is in a portal on a ceiling, and teleport it when it moves into the portal far enough.
+ * Let an object pass a portal on one side while it moves: an object in the portal moves to the middle of the portal,
+ * and it teleports to the other portal when it moves into the portal far enough.
  *
- * @param {object} obj The object with x, y, vx, vy, pX and pY.
- * @returns {number} The portal index plus 1, or 0 if the object is not in such a portal.
+ * @param {object} obj The object with x, y, vx, vy, pX, pY and type.
+ * @param {number} side The side of the wall with the portal, a value of Direction.
+ * @returns {number} The portal index plus 1, or 0 if the object touches no portal on this side.
  */
-export function checkTeleportUp(obj) {
-	let j;
-	const x = obj.x >> 8;
-	let y = obj.y >> 8;
-	y -= 1;
-
-	if (obj.type == 'plasma' && obj.vy == 0) return 0;
-
-	for (j = 0; j < 2; j++) {
-		const tx = game.portals[j].x >> 8;
-		const ty = (game.portals[j].y >> 8) + 4;
-		if (game.portals[j].used && game.portals[j].direction == Direction.UP && game.portals[1 - j].used) {
-			if (x >= tx - 4 && x + obj.pX < tx + 36 && y < ty && ty - y <= 20) {
-				obj.x = (tx + 8) << 8;
-				if (ty - y >= 16 && obj.vy < 0) {
-					teleport(j, obj);
-				}
-				return j + 1;
-			}
-		}
+export function passPortal(obj, side) {
+	const found = findPortal(obj, side);
+	if (!found) return 0;
+	const portal = game.portals[found.index];
+	if (side == Direction.LEFT || side == Direction.RIGHT) {
+		const gap = (32 - obj.pY) >> 1;
+		obj.y = ((portal.y >> 8) + gap) << 8;
+		if (game.bossNum == 0 || obj.type != 'plasma') obj.vy = 0;
+	} else {
+		obj.x = ((portal.x >> 8) + 8) << 8;
 	}
-	return 0;
+	if (found.deep) teleport(found.index, obj);
+	return found.index + 1;
 }
 
 /**
- * Check if an object is in a portal.
+ * Let an object pass the portals on all sides while it moves, see passPortal().
  *
- * @param {object} obj The object with x, y, vx, vy, pX and pY.
- * @returns {number} The portal index plus 1, or 0 if the object is not in a portal.
+ * @param {object} obj The object with x, y, vx, vy, pX, pY and type.
+ * @returns {number} The portal index plus 1, or 0 if the object touches no portal.
  */
-export function inPortal(obj) {
-	let p = checkTeleportDown(obj);
-	if (p == 0) p = checkTeleportUp(obj);
-	if (p == 0) p = checkTeleportLeft(obj);
-	if (p == 0) p = checkTeleportRight(obj);
-
-	return p;
+export function passPortals(obj) {
+	for (const side of PORTAL_SIDES) {
+		const p = passPortal(obj, side);
+		if (p) return p;
+	}
+	return 0;
 }
 
 /**
@@ -551,18 +527,18 @@ export function clearPortals() {
 	let i;
 	for (i = 0; i < game.crates.length; i++) {
 		if (!ok) break;
-		if (game.crates[i].shrink == 0 && inPortal(game.crates[i])) ok = 0;
+		if (game.crates[i].shrink == 0 && isInPortal(game.crates[i])) ok = 0;
 	}
 
 	if (ok) {
 		for (i = 0; i < game.turrets.length; i++) {
-			if (!game.turrets[i].dead && inPortal(game.turrets[i])) ok = 0;
+			if (!game.turrets[i].dead && isInPortal(game.turrets[i])) ok = 0;
 		}
 	}
 
-	if (ok && game.plasmaBall.length > 0 && inPortal(game.plasmaBall[0])) ok = 0;
+	if (ok && game.plasmaBall.length > 0 && isInPortal(game.plasmaBall[0])) ok = 0;
 
-	if (ok && inPortal(game.player)) ok = 0;
+	if (ok && isInPortal(game.player)) ok = 0;
 
 	if (ok) {
 		for (i = 0; i < 2; i++) {

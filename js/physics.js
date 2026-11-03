@@ -7,7 +7,7 @@ import { Direction, GRAVITY, MouseButton, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH } fr
 import { crateAt, crateLandsOnPlayer, movingCrateTouching } from './entities/Crate.js';
 import { tunnelFieldsAt } from './entities/TunnelField.js';
 import { onBelt, platformAt } from './entities/Platform.js';
-import { checkTeleportDown, checkTeleportLeft, checkTeleportRight, checkTeleportUp, inPortal } from './portals.js';
+import { isInPortal, passPortal, portalAt } from './portals.js';
 import { game, input } from './state.js';
 import { FIRST_OF_KIND, inForceFieldRange, isCrateCode, isDeadlyTile, isTileKind, Tile, TileKind } from './tiles.js';
 import { getCos, getDistance, getSin } from './utils.js';
@@ -181,7 +181,12 @@ export function placeObject(obj) {
 		obj.x += obj.vx >> 1;
 		obj.y += obj.vy >> 1;
 
-		if (!checkTeleportLeft(obj) && !checkTeleportDown(obj) && !checkTeleportUp(obj) && !checkTeleportRight(obj)) {
+		if (
+			!passPortal(obj, Direction.LEFT) &&
+			!passPortal(obj, Direction.DOWN) &&
+			!passPortal(obj, Direction.UP) &&
+			!passPortal(obj, Direction.RIGHT)
+		) {
 			checkCollisions(obj);
 		}
 	}
@@ -203,7 +208,7 @@ export function moveObject(obj) {
 	for (i = 0; i < fields.length; i++) {
 		const f = fields[i];
 		if (game.tunnelFields[f].vx != 0) {
-			if (checkTeleportUp(obj) || checkTeleportDown(obj)) {
+			if (portalAt(obj, Direction.UP) || portalAt(obj, Direction.DOWN)) {
 				if (obj.y >> 8 < game.tunnelFields[f].y) obj.y += 768;
 				else if ((obj.y >> 8) + obj.pY > game.tunnelFields[f].y + 32) obj.y -= 768;
 			} else if (obj.y >> 8 < game.tunnelFields[f].y + (16 - (obj.pY >> 1))) obj.y += 512;
@@ -232,12 +237,12 @@ export function moveObject(obj) {
 		obj.carpet = belt;
 	}
 
-	const inLeftPortal = checkTeleportLeft(obj);
-	const inRightPortal = checkTeleportRight(obj);
+	const inLeftPortal = portalAt(obj, Direction.LEFT);
+	const inRightPortal = portalAt(obj, Direction.RIGHT);
 
 	const ground = touchingGround(obj);
 
-	if (!ground || checkTeleportDown(obj)) {
+	if (!ground || portalAt(obj, Direction.DOWN)) {
 		if (fields.length == 0) obj.vy += GRAVITY;
 		if (obj.vy > 10 << 8) obj.vy = 10 << 8;
 	}
@@ -259,8 +264,9 @@ export function moveObject(obj) {
 
 	let j;
 	for (j = 0; j < 8; j++) {
-		if (!checkTeleportDown(obj) && !checkTeleportUp(obj)) obj.x += obj.vx >> 3;
-		if (!checkTeleportLeft(obj) && !checkTeleportRight(obj) && !crateLandsOnPlayer(obj)) obj.y += obj.vy >> 3;
+		if (!passPortal(obj, Direction.DOWN) && !passPortal(obj, Direction.UP)) obj.x += obj.vx >> 3;
+		if (!passPortal(obj, Direction.LEFT) && !passPortal(obj, Direction.RIGHT) && !crateLandsOnPlayer(obj))
+			obj.y += obj.vy >> 3;
 
 		if (obj.type == 'crate') {
 			if (movingCrateTouching(game.player) && obj.invincibility == 0) {
@@ -279,10 +285,10 @@ export function moveObject(obj) {
 				}
 			}
 
-			if (obj.vx != 0 && !inPortal(obj)) {
+			if (obj.vx != 0 && !isInPortal(obj)) {
 				for (c = 0; c < game.crates.length; c++) {
 					const ca = game.crates[c];
-					if (inPortal(ca)) continue;
+					if (isInPortal(ca)) continue;
 					// a crate with the same x or the same y position is skipped; a fix would change the gameplay
 					if (obj.x != ca.x && obj.y != ca.y) {
 						const y = obj.y >> 8;
@@ -315,7 +321,7 @@ export function moveObject(obj) {
 
 						if (needReturn) {
 							col = 1;
-							while (col && !inPortal(obj)) {
+							while (col && !isInPortal(obj)) {
 								col = checkCollisions(obj);
 							}
 							return;
@@ -327,7 +333,7 @@ export function moveObject(obj) {
 	}
 
 	col = 1;
-	while (col && !inPortal(obj)) {
+	while (col && !isInPortal(obj)) {
 		col = checkCollisions(obj);
 	}
 }
@@ -634,7 +640,7 @@ export function checkCollisions(obj) {
  * @returns {number} 1 if the player is on the open exit, else 0.
  */
 export function atExit() {
-	if (!inPortal(game.player)) {
+	if (!isInPortal(game.player)) {
 		// only the diagonal line through the player is checked; a full check would change the gameplay
 		for (let j = 2; j <= 14; j += 2) {
 			if (getTileSimple((game.player.x >> 8) + j, (game.player.y >> 8) + j) == Tile.EXIT) return 1;

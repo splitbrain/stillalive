@@ -7,19 +7,19 @@
  */
 
 import { readFileSync } from 'node:fs';
+import { CAMPAIGN_FOLDERS } from '../js/constants.js';
 
 /**
- * The campaigns with their index in the campaigns array of the game and their number of levels.
+ * The campaigns with their index in the campaigns array of the game and their number of levels from the campaign
+ * file.
  *
  * @type {{name: string, index: number, levels: number}[]}
  */
-export const CAMPAIGNS = [
-	{ name: 'normal', index: 0, levels: 28 },
-	{ name: 'advanced', index: 1, levels: 28 },
-	{ name: 'community', index: 2, levels: 28 },
-	{ name: 'tutorial', index: 3, levels: 8 },
-	{ name: 'story', index: 4, levels: 28 },
-];
+export const CAMPAIGNS = CAMPAIGN_FOLDERS.map((name, index) => ({
+	name,
+	index,
+	levels: JSON.parse(readFileSync(new URL(`../maps/${name}/campaign.json`, import.meta.url))).levels.length,
+}));
 
 /**
  * Number of ticks between two snapshots.
@@ -108,6 +108,7 @@ export async function runLevel(
 	return page.evaluate(
 		async ({ campaign, level, ticks, seed, inputs, replay: replayData, skipBossIntro, interval }) => {
 			const { skipComingBoss } = await import('/js/boss.js');
+			const { CampaignId, Menu } = await import('/js/constants.js');
 			const t = window.__test;
 			const { game, ui, input } = t;
 			let state = seed >>> 0;
@@ -123,9 +124,9 @@ export async function runLevel(
 			game.offsetY = 96;
 			ui.campaign = campaign;
 			ui.currentLevel = level;
-			if (campaign === 3) {
+			if (campaign === CampaignId.TUTORIAL) {
 				game.bossNum = 0;
-				ui.currentMenu = 6;
+				ui.currentMenu = Menu.TUTORIAL;
 				ui.tutoJump = level > 1;
 				ui.tutoPortal = level > 4;
 				ui.tutoPause = true;
@@ -133,9 +134,9 @@ export async function runLevel(
 				ui.tutoEnded = false;
 			} else {
 				// the level selection in the menu loads the preview map before the level
-				ui.currentMenu = 1;
+				ui.currentMenu = Menu.MAIN;
 				t.loadPreviewMap(level);
-				ui.currentMenu = 2;
+				ui.currentMenu = Menu.PLAY;
 			}
 			game.replayMode = replayData !== null;
 			if (game.replayMode) game.replay = t.decodeReplay(replayData);

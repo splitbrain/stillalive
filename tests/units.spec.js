@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { MAP_SIZE } from '../js/constants.js';
 import { openGame } from './adapter.js';
 
 /**
@@ -52,7 +53,7 @@ function validReplay() {
  * @returns {object} The map data.
  */
 function validMap() {
-	return { format: 1, tiles: new Array(768).fill(0), bg: 0 };
+	return { format: 1, tiles: new Array(MAP_SIZE).fill(0), bg: 0 };
 }
 
 test.describe('units', () => {
@@ -129,7 +130,7 @@ test.describe('units', () => {
 		const cases = {
 			'no data': null,
 			'wrong format': { ...validMap(), format: 2 },
-			'too few tiles': { ...validMap(), tiles: new Array(767).fill(0) },
+			'too few tiles': { ...validMap(), tiles: new Array(MAP_SIZE - 1).fill(0) },
 			'no tiles': { ...validMap(), tiles: undefined },
 			'negative tile id': { ...validMap(), tiles: tiles(5, -1) },
 			'unknown tile id': { ...validMap(), tiles: tiles(5, 99) },
@@ -167,16 +168,19 @@ test.describe('units', () => {
 	test('a tunnel field between two facing portals ends', async () => {
 		test.setTimeout(10000);
 		const fields = await page.evaluate(async () => {
-			const { Direction, Menu } = await import('/js/constants.js');
+			const { CampaignId, Direction, MAP_SIZE, MAP_WIDTH, Menu } = await import('/js/constants.js');
 			const { Tile } = await import('/js/tiles.js');
 			const t = window.__test;
-			t.ui.campaign = 4;
+			t.ui.campaign = CampaignId.STORY;
 			t.ui.currentMenu = Menu.PLAY;
 			t.ui.currentLevel = 4;
 			t.loadLevel(4);
 			const g = t.game;
 			// an empty map with walls on the left and the right side
-			for (let i = 0; i < 768; i++) g.map[i] = i % 32 === 0 || i % 32 === 31 ? Tile.WALL : Tile.EMPTY;
+			for (let i = 0; i < MAP_SIZE; i++) {
+				const x = i % MAP_WIDTH;
+				g.map[i] = x === 0 || x === MAP_WIDTH - 1 ? Tile.WALL : Tile.EMPTY;
+			}
 			g.tunnels = [Object.assign(g.tunnels[0], { x: 32 << 8, y: 160 << 8, dir: Direction.RIGHT })];
 			Object.assign(g.portals[0], { used: true, direction: Direction.RIGHT, x: 496 << 8, y: 160 << 8 });
 			Object.assign(g.portals[1], { used: true, direction: Direction.LEFT, x: 12 << 8, y: 160 << 8 });

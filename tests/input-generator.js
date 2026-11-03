@@ -5,23 +5,20 @@
  * same, as with a real player who holds keys for some time.
  */
 
-/** @type {number} Key bit for jump (Z or W). */
-const KEY_JUMP = 1;
-/** @type {number} Key bit for left (Q or A). */
-const KEY_LEFT = 2;
-/** @type {number} Key bit for right (D). */
-const KEY_RIGHT = 4;
-/** @type {number} Key bit for "clear portals" (E). */
-const KEY_CLEAR = 8;
-/** @type {number} Key bit for down (S). */
-const KEY_DOWN = 16;
-/** @type {number} Bit for the left mouse button. */
-const MOUSE_LEFT = 32;
-/** @type {number} Bit for the right mouse button. */
-const MOUSE_RIGHT = 64;
+import {
+	KEY_CLEAR,
+	KEY_DOWN,
+	KEY_JUMP,
+	KEY_LEFT,
+	KEY_RIGHT,
+	MOUSE_LEFT,
+	MOUSE_RIGHT,
+	PLAYFIELD_HEIGHT,
+	PLAYFIELD_WIDTH,
+} from '../js/constants.js';
 
 /** @type {{x: number, y: number, width: number, height: number}} Position of the playfield on the canvas. */
-const PLAYFIELD = { x: 64, y: 96, width: 512, height: 384 };
+const PLAYFIELD = { x: 64, y: 96, width: PLAYFIELD_WIDTH, height: PLAYFIELD_HEIGHT };
 
 /**
  * Create a pseudo-random generator with the mulberry32 algorithm.

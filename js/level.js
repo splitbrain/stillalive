@@ -4,7 +4,7 @@
 
 import { playSound, sfx_tick } from './audio.js';
 import { setupBoss } from './boss.js';
-import { CampaignId, Direction, Menu, ORDERED, RANDOM } from './constants.js';
+import { CAMPAIGN_FOLDERS, CampaignId, Direction, Menu, ORDERED, RANDOM } from './constants.js';
 import { AnimatedTile } from './entities/AnimatedTile.js';
 import { Cake } from './entities/Cake.js';
 import { Camera } from './entities/Camera.js';
@@ -213,12 +213,7 @@ export class Campaign {
  */
 export function loadCampaigns() {
 	let c;
-	campaigns = new Array();
-	campaigns.push(new Campaign('normal'));
-	campaigns.push(new Campaign('advanced'));
-	campaigns.push(new Campaign('community'));
-	campaigns.push(new Campaign('tutorial'));
-	campaigns.push(new Campaign('story'));
+	campaigns = CAMPAIGN_FOLDERS.map((folder) => new Campaign(folder));
 
 	for (c in campaigns) {
 		loadCampaignFiles(c);

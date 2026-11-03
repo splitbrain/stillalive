@@ -60,6 +60,9 @@ export const CampaignId = {
 	STORY: 4,
 };
 
+/** @type {string[]} The folder names of the campaigns in the maps folder, by campaign id. */
+export const CAMPAIGN_FOLDERS = ['normal', 'advanced', 'community', 'tutorial', 'story'];
+
 /** @type {Object<string, number>} The buttons of the main menu from top to bottom, the value of ui.menuButton. */
 export const MainButton = {
 	CLASSIC: 0,
@@ -123,6 +126,9 @@ export const EditorMenuButton = {
 
 /** @type {number} The number of levels of a campaign. */
 export const LEVELS_PER_CAMPAIGN = 28;
+
+/** @type {number} The value of the highest unlocked level after the player finished the last level of a campaign. */
+export const CAMPAIGN_FINISHED = LEVELS_PER_CAMPAIGN + 1;
 
 /** @type {Object<number, number>} The campaign that each campaign button of the main menu opens. */
 export const BUTTON_CAMPAIGN = {

@@ -1,12 +1,21 @@
 /**
  * Storage of the player data in the browser.
  *
- * The best times and the editor maps are small, so they stay in localStorage and can be read at once. The replays can
- * be large, so they go into IndexedDB.
+ * The progress, the best times, the editor maps and the sound setting are small, so they stay in localStorage and can
+ * be read at once. The replays can be large, so they go into IndexedDB. Some browsers block the storage, e.g. in a
+ * private mode. The game then runs without stored data.
  */
+
+import { CAMPAIGN_FOLDERS } from './constants.js';
+
+/** @type {string} The localStorage key of the highest unlocked level of each campaign. */
+const PROGRESS_KEY = 'sajs_progress';
 
 /** @type {string} The localStorage key of the best times. */
 const BEST_TIMES_KEY = 'sajs_bestTimes';
+
+/** @type {string} The localStorage key of the sound setting. */
+const SOUND_SETTING_KEY = 'sajs_sound';
 
 /** @type {string} The prefix of the localStorage keys of the editor maps. The slot number follows the prefix. */
 const EDITOR_MAP_PREFIX = 'sajs_editorMap';
@@ -32,16 +41,57 @@ function levelKey(campaign, level) {
 }
 
 /**
+ * Read a value from localStorage.
+ *
+ * @param {string} key The key.
+ * @returns {string|null} The value, or null if the key does not exist or the browser blocks the storage.
+ */
+function readItem(key) {
+	try {
+		return localStorage.getItem(key);
+	} catch {
+		return null;
+	}
+}
+
+/**
+ * Read a JSON value from localStorage.
+ *
+ * @param {string} key The key.
+ * @returns {*} The parsed value, or null if the key does not exist, the value is not valid or the browser blocks the
+ *     storage.
+ */
+function readJsonItem(key) {
+	try {
+		return JSON.parse(readItem(key));
+	} catch {
+		return null;
+	}
+}
+
+/**
+ * Write a value into localStorage.
+ *
+ * @param {string} key The key.
+ * @param {string} value The value.
+ * @returns {boolean} True if the value is stored, false if the browser blocks the storage or the storage is full.
+ */
+function writeItem(key, value) {
+	try {
+		localStorage.setItem(key, value);
+		return true;
+	} catch {
+		return false;
+	}
+}
+
+/**
  * Read all best times.
  *
  * @returns {Object<string, number>} The best time in ticks for each level key.
  */
 function readBestTimes() {
-	try {
-		return JSON.parse(localStorage.getItem(BEST_TIMES_KEY)) ?? {};
-	} catch {
-		return {};
-	}
+	return readJsonItem(BEST_TIMES_KEY) ?? {};
 }
 
 /**
@@ -116,7 +166,7 @@ export async function saveBestTime(campaign, level, ticks, replayData) {
 	await replayRequest('readwrite', (store) => store.put(replayData, levelKey(campaign, level)));
 	const times = readBestTimes();
 	times[levelKey(campaign, level)] = ticks;
-	localStorage.setItem(BEST_TIMES_KEY, JSON.stringify(times));
+	writeItem(BEST_TIMES_KEY, JSON.stringify(times));
 }
 
 /**
@@ -137,11 +187,7 @@ export function loadBestReplay(campaign, level) {
  * @returns {{tiles: number[], bg: number}|null} The tile ids and the background index, or null if the slot is empty.
  */
 export function getEditorMap(slot) {
-	try {
-		return JSON.parse(localStorage.getItem(EDITOR_MAP_PREFIX + slot));
-	} catch {
-		return null;
-	}
+	return readJsonItem(EDITOR_MAP_PREFIX + slot);
 }
 
 /**
@@ -150,21 +196,18 @@ export function getEditorMap(slot) {
  * @param {number} slot The slot number, starting at 1.
  * @param {number[]} tiles The 768 tile ids.
  * @param {number} bg The background index.
- * @returns {void}
+ * @returns {boolean} True if the map is stored, false if the browser blocks the storage or the storage is full.
  */
 export function saveEditorMap(slot, tiles, bg) {
-	localStorage.setItem(EDITOR_MAP_PREFIX + slot, JSON.stringify({ tiles, bg }));
+	return writeItem(EDITOR_MAP_PREFIX + slot, JSON.stringify({ tiles, bg }));
 }
 
 /**
- * The highest unlocked level of each campaign, by campaign index.
+ * The highest unlocked level of each campaign, by campaign index. CAMPAIGN_FINISHED marks a finished campaign.
  *
  * @type {number[]}
  */
 export const maxLevel = [];
-
-/** @type {number} The number of campaign indexes with a stored progress. */
-const PROGRESS_SLOTS = 5;
 
 /**
  * Load the highest unlocked level of each campaign.
@@ -172,10 +215,10 @@ const PROGRESS_SLOTS = 5;
  * @returns {void}
  */
 export function loadProgress() {
-	for (let i = 0; i < PROGRESS_SLOTS; i++) {
-		const stored = localStorage.getItem('sajs_maxLevel_' + i);
-		maxLevel[i] = stored != null ? parseInt(stored) : 1;
-	}
+	const stored = readJsonItem(PROGRESS_KEY) ?? {};
+	CAMPAIGN_FOLDERS.forEach((folder, i) => {
+		maxLevel[i] = Number.isInteger(stored[folder]) ? stored[folder] : 1;
+	});
 }
 
 /**
@@ -187,5 +230,25 @@ export function loadProgress() {
  */
 export function saveProgress(campaign, level) {
 	maxLevel[campaign] = level;
-	localStorage.setItem('sajs_maxLevel_' + campaign, level);
+	const progress = Object.fromEntries(CAMPAIGN_FOLDERS.map((folder, i) => [folder, maxLevel[i]]));
+	writeItem(PROGRESS_KEY, JSON.stringify(progress));
+}
+
+/**
+ * Check if the player wants to hear the sounds.
+ *
+ * @returns {boolean} False if the player turned the sound off, else true.
+ */
+export function loadSoundSetting() {
+	return readItem(SOUND_SETTING_KEY) !== 'off';
+}
+
+/**
+ * Store the sound setting.
+ *
+ * @param {boolean} enabled True if the player wants to hear the sounds.
+ * @returns {void}
+ */
+export function saveSoundSetting(enabled) {
+	writeItem(SOUND_SETTING_KEY, enabled ? 'on' : 'off');
 }

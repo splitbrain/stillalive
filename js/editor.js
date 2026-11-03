@@ -379,7 +379,14 @@ function menuSaveMap() {
 	if (input.mouseNewPress && overMenu > 0) {
 		unclick();
 		if (overMenu == EditorMenuButton.ACCEPT) {
-			saveEditorMap(ui.previewMap, game.oldMap, oldBG);
+			if (!saveEditorMap(ui.previewMap, game.oldMap, oldBG)) {
+				alertDialog(
+					'The map could not be saved, because the browser blocks the storage or the storage is full. ' +
+						'Use Export to save the map as a file.',
+					'Save map',
+				);
+				return;
+			}
 
 			game.map = new Array();
 			for (i in game.oldMap) game.map.push(game.oldMap[i]);

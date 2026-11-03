@@ -8,9 +8,9 @@ import { drawBoss, setupBoss, skipComingBoss } from '../boss.js';
 import { ctx } from '../canvas.js';
 import {
 	BUTTON_CAMPAIGN,
+	CAMPAIGN_FINISHED,
 	CampaignId,
 	IntermissionButton,
-	LEVELS_PER_CAMPAIGN,
 	MainButton,
 	Menu,
 	MouseButton,
@@ -456,7 +456,7 @@ export function drawMapSelection() {
 		drawTinyButton(515, 495, scale1, 'Play');
 	}
 
-	if (ui.campaign == CampaignId.NORMAL && maxLevel[0] == 29) {
+	if (ui.campaign == CampaignId.NORMAL && maxLevel[CampaignId.NORMAL] == CAMPAIGN_FINISHED) {
 		if (mouseInZone(380, 495, 120, 24)) overMenu = SelectionButton.MODE;
 		scale3 = overMenu == SelectionButton.MODE ? 0.9 : 1;
 		drawTinyButton(380, 495, scale3, 'Hard Mode');
@@ -594,7 +594,7 @@ export function drawMainMenu() {
 				160,
 				yStart,
 				scale1,
-				'Classic Mode' + (maxLevel[CampaignId.NORMAL] > LEVELS_PER_CAMPAIGN ? ' +' : ''),
+				'Classic Mode' + (maxLevel[CampaignId.NORMAL] == CAMPAIGN_FINISHED ? ' +' : ''),
 			);
 		else if (ui.menuButton == MainButton.ENHANCED)
 			drawBigButton(160, yStart + 1 * (64 + spacing), scale2, 'Enhanced Mode');
@@ -605,8 +605,8 @@ export function drawMainMenu() {
 		else if (ui.menuButton == MainButton.TUTORIAL) drawBigButton(160, yStart + 4 * (64 + spacing), scale5, 'Tutorial');
 	} else {
 		let dy = 0;
-		if (maxLevel[0] <= 28) dy = 64;
-		drawBigButton(160, yStart, scale1, 'Classic Mode' + (maxLevel[0] > 28 ? ' +' : ''));
+		if (maxLevel[CampaignId.NORMAL] < CAMPAIGN_FINISHED) dy = 64;
+		drawBigButton(160, yStart, scale1, 'Classic Mode' + (maxLevel[CampaignId.NORMAL] == CAMPAIGN_FINISHED ? ' +' : ''));
 		drawBigButton(160, yStart + 1 * (64 + spacing), scale2, 'Enhanced Mode');
 		drawBigButton(160, yStart + 2 * (64 + spacing), scale3, 'Ultimate Mode');
 		drawBigButton(160, yStart + 3 * (64 + spacing), scale4, 'Level Editor');

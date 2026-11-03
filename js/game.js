@@ -5,7 +5,7 @@
 import { playSound, setSoundVolume, sfx_flatline, sfx_transition } from './audio.js';
 import { skipComingBoss, updateBoss, updateBossRumble } from './boss.js';
 import { ctx } from './canvas.js';
-import { CampaignId, IntermissionButton, Menu, Transition } from './constants.js';
+import { CampaignId, IntermissionButton, LEVELS_PER_CAMPAIGN, Menu, Transition } from './constants.js';
 import { alertDialog } from './dialog.js';
 import { drawLevelEditor } from './editor.js';
 import { animateTiles } from './entities/AnimatedTile.js';
@@ -197,7 +197,7 @@ function updateLevelEnd() {
 		ui.intermissionChoice = IntermissionButton.NONE;
 		if (ui.currentMenu == Menu.PLAY && !game.replayMode) {
 			if (maxLevel[ui.campaign] < ui.currentLevel + 1) {
-				if (ui.campaign == CampaignId.STORY && maxLevel[ui.campaign] == 28) ui.drawCredits = true;
+				if (ui.campaign == CampaignId.STORY && maxLevel[ui.campaign] == LEVELS_PER_CAMPAIGN) ui.drawCredits = true;
 				saveProgress(ui.campaign, ui.currentLevel + 1);
 			}
 		}

@@ -6,8 +6,7 @@
  * page, so the module resumes the audio context on the first click or key press.
  */
 
-/** @type {string} The localStorage key of the sound setting. */
-const SOUND_SETTING_KEY = 'sajs_sound';
+import { loadSoundSetting, saveSoundSetting } from './storage.js';
 
 /** @type {AudioContext} The audio context of the game. */
 const context = new AudioContext();
@@ -17,7 +16,7 @@ const master = context.createGain();
 master.connect(context.destination);
 
 /** @type {boolean} True if the player wants to hear the sounds. */
-let enabled = localStorage.getItem(SOUND_SETTING_KEY) !== 'off';
+let enabled = loadSoundSetting();
 
 /** @type {boolean} True if the player chose to play without sound on the loading screen. */
 let disabled = false;
@@ -134,7 +133,7 @@ export function isSoundAvailable() {
 export function toggleSound() {
 	if (disabled) return;
 	enabled = !enabled;
-	localStorage.setItem(SOUND_SETTING_KEY, enabled ? 'on' : 'off');
+	saveSoundSetting(enabled);
 }
 
 /**

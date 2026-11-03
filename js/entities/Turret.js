@@ -5,7 +5,7 @@
 import { playSound, playSoundIfFinished, sfx_explode, sfx_shoot } from '../audio.js';
 import { PLAYFIELD_WIDTH, SparkleType } from '../constants.js';
 import { anyCrateAt, movingCrateTouching } from './Crate.js';
-import { inForceFieldTp } from './ForceField.js';
+import { tunnelFieldsAt } from './TunnelField.js';
 import { plasmaTouching } from './Plasma.js';
 import { onPlatform } from './Platform.js';
 import { Sparkle, createCakeOrSmokeSparkles } from './Sparkle.js';
@@ -62,7 +62,7 @@ export class Turret {
 		this.pY = 32;
 		/** @type {number} The frame of the turret image; 1 is the shot flash. */
 		this.animFrame = 0;
-		/** @type {boolean} True after the turret passed a portal or a force field; a hard landing then destroys it. */
+		/** @type {boolean} True after the turret passed a portal or a tunnel field; a hard landing then destroys it. */
 		this.canExplode = false;
 		/** @type {string} The entity type, used by the shared object functions. */
 		this.type = 'turret';
@@ -88,9 +88,9 @@ export class Turret {
 			moveObject(this);
 
 			if (!this.dead) {
-				if (this.vx == 0 && Math.abs(oldVx) > 3 << 8 && this.canExplode && inForceFieldTp(this).length == 0)
+				if (this.vx == 0 && Math.abs(oldVx) > 3 << 8 && this.canExplode && tunnelFieldsAt(this).length == 0)
 					this.dead = true;
-				else if (this.vy == 0 && Math.abs(oldVy) > 4 << 8 && this.canExplode && inForceFieldTp(this).length == 0)
+				else if (this.vy == 0 && Math.abs(oldVy) > 4 << 8 && this.canExplode && tunnelFieldsAt(this).length == 0)
 					this.dead = true;
 				else if (touchesDeadlyTile(this) || movingCrateTouching(this) || plasmaTouching(this)) {
 					this.dead = true;

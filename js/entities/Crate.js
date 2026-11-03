@@ -4,7 +4,6 @@
 
 import { hitBoss, manageInTube } from '../boss.js';
 import { PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH } from '../constants.js';
-import { inForceField } from './ForceField.js';
 import { plasmaTouching } from './Plasma.js';
 import { onPlatform } from './Platform.js';
 import {
@@ -16,7 +15,7 @@ import {
 	touchesDeadlyTile,
 	touchingGround,
 } from '../physics.js';
-import { inPortal } from '../portals.js';
+import { inForceField, inPortal } from '../portals.js';
 import { game } from '../state.js';
 import { CRATE_CODE, isTileKind, LAST_OF_KIND, PLATFORM_CODE, TileKind } from '../tiles.js';
 

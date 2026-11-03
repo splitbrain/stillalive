@@ -62,7 +62,7 @@ export class Platform {
  * @param {object} obj The object with x, y, pX and pY.
  * @returns {number} 3 for a belt to the right, 4 for a belt to the left, else 0.
  */
-export function onCarpet(obj) {
+export function onBelt(obj) {
 	const ground = touchingGround(obj);
 	if (ground == 3 || ground == 4) {
 		return ground;

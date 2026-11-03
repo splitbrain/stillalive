@@ -183,7 +183,7 @@ test.describe('units', () => {
 			g.player.x = 200 << 8;
 			g.player.y = 300 << 8;
 			t.tick();
-			return g.forceFields.length;
+			return g.tunnelFields.length;
 		});
 		// one field from the tunnel to the right portal, one field from the left portal back to the right portal
 		expect(fields).toBe(2);

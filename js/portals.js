@@ -5,9 +5,9 @@
 import { playSound, sfx_enterPortal, sfx_noPortal, sfx_portal } from './audio.js';
 import { Direction, SparkleType } from './constants.js';
 import { Sparkle, removeSparkles } from './entities/Sparkle.js';
-import { getTile, getTilePortal } from './physics.js';
+import { getTile, getTilePortal, getTileSimple } from './physics.js';
 import { game, input } from './state.js';
-import { PLATFORM_CODE, Tile, TileKind, isCrateCode, isPlatformCode, isTileKind } from './tiles.js';
+import { inForceFieldRange, isCrateCode, isPlatformCode, isTileKind, PLATFORM_CODE, Tile, TileKind } from './tiles.js';
 import { getCos, getSin, inScreen, random } from './utils.js';
 
 /**
@@ -503,6 +503,42 @@ function teleport(p, obj) {
 			obj.vx = -obj.vx;
 		}
 	}
+}
+
+/**
+ * Remove the portals when the player enters a force field.
+ *
+ * @returns {void}
+ */
+export function clearPortalsAtForceField() {
+	if (game.portals[0].used || game.portals[1].used) {
+		if (inForceField(game.player)) {
+			let i;
+			for (i = 0; i < 2; i++) {
+				game.portals[i].used = false;
+				removeSparkles(i, SparkleType.PORTAL_GLOW);
+			}
+		}
+	}
+}
+
+/**
+ * Check if a force field tile is on the diagonal line through an object.
+ *
+ * @param {object} obj The object with x, y, pX and pY.
+ * @returns {boolean} True if the object touches a force field tile.
+ */
+export function inForceField(obj) {
+	let i, j;
+	for (i = 0; i <= obj.pY - 1; i += 2) {
+		for (j = 0; j <= obj.pX - 1; j += 2) {
+			const t = getTileSimple((obj.x >> 8) + j, (obj.y >> 8) + j);
+			if (inForceFieldRange(t)) {
+				return true;
+			}
+		}
+	}
+	return false;
 }
 
 /**

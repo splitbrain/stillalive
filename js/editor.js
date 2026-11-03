@@ -21,7 +21,7 @@ import { alertDialog } from './dialog.js';
 import { animateTiles } from './entities/AnimatedTile.js';
 import { Cake, openExit, updateCakes } from './entities/Cake.js';
 import { Crate, updateCrates } from './entities/Crate.js';
-import { rebuildForceFields } from './entities/ForceField.js';
+import { rebuildTunnelFields } from './entities/TunnelField.js';
 import { updatePlasma } from './entities/Plasma.js';
 import { Platform, updatePlatforms } from './entities/Platform.js';
 import { Player } from './entities/Player.js';
@@ -153,7 +153,7 @@ function levelEditorTestLevel() {
 
 	animateTiles();
 	game.player.flip = input.mouseX > (game.player.x >> 8) + (game.player.pX >> 1) + game.offsetX ? 1 : -1;
-	rebuildForceFields();
+	rebuildTunnelFields();
 	updateCakes();
 	updateTurrets();
 	updatePlasma();
@@ -690,7 +690,7 @@ function recreateSprites() {
 	game.turrets = new Array();
 	game.crates = new Array();
 	game.tunnels = new Array();
-	game.forceFields = new Array();
+	game.tunnelFields = new Array();
 	game.platforms = new Array();
 	game.player = new Player();
 	game.player.x = -(16 << 8);

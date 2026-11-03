@@ -60,7 +60,7 @@ import { keyLabels } from '../keys.js';
 import { creditsTxt, levelsLoaded, levelsToLoad, loadLevel, loadPreviewMap, missingLevelFiles } from '../level.js';
 import { copyCanvas, drawCopy, drawPlayer, drawRobot, drawTunnels } from './game.js';
 import { drawHudText, drawText } from './hud.js';
-import { rescaleReplay } from '../replay.js';
+import { resumeReplay } from '../replay.js';
 import { game, input, ui } from '../state.js';
 import { maxLevel } from '../storage.js';
 import { Tile } from '../tiles.js';
@@ -187,7 +187,7 @@ export function drawPauseMenu() {
 		if (overMenu == PauseButton.RESUME) {
 			ui.escapeMenu = !ui.escapeMenu;
 			if (game.replayMode) {
-				rescaleReplay();
+				resumeReplay();
 			}
 		} else if (overMenu == PauseButton.RESTART) {
 			ui.escapeMenu = !ui.escapeMenu;

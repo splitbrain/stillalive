@@ -145,7 +145,7 @@ export class Replay {
  *
  * @returns {void}
  */
-export function rescaleReplay() {
+export function resumeReplay() {
 	restoreInput(input.replayPauseInput);
 	input.keys = game.replay.inputs[game.TIME];
 	input.mouseX = game.replay.mouseX[game.TIME];

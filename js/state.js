@@ -16,7 +16,7 @@ export const game = {
 	cakes: undefined,
 	crates: undefined,
 	tunnels: undefined,
-	forceFields: undefined,
+	tunnelFields: undefined,
 	platforms: undefined,
 	turrets: undefined,
 	sparkles: undefined,

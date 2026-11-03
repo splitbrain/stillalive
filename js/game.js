@@ -18,7 +18,7 @@ import { drawLevelEditor } from './editor.js';
 import { animateTiles } from './entities/AnimatedTile.js';
 import { openExit, updateCakes } from './entities/Cake.js';
 import { updateCrates } from './entities/Crate.js';
-import { rebuildForceFields } from './entities/ForceField.js';
+import { rebuildTunnelFields } from './entities/TunnelField.js';
 import { updatePlasma } from './entities/Plasma.js';
 import { updatePlatforms } from './entities/Platform.js';
 import { updatePortals } from './entities/Portal.js';
@@ -252,7 +252,7 @@ function updateLevelEnd() {
 }
 
 /**
- * Update the objects of a level in the order of the game logic: the tiles, the player direction, the force fields,
+ * Update the objects of a level in the order of the game logic: the tiles, the player direction, the tunnel fields,
  * the cakes, the turrets, the plasma balls, the sparkles, the crates, the boss projectiles, the platforms, the
  * portals, the camera, the tutorial, the death fade, the transitions, the texts and the robot.
  *
@@ -264,7 +264,7 @@ function updateObjects() {
 
 	game.player.flip = input.mouseX > (game.player.x >> 8) + (game.player.pX >> 1) + game.offsetX ? 1 : -1;
 
-	rebuildForceFields();
+	rebuildTunnelFields();
 	updateCakes();
 	updateTurrets();
 	updatePlasma();
@@ -284,7 +284,7 @@ function updateObjects() {
 	if (game.player.dead) {
 		const a = -(game.player.life / 256);
 		game.player.life += 6;
-		game.player.checkMort();
+		game.player.checkDeath();
 		setSoundVolume(sfx_flatline, a / 2);
 	}
 

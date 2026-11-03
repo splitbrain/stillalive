@@ -344,7 +344,7 @@ export function loadLevelEditor() {
 	game.sparkles = new Array();
 	game.crates = new Array();
 	game.tunnels = new Array();
-	game.forceFields = new Array();
+	game.tunnelFields = new Array();
 	game.platforms = new Array();
 	game.animatedTiles = new Array();
 	game.plasmaBall = new Array();
@@ -558,7 +558,7 @@ export function loadLevel(level) {
 	game.cakes = new Array();
 	game.sparkles = new Array();
 	game.tunnels = new Array();
-	game.forceFields = new Array();
+	game.tunnelFields = new Array();
 	game.crates = new Array();
 	game.platforms = new Array();
 	game.animatedTiles = new Array();
@@ -796,7 +796,7 @@ export function loadPreviewMap(level) {
 	game.portals.push(new Portal());
 	game.cakes = new Array();
 	game.tunnels = new Array();
-	game.forceFields = new Array();
+	game.tunnelFields = new Array();
 	game.sparkles = new Array();
 	game.crates = new Array();
 	game.platforms = new Array();

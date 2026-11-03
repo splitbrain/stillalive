@@ -21,7 +21,7 @@ import {
 import { isTestingLevel, startPlayingLevel, stopPlayingLevel } from './editor.js';
 import { reportBrokenReplay } from './game.js';
 import { inPortal } from './portals.js';
-import { rescaleReplay } from './replay.js';
+import { resumeReplay } from './replay.js';
 import { game, input, ui } from './state.js';
 
 /**
@@ -75,7 +75,7 @@ function togglePause() {
 		unclick();
 		input.keys = 0;
 	} else {
-		rescaleReplay();
+		resumeReplay();
 	}
 }
 

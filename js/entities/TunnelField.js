@@ -1,54 +1,17 @@
 /**
- * The ForceField object and its helper functions.
+ * The TunnelField object and its helper functions.
  */
 
-import { Direction, NUM_TILES, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, SparkleType } from '../constants.js';
-import { removeSparkles } from './Sparkle.js';
-import { getTileSimple, getTileWithoutCrates, getTileWithoutObjects } from '../physics.js';
+import { Direction, NUM_TILES, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH } from '../constants.js';
+import { getTileWithoutCrates, getTileWithoutObjects } from '../physics.js';
 import { pointInPortal } from '../portals.js';
 import { game } from '../state.js';
-import { PLATFORM_CODE, Tile, inForceFieldRange } from '../tiles.js';
+import { PLATFORM_CODE, Tile } from '../tiles.js';
 
 /**
- * Remove the portals when the player enters a force field.
- *
- * @returns {void}
+ * The area in front of a tunnel that moves objects. rebuildTunnelFields() builds the fields again in each tick.
  */
-export function fieldForceTest() {
-	if (game.portals[0].used || game.portals[1].used) {
-		if (inForceField(game.player)) {
-			let i;
-			for (i = 0; i < 2; i++) {
-				game.portals[i].used = false;
-				removeSparkles(i, SparkleType.PORTAL_GLOW);
-			}
-		}
-	}
-}
-
-/**
- * Check if a force field tile is on the diagonal line through an object.
- *
- * @param {object} obj The object with x, y, pX and pY.
- * @returns {boolean} True if the object touches a force field tile.
- */
-export function inForceField(obj) {
-	let i, j;
-	for (i = 0; i <= obj.pY - 1; i += 2) {
-		for (j = 0; j <= obj.pX - 1; j += 2) {
-			const t = getTileSimple((obj.x >> 8) + j, (obj.y >> 8) + j);
-			if (inForceFieldRange(t)) {
-				return true;
-			}
-		}
-	}
-	return false;
-}
-
-/**
- * The area in front of a tunnel that moves objects. drawTunnels() rebuilds the fields in each tick.
- */
-export class ForceField {
+export class TunnelField {
 	/**
 	 * @param {number} x The left edge in pixels.
 	 * @param {number} y The top edge in pixels.
@@ -77,9 +40,9 @@ export class ForceField {
  * Find the tunnel fields that an object overlaps.
  *
  * @param {object} obj The object with x, y, pX and pY.
- * @returns {number[]} The indexes of the fields in game.forceFields.
+ * @returns {number[]} The indexes of the fields in game.tunnelFields.
  */
-export function inForceFieldTp(obj) {
+export function tunnelFieldsAt(obj) {
 	let i;
 	const posx = obj.x >> 8;
 	const posy = obj.y >> 8;
@@ -88,11 +51,11 @@ export function inForceFieldTp(obj) {
 
 	const fields = new Array();
 
-	for (i = 0; i < game.forceFields.length; i++) {
-		let x = game.forceFields[i].x;
-		let y = game.forceFields[i].y;
-		let w = game.forceFields[i].w;
-		let h = game.forceFields[i].h;
+	for (i = 0; i < game.tunnelFields.length; i++) {
+		let x = game.tunnelFields[i].x;
+		let y = game.tunnelFields[i].y;
+		let w = game.tunnelFields[i].w;
+		let h = game.tunnelFields[i].h;
 
 		if (w < 0) {
 			w = -w;
@@ -111,14 +74,14 @@ export function inForceFieldTp(obj) {
 }
 
 /**
- * Build the force fields of all tunnels again. A field reaches from the tunnel to the first wall or platform. At a
+ * Build the tunnel fields of all tunnels again. A field reaches from the tunnel to the first wall or platform. At a
  * portal, the field continues from the other portal.
  *
  * @returns {void}
  */
-export function rebuildForceFields() {
+export function rebuildTunnelFields() {
 	if (game.tunnels.length == 0) return;
-	game.forceFields = new Array();
+	game.tunnelFields = new Array();
 	for (const t of game.tunnels) {
 		let vx = 0;
 		let vy = 0;
@@ -224,7 +187,7 @@ function traceTunnelField(sx, sy, vx, vy) {
 }
 
 /**
- * Add the force field from a tunnel to the end of its trace.
+ * Add the tunnel field from a tunnel to the end of its trace.
  *
  * @param {number} sx The x coordinate of the tunnel in pixels.
  * @param {number} sy The y coordinate of the tunnel in pixels.
@@ -235,8 +198,8 @@ function traceTunnelField(sx, sy, vx, vy) {
  * @returns {void}
  */
 function addField(sx, sy, nx, ny, vx, vy) {
-	if (vx < 0) game.forceFields.push(new ForceField(sx, sy, -(sx - nx - 16), 32, -1, 0));
-	else if (vx > 0) game.forceFields.push(new ForceField(sx, sy, nx - sx, 32, 1, 0));
-	else if (vy < 0) game.forceFields.push(new ForceField(sx, sy, 32, -(sy - ny - 16), 0, -1));
-	else if (vy > 0) game.forceFields.push(new ForceField(sx, sy, 32, ny - sy, 0, 1));
+	if (vx < 0) game.tunnelFields.push(new TunnelField(sx, sy, -(sx - nx - 16), 32, -1, 0));
+	else if (vx > 0) game.tunnelFields.push(new TunnelField(sx, sy, nx - sx, 32, 1, 0));
+	else if (vy < 0) game.tunnelFields.push(new TunnelField(sx, sy, 32, -(sy - ny - 16), 0, -1));
+	else if (vy > 0) game.tunnelFields.push(new TunnelField(sx, sy, 32, ny - sy, 0, 1));
 }

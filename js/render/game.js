@@ -447,26 +447,26 @@ export function drawArrow(x1, y1, x2, y2, lineWidth, dir) {
 }
 
 /**
- * Draw the force fields of the tunnels as half transparent areas.
+ * Draw the tunnel fields as half transparent areas.
  *
  * @returns {void}
  */
-function drawForceFields() {
+function drawTunnelFields() {
 	ctx.fillStyle = 'rgb(151, 206, 233)';
 	ctx.globalAlpha = 0.5;
-	for (const field of game.forceFields) {
+	for (const field of game.tunnelFields) {
 		ctx.fillRect(field.x + game.offsetX, field.y + game.offsetY, field.w, field.h);
 	}
 	ctx.globalAlpha = 1;
 }
 
 /**
- * Draw the force fields and the tunnels.
+ * Draw the tunnel fields and the tunnels.
  *
  * @returns {void}
  */
 export function drawTunnels() {
-	drawForceFields();
+	drawTunnelFields();
 	for (const t of game.tunnels) {
 		const x = (t.x >> 8) + game.offsetX;
 		const y = (t.y >> 8) + game.offsetY;

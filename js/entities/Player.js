@@ -6,9 +6,9 @@ import { playSound, setSoundVolume, sfx_flatline, sfx_jump, sfx_pain } from '../
 import { skipComingBoss } from '../boss.js';
 import { GRAVITY, Menu, MouseButton, PLAYFIELD_HEIGHT, SparkleType } from '../constants.js';
 import { collectCakes } from './Cake.js';
-import { fieldForceTest, inForceFieldTp } from './ForceField.js';
+import { tunnelFieldsAt } from './TunnelField.js';
 import { plasmaTouching } from './Plasma.js';
-import { onCarpet, onPlatform } from './Platform.js';
+import { onBelt, onPlatform } from './Platform.js';
 import { Sparkle } from './Sparkle.js';
 import { reportBrokenReplay } from '../game.js';
 import { loadLevel } from '../level.js';
@@ -29,6 +29,7 @@ import {
 	checkTeleportRight,
 	checkTeleportUp,
 	clearPortals,
+	clearPortalsAtForceField,
 	inPortal,
 	launchPortal,
 } from '../portals.js';
@@ -127,7 +128,7 @@ export class Player {
 	 *
 	 * @returns {void}
 	 */
-	checkMort() {
+	checkDeath() {
 		if (this.life <= 0 && !this.dead) {
 			if (game.replayMode) {
 				reportBrokenReplay();
@@ -213,7 +214,7 @@ export class Player {
 			this.askClear = false;
 		}
 
-		const fields = inForceFieldTp(this);
+		const fields = tunnelFieldsAt(this);
 		if (fields.length > 0) {
 			game.player.vx = 0;
 			game.player.vy = 0;
@@ -221,45 +222,45 @@ export class Player {
 		for (i = 0; i < fields.length; i++) {
 			const f = fields[i];
 			if (fields.length == 1) {
-				if (game.forceFields[f].vx != 0) {
+				if (game.tunnelFields[f].vx != 0) {
 					if (checkTeleportUp(this) || checkTeleportDown(this)) {
-						if (game.player.y >> 8 < game.forceFields[f].y) game.player.y += 768;
-						else if ((game.player.y >> 8) + game.player.pY > game.forceFields[f].y + 32) game.player.y -= 768;
-					} else if (game.player.y >> 8 < game.forceFields[f].y) game.player.y += 512;
-					else if ((game.player.y >> 8) + game.player.pY > game.forceFields[f].y + 32) game.player.y -= 512;
-				} else if (game.forceFields[f].vy != 0) {
-					if (game.player.x >> 8 < game.forceFields[f].x + (16 - (game.player.pY >> 1))) game.player.x += 256;
-					else if ((game.player.x >> 8) + game.player.pX > game.forceFields[f].x + 32 - (16 - (game.player.pY >> 1)))
+						if (game.player.y >> 8 < game.tunnelFields[f].y) game.player.y += 768;
+						else if ((game.player.y >> 8) + game.player.pY > game.tunnelFields[f].y + 32) game.player.y -= 768;
+					} else if (game.player.y >> 8 < game.tunnelFields[f].y) game.player.y += 512;
+					else if ((game.player.y >> 8) + game.player.pY > game.tunnelFields[f].y + 32) game.player.y -= 512;
+				} else if (game.tunnelFields[f].vy != 0) {
+					if (game.player.x >> 8 < game.tunnelFields[f].x + (16 - (game.player.pY >> 1))) game.player.x += 256;
+					else if ((game.player.x >> 8) + game.player.pX > game.tunnelFields[f].x + 32 - (16 - (game.player.pY >> 1)))
 						game.player.x -= 256;
 				}
 			}
 
-			game.player.vx += game.forceFields[f].vx * 384;
-			game.player.vy += game.forceFields[f].vy * 384;
+			game.player.vx += game.tunnelFields[f].vx * 384;
+			game.player.vy += game.tunnelFields[f].vy * 384;
 
-			if (game.forceFields[f].vx != 0) {
+			if (game.tunnelFields[f].vx != 0) {
 				if (this.isJump) {
 					game.player.y -= 3 << 8;
-					fi = inForceFieldTp(this);
+					fi = tunnelFieldsAt(this);
 					if (fi.length == 0) {
 						game.player.vy = -800;
-						game.player.vx = game.forceFields[f].vx << 9;
+						game.player.vx = game.tunnelFields[f].vx << 9;
 					}
 				}
 				if (this.isDown) game.player.y += 3 << 8;
 			}
 
-			if (game.forceFields[f].vy != 0) {
+			if (game.tunnelFields[f].vy != 0) {
 				if (this.isLeft) {
 					game.player.x -= 3 << 8;
-					fi = inForceFieldTp(this);
+					fi = tunnelFieldsAt(this);
 					if (fi.length == 0) {
 						game.player.vx = -384;
 					}
 				}
 				if (this.isRight) {
 					game.player.x += 3 << 8;
-					fi = inForceFieldTp(this);
+					fi = tunnelFieldsAt(this);
 					if (fi.length == 0) {
 						game.player.vx = 384;
 					}
@@ -268,7 +269,7 @@ export class Player {
 		}
 
 		let ground = touchingGround(this);
-		const belt = onCarpet(this);
+		const belt = onBelt(this);
 		this.x += belt == 3 ? 384 : belt == 4 ? -384 : 0;
 
 		this.animationTime -= 1 + 2 * (1 - (ground == 2 ? 1 : 0));
@@ -379,7 +380,7 @@ export class Player {
 
 		collectCakes();
 		grabObject();
-		fieldForceTest();
+		clearPortalsAtForceField();
 
 		if (ui.currentMenu != Menu.TUTORIAL || ui.tutoPortal) {
 			if (input.mousePressed && this.portalCooldown == 25 && !inPortal(this) && !carriesObject()) {
@@ -405,6 +406,6 @@ export class Player {
 
 		if (this.y > (PLAYFIELD_HEIGHT + 40) << 8) this.life = 0;
 		this.oldIsJump = this.isJump;
-		this.checkMort();
+		this.checkDeath();
 	}
 }

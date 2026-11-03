@@ -5,8 +5,8 @@
 import { playSound, sfx_throwObject } from './audio.js';
 import { Direction, GRAVITY, MouseButton, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH } from './constants.js';
 import { crateAt, crateLandsOnPlayer, movingCrateTouching } from './entities/Crate.js';
-import { inForceFieldTp } from './entities/ForceField.js';
-import { onCarpet, platformAt } from './entities/Platform.js';
+import { tunnelFieldsAt } from './entities/TunnelField.js';
+import { onBelt, platformAt } from './entities/Platform.js';
 import { checkTeleportDown, checkTeleportLeft, checkTeleportRight, checkTeleportUp, inPortal } from './portals.js';
 import { game, input } from './state.js';
 import { FIRST_OF_KIND, inForceFieldRange, isCrateCode, isDeadlyTile, isTileKind, Tile, TileKind } from './tiles.js';
@@ -191,7 +191,7 @@ export function placeObject(obj) {
 }
 
 /**
- * Move a crate or turret for one tick: force fields, conveyor belts, gravity, friction, the push of the player and
+ * Move a crate or turret for one tick: tunnel fields, conveyor belts, gravity, friction, the push of the player and
  * other crates, and the collisions.
  *
  * @param {object} obj The crate or turret.
@@ -199,29 +199,29 @@ export function placeObject(obj) {
  */
 export function moveObject(obj) {
 	let col, i, c;
-	const fields = inForceFieldTp(obj);
+	const fields = tunnelFieldsAt(obj);
 	for (i = 0; i < fields.length; i++) {
 		const f = fields[i];
-		if (game.forceFields[f].vx != 0) {
+		if (game.tunnelFields[f].vx != 0) {
 			if (checkTeleportUp(obj) || checkTeleportDown(obj)) {
-				if (obj.y >> 8 < game.forceFields[f].y) obj.y += 768;
-				else if ((obj.y >> 8) + obj.pY > game.forceFields[f].y + 32) obj.y -= 768;
-			} else if (obj.y >> 8 < game.forceFields[f].y + (16 - (obj.pY >> 1))) obj.y += 512;
-			else if ((obj.y >> 8) + obj.pY > game.forceFields[f].y + 32 - (16 - (obj.pY >> 1))) obj.y -= 512;
-		} else if (game.forceFields[f].vy != 0) {
-			if (obj.x >> 8 < game.forceFields[f].x + (16 - (obj.pY >> 1))) obj.x += 256;
-			else if ((obj.x >> 8) + obj.pX > game.forceFields[f].x + 32 - (16 - (obj.pY >> 1))) obj.x -= 256;
+				if (obj.y >> 8 < game.tunnelFields[f].y) obj.y += 768;
+				else if ((obj.y >> 8) + obj.pY > game.tunnelFields[f].y + 32) obj.y -= 768;
+			} else if (obj.y >> 8 < game.tunnelFields[f].y + (16 - (obj.pY >> 1))) obj.y += 512;
+			else if ((obj.y >> 8) + obj.pY > game.tunnelFields[f].y + 32 - (16 - (obj.pY >> 1))) obj.y -= 512;
+		} else if (game.tunnelFields[f].vy != 0) {
+			if (obj.x >> 8 < game.tunnelFields[f].x + (16 - (obj.pY >> 1))) obj.x += 256;
+			else if ((obj.x >> 8) + obj.pX > game.tunnelFields[f].x + 32 - (16 - (obj.pY >> 1))) obj.x -= 256;
 		}
 
-		obj.vx = game.forceFields[f].vx * 384;
-		obj.vy = game.forceFields[f].vy * 384;
+		obj.vx = game.tunnelFields[f].vx * 384;
+		obj.vy = game.tunnelFields[f].vy * 384;
 
 		if (obj.type == 'turret' && !obj.canExplode) {
 			obj.canExplode = true;
 		}
 	}
 
-	const belt = onCarpet(obj);
+	const belt = onBelt(obj);
 	if (belt) {
 		obj.x += belt == 3 ? 384 : belt == 4 ? -384 : 0;
 		obj.vx = belt == 3 ? 8 : belt == 4 ? -8 : 0;

@@ -473,9 +473,9 @@ body {
 	cursor: url('./blank.png'), none;
 	touch-action: none;
 	display: block;
-	width: min(100%, calc(85vh * var(--view-ratio, 1.1765)));
+	width: min(100%, calc(85vh * 512 / 384));
 	margin: 0 auto;
-	aspect-ratio: 640 / 544;
+	aspect-ratio: 512 / 384;
 	background: black;
 	border-radius: 1cqw;
 }

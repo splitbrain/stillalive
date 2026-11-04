@@ -4,15 +4,7 @@
 
 import { playSound, setSoundVolume, sfx_flatline, sfx_transition } from './audio.js';
 import { updateBoss, updateBossRumble } from './boss.js';
-import {
-	CampaignId,
-	IntermissionButton,
-	LEVELS_PER_CAMPAIGN,
-	Menu,
-	PLAYFIELD_X,
-	PLAYFIELD_Y,
-	Transition,
-} from './constants.js';
+import { CampaignId, IntermissionButton, LEVELS_PER_CAMPAIGN, Menu, Transition } from './constants.js';
 import { updateLevelEditor } from './editor.js';
 import { animateTiles } from './entities/AnimatedTile.js';
 import { updateCakes } from './entities/Cake.js';
@@ -148,8 +140,8 @@ function updateLevelEnd() {
 	const campaign = campaigns[ui.campaign];
 	const isLastLevel = ui.currentLevel == campaign.levels.length;
 	game.bossNum = 0;
-	game.offsetX = PLAYFIELD_X;
-	game.offsetY = PLAYFIELD_Y;
+	game.shakeX = 0;
+	game.shakeY = 0;
 
 	if (game.player.fadeNextLevel > 0) {
 		game.player.fadeNextLevel -= 4;
@@ -212,7 +204,7 @@ function updateLevelEnd() {
 function updateObjects() {
 	animateTiles();
 
-	game.player.flip = input.mouseX > (game.player.x >> 8) + (game.player.pX >> 1) + game.offsetX ? 1 : -1;
+	game.player.flip = input.mouseX > (game.player.x >> 8) + (game.player.pX >> 1) ? 1 : -1;
 
 	rebuildGravPipeFields();
 	updateCakes();
@@ -256,8 +248,8 @@ export function startLevel(campaign, level, replay = null, restart = false) {
 	ui.campaign = campaign;
 	ui.currentLevel = level;
 	ui.currentMenu = Menu.PLAY;
-	game.offsetX = PLAYFIELD_X;
-	game.offsetY = PLAYFIELD_Y;
+	game.shakeX = 0;
+	game.shakeY = 0;
 	game.replayMode = replay !== null;
 	if (replay) game.replay = replay;
 	loadLevel(level, restart);

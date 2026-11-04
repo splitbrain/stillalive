@@ -27,8 +27,8 @@ export function launchPortal(p) {
 	let x = game.player.x + ((game.player.pX >> 1) << 8);
 	let y = game.player.y + ((game.player.pY >> 1) << 8);
 
-	game.portals[p].vx = getCos(input.mouseX, input.mouseY, (x >> 8) + game.offsetX, (y >> 8) + game.offsetY) * 256;
-	game.portals[p].vy = getSin(input.mouseX, input.mouseY, (x >> 8) + game.offsetX, (y >> 8) + game.offsetY) * 256;
+	game.portals[p].vx = getCos(input.mouseX, input.mouseY, x >> 8, y >> 8) * 256;
+	game.portals[p].vy = getSin(input.mouseX, input.mouseY, x >> 8, y >> 8) * 256;
 
 	for (i = 0; i < game.sparkles.length; i++) {
 		if (game.sparkles[i].color == p && game.sparkles[i].type == SparkleType.PORTAL_SHOT) {

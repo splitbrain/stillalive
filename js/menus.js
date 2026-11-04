@@ -12,8 +12,6 @@ import {
 	MainButton,
 	Menu,
 	PauseButton,
-	PLAYFIELD_X,
-	PLAYFIELD_Y,
 	SelectionButton,
 	SparkleType,
 } from './constants.js';
@@ -173,8 +171,8 @@ export function updateMainMenu() {
 				ui.previewMap = 0;
 				prepareSelectionText();
 				document.getElementById('highscores').classList.add('open');
-				game.offsetX = PLAYFIELD_X;
-				game.offsetY = PLAYFIELD_Y;
+				game.shakeX = 0;
+				game.shakeY = 0;
 				ui.campaign = BUTTON_CAMPAIGN[ui.menuButton];
 				if (ui.campaign == CampaignId.STORY) {
 					game.bossNum = 0;
@@ -221,8 +219,8 @@ export function updateMapSelection() {
 			startLevel(ui.campaign, ui.previewMap);
 			return;
 		} else if (overMenu == SelectionButton.EXIT) {
-			game.offsetX = PLAYFIELD_X;
-			game.offsetY = PLAYFIELD_Y;
+			game.shakeX = 0;
+			game.shakeY = 0;
 			ui.currentMenu = Menu.MAIN;
 			ui.selectMenu = 0;
 			ui.fadeMenu = 30;

@@ -5,7 +5,7 @@
  * so the effects of the menus start at the mouse.
  */
 
-import { screenPoint } from './canvas.js';
+import { playfieldPoint } from './canvas.js';
 import { EDITOR_TILE_TITLES, EDITOR_TILES, LEVELS_PER_CAMPAIGN } from './constants.js';
 import { game, input, ui } from './state.js';
 
@@ -19,7 +19,7 @@ function setMousePosition(event) {
 	if (game.replayMode && !ui.escapeMenu) return;
 	const canvas = document.getElementById('canvas');
 	const rect = canvas.getBoundingClientRect();
-	[input.mouseX, input.mouseY] = screenPoint(event.clientX - rect.left, event.clientY - rect.top);
+	[input.mouseX, input.mouseY] = playfieldPoint(event.clientX - rect.left, event.clientY - rect.top);
 }
 
 /**

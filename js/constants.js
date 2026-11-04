@@ -48,18 +48,10 @@ export const MAP_WIDTH = 32;
 export const MAP_HEIGHT = 24;
 /** @type {number} The number of tiles of a map. */
 export const MAP_SIZE = MAP_WIDTH * MAP_HEIGHT;
-/** @type {number} The width of the screen in screen units. */
-export const SCREEN_WIDTH = 640;
-/** @type {number} The height of the screen in screen units. */
-export const SCREEN_HEIGHT = 544;
 /** @type {number} The width of the playfield in pixels. */
 export const PLAYFIELD_WIDTH = MAP_WIDTH * 16;
 /** @type {number} The height of the playfield in pixels. */
 export const PLAYFIELD_HEIGHT = MAP_HEIGHT * 16;
-/** @type {number} The x position of the playfield on the canvas in a level. */
-export const PLAYFIELD_X = 64;
-/** @type {number} The y position of the playfield on the canvas. */
-export const PLAYFIELD_Y = 96;
 
 /** @type {Object<string, number>} The types of the sparkles, which select their movement, their fade and their size. */
 export const SparkleType = {

@@ -92,16 +92,13 @@ function triangle(x1, y1, x2, y2, x3, y3) {
 function drawPortalGun() {
 	if (game.abilities.portals) {
 		const a = getAngle(
-			(game.player.x >> 8) + (game.player.pX >> 1) + game.offsetX,
-			(game.player.y >> 8) + (game.player.pY >> 1) + game.offsetY,
+			(game.player.x >> 8) + (game.player.pX >> 1),
+			(game.player.y >> 8) + (game.player.pY >> 1),
 			input.mouseX,
 			input.mouseY,
 		);
 		ctx.save();
-		ctx.translate(
-			(game.player.x >> 8) + (game.player.pX >> 1) + game.offsetX,
-			(game.player.y >> 8) + (game.player.pY >> 1) + game.offsetY,
-		);
+		ctx.translate((game.player.x >> 8) + (game.player.pX >> 1), (game.player.y >> 8) + (game.player.pY >> 1));
 		ctx.rotate(a);
 		drawImage(portalGun, -5, -5);
 		ctx.restore();
@@ -116,13 +113,13 @@ function drawPortalGun() {
  */
 function drawRotatedHead(flipDx) {
 	let a = getAngle(
-		(game.player.x >> 8) + (game.player.pX >> 1) + game.offsetX,
-		(game.player.y >> 8) + (game.player.pY >> 1) + game.offsetY,
+		(game.player.x >> 8) + (game.player.pX >> 1),
+		(game.player.y >> 8) + (game.player.pY >> 1),
 		input.mouseX,
 		input.mouseY,
 	);
 	ctx.save();
-	ctx.translate((game.player.x >> 8) + game.offsetX + 8, (game.player.y >> 8) + game.offsetY + 6);
+	ctx.translate((game.player.x >> 8) + 8, (game.player.y >> 8) + 6);
 	let ad = radToDeg(a);
 
 	if (!flipDx) {
@@ -152,17 +149,7 @@ export function drawSparkles() {
 		const sc = s.fading / 255;
 		let dt = 9 - sc * 9;
 		if (s.type == SparkleType.LOW_LIFE || s.type == SparkleType.SHOT_HIT) dt -= 8;
-		drawImage(
-			sparkle,
-			0,
-			s.color * 9,
-			9,
-			9,
-			(s.x >> 8) + dt + game.offsetX,
-			(s.y >> 8) + dt + game.offsetY,
-			16 * sc,
-			16 * sc,
-		);
+		drawImage(sparkle, 0, s.color * 9, 9, 9, (s.x >> 8) + dt, (s.y >> 8) + dt, 16 * sc, 16 * sc);
 	}
 }
 
@@ -181,17 +168,7 @@ export function drawLevel() {
 	const flipDx = game.player.flip < 0 ? 1 : 0;
 	if (!flipDx) drawPortalGun();
 	drawRotatedHead(flipDx);
-	drawImage(
-		body[flipDx],
-		game.player.animationFrame * 16,
-		0,
-		16,
-		27,
-		(game.player.x >> 8) + game.offsetX,
-		(game.player.y >> 8) + game.offsetY,
-		16,
-		27,
-	);
+	drawImage(body[flipDx], game.player.animationFrame * 16, 0, 16, 27, game.player.x >> 8, game.player.y >> 8, 16, 27);
 	if (flipDx) drawPortalGun();
 
 	drawCakes();
@@ -202,14 +179,13 @@ export function drawLevel() {
 
 	if (game.bossNum > 0) {
 		drawBoss();
-		if (game.bossNum == 1 || game.bossNum == 3)
-			drawImage(tube, (game.tubeX >> 8) + game.offsetX, (game.tubeY >> 8) + game.offsetY);
+		if (game.bossNum == 1 || game.bossNum == 3) drawImage(tube, game.tubeX >> 8, game.tubeY >> 8);
 		else if (game.bossNum == 2) {
 			drawProjectiles();
-			drawImage(tube2, (game.tubeX >> 8) + game.offsetX, (game.tubeY >> 8) + game.offsetY);
+			drawImage(tube2, game.tubeX >> 8, game.tubeY >> 8);
 		} else if (game.bossNum == 4) {
 			drawProjectiles();
-			drawImage(tube, (game.tubeX >> 8) + game.offsetX, (game.tubeY >> 8) + game.offsetY);
+			drawImage(tube, game.tubeX >> 8, game.tubeY >> 8);
 		}
 	}
 
@@ -222,7 +198,7 @@ export function drawLevel() {
 	if (game.player.dead) {
 		const a = -(game.player.life / 256);
 		ctx.fillStyle = 'rgba(0, 0, 0,' + (1 - a) + ')';
-		ctx.fillRect(game.offsetX, game.offsetY, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
+		ctx.fillRect(0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 	}
 
 	if (game.player.fadeNextLevel >= 0) drawTransition();
@@ -241,7 +217,7 @@ function drawLabels() {
 	if (atExit() || game.player.fadeNextLevel > 0) return;
 	ctx.font = '14px Arial';
 	ctx.fillStyle = 'rgb(255, 255, 255)';
-	for (const label of game.labels) ctx.fillText(label.text, label.x + game.offsetX, label.y + game.offsetY);
+	for (const label of game.labels) ctx.fillText(label.text, label.x, label.y);
 }
 
 /**
@@ -255,7 +231,7 @@ function drawMessage() {
 	ctx.font = '16px Arial';
 	const lines = wrapText(game.message, MESSAGE_WIDTH);
 	prepareTxt(15, 10, 477, 16 * lines.length + 12);
-	lines.forEach((line, i) => ctx.fillText(line, game.offsetX + 22, game.offsetY + 30 + 16 * i));
+	lines.forEach((line, i) => ctx.fillText(line, 22, 30 + 16 * i));
 }
 
 /**
@@ -287,7 +263,7 @@ function wrapText(text, width) {
 export function drawAnimatedTiles() {
 	for (const tile of game.animatedTiles) {
 		if (!tile.used) continue;
-		drawImage(tileset[tile.current], (tile.x << 4) + game.offsetX, (tile.y << 4) + game.offsetY, 16, 16);
+		drawImage(tileset[tile.current], tile.x << 4, tile.y << 4, 16, 16);
 	}
 }
 
@@ -300,7 +276,7 @@ let tileLayer = null;
  * @returns {void}
  */
 export function saveTileLayer() {
-	tileLayer = copyCanvas(game.offsetX, game.offsetY, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
+	tileLayer = copyCanvas(0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 	game.tilesChanged = false;
 }
 
@@ -310,7 +286,7 @@ export function saveTileLayer() {
  * @returns {void}
  */
 export function drawTileLayer() {
-	drawCopy(tileLayer, game.offsetX, game.offsetY);
+	drawCopy(tileLayer, 0, 0);
 }
 
 /**
@@ -320,18 +296,18 @@ export function drawTileLayer() {
  */
 export function createBuff() {
 	let i;
-	drawImage(bg[game.background], game.offsetX, game.offsetY, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
+	drawImage(bg[game.background], 0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 	for (i = 0; i < game.displayMap.length; i++) {
 		const y = i >> 5;
 		const x = i - (y << 5);
 		if (game.displayMap[i] < NUM_TILES && game.displayMap[i] > 0 && i < MAP_SIZE) {
-			drawImage(tileset[game.displayMap[i]], x * 16 + game.offsetX, y * 16 + game.offsetY, 16, 16);
+			drawImage(tileset[game.displayMap[i]], x * 16, y * 16, 16, 16);
 		}
 	}
 	saveTileLayer();
 	ctx.fillStyle = 'rgb(0, 0, 0)';
-	ctx.fillRect(game.offsetX, game.offsetY, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
-	if (game.player.intermissionFade < 0) drawImage(highscore, game.offsetX, game.offsetY);
+	ctx.fillRect(0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
+	if (game.player.intermissionFade < 0) drawImage(highscore, 0, 0);
 }
 
 /**
@@ -343,7 +319,7 @@ export function drawCakes() {
 	for (const c of game.cakes) {
 		if (!c.used) continue;
 		const float = game.player.fadeNextLevel == -1 ? c.vy : 0;
-		drawImage(cake, (c.x >> 8) + game.offsetX, ((c.y + float) >> 8) + game.offsetY, 16, 12);
+		drawImage(cake, c.x >> 8, (c.y + float) >> 8, 16, 12);
 	}
 }
 
@@ -355,24 +331,24 @@ export function drawCakes() {
 export function drawTurrets() {
 	for (const t of game.turrets) {
 		const side = t.dir < 0 ? 0 : 1;
-		const x = (t.x >> 8) + game.offsetX;
-		const y = (t.y >> 8) + game.offsetY;
+		const x = t.x >> 8;
+		const y = t.y >> 8;
 		ctx.save();
 		ctx.translate(x + (t.pX >> 1), y + (t.pY >> 1));
 		ctx.rotate(degToRad(t.angle));
 		drawImage(turretImages[side], 0, t.animFrame * 32, 16, 32, -(t.pX >> 1), -(t.pY >> 1), 16, 32);
 		ctx.restore();
 		const dx = t.dir < 0 ? 0 : t.pX;
-		const playerY = (game.player.y >> 8) + game.offsetY + (game.player.pY >> 1);
+		const playerY = (game.player.y >> 8) + (game.player.pY >> 1);
 		if (t.animFrame == 1 && !t.dead) {
 			ctx.strokeStyle = 'rgb(255, 255, 0)';
 			ctx.lineWidth = 3;
 			const dy = random(-16, 16);
-			line(x + dx, y + 13, (game.player.x >> 8) + game.offsetX, playerY + dy);
+			line(x + dx, y + 13, game.player.x >> 8, playerY + dy);
 		} else if (t.rotation < 10 && !t.dead) {
 			ctx.strokeStyle = 'rgb(255, 0, 0)';
 			ctx.lineWidth = 1;
-			line(x + dx, y + 13, (t.ex >> 8) + game.offsetX, playerY);
+			line(x + dx, y + 13, t.ex >> 8, playerY);
 		}
 	}
 }
@@ -389,17 +365,7 @@ export function drawPlasma() {
 		let vy = 0;
 		if (ball.vx != 0) vy = ball.scale;
 		else if (ball.vy != 0) vx = ball.scale;
-		drawImage(
-			plasma,
-			0,
-			ball.animFrame * 16,
-			16,
-			16,
-			(ball.x >> 8) + game.offsetX + vx,
-			(ball.y >> 8) + game.offsetY + vy,
-			16,
-			16,
-		);
+		drawImage(plasma, 0, ball.animFrame * 16, 16, 16, (ball.x >> 8) + vx, (ball.y >> 8) + vy, 16, 16);
 	}
 }
 
@@ -413,12 +379,12 @@ function drawProjectiles() {
 		const image = tileset[p.img];
 		if (!p.needKill) {
 			ctx.globalAlpha = 0.5;
-			drawImage(image, ((p.x - p.vx * 4) >> 8) + game.offsetX, ((p.y - p.vy * 4) >> 8) + game.offsetY, 16, 16);
+			drawImage(image, (p.x - p.vx * 4) >> 8, (p.y - p.vy * 4) >> 8, 16, 16);
 			ctx.globalAlpha = 0.75;
-			drawImage(image, ((p.x - p.vx * 2) >> 8) + game.offsetX, ((p.y - p.vy * 2) >> 8) + game.offsetY, 16, 16);
+			drawImage(image, (p.x - p.vx * 2) >> 8, (p.y - p.vy * 2) >> 8, 16, 16);
 			ctx.globalAlpha = 1;
 		}
-		drawImage(image, (p.x >> 8) + game.offsetX, (p.y >> 8) + game.offsetY, 16, 16);
+		drawImage(image, p.x >> 8, p.y >> 8, 16, 16);
 	}
 }
 
@@ -431,7 +397,7 @@ export function drawCrates() {
 	for (const c of game.crates) {
 		const sc = c.shrink > 0 ? c.shrink / 60 : 1;
 		ctx.save();
-		ctx.translate((c.x >> 8) + (c.pX >> 1) + game.offsetX, (c.y >> 8) + (c.pY >> 1) + game.offsetY);
+		ctx.translate((c.x >> 8) + (c.pX >> 1), (c.y >> 8) + (c.pY >> 1));
 		ctx.rotate(degToRad(c.angle));
 		drawImage(crateImage, 0, 0, 16, 16, -(c.pX >> 1), -(c.pY >> 1), 16 * sc, 16 * sc);
 		ctx.restore();
@@ -466,7 +432,7 @@ function drawGravPipeFields() {
 	ctx.fillStyle = 'rgb(151, 206, 233)';
 	ctx.globalAlpha = 0.5;
 	for (const field of game.gravPipeFields) {
-		ctx.fillRect(field.x + game.offsetX, field.y + game.offsetY, field.w, field.h);
+		ctx.fillRect(field.x, field.y, field.w, field.h);
 	}
 	ctx.globalAlpha = 1;
 }
@@ -479,8 +445,8 @@ function drawGravPipeFields() {
 export function drawGravPipes() {
 	drawGravPipeFields();
 	for (const t of game.gravPipes) {
-		const x = (t.x >> 8) + game.offsetX;
-		const y = (t.y >> 8) + game.offsetY;
+		const x = t.x >> 8;
+		const y = t.y >> 8;
 		if (t.dir == Direction.RIGHT) drawImage(gravPipe, 0, 0, 16, 32, x, y, 16, 32);
 		else if (t.dir == Direction.LEFT) drawImage(gravPipe, 0, 32, 16, 32, x, y, 16, 32);
 		else if (t.dir == Direction.UP) drawImage(gravPipe2, 0, 0, 32, 16, x, y, 32, 16);
@@ -495,8 +461,8 @@ export function drawGravPipes() {
  */
 export function drawPlatforms() {
 	for (const p of game.platforms) {
-		const x = (p.x >> 8) + game.offsetX;
-		const y = (p.y >> 8) + game.offsetY;
+		const x = p.x >> 8;
+		const y = p.y >> 8;
 		drawImage(platform, x, y);
 		if (ui.currentMenu == Menu.EDITOR && !ui.isTestingLevel) {
 			ctx.fillStyle = 'rgb(255, 0, 0)';
@@ -525,7 +491,7 @@ export function drawFrontTiles() {
 						if (tx + i < MAP_WIDTH && tx + i >= 0) {
 							t = tx + i + (ty << 5);
 							if (tileset[game.displayMap[t]]) {
-								drawImage(tileset[game.displayMap[t]], (tx + i) * 16 + game.offsetX, ty * 16 + game.offsetY, 16, 16);
+								drawImage(tileset[game.displayMap[t]], (tx + i) * 16, ty * 16, 16, 16);
 							}
 						}
 					}
@@ -536,7 +502,7 @@ export function drawFrontTiles() {
 						if (ty + i < MAP_HEIGHT && ty + i >= 0) {
 							t = tx + ((ty + i) << 5);
 							if (game.displayMap[t] < tileset.length) {
-								drawImage(tileset[game.displayMap[t]], tx * 16 + game.offsetX, (ty + i) * 16 + game.offsetY, 16, 16);
+								drawImage(tileset[game.displayMap[t]], tx * 16, (ty + i) * 16, 16, 16);
 							}
 						}
 					}
@@ -559,7 +525,7 @@ function drawCamera() {
 		(game.camera.y >> 8) + 8,
 	);
 	ctx.save();
-	ctx.translate((game.camera.x >> 8) + 8 + game.offsetX, (game.camera.y >> 8) + 8 + game.offsetY);
+	ctx.translate((game.camera.x >> 8) + 8, (game.camera.y >> 8) + 8);
 	ctx.rotate(a);
 	drawImage(cameraFollow, 0, 0);
 	ctx.restore();
@@ -584,8 +550,8 @@ export function drawPortals() {
 			32 * p.frame,
 			32,
 			32,
-			(p.x >> 8) + dx + game.offsetX,
-			(p.y >> 8) + dy + game.offsetY,
+			(p.x >> 8) + dx,
+			(p.y >> 8) + dy,
 			32 * p.scaleX,
 			32 * p.scaleY,
 		);

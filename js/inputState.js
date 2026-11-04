@@ -16,6 +16,8 @@ import {
 	MOUSE_RIGHT,
 	Menu,
 	MouseButton,
+	PLAYFIELD_HEIGHT,
+	PLAYFIELD_WIDTH,
 } from './constants.js';
 import { reportBrokenReplay } from './navigation.js';
 import { isInPortal } from './portals.js';
@@ -182,4 +184,13 @@ export function manageKeys() {
 export function mouseInZone(x, y, w, h) {
 	if (input.mouseX >= x && input.mouseX < x + w && input.mouseY >= y && input.mouseY < y + h) return true;
 	return false;
+}
+
+/**
+ * Check if the mouse is on the playfield.
+ *
+ * @returns {boolean} True if the mouse is on the playfield.
+ */
+export function mouseOnPlayfield() {
+	return mouseInZone(0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 }

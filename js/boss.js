@@ -2,7 +2,7 @@
  * The logic of the boss levels of the story campaign: the entrance, the attacks, the hits and the end of the fight.
  */
 
-import { PLAYFIELD_X, PLAYFIELD_Y, SparkleType } from './constants.js';
+import { SparkleType } from './constants.js';
 import { Crate } from './entities/Crate.js';
 import { Plasma } from './entities/Plasma.js';
 import { Projectile } from './entities/Projectile.js';
@@ -78,13 +78,13 @@ export function updateBoss() {
 			game.bossX = 449 + 50 - (game.bossComingTime >> 8);
 			if (game.bossX == 449) {
 				game.bossIsComing = false;
-				game.offsetX = PLAYFIELD_X;
-				game.offsetY = PLAYFIELD_Y;
+				game.shakeX = 0;
+				game.shakeY = 0;
 				triggerEvents('bossArrived');
 			}
 			if (game.rumbleTime % 3 == 0) {
-				game.offsetX = PLAYFIELD_X + random(-3, 3);
-				game.offsetY = PLAYFIELD_Y + random(-3, 3);
+				game.shakeX = random(-3, 3);
+				game.shakeY = random(-3, 3);
 			}
 		}
 	} else {
@@ -264,8 +264,8 @@ export function updateBossRumble() {
 	game.rumbleTime++;
 	if (!game.bossIsComing) shakeScreen();
 	else if (game.rumbleTime % 3 == 0) {
-		game.offsetX = PLAYFIELD_X + random(-3, 3);
-		game.offsetY = PLAYFIELD_Y + random(-3, 3);
+		game.shakeX = random(-3, 3);
+		game.shakeY = random(-3, 3);
 	}
 	if (!game.bossIsComing && game.time % 10 == 0 && game.bossX < 530) {
 		createCakeOrSmokeSparkles((game.bossX + 14) << 8, (game.bossY + 18) << 8, SparkleType.SMOKE, 3, 300);
@@ -355,13 +355,13 @@ export function manageInTube(obj) {
 /**
  * Shake the playfield after the boss died.
  *
- * The offset only depends on the level time, so a replay gets the same offsets as the play. The mouse aim uses the
- * offset, so random offsets would change the result of a replay. The offset changes every third tick.
+ * The shake only depends on the level time, so a replay gets the same shake as the play. The shake changes every
+ * third tick.
  */
 export function shakeScreen() {
 	const step = Math.floor(game.time / 3);
-	game.offsetX = PLAYFIELD_X + shakeOffset(step * 2);
-	game.offsetY = PLAYFIELD_Y + shakeOffset(step * 2 + 1);
+	game.shakeX = shakeOffset(step * 2);
+	game.shakeY = shakeOffset(step * 2 + 1);
 }
 
 /**

@@ -109,7 +109,7 @@ export async function runLevel(
 ) {
 	return page.evaluate(
 		async ({ campaign, level, ticks, seed, inputs, replay: replayData, skipBossIntro, interval }) => {
-			const { Menu, PLAYFIELD_X, PLAYFIELD_Y } = await import('/js/constants.js');
+			const { Menu } = await import('/js/constants.js');
 			const t = window.__test;
 			const { game, ui, input } = t;
 			let state = seed >>> 0;
@@ -121,8 +121,8 @@ export async function runLevel(
 				return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
 			};
 
-			game.offsetX = PLAYFIELD_X;
-			game.offsetY = PLAYFIELD_Y;
+			game.shakeX = 0;
+			game.shakeY = 0;
 			ui.campaign = campaign;
 			ui.currentLevel = level;
 			// the level selection in the menu loads the preview map before the level
@@ -211,7 +211,7 @@ export async function runPortalScene(page, scene) {
 		const { Crate } = await import('/js/entities/Crate.js');
 		const { Turret } = await import('/js/entities/Turret.js');
 		const { Plasma } = await import('/js/entities/Plasma.js');
-		const { MAP_HEIGHT, MAP_WIDTH, PLAYFIELD_X, PLAYFIELD_Y } = await import('/js/constants.js');
+		const { MAP_HEIGHT, MAP_WIDTH } = await import('/js/constants.js');
 		let state = scene.seed >>> 0;
 		Math.random = () => {
 			state = (state + 0x6d2b79f5) >>> 0;
@@ -246,8 +246,8 @@ export async function runPortalScene(page, scene) {
 		scene.portals.forEach(([sx, sy, tx, ty], p) => {
 			game.player.x = sx << 8;
 			game.player.y = sy << 8;
-			input.mouseX = PLAYFIELD_X + tx;
-			input.mouseY = PLAYFIELD_Y + ty;
+			input.mouseX = tx;
+			input.mouseY = ty;
 			launchPortal(p);
 		});
 		Object.assign(game.player, { x: scene.player[0] << 8, y: scene.player[1] << 8, vx: 0, vy: 0 });

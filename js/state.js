@@ -2,7 +2,7 @@
  * The shared state of the game.
  */
 
-import { PLAYFIELD_X, PLAYFIELD_Y, Transition } from './constants.js';
+import { Transition } from './constants.js';
 
 /** @type {object} The state of the current level: the map, the player, the objects, the level time and the boss. */
 export const game = {
@@ -18,13 +18,10 @@ export const game = {
 	events: undefined,
 	/** @type {import('./mapFile.js').MapLabel[]} The texts at positions of the playfield. */
 	labels: undefined,
-	/**
-	 * @type {number} The x position of the playfield on the canvas: PLAYFIELD_X in a level, 0 in the level selection
-	 *     and in the editor menus. The screen shake of the boss levels adds a few pixels.
-	 */
-	offsetX: PLAYFIELD_X,
-	/** @type {number} The y position of the playfield on the canvas, PLAYFIELD_Y plus the screen shake of the boss levels. */
-	offsetY: PLAYFIELD_Y,
+	/** @type {number} The x shift of the drawing in playfield units: the screen shake of the boss levels, else 0. */
+	shakeX: 0,
+	/** @type {number} The y shift of the drawing in playfield units: the screen shake of the boss levels, else 0. */
+	shakeY: 0,
 	time: undefined,
 	cakes: undefined,
 	crates: undefined,

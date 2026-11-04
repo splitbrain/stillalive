@@ -12,7 +12,7 @@ import { game, ui } from '../state.js';
  * @returns {void}
  */
 export function drawBoss() {
-	drawImage(robotHead, game.bossX + game.offsetX, game.bossY + game.offsetY, 74, 58);
+	drawImage(robotHead, game.bossX, game.bossY, 74, 58);
 
 	let eye;
 	if (ui.currentLevel <= 7) eye = 0;
@@ -20,15 +20,5 @@ export function drawBoss() {
 	else if (ui.currentLevel <= 21) eye = 2;
 	else eye = 3;
 
-	drawImage(
-		robotEye[eye],
-		0,
-		19 * game.bossLife,
-		19,
-		19,
-		game.bossX + game.offsetX + 15,
-		game.bossY + game.offsetY + 22,
-		19,
-		19,
-	);
+	drawImage(robotEye[eye], 0, 19 * game.bossLife, 19, 19, game.bossX + 15, game.bossY + 22, 19, 19);
 }

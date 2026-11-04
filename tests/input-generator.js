@@ -15,12 +15,7 @@ import {
 	MOUSE_RIGHT,
 	PLAYFIELD_HEIGHT,
 	PLAYFIELD_WIDTH,
-	PLAYFIELD_X,
-	PLAYFIELD_Y,
 } from '../js/constants.js';
-
-/** @type {{x: number, y: number, width: number, height: number}} Position of the playfield on the canvas. */
-const PLAYFIELD = { x: PLAYFIELD_X, y: PLAYFIELD_Y, width: PLAYFIELD_WIDTH, height: PLAYFIELD_HEIGHT };
 
 /**
  * Create a pseudo-random generator with the mulberry32 algorithm.
@@ -71,8 +66,8 @@ export function generateInputs(seed, ticks) {
 		else if (button < 0.3) keys |= MOUSE_RIGHT;
 
 		const clear = random() < 0.03;
-		const x = PLAYFIELD.x + randomInt(0, PLAYFIELD.width - 1);
-		const y = PLAYFIELD.y + randomInt(0, PLAYFIELD.height - 1);
+		const x = randomInt(0, PLAYFIELD_WIDTH - 1);
+		const y = randomInt(0, PLAYFIELD_HEIGHT - 1);
 
 		for (let i = 0; i < length && inputs.length < ticks; i++) {
 			inputs.push([clear && i === 0 ? keys | KEY_CLEAR : keys, x, y]);

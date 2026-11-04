@@ -38,8 +38,8 @@ export function createSparkles(xFrom, yFrom, xTo, yTo, color, type) {
 		if (i % 6 == 0 && now > 15) {
 			for (k = 0; k < 3; k++) {
 				const s = new Sparkle();
-				s.x = x + random(-5 << 8, 5 << 8) - (8 << 8) - (game.offsetX << 8);
-				s.y = y + random(-5 << 8, 5 << 8) - (8 << 8) - (game.offsetY << 8);
+				s.x = x + random(-5 << 8, 5 << 8) - (8 << 8);
+				s.y = y + random(-5 << 8, 5 << 8) - (8 << 8);
 				s.type = type;
 				s.vx = random(96, 192);
 				s.vy = random(96, 192);

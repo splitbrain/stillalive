@@ -62,7 +62,7 @@ function drawPortalGunMenu(x, y, angle) {
  * @returns {void}
  */
 export function drawPauseMenu() {
-	drawImage(pauseBG, game.offsetX, game.offsetY);
+	drawImage(pauseBG, 0, 0);
 
 	drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
 }
@@ -75,39 +75,39 @@ export function drawPauseMenu() {
 export function drawSplash() {
 	const sp = ui.splash;
 	ctx.fillStyle = 'rgb(0, 0, 0)';
-	ctx.fillRect(0, 0, 640, 544);
+	ctx.fillRect(0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 
-	drawImage(noLevel, 0, 32, 640, 480);
+	drawImage(noLevel, 0, 0);
 
 	ctx.font = 'bold 48px Yikes';
 	ctx.fillStyle = 'rgb(0, 0, 0)';
 
-	ctx.fillText('Welcome To', 160 + 4 + 60, sp.titleY + 4 - 80);
+	ctx.fillText('Welcome To', 96 + 4 + 60, sp.titleY + 4 - 176);
 	ctx.fillStyle = 'rgb(253, 233, 0)';
-	ctx.fillText('Welcome To', 160 + 60, sp.titleY - 80);
+	ctx.fillText('Welcome To', 96 + 60, sp.titleY - 176);
 
 	ctx.font = 'bold 64px Yikes';
 	ctx.fillStyle = 'rgb(0, 0, 0)';
 
-	ctx.fillText('StillAliveJS', 160 + 4, sp.titleY + 4);
+	ctx.fillText('StillAliveJS', 96 + 4, sp.titleY + 4 - 96);
 	ctx.fillStyle = 'rgb(253, 233, 0)';
-	ctx.fillText('StillAliveJS', 160, sp.titleY);
+	ctx.fillText('StillAliveJS', 96, sp.titleY - 96);
 
 	ctx.font = 'bold 24px Yikes';
-	drawImage(tex_tails, 32, 32 + sp.tailsY);
+	drawImage(tex_tails, 0, sp.tailsY - 64);
 	ctx.fillStyle = 'rgb(0, 0, 0)';
-	ctx.fillText('Created by t4ils', 100 + 2, 64 + 2 + sp.tailsY);
+	ctx.fillText('Created by t4ils', 64 + 2, sp.tailsY + 2 - 32);
 	ctx.fillStyle = 'rgb(253, 233, 0)';
-	ctx.fillText('Created by t4ils', 100, 64 + sp.tailsY);
+	ctx.fillText('Created by t4ils', 64, sp.tailsY - 32);
 
 	ctx.fillStyle = 'rgb(0, 0, 0)';
-	ctx.fillText('Gfx by ZeBlackos', 360 + 2, 64 + 2 + sp.blackosY);
+	ctx.fillText('Gfx by ZeBlackos', 264 + 2, sp.blackosY + 2 - 32);
 	ctx.fillStyle = 'rgb(253, 233, 0)';
-	ctx.fillText('Gfx by ZeBlackos', 360, 64 + sp.blackosY);
-	drawImage(tex_blackos, 550, 32 + sp.blackosY);
+	ctx.fillText('Gfx by ZeBlackos', 264, sp.blackosY - 32);
+	drawImage(tex_blackos, 454, sp.blackosY - 64);
 
 	ctx.fillStyle = 'rgba(0, 0, 0, ' + (1 - sp.fade / 60) + ')';
-	ctx.fillRect(0, 0, 640, 544);
+	ctx.fillRect(0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 }
 
 /**
@@ -139,7 +139,7 @@ function drawKeyLabels(dx, dy) {
 export function drawLoadingScreen() {
 	ctx.strokeStyle = 'rgb(0, 0, 0)';
 	ctx.fillStyle = 'rgb(0, 65, 88)';
-	ctx.fillRect(0, 0, 640, 544);
+	ctx.fillRect(0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 
 	ctx.fillStyle = 'rgb(255, 255, 255)';
 	ctx.fillText('Loading gfx ...', 10, 10);
@@ -190,8 +190,8 @@ export function drawLoadingScreen() {
 
 	const imagesReady = areImagesLoaded([body[0], body[1], head[0], head[1], controls, crosshair, bluePortal, redPortal]);
 	if (imagesReady) {
-		const dx = 225;
-		const dy = 190;
+		const dx = 270;
+		const dy = 100;
 		drawImage(controls, dx, dy);
 		drawKeyLabels(dx, dy);
 
@@ -204,7 +204,7 @@ export function drawLoadingScreen() {
 
 	if (allImagesLoaded() && levelsLoaded >= levelsToLoad && allSoundsLoaded()) {
 		if (game.time % 50 < 25) {
-			ctx.fillText('Click to continue ...', 280, 476);
+			ctx.fillText('Click to continue ...', 10, 370);
 		}
 	}
 	if (imagesReady) drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
@@ -216,7 +216,7 @@ export function drawLoadingScreen() {
  * @returns {void}
  */
 export function drawMapSelection() {
-	if (ui.previewMap < 1) drawImage(noLevel, game.offsetX, game.offsetY);
+	if (ui.previewMap < 1) drawImage(noLevel, 0, 0);
 	if (ui.previewMap > 0) drawPreviewMap();
 
 	drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
@@ -250,9 +250,9 @@ export function drawTinyButton(x, y, scale, text) {
 }
 
 /** @type {number} The y position of the first button of the main menu. */
-const MAIN_MENU_Y = 32;
+const MAIN_MENU_Y = 23;
 /** @type {number} The distance between the buttons of the main menu. */
-const MAIN_MENU_STEP = 64 + 18;
+const MAIN_MENU_STEP = 58;
 
 /**
  * Get the positions of the two players next to a button of the main menu.
@@ -262,7 +262,7 @@ const MAIN_MENU_STEP = 64 + 18;
  *     right player.
  */
 export function mainMenuPlayers(button) {
-	return [130, MAIN_MENU_Y + 25 + button * MAIN_MENU_STEP, 150 + 320 + 40 - 16];
+	return [104, MAIN_MENU_Y + 3 + button * MAIN_MENU_STEP, 392];
 }
 
 /**
@@ -272,7 +272,7 @@ export function mainMenuPlayers(button) {
  * @returns {void}
  */
 export function drawMainMenu() {
-	drawImage(menuBG, 0, 0);
+	drawImage(menuBG, 0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 
 	// the players stand next to the hovered button
 	const hover = ui.mainHover;
@@ -291,7 +291,7 @@ export function drawMainMenu() {
 	if (ui.goMenu) {
 		const a = ui.goMenu / 60;
 		ctx.fillStyle = 'rgba(0, 0, 0,' + (1 - a) + ')';
-		ctx.fillRect(0, 0, 640, 544);
+		ctx.fillRect(0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 	}
 
 	drawSparkles();
@@ -299,7 +299,7 @@ export function drawMainMenu() {
 	if (ui.fadeMenu > 0) {
 		const fa = ui.fadeMenu / 30;
 		ctx.fillStyle = 'rgba(0, 0, 0, ' + fa + ')';
-		ctx.fillRect(0, 0, 640, 544);
+		ctx.fillRect(0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 	}
 }
 
@@ -310,26 +310,26 @@ export function drawMainMenu() {
  */
 export function drawCredits() {
 	const credits = ui.credits;
-	drawImage(noLevel, 0, 32, 640, 480);
+	drawImage(noLevel, 0, 0);
 	ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-	ctx.fillRect(0, 0, 640, 544);
+	ctx.fillRect(0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 
 	drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
 
 	ctx.fillStyle = 'rgba(0, 0, 0,' + (1 - credits.alpha) + ')';
-	ctx.fillRect(0, 0, 640, 544);
+	ctx.fillRect(0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 
 	ctx.font = '24px yikes';
 	for (let t = 0; t < creditsTxt.length; t++) {
 		const txt = creditsTxt[t];
 		const metrics = ctx.measureText(txt);
-		const x = 320 - (metrics.width >> 1);
+		const x = (PLAYFIELD_WIDTH >> 1) - (metrics.width >> 1);
 
 		const yLow = creditsTxt.length * 15;
 
 		const y = t * 32 + (yLow - credits.time);
 
-		if (y <= 544) {
+		if (y <= PLAYFIELD_HEIGHT) {
 			ctx.fillStyle = 'rgb(0, 0, 0)';
 			ctx.fillText(txt, x + 2, y + 2);
 			ctx.fillStyle = 'rgb(253, 233, 0)';
@@ -338,8 +338,8 @@ export function drawCredits() {
 	}
 
 	ctx.fillStyle = 'rgb(0, 0, 0)';
-	ctx.fillRect(0, 0, 640, 32);
-	ctx.fillRect(0, 544 - 32, 640, 32);
+	ctx.fillRect(0, 0, PLAYFIELD_WIDTH, 32);
+	ctx.fillRect(0, PLAYFIELD_HEIGHT - 32, PLAYFIELD_WIDTH, 32);
 }
 
 /**
@@ -351,10 +351,10 @@ export function drawCredits() {
 export function drawIntermission() {
 	if (game.player.intermissionFade > 0) {
 		ctx.fillStyle = 'rgb(0, 0, 0)';
-		ctx.fillRect(game.offsetX - 1, game.offsetY, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
+		ctx.fillRect(-1, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 		ctx.globalAlpha = 1 - game.player.intermissionFade / 20;
 	}
-	drawImage(highscore, game.offsetX, game.offsetY);
+	drawImage(highscore, 0, 0);
 	if (game.player.intermissionFade > 0) ctx.globalAlpha = 1;
 }
 
@@ -366,65 +366,36 @@ export function drawIntermission() {
 export function drawPreviewMap() {
 	let i, ti, ci, pi;
 	if (game.tilesChanged) {
-		drawImage(bg[game.background], game.offsetX, game.offsetY, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
+		drawImage(bg[game.background], 0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 		for (i = 0; i < game.displayMap.length; i++) {
 			const y = i >> 5;
 			const x = i - (y << 5);
 			if (game.displayMap[i] < NUM_TILES && game.displayMap[i] > 0 && i < MAP_SIZE) {
 				const open = game.cakesLeft == 0 && game.displayMap[i] == Tile.EXIT_CLOSED;
 				const tile = open ? Tile.EXIT : game.displayMap[i];
-				drawImage(tileset[tile], x * 16 + game.offsetX, y * 16 + game.offsetY, 16, 16);
+				drawImage(tileset[tile], x * 16, y * 16, 16, 16);
 			}
 		}
 		saveTileLayer();
 		ctx.fillStyle = 'rgb(0, 0, 0)';
-		ctx.fillRect(game.offsetX, game.offsetY, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
+		ctx.fillRect(0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 	} else {
 		drawTileLayer();
 
 		game.player.flip = 1;
 
 		ctx.save();
-		ctx.translate(
-			(game.player.x >> 8) + (game.player.pX >> 1) + game.offsetX,
-			(game.player.y >> 8) + (game.player.pY >> 1) + game.offsetY,
-		);
+		ctx.translate((game.player.x >> 8) + (game.player.pX >> 1), (game.player.y >> 8) + (game.player.pY >> 1));
 		drawImage(portalGun, -5, -5);
 		ctx.restore();
 
 		const flipDx = game.player.flip < 0 ? 1 : 0;
-		drawImage(
-			head[flipDx],
-			game.player.animationFrame * 16,
-			0,
-			15,
-			12,
-			(game.player.x >> 8) + game.offsetX,
-			(game.player.y >> 8) + game.offsetY,
-			16,
-			12,
-		);
-		drawImage(
-			body[flipDx],
-			game.player.animationFrame * 16,
-			0,
-			16,
-			27,
-			(game.player.x >> 8) + game.offsetX,
-			(game.player.y >> 8) + game.offsetY,
-			16,
-			27,
-		);
+		drawImage(head[flipDx], game.player.animationFrame * 16, 0, 15, 12, game.player.x >> 8, game.player.y >> 8, 16, 12);
+		drawImage(body[flipDx], game.player.animationFrame * 16, 0, 16, 27, game.player.x >> 8, game.player.y >> 8, 16, 27);
 
 		for (i = 0; i < game.cakes.length; i++) {
 			if (game.cakes[i].used) {
-				drawImage(
-					cake,
-					(game.cakes[i].x >> 8) + game.offsetX,
-					((game.cakes[i].y + game.cakes[i].vy) >> 8) + game.offsetY,
-					16,
-					12,
-				);
+				drawImage(cake, game.cakes[i].x >> 8, (game.cakes[i].y + game.cakes[i].vy) >> 8, 16, 12);
 			}
 		}
 
@@ -436,27 +407,27 @@ export function drawPreviewMap() {
 				game.turrets[ti].animFrame * 32,
 				16,
 				32,
-				(game.turrets[ti].x >> 8) + game.offsetX,
-				(game.turrets[ti].y >> 8) + game.offsetY,
+				game.turrets[ti].x >> 8,
+				game.turrets[ti].y >> 8,
 				16,
 				32,
 			);
 		}
 
 		for (ci = 0; ci < game.crates.length; ci++) {
-			drawImage(crateImage, (game.crates[ci].x >> 8) + game.offsetX, (game.crates[ci].y >> 8) + game.offsetY);
+			drawImage(crateImage, game.crates[ci].x >> 8, game.crates[ci].y >> 8);
 		}
 
 		for (pi = 0; pi < game.platforms.length; pi++) {
-			drawImage(platform, (game.platforms[pi].x >> 8) + game.offsetX, (game.platforms[pi].y >> 8) + game.offsetY);
+			drawImage(platform, game.platforms[pi].x >> 8, game.platforms[pi].y >> 8);
 		}
 
 		drawGravPipes();
 
 		if (game.bossNum > 0) {
 			if (game.bossNum == 1 || game.bossNum == 3 || game.bossNum == 4)
-				drawImage(tube, (game.tubeX >> 8) + game.offsetX, (game.tubeY >> 8) + game.offsetY);
-			else if (game.bossNum == 2) drawImage(tube2, (game.tubeX >> 8) + game.offsetX, (game.tubeY >> 8) + game.offsetY);
+				drawImage(tube, game.tubeX >> 8, game.tubeY >> 8);
+			else if (game.bossNum == 2) drawImage(tube2, game.tubeX >> 8, game.tubeY >> 8);
 			drawBoss();
 		}
 

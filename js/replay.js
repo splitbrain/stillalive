@@ -3,12 +3,12 @@
  *
  * A replay file is JSON with these properties:
  *
- * - format: the version of the file format, always 1
+ * - format: the version of the file format, always 2
  * - campaign: the folder name of the campaign, e.g. "normal"
  * - level: the level number, starting at 1
  * - ticks: the number of recorded ticks
  * - inputs: a list of [count, keys, mouseX, mouseY] entries. Each entry stands for count ticks with the same key
- *   bitmask and mouse position.
+ *   bitmask and mouse position. The mouse position is in playfield units.
  * - states: a list of [time, ...state] entries with the input state from captureInput(). The game processes input
  *   while the level time stands still, e.g. in a pause. The playback restores the state when the time continues.
  * - bossSpeech: the length of the speech after the boss died, in ticks, or -1
@@ -22,7 +22,7 @@ import { game, input } from './state.js';
 const STATE_LENGTH = 8;
 
 /** @type {number} The version of the replay file format. */
-export const REPLAY_FORMAT = 1;
+export const REPLAY_FORMAT = 2;
 
 /**
  * Convert a recorded replay into the file format.

@@ -1,14 +1,15 @@
 /**
  * The canvas of the game.
  *
- * The game draws in screen units: a screen of SCREEN_WIDTH by SCREEN_HEIGHT units. The canvas shows a view of the
- * screen: the whole screen in the menus, or only the playfield in a level. The canvas buffer has the size of the
- * canvas on the page in device pixels, so the picture stays sharp at every size. A transformation at the start of
- * each frame maps the screen units of the view to the buffer pixels. Vector images are drawn from a copy at the
- * scale of the buffer, so that each vector image is rasterized only once per scale.
+ * The canvas shows the playfield. The game draws in playfield units: a playfield of PLAYFIELD_WIDTH by
+ * PLAYFIELD_HEIGHT units. The canvas buffer has the size of the canvas on the page in device pixels, so the picture
+ * stays sharp at every size. A transformation at the start of each frame maps the playfield units to the buffer
+ * pixels and adds the screen shake. Vector images are drawn from a copy at the scale of the buffer, so that each
+ * vector image is rasterized only once per scale.
  */
 
-import { SCREEN_HEIGHT, SCREEN_WIDTH } from './constants.js';
+import { PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH } from './constants.js';
+import { game } from './state.js';
 
 /** @type {HTMLCanvasElement} The game canvas. */
 const canvas = document.getElementById('canvas');
@@ -16,11 +17,8 @@ const canvas = document.getElementById('canvas');
 /** @type {CanvasRenderingContext2D} The drawing context of the game canvas. */
 export const ctx = canvas.getContext('2d');
 
-/** @type {number} The number of buffer pixels per screen unit. */
+/** @type {number} The number of buffer pixels per playfield unit. */
 let scale = 1;
-
-/** @type {{x: number, y: number, w: number, h: number}} The part of the screen that the canvas shows, in screen units. */
-let view = { x: 0, y: 0, w: SCREEN_WIDTH, h: SCREEN_HEIGHT };
 
 /** @type {number} The wanted width of the buffer in device pixels, from the size of the canvas on the page. */
 let wantedWidth = canvas.width;
@@ -53,35 +51,19 @@ export function watchCanvasSize() {
 }
 
 /**
- * Set the part of the screen that the canvas shows. The canvas on the page gets the ratio of the view, also as the
- * CSS variable --view-ratio for its size limit.
- *
- * @param {number} x The left edge in screen units.
- * @param {number} y The top edge in screen units.
- * @param {number} w The width in screen units.
- * @param {number} h The height in screen units.
- * @returns {void}
- */
-export function setView(x, y, w, h) {
-	if (view.x === x && view.y === y && view.w === w && view.h === h) return;
-	view = { x, y, w, h };
-	canvas.style.aspectRatio = `${w} / ${h}`;
-	canvas.style.setProperty('--view-ratio', String(w / h));
-}
-
-/**
- * Convert a point on the canvas to screen units.
+ * Convert a point on the canvas to playfield units.
  *
  * @param {number} px The x position on the canvas in CSS pixels.
  * @param {number} py The y position on the canvas in CSS pixels.
- * @returns {number[]} The x and y position in screen units.
+ * @returns {number[]} The x and y position in playfield units.
  */
-export function screenPoint(px, py) {
-	return [view.x + (px * view.w) / canvas.clientWidth, view.y + (py * view.h) / canvas.clientHeight];
+export function playfieldPoint(px, py) {
+	return [(px * PLAYFIELD_WIDTH) / canvas.clientWidth, (py * PLAYFIELD_HEIGHT) / canvas.clientHeight];
 }
 
 /**
- * Prepare the canvas for a frame: apply a new size of the buffer and set the transformation of the view.
+ * Prepare the canvas for a frame: apply a new size of the buffer and set the transformation to playfield units
+ * with the screen shake.
  *
  * @returns {void}
  */
@@ -90,8 +72,8 @@ export function beginFrame() {
 		canvas.width = wantedWidth;
 		canvas.height = wantedHeight;
 	}
-	scale = Math.min(canvas.width / view.w, canvas.height / view.h);
-	ctx.setTransform(scale, 0, 0, scale, -view.x * scale, -view.y * scale);
+	scale = Math.min(canvas.width / PLAYFIELD_WIDTH, canvas.height / PLAYFIELD_HEIGHT);
+	ctx.setTransform(scale, 0, 0, scale, game.shakeX * scale, game.shakeY * scale);
 }
 
 /**
@@ -111,7 +93,7 @@ function scaledImage(image) {
 
 /**
  * Draw an image like ctx.drawImage(), with the same arguments after the image. The source rectangle and the size of
- * the image are in screen units: the pixels of a raster image, or the viewBox of a vector image. The browser scales
+ * the image are in playfield units: the pixels of a raster image, or the viewBox of a vector image. The browser scales
  * a raster image directly. A vector image is drawn from its copy at the scale of the buffer. An image that is not
  * loaded is not drawn.
  *
@@ -138,12 +120,13 @@ export function drawImage(image, ...args) {
 }
 
 /**
- * Copy a part of the canvas into a new offscreen canvas at the scale of the buffer. The copy remembers its scale.
+ * Copy a part of the canvas into a new offscreen canvas at the scale of the buffer. The part moves with the screen
+ * shake. The copy remembers its scale.
  *
- * @param {number} x The left edge of the part in screen units.
- * @param {number} y The top edge of the part in screen units.
- * @param {number} w The width of the part in screen units.
- * @param {number} h The height of the part in screen units.
+ * @param {number} x The left edge of the part in playfield units.
+ * @param {number} y The top edge of the part in playfield units.
+ * @param {number} w The width of the part in playfield units.
+ * @param {number} h The height of the part in playfield units.
  * @returns {OffscreenCanvas} The copy, with the scale in its scale property.
  */
 export function copyCanvas(x, y, w, h) {
@@ -153,8 +136,8 @@ export function copyCanvas(x, y, w, h) {
 		.getContext('2d')
 		.drawImage(
 			canvas,
-			Math.round((x - view.x) * scale),
-			Math.round((y - view.y) * scale),
+			Math.round((x + game.shakeX) * scale),
+			Math.round((y + game.shakeY) * scale),
 			copy.width,
 			copy.height,
 			0,
@@ -167,20 +150,20 @@ export function copyCanvas(x, y, w, h) {
 
 /**
  * Draw a copy from copyCanvas() onto the canvas. The copy replaces the pixels, as the current transformation,
- * transparency and composition of the canvas do not apply. A copy from another scale of the buffer is scaled to
- * the current scale.
+ * transparency and composition of the canvas do not apply, but the copy moves with the screen shake. A copy from
+ * another scale of the buffer is scaled to the current scale.
  *
  * @param {OffscreenCanvas} copy The copy.
- * @param {number} x The left edge on the canvas in screen units.
- * @param {number} y The top edge on the canvas in screen units.
+ * @param {number} x The left edge on the canvas in playfield units.
+ * @param {number} y The top edge on the canvas in playfield units.
  * @returns {void}
  */
 export function drawCopy(copy, x, y) {
 	ctx.save();
 	ctx.setTransform(1, 0, 0, 1, 0, 0);
 	ctx.beginPath();
-	const px = Math.round((x - view.x) * scale);
-	const py = Math.round((y - view.y) * scale);
+	const px = Math.round((x + game.shakeX) * scale);
+	const py = Math.round((y + game.shakeY) * scale);
 	const w = Math.round((copy.width * scale) / copy.scale);
 	const h = Math.round((copy.height * scale) / copy.scale);
 	ctx.rect(px, py, w, h);

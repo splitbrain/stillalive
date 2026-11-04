@@ -4,7 +4,7 @@
 
 import { ctx } from '../canvas.js';
 import { prepareTextLines } from '../robotText.js';
-import { game, ui } from '../state.js';
+import { ui } from '../state.js';
 
 /**
  * Draw the text of the robot panel line by line, with a typewriter effect for the current line.
@@ -48,11 +48,11 @@ export function drawText(x, y, size) {
  */
 export function prepareTxt(x, y, w, h) {
 	ctx.fillStyle = 'rgb(7, 49, 63)';
-	ctx.fillRect(game.offsetX + x, game.offsetY + y, w, h);
+	ctx.fillRect(x, y, w, h);
 
 	ctx.lineWidth = 4;
 	ctx.fillStyle = 'rgb(255, 255, 255)';
 	ctx.strokeStyle = 'rgb(255, 255, 255)';
-	ctx.strokeRect(game.offsetX + x, game.offsetY + y, w, h);
+	ctx.strokeRect(x, y, w, h);
 	ctx.font = '16px Arial';
 }

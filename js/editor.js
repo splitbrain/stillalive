@@ -11,8 +11,6 @@ import {
 	MAP_WIDTH,
 	Menu,
 	MouseButton,
-	PLAYFIELD_HEIGHT,
-	PLAYFIELD_WIDTH,
 } from './constants.js';
 import { alertDialog } from './dialog.js';
 import { animateTiles } from './entities/AnimatedTile.js';
@@ -26,7 +24,7 @@ import { Portal, updatePortals } from './entities/Portal.js';
 import { updateSparkles } from './entities/Sparkle.js';
 import { updateTurrets } from './entities/Turret.js';
 import { bg } from './images.js';
-import { mouseInZone, unclick } from './inputState.js';
+import { mouseOnPlayfield, unclick } from './inputState.js';
 import { isTileHere, isWallAt, loadEditorObjects, loadLevelEditor, loadPreviewMap, manageDoors } from './level.js';
 import { exportEditorMap, importEditorMap } from './mapFile.js';
 import { atExit } from './physics.js';
@@ -95,7 +93,7 @@ function updateTestLevel() {
 	manageDoors();
 
 	animateTiles();
-	game.player.flip = input.mouseX > (game.player.x >> 8) + (game.player.pX >> 1) + game.offsetX ? 1 : -1;
+	game.player.flip = input.mouseX > (game.player.x >> 8) + (game.player.pX >> 1) ? 1 : -1;
 	rebuildGravPipeFields();
 	updateCakes();
 	updateTurrets();
@@ -434,12 +432,10 @@ function manageUndoRedo() {
 function updateDrawSprite() {
 	const editor = ui.editor;
 	let i;
-	if (mouseInZone(game.offsetX, game.offsetY, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT) && editor.selectedSprite > 0) {
-		let x = (input.mouseX >> 4) << 4;
-		let y = (input.mouseY >> 4) << 4;
+	if (mouseOnPlayfield() && editor.selectedSprite > 0) {
+		const x = (input.mouseX >> 4) << 4;
+		const y = (input.mouseY >> 4) << 4;
 		if (input.mousePressed) {
-			x -= game.offsetX;
-			y -= game.offsetY;
 			const xt = x >> 4;
 			const yt = y >> 4;
 
@@ -582,12 +578,10 @@ function eraseSprites(til, xt, yt) {
 function updateDrawTile() {
 	const editor = ui.editor;
 	let i;
-	if (mouseInZone(game.offsetX, game.offsetY, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT) && editor.selectedTile > -1) {
-		let x = (input.mouseX >> 4) << 4;
-		let y = (input.mouseY >> 4) << 4;
+	if (mouseOnPlayfield() && editor.selectedTile > -1) {
+		const x = (input.mouseX >> 4) << 4;
+		const y = (input.mouseY >> 4) << 4;
 		if (input.mousePressed) {
-			x -= game.offsetX;
-			y -= game.offsetY;
 			const tile = (y >> 4) * 32 + (x >> 4);
 			if (input.mouseButton == MouseButton.LEFT) {
 				if (editor.tilesToDraw[editor.selectedTile] == Tile.PLASMA_START) {

@@ -2,7 +2,7 @@
  * The way back from a level to the menus.
  */
 
-import { CAMPAIGN_FINISHED, CampaignId, Menu, PLAYFIELD_X, PLAYFIELD_Y } from './constants.js';
+import { CAMPAIGN_FINISHED, CampaignId, Menu } from './constants.js';
 import { alertDialog } from './dialog.js';
 import { unclick } from './inputState.js';
 import { loadPreviewMap } from './level.js';
@@ -44,8 +44,8 @@ export function exitFunc() {
 	unclick();
 	game.sparkles = new Array();
 	if (ui.currentMenu == Menu.PLAY) {
-		game.offsetX = PLAYFIELD_X;
-		game.offsetY = PLAYFIELD_Y;
+		game.shakeX = 0;
+		game.shakeY = 0;
 		ui.currentMenu = Menu.MAIN;
 		ui.fadeMenu = 30;
 		if (ui.selectMenu != 0) {

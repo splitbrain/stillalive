@@ -34,7 +34,7 @@ async function call(page, module, name, ...args) {
  */
 function validReplay() {
 	return {
-		format: 1,
+		format: 2,
 		campaign: 'normal',
 		level: 3,
 		ticks: 5,
@@ -82,7 +82,7 @@ test.describe('units', () => {
 	});
 
 	test('decodeReplay() rejects data that is not a replay', async () => {
-		const cases = [null, 'text', { ...validReplay(), format: 2 }, { ...validReplay(), campaign: 1 }];
+		const cases = [null, 'text', { ...validReplay(), format: 1 }, { ...validReplay(), campaign: 1 }];
 		for (const data of cases) {
 			const { error } = await call(page, '/js/replay.js', 'decodeReplay', data);
 			expect(error, JSON.stringify(data)).toBe('This is not a StillAliveJS replay file.');

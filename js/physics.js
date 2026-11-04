@@ -171,8 +171,8 @@ export function placeObject(obj) {
 	obj.x = x - (obj.pX << 7);
 	obj.y = y - (obj.pY << 7);
 
-	const cos = getCos(input.mouseX, input.mouseY, (x >> 8) + game.offsetX, (y >> 8) + game.offsetY);
-	const sin = getSin(input.mouseX, input.mouseY, (x >> 8) + game.offsetX, (y >> 8) + game.offsetY);
+	const cos = getCos(input.mouseX, input.mouseY, x >> 8, y >> 8);
+	const sin = getSin(input.mouseX, input.mouseY, x >> 8, y >> 8);
 
 	obj.vx = cos * (16 << 8);
 	obj.vy = sin * (16 << 8);
@@ -385,10 +385,7 @@ export function grabObject() {
 			for (i = 0; i < game.crates.length; i++) {
 				x1 = (game.crates[i].x >> 8) + (game.crates[i].pX >> 1);
 				y1 = (game.crates[i].y >> 8) + (game.crates[i].pY >> 1);
-				if (
-					getDistance(x1, y1, x2, y2) < 32 &&
-					pointInObject(input.mouseX - game.offsetX, input.mouseY - game.offsetY, game.crates[i])
-				) {
+				if (getDistance(x1, y1, x2, y2) < 32 && pointInObject(input.mouseX, input.mouseY, game.crates[i])) {
 					game.crates[i].carried = true;
 					ok = 1;
 					break;
@@ -401,7 +398,7 @@ export function grabObject() {
 					if (
 						!game.turrets[i].dead &&
 						getDistance(x1, y1, x2, y2) < 32 &&
-						pointInObject(input.mouseX - game.offsetX, input.mouseY - game.offsetY, game.turrets[i])
+						pointInObject(input.mouseX, input.mouseY, game.turrets[i])
 					) {
 						game.turrets[i].carried = true;
 						break;

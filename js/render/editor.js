@@ -19,7 +19,7 @@ import {
 	gravPipe2,
 	turretImages,
 } from '../images.js';
-import { mouseInZone } from '../inputState.js';
+import { mouseOnPlayfield } from '../inputState.js';
 import { isTileHere } from '../level.js';
 import { game, input, ui } from '../state.js';
 import { getEditorMap } from '../storage.js';
@@ -71,16 +71,13 @@ function drawTestLevel() {
 	drawAnimatedTiles();
 
 	const a = getAngle(
-		(game.player.x >> 8) + (game.player.pX >> 1) + game.offsetX,
-		(game.player.y >> 8) + (game.player.pY >> 1) + game.offsetY,
+		(game.player.x >> 8) + (game.player.pX >> 1),
+		(game.player.y >> 8) + (game.player.pY >> 1),
 		input.mouseX,
 		input.mouseY,
 	);
 	ctx.save();
-	ctx.translate(
-		(game.player.x >> 8) + (game.player.pX >> 1) + game.offsetX,
-		(game.player.y >> 8) + (game.player.pY >> 1) + game.offsetY,
-	);
+	ctx.translate((game.player.x >> 8) + (game.player.pX >> 1), (game.player.y >> 8) + (game.player.pY >> 1));
 	ctx.rotate(a);
 	drawImage(portalGun, -5, -5);
 	ctx.restore();
@@ -88,28 +85,8 @@ function drawTestLevel() {
 	drawGravPipes();
 
 	const flipDx = game.player.flip < 0 ? 1 : 0;
-	drawImage(
-		head[flipDx],
-		game.player.animationFrame * 16,
-		0,
-		15,
-		12,
-		(game.player.x >> 8) + game.offsetX,
-		(game.player.y >> 8) + game.offsetY,
-		16,
-		12,
-	);
-	drawImage(
-		body[flipDx],
-		game.player.animationFrame * 16,
-		0,
-		16,
-		27,
-		(game.player.x >> 8) + game.offsetX,
-		(game.player.y >> 8) + game.offsetY,
-		16,
-		27,
-	);
+	drawImage(head[flipDx], game.player.animationFrame * 16, 0, 15, 12, game.player.x >> 8, game.player.y >> 8, 16, 12);
+	drawImage(body[flipDx], game.player.animationFrame * 16, 0, 16, 27, game.player.x >> 8, game.player.y >> 8, 16, 27);
 
 	drawCakes();
 	drawTurrets();
@@ -130,7 +107,7 @@ function drawTestLevel() {
  * @returns {void}
  */
 function drawSaveScreen() {
-	if (ui.previewMap < 1 || getEditorMap(ui.previewMap) == null) drawImage(noLevel, game.offsetX, game.offsetY);
+	if (ui.previewMap < 1 || getEditorMap(ui.previewMap) == null) drawImage(noLevel, 0, 0);
 	else if (ui.previewMap > 0) drawPreviewMap();
 	drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
 }
@@ -141,7 +118,7 @@ function drawSaveScreen() {
  * @returns {void}
  */
 function drawLoadScreen() {
-	if (ui.previewMap < 1) drawImage(noLevel, game.offsetX, game.offsetY);
+	if (ui.previewMap < 1) drawImage(noLevel, 0, 0);
 	if (ui.previewMap > 0) drawPreviewMap();
 	drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
 }
@@ -168,7 +145,7 @@ function drawSprites() {
 	drawCrates();
 	drawPlatforms();
 	drawGravPipes();
-	drawPlayer((game.player.x >> 8) + game.offsetX, (game.player.y >> 8) + game.offsetY, 0);
+	drawPlayer(game.player.x >> 8, game.player.y >> 8, 0);
 }
 
 /**
@@ -180,7 +157,7 @@ function drawSprites() {
 function drawTileMap() {
 	let y, x, up, down, left, right, i;
 	if (ui.editor.redrawTiles) {
-		drawImage(bg[game.background], game.offsetX, game.offsetY, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
+		drawImage(bg[game.background], 0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 		ctx.fillStyle = 'rgba(255, 0, 0, 0.7)';
 		for (i = 0; i < game.map.length; i++) {
 			if (game.map[i] == Tile.PLASMA_START) {
@@ -193,10 +170,10 @@ function drawTileMap() {
 				right = isTileHere(x + 1, y);
 
 				if (up + down + left + right < 3) {
-					if (y - 1 >= 0) ctx.fillRect(x * 16 + game.offsetX, (y - 1) * 16 + game.offsetY, 16, 16);
-					if (y + 1 < MAP_HEIGHT) ctx.fillRect(x * 16 + game.offsetX, (y + 1) * 16 + game.offsetY, 16, 16);
-					if (x - 1 >= 0) ctx.fillRect((x - 1) * 16 + game.offsetX, y * 16 + game.offsetY, 16, 16);
-					if (x + 1 < MAP_WIDTH) ctx.fillRect((x + 1) * 16 + game.offsetX, y * 16 + game.offsetY, 16, 16);
+					if (y - 1 >= 0) ctx.fillRect(x * 16, (y - 1) * 16, 16, 16);
+					if (y + 1 < MAP_HEIGHT) ctx.fillRect(x * 16, (y + 1) * 16, 16, 16);
+					if (x - 1 >= 0) ctx.fillRect((x - 1) * 16, y * 16, 16, 16);
+					if (x + 1 < MAP_WIDTH) ctx.fillRect((x + 1) * 16, y * 16, 16, 16);
 				}
 
 				break;
@@ -207,14 +184,14 @@ function drawTileMap() {
 			if (game.map[i] < NUM_TILES && game.map[i] > 0) {
 				y = i >> 5;
 				x = i - (y << 5);
-				drawImage(tileset[game.map[i]], x * 16 + game.offsetX, y * 16 + game.offsetY);
+				drawImage(tileset[game.map[i]], x * 16, y * 16);
 			}
 		}
 		drawSprites();
-		tilesBuff = copyCanvas(game.offsetX, game.offsetY, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
+		tilesBuff = copyCanvas(0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 		ui.editor.redrawTiles = false;
 	} else {
-		drawCopy(tilesBuff, game.offsetX, game.offsetY);
+		drawCopy(tilesBuff, 0, 0);
 	}
 }
 
@@ -225,7 +202,7 @@ function drawTileMap() {
  */
 function drawTileCursor() {
 	const editor = ui.editor;
-	if (!mouseInZone(game.offsetX, game.offsetY, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT) || editor.selectedTile < 0) return;
+	if (!mouseOnPlayfield() || editor.selectedTile < 0) return;
 	const x = (input.mouseX >> 4) << 4;
 	const y = (input.mouseY >> 4) << 4;
 	drawImage(tileset[editor.tilesToDraw[editor.selectedTile]], x, y);
@@ -241,7 +218,7 @@ function drawTileCursor() {
  */
 function drawSpriteCursor() {
 	const sprite = ui.editor.selectedSprite;
-	if (!mouseInZone(game.offsetX, game.offsetY, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT) || sprite <= 0) return;
+	if (!mouseOnPlayfield() || sprite <= 0) return;
 	const x = (input.mouseX >> 4) << 4;
 	const y = (input.mouseY >> 4) << 4;
 	if (sprite == Tile.CAKE) drawImage(cake, x, y);

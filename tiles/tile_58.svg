@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <!-- boss block -->
+  <rect width="16" height="16" fill="#111"/>
+  <path d="M3 0h10v16H3z" fill="#ffe122"/>
+</svg>

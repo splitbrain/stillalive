@@ -105,22 +105,22 @@ export function loadGfx() {
 	let i, t, r;
 	body = new Array();
 	for (i = 0; i < 2; i++) {
-		t = loadImage('sprites/body' + i + '.png');
+		t = loadImage('sprites/body' + i + '.svg');
 		body.push(t);
 	}
 
 	head = new Array();
 	for (i = 0; i < 2; i++) {
-		t = loadImage('sprites/head' + i + '.png');
+		t = loadImage('sprites/head' + i + '.svg');
 		head.push(t);
 	}
 	controls = loadImage('decor/controls.png');
 
 	crosshair = loadImage('sprites/crosshair.png');
 
-	bluePortal = loadImage('sprites/bluePortal.png');
+	bluePortal = loadImage('sprites/bluePortal.svg');
 
-	redPortal = loadImage('sprites/redPortal.png');
+	redPortal = loadImage('sprites/redPortal.svg');
 
 	linesHoriz = new Array();
 	linesVerti = new Array();
@@ -160,7 +160,7 @@ export function loadGfx() {
 
 	key = loadImage('images/key.png');
 
-	crateImage = loadImage('sprites/crate.png');
+	crateImage = loadImage('sprites/crate.svg');
 
 	pauseBG = loadImage('menu/pauseBG.png');
 
@@ -184,7 +184,7 @@ export function loadGfx() {
 
 	cake = loadImage('sprites/cake.png');
 
-	portalGun = loadImage('sprites/portalGun.png');
+	portalGun = loadImage('sprites/portalGun.svg');
 
 	cameraFollow = loadImage('sprites/cameraFollow.png');
 
@@ -202,6 +202,6 @@ export function loadGfx() {
 
 	tileset = new Array();
 	for (i = 0; i < NUM_TILES; i++) {
-		tileset[i] = loadImage('tiles/tile_' + (i + 1) + '.gif');
+		tileset[i] = loadImage('tiles/tile_' + i + '.svg');
 	}
 }

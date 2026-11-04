@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <!-- conveyor belt to the right, frame 1 of 2 -->
+  <rect width="16" height="16" fill="#0e3d52"/>
+  <path d="M0 0h16v2.5H0zM0 13.5h16V16H0z" fill="#005674"/>
+  <g fill="#fff" transform=" translate(0 0)"><path d="M-13 3.5c3.5 1.5 3.5 7.5 0 9 1.6-2.6 1.6-6.4 0-9z"/><path d="M-5 3.5c3.5 1.5 3.5 7.5 0 9 1.6-2.6 1.6-6.4 0-9z"/><path d="M3 3.5c3.5 1.5 3.5 7.5 0 9 1.6-2.6 1.6-6.4 0-9z"/><path d="M11 3.5c3.5 1.5 3.5 7.5 0 9 1.6-2.6 1.6-6.4 0-9z"/></g>
+</svg>

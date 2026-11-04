@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <!-- boss block, broken -->
+  <rect width="16" height="16" fill="none"/>
+  <path d="M6.5 0h3l0.5 3-1.5 2 1 2.5-2 1.5 1.5 2.5-2 2 0.5 2.5h-2l0.5-3-1-2.5 1.5-2-1-2.5 1.5-2z" fill="#ffe122"/>
+  <path d="M3 2h1.5l0.5 2h-2zM11.5 11h1.5l0.5 2.5h-2z" fill="#ffe122"/>
+</svg>

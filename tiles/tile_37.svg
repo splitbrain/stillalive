@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <!-- wheel, frame 2 of 2 -->
+  <g transform="rotate(45 8 8)"><path d="M8 8 2.5 3.5 5.6 8.9zM8 8 12.5 2.5 7.1 5.6zM8 8 13.5 12.5 10.4 7.1zM8 8 3.5 13.5 8.9 10.4z" fill="#1a1a1a"/>
+    <path d="M2.5 3.5 3.4 3.2 3.2 4.3zM12.5 2.5 12.8 3.4 11.7 3.2zM13.5 12.5 12.6 12.8 12.8 11.7zM3.5 13.5 3.2 12.6 4.3 12.8z" fill="#d02020"/>
+    <circle cx="8" cy="8" r="1.4" fill="#6a6a70"/>
+    <circle cx="8" cy="8" r="0.6" fill="#2a2a2e"/></g>
+</svg>

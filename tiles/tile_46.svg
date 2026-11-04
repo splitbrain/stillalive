@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <!-- mirror -->
+  <rect width="16" height="16" fill="#3ac4f0"/>
+  <path d="M1 1h14v14H1z" fill="#9ee8ff"/>
+  <path d="M1 9 9 1h3L1 12zM5 15 15 5v3l-7 7z" fill="#e6fbff"/>
+</svg>

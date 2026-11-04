@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <!-- wall, open sides: top, bottom, right -->
+  <rect width="16" height="16" fill="#005674"/>
+  <path d="M0 3h16v0.75H0z M0 12.25h16V13H0z M12.25 0H13v16h-0.75z" fill="#0a6b8c"/>
+  <path d="M0 0h16v3H0z M0 13h16v3H0z M13 0h3v16h-3z" fill="#003c53"/>
+</svg>

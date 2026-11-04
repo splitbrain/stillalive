@@ -1,47 +1,10 @@
 /**
- * Drawing of the HUD texts and the replay keys.
+ * Drawing of the texts in the robot panel and of the text boxes on the playfield.
  */
 
-import { ctx, drawImage } from '../canvas.js';
-import { KEY_CLEAR, KEY_DOWN, KEY_JUMP, KEY_LEFT, KEY_RIGHT, MOUSE_LEFT, MOUSE_RIGHT } from '../constants.js';
-import { key, mouseIcon } from '../images.js';
-import { keyLabels } from '../keys.js';
+import { ctx } from '../canvas.js';
 import { prepareTextLines } from '../robotText.js';
-import { game, input, ui } from '../state.js';
-
-/**
- * Draw the pressed keys and mouse buttons during a replay.
- *
- * @returns {void}
- */
-export function drawKeys() {
-	ctx.font = 'bold 12px Arial';
-	ctx.fillStyle = 'rgb(0, 0, 0)';
-
-	const w = KEY_JUMP & input.keys ? 1 : 0;
-	const a = KEY_LEFT & input.keys ? 1 : 0;
-	const d = KEY_RIGHT & input.keys ? 1 : 0;
-	const e = KEY_CLEAR & input.keys ? 1 : 0;
-	const s = KEY_DOWN & input.keys ? 1 : 0;
-	const ml = MOUSE_LEFT & input.keys ? 1 : 0;
-	const mr = MOUSE_RIGHT & input.keys ? 1 : 0;
-
-	ctx.textAlign = 'center';
-	drawImage(key, 0, w * 24, 24, 24, 525, 485, 24, 24);
-	ctx.fillText(keyLabels.KeyW, 525 + 12, 485 + 16);
-	drawImage(key, 0, e * 24, 24, 24, 525 + 26, 485, 24, 24);
-	ctx.fillText(keyLabels.KeyE, 525 + 26 + 12, 485 + 16);
-	drawImage(key, 0, a * 24, 24, 24, 525 - 26, 485 + 26, 24, 24);
-	ctx.fillText(keyLabels.KeyA, 525 - 26 + 12, 485 + 26 + 16);
-	drawImage(key, 0, s * 24, 24, 24, 525, 485 + 26, 24, 24);
-	ctx.fillText(keyLabels.KeyS, 525 + 12, 485 + 26 + 16);
-	drawImage(key, 0, d * 24, 24, 24, 525 + 26, 485 + 26, 24, 24);
-	ctx.fillText(keyLabels.KeyD, 525 + 26 + 12, 485 + 26 + 16);
-	ctx.textAlign = 'left';
-
-	drawImage(mouseIcon, 0, ml * 40, 24, 40, 525 - 26 - 26, 485, 24, 40);
-	drawImage(mouseIcon, 0, mr * 40, 24, 40, 525 + 26 + 26, 485, 24, 40);
-}
+import { game, ui } from '../state.js';
 
 /**
  * Draw the text of the robot panel line by line, with a typewriter effect for the current line.
@@ -72,21 +35,6 @@ export function drawText(x, y, size) {
 			ctx.fillText(ui.txtLines[i], x, y + i * size);
 		}
 	}
-}
-
-/**
- * Draw the life, the cakes left, the steps and the number of portal shots in the HUD.
- *
- * @returns {void}
- */
-export function drawHudText() {
-	ctx.font = 'bold 14px Arial';
-	ctx.fillStyle = 'rgb(255, 255, 255)';
-
-	ctx.fillText((game.player.life >> 8 > 0 ? game.player.life >> 8 : 0) + '', 20, 150);
-	ctx.fillText(game.cakesLeft + '', 26, 215);
-	ctx.fillText((game.steps >> 8) + '', 26, 275);
-	ctx.fillText(game.portalShots + '', 26, 335);
 }
 
 /**

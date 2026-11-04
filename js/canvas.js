@@ -1,9 +1,10 @@
 /**
  * The canvas of the game.
  *
- * The game draws in screen units: a screen of SCREEN_WIDTH by SCREEN_HEIGHT units. The canvas buffer has the size
- * of the canvas on the page in device pixels, so the picture stays sharp at every size. A scale transformation at
- * the start of each frame maps the screen units to the buffer pixels. Vector images are drawn from a copy at the
+ * The game draws in screen units: a screen of SCREEN_WIDTH by SCREEN_HEIGHT units. The canvas shows a view of the
+ * screen: the whole screen in the menus, or only the playfield in a level. The canvas buffer has the size of the
+ * canvas on the page in device pixels, so the picture stays sharp at every size. A transformation at the start of
+ * each frame maps the screen units of the view to the buffer pixels. Vector images are drawn from a copy at the
  * scale of the buffer, so that each vector image is rasterized only once per scale.
  */
 
@@ -17,6 +18,9 @@ export const ctx = canvas.getContext('2d');
 
 /** @type {number} The number of buffer pixels per screen unit. */
 let scale = 1;
+
+/** @type {{x: number, y: number, w: number, h: number}} The part of the screen that the canvas shows, in screen units. */
+let view = { x: 0, y: 0, w: SCREEN_WIDTH, h: SCREEN_HEIGHT };
 
 /** @type {number} The wanted width of the buffer in device pixels, from the size of the canvas on the page. */
 let wantedWidth = canvas.width;
@@ -49,7 +53,33 @@ export function watchCanvasSize() {
 }
 
 /**
- * Prepare the canvas for a frame: apply a new size of the buffer and set the scale transformation.
+ * Set the part of the screen that the canvas shows. The canvas on the page gets the ratio of the view.
+ *
+ * @param {number} x The left edge in screen units.
+ * @param {number} y The top edge in screen units.
+ * @param {number} w The width in screen units.
+ * @param {number} h The height in screen units.
+ * @returns {void}
+ */
+export function setView(x, y, w, h) {
+	if (view.x === x && view.y === y && view.w === w && view.h === h) return;
+	view = { x, y, w, h };
+	canvas.style.aspectRatio = `${w} / ${h}`;
+}
+
+/**
+ * Convert a point on the canvas to screen units.
+ *
+ * @param {number} px The x position on the canvas in CSS pixels.
+ * @param {number} py The y position on the canvas in CSS pixels.
+ * @returns {number[]} The x and y position in screen units.
+ */
+export function screenPoint(px, py) {
+	return [view.x + (px * view.w) / canvas.clientWidth, view.y + (py * view.h) / canvas.clientHeight];
+}
+
+/**
+ * Prepare the canvas for a frame: apply a new size of the buffer and set the transformation of the view.
  *
  * @returns {void}
  */
@@ -57,9 +87,9 @@ export function beginFrame() {
 	if (canvas.width !== wantedWidth || canvas.height !== wantedHeight) {
 		canvas.width = wantedWidth;
 		canvas.height = wantedHeight;
-		scale = Math.min(wantedWidth / SCREEN_WIDTH, wantedHeight / SCREEN_HEIGHT);
 	}
-	ctx.setTransform(scale, 0, 0, scale, 0, 0);
+	scale = Math.min(canvas.width / view.w, canvas.height / view.h);
+	ctx.setTransform(scale, 0, 0, scale, -view.x * scale, -view.y * scale);
 }
 
 /**
@@ -120,8 +150,8 @@ export function copyCanvas(x, y, w, h) {
 		.getContext('2d')
 		.drawImage(
 			canvas,
-			Math.round(x * scale),
-			Math.round(y * scale),
+			Math.round((x - view.x) * scale),
+			Math.round((y - view.y) * scale),
 			copy.width,
 			copy.height,
 			0,
@@ -145,10 +175,12 @@ export function drawCopy(copy, x, y) {
 	ctx.save();
 	ctx.setTransform(1, 0, 0, 1, 0, 0);
 	ctx.beginPath();
-	ctx.rect(Math.round(x * scale), Math.round(y * scale), copy.width, copy.height);
+	const px = Math.round((x - view.x) * scale);
+	const py = Math.round((y - view.y) * scale);
+	ctx.rect(px, py, copy.width, copy.height);
 	ctx.clip();
 	ctx.globalAlpha = 1;
 	ctx.globalCompositeOperation = 'copy';
-	ctx.drawImage(copy, Math.round(x * scale), Math.round(y * scale));
+	ctx.drawImage(copy, px, py);
 	ctx.restore();
 }

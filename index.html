@@ -13,8 +13,39 @@
 		<link rel="stylesheet" type="text/css" href="style.css" />
 	</head>
 	<body>
-		<div id="content">
-			<canvas id="canvas" width="640" height="544"> Your browser doesn't support canvas. </canvas>
+		<div id="game" data-screen="loading">
+			<div id="robot">
+				<img id="robot-head" src="sprites/robotHead.png" alt="" />
+				<div id="robot-eye"></div>
+			</div>
+			<div id="speech"><p id="narrator"></p></div>
+			<div id="stats">
+				<div class="stat"><span class="label">Life</span><span class="value" id="stat-life">100</span></div>
+				<div class="stat"><span class="label">Cakes</span><span class="value" id="stat-cakes">0</span></div>
+				<div class="stat"><span class="label">Steps</span><span class="value" id="stat-steps">0</span></div>
+				<div class="stat"><span class="label">Portals</span><span class="value" id="stat-portals">0</span></div>
+			</div>
+			<div id="stage">
+				<canvas id="canvas" width="640" height="544"> Your browser doesn't support canvas. </canvas>
+			</div>
+			<div id="side">
+				<div id="highscores">
+					<div id="highscores_in"></div>
+				</div>
+				<div id="keys">
+					<div class="row">
+						<span class="mouse" id="key-left"></span>
+						<span class="key" id="key-KeyW">W</span>
+						<span class="key" id="key-KeyE">E</span>
+						<span class="mouse" id="key-right"></span>
+					</div>
+					<div class="row">
+						<span class="key" id="key-KeyA">A</span>
+						<span class="key" id="key-KeyS">S</span>
+						<span class="key" id="key-KeyD">D</span>
+					</div>
+				</div>
+			</div>
 			<div id="footer">
 				Copyright (c) 2010 Christophe<br />
 				Source code licensed under the
@@ -22,9 +53,6 @@
 				Audio licensed under
 				<a href="https://creativecommons.org/licenses/by-sa/3.0/">Creative Commons Attribution-ShareAlike</a><br />
 				Graphics copyright (c) 2010 ZeBlackos
-			</div>
-			<div id="highscores">
-				<div id="highscores_in"></div>
 			</div>
 		</div>
 	</body>

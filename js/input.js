@@ -6,6 +6,7 @@
  */
 
 import { toggleSound } from './audio.js';
+import { screenPoint } from './canvas.js';
 import {
 	KEY_CLEAR,
 	KEY_DOWN,
@@ -16,8 +17,6 @@ import {
 	MOUSE_MIDDLE,
 	MOUSE_RIGHT,
 	Menu,
-	SCREEN_HEIGHT,
-	SCREEN_WIDTH,
 } from './constants.js';
 import { startPlayingLevel, stopPlayingLevel } from './editor.js';
 import { captureInput, unclick } from './inputState.js';
@@ -156,8 +155,10 @@ function onPointer(event) {
 
 	if (!game.replayMode || ui.escapeMenu) {
 		const rect = canvas.getBoundingClientRect();
-		input.mouseX = ((event.clientX - rect.left - canvas.clientLeft) * SCREEN_WIDTH) / canvas.clientWidth;
-		input.mouseY = ((event.clientY - rect.top - canvas.clientTop) * SCREEN_HEIGHT) / canvas.clientHeight;
+		[input.mouseX, input.mouseY] = screenPoint(
+			event.clientX - rect.left - canvas.clientLeft,
+			event.clientY - rect.top - canvas.clientTop,
+		);
 	}
 }
 

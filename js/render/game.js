@@ -4,7 +4,6 @@
 
 import { copyCanvas, ctx, drawCopy, drawImage } from '../canvas.js';
 import {
-	CampaignId,
 	Direction,
 	MAP_HEIGHT,
 	MAP_SIZE,
@@ -26,13 +25,10 @@ import {
 	crosshair,
 	head,
 	highscore,
-	hud,
 	plasma,
 	platform,
 	portalGun,
 	redPortal,
-	robotEye,
-	robotHead,
 	sparkle,
 	tileset,
 	tube,
@@ -42,7 +38,6 @@ import {
 	turretImages,
 } from '../images.js';
 import { drawBoss, drawBossSpeech } from './boss.js';
-import { drawHudText, drawKeys, drawText } from './hud.js';
 import { drawTransition } from './transitions.js';
 import { game, input, ui } from '../state.js';
 import { degToRad, getAngle, radToDeg, random } from '../utils.js';
@@ -229,45 +224,16 @@ export function drawLevel() {
 
 	if (game.player.fadeNextLevel >= 0) drawTransition();
 
-	drawImage(hud, 0, 0);
-
-	if (ui.currentMenu == Menu.TUTORIAL) drawText(146, 28, 11);
-
-	drawRobot();
-
-	if (game.player.fadeNextLevel == -1 && ui.currentMenu == Menu.PLAY) drawText(146, 28, 11);
-
 	drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
 
-	drawHudText();
 	drawBossSpeech();
-	if (game.replayMode) drawKeys();
 
 	if (ui.currentMenu == Menu.TUTORIAL && ui.currentLevel == TUTORIAL_END_LEVEL) {
 		ctx.fillStyle = 'rgb(0, 0, 0)';
-		ctx.fillRect(game.offsetX, game.offsetY, 544, PLAYFIELD_HEIGHT);
+		ctx.fillRect(game.offsetX, game.offsetY, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 		drawTutorial();
-		drawText(146, 28, 11);
 		drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
 	}
-}
-
-/**
- * Draw the robot in the panel, outside the boss levels. The eye image follows the part of the story campaign.
- *
- * @returns {void}
- */
-export function drawRobot() {
-	if (game.bossNum > 0) return;
-	let eye = 0;
-	if (ui.campaign == CampaignId.STORY) {
-		if (ui.currentLevel <= 7) eye = 0;
-		else if (ui.currentLevel <= 14) eye = 1;
-		else if (ui.currentLevel <= 21) eye = 2;
-		else eye = 3;
-	}
-	drawImage(robotHead, game.robot.x >> 8, game.robot.y >> 8);
-	drawImage(robotEye[eye], 0, 19 * game.robot.eye, 19, 19, game.robot.ex >> 8, game.robot.ey >> 8, 19, 19);
 }
 
 /**

@@ -29,7 +29,6 @@ import {
 	crosshair,
 	head,
 	highscore,
-	hud,
 	mapSelection,
 	menuBG,
 	noLevel,
@@ -51,8 +50,7 @@ import { isLevelLocked } from '../intermission.js';
 import { keyLabels } from '../keys.js';
 import { creditsTxt, levelsLoaded, levelsToLoad, missingLevelFiles } from '../level.js';
 import { drawBoss } from './boss.js';
-import { drawPlayer, drawRobot, drawSparkles, drawTileLayer, drawTunnels, saveTileLayer } from './game.js';
-import { drawHudText, drawText } from './hud.js';
+import { drawPlayer, drawSparkles, drawTileLayer, drawTunnels, saveTileLayer } from './game.js';
 import { game, input, ui } from '../state.js';
 import { maxLevel } from '../storage.js';
 import { Tile } from '../tiles.js';
@@ -115,12 +113,6 @@ export function drawPauseMenu() {
 	drawTinyButton(game.offsetX + 324, game.offsetY + 180, scale3, 'Exit');
 	if (ui.currentMenu != Menu.TUTORIAL && isSoundAvailable())
 		drawTinyButton(187 + game.offsetX, 340 + game.offsetY, scale4, 'Sounds : ' + (isSoundOn() ? 'On' : 'Off'));
-
-	drawImage(hud, 0, 0);
-	if (ui.currentMenu == Menu.PLAY) drawText(146, 28, 11);
-	drawRobot();
-
-	drawHudText();
 
 	drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
 }

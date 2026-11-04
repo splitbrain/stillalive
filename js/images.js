@@ -24,10 +24,6 @@ export let tex_cross;
 export let tex_leftBG;
 /** @type {HTMLImageElement} The right arrow of the background selection in the editor. */
 export let tex_rightBG;
-/** @type {HTMLImageElement} The key image for the replay keys. */
-export let key;
-/** @type {HTMLImageElement} The mouse image for the replay keys. */
-export let mouseIcon;
 /** @type {HTMLImageElement} The security camera. */
 export let cameraFollow;
 /** @type {HTMLImageElement[]} The eye of the robot, one image for each boss. */
@@ -78,8 +74,6 @@ export let redPortal;
 export let crosshair;
 /** @type {HTMLImageElement[]} The level backgrounds. */
 export let bg;
-/** @type {HTMLImageElement} The frame around the playfield. */
-export let hud;
 /** @type {HTMLImageElement} The cake. */
 export let cake;
 /** @type {HTMLImageElement} The portal gun. */
@@ -142,8 +136,6 @@ export function loadGfx() {
 
 	levelEditorHud = loadImage('bg/levelEditorHud.png');
 
-	hud = loadImage('bg/hud.png');
-
 	mapSelection = loadImage('bg/mapSelection.png');
 
 	highscore = loadImage('bg/highscore.png');
@@ -155,10 +147,6 @@ export function loadGfx() {
 	tunnel = loadImage('sprites/tunnel.png');
 
 	tunnel2 = loadImage('sprites/tunnel2.png');
-
-	mouseIcon = loadImage('images/mouseIcon.png');
-
-	key = loadImage('images/key.png');
 
 	crateImage = loadImage('sprites/crate.svg');
 

@@ -60,8 +60,8 @@ export class Plasma {
 	}
 
 	/**
-	 * Move the ball for one tick: the pulse, the position, the portals and the collisions. In acid and goo, the ball
-	 * returns to its start position.
+	 * Move the ball for one tick: the pulse, the position, the portals and the collisions. In the acid surface and
+	 * the acid pool, the ball returns to its start position.
 	 *
 	 * @returns {void}
 	 */
@@ -112,7 +112,7 @@ export class Plasma {
 			this.vy = this.origVy;
 		} else {
 			const t = getTileSimple((this.x >> 8) + 8, (this.y >> 8) + 8);
-			if (isTileKind(t, TileKind.ACID, TileKind.GOO)) {
+			if (isTileKind(t, TileKind.ACID, TileKind.ACIDPOOL)) {
 				this.x = this.xOrig;
 				this.y = this.yOrig;
 				this.vx = this.origVx;

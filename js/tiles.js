@@ -18,7 +18,7 @@ export const Tile = {
 	EXIT: 22,
 	EXIT_CLOSED: 35,
 	MIRROR: 46,
-	GOO: 47,
+	ACIDPOOL: 47,
 	TURRET_LEFT: 100,
 	TURRET_RIGHT: 101,
 	CRATE: 102,
@@ -50,7 +50,7 @@ export const TileKind = {
 	ACID: 'acid',
 	NO_PORTAL: 'noPortal',
 	MIRROR: 'mirror',
-	GOO: 'goo',
+	ACIDPOOL: 'acidPool',
 	FORCE_FIELD: 'forceField',
 	BELT_RIGHT: 'beltRight',
 	BELT_LEFT: 'beltLeft',
@@ -77,7 +77,7 @@ const TILE_RANGES = [
 	[38, 39, TileKind.ACID],
 	[40, 45, TileKind.NO_PORTAL],
 	[46, 46, TileKind.MIRROR],
-	[47, 47, TileKind.GOO],
+	[47, 47, TileKind.ACIDPOOL],
 	[48, 53, TileKind.FORCE_FIELD],
 	[54, 55, TileKind.BELT_RIGHT],
 	[56, 57, TileKind.BELT_LEFT],
@@ -140,10 +140,10 @@ export function inForceFieldRange(id) {
  * Check if a tile kills the player and the objects.
  *
  * @param {number} id The tile id.
- * @returns {boolean} True for the razor wheels, the acid and the goo.
+ * @returns {boolean} True for the razor wheels, the acid surface and the acid pool.
  */
 export function isDeadlyTile(id) {
-	return isTileKind(id, TileKind.WHEEL, TileKind.ACID, TileKind.GOO);
+	return isTileKind(id, TileKind.WHEEL, TileKind.ACID, TileKind.ACIDPOOL);
 }
 
 /**

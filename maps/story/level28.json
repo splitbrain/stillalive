@@ -3,6 +3,23 @@
 	"bg": 5,
 	"boss": 4,
 	"text": "Don't kill me, cause I'm close to the edge. I'm trying, not to shoot your head, HaHa-Ha-Ha.",
+	"events": [
+		{
+			"on": "start",
+			"text": "Well, Well Well ... It's getting serious. I guess I'm the only one left to stop you from getting out of these laboratories. I hope you enjoyed your life as long as it lasted. You won't suffer, I promise.",
+			"wait": "click"
+		},
+		{
+			"on": "bossArrived",
+			"text": "Previous robots were too kind with you. You won't have the same chance here. I won't throw you crates, razor wheels or plasma balls ... No, I will throw you ... the three of them at the same time !",
+			"wait": "click"
+		},
+		{
+			"on": "bossDied",
+			"text": "........ Was I too kind with you ? I don't think so ... It seems that you were bound to get out of here from the beginning. Well, it was nice to know you after all ... So long, and thanks for all the cakes ...",
+			"wait": "click"
+		}
+	],
 	"tiles": [
 		1,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,17,17,17,17,17,
 		4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,17,36,36,36,

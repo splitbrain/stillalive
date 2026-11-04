@@ -1,7 +1,15 @@
 {
 	"format": 1,
 	"bg": 1,
-	"text": "Yum, this cake is great, it's so delicious and moist ... Oh sorry. So you did it ? All right. You may have already noticed, you can't be hurt by falling from too high. Don't be afraid to fall from this big wall. I'm waiting for you in the next room. ",
+	"abilities": {
+		"portals": false
+	},
+	"events": [
+		{
+			"on": "start",
+			"text": "In StillAliveJS, grabbing cakes enables the finish line. When no cakes are left in a level, finish line turns white. Take that cake on the left and leave this room."
+		}
+	],
 	"tiles": [
 		1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
 		1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,

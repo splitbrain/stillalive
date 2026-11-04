@@ -1,7 +1,29 @@
 {
 	"format": 1,
 	"bg": 7,
-	"text": "Ha Ha ! Tricky map, fat chance. You never know what will come next, so always stay on your guard, or you can get killed very quickly. Go ahead and leave me, I think I prefer to stay inside. ",
+	"events": [
+		{
+			"on": "start",
+			"text": "Plasma balls can open special green walls when guided to their red slot. They can also destroy turrets and kill you. Follow instructions on the walls to guide the plasma ball and use that crate to destroy the turret blocking your way."
+		}
+	],
+	"labels": [
+		{
+			"x": 228,
+			"y": 273,
+			"text": "Use to kill"
+		},
+		{
+			"x": 436,
+			"y": 314,
+			"text": "<= Portal"
+		},
+		{
+			"x": 51,
+			"y": 108,
+			"text": "Portal =>"
+		}
+	],
 	"tiles": [
 		1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
 		1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,

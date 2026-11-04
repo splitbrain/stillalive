@@ -1,7 +1,12 @@
 {
 	"format": 1,
 	"bg": 5,
-	"text": "Nothing special here, just don't get too mad at these no-portal walls. Try to reach a good speed to be able to make the last jump. ",
+	"events": [
+		{
+			"on": "start",
+			"text": "This special blue wall can be deactivated thanks to a switch. Step on this switch to be able to clear the wall and shoot a portal behind it. Cross the finish line to continue the tutorial."
+		}
+	],
 	"tiles": [
 		1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
 		1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,

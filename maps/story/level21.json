@@ -3,6 +3,23 @@
 	"bg": 9,
 	"boss": 3,
 	"text": "Error 404 : Text not found.",
+	"events": [
+		{
+			"on": "start",
+			"text": "You first started with my cousin, then you decided to take apart its brother ... I can't let you continue to destroy our family just like that. I'm coming to get you, and I'm sure you won't like the taste of it ...",
+			"wait": "click"
+		},
+		{
+			"on": "bossArrived",
+			"text": "Easy to spot, useful to open green walls and deadly weapons ! You used them to get to me, what if I use them to get to you now ? You wanna play rough ? OK ! Say hello to my little friends !",
+			"wait": "click"
+		},
+		{
+			"on": "bossDied",
+			"text": "I don't understand ... all my calculations were perfect ! You were supposed to die and ... oh wait ! I remember that movie now, that guy with a scar on his face .. guess I was wrong after all ..........",
+			"wait": "click"
+		}
+	],
 	"tiles": [
 		1,1,1,5,5,5,5,5,5,1,1,1,1,1,1,1,1,5,5,5,5,5,5,5,5,5,5,5,17,17,17,17,
 		1,1,4,0,0,0,0,0,0,2,1,1,1,1,1,1,17,0,0,0,0,0,0,0,0,0,0,0,17,17,17,17,

@@ -10,6 +10,26 @@
  *   support boss levels.
  * - text: optional, the text that the robot shows during the level. The campaign levels use the same format. The
  *   editor does not use the text.
+ * - abilities: optional, an object that disables abilities of the player at the level start. The key "jump" or
+ *   "portals" with the value false disables the ability. All abilities are enabled by default.
+ * - events: optional, a list of events. An event fires once. Each event is an object with these properties:
+ *   - on: the trigger of the event:
+ *     - "start": the level starts.
+ *     - "playerX": the x position of the player in pixels becomes larger than the property x.
+ *     - "time": the level time reaches the number of ticks in the property ticks.
+ *     - "bossArrived": the boss reached its place.
+ *     - "bossDied": the life of the boss reached 0.
+ *   - x: the x position in pixels for the trigger "playerX".
+ *   - ticks: the level time in ticks for the trigger "time".
+ *   - text: optional, the new message. An empty text removes the message. The text can contain {KeyW}, {KeyA},
+ *     {KeyS}, {KeyD} and {KeyE}. They stand for the label of that key on the keyboard of the player.
+ *   - wait: optional, "click" stops the level time until the player clicks. The click removes the message. The
+ *     events after this event in the list fire only after the click.
+ *   - unlock: optional, "jump" or "portals" enables the ability.
+ *   - portals: optional, the two portals to place, as [[x, y, direction], [x, y, direction]] with the position in
+ *     pixels and the direction "up", "down", "left" or "right".
+ * - labels: optional, a list of texts that show at positions of the playfield. Each label is an object with x and y,
+ *   the start of the base line of the text in pixels, and text.
  */
 
 import { MAP_SIZE, NUM_TILES } from './constants.js';
@@ -23,6 +43,55 @@ export const MAP_FORMAT = 1;
 /** @type {number} The number of bosses. */
 const BOSS_COUNT = 4;
 
+/** @type {string[]} The abilities of the player that a level can disable and an event can enable. */
+const ABILITIES = ['jump', 'portals'];
+
+/** @type {Object<string, string[]>} The triggers of the events, with the number properties that each trigger needs. */
+const EVENT_TRIGGERS = {
+	start: [],
+	playerX: ['x'],
+	time: ['ticks'],
+	bossArrived: [],
+	bossDied: [],
+};
+
+/** @type {string[]} The directions of a portal that an event places. */
+const PORTAL_DIRECTIONS = ['up', 'down', 'left', 'right'];
+
+/**
+ * The data of a map file after the check.
+ *
+ * @typedef {object} MapData
+ * @property {number[]} tiles The 768 tile ids.
+ * @property {number} bg The background index.
+ * @property {number} boss The boss, or 0 for a level without a boss.
+ * @property {{jump: boolean, portals: boolean}} abilities The abilities of the player at the level start.
+ * @property {MapEvent[]} events The events of the level.
+ * @property {MapLabel[]} labels The texts at positions of the playfield.
+ */
+
+/**
+ * An event of a map.
+ *
+ * @typedef {object} MapEvent
+ * @property {string} on The trigger: "start", "playerX", "time", "bossArrived" or "bossDied".
+ * @property {number} [x] The x position in pixels for the trigger "playerX".
+ * @property {number} [ticks] The level time in ticks for the trigger "time".
+ * @property {string} [text] The new message.
+ * @property {string} [wait] "click" to stop the level time until the player clicks.
+ * @property {string} [unlock] The ability to enable, "jump" or "portals".
+ * @property {Array<[number, number, string]>} [portals] The two portals to place, with position and direction.
+ */
+
+/**
+ * A text at a position of the playfield.
+ *
+ * @typedef {object} MapLabel
+ * @property {number} x The x position of the start of the base line in pixels.
+ * @property {number} y The y position of the base line in pixels.
+ * @property {string} text The text.
+ */
+
 /**
  * Check if a tile id is valid in a map.
  *
@@ -34,6 +103,80 @@ const BOSS_COUNT = 4;
 function isValidTile(tile, isBossLevel) {
 	if (tile === Tile.TUBE && !isBossLevel) return false;
 	return Number.isInteger(tile) && ((tile >= 0 && tile < NUM_TILES) || isObjectTile(tile));
+}
+
+/**
+ * Check if a value is an object and not null or an array.
+ *
+ * @param {*} value The value.
+ * @returns {boolean} True for an object.
+ */
+function isObject(value) {
+	return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+/**
+ * Check the abilities of a map.
+ *
+ * @param {*} abilities The abilities, or undefined.
+ * @returns {boolean} True for undefined or an object with known abilities and boolean values.
+ */
+function isValidAbilities(abilities) {
+	if (abilities === undefined) return true;
+	return (
+		isObject(abilities) &&
+		Object.entries(abilities).every(([name, value]) => ABILITIES.includes(name) && typeof value === 'boolean')
+	);
+}
+
+/**
+ * Check the portals that an event places.
+ *
+ * @param {*} portals The portals.
+ * @returns {boolean} True for two portals, each with an integer x and y and a known direction.
+ */
+function isValidPortals(portals) {
+	return (
+		Array.isArray(portals) &&
+		portals.length === 2 &&
+		portals.every(
+			(portal) =>
+				Array.isArray(portal) &&
+				portal.length === 3 &&
+				Number.isInteger(portal[0]) &&
+				Number.isInteger(portal[1]) &&
+				PORTAL_DIRECTIONS.includes(portal[2]),
+		)
+	);
+}
+
+/**
+ * Check an event of a map.
+ *
+ * @param {*} event The event.
+ * @returns {boolean} True for an event with a known trigger, the number properties of the trigger and valid actions.
+ */
+function isValidEvent(event) {
+	return (
+		isObject(event) &&
+		typeof event.on === 'string' &&
+		Object.hasOwn(EVENT_TRIGGERS, event.on) &&
+		EVENT_TRIGGERS[event.on].every((name) => Number.isInteger(event[name]) && event[name] >= 0) &&
+		(event.text === undefined || typeof event.text === 'string') &&
+		(event.wait === undefined || event.wait === 'click') &&
+		(event.unlock === undefined || ABILITIES.includes(event.unlock)) &&
+		(event.portals === undefined || isValidPortals(event.portals))
+	);
+}
+
+/**
+ * Check a label of a map.
+ *
+ * @param {*} label The label.
+ * @returns {boolean} True for a label with an integer x and y and a text.
+ */
+function isValidLabel(label) {
+	return isObject(label) && Number.isInteger(label.x) && Number.isInteger(label.y) && typeof label.text === 'string';
 }
 
 /**
@@ -51,8 +194,7 @@ export function exportEditorMap(tiles, bg) {
  * Check the data of a map file.
  *
  * @param {*} data The parsed content of a map file.
- * @returns {{tiles: number[], bg: number, boss: number}} The tile ids, the background index and the boss, or 0 for a
- *     level without a boss.
+ * @returns {MapData} The data of the map, with the defaults for the missing optional properties.
  * @throws {Error} If the data is not a valid map.
  */
 export function parseMap(data) {
@@ -67,18 +209,28 @@ export function parseMap(data) {
 		!data.tiles.every((tile) => isValidTile(tile, boss > 0)) ||
 		!Number.isInteger(data.bg) ||
 		data.bg < 0 ||
-		data.bg >= bg.length
+		data.bg >= bg.length ||
+		!isValidAbilities(data.abilities) ||
+		!(data.events === undefined || (Array.isArray(data.events) && data.events.every(isValidEvent))) ||
+		!(data.labels === undefined || (Array.isArray(data.labels) && data.labels.every(isValidLabel)))
 	) {
 		throw new Error('This is not a valid StillAliveJS map file.');
 	}
-	return { tiles: data.tiles, bg: data.bg, boss };
+	return {
+		tiles: data.tiles,
+		bg: data.bg,
+		boss,
+		abilities: { jump: true, portals: true, ...data.abilities },
+		events: data.events ?? [],
+		labels: data.labels ?? [],
+	};
 }
 
 /**
  * Let the player select a map file and read it.
  *
- * @returns {Promise<{tiles: number[], bg: number, boss: number}|null>} The tile ids, the background index and the
- *     boss, which is always 0, or null if the player cancels the dialog.
+ * @returns {Promise<MapData|null>} The data of the map, with the boss always 0, or null if the player cancels the
+ *     dialog.
  * @throws {Error} If the file is not a valid map file or is a boss level.
  */
 export async function importEditorMap() {

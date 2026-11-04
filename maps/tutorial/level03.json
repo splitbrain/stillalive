@@ -1,7 +1,46 @@
 {
 	"format": 1,
 	"bg": 2,
-	"text": "Some rooms feature black/yellow walls. These indicate that you can't put any portal on them. It makes some rooms more tricky so that you don't get out too easily. Go ahead and try to put portal on these walls if you dare. ",
+	"abilities": {
+		"portals": false
+	},
+	"events": [
+		{
+			"on": "start",
+			"text": "Let's get familiar with portals now. Please wait 5 seconds while we are gathering energy to activate them ..."
+		},
+		{
+			"on": "time",
+			"ticks": 60,
+			"text": "Let's get familiar with portals now. Please wait 4 seconds while we are gathering energy to activate them ..."
+		},
+		{
+			"on": "time",
+			"ticks": 120,
+			"text": "Let's get familiar with portals now. Please wait 3 seconds while we are gathering energy to activate them ..."
+		},
+		{
+			"on": "time",
+			"ticks": 180,
+			"text": "Let's get familiar with portals now. Please wait 2 seconds while we are gathering energy to activate them ..."
+		},
+		{
+			"on": "time",
+			"ticks": 240,
+			"text": "Let's get familiar with portals now. Please wait 1 seconds while we are gathering energy to activate them ..."
+		},
+		{
+			"on": "time",
+			"ticks": 300,
+			"text": "",
+			"portals": [[144, 225, "right"], [188, 225, "left"]]
+		},
+		{
+			"on": "time",
+			"ticks": 360,
+			"text": "Fully loaded ! Technology is beautiful. When you enter a portal, you're teleported in the other one. Enter the blue portal to pass through the wall."
+		}
+	],
 	"tiles": [
 		1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
 		1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,

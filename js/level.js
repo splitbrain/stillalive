@@ -225,6 +225,18 @@ export class Campaign {
 		this.bosses = new Array();
 		/** @type {string[]} The text that the robot shows in each level. */
 		this.texts = new Array();
+		/** @type {{jump: boolean, portals: boolean}[]} The abilities of the player at the start of each level. */
+		this.abilities = new Array();
+		/** @type {import('./mapFile.js').MapEvent[][]} The events of each level. */
+		this.events = new Array();
+		/** @type {import('./mapFile.js').MapLabel[][]} The texts at positions of the playfield of each level. */
+		this.labels = new Array();
+		/** @type {boolean} True if the intermission screen shows after each level, false if the next level starts at once. */
+		this.intermission = true;
+		/** @type {boolean} True if the best times and the replays of the levels are stored. */
+		this.records = true;
+		/** @type {string} The message of the last intermission screen, or an empty text for none. */
+		this.endText = '';
 	}
 }
 
@@ -245,11 +257,20 @@ export function loadCampaigns() {
 /**
  * Load the level list of a campaign and then its level files.
  *
+ * The campaign file is JSON with the list of the level files in "levels". These properties are optional:
+ *
+ * - intermission: false starts the next level at once after the exit. The default is true.
+ * - records: false stores no best times and no replays. The default is true.
+ * - endText: the message of the last intermission screen. The default is none.
+ *
  * @param {number} camp The index of the campaign.
  */
 function loadCampaignFiles(camp) {
 	const folder = 'maps/' + campaigns[camp].folder + '/';
 	loadLevelJsonFile(folder + 'campaign.json', function (data) {
+		campaigns[camp].intermission = data.intermission !== false;
+		campaigns[camp].records = data.records !== false;
+		campaigns[camp].endText = typeof data.endText == 'string' ? data.endText : '';
 		levelsToLoad += data.levels.length;
 		for (let i = 0; i < data.levels.length; i++) {
 			loadLevelFile(camp, i, folder + data.levels[i]);
@@ -272,6 +293,9 @@ function loadLevelFile(camp, index, url) {
 		campaigns[camp].backgrounds[index] = level.bg;
 		campaigns[camp].bosses[index] = level.boss;
 		campaigns[camp].texts[index] = typeof data.text == 'string' ? data.text : '';
+		campaigns[camp].abilities[index] = level.abilities;
+		campaigns[camp].events[index] = level.events;
+		campaigns[camp].labels[index] = level.labels;
 		levelsLoaded++;
 	});
 }
@@ -515,6 +539,9 @@ export function loadLevelEditor() {
 	resetLevelState();
 	game.player = new Player();
 	parseObjects('play');
+	game.abilities = { jump: true, portals: true };
+	game.events = [];
+	game.labels = [];
 
 	game.camera = new Camera(game.player.x, game.player.y);
 	game.cakesLeft = game.cakes.length;
@@ -563,7 +590,12 @@ export function loadLevel(level) {
 	game.tilesChanged = true;
 	if (game.cakesLeft == 0) openExit();
 
-	if (level > -1) game.background = campaigns[ui.campaign].backgrounds[level - 1];
+	if (level > -1) {
+		game.background = campaigns[ui.campaign].backgrounds[level - 1];
+		game.abilities = campaigns[ui.campaign].abilities[level - 1];
+		game.events = campaigns[ui.campaign].events[level - 1];
+		game.labels = campaigns[ui.campaign].labels[level - 1];
+	}
 	if (game.bossNum > 0) setupBoss();
 }
 

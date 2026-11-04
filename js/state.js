@@ -12,6 +12,12 @@ export const game = {
 	steps: undefined,
 	portalShots: undefined,
 	background: undefined,
+	/** @type {{jump: boolean, portals: boolean}} The abilities of the player at the start of the level. */
+	abilities: undefined,
+	/** @type {import('./mapFile.js').MapEvent[]} The events of the level. */
+	events: undefined,
+	/** @type {import('./mapFile.js').MapLabel[]} The texts at positions of the playfield. */
+	labels: undefined,
 	/**
 	 * @type {number} The x position of the playfield on the canvas: PLAYFIELD_X in a level, 0 in the level selection
 	 *     and in the editor menus. The screen shake of the boss levels adds a few pixels.

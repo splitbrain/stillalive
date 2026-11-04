@@ -111,7 +111,38 @@ test.describe('units', () => {
 		data.tiles[1] = 110;
 		const { result, error } = await call(page, '/js/mapFile.js', 'parseMap', data);
 		expect(error).toBeUndefined();
-		expect(result).toEqual({ tiles: data.tiles, bg: 0, boss: 0 });
+		expect(result).toEqual({
+			tiles: data.tiles,
+			bg: 0,
+			boss: 0,
+			abilities: { jump: true, portals: true },
+			events: [],
+			labels: [],
+		});
+	});
+
+	test('parseMap() reads the abilities, the events and the labels', async () => {
+		const events = [
+			{ on: 'start', text: 'Hello', wait: 'click', unlock: 'jump' },
+			{ on: 'playerX', x: 100, text: '' },
+			{
+				on: 'time',
+				ticks: 300,
+				portals: [
+					[144, 225, 'right'],
+					[188, 225, 'left'],
+				],
+			},
+			{ on: 'bossArrived', text: 'Here I am' },
+			{ on: 'bossDied', unlock: 'portals' },
+		];
+		const labels = [{ x: 10, y: 20, text: 'Here' }];
+		const data = { ...validMap(), abilities: { portals: false }, events, labels };
+		const { result, error } = await call(page, '/js/mapFile.js', 'parseMap', data);
+		expect(error).toBeUndefined();
+		expect(result.abilities).toEqual({ jump: true, portals: false });
+		expect(result.events).toEqual(events);
+		expect(result.labels).toEqual(labels);
 	});
 
 	test('parseMap() reads the boss and accepts the tube only in a boss level', async () => {
@@ -141,6 +172,35 @@ test.describe('units', () => {
 			'unknown boss': { ...validMap(), boss: 5 },
 			'negative boss': { ...validMap(), boss: -1 },
 			'boss as text': { ...validMap(), boss: '1' },
+			'abilities as list': { ...validMap(), abilities: [false] },
+			'unknown ability': { ...validMap(), abilities: { fly: false } },
+			'ability as text': { ...validMap(), abilities: { jump: 'false' } },
+			'events as object': { ...validMap(), events: { on: 'start' } },
+			'event as text': { ...validMap(), events: ['start'] },
+			'unknown trigger': { ...validMap(), events: [{ on: 'end' }] },
+			'trigger as list': { ...validMap(), events: [{ on: ['start'] }] },
+			'no trigger': { ...validMap(), events: [{ text: 'Hello' }] },
+			'player x missing': { ...validMap(), events: [{ on: 'playerX' }] },
+			'negative ticks': { ...validMap(), events: [{ on: 'time', ticks: -1 }] },
+			'event text as number': { ...validMap(), events: [{ on: 'start', text: 1 }] },
+			'unknown wait': { ...validMap(), events: [{ on: 'start', wait: 'key' }] },
+			'unknown unlock': { ...validMap(), events: [{ on: 'start', unlock: 'fly' }] },
+			'one portal': { ...validMap(), events: [{ on: 'start', portals: [[1, 2, 'left']] }] },
+			'unknown portal direction': {
+				...validMap(),
+				events: [
+					{
+						on: 'start',
+						portals: [
+							[1, 2, 'left'],
+							[3, 4, 'back'],
+						],
+					},
+				],
+			},
+			'labels as object': { ...validMap(), labels: { x: 1, y: 2, text: 'Here' } },
+			'label without text': { ...validMap(), labels: [{ x: 1, y: 2 }] },
+			'label position as text': { ...validMap(), labels: [{ x: '1', y: 2, text: 'Here' }] },
 		};
 		for (const [name, data] of Object.entries(cases)) {
 			const { error } = await call(page, '/js/mapFile.js', 'parseMap', data);

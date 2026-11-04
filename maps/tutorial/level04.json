@@ -1,7 +1,43 @@
 {
 	"format": 1,
 	"bg": 3,
-	"text": "Sometimes, the room will have some openings. My advice is not to jump in them. Don't worry, there's no sense crying over every mistake, you just go back to the beginning of the room if you die. See you on the other side. ",
+	"abilities": {
+		"portals": false
+	},
+	"events": [
+		{
+			"on": "start",
+			"text": "Your portal gun has been activated. You can shoot portals by pressing left or right mouse button. They allow you to reach places where your body can't go and can only be placed on blue walls. Click to continue ...",
+			"wait": "click",
+			"unlock": "portals"
+		},
+		{
+			"on": "start",
+			"text": "Shoot a portal in the hole on the right and the other one under your feet. That way, you will be able to pass through. Then, just finish the level to continue the tutorial. If you want to clear portals, press the {KeyE} key."
+		}
+	],
+	"labels": [
+		{
+			"x": 50,
+			"y": 269,
+			"text": "Portal"
+		},
+		{
+			"x": 54,
+			"y": 284,
+			"text": "Here"
+		},
+		{
+			"x": 259,
+			"y": 219,
+			"text": "And"
+		},
+		{
+			"x": 258,
+			"y": 234,
+			"text": "Here"
+		}
+	],
 	"tiles": [
 		1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
 		1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,

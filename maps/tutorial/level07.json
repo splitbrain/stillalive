@@ -1,7 +1,29 @@
 {
 	"format": 1,
 	"bg": 6,
-	"text": "This one mixes what we have seen in previous rooms : loop, map opening, no-portal walls ... Oh, wait ! The exit is on the roof of the room, will you be able to reach it ? If you can't finish this room,try to find someone to help you. Maybe Black Mesa ... ",
+	"events": [
+		{
+			"on": "start",
+			"text": "Sometimes, your body is not enough to use the switch efficiently. Here is a crate you can use in this level. Get close enough and hold left mouse button to carry the crate with your portal gun. Release mouse to shoot the crate on the switch and leave. Pay attention to that turret that can kill you if you're in range."
+		}
+	],
+	"labels": [
+		{
+			"x": 61,
+			"y": 271,
+			"text": "Grab"
+		},
+		{
+			"x": 248,
+			"y": 382,
+			"text": "Release here"
+		},
+		{
+			"x": 26,
+			"y": 334,
+			"text": "Be careful"
+		}
+	],
 	"tiles": [
 		1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
 		1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,

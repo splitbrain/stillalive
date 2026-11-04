@@ -54,7 +54,7 @@ function isForeignTarget(event) {
 let stage;
 
 /**
- * Check if a level runs and the pause menu can open.
+ * Check if a level runs and can pause.
  *
  * @returns {boolean} True in a level before its end.
  */

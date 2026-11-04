@@ -20,7 +20,6 @@ function showDialog(message, title) {
 	const text = document.createElement('p');
 	text.textContent = message;
 	const buttons = document.createElement('p');
-	buttons.className = 'buttons';
 	const ok = Object.assign(document.createElement('button'), { textContent: 'OK' });
 	buttons.append(ok);
 	dialog.append(heading, text, buttons);

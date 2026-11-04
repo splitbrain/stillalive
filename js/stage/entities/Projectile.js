@@ -78,7 +78,7 @@ export class Projectile {
  * @param {Projectile} obj The wheel.
  * @returns {number} 1 if the wheel overlaps the player, else 0.
  */
-export function projectileTouchesPlayer(obj) {
+function projectileTouchesPlayer(obj) {
 	const posx = obj.x >> 8;
 	const posy = obj.y >> 8;
 	const px = obj.pX;

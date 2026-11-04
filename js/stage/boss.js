@@ -358,7 +358,7 @@ export function manageInTube(obj) {
  * The shake only depends on the level time, so a replay gets the same shake as the play. The shake changes every
  * third tick.
  */
-export function shakeScreen() {
+function shakeScreen() {
 	const step = Math.floor(game.time / 3);
 	game.shakeX = shakeOffset(step * 2);
 	game.shakeY = shakeOffset(step * 2 + 1);

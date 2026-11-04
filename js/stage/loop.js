@@ -2,7 +2,7 @@
  * The game loop.
  *
  * The game logic runs in ticks of 1/60 second. The loop runs one tick for each 1/60 second of real time, so the game
- * speed does not depend on the refresh rate of the monitor. After the ticks of a frame, the loop draws the screen
+ * speed does not depend on the refresh rate of the monitor. After the ticks of a frame, the loop draws the canvas
  * once. The game does not run while a dialog of the page is open.
  */
 
@@ -33,7 +33,7 @@ let fps = 0;
 /** @type {function(): void} The function that runs one tick. */
 let tickFunction = () => {};
 
-/** @type {function(): void} The function that draws the screen. */
+/** @type {function(): void} The function that draws the canvas. */
 let renderFunction = () => {};
 
 /**
@@ -103,7 +103,7 @@ function onVisibilityChange() {
  * Start the game loop.
  *
  * @param {function(): void} tick The function that runs one tick.
- * @param {function(): void} render The function that draws the screen after the ticks of a frame.
+ * @param {function(): void} render The function that draws the canvas after the ticks of a frame.
  * @returns {void}
  */
 export function startLoop(tick, render) {

@@ -1,5 +1,7 @@
 /**
- * Constants of the game: key bits, directions, tile animation types, mouse buttons and physics values.
+ * Constants of the game: key bits, directions, tile animation types, mouse buttons, physics values, the map and
+ * playfield sizes, the sparkle types and the transitions. Also the campaign ids, the campaign folders, the number of
+ * levels and the tiles of the editor palette, which the page uses.
  */
 
 /** @type {number} Key bit for the jump key. */

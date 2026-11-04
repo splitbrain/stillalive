@@ -1,70 +1,49 @@
-@font-face {
-	font-family: yikes;
-	src: url('fonts/yikes.ttf');
+/* the page shows and hides its parts per screen */
+[hidden] {
+	display: none !important;
 }
 
-body {
-	margin: 0;
-	background-image: url('decor/bg.png');
-	background-position: center top;
-	background-color: #005674;
-	background-repeat: repeat;
-	color: white;
-	font-family: Arial, sans-serif;
+/* the custom elements of the page take the full width, so that a click on their area reaches them */
+game-app,
+game-stage,
+loading-screen,
+main-menu,
+level-selection,
+play-screen,
+editor-screen,
+credits-screen {
+	display: block;
+}
+
+/* the canvas keeps the aspect ratio of the playfield and stays low enough for the window height */
+game-stage canvas {
+	cursor: url('./blank.png'), none;
+	touch-action: none;
+	display: block;
+	width: min(100%, calc(85vh * 512 / 384));
+	aspect-ratio: 512 / 384;
+	background: black;
 }
 
 /*
- * The game is a grid of the robot, the speech bubble, the stats, the stage, the side panel and the footer. Sizes use
- * container query units of the game element, 1cqw is 1 percent of its width. The width follows the window, so that
- * the whole game stays visible in landscape orientation.
+ * The robot head is a panel of 120 by 96 pixels. The idle animation sets --head-x, --eye-x and --eye-y to -1, 0 or 1.
+ * The head moves 17 pixels to a side, the eye moves 9 pixels to a side and 10 pixels up or down.
  */
-#game {
-	container-type: inline-size;
-	width: min(100vw, 165vh);
-	margin: 0 auto;
-	display: grid;
-	grid-template-columns: minmax(0, 1.2fr) minmax(0, 6.4fr) minmax(0, 2.4fr);
-	grid-template-areas:
-		'robot speech speech'
-		'stats stage side'
-		'footer footer footer';
-	gap: 1cqw;
-	padding: 1cqw;
-	box-sizing: border-box;
-}
-
-@media (orientation: portrait) {
-	#game {
-		width: 100vw;
-		grid-template-columns: minmax(0, 1.2fr) minmax(0, 3fr) minmax(0, 1.2fr);
-		grid-template-areas:
-			'robot speech speech'
-			'stage stage stage'
-			'stats stats side'
-			'footer footer footer';
-	}
-}
-
-#robot {
-	grid-area: robot;
+robot-head {
+	display: block;
 	position: relative;
+	width: 120px;
 	aspect-ratio: 120 / 96;
 	overflow: hidden;
-	border-radius: 1cqw;
-	background: #073140;
 }
 
-/*
- * The idle animation of the robot sets --head-x, --eye-x and --eye-y to -1, 0 or 1. The head moves 17 pixels to a
- * side, the eye moves 9 pixels to a side and 10 pixels up or down, in the pixels of the 120 by 96 panel.
- */
-/* a hidden robot keeps its place in the grid, so the stage does not move in boss levels */
-#robot[hidden] {
+/* a hidden robot keeps its place, so the parts after it do not move in boss levels */
+robot-head[hidden] {
 	display: block !important;
 	visibility: hidden;
 }
 
-#robot .head {
+robot-head .head {
 	position: absolute;
 	left: calc(100% * 18 / 120);
 	top: calc(100% * 30 / 96);
@@ -73,7 +52,7 @@ body {
 	transition: transform 0.5s;
 }
 
-#robot .eye {
+robot-head .eye {
 	position: absolute;
 	left: calc(100% * 47 / 120);
 	top: calc(100% * 56 / 96);
@@ -89,7 +68,7 @@ body {
 }
 
 /* the eye image has four frames from open to closed */
-#robot .eye.blink {
+robot-head .eye.blink {
 	animation: robot-blink 0.2s step-end;
 }
 
@@ -112,105 +91,20 @@ body {
 	}
 }
 
-#speech {
-	grid-area: speech;
-	border-radius: 1cqw;
-	background: #0a8a8a;
-	padding: 1cqw 2cqw;
-	box-sizing: border-box;
-	min-height: 0;
-}
-
-#speech p {
-	margin: 0;
-	font-size: 2cqw;
-	line-height: 1.3;
-}
-
-/* the play screen and the editor screen have no box: their parts take their places in the grid of the game */
-play-screen,
-editor-screen {
-	display: contents;
-}
-
-#hud {
-	grid-area: stats;
-}
-
-#stats {
-	display: flex;
-	flex-direction: column;
-	justify-content: flex-start;
-	gap: 1.5cqw;
-}
-
-.stat {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-}
-
-.stat .label {
-	font-family: yikes, Arial, sans-serif;
-	font-size: 2.4cqw;
-	color: #c8e8f0;
-}
-
-.stat .value {
-	width: 100%;
-	text-align: center;
-	font-weight: bold;
-	font-size: 2.2cqw;
-	background: #0a8a8a;
-	border-radius: 0.6cqw;
-	padding: 0.4cqw 0;
-	box-sizing: border-box;
-}
-
-#stage {
-	grid-area: stage;
-	min-width: 0;
-	position: relative;
-}
-
-/* the menus lie over the stage */
-#overlay {
-	position: absolute;
-	inset: 0;
-	pointer-events: none;
-}
-
-#play-menus,
-#editor-menus {
-	grid-area: stage;
-	position: relative;
-	pointer-events: none;
-}
-
-/* the loading screen and the credits are text over the stage; the credits are a link to the main menu */
-#loading-screen,
-#credits {
-	position: absolute;
-	inset: 0;
-	overflow: auto;
-	padding: 0 2cqw;
-	pointer-events: auto;
-}
-
 /* the credits scroll from the bottom edge out of the top edge; the end of the scroll leads to the main menu */
-#credits {
+credits-screen {
+	display: block;
+	height: 80vh;
 	overflow: hidden;
 	container-type: size;
 }
 
-#credits a {
+credits-screen a {
 	display: block;
 	height: 100%;
-	color: inherit;
-	text-decoration: none;
 }
 
-#credits .scroll {
+credits-screen .scroll {
 	animation: credits-scroll 30s linear;
 }
 
@@ -223,75 +117,10 @@ editor-screen {
 	}
 }
 
-.menu {
-	position: absolute;
-	inset: 0;
-}
-
-.menu :is(button, a) {
-	pointer-events: auto;
-	text-align: center;
-	text-decoration: none;
-	font-family: yikes, Arial, sans-serif;
-	color: #fde900;
-	text-shadow: 0.1em 0.1em 0 #000;
-	background: #0b7a7a;
-	border: none;
-	clip-path: polygon(0 0, 100% 0, 97% 100%, 3% 100%);
-	cursor: pointer;
-	transition: transform 0.1s;
-}
-
-.menu :is(button, a):hover {
-	transform: scale(0.95);
-}
-
-/* the big buttons of the main menu lie where the canvas draws the players next to them */
-#main-menu .big {
-	position: absolute;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	left: 25%;
-	width: 50%;
-	height: calc(100% * 64 / 544);
-	font-size: 5.6cqw;
-}
-
-#main-classic {
-	top: calc(100% * 32 / 544);
-}
-
-#main-enhanced {
-	top: calc(100% * 114 / 544);
-}
-
-#main-ultimate {
-	top: calc(100% * 196 / 544);
-}
-
-#main-editor {
-	top: calc(100% * 278 / 544);
-}
-
-#main-tutorial {
-	top: calc(100% * 360 / 544);
-}
-
+/* the sound button of the main menu shows the sound setting */
 #sound-button {
-	position: absolute;
-	left: calc(100% * 20 / 640);
-	top: calc(100% * 385 / 544);
-	width: calc(100% * 50 / 640);
-	height: calc(100% * 70 / 544);
-	clip-path: none;
-	font-size: 2.8cqw;
-	background: #0b7a7a url('menu/tex_sound.png') no-repeat center top / auto 70%;
-	padding-top: 10%;
-	box-sizing: border-box;
-	display: flex;
-	align-items: flex-end;
-	justify-content: center;
+	background: url('menu/tex_sound.png') no-repeat center top / auto 70%;
+	padding-top: 40px;
 }
 
 #sound-button.off {
@@ -299,162 +128,80 @@ editor-screen {
 	background-size:
 		auto 60%,
 		auto 70%;
-	background-position:
-		center top,
-		center top;
 }
 
-.menu .buttons {
-	position: absolute;
-	left: 0;
-	right: 0;
-	display: flex;
-	justify-content: center;
-	gap: 2cqw;
-	padding: 0 2cqw;
+pause-menu,
+intermission-panel {
+	display: block;
+	max-width: 512px;
+	aspect-ratio: 512 / 384;
+	color: white;
 }
 
-.menu .small {
-	font-size: 2.5cqw;
-	padding: 0.5cqw 2.5cqw;
-	min-width: 12cqw;
-}
-
-#pause-menu .buttons:first-child {
-	top: calc(100% * 180 / 384);
-}
-
-#pause-menu .buttons:last-child {
-	top: calc(100% * 340 / 384);
-}
-
-#pause-menu {
+pause-menu {
 	background: url('menu/pauseBG.png') no-repeat center / 100% 100%;
 }
 
-#intermission {
+intermission-panel {
 	background: url('bg/highscore.png') no-repeat center / 100% 100%;
 }
 
-#intermission p {
-	position: absolute;
-	left: calc(100% * 35 / 512);
-	margin: 0;
-	font-weight: bold;
-	font-size: 2cqw;
+/* the panel has content only in a campaign with records */
+best-times:not(.open) {
+	display: none;
 }
 
-#intermission .time {
-	top: calc(100% * 250 / 384);
-}
-
-#intermission .message {
-	top: calc(100% * 268 / 384);
-}
-
-#intermission .buttons,
-#editor-menu .buttons,
-#editor-file .buttons {
-	bottom: 2%;
-}
-
-#editor-menu .buttons {
-	flex-wrap: wrap;
-	gap: 1cqw;
-}
-
-#editor-menu .small {
-	min-width: 8cqw;
-	padding: 0.4cqw 1cqw;
-	font-size: 2.2cqw;
-}
-
-#level-list,
-#level-selection .links {
-	display: grid;
-	grid-template-columns: repeat(2, 1fr);
-	gap: 0.5cqw;
-	margin-bottom: 1cqw;
-}
-
-#level-selection a {
-	font-size: 1.6cqw;
+/* the key caps of a replay show the pressed keys */
+replay-keys :is(.key, .mouse) {
+	display: inline-block;
+	width: 36px;
+	aspect-ratio: 1;
+	background: url('images/key.png') no-repeat 0 0 / 100% 200%;
+	color: black;
 	text-align: center;
-	text-decoration: none;
+	line-height: 36px;
+}
+
+replay-keys .mouse {
+	background-image: url('images/mouseIcon.png');
+	aspect-ratio: 24 / 40;
+}
+
+replay-keys .pressed {
+	background-position-y: 100%;
+}
+
+/* the level links come from a template without white space between them */
+level-list a {
+	margin-right: 1em;
+}
+
+/* the selected level, slot, tile or object */
+.selected {
+	outline: 2px solid #3f3;
+}
+
+slot-list .stored {
 	font-weight: bold;
-	color: white;
-	background: #073140;
-	border: none;
-	border-radius: 0.5cqw;
-	padding: 0.4cqw 0;
-	cursor: pointer;
 }
 
-#level-selection a[href]:hover,
-#level-list a.selected {
-	background: #0f7090;
-}
-
-#level-list a:not([href]) {
-	color: #8aa;
-	cursor: default;
-}
-
-/* the tile palette and the object palette of the editor take the columns next to the stage */
-#editor-tiles,
-#editor-objects {
-	--u: 0.2cqw;
-	display: grid;
-	gap: 0.5cqw;
-	align-content: start;
-}
-
-#editor-tiles {
-	grid-area: stats;
-	grid-template-columns: repeat(3, 1fr);
-}
-
-#editor-objects {
-	grid-area: side;
-	grid-template-columns: repeat(2, auto);
-	justify-content: start;
-}
-
-#editor-tiles button,
-#editor-objects button {
-	position: relative;
-	padding: 0.3cqw;
-	border: 0.25cqw solid transparent;
-	border-radius: 0.5cqw;
-	background: #073140;
-	cursor: pointer;
-	color: #f33;
-	font-size: 2cqw;
-	line-height: 0;
-}
-
-#editor-tiles button:hover,
-#editor-objects button:hover {
-	border-color: #f33;
-}
-
-#editor-tiles button.selected,
-#editor-objects button.selected {
-	border-color: #3f3;
-}
-
-#editor-tiles button img {
+/* the sprites of the palettes of the editor; --u is the size of one pixel of a sprite */
+tile-palette img {
 	display: block;
-	width: 100%;
+	width: 32px;
 	aspect-ratio: 1;
 }
 
-#editor-objects button.wide {
-	grid-column: 1 / 3;
-	justify-self: start;
+object-palette {
+	--u: 2px;
 }
 
-#editor-objects .sprite {
+object-palette button {
+	position: relative;
+	vertical-align: top;
+}
+
+object-palette .sprite {
 	display: block;
 	width: calc(var(--u) * 16);
 	height: calc(var(--u) * 16);
@@ -462,264 +209,73 @@ editor-screen {
 	background-size: 100% auto;
 }
 
-#editor-objects .cake {
+object-palette .cake {
 	height: calc(var(--u) * 12);
 	background-image: url('sprites/cake.svg');
 }
 
-#editor-objects .crate {
+object-palette .crate {
 	background-image: url('sprites/crate.svg');
 }
 
-#editor-objects .turret-left,
-#editor-objects .turret-right {
+object-palette .turret-left,
+object-palette .turret-right {
 	height: calc(var(--u) * 32);
 	background-image: url('sprites/turret0.svg');
 }
 
-#editor-objects .turret-right {
+object-palette .turret-right {
 	background-image: url('sprites/turret1.svg');
 }
 
-#editor-objects .platform {
+object-palette .platform {
 	width: calc(var(--u) * 48);
 	background-image: url('sprites/platform.svg');
 }
 
-#editor-objects .arrow {
+object-palette .arrow {
 	position: absolute;
 	left: calc(var(--u) * 6);
 	top: 0;
-	line-height: calc(var(--u) * 16 + 0.6cqw);
+	color: #f33;
+	line-height: calc(var(--u) * 16 + 6px);
 }
 
-#editor-objects .player {
+object-palette .player {
 	height: calc(var(--u) * 27);
 	background-image: url('sprites/body0.svg');
 	background-size: 500% auto;
 }
 
-#editor-objects .player .head {
+object-palette .player .head {
 	display: block;
 	width: 100%;
 	height: calc(var(--u) * 12);
 	background: url('sprites/head0.svg') no-repeat 0 0 / 500% auto;
 }
 
-#editor-objects .gravpipe-right,
-#editor-objects .gravpipe-left {
+object-palette .gravpipe-right,
+object-palette .gravpipe-left {
 	height: calc(var(--u) * 32);
 	background-image: url('sprites/gravpipe.svg');
 }
 
-#editor-objects .gravpipe-left {
+object-palette .gravpipe-left {
 	background-position: 0 calc(var(--u) * -32);
 }
 
-#editor-objects .gravpipe-up,
-#editor-objects .gravpipe-down {
+object-palette .gravpipe-up,
+object-palette .gravpipe-down {
 	width: calc(var(--u) * 32);
 	background-image: url('sprites/gravpipe2.svg');
 	background-size: auto 100%;
 }
 
-#editor-objects .gravpipe-down {
+object-palette .gravpipe-down {
 	background-position: calc(var(--u) * -32) 0;
 }
 
-#editor-bg {
-	grid-column: 1 / 3;
-	display: flex;
-	gap: 0.5cqw;
-	margin-top: 1cqw;
-}
-
-#editor-bg button {
-	line-height: 1;
-	color: #fde900;
-	padding: 0.5cqw 1cqw;
-}
-
-#slot-list {
-	grid-area: side;
-	display: grid;
-	grid-template-columns: repeat(2, 1fr);
-	gap: 0.5cqw;
-}
-
-#slot-list button {
-	font-size: 1.6cqw;
-	color: #8aa;
-	background: #073140;
-	border: none;
-	border-radius: 0.5cqw;
-	padding: 0.4cqw 0;
-	cursor: pointer;
-}
-
-#slot-list button.stored {
-	color: white;
-	font-weight: bold;
-}
-
-#slot-list button:hover:not(:disabled),
-#slot-list button.selected {
-	background: #0f7090;
-}
-
-#slot-list button:disabled {
-	cursor: default;
-}
-
-game-stage {
-	display: block;
-}
-
-/* the canvas fills its column, but stays low enough for the window height */
-game-stage canvas {
-	cursor: url('./blank.png'), none;
-	touch-action: none;
-	display: block;
-	width: min(100%, calc(85vh * 512 / 384));
-	margin: 0 auto;
-	aspect-ratio: 512 / 384;
-	background: black;
-	border-radius: 1cqw;
-}
-
-/* the page shows and hides its parts per screen; in the menus the canvas takes the place of the parts around it */
-[hidden] {
-	display: none !important;
-}
-
-#game[data-screen='loading'] #stage,
-#game[data-screen='main'] #stage,
-#game[data-screen='credits'] #stage {
-	grid-column: 1 / 4;
-	grid-row: 1 / 3;
-}
-
-/* without the stage, the menus over it keep the height of the canvas */
-#stage:has(> game-stage[hidden]) {
-	height: min(calc(98cqw * 384 / 512), 85vh);
-}
-
-#side {
-	grid-area: side;
-	min-width: 0;
-}
-
-#highscores {
-	display: block;
-	height: 0;
-	overflow: hidden;
-	border-radius: 1cqw;
-	background: #073140;
-	transition: height 0.6s;
-}
-
-#highscores.open {
-	height: auto;
-	padding: 2cqw;
-}
-
-#highscores p {
-	margin: 0 0 1cqw;
-	font-size: 1.8cqw;
-}
-
-#highscores p.title {
-	font-weight: bold;
-	font-size: 2cqw;
-}
-
-#highscores p.total {
-	margin-top: 3cqw;
-}
-
-#highscores :is(button, a) {
-	display: block;
-	width: 100%;
-	color: inherit;
-	text-align: center;
-	font-size: 1.6cqw;
-	cursor: pointer;
-}
-
-#keys {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	gap: 0.4cqw;
-	margin-top: 2cqw;
-}
-
-#keys .row {
-	display: flex;
-	align-items: flex-start;
-	gap: 0.4cqw;
-}
-
-#keys .key,
-#keys .mouse {
-	display: inline-block;
-	width: 3.6cqw;
-	background-image: url('images/key.png');
-	background-size: 100% 200%;
-	background-repeat: no-repeat;
-	text-align: center;
-	color: black;
-	font-weight: bold;
-	font-size: 1.8cqw;
-	line-height: 3.6cqw;
-	aspect-ratio: 1;
-}
-
-#keys .mouse {
-	background-image: url('images/mouseIcon.png');
-	aspect-ratio: 24 / 40;
-}
-
-#keys .pressed {
-	background-position-y: 100%;
-}
-
-#footer {
-	grid-area: footer;
-	text-align: center;
-	font-size: 1.6cqw;
-}
-
-dialog.message {
-	min-width: 300px;
-	max-width: 500px;
-	padding: 0 16px;
-	border: 1px solid black;
-	background: rgb(7, 49, 63);
-	color: white;
-	font:
-		13px Arial,
-		sans-serif;
-}
-
-dialog.message::backdrop {
-	background: rgba(0, 0, 0, 0.5);
-}
-
-dialog.message h2 {
-	font: 20px yikes;
-	color: rgb(253, 233, 0);
-}
-
+/* the messages of the dialogs contain line breaks */
 dialog.message p {
 	white-space: pre-line;
-}
-
-dialog.message p.buttons {
-	text-align: right;
-}
-
-dialog.message button {
-	min-width: 80px;
-	margin-left: 8px;
 }

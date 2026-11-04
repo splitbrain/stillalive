@@ -60,7 +60,7 @@ export class GameStage extends HTMLElement {
 	portals = new Value(0);
 	/** @type {Value<number>} The level time in ticks. While the level runs, it changes every 30 ticks. */
 	time = new Value(0);
-	/** @type {Value<boolean>} True while the level time stands still for the pause menu. */
+	/** @type {Value<boolean>} True while the level time stands still for a pause. */
 	paused = new Value(false);
 	/** @type {Value<{text: string, wait: boolean, portrait: number}|null>} The message for the narrator, or null. */
 	message = new Value(null);

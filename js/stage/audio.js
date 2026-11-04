@@ -61,7 +61,7 @@ class Sound {
  * @param {string} name The file name of the sound in the sounds folder, without extension.
  * @returns {Sound} The sound. It plays nothing until it is loaded.
  */
-export function loadSound(name) {
+function loadSound(name) {
 	const sound = new Sound(name);
 	sounds.push(sound);
 	if (context) connectSound(sound);

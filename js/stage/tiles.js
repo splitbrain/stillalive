@@ -103,16 +103,6 @@ export const PLATFORM_CODE = 200;
 export const CRATE_CODE = 300;
 
 /**
- * Get the kind of a tile.
- *
- * @param {number} id The tile id.
- * @returns {string|undefined} The kind, or undefined for an object id or a collision code.
- */
-export function tileKind(id) {
-	return KIND_OF[id];
-}
-
-/**
  * Check if a tile has one of the given kinds.
  *
  * @param {number} id The tile id.

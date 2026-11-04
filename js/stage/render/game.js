@@ -149,7 +149,8 @@ export function drawSparkles() {
 }
 
 /**
- * Draw a level: the tiles, the player, the objects, the boss, the transitions, the HUD and the labels.
+ * Draw a level: the tiles, the player, the objects, the boss, the labels, the death fade, the transitions and the
+ * crosshair.
  *
  * @returns {void}
  */

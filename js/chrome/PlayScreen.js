@@ -30,7 +30,7 @@ const TYPE_TIME = 1000 / 45;
 const TEST_TEXT = 'Press <Enter> or <Escape> key to stop testing.';
 
 /** @type {string[]} The names of the HUD values of the stage, which are also the data-value names of their nodes. */
-const HUD_VALUES = ['life', 'cakes', 'steps', 'portals'];
+const HUD_VALUES = ['life', 'cakes', 'steps', 'portals', 'fps'];
 
 /** @type {Object<string, number>} The key bit of each key cap of the replay keys, by the data-key name of the cap. */
 const KEY_CAPS = {
@@ -336,7 +336,7 @@ export class NarratorText extends HTMLElement {
 
 /**
  * The custom element <game-hud>. Its markup in the page has a node with a data-value attribute for each HUD value of
- * the stage: life, cakes, steps and portals. The element shows each value in its node.
+ * the stage: life, cakes, steps, portals and the frame rate. The element shows each value in its node.
  */
 export class GameHud extends HTMLElement {
 	/** @type {Array<function(): void>} The functions that remove the subscriptions. */

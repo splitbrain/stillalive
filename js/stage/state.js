@@ -67,7 +67,7 @@ export const game = {
 export const ui = {
 	/** @type {string} What the stage shows: "idle", "play", "preview", "edit" or "test". */
 	mode: 'idle',
-	/** @type {boolean} True while the level time stands still for the pause menu. */
+	/** @type {boolean} True while the level time stands still for a pause. */
 	paused: false,
 	/** @type {number} The transition effect of the level end, chosen at random. */
 	transition: Transition.HORIZONTAL_LINES,

@@ -12,7 +12,7 @@ import { PLATFORM_CODE, Tile } from '../tiles.js';
  * The area in front of a gravitational pipe that moves objects. rebuildGravPipeFields() builds the fields again in
  * each tick.
  */
-export class GravPipeField {
+class GravPipeField {
 	/**
 	 * @param {number} x The left edge in pixels.
 	 * @param {number} y The top edge in pixels.

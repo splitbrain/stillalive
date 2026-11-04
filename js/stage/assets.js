@@ -1,8 +1,8 @@
 /**
  * Loading of the images.
  *
- * The module counts the loaded images, so the loading screen can show the progress, and it remembers the files
- * that could not be loaded.
+ * The module counts the loaded images, so the stage can report the progress, and it remembers the files that could
+ * not be loaded.
  */
 
 /** @type {number} The number of requested images. */

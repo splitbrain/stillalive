@@ -1,9 +1,8 @@
 /**
- * Drawing of a frame: the mode of the stage on the canvas and the frame rate.
+ * Drawing of a frame: the mode of the stage on the canvas.
  */
 
-import { beginFrame, ctx } from '../canvas.js';
-import { getFps } from '../loop.js';
+import { beginFrame } from '../canvas.js';
 import { ui } from '../state.js';
 import { drawLevelEditor } from './editor.js';
 import { drawLevel, drawPreviewMap } from './game.js';
@@ -19,8 +18,4 @@ export function render() {
 	if (ui.mode == 'edit' || ui.mode == 'test') drawLevelEditor();
 	else if (ui.mode == 'play') drawLevel();
 	else if (ui.mode == 'preview') drawPreviewMap();
-	ctx.font = 'bold 10px Arial';
-	ctx.strokeStyle = 'rgb(255, 255, 255)';
-	ctx.fillStyle = 'rgb(255, 255, 255)';
-	ctx.fillText('' + getFps(), 5, 10);
 }

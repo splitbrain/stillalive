@@ -29,7 +29,7 @@ export const credits = new Value([]);
 /**
  * A campaign with its levels.
  */
-export class Campaign {
+class Campaign {
 	/**
 	 * @param {string} folder The folder name of the campaign below maps/.
 	 */

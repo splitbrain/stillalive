@@ -13,109 +13,102 @@
 		<link rel="stylesheet" type="text/css" href="style.css" />
 	</head>
 	<body>
-		<game-app id="game" data-screen="loading">
-			<narrator-text id="speech" data-screens="select play editor editor-file" hidden><p></p></narrator-text>
-			<div id="stage">
-				<game-stage id="game-stage" data-screens="select play editor editor-file" hidden></game-stage>
-				<div id="overlay">
-					<loading-screen id="loading-screen" data-screens="loading">
-						<p>Loading gfx ... <progress data-progress="images" max="1" value="0"></progress></p>
-						<p>Loading maps ... <progress data-progress="campaigns" max="1" value="0"></progress></p>
-						<p>
-							Loading sfx ... <progress data-progress="sounds" max="1" value="0"></progress>
-							<button class="sound-off">(click here if not loading)</button>
-						</p>
-						<p>- Grab cakes and reach the exit of each level.</p>
-						<p>- Use your portal gun to teleport through levels.</p>
-						<p data-missing="images" hidden></p>
-						<p data-missing="sounds" hidden></p>
-						<p data-missing="campaigns" hidden></p>
-						<img src="decor/controls.png" alt="The controls: keys to move and jump, the mouse to shoot portals" />
-						<p>
-							Jump: <kbd data-key="KeyW">W</kbd>, Left: <kbd data-key="KeyA">A</kbd>, Down:
-							<kbd data-key="KeyS">S</kbd>, Right: <kbd data-key="KeyD">D</kbd>, Clear Portals:
-							<kbd data-key="KeyE">E</kbd>
-						</p>
-						<p class="continue" hidden>Click to continue ...</p>
-					</loading-screen>
-					<credits-screen id="credits" data-screens="credits" hidden>
-						<a href="#/"><div class="scroll"></div></a>
-						<template><p></p></template>
-					</credits-screen>
-					<main-menu id="main-menu" class="menu" data-screens="main" hidden>
-						<a class="big" id="main-classic" href="#/campaign/normal">Classic Mode</a>
-						<a class="big" id="main-enhanced" href="#/campaign/community">Enhanced Mode</a>
-						<a class="big" id="main-ultimate" href="#/campaign/story">Ultimate Mode</a>
-						<a class="big" id="main-editor" href="#/editor">Level Editor</a>
-						<a class="big" id="main-tutorial" href="#/campaign/tutorial/1/play">Tutorial</a>
-						<button id="sound-button" title="Click here or press M to turn the sound on and off.">SFX</button>
-					</main-menu>
-				</div>
-			</div>
-			<play-screen id="play-screen" data-screens="play" hidden>
-				<robot-head id="robot">
+		<game-app data-screen="loading">
+			<narrator-text data-screens="select play editor editor-file" hidden><p></p></narrator-text>
+			<game-stage data-screens="select play editor editor-file" hidden></game-stage>
+			<loading-screen data-screens="loading">
+				<p>Loading gfx ... <progress data-progress="images" max="1" value="0"></progress></p>
+				<p>Loading maps ... <progress data-progress="campaigns" max="1" value="0"></progress></p>
+				<p>
+					Loading sfx ... <progress data-progress="sounds" max="1" value="0"></progress>
+					<button class="sound-off">(click here if not loading)</button>
+				</p>
+				<p>- Grab cakes and reach the exit of each level.</p>
+				<p>- Use your portal gun to teleport through levels.</p>
+				<p data-missing="images" hidden></p>
+				<p data-missing="sounds" hidden></p>
+				<p data-missing="campaigns" hidden></p>
+				<img src="decor/controls.png" alt="The controls: keys to move and jump, the mouse to shoot portals" />
+				<p>
+					Jump: <kbd data-key="KeyW">W</kbd>, Left: <kbd data-key="KeyA">A</kbd>, Down: <kbd data-key="KeyS">S</kbd>,
+					Right: <kbd data-key="KeyD">D</kbd>, Clear Portals:
+					<kbd data-key="KeyE">E</kbd>
+				</p>
+				<p class="continue" hidden>Click to continue ...</p>
+			</loading-screen>
+			<credits-screen data-screens="credits" hidden>
+				<a href="#/"><div class="scroll"></div></a>
+				<template><p></p></template>
+			</credits-screen>
+			<main-menu data-screens="main" hidden>
+				<a id="main-classic" href="#/campaign/normal">Classic Mode</a>
+				<a href="#/campaign/community">Enhanced Mode</a>
+				<a href="#/campaign/story">Ultimate Mode</a>
+				<a href="#/editor">Level Editor</a>
+				<a href="#/campaign/tutorial/1/play">Tutorial</a>
+				<button id="sound-button" title="Click here or press M to turn the sound on and off.">SFX</button>
+			</main-menu>
+			<play-screen data-screens="play" hidden>
+				<pause-menu hidden>
+					<div>
+						<button class="resume">Resume</button>
+						<a class="restart">Restart</a>
+						<a class="exit">Exit</a>
+					</div>
+					<div>
+						<button class="sound">Sounds : On</button>
+					</div>
+				</pause-menu>
+				<intermission-panel hidden>
+					<p class="time"></p>
+					<p class="message"></p>
+					<div>
+						<a class="exit">Exit</a>
+						<a class="restart">Restart</a>
+						<a class="next">Continue</a>
+						<button class="replay">Watch Replay</button>
+					</div>
+				</intermission-panel>
+				<robot-head>
 					<img class="head" src="sprites/robotHead.svg" alt="" />
 					<div class="eye"></div>
 				</robot-head>
-				<div id="hud">
-					<game-hud id="stats">
-						<div class="stat"><span class="label">Life</span><span class="value" data-value="life">100</span></div>
-						<div class="stat"><span class="label">Cakes</span><span class="value" data-value="cakes">0</span></div>
-						<div class="stat"><span class="label">Steps</span><span class="value" data-value="steps">0</span></div>
-						<div class="stat"><span class="label">Portals</span><span class="value" data-value="portals">0</span></div>
-					</game-hud>
-					<replay-keys id="keys" hidden>
-						<div class="row">
-							<span class="mouse" data-key="left"></span>
-							<span class="key" data-key="KeyW">W</span>
-							<span class="key" data-key="KeyE">E</span>
-							<span class="mouse" data-key="right"></span>
-						</div>
-						<div class="row">
-							<span class="key" data-key="KeyA">A</span>
-							<span class="key" data-key="KeyS">S</span>
-							<span class="key" data-key="KeyD">D</span>
-						</div>
-					</replay-keys>
-				</div>
-				<div id="play-menus">
-					<pause-menu id="pause-menu" class="menu" hidden>
-						<div class="buttons">
-							<button class="small resume">Resume</button>
-							<a class="small restart">Restart</a>
-							<a class="small exit">Exit</a>
-						</div>
-						<div class="buttons">
-							<button class="small sound">Sounds : On</button>
-						</div>
-					</pause-menu>
-					<intermission-panel id="intermission" class="menu" hidden>
-						<p class="time"></p>
-						<p class="message"></p>
-						<div class="buttons">
-							<a class="small exit">Exit</a>
-							<a class="small restart">Restart</a>
-							<a class="small next">Continue</a>
-							<button class="small replay">Watch Replay</button>
-						</div>
-					</intermission-panel>
-				</div>
+				<game-hud>
+					<div>Life: <span data-value="life">100</span></div>
+					<div>Cakes: <span data-value="cakes">0</span></div>
+					<div>Steps: <span data-value="steps">0</span></div>
+					<div>Portals: <span data-value="portals">0</span></div>
+					<div>FPS: <span data-value="fps">0</span></div>
+				</game-hud>
+				<replay-keys hidden>
+					<div>
+						<span class="mouse" data-key="left"></span>
+						<span class="key" data-key="KeyW">W</span>
+						<span class="key" data-key="KeyE">E</span>
+						<span class="mouse" data-key="right"></span>
+					</div>
+					<div>
+						<span class="key" data-key="KeyA">A</span>
+						<span class="key" data-key="KeyS">S</span>
+						<span class="key" data-key="KeyD">D</span>
+					</div>
+				</replay-keys>
 			</play-screen>
-			<editor-screen id="editor-screen" data-screens="editor editor-file" hidden>
-				<tile-palette id="editor-tiles">
+			<editor-screen data-screens="editor editor-file" hidden>
+				<tile-palette>
 					<template
 						><button><img alt="" /></button
 					></template>
 				</tile-palette>
-				<object-palette id="editor-objects">
+				<object-palette>
 					<button data-sprite="103" title="Cake"><span class="sprite cake"></span></button>
 					<button data-sprite="102" title="Crate"><span class="sprite crate"></span></button>
 					<button data-sprite="100" title="Turret, facing left"><span class="sprite turret-left"></span></button>
 					<button data-sprite="101" title="Turret, facing right"><span class="sprite turret-right"></span></button>
-					<button data-sprite="105" title="Platform, moving right" class="wide">
+					<button data-sprite="105" title="Platform, moving right">
 						<span class="sprite platform"></span><span class="arrow">&#9654;</span>
 					</button>
-					<button data-sprite="106" title="Platform, moving left" class="wide">
+					<button data-sprite="106" title="Platform, moving left">
 						<span class="sprite platform"></span><span class="arrow">&#9664;</span>
 					</button>
 					<button data-sprite="104" title="Player start">
@@ -127,70 +120,64 @@
 					<button data-sprite="108" title="Gravitational pipe: carries the player and objects to the left">
 						<span class="sprite gravpipe-left"></span>
 					</button>
-					<button data-sprite="109" title="Gravitational pipe: carries the player and objects up" class="wide">
+					<button data-sprite="109" title="Gravitational pipe: carries the player and objects up">
 						<span class="sprite gravpipe-up"></span>
 					</button>
-					<button data-sprite="110" title="Gravitational pipe: carries the player and objects down" class="wide">
+					<button data-sprite="110" title="Gravitational pipe: carries the player and objects down">
 						<span class="sprite gravpipe-down"></span>
 					</button>
-					<div id="editor-bg">
-						<button data-bg="-1" title="Previous background">&#9664;</button>
-						<button data-bg="1" title="Next background">&#9654;</button>
-					</div>
+					<button data-bg="-1" title="Previous background">&#9664;</button>
+					<button data-bg="1" title="Next background">&#9654;</button>
 				</object-palette>
-				<div id="editor-menus">
-					<editor-buttons id="editor-menu" class="menu">
-						<div class="buttons">
-							<a class="small" href="#/">Exit</a>
-							<button class="small" data-event="map-clear">Clear</button>
-							<button class="small" data-event="map-test">Try Map</button>
-							<button class="small" data-event="help-show">Help</button>
-							<a class="small" href="#/editor/load">Load</a>
-							<a class="small" href="#/editor/save">Save</a>
-						</div>
-					</editor-buttons>
-					<editor-file-buttons id="editor-file" class="menu" hidden>
-						<div class="buttons">
-							<a class="small" href="#/editor">Exit</a>
-							<button class="small export" data-event="file-export">Export</button>
-							<button class="small" data-event="file-import">Import</button>
-							<button class="small accept" data-event="file-accept" hidden>Save</button>
-						</div>
-					</editor-file-buttons>
-				</div>
-				<slot-list id="slot-list" hidden>
+				<editor-buttons>
+					<div>
+						<a href="#/">Exit</a>
+						<button data-event="map-clear">Clear</button>
+						<button data-event="map-test">Try Map</button>
+						<button data-event="help-show">Help</button>
+						<a href="#/editor/load">Load</a>
+						<a href="#/editor/save">Save</a>
+					</div>
+				</editor-buttons>
+				<editor-file-buttons hidden>
+					<div>
+						<a href="#/editor">Exit</a>
+						<button class="export" data-event="file-export">Export</button>
+						<button data-event="file-import">Import</button>
+						<button class="accept" data-event="file-accept" hidden>Save</button>
+					</div>
+				</editor-file-buttons>
+				<slot-list hidden>
 					<template><button></button></template>
 				</slot-list>
 			</editor-screen>
-			<div id="side" data-screens="select play" hidden>
-				<level-selection id="level-selection" data-screens="select" hidden>
-					<level-list id="level-list">
-						<template><a></a></template>
-					</level-list>
-					<div class="links">
-						<a class="exit" href="#/">Exit</a>
-						<a class="mode" hidden>Hard Mode</a>
-						<a class="play" hidden>Play</a>
-					</div>
-				</level-selection>
-				<best-times id="highscores" data-screens="select play" hidden>
-					<p class="title"></p>
-					<p class="time">Time: <span></span></p>
-					<p class="best">Best time: <span></span></p>
-					<p class="watch"><a>Watch replay</a></p>
-					<p class="export"><button>Export replay</button></p>
-					<p class="import"><button>Import replay</button></p>
-					<p class="total">Campaign total: <span class="total-time"></span><br /><span class="total-levels"></span></p>
-				</best-times>
-			</div>
-			<div id="footer">
+			<level-selection data-screens="select" hidden>
+				<level-list>
+					<template><a></a></template>
+				</level-list>
+				<div>
+					<a class="exit" href="#/">Exit</a>
+					<a class="mode" hidden>Hard Mode</a>
+					<a class="play" hidden>Play</a>
+				</div>
+			</level-selection>
+			<best-times data-screens="select play" hidden>
+				<p class="title"></p>
+				<p class="time">Time: <span></span></p>
+				<p class="best">Best time: <span></span></p>
+				<p class="watch"><a>Watch replay</a></p>
+				<p class="export"><button>Export replay</button></p>
+				<p class="import"><button>Import replay</button></p>
+				<p>Campaign total: <span class="total-time"></span><br /><span class="total-levels"></span></p>
+			</best-times>
+			<footer>
 				Copyright (c) 2010 Christophe<br />
 				Source code licensed under the
 				<a href="https://www.gnu.org/licenses/agpl-3.0.html">GNU Affero General Public License</a><br />
 				Audio licensed under
 				<a href="https://creativecommons.org/licenses/by-sa/3.0/">Creative Commons Attribution-ShareAlike</a><br />
 				Graphics copyright (c) 2010 ZeBlackos
-			</div>
+			</footer>
 		</game-app>
 	</body>
 </html>

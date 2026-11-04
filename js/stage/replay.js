@@ -21,7 +21,7 @@ import { game, input } from './state.js';
 const STATE_LENGTH = 8;
 
 /** @type {number} The version of the replay file format. */
-export const REPLAY_FORMAT = 2;
+const REPLAY_FORMAT = 2;
 
 /**
  * Convert a recorded replay into the file format.

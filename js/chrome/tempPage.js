@@ -1,16 +1,14 @@
 /**
  * The temporary page around the stage.
  *
- * The module fills the screens with the HTML elements of the page until the chrome elements exist: the level list, the
- * best times panel, the HUD, the narrator text, the keys of a replay, the pause menu, the intermission screen, the
- * editor palettes and the slots of the save and load screen. It sets the links that depend on the state and runs the
- * actions that do not change the URL. The app element shows the screens, drives the stage for the routes and tells the
- * module the current screen and the intermission.
+ * The module fills the screens with the HTML elements of the page until the chrome elements exist: the HUD, the narrator
+ * text, the keys of a replay, the pause menu, the intermission screen, the editor palettes and the slots of the save and
+ * load screen. It sets the links that depend on the state and runs the actions that do not change the URL. The app
+ * element shows the screens, drives the stage for the routes and tells the module the current screen and the
+ * intermission.
  */
 
 import {
-	CAMPAIGN_FINISHED,
-	CAMPAIGN_FOLDERS,
 	CampaignId,
 	EDITOR_TILE_TITLES,
 	EDITOR_TILES,
@@ -25,20 +23,11 @@ import {
 } from '../stage/constants.js';
 import { keyLabels } from '../stage/keys.js';
 import { MAP_FORMAT, parseMap } from '../stage/mapFile.js';
-import { decodeReplay } from '../stage/replay.js';
-import { campaignPath, navigate } from '../router.js';
+import { navigate } from '../router.js';
 import { campaigns } from './campaigns.js';
 import { alertDialog } from './dialog.js';
 import { downloadJson, pickJsonFile } from './files.js';
-import {
-	bestTimes,
-	editorMap,
-	getBestTime,
-	getCampaignTotal,
-	loadBestReplay,
-	maxLevel,
-	saveEditorMap,
-} from './storage.js';
+import { editorMap, saveEditorMap } from './storage.js';
 
 /** @type {string} The narrator text of the level selection. */
 const SELECTION_TEXT =
@@ -173,29 +162,25 @@ function shownScreen() {
 }
 
 /**
- * Update the parts of the current screen. The app element shows and hides the screens. The best times panel opens in
- * the level selection and in the levels of a campaign with records. The keys show during the playback of a replay.
+ * Update the parts of the current screen. The app element shows and hides the screens. The keys show during the
+ * playback of a replay.
  *
  * @returns {void}
  */
 function render() {
 	const name = shownScreen();
 	const playing = name === 'play' && screen === 'play';
-	el('highscores').classList.toggle('open', name === 'select' || (playing && campaigns[campaignId].records));
 	show(el('keys'), playing && mode === 'replay');
 	show(el('pause-menu'), name === 'play' && stage.paused.get());
 	show(el('intermission'), name === 'play' && !stage.paused.get() && intermission !== null);
 
-	if (name === 'select') {
-		renderSelection();
-	} else if (name === 'editor-file') {
+	if (name === 'editor-file') {
 		renderEditorFile();
 	} else if (name === 'play') {
 		renderRobot();
 		renderLevelMenus();
 	}
 	renderNarrator();
-	renderPanel();
 }
 
 /**
@@ -210,37 +195,6 @@ function renderNarrator() {
 	else if (name.startsWith('editor')) text = EDITOR_TEXT;
 	else if (name === 'play') text = stage.mode.get() == 'test' ? TEST_TEXT : (stage.message.get()?.text ?? '');
 	el('narrator').textContent = text;
-}
-
-/**
- * Check if the level selection has the button that switches between the normal and the hard campaign.
- *
- * @returns {boolean} True when the button is there.
- */
-function hasModeButton() {
-	return (
-		(campaignId == CampaignId.NORMAL && maxLevel[CampaignId.NORMAL].get() == CAMPAIGN_FINISHED) ||
-		campaignId == CampaignId.ADVANCED
-	);
-}
-
-/**
- * Update the level selection: the links of the levels and the links of the menu. A locked level has no link target.
- *
- * @returns {void}
- */
-function renderSelection() {
-	const folder = CAMPAIGN_FOLDERS[campaignId];
-	for (const link of el('level-list').children) {
-		const n = Number(link.dataset.level);
-		if (n > maxLevel[campaignId].get()) link.removeAttribute('href');
-		else link.setAttribute('href', campaignPath(folder, n));
-		link.classList.toggle('selected', n == level);
-	}
-	setLink(el('selection-play'), level > 0 ? campaignPath(folder, level, 'play') : null);
-	const other = campaignId == CampaignId.NORMAL ? CampaignId.ADVANCED : CampaignId.NORMAL;
-	setLink(el('selection-mode'), hasModeButton() ? campaignPath(CAMPAIGN_FOLDERS[other]) : null);
-	el('selection-mode').textContent = campaignId == CampaignId.NORMAL ? 'Hard Mode' : 'Normal Mode';
 }
 
 /**
@@ -292,44 +246,6 @@ function renderEditorFile() {
 	el('editor-accept').textContent = saving ? 'Save' : 'Load';
 	show(el('editor-accept'), slot > 0);
 	show(el('editor-export'), saving || slot > 0);
-}
-
-/**
- * Update the best times panel. In the level selection, the panel shows the best time of the selected level and
- * buttons for the replays. During play, the panel shows the current time and the best time. The panel always shows
- * the sum of all best times of the campaign.
- *
- * @returns {void}
- */
-function renderPanel() {
-	const name = shownScreen();
-	const playing = name === 'play' && stage.mode.get() == 'play';
-	let html = '';
-	if (playing || name === 'select') {
-		const campaign = campaigns[campaignId].folder;
-		const best = level > 0 ? getBestTime(campaign, level) : null;
-		const total = getCampaignTotal(campaign);
-		const formatTime = (ticks) => (ticks === null ? '-' : toTime(ticks));
-
-		if (playing) {
-			html += `<p class="title">Level ${level}${mode === 'replay' ? ' (replay)' : ''}</p>`;
-			html += `<p>Time: ${toTime(stage.time.get())}</p>`;
-			html += `<p>Best time: ${formatTime(best)}</p>`;
-		} else {
-			if (level > 0) {
-				html += `<p class="title">Level ${level}</p>`;
-				html += `<p>Best time: ${formatTime(best)}</p>`;
-				if (best !== null) {
-					html += `<p><a href="${campaignPath(campaign, level, 'replay')}">Watch replay</a></p>`;
-					html += '<p><button data-action="export">Export replay</button></p>';
-				}
-			}
-			html += '<p><button data-action="import">Import replay</button></p>';
-		}
-		html += `<p class="total">Campaign total: ${toTime(total.ticks)}<br>${total.levels} of ${LEVELS_PER_CAMPAIGN} levels</p>`;
-	}
-	const panel = el('highscores_in');
-	if (panel.innerHTML !== html) panel.innerHTML = html;
 }
 
 /**
@@ -442,40 +358,6 @@ async function importEditorMap() {
 }
 
 /**
- * Check a replay from a file and let the app element play it.
- *
- * @param {object} data The replay in the file format.
- * @returns {void}
- * @throws {Error} If the replay is not valid or the campaign or level does not exist.
- */
-function startReplay(data) {
-	decodeReplay(data);
-	const campaign = campaigns.findIndex((c) => c.folder === data.campaign && c.records);
-	if (campaign < 0 || data.level < 1 || data.level > LEVELS_PER_CAMPAIGN)
-		throw new Error('The replay is for an unknown level.');
-	app.watch(data);
-}
-
-/**
- * Run the action of a button of the best times panel: the import of a replay file or the export of the stored replay.
- *
- * @param {string} action The action name from the data-action attribute.
- * @returns {Promise<void>}
- */
-async function runPanelAction(action) {
-	if (screen != 'select') return;
-	if (action === 'import') {
-		const data = await pickJsonFile();
-		if (data !== null && screen == 'select') startReplay(data);
-		return;
-	}
-
-	const data = await loadBestReplay(campaigns[campaignId].folder, level);
-	if (!data) throw new Error('There is no stored replay for this level.');
-	downloadJson(data, `stillalivejs-${data.campaign}-${String(data.level).padStart(2, '0')}.json`);
-}
-
-/**
  * Add a click handler to a button of the page.
  *
  * @param {string} id The id of the button.
@@ -487,22 +369,12 @@ function onClick(id, handler) {
 }
 
 /**
- * Create the lists of the levels and of the slots and the tile palette, and add the handlers of the buttons. The links
- * of the page need no handlers.
+ * Create the list of the slots and the tile palette, and add the handlers of the buttons. The links of the page need no
+ * handlers.
  *
  * @returns {void}
  */
 function setupButtons() {
-	for (let n = 1; n <= LEVELS_PER_CAMPAIGN; n++) {
-		const link = Object.assign(document.createElement('a'), { textContent: 'Level ' + n });
-		link.dataset.level = String(n);
-		el('level-list').append(link);
-	}
-	el('highscores_in').addEventListener('click', (event) => {
-		const action = event.target.closest('button')?.dataset.action;
-		if (action) runPanelAction(action).catch((error) => alertDialog(error.message, 'Replay'));
-	});
-
 	onClick('pause-resume', () => stage.resume());
 	onClick('pause-restart', () => navigate(location.hash));
 	onClick('pause-sound', () => stage.setSound(!stage.sound.get()));
@@ -589,12 +461,9 @@ export function startPage(element) {
 	stage.paused.subscribe(render);
 	stage.sound.subscribe(render);
 	stage.message.subscribe(renderNarrator);
-	stage.time.subscribe(renderPanel);
 	stage.brush.subscribe(renderBrush);
 	stage.replayKeys.subscribe(renderKeys);
 	for (const value of [stage.life, stage.cakes, stage.steps, stage.portals]) value.subscribe(renderStats);
-	bestTimes.subscribe(render);
-	for (const value of maxLevel) value.subscribe(render);
 
 	stage.addEventListener('focuslost', () => stage.pause());
 }

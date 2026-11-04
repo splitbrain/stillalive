@@ -288,7 +288,6 @@ body {
 }
 
 #intermission .buttons,
-#selection-menu .buttons,
 #editor-menu .buttons,
 #editor-file .buttons {
 	bottom: 2%;
@@ -305,14 +304,15 @@ body {
 	font-size: 2.2cqw;
 }
 
-#level-list {
+#level-list,
+#level-selection .links {
 	display: grid;
 	grid-template-columns: repeat(2, 1fr);
 	gap: 0.5cqw;
 	margin-bottom: 1cqw;
 }
 
-#level-list a {
+#level-selection a {
 	font-size: 1.6cqw;
 	text-align: center;
 	text-decoration: none;
@@ -325,7 +325,7 @@ body {
 	cursor: pointer;
 }
 
-#level-list a[href]:hover,
+#level-selection a[href]:hover,
 #level-list a.selected {
 	background: #0f7090;
 }
@@ -544,6 +544,7 @@ game-stage canvas {
 }
 
 #highscores {
+	display: block;
 	height: 0;
 	overflow: hidden;
 	border-radius: 1cqw;
@@ -556,21 +557,21 @@ game-stage canvas {
 	padding: 2cqw;
 }
 
-#highscores_in p {
+#highscores p {
 	margin: 0 0 1cqw;
 	font-size: 1.8cqw;
 }
 
-#highscores_in p.title {
+#highscores p.title {
 	font-weight: bold;
 	font-size: 2cqw;
 }
 
-#highscores_in p.total {
+#highscores p.total {
 	margin-top: 3cqw;
 }
 
-#highscores_in :is(button, a) {
+#highscores :is(button, a) {
 	display: block;
 	width: 100%;
 	color: inherit;

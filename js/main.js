@@ -5,6 +5,7 @@
 
 import { CreditsScreen } from './chrome/CreditsScreen.js';
 import { GameApp } from './chrome/GameApp.js';
+import { BestTimes, LevelList, LevelSelection } from './chrome/LevelSelection.js';
 import { LoadingScreen } from './chrome/LoadingScreen.js';
 import { MainMenu } from './chrome/MainMenu.js';
 import { GameStage } from './stage/GameStage.js';
@@ -13,4 +14,7 @@ customElements.define('game-stage', GameStage);
 customElements.define('loading-screen', LoadingScreen);
 customElements.define('main-menu', MainMenu);
 customElements.define('credits-screen', CreditsScreen);
+customElements.define('level-list', LevelList);
+customElements.define('level-selection', LevelSelection);
+customElements.define('best-times', BestTimes);
 customElements.define('game-app', GameApp);

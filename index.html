@@ -112,13 +112,6 @@
 							<button class="small" id="intermission-replay">Watch Replay</button>
 						</div>
 					</div>
-					<div id="selection-menu" class="menu" data-screens="select" hidden>
-						<div class="buttons">
-							<a class="small" id="selection-exit" href="#/">Exit</a>
-							<a class="small" id="selection-mode">Hard Mode</a>
-							<a class="small" id="selection-play">Play</a>
-						</div>
-					</div>
 					<div id="editor-menu" class="menu" data-screens="editor" hidden>
 						<div class="buttons">
 							<a class="small" id="editor-exit" href="#/">Exit</a>
@@ -140,11 +133,26 @@
 				</div>
 			</div>
 			<div id="side" data-screens="select play editor-file" hidden>
-				<div id="level-list" data-screens="select"></div>
+				<level-selection id="level-selection" data-screens="select" hidden>
+					<level-list id="level-list">
+						<template><a></a></template>
+					</level-list>
+					<div class="links">
+						<a class="exit" href="#/">Exit</a>
+						<a class="mode" hidden>Hard Mode</a>
+						<a class="play" hidden>Play</a>
+					</div>
+				</level-selection>
 				<div id="slot-list" data-screens="editor-file" hidden></div>
-				<div id="highscores" data-screens="select play">
-					<div id="highscores_in"></div>
-				</div>
+				<best-times id="highscores" data-screens="select play" hidden>
+					<p class="title"></p>
+					<p class="time">Time: <span></span></p>
+					<p class="best">Best time: <span></span></p>
+					<p class="watch"><a>Watch replay</a></p>
+					<p class="export"><button>Export replay</button></p>
+					<p class="import"><button>Import replay</button></p>
+					<p class="total">Campaign total: <span class="total-time"></span><br /><span class="total-levels"></span></p>
+				</best-times>
 				<div id="keys" hidden>
 					<div class="row">
 						<span class="mouse" id="key-left"></span>

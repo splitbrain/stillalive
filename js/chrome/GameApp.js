@@ -29,6 +29,10 @@ import { setIntermission, setScreen, startPage, toTime } from './tempPage.js';
  * editor map shows the play screen. The element replaces a route with a locked level by the selection of the campaign,
  * because the router does not know the progress of the player.
  *
+ * The element sets the campaign and the level of the route as attributes of the level selection, and the campaign, the
+ * level and the play mode as attributes of the best times panel. The panel gets a campaign only on the select and the
+ * play routes. A replay-import event from a page element plays the replay in its detail.
+ *
  * At the end of a level, the element stores the best time, the replay and the progress, and chooses the next route.
  *
  * The element starts the loading of the campaigns and the credits, and sets the sound of the stage from the storage.
@@ -59,8 +63,8 @@ export class GameApp extends HTMLElement {
 
 	/**
 	 * Subscribe to the route, to the loading and to the sound. On the first connect, set the sound from the storage,
-	 * start the loading, start the temporary page module and handle the clicks of the loading screen and the events of
-	 * the stage.
+	 * start the loading, start the temporary page module and handle the clicks of the loading screen, the events of the
+	 * stage and the import of a replay.
 	 *
 	 * @returns {void}
 	 */
@@ -75,6 +79,7 @@ export class GameApp extends HTMLElement {
 			this.querySelector('loading-screen').addEventListener('click', () => this.#start());
 			this.stage.addEventListener('finished', (event) => this.#onFinished(event.detail));
 			this.stage.addEventListener('brokenreplay', () => this.#onBrokenReplay());
+			this.addEventListener('replay-import', (event) => this.watch(event.detail.replay));
 		}
 		this.#unsubscribe = [
 			route.subscribe(() => this.#applyRoute()),
@@ -235,7 +240,28 @@ export class GameApp extends HTMLElement {
 			this.stage.stop();
 		}
 		this.#showScreen();
+		this.#setAttributes(this.querySelector('level-selection'), { campaign: r.campaign, level: r.level });
+		const panel = r.name == 'select' || r.name == 'play';
+		this.#setAttributes(this.querySelector('best-times'), {
+			campaign: panel ? r.campaign : null,
+			level: r.level,
+			mode: r.name == 'play' ? r.mode : null,
+		});
 		setScreen(r.name, { campaign: index, level: r.level, mode: r.mode, exit: r.level > 0 ? this.#exitPath(r) : '#/' });
+	}
+
+	/**
+	 * Set the attributes of a screen or a part of it. A null value removes the attribute.
+	 *
+	 * @param {HTMLElement} element The element.
+	 * @param {Object<string, string|number|null>} attributes The values of the attributes by name.
+	 * @returns {void}
+	 */
+	#setAttributes(element, attributes) {
+		for (const [name, value] of Object.entries(attributes)) {
+			if (value === null) element.removeAttribute(name);
+			else element.setAttribute(name, String(value));
+		}
 	}
 
 	/**

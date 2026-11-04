@@ -13,7 +13,7 @@ import { getCos, getSin, inScreen, random } from './utils.js';
 /**
  * Shoot a portal from the player towards the mouse.
  *
- * The shot follows a straight line, bounces off mirror tiles, and places the portal on the first wall or platform. The
+ * The shot follows a straight line, bounces off icy walls, and places the portal on the first wall or platform. The
  * portal lines of the shot stay for the drawing.
  *
  * @param {number} p The portal index, 0 for blue and 1 for red.
@@ -51,7 +51,7 @@ export function launchPortal(p) {
 		y += game.portals[p].vy;
 		tile = getTilePortal(x >> 8, y >> 8);
 
-		if (tile == Tile.MIRROR) {
+		if (tile == Tile.ICYWALL) {
 			const up = getTilePortal(x >> 8, (y >> 8) - 1);
 			const down = getTilePortal(x >> 8, (y >> 8) + 1);
 			const left = getTilePortal((x >> 8) - 1, y >> 8);

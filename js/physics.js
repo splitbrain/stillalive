@@ -16,7 +16,7 @@ import { getCos, getDistance, getSin } from './utils.js';
  * Check what an object stands on.
  *
  * @param {object} obj The object with x, y, pX and pY.
- * @returns {number} 0 if the object is in the air, 1 for normal ground, 2 for a mirror tile, 3 for a conveyor belt to
+ * @returns {number} 0 if the object is in the air, 1 for normal ground, 2 for an icy wall, 3 for a conveyor belt to
  *     the right and 4 for a conveyor belt to the left.
  */
 export function touchingGround(obj) {
@@ -26,7 +26,7 @@ export function touchingGround(obj) {
 
 		if (isTileKind(hit, TileKind.BELT_RIGHT) || isTileKind(hit2, TileKind.BELT_RIGHT)) return 3;
 		if (isTileKind(hit, TileKind.BELT_LEFT) || isTileKind(hit2, TileKind.BELT_LEFT)) return 4;
-		if (hit == Tile.MIRROR || hit2 == Tile.MIRROR) return 2;
+		if (hit == Tile.ICYWALL || hit2 == Tile.ICYWALL) return 2;
 		else if (hit || hit2) return 1;
 	}
 	return 0;
@@ -131,7 +131,7 @@ export function getTile(x, y) {
 
 /**
  * Get the tile or platform at a point for a portal shot. The shot passes through the exit, the first wheel frame, the
- * red portal tiles, the cakes and the player start.
+ * red energy walls, the cakes and the player start.
  *
  * @param {number} x The x coordinate in pixels.
  * @param {number} y The y coordinate in pixels.
@@ -143,7 +143,7 @@ export function getTilePortal(x, y) {
 	if (
 		tile == Tile.EXIT ||
 		tile == FIRST_OF_KIND[TileKind.WHEEL] ||
-		isTileKind(tile, TileKind.NO_PORTAL) ||
+		isTileKind(tile, TileKind.ENERGYWALL) ||
 		tile == Tile.CAKE ||
 		tile == Tile.PLAYER_START ||
 		isCrateCode(tile)

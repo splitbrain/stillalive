@@ -345,7 +345,7 @@ const ANIMATED_KINDS = [
 	{ kind: TileKind.SWITCH_DOOR, type: RANDOM, speed: 6 },
 	{ kind: TileKind.WHEEL, type: ORDERED, speed: 15 },
 	{ kind: TileKind.ACID, type: ORDERED, speed: 15 },
-	{ kind: TileKind.NO_PORTAL, type: RANDOM, speed: 6 },
+	{ kind: TileKind.ENERGYWALL, type: RANDOM, speed: 6 },
 	{ kind: TileKind.FORCE_FIELD, type: ORDERED, speed: 6 },
 	{ kind: TileKind.BELT_RIGHT, type: ORDERED, speed: 10 },
 	{ kind: TileKind.BELT_LEFT, type: ORDERED, speed: 10 },

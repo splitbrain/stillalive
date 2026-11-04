@@ -61,15 +61,15 @@ export function hashString(text) {
 }
 
 /**
- * Open the game, stop its timers and wait until the stage is ready and all campaigns are loaded.
+ * Open the game and wait until the stage is ready and all campaigns are loaded.
  *
- * The fake clock of Playwright never runs the game loop, so only runLevel() runs game ticks.
+ * The game loop and the timers of the page run at the real speed. runLevel() and runPortalScene() run all their ticks
+ * in one call, so the game loop cannot run a tick between them.
  *
  * @param {import('@playwright/test').Page} page The Playwright page.
  * @returns {Promise<void>}
  */
 export async function openGame(page) {
-	await page.clock.install();
 	await page.goto('./?test');
 	// the wait needs a function that answers at once, so the check of the campaigns is imported before
 	await page.evaluate(async () => {
@@ -83,6 +83,64 @@ export async function openGame(page) {
 		null,
 		{ polling: 50 },
 	);
+}
+
+/**
+ * Open the game and start it as a player does: click the loading screen and wait until the main menu shows.
+ *
+ * The game loop and the timers of the page run at the real speed, so the stage, the narrator and the robot work as in
+ * the game.
+ *
+ * @param {import('@playwright/test').Page} page The Playwright page.
+ * @returns {Promise<void>}
+ */
+export async function startGame(page) {
+	await openGame(page);
+	await page.locator('loading-screen .continue').click();
+	await page.locator('main-menu').waitFor();
+}
+
+/**
+ * Wait until the narrator text has typed its full text: the fixed text of the screen or the text of the message of
+ * the stage. The click targets below the narrator text move while it types, so a click must wait for the end of the
+ * text. The stage must not be paused and must not be in test mode, because the typing stops in a pause and the test
+ * mode types a different text.
+ *
+ * @param {import('@playwright/test').Page} page The Playwright page.
+ * @returns {Promise<void>}
+ */
+export async function waitForNarrator(page) {
+	await page.waitForFunction(() => {
+		const narrator = document.querySelector('narrator-text');
+		const text = narrator.getAttribute('text') ?? window.__test.stage.message.get()?.text ?? '';
+		return narrator.querySelector('p').textContent === text;
+	});
+}
+
+/**
+ * Finish the running level: open the exit and place the player on the first exit tile. The game loop then runs the
+ * end of the level. A wait of an event or the entrance of a boss holds the level end, so the level must run without
+ * them, e.g. after a restart.
+ *
+ * @param {import('@playwright/test').Page} page The Playwright page.
+ * @returns {Promise<void>}
+ * @throws {Error} If the level has no exit tile.
+ */
+export async function finishLevel(page) {
+	await page.evaluate(async () => {
+		const { openExit } = await import('/js/stage/entities/Cake.js');
+		const { Tile } = await import('/js/stage/tiles.js');
+		const { MAP_WIDTH } = await import('/js/stage/constants.js');
+		const { game } = window.__test;
+		openExit();
+		// a tile is 16 pixels, and the player position is in 1/256 pixels
+		const exit = game.map.indexOf(Tile.EXIT);
+		if (exit < 0) throw new Error('The level has no exit tile.');
+		game.player.x = (exit % MAP_WIDTH) << 12;
+		game.player.y = Math.floor(exit / MAP_WIDTH) << 12;
+		game.player.vx = 0;
+		game.player.vy = 0;
+	});
 }
 
 /**

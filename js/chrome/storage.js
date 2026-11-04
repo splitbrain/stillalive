@@ -4,9 +4,13 @@
  * The progress, the best times, the editor maps and the sound setting are small, so they stay in localStorage and can
  * be read at once. The replays can be large, so they go into IndexedDB. Some browsers block the storage, e.g. in a
  * private mode. The game then runs without stored data.
+ *
+ * The progress, the best times and the editor maps are Value instances, so that the page can show their changes. The
+ * page shows the sound setting through the stage, so the sound setting is only read and written.
  */
 
-import { CAMPAIGN_FOLDERS } from './stage/constants.js';
+import { CAMPAIGN_FOLDERS } from '../stage/constants.js';
+import { Value } from '../value.js';
 
 /** @type {string} The localStorage key of the highest unlocked level of each campaign. */
 const PROGRESS_KEY = 'sajs_progress';
@@ -28,9 +32,6 @@ const REPLAY_STORE = 'replays';
 
 /** @type {Promise<IDBDatabase>|null} The open database, created on first use. */
 let database = null;
-
-/** @type {Object<string, number>|null} The parsed best times, or null before the first read. */
-let bestTimes = null;
 
 /**
  * Get the storage key of a level.
@@ -89,17 +90,47 @@ function writeItem(key, value) {
 }
 
 /**
- * Read all best times. The parsed times stay in memory until a different browser tab changes the storage.
+ * Read all best times.
  *
  * @returns {Object<string, number>} The best time in ticks for each level key.
  */
 function readBestTimes() {
-	bestTimes ??= readJsonItem(BEST_TIMES_KEY) ?? {};
-	return bestTimes;
+	return readJsonItem(BEST_TIMES_KEY) ?? {};
 }
 
+/**
+ * Read the highest unlocked level of each campaign.
+ *
+ * @returns {number[]} The highest unlocked level of each campaign, by campaign index.
+ */
+function readProgress() {
+	const stored = readJsonItem(PROGRESS_KEY) ?? {};
+	return CAMPAIGN_FOLDERS.map((folder) => (Number.isInteger(stored[folder]) ? stored[folder] : 1));
+}
+
+/**
+ * The best times, an object with the best time in ticks for each level key, e.g. "normal-7". Each change sets a new
+ * object.
+ *
+ * @type {Value}
+ */
+export const bestTimes = new Value(readBestTimes());
+
+/**
+ * The highest unlocked level of each campaign, by campaign index. CAMPAIGN_FINISHED marks a finished campaign.
+ *
+ * @type {Value[]}
+ */
+export const maxLevel = readProgress().map((level) => new Value(level));
+
+/** @type {Map<number, Value>} The editor map of each slot that the page has read, by slot number. */
+const editorMaps = new Map();
+
+// a different browser tab changed the storage
 window.addEventListener('storage', () => {
-	bestTimes = null;
+	bestTimes.set(readBestTimes());
+	readProgress().forEach((level, i) => maxLevel[i].set(level));
+	for (const [slot, map] of editorMaps) map.set(readJsonItem(EDITOR_MAP_PREFIX + slot));
 });
 
 /**
@@ -141,7 +172,7 @@ async function replayRequest(mode, action) {
  * @returns {number|null} The best time in ticks, or null if the player has not finished the level.
  */
 export function getBestTime(campaign, level) {
-	return readBestTimes()[levelKey(campaign, level)] ?? null;
+	return bestTimes.get()[levelKey(campaign, level)] ?? null;
 }
 
 /**
@@ -152,7 +183,7 @@ export function getBestTime(campaign, level) {
  */
 export function getCampaignTotal(campaign) {
 	const total = { ticks: 0, levels: 0 };
-	for (const [key, ticks] of Object.entries(readBestTimes())) {
+	for (const [key, ticks] of Object.entries(bestTimes.get())) {
 		if (key.startsWith(`${campaign}-`)) {
 			total.ticks += ticks;
 			total.levels++;
@@ -172,9 +203,9 @@ export function getCampaignTotal(campaign) {
  */
 export async function saveBestTime(campaign, level, ticks, replayData) {
 	await replayRequest('readwrite', (store) => store.put(replayData, levelKey(campaign, level)));
-	const times = readBestTimes();
-	times[levelKey(campaign, level)] = ticks;
+	const times = { ...bestTimes.get(), [levelKey(campaign, level)]: ticks };
 	writeItem(BEST_TIMES_KEY, JSON.stringify(times));
+	bestTimes.set(times);
 }
 
 /**
@@ -189,13 +220,15 @@ export function loadBestReplay(campaign, level) {
 }
 
 /**
- * Get an editor map.
+ * Get the editor map of a slot.
  *
  * @param {number} slot The slot number, starting at 1.
- * @returns {{tiles: number[], bg: number}|null} The tile ids and the background index, or null if the slot is empty.
+ * @returns {Value} The editor map as {tiles: number[], bg: number} with the tile ids and the background index, or null
+ *     if the slot is empty.
  */
-export function getEditorMap(slot) {
-	return readJsonItem(EDITOR_MAP_PREFIX + slot);
+export function editorMap(slot) {
+	if (!editorMaps.has(slot)) editorMaps.set(slot, new Value(readJsonItem(EDITOR_MAP_PREFIX + slot)));
+	return editorMaps.get(slot);
 }
 
 /**
@@ -207,26 +240,9 @@ export function getEditorMap(slot) {
  * @returns {boolean} True if the map is stored, false if the browser blocks the storage or the storage is full.
  */
 export function saveEditorMap(slot, tiles, bg) {
-	return writeItem(EDITOR_MAP_PREFIX + slot, JSON.stringify({ tiles, bg }));
-}
-
-/**
- * The highest unlocked level of each campaign, by campaign index. CAMPAIGN_FINISHED marks a finished campaign.
- *
- * @type {number[]}
- */
-export const maxLevel = [];
-
-/**
- * Load the highest unlocked level of each campaign.
- *
- * @returns {void}
- */
-export function loadProgress() {
-	const stored = readJsonItem(PROGRESS_KEY) ?? {};
-	CAMPAIGN_FOLDERS.forEach((folder, i) => {
-		maxLevel[i] = Number.isInteger(stored[folder]) ? stored[folder] : 1;
-	});
+	if (!writeItem(EDITOR_MAP_PREFIX + slot, JSON.stringify({ tiles, bg }))) return false;
+	editorMap(slot).set({ tiles, bg });
+	return true;
 }
 
 /**
@@ -237,8 +253,8 @@ export function loadProgress() {
  * @returns {void}
  */
 export function saveProgress(campaign, level) {
-	maxLevel[campaign] = level;
-	const progress = Object.fromEntries(CAMPAIGN_FOLDERS.map((folder, i) => [folder, maxLevel[i]]));
+	maxLevel[campaign].set(level);
+	const progress = Object.fromEntries(CAMPAIGN_FOLDERS.map((folder, i) => [folder, maxLevel[i].get()]));
 	writeItem(PROGRESS_KEY, JSON.stringify(progress));
 }
 

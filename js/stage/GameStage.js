@@ -152,7 +152,8 @@ export class GameStage extends HTMLElement {
 	}
 
 	/**
-	 * Run the editor map as a level. stop() or the death of the player ends the test run.
+	 * Run the editor map as a level. The death of the player, the exit, and the Escape and Enter keys end the test run
+	 * and go back to the editor. stop() ends the test run and leaves the editor.
 	 *
 	 * @returns {void}
 	 */
@@ -192,19 +193,14 @@ export class GameStage extends HTMLElement {
 	}
 
 	/**
-	 * Leave the level, the preview or the editor, so the canvas shows nothing. A test run goes back to the editor
-	 * instead.
+	 * Leave the level, the preview, the test run or the editor, so the canvas shows nothing.
 	 *
 	 * @returns {void}
 	 */
 	stop() {
-		if (ui.mode == 'test') {
-			stopPlayingLevel();
-		} else {
-			this.#leave();
-			ui.mode = 'idle';
-			clearCanvas();
-		}
+		this.#leave();
+		ui.mode = 'idle';
+		clearCanvas();
 		this.#publish();
 	}
 

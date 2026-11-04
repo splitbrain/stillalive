@@ -123,14 +123,14 @@ body {
 	position: relative;
 }
 
-/* the menus lie over the stage; the overlay shows the menu that its attribute names */
+/* the menus lie over the stage */
 #overlay {
 	position: absolute;
 	inset: 0;
 	pointer-events: none;
 }
 
-/* the loading screen and the credits are text over the stage; a click on them reaches the stage */
+/* the loading screen and the credits are text over the stage; the credits are a link to the main menu */
 #loading-screen,
 #credits {
 	position: absolute;
@@ -140,23 +140,20 @@ body {
 	pointer-events: auto;
 }
 
+#credits {
+	color: inherit;
+	text-decoration: none;
+}
+
 .menu {
 	position: absolute;
 	inset: 0;
-	display: none;
 }
 
-#overlay[data-menu='main'] #main-menu,
-#overlay[data-menu='pause'] #pause-menu,
-#overlay[data-menu='intermission'] #intermission,
-#overlay[data-menu='selection'] #selection-menu,
-#overlay[data-menu='editor'] #editor-menu,
-#overlay[data-menu='editor-file'] #editor-file {
-	display: block;
-}
-
-.menu button {
+.menu :is(button, a) {
 	pointer-events: auto;
+	text-align: center;
+	text-decoration: none;
 	font-family: yikes, Arial, sans-serif;
 	color: #fde900;
 	text-shadow: 0.1em 0.1em 0 #000;
@@ -167,13 +164,16 @@ body {
 	transition: transform 0.1s;
 }
 
-.menu button:hover {
+.menu :is(button, a):hover {
 	transform: scale(0.95);
 }
 
 /* the big buttons of the main menu lie where the canvas draws the players next to them */
-#main-menu button.big {
+#main-menu .big {
 	position: absolute;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 	left: 25%;
 	width: 50%;
 	height: calc(100% * 64 / 544);
@@ -236,7 +236,7 @@ body {
 	padding: 0 2cqw;
 }
 
-.menu button.small {
+.menu .small {
 	font-size: 2.5cqw;
 	padding: 0.5cqw 2.5cqw;
 	min-width: 12cqw;
@@ -278,7 +278,7 @@ body {
 	gap: 1cqw;
 }
 
-#editor-menu button.small {
+#editor-menu .small {
 	min-width: 8cqw;
 	padding: 0.4cqw 1cqw;
 	font-size: 2.2cqw;
@@ -291,8 +291,10 @@ body {
 	margin-bottom: 1cqw;
 }
 
-#level-list button {
+#level-list a {
 	font-size: 1.6cqw;
+	text-align: center;
+	text-decoration: none;
 	font-weight: bold;
 	color: white;
 	background: #073140;
@@ -302,12 +304,12 @@ body {
 	cursor: pointer;
 }
 
-#level-list button:hover:not(:disabled),
-#level-list button.selected {
+#level-list a[href]:hover,
+#level-list a.selected {
 	background: #0f7090;
 }
 
-#level-list button:disabled {
+#level-list a:not([href]) {
 	color: #8aa;
 	cursor: default;
 }
@@ -510,6 +512,11 @@ game-stage canvas {
 	grid-row: 1 / 3;
 }
 
+/* without the stage, the menus over it keep the height of the canvas */
+#stage:has(> game-stage[hidden]) {
+	height: min(calc(98cqw * 384 / 512), 85vh);
+}
+
 #side {
 	grid-area: side;
 	min-width: 0;
@@ -542,8 +549,11 @@ game-stage canvas {
 	margin-top: 3cqw;
 }
 
-#highscores_in button {
+#highscores_in :is(button, a) {
+	display: block;
 	width: 100%;
+	color: inherit;
+	text-align: center;
 	font-size: 1.6cqw;
 	cursor: pointer;
 }

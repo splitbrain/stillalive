@@ -20,7 +20,7 @@ const LAYERS = [
 	},
 	{ name: 'drawing', files: ['./js/stage/render/*.js'] },
 	{ name: 'flow', files: ['./js/stage/{editor,game,GameStage,input}.js'] },
-	{ name: 'page', files: ['./js/[m]ain.js', './js/chrome/**/*.js', './js/{dialog,files,router,storage}.js'] },
+	{ name: 'page', files: ['./js/[m]ain.js', './js/chrome/**/*.js', './js/[r]outer.js'] },
 ];
 
 /** @type {object[]} The zones of import-x/no-restricted-paths: each layer must not import from a higher layer. */
@@ -39,7 +39,7 @@ const LAYER_ZONES = LAYERS.slice(0, -1).map((layer, i) => ({
  */
 const PAGE_ZONES = [
 	{
-		target: ['./js/chrome/**/*.js', './js/{dialog,files,router,storage}.js'],
+		target: ['./js/chrome/**/*.js', './js/[r]outer.js'],
 		from: './js/stage',
 		except: ['./constants.js', './keys.js', './mapFile.js', './replay.js'],
 		message: 'The page must use the stage through the stage element.',

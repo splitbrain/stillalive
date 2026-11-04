@@ -1,9 +1,9 @@
 /**
- * Start code of the page: registers the stage element and starts the page around it.
+ * Start code of the page: registers the stage element and the app element.
  */
 
-import { startPage } from './chrome/tempPage.js';
+import { GameApp } from './chrome/GameApp.js';
 import { GameStage } from './stage/GameStage.js';
 
 customElements.define('game-stage', GameStage);
-startPage();
+customElements.define('game-app', GameApp);

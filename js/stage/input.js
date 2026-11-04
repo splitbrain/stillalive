@@ -17,6 +17,7 @@ import {
 	MOUSE_MIDDLE,
 	MOUSE_RIGHT,
 } from './constants.js';
+import { stopPlayingLevel } from './editor.js';
 import { atExit } from './physics.js';
 import { game, input, ui } from './state.js';
 
@@ -104,11 +105,11 @@ function onKeyUp(event) {
 	if (event.key === 'Escape') {
 		if (ui.paused) stage.resume();
 		else if (canPause()) stage.pause();
-		else if (ui.mode == 'test') stage.stop();
+		else if (ui.mode == 'test') stopPlayingLevel();
 	}
 
 	if (event.key === 'Enter') {
-		if (ui.mode == 'test') stage.stop();
+		if (ui.mode == 'test') stopPlayingLevel();
 		else if (ui.mode == 'edit') stage.test();
 	}
 }

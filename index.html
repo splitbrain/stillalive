@@ -13,14 +13,14 @@
 		<link rel="stylesheet" type="text/css" href="style.css" />
 	</head>
 	<body>
-		<div id="game" data-screen="loading">
-			<div id="robot">
+		<game-app id="game" data-screen="loading">
+			<div id="robot" data-screens="play" hidden>
 				<img id="robot-head" src="sprites/robotHead.svg" alt="" />
 				<div id="robot-eye"></div>
 			</div>
-			<div id="speech"><p id="narrator"></p></div>
-			<div id="editor-tiles" hidden></div>
-			<div id="editor-objects" hidden>
+			<div id="speech" data-screens="select play editor editor-file" hidden><p id="narrator"></p></div>
+			<div id="editor-tiles" data-screens="editor" hidden></div>
+			<div id="editor-objects" data-screens="editor" hidden>
 				<button data-sprite="103" title="Cake"><span class="sprite cake"></span></button>
 				<button data-sprite="102" title="Crate"><span class="sprite crate"></span></button>
 				<button data-sprite="100" title="Turret, facing left"><span class="sprite turret-left"></span></button>
@@ -51,65 +51,65 @@
 					<button data-bg="1" title="Next background">&#9654;</button>
 				</div>
 			</div>
-			<div id="stats">
+			<div id="stats" data-screens="play" hidden>
 				<div class="stat"><span class="label">Life</span><span class="value" id="stat-life">100</span></div>
 				<div class="stat"><span class="label">Cakes</span><span class="value" id="stat-cakes">0</span></div>
 				<div class="stat"><span class="label">Steps</span><span class="value" id="stat-steps">0</span></div>
 				<div class="stat"><span class="label">Portals</span><span class="value" id="stat-portals">0</span></div>
 			</div>
 			<div id="stage">
-				<game-stage id="game-stage"></game-stage>
-				<div id="overlay" data-menu="">
-					<div id="loading-screen" hidden></div>
-					<div id="credits" hidden></div>
-					<div id="main-menu" class="menu">
-						<button class="big" id="main-classic">Classic Mode</button>
-						<button class="big" id="main-enhanced">Enhanced Mode</button>
-						<button class="big" id="main-ultimate">Ultimate Mode</button>
-						<button class="big" id="main-editor">Level Editor</button>
-						<button class="big" id="main-tutorial">Tutorial</button>
+				<game-stage id="game-stage" data-screens="select play editor editor-file" hidden></game-stage>
+				<div id="overlay">
+					<div id="loading-screen" data-screens="loading"></div>
+					<a id="credits" href="#/" data-screens="credits" hidden></a>
+					<div id="main-menu" class="menu" data-screens="main" hidden>
+						<a class="big" id="main-classic" href="#/campaign/normal">Classic Mode</a>
+						<a class="big" id="main-enhanced" href="#/campaign/community">Enhanced Mode</a>
+						<a class="big" id="main-ultimate" href="#/campaign/story">Ultimate Mode</a>
+						<a class="big" id="main-editor" href="#/editor">Level Editor</a>
+						<a class="big" id="main-tutorial" href="#/campaign/tutorial/1/play">Tutorial</a>
 						<button id="sound-button" title="Click here or press M to turn the sound on and off.">SFX</button>
 					</div>
-					<div id="pause-menu" class="menu">
+					<div id="pause-menu" class="menu" hidden>
 						<div class="buttons">
 							<button class="small" id="pause-resume">Resume</button>
 							<button class="small" id="pause-restart">Restart</button>
-							<button class="small" id="pause-exit">Exit</button>
+							<a class="small" id="pause-exit">Exit</a>
 						</div>
 						<div class="buttons">
 							<button class="small" id="pause-sound">Sounds : On</button>
 						</div>
 					</div>
-					<div id="intermission" class="menu">
+					<div id="intermission" class="menu" hidden>
 						<p id="intermission-time"></p>
 						<p id="intermission-message"></p>
 						<div class="buttons">
-							<button class="small" id="intermission-exit">Exit</button>
-							<button class="small" id="intermission-restart">Restart</button>
-							<button class="small" id="intermission-continue">Continue</button>
+							<a class="small" id="intermission-exit">Exit</a>
+							<a class="small" id="intermission-restart">Restart</a>
+							<a class="small" id="intermission-continue">Continue</a>
 							<button class="small" id="intermission-replay">Watch Replay</button>
 						</div>
 					</div>
-					<div id="selection-menu" class="menu">
+					<div id="selection-menu" class="menu" data-screens="select" hidden>
 						<div class="buttons">
-							<button class="small" id="selection-exit">Exit</button>
-							<button class="small" id="selection-mode">Hard Mode</button>
-							<button class="small" id="selection-play">Play</button>
+							<a class="small" id="selection-exit" href="#/">Exit</a>
+							<a class="small" id="selection-mode">Hard Mode</a>
+							<a class="small" id="selection-play">Play</a>
 						</div>
 					</div>
-					<div id="editor-menu" class="menu">
+					<div id="editor-menu" class="menu" data-screens="editor" hidden>
 						<div class="buttons">
-							<button class="small" id="editor-exit">Exit</button>
+							<a class="small" id="editor-exit" href="#/">Exit</a>
 							<button class="small" id="editor-clear">Clear</button>
 							<button class="small" id="editor-try">Try Map</button>
 							<button class="small" id="editor-help">Help</button>
-							<button class="small" id="editor-load">Load</button>
-							<button class="small" id="editor-save">Save</button>
+							<a class="small" id="editor-load" href="#/editor/load">Load</a>
+							<a class="small" id="editor-save" href="#/editor/save">Save</a>
 						</div>
 					</div>
-					<div id="editor-file" class="menu">
+					<div id="editor-file" class="menu" data-screens="editor-file" hidden>
 						<div class="buttons">
-							<button class="small" id="editor-file-exit">Exit</button>
+							<a class="small" id="editor-file-exit" href="#/editor">Exit</a>
 							<button class="small" id="editor-export">Export</button>
 							<button class="small" id="editor-import">Import</button>
 							<button class="small" id="editor-accept">Save</button>
@@ -117,13 +117,13 @@
 					</div>
 				</div>
 			</div>
-			<div id="side">
-				<div id="level-list"></div>
-				<div id="slot-list" hidden></div>
-				<div id="highscores">
+			<div id="side" data-screens="select play editor-file" hidden>
+				<div id="level-list" data-screens="select"></div>
+				<div id="slot-list" data-screens="editor-file" hidden></div>
+				<div id="highscores" data-screens="select play">
 					<div id="highscores_in"></div>
 				</div>
-				<div id="keys">
+				<div id="keys" hidden>
 					<div class="row">
 						<span class="mouse" id="key-left"></span>
 						<span class="key" id="key-KeyW">W</span>
@@ -145,6 +145,6 @@
 				<a href="https://creativecommons.org/licenses/by-sa/3.0/">Creative Commons Attribution-ShareAlike</a><br />
 				Graphics copyright (c) 2010 ZeBlackos
 			</div>
-		</div>
+		</game-app>
 	</body>
 </html>

@@ -30,13 +30,15 @@ let wantedHeight;
 const scaledImages = new WeakMap();
 
 /**
- * Remember the size of the canvas on the page in device pixels.
+ * Remember the size of the canvas on the page in device pixels. A hidden canvas has no size, so the buffer keeps its
+ * size until the canvas shows again.
  *
  * @param {ResizeObserverEntry[]} entries The observed changes.
  * @returns {void}
  */
 function onResize(entries) {
 	const rect = entries[0].contentRect;
+	if (rect.width == 0 || rect.height == 0) return;
 	wantedWidth = Math.round(rect.width * devicePixelRatio);
 	wantedHeight = Math.round(rect.height * devicePixelRatio);
 }

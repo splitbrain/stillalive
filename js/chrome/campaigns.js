@@ -4,6 +4,7 @@
 
 import { CAMPAIGN_FOLDERS, CampaignId } from '../stage/constants.js';
 import { parseMap } from '../stage/mapFile.js';
+import { Value } from '../value.js';
 
 /** @type {Campaign[]} The loaded campaigns, by campaign id. */
 export let campaigns;
@@ -15,6 +16,8 @@ export let levelsToLoad = CAMPAIGN_FOLDERS.length;
 export const missingLevelFiles = [];
 /** @type {string[]} The lines of the credits. */
 export let creditsTxt = [];
+/** @type {Value} True when all campaign and level files are loaded. */
+export const campaignsReady = new Value(false);
 
 /**
  * A campaign with its levels.
@@ -71,8 +74,7 @@ function loadCampaignFiles(camp, onProgress) {
 		for (let i = 0; i < data.levels.length; i++) {
 			loadLevelFile(camp, i, folder + data.levels[i], onProgress);
 		}
-		levelsLoaded++;
-		onProgress();
+		fileLoaded(onProgress);
 	});
 }
 
@@ -94,9 +96,20 @@ function loadLevelFile(camp, index, url, onProgress) {
 			number: index + 1,
 			fromBelow: index == 7 && camp <= CampaignId.ADVANCED,
 		};
-		levelsLoaded++;
-		onProgress();
+		fileLoaded(onProgress);
 	});
+}
+
+/**
+ * Count a loaded campaign or level file.
+ *
+ * @param {function(): void} onProgress Called after the count.
+ * @returns {void}
+ */
+function fileLoaded(onProgress) {
+	levelsLoaded++;
+	campaignsReady.set(areCampaignsLoaded());
+	onProgress();
 }
 
 /**

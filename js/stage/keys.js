@@ -2,18 +2,21 @@
  * The labels of the control keys on the keyboard of the player.
  */
 
+import { Value } from '../value.js';
+
 /**
- * The label of each control key, by key code. The defaults are the labels of a QWERTY keyboard.
+ * The label of each control key, by key code, as an object. The defaults are the labels of a QWERTY keyboard. The
+ * labels of the keyboard layout of the player set a new object.
  *
- * @type {Object<string, string>}
+ * @type {Value}
  */
-export const keyLabels = {
+export const keyLabels = new Value({
 	KeyW: 'W',
 	KeyA: 'A',
 	KeyS: 'S',
 	KeyD: 'D',
 	KeyE: 'E',
-};
+});
 
 /**
  * Replace the default labels with the labels of the keyboard layout of the player. Browsers without the Keyboard
@@ -25,10 +28,12 @@ export async function loadKeyLabels() {
 	if (!navigator.keyboard || !navigator.keyboard.getLayoutMap) return;
 	try {
 		const layout = await navigator.keyboard.getLayoutMap();
-		for (const code of Object.keys(keyLabels)) {
+		const labels = { ...keyLabels.get() };
+		for (const code of Object.keys(labels)) {
 			const label = layout.get(code);
-			if (label) keyLabels[code] = label.toUpperCase();
+			if (label) labels[code] = label.toUpperCase();
 		}
+		keyLabels.set(labels);
 	} catch (error) {
 		console.error(error);
 	}

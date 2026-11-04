@@ -140,9 +140,30 @@ body {
 	pointer-events: auto;
 }
 
+/* the credits scroll from the bottom edge out of the top edge; the end of the scroll leads to the main menu */
 #credits {
+	overflow: hidden;
+	container-type: size;
+}
+
+#credits a {
+	display: block;
+	height: 100%;
 	color: inherit;
 	text-decoration: none;
+}
+
+#credits .scroll {
+	animation: credits-scroll 30s linear;
+}
+
+@keyframes credits-scroll {
+	from {
+		transform: translateY(100cqh);
+	}
+	to {
+		transform: translateY(-100%);
+	}
 }
 
 .menu {

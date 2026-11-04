@@ -146,7 +146,7 @@ function fire(event) {
 	if (event.portals) event.portals.forEach((portal, p) => placePortal(p, portal));
 	if (event.wait && skipWaits && !isBossWait(event)) return;
 	if (event.text !== undefined) {
-		const text = event.text.replace(/\{(Key[WASDE])\}/g, (_, code) => keyLabels[code]);
+		const text = event.text.replace(/\{(Key[WASDE])\}/g, (_, code) => keyLabels.get()[code]);
 		game.message = text ? { text, wait: Boolean(event.wait), portrait: game.bossNum } : null;
 	}
 	if (!event.wait) return;

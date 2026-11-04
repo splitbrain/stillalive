@@ -4,9 +4,17 @@
 
 import { campaignPath, navigate, route } from '../router.js';
 import { CampaignId, CAMPAIGN_FOLDERS, LEVELS_PER_CAMPAIGN, MAP_SIZE } from '../stage/constants.js';
-import { campaigns, campaignsReady } from './campaigns.js';
+import { campaigns, campaignsReady, loadCampaigns, loadCreditsText } from './campaigns.js';
 import { alertDialog } from './dialog.js';
-import { getBestTime, loadBestReplay, maxLevel, saveBestTime, saveProgress } from './storage.js';
+import {
+	getBestTime,
+	loadBestReplay,
+	loadSoundSetting,
+	maxLevel,
+	saveBestTime,
+	saveProgress,
+	saveSoundSetting,
+} from './storage.js';
 import { setIntermission, setScreen, startPage, toTime } from './tempPage.js';
 
 /**
@@ -22,6 +30,10 @@ import { setIntermission, setScreen, startPage, toTime } from './tempPage.js';
  * because the router does not know the progress of the player.
  *
  * At the end of a level, the element stores the best time, the replay and the progress, and chooses the next route.
+ *
+ * The element starts the loading of the campaigns and the credits, and sets the sound of the stage from the storage.
+ * It stores each change of the sound after the game starts, from the buttons of the page or from the key of the stage.
+ * A change on the loading screen is for the session only.
  */
 export class GameApp extends HTMLElement {
 	/** @type {import('../stage/GameStage.js').GameStage} The stage element. */
@@ -46,8 +58,9 @@ export class GameApp extends HTMLElement {
 	#setUp = false;
 
 	/**
-	 * Subscribe to the route and to the loading. On the first connect, start the temporary page module and handle the
-	 * events of the stage.
+	 * Subscribe to the route, to the loading and to the sound. On the first connect, set the sound from the storage,
+	 * start the loading, start the temporary page module and handle the clicks of the loading screen and the events of
+	 * the stage.
 	 *
 	 * @returns {void}
 	 */
@@ -55,8 +68,11 @@ export class GameApp extends HTMLElement {
 		if (!this.#setUp) {
 			this.#setUp = true;
 			this.stage = this.querySelector('game-stage');
+			this.stage.setSound(loadSoundSetting());
+			loadCampaigns();
+			loadCreditsText();
 			startPage(this);
-			this.querySelector('#loading-screen').addEventListener('click', () => this.#start());
+			this.querySelector('loading-screen').addEventListener('click', () => this.#start());
 			this.stage.addEventListener('finished', (event) => this.#onFinished(event.detail));
 			this.stage.addEventListener('brokenreplay', () => this.#onBrokenReplay());
 		}
@@ -65,6 +81,9 @@ export class GameApp extends HTMLElement {
 			this.stage.ready.subscribe(() => this.#applyRoute()),
 			campaignsReady.subscribe(() => this.#applyRoute()),
 			this.stage.mode.subscribe(() => this.#showScreen()),
+			this.stage.sound.subscribe((on) => {
+				if (this.#started) saveSoundSetting(on);
+			}),
 		];
 	}
 

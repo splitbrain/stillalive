@@ -9,15 +9,22 @@ import { Value } from '../value.js';
 /** @type {Campaign[]} The loaded campaigns, by campaign id. */
 export let campaigns;
 /** @type {number} The number of loaded campaign and level files. */
-export let levelsLoaded = 0;
+let levelsLoaded = 0;
 /** @type {number} The number of campaign and level files to load. The campaign files add their level files. */
-export let levelsToLoad = CAMPAIGN_FOLDERS.length;
+let levelsToLoad = CAMPAIGN_FOLDERS.length;
 /** @type {string[]} The URLs of the campaign and level files that could not be loaded. */
-export const missingLevelFiles = [];
-/** @type {string[]} The lines of the credits. */
-export let creditsTxt = [];
+const missingLevelFiles = [];
+/**
+ * The loading progress of the campaign and level files from 0 to 1, and the URLs of the files that could not be
+ * loaded, as {progress: number, missing: string[]}. Each change sets a new object.
+ *
+ * @type {Value}
+ */
+export const campaignsLoading = new Value({ progress: 0, missing: [] });
 /** @type {Value} True when all campaign and level files are loaded. */
 export const campaignsReady = new Value(false);
+/** @type {Value} The lines of the credits, an empty list until the credits are loaded. */
+export const credits = new Value([]);
 
 /**
  * A campaign with its levels.
@@ -43,12 +50,11 @@ export class Campaign {
 /**
  * Create the campaigns and start to load their files.
  *
- * @param {function(): void} onProgress Called each time a file is loaded.
  * @returns {void}
  */
-export function loadCampaigns(onProgress) {
+export function loadCampaigns() {
 	campaigns = CAMPAIGN_FOLDERS.map((folder) => new Campaign(folder));
-	for (let c = 0; c < campaigns.length; c++) loadCampaignFiles(c, onProgress);
+	for (let c = 0; c < campaigns.length; c++) loadCampaignFiles(c);
 }
 
 /**
@@ -61,10 +67,9 @@ export function loadCampaigns(onProgress) {
  * - endText: the message of the last intermission screen. The default is none.
  *
  * @param {number} camp The index of the campaign.
- * @param {function(): void} onProgress Called each time a file is loaded.
  * @returns {void}
  */
-function loadCampaignFiles(camp, onProgress) {
+function loadCampaignFiles(camp) {
 	const folder = 'maps/' + campaigns[camp].folder + '/';
 	loadLevelJsonFile(folder + 'campaign.json', function (data) {
 		campaigns[camp].intermission = data.intermission !== false;
@@ -72,9 +77,9 @@ function loadCampaignFiles(camp, onProgress) {
 		campaigns[camp].endText = typeof data.endText == 'string' ? data.endText : '';
 		levelsToLoad += data.levels.length;
 		for (let i = 0; i < data.levels.length; i++) {
-			loadLevelFile(camp, i, folder + data.levels[i], onProgress);
+			loadLevelFile(camp, i, folder + data.levels[i]);
 		}
-		fileLoaded(onProgress);
+		fileLoaded();
 	});
 }
 
@@ -85,10 +90,9 @@ function loadCampaignFiles(camp, onProgress) {
  * @param {number} camp The index of the campaign.
  * @param {number} index The index of the level in the campaign, starting at 0.
  * @param {string} url The URL of the level file.
- * @param {function(): void} onProgress Called when the file is loaded.
  * @returns {void}
  */
-function loadLevelFile(camp, index, url, onProgress) {
+function loadLevelFile(camp, index, url) {
 	loadLevelJsonFile(url, function (data) {
 		campaigns[camp].levels[index] = {
 			...parseMap(data),
@@ -96,20 +100,28 @@ function loadLevelFile(camp, index, url, onProgress) {
 			number: index + 1,
 			fromBelow: index == 7 && camp <= CampaignId.ADVANCED,
 		};
-		fileLoaded(onProgress);
+		fileLoaded();
 	});
 }
 
 /**
  * Count a loaded campaign or level file.
  *
- * @param {function(): void} onProgress Called after the count.
  * @returns {void}
  */
-function fileLoaded(onProgress) {
+function fileLoaded() {
 	levelsLoaded++;
 	campaignsReady.set(areCampaignsLoaded());
-	onProgress();
+	updateLoading();
+}
+
+/**
+ * Set the loading progress after a campaign or level file is loaded or failed.
+ *
+ * @returns {void}
+ */
+function updateLoading() {
+	campaignsLoading.set({ progress: levelsLoaded / levelsToLoad, missing: missingLevelFiles.slice() });
 }
 
 /**
@@ -121,7 +133,10 @@ function fileLoaded(onProgress) {
  * @returns {void}
  */
 function loadLevelJsonFile(url, callback) {
-	loadJsonFile(url, callback, () => missingLevelFiles.push(url));
+	loadJsonFile(url, callback, () => {
+		missingLevelFiles.push(url);
+		updateLoading();
+	});
 }
 
 /**
@@ -152,7 +167,7 @@ function loadJsonFile(url, callback, onError = () => {}) {
  */
 export function loadCreditsText() {
 	loadJsonFile('credits.json', function (data) {
-		creditsTxt = data.lines;
+		credits.set(data.lines);
 	});
 }
 

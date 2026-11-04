@@ -60,16 +60,38 @@
 			<div id="stage">
 				<game-stage id="game-stage" data-screens="select play editor editor-file" hidden></game-stage>
 				<div id="overlay">
-					<div id="loading-screen" data-screens="loading"></div>
-					<a id="credits" href="#/" data-screens="credits" hidden></a>
-					<div id="main-menu" class="menu" data-screens="main" hidden>
+					<loading-screen id="loading-screen" data-screens="loading">
+						<p>Loading gfx ... <progress data-progress="images" max="1" value="0"></progress></p>
+						<p>Loading maps ... <progress data-progress="campaigns" max="1" value="0"></progress></p>
+						<p>
+							Loading sfx ... <progress data-progress="sounds" max="1" value="0"></progress>
+							<button class="sound-off">(click here if not loading)</button>
+						</p>
+						<p>- Grab cakes and reach the exit of each level.</p>
+						<p>- Use your portal gun to teleport through levels.</p>
+						<p data-missing="images" hidden></p>
+						<p data-missing="sounds" hidden></p>
+						<p data-missing="campaigns" hidden></p>
+						<img src="decor/controls.png" alt="The controls: keys to move and jump, the mouse to shoot portals" />
+						<p>
+							Jump: <kbd data-key="KeyW">W</kbd>, Left: <kbd data-key="KeyA">A</kbd>, Down:
+							<kbd data-key="KeyS">S</kbd>, Right: <kbd data-key="KeyD">D</kbd>, Clear Portals:
+							<kbd data-key="KeyE">E</kbd>
+						</p>
+						<p class="continue" hidden>Click to continue ...</p>
+					</loading-screen>
+					<credits-screen id="credits" data-screens="credits" hidden>
+						<a href="#/"><div class="scroll"></div></a>
+						<template><p></p></template>
+					</credits-screen>
+					<main-menu id="main-menu" class="menu" data-screens="main" hidden>
 						<a class="big" id="main-classic" href="#/campaign/normal">Classic Mode</a>
 						<a class="big" id="main-enhanced" href="#/campaign/community">Enhanced Mode</a>
 						<a class="big" id="main-ultimate" href="#/campaign/story">Ultimate Mode</a>
 						<a class="big" id="main-editor" href="#/editor">Level Editor</a>
 						<a class="big" id="main-tutorial" href="#/campaign/tutorial/1/play">Tutorial</a>
 						<button id="sound-button" title="Click here or press M to turn the sound on and off.">SFX</button>
-					</div>
+					</main-menu>
 					<div id="pause-menu" class="menu" hidden>
 						<div class="buttons">
 							<button class="small" id="pause-resume">Resume</button>

@@ -1,11 +1,11 @@
 /**
  * The temporary page around the stage.
  *
- * The module fills the screens with the HTML elements of the page until the chrome elements exist: the loading text,
- * the main menu, the level list, the best times panel, the HUD, the narrator text, the keys of a replay, the pause menu,
- * the intermission screen, the editor palettes, the slots of the save and load screen, and the credits. It sets the
- * links that depend on the state and runs the actions that do not change the URL. The app element shows the screens,
- * drives the stage for the routes and tells the module the current screen and the intermission.
+ * The module fills the screens with the HTML elements of the page until the chrome elements exist: the level list, the
+ * best times panel, the HUD, the narrator text, the keys of a replay, the pause menu, the intermission screen, the
+ * editor palettes and the slots of the save and load screen. It sets the links that depend on the state and runs the
+ * actions that do not change the URL. The app element shows the screens, drives the stage for the routes and tells the
+ * module the current screen and the intermission.
  */
 
 import {
@@ -27,16 +27,7 @@ import { keyLabels } from '../stage/keys.js';
 import { MAP_FORMAT, parseMap } from '../stage/mapFile.js';
 import { decodeReplay } from '../stage/replay.js';
 import { campaignPath, navigate } from '../router.js';
-import {
-	campaigns,
-	campaignsReady,
-	creditsTxt,
-	levelsLoaded,
-	levelsToLoad,
-	loadCampaigns,
-	loadCreditsText,
-	missingLevelFiles,
-} from './campaigns.js';
+import { campaigns } from './campaigns.js';
 import { alertDialog } from './dialog.js';
 import { downloadJson, pickJsonFile } from './files.js';
 import {
@@ -45,10 +36,8 @@ import {
 	getBestTime,
 	getCampaignTotal,
 	loadBestReplay,
-	loadSoundSetting,
 	maxLevel,
 	saveEditorMap,
-	saveSoundSetting,
 } from './storage.js';
 
 /** @type {string} The narrator text of the level selection. */
@@ -114,9 +103,6 @@ let intermission = null;
 
 /** @type {number} The selected slot of the save or load screen, or 0 for none. */
 let slot = 0;
-
-/** @type {boolean} True if a change of the sound is a change of the player and goes into the storage. */
-let storeSound = false;
 
 /**
  * Get an element of the page by its id.
@@ -200,9 +186,7 @@ function render() {
 	show(el('pause-menu'), name === 'play' && stage.paused.get());
 	show(el('intermission'), name === 'play' && !stage.paused.get() && intermission !== null);
 
-	if (name === 'main') {
-		renderMainMenu();
-	} else if (name === 'select') {
+	if (name === 'select') {
 		renderSelection();
 	} else if (name === 'editor-file') {
 		renderEditorFile();
@@ -226,59 +210,6 @@ function renderNarrator() {
 	else if (name.startsWith('editor')) text = EDITOR_TEXT;
 	else if (name === 'play') text = stage.mode.get() == 'test' ? TEST_TEXT : (stage.message.get()?.text ?? '');
 	el('narrator').textContent = text;
-}
-
-/**
- * Show the progress of the loading and the link that turns the sound off. When everything is loaded, a click on the
- * loading screen starts the game.
- *
- * @returns {void}
- */
-function renderLoading() {
-	const { images, sounds } = stage.loading.get();
-	const percent = (share) => Math.trunc(share * 100) + '%';
-	const lines = [
-		'Loading gfx ... ' + percent(images.progress),
-		'Loading maps ... ' + percent(levelsLoaded / levelsToLoad),
-		'Loading sfx ... ' + percent(sounds.progress),
-		'- Grab cakes and reach the exit of each level.',
-		'- Use your portal gun to teleport through levels.',
-	];
-	if (images.missing.length > 0) lines.push('Some images could not be loaded: ' + images.missing.join(', '));
-	if (sounds.missing.length > 0) lines.push('Some sounds could not be loaded: ' + sounds.missing.join(', '));
-	if (missingLevelFiles.length > 0) lines.push('Some levels could not be loaded: ' + missingLevelFiles.join(', '));
-	if (isLoaded()) lines.push('Click to continue ...');
-
-	const paragraphs = lines.map((line) => Object.assign(document.createElement('p'), { textContent: line }));
-	const soundOff = Object.assign(document.createElement('button'), { textContent: '(click here if not loading)' });
-	soundOff.addEventListener('click', () => {
-		// the link turns the sound off for this session only
-		storeSound = false;
-		stage.setSound(false);
-		storeSound = true;
-	});
-	paragraphs[2].append(' ', soundOff);
-	el('loading-screen').replaceChildren(...paragraphs);
-}
-
-/**
- * Check if the stage and the campaigns are loaded.
- *
- * @returns {boolean} True when the game can start.
- */
-function isLoaded() {
-	return stage.ready.get() && campaignsReady.get();
-}
-
-/**
- * Update the main menu: the label of the first campaign and the sound button.
- *
- * @returns {void}
- */
-function renderMainMenu() {
-	el('main-classic').textContent =
-		'Classic Mode' + (maxLevel[CampaignId.NORMAL].get() == CAMPAIGN_FINISHED ? ' +' : '');
-	el('sound-button').classList.toggle('off', !stage.sound.get());
 }
 
 /**
@@ -420,10 +351,11 @@ function renderStats() {
  */
 function renderKeys() {
 	const keys = stage.replayKeys.get();
+	const labels = keyLabels.get();
 	for (const [name, bit] of Object.entries(KEY_CAPS)) {
 		const cap = el(`key-${name}`);
 		cap.classList.toggle('pressed', (keys & bit) != 0);
-		if (name in keyLabels) cap.textContent = keyLabels[name];
+		if (name in labels) cap.textContent = labels[name];
 	}
 }
 
@@ -561,8 +493,6 @@ function onClick(id, handler) {
  * @returns {void}
  */
 function setupButtons() {
-	onClick('sound-button', () => stage.setSound(!stage.sound.get()));
-
 	for (let n = 1; n <= LEVELS_PER_CAMPAIGN; n++) {
 		const link = Object.assign(document.createElement('a'), { textContent: 'Level ' + n });
 		link.dataset.level = String(n);
@@ -628,11 +558,6 @@ export function setScreen(name, route = {}) {
 	exitPath = route.exit ?? '#/';
 	intermission = null;
 	slot = 0;
-	if (name === 'credits') {
-		el('credits').replaceChildren(
-			...creditsTxt.map((line) => Object.assign(document.createElement('p'), { textContent: line })),
-		);
-	}
 	render();
 }
 
@@ -650,8 +575,7 @@ export function setIntermission(data) {
 }
 
 /**
- * Start the page: load the sound setting, the campaigns and the credits, add the handlers and show the values of the
- * stage and of the storage.
+ * Start the page: add the handlers and show the values of the stage and of the storage.
  *
  * @param {import('./GameApp.js').GameApp} element The app element.
  * @returns {void}
@@ -659,17 +583,8 @@ export function setIntermission(data) {
 export function startPage(element) {
 	app = element;
 	stage = element.stage;
-	stage.setSound(loadSoundSetting());
-	stage.sound.subscribe((on) => {
-		if (storeSound) saveSoundSetting(on);
-	});
-	storeSound = true;
-	loadCampaigns(renderLoading);
-	loadCreditsText();
 	setupButtons();
 
-	stage.loading.subscribe(renderLoading);
-	stage.ready.subscribe(renderLoading);
 	stage.mode.subscribe(render);
 	stage.paused.subscribe(render);
 	stage.sound.subscribe(render);

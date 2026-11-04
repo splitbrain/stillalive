@@ -1,5 +1,5 @@
 /**
- * Export and import of editor maps as files.
+ * The map file format and its check. The campaign levels and the editor maps use the same format.
  *
  * A map file is JSON with these properties:
  *
@@ -33,7 +33,6 @@
  */
 
 import { MAP_SIZE, NUM_TILES } from './constants.js';
-import { downloadJson, pickJsonFile } from '../files.js';
 import { bg } from './images.js';
 import { Tile, isObjectTile } from './tiles.js';
 
@@ -180,17 +179,6 @@ function isValidLabel(label) {
 }
 
 /**
- * Let the browser download an editor map as a JSON file.
- *
- * @param {number[]} tiles The 768 tile ids.
- * @param {number} bg The background index.
- * @returns {void}
- */
-export function exportEditorMap(tiles, bg) {
-	downloadJson({ format: MAP_FORMAT, tiles, bg }, 'stillalivejs-map.json');
-}
-
-/**
  * Check the data of a map file.
  *
  * @param {*} data The parsed content of a map file.
@@ -225,19 +213,4 @@ export function parseMap(data) {
 		events: [...(data.text ? [{ on: 'start', text: data.text }] : []), ...(data.events ?? [])],
 		labels: data.labels ?? [],
 	};
-}
-
-/**
- * Let the player select a map file and read it.
- *
- * @returns {Promise<MapData|null>} The data of the map, with the boss always 0, or null if the player cancels the
- *     dialog.
- * @throws {Error} If the file is not a valid map file or is a boss level.
- */
-export async function importEditorMap() {
-	const data = await pickJsonFile();
-	if (data === null) return null;
-	const map = parseMap(data);
-	if (map.boss > 0) throw new Error('The editor does not support boss levels.');
-	return map;
 }

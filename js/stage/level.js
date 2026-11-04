@@ -1,20 +1,10 @@
 /**
- * Loading of the campaigns, the levels, the level editor maps and the credits, and the doors of a level.
+ * The start of a level, of a preview and of the editor map, and the doors of a level.
  */
 
 import { playSound, sfx_tick } from './audio.js';
 import { setupBoss, skipComingBoss } from './boss.js';
-import {
-	CAMPAIGN_FOLDERS,
-	CampaignId,
-	Direction,
-	MAP_HEIGHT,
-	MAP_WIDTH,
-	ORDERED,
-	PLAYFIELD_HEIGHT,
-	RANDOM,
-	SparkleType,
-} from './constants.js';
+import { Direction, MAP_HEIGHT, MAP_WIDTH, ORDERED, PLAYFIELD_HEIGHT, RANDOM, SparkleType } from './constants.js';
 import { AnimatedTile } from './entities/AnimatedTile.js';
 import { Cake, openExit } from './entities/Cake.js';
 import { Camera } from './entities/Camera.js';
@@ -27,20 +17,10 @@ import { removeSparkles } from './entities/Sparkle.js';
 import { GravPipe } from './entities/GravPipe.js';
 import { Turret } from './entities/Turret.js';
 import { startEvents } from './events.js';
-import { parseMap } from './mapFile.js';
 import { getTileSimple } from './physics.js';
 import { Replay } from './replay.js';
 import { game, input, ui } from './state.js';
 import { FIRST_OF_KIND, LAST_OF_KIND, Tile, TileKind, isTileKind } from './tiles.js';
-
-/** @type {Campaign[]} The loaded campaigns, by campaign id. */
-export let campaigns;
-/** @type {number} The number of loaded campaign and level files. */
-export let levelsLoaded = 0;
-/** @type {number} The number of campaign and level files to load. The campaign files add their level files. */
-export let levelsToLoad = 5;
-/** @type {string[]} The URLs of the campaign and level files that could not be loaded. */
-const missingFiles = [];
 
 /**
  * Mark the tile layer as changed, so the next frame draws it again.
@@ -207,149 +187,19 @@ function crateOnSwitch() {
 }
 
 /**
- * A campaign with its levels.
+ * A level as the stage plays it: the data of a map file and where the level comes from.
+ *
+ * @typedef {object} Level
+ * @property {number[]} tiles The 768 tile ids.
+ * @property {number} bg The background index.
+ * @property {number} boss The boss, or 0 for a level without a boss.
+ * @property {{jump: boolean, portals: boolean}} abilities The abilities of the player at the level start.
+ * @property {import('./mapFile.js').MapEvent[]} events The events of the level.
+ * @property {import('./mapFile.js').MapLabel[]} labels The texts at positions of the playfield.
+ * @property {string} campaign The folder name of the campaign, for the replay file.
+ * @property {number} number The level number, starting at 1, for the replay file.
+ * @property {boolean} fromBelow True if the player jumps into the level from below the bottom edge.
  */
-export class Campaign {
-	/**
-	 * @param {string} folder The folder name of the campaign below maps/.
-	 */
-	constructor(folder) {
-		/** @type {string} The folder name of the campaign below maps/. */
-		this.folder = folder;
-		/** @type {number[][]} The 768 tile ids of each level. */
-		this.levels = new Array();
-		/** @type {number[]} The background index of each level. */
-		this.backgrounds = new Array();
-		/** @type {number[]} The boss of each level, or 0 for a level without a boss. */
-		this.bosses = new Array();
-		/** @type {{jump: boolean, portals: boolean}[]} The abilities of the player at the start of each level. */
-		this.abilities = new Array();
-		/** @type {import('./mapFile.js').MapEvent[][]} The events of each level. */
-		this.events = new Array();
-		/** @type {import('./mapFile.js').MapLabel[][]} The texts at positions of the playfield of each level. */
-		this.labels = new Array();
-		/** @type {boolean} True if the intermission screen shows after each level, false if the next level starts at once. */
-		this.intermission = true;
-		/** @type {boolean} True if the best times and the replays of the levels are stored. */
-		this.records = true;
-		/** @type {string} The message of the last intermission screen, or an empty text for none. */
-		this.endText = '';
-	}
-}
-
-/**
- * Create the campaigns and start to load their files.
- *
- * @returns {void}
- */
-export function loadCampaigns() {
-	let c;
-	campaigns = CAMPAIGN_FOLDERS.map((folder) => new Campaign(folder));
-
-	for (c = 0; c < campaigns.length; c++) {
-		loadCampaignFiles(c);
-	}
-}
-
-/**
- * Load the level list of a campaign and then its level files.
- *
- * The campaign file is JSON with the list of the level files in "levels". These properties are optional:
- *
- * - intermission: false starts the next level at once after the exit. The default is true.
- * - records: false stores no best times and no replays. The default is true.
- * - endText: the message of the last intermission screen. The default is none.
- *
- * @param {number} camp The index of the campaign.
- */
-function loadCampaignFiles(camp) {
-	const folder = 'maps/' + campaigns[camp].folder + '/';
-	loadLevelJsonFile(folder + 'campaign.json', function (data) {
-		campaigns[camp].intermission = data.intermission !== false;
-		campaigns[camp].records = data.records !== false;
-		campaigns[camp].endText = typeof data.endText == 'string' ? data.endText : '';
-		levelsToLoad += data.levels.length;
-		for (let i = 0; i < data.levels.length; i++) {
-			loadLevelFile(camp, i, folder + data.levels[i]);
-		}
-		levelsLoaded++;
-	});
-}
-
-/**
- * Load a level file of a campaign.
- *
- * @param {number} camp The index of the campaign.
- * @param {number} index The index of the level in the campaign, starting at 0.
- * @param {string} url The URL of the level file.
- */
-function loadLevelFile(camp, index, url) {
-	loadLevelJsonFile(url, function (data) {
-		const level = parseMap(data);
-		campaigns[camp].levels[index] = level.tiles;
-		campaigns[camp].backgrounds[index] = level.bg;
-		campaigns[camp].bosses[index] = level.boss;
-		campaigns[camp].abilities[index] = level.abilities;
-		campaigns[camp].events[index] = level.events;
-		campaigns[camp].labels[index] = level.labels;
-		levelsLoaded++;
-	});
-}
-
-/**
- * Load a campaign or level file. A file that fails to load or that the callback rejects goes into the list of missing
- * level files.
- *
- * @param {string} url The URL of the file.
- * @param {function(*)} callback Gets the content of the file.
- */
-function loadLevelJsonFile(url, callback) {
-	loadJsonFile(url, callback, () => missingFiles.push(url));
-}
-
-/**
- * Load a JSON file.
- *
- * @param {string} url The URL of the file.
- * @param {function(*)} callback Gets the content of the file.
- * @param {function(): void} [onError] Called if the file fails to load or the callback throws an error.
- */
-function loadJsonFile(url, callback, onError = () => {}) {
-	fetch(url, { cache: 'no-cache' })
-		.then(function (response) {
-			if (!response.ok) throw new Error(url + ': ' + response.status);
-			return response.json();
-		})
-		.then(callback)
-		.catch(function (e) {
-			console.error(url, e);
-			onError();
-		});
-}
-
-/**
- * Get the campaign and level files that could not be loaded.
- *
- * @returns {string[]} The URLs of the missing files.
- */
-export function missingLevelFiles() {
-	return missingFiles;
-}
-
-/**
- * Start to load the lines of the credits.
- *
- * @returns {void}
- */
-export function loadCreditsText() {
-	creditsTxt = new Array();
-	loadJsonFile('credits.json', function (data) {
-		creditsTxt = data.lines;
-	});
-}
-
-/** @type {string[]} The lines of the credits. */
-export let creditsTxt = new Array();
 
 /** @type {Object<number, number>} The direction of each gravitational pipe tile. */
 const GRAVPIPE_DIRECTIONS = {
@@ -379,7 +229,7 @@ const ANIMATED_KINDS = [
  * - "play" for a level and for the test run of the editor: the object tiles leave the map, the gravitational pipes
  *   block their tiles, the exits close, and the animated tiles and the plasma balls start. In the levels of boss 3 and
  *   boss 4, the plasma start tile is the start point of the plasma shots of the boss.
- * - "preview" for the level selection and the editor menus: the map stays the same, and only game.displayMap shows
+ * - "preview" for the preview of a level or of an editor map: the map stays the same, and only game.displayMap shows
  *   the closed exits.
  * - "editor" for the objects in the editor: the map and game.displayMap stay the same.
  *
@@ -517,7 +367,7 @@ function resetLevelState() {
 	game.time = 0;
 	game.steps = 0;
 	game.portalShots = 0;
-	ui.escapeMenu = false;
+	ui.paused = false;
 	input.keys = 0;
 	input.oldKeys = 0;
 }
@@ -543,36 +393,39 @@ export function loadLevelEditor() {
 }
 
 /**
- * Start a level of the current campaign.
+ * Place the player below the bottom edge with a speed upward, so the player jumps into the level.
+ *
+ * @returns {void}
+ */
+function jumpInFromBelow() {
+	game.player.vy = -2400;
+	game.player.x = 128 << 8;
+	game.player.y = PLAYFIELD_HEIGHT << 8;
+}
+
+/**
+ * Start a level.
  *
  * The function copies the map, creates the player, the objects and the animated tiles, resets the level time and starts
- * a new replay recording. In level 8 of the normal and the advanced campaign, the player drops into the level from a
- * fixed position. A restart skips the waits of the events and the entrance of the boss.
+ * a new replay recording. A restart skips the waits of the events and the entrance of the boss.
  *
- * @param {number} level The level number, starting at 1, or -1 to start the map in game.oldMap again.
+ * @param {Level} level The level.
  * @param {boolean} [restart] True for a restart of the same level, for example after a death.
  * @returns {void}
  */
 export function loadLevel(level, restart = false) {
-	if (level > -1) {
-		game.map = campaigns[ui.campaign].levels[level - 1].slice();
-		game.oldMap = game.map.slice();
-	} else {
-		game.map = game.oldMap.slice();
-	}
+	game.level = level;
+	game.map = level.tiles.slice();
+	game.oldMap = game.map.slice();
 	game.displayMap = game.map.slice();
 
 	resetLevelState();
 	if (!game.replayMode) game.replay = new Replay();
 
 	game.player = new Player();
-	if (level == 8 && ui.campaign <= CampaignId.ADVANCED) {
-		game.player.vy = -2400;
-		game.player.x = 128 << 8;
-		game.player.y = PLAYFIELD_HEIGHT << 8;
-	}
+	if (level.fromBelow) jumpInFromBelow();
 
-	game.bossNum = level > 0 ? campaigns[ui.campaign].bosses[level - 1] : 0;
+	game.bossNum = level.boss;
 	parseObjects('play', game.bossNum);
 
 	game.camera = new Camera(game.player.x, game.player.y);
@@ -580,12 +433,10 @@ export function loadLevel(level, restart = false) {
 	game.tilesChanged = true;
 	if (game.cakesLeft == 0) openExit();
 
-	if (level > -1) {
-		game.background = campaigns[ui.campaign].backgrounds[level - 1];
-		game.abilities = { ...campaigns[ui.campaign].abilities[level - 1] };
-		game.events = campaigns[ui.campaign].events[level - 1];
-		game.labels = campaigns[ui.campaign].labels[level - 1];
-	}
+	game.background = level.bg;
+	game.abilities = { ...level.abilities };
+	game.events = level.events;
+	game.labels = level.labels;
 	startEvents(restart);
 	if (game.bossNum > 0) {
 		setupBoss();
@@ -594,14 +445,13 @@ export function loadLevel(level, restart = false) {
 }
 
 /**
- * Prepare a map for the preview in the level selection or in the editor menus. The objects stand at their start
- * positions.
+ * Prepare a map for a preview. The objects stand at their start positions.
  *
- * @param {number} level The level number of the current campaign, or a value below 1 to use the map in game.map.
+ * @param {{tiles: number[], bg: number, boss?: number, fromBelow?: boolean}} level The level or the editor map.
  * @returns {void}
  */
 export function loadPreviewMap(level) {
-	if (level > 0) game.map = campaigns[ui.campaign].levels[level - 1].slice();
+	game.map = level.tiles.slice();
 	game.displayMap = game.map.slice();
 	game.portals = new Array();
 	game.portals.push(new Portal());
@@ -613,19 +463,15 @@ export function loadPreviewMap(level) {
 	game.player = new Player();
 	parseObjects('preview');
 
-	if (level == 8 && ui.campaign <= CampaignId.ADVANCED) {
-		game.player.vy = -2400;
-		game.player.x = 128 << 8;
-		game.player.y = PLAYFIELD_HEIGHT << 8;
-	}
+	if (level.fromBelow) jumpInFromBelow();
 
-	game.bossNum = level > 0 ? campaigns[ui.campaign].bosses[level - 1] : 0;
+	game.bossNum = level.boss ?? 0;
 	if (game.bossNum > 0) setupBoss();
 
 	game.cakesLeft = game.cakes.length;
 	game.tilesChanged = true;
 
-	if (level > 0) game.background = campaigns[ui.campaign].backgrounds[level - 1];
+	game.background = level.bg;
 }
 
 /**

@@ -5,55 +5,7 @@
 import { GRAVITY, SparkleType } from '../constants.js';
 import { getTile } from '../physics.js';
 import { game } from '../state.js';
-import { getCos, getDistance, getSin, random } from '../utils.js';
-
-/**
- * Create a trail of sparkles along a line.
- *
- * @param {number} xFrom The x position of the start in 1/256 pixels.
- * @param {number} yFrom The y position of the start in 1/256 pixels.
- * @param {number} xTo The x position of the end in 1/256 pixels.
- * @param {number} yTo The y position of the end in 1/256 pixels.
- * @param {number} color The color index.
- * @param {number} type The sparkle type, a value of SparkleType.
- * @returns {void}
- */
-export function createSparkles(xFrom, yFrom, xTo, yTo, color, type) {
-	let k;
-	let x = xFrom;
-	let y = yFrom;
-	const x2 = xTo;
-	const y2 = yTo;
-
-	const vx = getCos(x2, y2, x, y) * 256;
-	const vy = getSin(x2, y2, x, y) * 256;
-
-	let i = 0;
-	let now = 0;
-	do {
-		now++;
-		x += vx;
-		y += vy;
-
-		if (i % 6 == 0 && now > 15) {
-			for (k = 0; k < 3; k++) {
-				const s = new Sparkle();
-				s.x = x + random(-5 << 8, 5 << 8) - (8 << 8);
-				s.y = y + random(-5 << 8, 5 << 8) - (8 << 8);
-				s.type = type;
-				s.vx = random(96, 192);
-				s.vy = random(96, 192);
-				s.fading = 255;
-				s.color = color;
-				s.portalNum = -1;
-				if (random(0, 2) == 0) s.vx = -s.vx;
-				if (random(0, 2) == 0) s.vy = -s.vy;
-				game.sparkles.push(s);
-			}
-		}
-		i++;
-	} while (getDistance(x, y, x2, y2) > 256);
-}
+import { random } from '../utils.js';
 
 /**
  * Remove the sparkles of one type and color.

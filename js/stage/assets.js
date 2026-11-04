@@ -5,17 +5,17 @@
  * that could not be loaded.
  */
 
-/** @type {Promise<void>[]} One promise for each requested image. */
-const pending = [];
-
-/** @type {WeakSet<HTMLImageElement>} The images that are loaded and decoded. */
-const loaded = new WeakSet();
+/** @type {number} The number of requested images. */
+let requested = 0;
 
 /** @type {number} The number of loaded images. */
 let loadedCount = 0;
 
 /** @type {string[]} The paths of the images that could not be loaded. */
 const missing = [];
+
+/** @type {function(): void} Called each time an image is loaded or failed. */
+let onDone = () => {};
 
 /**
  * Start to load an image.
@@ -26,38 +26,29 @@ const missing = [];
 export function loadImage(src) {
 	const img = new Image();
 	img.src = src;
-	pending.push(
-		img.decode().then(
-			() => {
-				loaded.add(img);
-				loadedCount++;
-			},
-			() => {
-				missing.push(src);
-				console.error(`Could not load the image ${src}`);
-			},
-		),
+	requested++;
+	img.decode().then(
+		() => {
+			loadedCount++;
+			onDone();
+		},
+		() => {
+			missing.push(src);
+			console.error(`Could not load the image ${src}`);
+			onDone();
+		},
 	);
 	return img;
 }
 
 /**
- * Wait until all requested images are loaded or failed.
+ * Set the function that is called each time an image is loaded or failed.
  *
- * @returns {Promise<void>} Resolves when all images are done.
+ * @param {function(): void} callback The function.
+ * @returns {void}
  */
-export async function whenImagesDone() {
-	await Promise.all(pending);
-}
-
-/**
- * Check if images are loaded.
- *
- * @param {HTMLImageElement[]} images The images to check.
- * @returns {boolean} True if all images are loaded.
- */
-export function areImagesLoaded(images) {
-	return images.every((img) => loaded.has(img));
+export function onImageDone(callback) {
+	onDone = callback;
 }
 
 /**
@@ -66,7 +57,7 @@ export function areImagesLoaded(images) {
  * @returns {number} The share of loaded images, from 0 to 1.
  */
 export function imageProgress() {
-	return pending.length === 0 ? 0 : loadedCount / pending.length;
+	return requested === 0 ? 0 : loadedCount / requested;
 }
 
 /**
@@ -75,7 +66,7 @@ export function imageProgress() {
  * @returns {boolean} True if all images are loaded.
  */
 export function allImagesLoaded() {
-	return pending.length > 0 && loadedCount === pending.length;
+	return requested > 0 && loadedCount === requested;
 }
 
 /**

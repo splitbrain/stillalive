@@ -1,5 +1,5 @@
 /**
- * Drawing of a level: tiles, objects, the player and the portals.
+ * Drawing of a level and of the preview of a map: tiles, objects, the player and the portals.
  */
 
 import { copyCanvas, ctx, drawCopy, drawImage } from '../canvas.js';
@@ -8,7 +8,6 @@ import {
 	MAP_HEIGHT,
 	MAP_SIZE,
 	MAP_WIDTH,
-	Menu,
 	NUM_TILES,
 	PLAYFIELD_HEIGHT,
 	PLAYFIELD_WIDTH,
@@ -23,7 +22,6 @@ import {
 	crateImage,
 	crosshair,
 	head,
-	highscore,
 	plasma,
 	platform,
 	portalGun,
@@ -40,6 +38,7 @@ import { drawBoss } from './boss.js';
 import { atExit } from '../physics.js';
 import { drawTransition } from './transitions.js';
 import { game, input, ui } from '../state.js';
+import { Tile } from '../tiles.js';
 import { degToRad, getAngle, radToDeg, random } from '../utils.js';
 
 /**
@@ -234,7 +233,7 @@ let tileLayer = null;
  *
  * @returns {void}
  */
-export function saveTileLayer() {
+function saveTileLayer() {
 	tileLayer = copyCanvas(0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 	game.tilesChanged = false;
 }
@@ -266,7 +265,6 @@ export function createBuff() {
 	saveTileLayer();
 	ctx.fillStyle = 'rgb(0, 0, 0)';
 	ctx.fillRect(0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
-	if (game.player.intermissionFade < 0) drawImage(highscore, 0, 0);
 }
 
 /**
@@ -423,7 +421,7 @@ export function drawPlatforms() {
 		const x = p.x >> 8;
 		const y = p.y >> 8;
 		drawImage(platform, x, y);
-		if (ui.currentMenu == Menu.EDITOR && !ui.isTestingLevel) {
+		if (ui.mode == 'edit') {
 			ctx.fillStyle = 'rgb(255, 0, 0)';
 			ctx.strokeStyle = 'rgb(255, 0, 0)';
 			drawArrow(x + 5, y + 8, x + 15, y + 8, 3, p.dir);
@@ -518,7 +516,7 @@ export function drawPortals() {
 }
 
 /**
- * Draw the standing player figure, e.g. in the menus.
+ * Draw the standing player figure, e.g. in the editor.
  *
  * @param {number} x The x coordinate in canvas pixels.
  * @param {number} y The y coordinate in canvas pixels.
@@ -529,4 +527,84 @@ export function drawPlayer(x, y, flipX) {
 	const flipDx = flipX < 0 ? 1 : 0;
 	drawImage(body[flipDx], 16, 0, 16, 27, x, y, 16, 27);
 	drawImage(head[flipDx], 16, 0, 15, 12, x, y, 16, 12);
+}
+
+/**
+ * Draw the preview of a map with its objects. The first frame after a new map draws the tile layer and keeps a copy
+ * of it.
+ *
+ * @returns {void}
+ */
+export function drawPreviewMap() {
+	let i, ti, ci, pi;
+	if (game.tilesChanged) {
+		drawImage(bg[game.background], 0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
+		for (i = 0; i < game.displayMap.length; i++) {
+			const y = i >> 5;
+			const x = i - (y << 5);
+			if (game.displayMap[i] < NUM_TILES && game.displayMap[i] > 0 && i < MAP_SIZE) {
+				const open = game.cakesLeft == 0 && game.displayMap[i] == Tile.EXIT_CLOSED;
+				const tile = open ? Tile.EXIT : game.displayMap[i];
+				drawImage(tileset[tile], x * 16, y * 16, 16, 16);
+			}
+		}
+		saveTileLayer();
+		ctx.fillStyle = 'rgb(0, 0, 0)';
+		ctx.fillRect(0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
+	} else {
+		drawTileLayer();
+
+		game.player.flip = 1;
+
+		ctx.save();
+		ctx.translate((game.player.x >> 8) + (game.player.pX >> 1), (game.player.y >> 8) + (game.player.pY >> 1));
+		drawImage(portalGun, -5, -5);
+		ctx.restore();
+
+		const flipDx = game.player.flip < 0 ? 1 : 0;
+		drawImage(head[flipDx], game.player.animationFrame * 16, 0, 15, 12, game.player.x >> 8, game.player.y >> 8, 16, 12);
+		drawImage(body[flipDx], game.player.animationFrame * 16, 0, 16, 27, game.player.x >> 8, game.player.y >> 8, 16, 27);
+
+		for (i = 0; i < game.cakes.length; i++) {
+			if (game.cakes[i].used) {
+				drawImage(cake, game.cakes[i].x >> 8, (game.cakes[i].y + game.cakes[i].vy) >> 8, 16, 12);
+			}
+		}
+
+		for (ti = 0; ti < game.turrets.length; ti++) {
+			const side = game.turrets[ti].dir < 0 ? 0 : 1;
+			drawImage(
+				turretImages[side],
+				0,
+				game.turrets[ti].animFrame * 32,
+				16,
+				32,
+				game.turrets[ti].x >> 8,
+				game.turrets[ti].y >> 8,
+				16,
+				32,
+			);
+		}
+
+		for (ci = 0; ci < game.crates.length; ci++) {
+			drawImage(crateImage, game.crates[ci].x >> 8, game.crates[ci].y >> 8);
+		}
+
+		for (pi = 0; pi < game.platforms.length; pi++) {
+			drawImage(platform, game.platforms[pi].x >> 8, game.platforms[pi].y >> 8);
+		}
+
+		drawGravPipes();
+
+		if (game.bossNum > 0) {
+			if (game.bossNum == 1 || game.bossNum == 3 || game.bossNum == 4)
+				drawImage(tube, game.tubeX >> 8, game.tubeY >> 8);
+			else if (game.bossNum == 2) drawImage(tube2, game.tubeX >> 8, game.tubeY >> 8);
+			drawBoss();
+		}
+
+		drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
+		ctx.strokeStyle = 'rgb(0, 0, 0)';
+		ctx.lineWidth = 1;
+	}
 }

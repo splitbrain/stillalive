@@ -14,14 +14,12 @@ import {
 	MOUSE_LEFT,
 	MOUSE_MIDDLE,
 	MOUSE_RIGHT,
-	Menu,
 	MouseButton,
 	PLAYFIELD_HEIGHT,
 	PLAYFIELD_WIDTH,
 } from './constants.js';
-import { reportBrokenReplay } from './navigation.js';
 import { isInPortal } from './portals.js';
-import { game, input, ui } from './state.js';
+import { game, input, stageEvents, ui } from './state.js';
 
 /**
  * Release all mouse buttons and clear the pressed and released state.
@@ -36,6 +34,18 @@ export function unclick() {
 	input.keys &= ~MOUSE_LEFT;
 	input.keys &= ~MOUSE_RIGHT;
 	input.keys &= ~MOUSE_MIDDLE;
+}
+
+/**
+ * Stop a replay that has fewer inputs than the level needs or in which the player dies. The stage becomes idle and
+ * reports the broken replay with the event "brokenreplay".
+ *
+ * @returns {void}
+ */
+export function reportBrokenReplay() {
+	game.replayMode = false;
+	ui.mode = 'idle';
+	stageEvents.push({ type: 'brokenreplay', detail: null });
 }
 
 /**
@@ -82,18 +92,18 @@ export function restoreInput(state) {
  */
 export function manageKeys() {
 	// The input still changes while the level time stands still. A replay restores the input state at the same time.
-	const inGame = game.player.fadeNextLevel == -1 && ui.currentMenu == Menu.PLAY && !ui.escapeMenu;
+	const inGame = game.player.fadeNextLevel == -1 && ui.mode == 'play' && !ui.paused;
 	if (inGame && !game.replayMode && !input.lastTickInGame) game.replay.states[game.time] = captureInput();
 	else if (inGame && game.replayMode && game.replay.states[game.time]) restoreInput(game.replay.states[game.time]);
 	input.lastTickInGame = inGame;
 
-	if (game.player.fadeNextLevel == -1 && ui.currentMenu == Menu.PLAY && !game.replayMode) {
+	if (game.player.fadeNextLevel == -1 && ui.mode == 'play' && !game.replayMode) {
 		input.mouseX = Math.round(input.mouseX);
 		input.mouseY = Math.round(input.mouseY);
 		game.replay.inputs[game.time] = input.keys;
 		game.replay.mouseX[game.time] = input.mouseX;
 		game.replay.mouseY[game.time] = input.mouseY;
-	} else if (game.player.fadeNextLevel == -1 && ui.currentMenu == Menu.PLAY && game.replayMode && !ui.escapeMenu) {
+	} else if (game.player.fadeNextLevel == -1 && ui.mode == 'play' && game.replayMode && !ui.paused) {
 		if (game.time < game.replay.inputs.length) {
 			input.keys = game.replay.inputs[game.time];
 			input.mouseX = game.replay.mouseX[game.time];
@@ -157,7 +167,7 @@ export function manageKeys() {
 	//jump
 	if (
 		input.keys & KEY_JUMP &&
-		(ui.isTestingLevel || ui.currentMenu == Menu.PLAY) &&
+		(ui.mode == 'test' || ui.mode == 'play') &&
 		game.abilities.jump &&
 		!isInPortal(game.player)
 	) {
@@ -181,7 +191,7 @@ export function manageKeys() {
  * @param {number} h The height of the rectangle.
  * @returns {boolean} True if the mouse is inside.
  */
-export function mouseInZone(x, y, w, h) {
+function mouseInZone(x, y, w, h) {
 	if (input.mouseX >= x && input.mouseX < x + w && input.mouseY >= y && input.mouseY < y + h) return true;
 	return false;
 }

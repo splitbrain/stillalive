@@ -1,5 +1,5 @@
 /**
- * Drawing of the level editor: the map with its objects, the previews of the save and load screens and the test run.
+ * Drawing of the level editor: the map with its objects and the test run.
  */
 
 import { copyCanvas, ctx, drawCopy, drawImage } from '../canvas.js';
@@ -11,7 +11,6 @@ import {
 	crateImage,
 	crosshair,
 	head,
-	noLevel,
 	platform,
 	portalGun,
 	tileset,
@@ -22,8 +21,7 @@ import {
 import { mouseOnPlayfield } from '../inputState.js';
 import { isTileHere } from '../level.js';
 import { game, input, ui } from '../state.js';
-import { getEditorMap } from '../../storage.js';
-import { Tile } from '../tiles.js';
+import { Tile, isObjectTile } from '../tiles.js';
 import { getAngle } from '../utils.js';
 import {
 	createBuff,
@@ -41,21 +39,17 @@ import {
 	drawGravPipes,
 	drawTurrets,
 } from './game.js';
-import { drawPreviewMap } from './menus.js';
 
 /** @type {OffscreenCanvas|undefined} The copy of the background, the tiles and the objects of the editor map. */
 let tilesBuff;
 
 /**
- * Draw the screen of the editor that is open: the test run, the load screen, the save screen or the editor.
+ * Draw the editor or its test run.
  *
  * @returns {void}
  */
 export function drawLevelEditor() {
-	const editor = ui.editor;
-	if (ui.isTestingLevel) drawTestLevel();
-	else if (editor.askLoading) drawLoadScreen();
-	else if (editor.askSaving) drawSaveScreen();
+	if (ui.mode == 'test') drawTestLevel();
 	else drawEditor();
 }
 
@@ -98,28 +92,6 @@ function drawTestLevel() {
 	drawFrontTiles();
 	drawPortals();
 
-	drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
-}
-
-/**
- * Draw the preview of the save screen. The page draws the slots and the buttons.
- *
- * @returns {void}
- */
-function drawSaveScreen() {
-	if (ui.previewMap < 1 || getEditorMap(ui.previewMap) == null) drawImage(noLevel, 0, 0);
-	else if (ui.previewMap > 0) drawPreviewMap();
-	drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
-}
-
-/**
- * Draw the preview of the load screen. The page draws the slots and the buttons.
- *
- * @returns {void}
- */
-function drawLoadScreen() {
-	if (ui.previewMap < 1) drawImage(noLevel, 0, 0);
-	if (ui.previewMap > 0) drawPreviewMap();
 	drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
 }
 
@@ -201,11 +173,11 @@ function drawTileMap() {
  * @returns {void}
  */
 function drawTileCursor() {
-	const editor = ui.editor;
-	if (!mouseOnPlayfield() || editor.selectedTile < 0) return;
+	const brush = ui.editor.brush;
+	if (!mouseOnPlayfield() || isObjectTile(brush)) return;
 	const x = (input.mouseX >> 4) << 4;
 	const y = (input.mouseY >> 4) << 4;
-	drawImage(tileset[editor.tilesToDraw[editor.selectedTile]], x, y);
+	drawImage(tileset[brush], x, y);
 	ctx.strokeStyle = 'rgb(255, 0, 0)';
 	ctx.lineWidth = 1;
 	ctx.strokeRect(x, y, 16, 16);
@@ -217,8 +189,8 @@ function drawTileCursor() {
  * @returns {void}
  */
 function drawSpriteCursor() {
-	const sprite = ui.editor.selectedSprite;
-	if (!mouseOnPlayfield() || sprite <= 0) return;
+	const sprite = ui.editor.brush;
+	if (!mouseOnPlayfield() || !isObjectTile(sprite)) return;
 	const x = (input.mouseX >> 4) << 4;
 	const y = (input.mouseY >> 4) << 4;
 	if (sprite == Tile.CAKE) drawImage(cake, x, y);

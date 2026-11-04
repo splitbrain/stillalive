@@ -14,7 +14,6 @@
  * - bossSpeech: the length of the speech after the boss died, in ticks, or -1
  */
 
-import { downloadJson } from '../files.js';
 import { restoreInput } from './inputState.js';
 import { game, input } from './state.js';
 
@@ -106,16 +105,6 @@ export function decodeReplay(data) {
 	for (const [time, ...state] of data.states) replay.states[time] = state;
 	replay.bossSpeech = data.bossSpeech;
 	return replay;
-}
-
-/**
- * Let the browser download a replay as a JSON file.
- *
- * @param {object} data The replay in the file format.
- * @returns {void}
- */
-export function downloadReplay(data) {
-	downloadJson(data, `stillalivejs-${data.campaign}-${String(data.level).padStart(2, '0')}.json`);
 }
 
 /**

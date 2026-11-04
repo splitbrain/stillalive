@@ -2,15 +2,15 @@
  * Drawing of the transitions between levels.
  */
 
-import { ctx, drawImage } from '../canvas.js';
+import { ctx } from '../canvas.js';
 import { PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, Transition } from '../constants.js';
-import { highscore, linesHoriz, linesVerti } from '../images.js';
+import { linesHoriz, linesVerti } from '../images.js';
 import { atExit } from '../physics.js';
-import { drawIntermission } from './menus.js';
 import { game, ui } from '../state.js';
 
 /**
- * Draw the transition at the end of a level or at its start, with the progress of the fade of the player.
+ * Draw the transition at the end of a level or at its start, with the progress of the fade of the player. In the
+ * exit freeze after the level end, the playfield is black.
  *
  * @returns {void}
  */
@@ -19,19 +19,13 @@ export function drawTransition() {
 		// closing transition at the level end
 		if (game.player.fadeNextLevel > 0) {
 			drawTransitionIn();
-		} else if (ui.drawIntermission) {
-			drawIntermission();
+		} else {
+			ctx.fillStyle = 'rgb(0, 0, 0)';
+			ctx.fillRect(0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 		}
 	} else {
 		// opening transition at the level start
-		if (game.player.intermissionFade < 0) {
-			ctx.fillStyle = 'rgb(0, 0, 0)';
-			ctx.fillRect(-1, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
-			const a = -(game.player.intermissionFade / 20);
-			ctx.globalAlpha = a;
-			drawImage(highscore, 0, 0);
-			ctx.globalAlpha = 1;
-		} else drawTransitionOut();
+		drawTransitionOut();
 	}
 }
 

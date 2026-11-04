@@ -65,15 +65,7 @@ export const SparkleType = {
 	SMOKE: 9,
 };
 
-/** @type {Object<string, number>} The screens of the game, the value of ui.currentMenu. */
-export const Menu = {
-	LOADING: 0,
-	MAIN: 1,
-	PLAY: 2,
-	EDITOR: 3,
-};
-
-/** @type {Object<string, number>} The campaigns, their index in the campaigns list and the value of ui.campaign. */
+/** @type {Object<string, number>} The campaigns and their index in the campaigns list. */
 export const CampaignId = {
 	NORMAL: 0,
 	ADVANCED: 1,
@@ -84,15 +76,6 @@ export const CampaignId = {
 /** @type {string[]} The folder names of the campaigns in the maps folder, by campaign id. */
 export const CAMPAIGN_FOLDERS = ['normal', 'advanced', 'community', 'tutorial', 'story'];
 
-/** @type {Object<string, number>} The buttons of the main menu from top to bottom, the value of ui.menuButton. */
-export const MainButton = {
-	CLASSIC: 0,
-	ENHANCED: 1,
-	ULTIMATE: 2,
-	EDITOR: 3,
-	TUTORIAL: 4,
-};
-
 /** @type {Object<string, number>} The transition effects at the end and the start of a level, the value of ui.transition. */
 export const Transition = {
 	TOP_LEFT: 1,
@@ -101,30 +84,6 @@ export const Transition = {
 	HORIZONTAL_LINES: 4,
 	VERTICAL_LINES: 5,
 	SQUARE: 6,
-};
-
-/** @type {Object<string, number>} The buttons of the pause menu. */
-export const PauseButton = {
-	RESUME: 1,
-	RESTART: 2,
-	EXIT: 3,
-	SOUND: 4,
-};
-
-/** @type {Object<string, number>} The buttons of the intermission screen, the value of ui.intermissionChoice. */
-export const IntermissionButton = {
-	NONE: 0,
-	EXIT: 1,
-	RESTART: 2,
-	CONTINUE: 3,
-	REPLAY: 4,
-};
-
-/** @type {Object<string, number>} The buttons of the level selection. */
-export const SelectionButton = {
-	PLAY: 1,
-	EXIT: 2,
-	MODE: 3,
 };
 
 /** @type {number[]} The tile ids of the tile palette of the editor, in the order of the palette. */
@@ -152,33 +111,8 @@ export const EDITOR_TILE_TITLES = {
 	57: 'Conveyor belt: moves the player and objects to the left',
 };
 
-/** @type {Object<string, number>} The buttons of the level editor. */
-export const EditorButton = {
-	LOAD: 1,
-	SAVE: 2,
-	EXIT: 3,
-	CLEAR: 4,
-	TRY: 5,
-	HELP: 6,
-};
-
-/** @type {Object<string, number>} The buttons of the save and load screens of the editor. */
-export const EditorMenuButton = {
-	ACCEPT: 1,
-	EXIT: 2,
-	EXPORT: 3,
-	IMPORT: 4,
-};
-
 /** @type {number} The number of levels of a campaign. */
 export const LEVELS_PER_CAMPAIGN = 28;
 
 /** @type {number} The value of the highest unlocked level after the player finished the last level of a campaign. */
 export const CAMPAIGN_FINISHED = LEVELS_PER_CAMPAIGN + 1;
-
-/** @type {Object<number, number>} The campaign that each campaign button of the main menu opens. */
-export const BUTTON_CAMPAIGN = {
-	[MainButton.CLASSIC]: CampaignId.NORMAL,
-	[MainButton.ENHANCED]: CampaignId.COMMUNITY,
-	[MainButton.ULTIMATE]: CampaignId.STORY,
-};

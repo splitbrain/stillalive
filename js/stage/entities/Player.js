@@ -3,13 +3,13 @@
  */
 
 import { playSound, setSoundVolume, sfx_flatline, sfx_jump, sfx_pain } from '../audio.js';
-import { Direction, GRAVITY, Menu, MouseButton, PLAYFIELD_HEIGHT, SparkleType } from '../constants.js';
-import { reportBrokenReplay } from '../navigation.js';
+import { Direction, GRAVITY, MouseButton, PLAYFIELD_HEIGHT, SparkleType } from '../constants.js';
 import { collectCakes } from './Cake.js';
 import { gravPipeFieldsAt } from './GravPipeField.js';
 import { plasmaTouching } from './Plasma.js';
 import { onBelt, onPlatform } from './Platform.js';
 import { Sparkle } from './Sparkle.js';
+import { reportBrokenReplay } from '../inputState.js';
 import { loadLevel } from '../level.js';
 import {
 	carriesObject,
@@ -81,15 +81,10 @@ export class Player {
 		/** @type {string} The entity type, used by the shared object functions. */
 		this.type = 'player';
 		/**
-		 * @type {number} -1 while the level runs. At the level end it counts down from 120 during the transition, and 0
-		 * shows the intermission screen.
+		 * @type {number} -1 while the level runs. At the level start and the level end it counts down from 120 during
+		 * the transition. 0 while the level time stands still and in the exit freeze after the level end.
 		 */
 		this.fadeNextLevel = 120;
-		/**
-		 * @type {number} The fade of the intermission screen: positive while it appears, negative while it disappears,
-		 * 0 when it is fully visible or hidden.
-		 */
-		this.intermissionFade = 0;
 		/** @type {boolean} True when the player pressed the clear key and the portals must go away in the next tick. */
 		this.askClear = false;
 	}
@@ -146,7 +141,7 @@ export class Player {
 		} else if (this.dead) {
 			if (this.life >= 0) {
 				setSoundVolume(sfx_flatline, 1);
-				if (ui.currentMenu == Menu.PLAY) loadLevel(ui.currentLevel, true);
+				if (ui.mode == 'play') loadLevel(game.level, true);
 			}
 		}
 	}

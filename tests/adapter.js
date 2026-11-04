@@ -1,9 +1,9 @@
 /**
  * Test adapter that reads and writes the game state in the browser.
  *
- * The game gives the tests access to its state and functions through window.__test when the URL contains "?test".
- * The functions in this file are the only test code that knows this hook. The test files only use the exported
- * functions.
+ * The stage element gives the tests access to itself and to its state and functions through window.__test when the URL
+ * contains "?test". The campaigns come from the campaign module of the page. The functions in this file are the only
+ * test code that knows this hook. The test files only use the exported functions.
  */
 
 import { readFileSync } from 'node:fs';
@@ -61,7 +61,7 @@ export function hashString(text) {
 }
 
 /**
- * Open the game, stop its timers and wait until all levels, texts and images are loaded.
+ * Open the game, stop its timers and wait until the stage is ready and all campaigns are loaded.
  *
  * The fake clock of Playwright never runs the game loop, so only runLevel() runs game ticks.
  *
@@ -71,10 +71,14 @@ export function hashString(text) {
 export async function openGame(page) {
 	await page.clock.install();
 	await page.goto('./?test');
+	// the wait needs a function that answers at once, so the check of the campaigns is imported before
+	await page.evaluate(async () => {
+		window.__campaignsLoaded = (await import('/js/chrome/campaigns.js')).areCampaignsLoaded;
+	});
 	await page.waitForFunction(
 		() => {
 			const t = window.__test;
-			return t !== undefined && t.levelsLoaded() >= t.levelsToLoad() && t.allImagesLoaded();
+			return t !== undefined && t.stage.ready.get() && window.__campaignsLoaded();
 		},
 		null,
 		{ polling: 50 },
@@ -84,9 +88,10 @@ export async function openGame(page) {
 /**
  * Start a level and run the game for a number of ticks.
  *
- * The level starts in the same way as from the level selection in the menu, also in the tutorial. An event that waits
- * for a click at the level start keeps waiting until the inputs click, as in the game. Math.random() gets a pseudo-random
- * generator with the given seed, so the visual effects that change the game state give the same result in each run.
+ * The level starts in the same way as from the level selection, also in the tutorial: the stage shows the preview of
+ * the level and then plays it. An event that waits for a click at the level start keeps waiting until the inputs click,
+ * as in the game. Math.random() gets a pseudo-random generator with the given seed, so the visual effects that change
+ * the game state give the same result in each run.
  * The run stops early in the tick in which the player reaches the exit. In this tick, the game sets the fade of the
  * same player object from -1 to 120. More levels can run in the same page.
  *
@@ -109,9 +114,10 @@ export async function runLevel(
 ) {
 	return page.evaluate(
 		async ({ campaign, level, ticks, seed, inputs, replay: replayData, skipBossIntro, interval }) => {
-			const { Menu } = await import('/js/stage/constants.js');
+			const { campaigns } = await import('/js/chrome/campaigns.js');
 			const t = window.__test;
-			const { game, ui, input } = t;
+			const { game, input, stage } = t;
+			const levelData = campaigns[campaign].levels[level - 1];
 			let state = seed >>> 0;
 			Math.random = () => {
 				state = (state + 0x6d2b79f5) >>> 0;
@@ -123,12 +129,9 @@ export async function runLevel(
 
 			game.shakeX = 0;
 			game.shakeY = 0;
-			ui.campaign = campaign;
-			ui.currentLevel = level;
-			// the level selection in the menu loads the preview map before the level
-			ui.currentMenu = Menu.MAIN;
-			t.loadPreviewMap(level);
-			t.startLevel(campaign, level, replayData === null ? null : t.decodeReplay(replayData), skipBossIntro);
+			// the level selection shows the preview before the level
+			stage.preview(levelData);
+			stage.play(levelData, { replay: replayData, restart: skipBossIntro });
 			const startMap = game.map.slice();
 
 			const pick = (obj, fields) => fields.map((field) => obj[field]);
@@ -171,15 +174,16 @@ export async function runLevel(
 }
 
 /**
- * Get the replay that the game recorded in the last run.
+ * Get the replay that the stage recorded in the last run.
  *
  * @param {import('@playwright/test').Page} page The Playwright page.
  * @returns {Promise<object>} The replay in the file format, after a round trip through JSON.
  */
 export async function recordedReplay(page) {
-	const data = await page.evaluate(() => {
-		const t = window.__test;
-		return JSON.stringify(t.encodeReplay(t.game.replay, t.campaigns()[t.ui.campaign].folder, t.ui.currentLevel));
+	const data = await page.evaluate(async () => {
+		const { encodeReplay } = await import('/js/stage/replay.js');
+		const { game } = window.__test;
+		return JSON.stringify(encodeReplay(game.replay, game.level.campaign, game.level.number));
 	});
 	return JSON.parse(data);
 }
@@ -187,7 +191,7 @@ export async function recordedReplay(page) {
 /**
  * Run a scene with portals on an empty map with walls on all four borders.
  *
- * The scene starts the first level of the normal campaign, replaces its map, and lets the player shoot the two
+ * The scene plays the first level of the normal campaign, replaces its map, and lets the player shoot the two
  * portals from a position toward a target. Then it places the object of the scene and runs the game. Each tick adds
  * one line with the position and the speed of the object and of the player.
  *
@@ -206,7 +210,8 @@ export async function recordedReplay(page) {
 export async function runPortalScene(page, scene) {
 	return page.evaluate(async (scene) => {
 		const t = window.__test;
-		const { game, input } = t;
+		const { game, input, stage } = t;
+		const { campaigns } = await import('/js/chrome/campaigns.js');
 		const { launchPortal } = await import('/js/stage/portals.js');
 		const { Crate } = await import('/js/stage/entities/Crate.js');
 		const { Turret } = await import('/js/stage/entities/Turret.js');
@@ -221,7 +226,7 @@ export async function runPortalScene(page, scene) {
 			return ((r ^ (r >>> 14)) >>> 0) / 4294967296;
 		};
 
-		t.startLevel(0, 1);
+		stage.play(campaigns[0].levels[0]);
 		for (let i = 0; i < game.map.length; i++) {
 			const x = i % MAP_WIDTH;
 			const y = Math.floor(i / MAP_WIDTH);

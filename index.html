@@ -58,63 +58,61 @@
 				<div class="stat"><span class="label">Portals</span><span class="value" id="stat-portals">0</span></div>
 			</div>
 			<div id="stage">
-				<canvas id="canvas" width="512" height="384"> Your browser doesn't support canvas. </canvas>
+				<game-stage id="game-stage"></game-stage>
 				<div id="overlay" data-menu="">
+					<div id="loading-screen" hidden></div>
+					<div id="credits" hidden></div>
 					<div id="main-menu" class="menu">
-						<button class="big" id="main-classic" data-menu="main" data-button="0">Classic Mode</button>
-						<button class="big" id="main-enhanced" data-menu="main" data-button="1">Enhanced Mode</button>
-						<button class="big" id="main-ultimate" data-menu="main" data-button="2">Ultimate Mode</button>
-						<button class="big" id="main-editor" data-menu="main" data-button="3">Level Editor</button>
-						<button class="big" id="main-tutorial" data-menu="main" data-button="4">Tutorial</button>
+						<button class="big" id="main-classic">Classic Mode</button>
+						<button class="big" id="main-enhanced">Enhanced Mode</button>
+						<button class="big" id="main-ultimate">Ultimate Mode</button>
+						<button class="big" id="main-editor">Level Editor</button>
+						<button class="big" id="main-tutorial">Tutorial</button>
 						<button id="sound-button" title="Click here or press M to turn the sound on and off.">SFX</button>
 					</div>
 					<div id="pause-menu" class="menu">
 						<div class="buttons">
-							<button class="small" id="pause-resume" data-menu="pause" data-button="1">Resume</button>
-							<button class="small" id="pause-restart" data-menu="pause" data-button="2">Restart</button>
-							<button class="small" id="pause-exit" data-menu="pause" data-button="3">Exit</button>
+							<button class="small" id="pause-resume">Resume</button>
+							<button class="small" id="pause-restart">Restart</button>
+							<button class="small" id="pause-exit">Exit</button>
 						</div>
 						<div class="buttons">
-							<button class="small" id="pause-sound" data-menu="pause" data-button="4">Sounds : On</button>
+							<button class="small" id="pause-sound">Sounds : On</button>
 						</div>
 					</div>
 					<div id="intermission" class="menu">
 						<p id="intermission-time"></p>
 						<p id="intermission-message"></p>
 						<div class="buttons">
-							<button class="small" id="intermission-exit" data-menu="intermission" data-button="1">Exit</button>
-							<button class="small" id="intermission-restart" data-menu="intermission" data-button="2">Restart</button>
-							<button class="small" id="intermission-continue" data-menu="intermission" data-button="3">
-								Continue
-							</button>
-							<button class="small" id="intermission-replay" data-menu="intermission" data-button="4">
-								Watch Replay
-							</button>
+							<button class="small" id="intermission-exit">Exit</button>
+							<button class="small" id="intermission-restart">Restart</button>
+							<button class="small" id="intermission-continue">Continue</button>
+							<button class="small" id="intermission-replay">Watch Replay</button>
 						</div>
 					</div>
 					<div id="selection-menu" class="menu">
 						<div class="buttons">
-							<button class="small" id="selection-exit" data-menu="selection" data-button="2">Exit</button>
-							<button class="small" id="selection-mode" data-menu="selection" data-button="3">Hard Mode</button>
-							<button class="small" id="selection-play" data-menu="selection" data-button="1">Play</button>
+							<button class="small" id="selection-exit">Exit</button>
+							<button class="small" id="selection-mode">Hard Mode</button>
+							<button class="small" id="selection-play">Play</button>
 						</div>
 					</div>
 					<div id="editor-menu" class="menu">
 						<div class="buttons">
-							<button class="small" id="editor-exit" data-menu="editorButton" data-button="3">Exit</button>
-							<button class="small" id="editor-clear" data-menu="editorButton" data-button="4">Clear</button>
-							<button class="small" id="editor-try" data-menu="editorButton" data-button="5">Try Map</button>
-							<button class="small" id="editor-help" data-menu="editorButton" data-button="6">Help</button>
-							<button class="small" id="editor-load" data-menu="editorButton" data-button="1">Load</button>
-							<button class="small" id="editor-save" data-menu="editorButton" data-button="2">Save</button>
+							<button class="small" id="editor-exit">Exit</button>
+							<button class="small" id="editor-clear">Clear</button>
+							<button class="small" id="editor-try">Try Map</button>
+							<button class="small" id="editor-help">Help</button>
+							<button class="small" id="editor-load">Load</button>
+							<button class="small" id="editor-save">Save</button>
 						</div>
 					</div>
 					<div id="editor-file" class="menu">
 						<div class="buttons">
-							<button class="small" id="editor-file-exit" data-menu="editorMenu" data-button="2">Exit</button>
-							<button class="small" id="editor-export" data-menu="editorMenu" data-button="3">Export</button>
-							<button class="small" id="editor-import" data-menu="editorMenu" data-button="4">Import</button>
-							<button class="small" id="editor-accept" data-menu="editorMenu" data-button="1">Save</button>
+							<button class="small" id="editor-file-exit">Exit</button>
+							<button class="small" id="editor-export">Export</button>
+							<button class="small" id="editor-import">Import</button>
+							<button class="small" id="editor-accept">Save</button>
 						</div>
 					</div>
 				</div>

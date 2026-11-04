@@ -7,8 +7,6 @@
  * decodes the sounds.
  */
 
-import { loadSoundSetting, saveSoundSetting } from '../storage.js';
-
 /** @type {OfflineAudioContext} The context that decodes the sounds before the audio context exists. */
 const decoder = new OfflineAudioContext(1, 1, 44100);
 
@@ -22,16 +20,19 @@ let master = null;
 const sounds = [];
 
 /** @type {boolean} True if the player wants to hear the sounds. */
-let enabled = loadSoundSetting();
-
-/** @type {boolean} True if the player chose to play without sound on the loading screen. */
-let disabled = false;
+let enabled = true;
 
 /** @type {number} The number of requested sounds. */
 let requested = 0;
 
 /** @type {number} The number of sounds that are loaded or failed. */
 let done = 0;
+
+/** @type {string[]} The names of the sounds that could not be loaded. */
+const missing = [];
+
+/** @type {function(): void} Called each time a sound is loaded or failed. */
+let onDone = () => {};
 
 /**
  * A sound effect.
@@ -74,8 +75,14 @@ export function loadSound(name) {
 		.then((buffer) => {
 			sound.buffer = buffer;
 		})
-		.catch((error) => console.error(`Could not load the sound ${name}`, error))
-		.finally(() => done++);
+		.catch((error) => {
+			missing.push(name);
+			console.error(`Could not load the sound ${name}`, error);
+		})
+		.finally(() => {
+			done++;
+			onDone();
+		});
 	return sound;
 }
 
@@ -122,39 +129,29 @@ export function setSoundVolume(sound, volume) {
  *
  * @returns {boolean} True if the game plays sounds.
  */
-export function isSoundOn() {
-	return enabled && !disabled;
+function isSoundOn() {
+	return enabled;
 }
 
 /**
- * Check if the player can turn the sound on and off.
+ * Turn the sound on or off.
  *
- * @returns {boolean} False if the player chose to play without sound on the loading screen.
- */
-export function isSoundAvailable() {
-	return !disabled;
-}
-
-/**
- * Turn the sound on or off and store the setting.
- *
+ * @param {boolean} on True to play the sounds.
  * @returns {void}
  */
-export function toggleSound() {
-	if (disabled) return;
-	enabled = !enabled;
-	saveSoundSetting(enabled);
+export function setSoundOn(on) {
+	enabled = on;
 	updateMasterVolume();
 }
 
 /**
- * Play the game without sound. The loading screen offers this if the sounds do not load.
+ * Set the function that is called each time a sound is loaded or failed.
  *
+ * @param {function(): void} callback The function.
  * @returns {void}
  */
-export function disableSound() {
-	disabled = true;
-	updateMasterVolume();
+export function onSoundDone(callback) {
+	onDone = callback;
 }
 
 /**
@@ -167,12 +164,21 @@ export function soundProgress() {
 }
 
 /**
- * Check if all sounds are loaded or failed, or if the player chose to play without sound.
+ * Check if all sounds are loaded or failed.
  *
  * @returns {boolean} True if the game does not need to wait for sounds.
  */
 export function allSoundsLoaded() {
-	return disabled || (requested > 0 && done === requested);
+	return requested > 0 && done === requested;
+}
+
+/**
+ * Get the sounds that could not be loaded.
+ *
+ * @returns {string[]} The names of the missing sounds.
+ */
+export function missingSounds() {
+	return missing;
 }
 
 /**

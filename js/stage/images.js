@@ -10,38 +10,12 @@ import { random } from './utils.js';
 export let linesHoriz;
 /** @type {number[]} The random order of the columns for the line transitions. */
 export let linesVerti;
-/** @type {HTMLImageElement} The picture of the graphics author on the splash screen. */
-export let tex_blackos;
-/** @type {HTMLImageElement} The picture of the code author on the splash screen. */
-export let tex_tails;
-/** @type {HTMLImageElement} The button background of the menus. */
-export let tex_button;
-/** @type {HTMLImageElement} The sound icon of the main menu. */
-export let tex_sound;
-/** @type {HTMLImageElement} The cross over a disabled icon. */
-export let tex_cross;
-/** @type {HTMLImageElement} The left arrow of the background selection in the editor. */
-export let tex_leftBG;
-/** @type {HTMLImageElement} The right arrow of the background selection in the editor. */
-export let tex_rightBG;
 /** @type {HTMLImageElement} The security camera. */
 export let cameraFollow;
 /** @type {HTMLImageElement[]} The eye of the robot, one image for each boss. */
 export let robotEye;
 /** @type {HTMLImageElement} The head of the robot. */
 export let robotHead;
-/** @type {HTMLImageElement} The frame of the level editor. */
-export let levelEditorHud;
-/** @type {HTMLImageElement} The background of the main menu. */
-export let menuBG;
-/** @type {HTMLImageElement} The background of the pause menu. */
-export let pauseBG;
-/** @type {HTMLImageElement} The frame of the level selection. */
-export let mapSelection;
-/** @type {HTMLImageElement} The picture of the splash screen and of an empty preview. */
-export let noLevel;
-/** @type {HTMLImageElement} The background of the intermission screen. */
-export let highscore;
 /** @type {HTMLImageElement} The platform. */
 export let platform;
 /** @type {HTMLImageElement[]} The head of the player, facing right and left. */
@@ -56,8 +30,6 @@ export let gravPipe2;
 export let tube;
 /** @type {HTMLImageElement} The tube of the second boss. */
 export let tube2;
-/** @type {HTMLImageElement} The controls picture of the loading screen. */
-export let controls;
 /** @type {HTMLImageElement[]} The turret, facing left and right. */
 export let turretImages;
 /** @type {HTMLImageElement} The plasma ball frames. */
@@ -82,15 +54,6 @@ export let portalGun;
 export let tileset;
 
 /**
- * Start to load the images of the splash screen.
- */
-export function loadSplashImages() {
-	tex_tails = loadImage('decor/tails.png');
-	tex_blackos = loadImage('decor/blackos.png');
-	noLevel = loadImage('bg/noLevel.png');
-}
-
-/**
  * Start to load all images of the game and create the random line order of the transitions.
  *
  * @returns {void}
@@ -108,7 +71,6 @@ export function loadGfx() {
 		t = loadImage('sprites/head' + i + '.svg');
 		head.push(t);
 	}
-	controls = loadImage('decor/controls.png');
 
 	crosshair = loadImage('sprites/crosshair.svg');
 
@@ -132,14 +94,6 @@ export function loadGfx() {
 		bg.push(img);
 	}
 
-	menuBG = loadImage('bg/menuBG.png');
-
-	levelEditorHud = loadImage('bg/levelEditorHud.png');
-
-	mapSelection = loadImage('bg/mapSelection.png');
-
-	highscore = loadImage('bg/highscore.png');
-
 	tube = loadImage('sprites/tube.svg');
 
 	tube2 = loadImage('sprites/tube2.svg');
@@ -149,18 +103,6 @@ export function loadGfx() {
 	gravPipe2 = loadImage('sprites/gravpipe2.svg');
 
 	crateImage = loadImage('sprites/crate.svg');
-
-	pauseBG = loadImage('menu/pauseBG.png');
-
-	tex_sound = loadImage('menu/tex_sound.png');
-
-	tex_cross = loadImage('menu/tex_cross.png');
-
-	tex_leftBG = loadImage('menu/tex_leftBG.png');
-
-	tex_rightBG = loadImage('menu/tex_rightBG.png');
-
-	tex_button = loadImage('menu/tex_button.png');
 
 	turretImages = new Array();
 	for (i = 0; i < 2; i++) {

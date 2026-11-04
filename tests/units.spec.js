@@ -229,7 +229,7 @@ test.describe('units', () => {
 			36001: '10:00.017',
 		};
 		for (const [ticks, expected] of Object.entries(cases)) {
-			const { result } = await call(page, '/js/stage/utils.js', 'toTime', Number(ticks));
+			const { result } = await call(page, '/js/chrome/tempPage.js', 'toTime', Number(ticks));
 			expect(result, `${ticks} ticks`).toBe(expected);
 		}
 	});
@@ -237,13 +237,11 @@ test.describe('units', () => {
 	test('a pipe field between two facing portals ends', async () => {
 		test.setTimeout(10000);
 		const fields = await page.evaluate(async () => {
-			const { CampaignId, Direction, MAP_SIZE, MAP_WIDTH, Menu } = await import('/js/stage/constants.js');
+			const { CampaignId, Direction, MAP_SIZE, MAP_WIDTH } = await import('/js/stage/constants.js');
 			const { Tile } = await import('/js/stage/tiles.js');
+			const { campaigns } = await import('/js/chrome/campaigns.js');
 			const t = window.__test;
-			t.ui.campaign = CampaignId.STORY;
-			t.ui.currentMenu = Menu.PLAY;
-			t.ui.currentLevel = 4;
-			t.loadLevel(4);
+			t.stage.play(campaigns[CampaignId.STORY].levels[3]);
 			const g = t.game;
 			// an empty map with walls on the left and the right side
 			for (let i = 0; i < MAP_SIZE; i++) {

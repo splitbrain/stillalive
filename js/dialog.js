@@ -5,9 +5,6 @@
  * not reach the game after the dialog is closed.
  */
 
-/** @type {number} The number of open dialogs. */
-let openDialogs = 0;
-
 /**
  * Show a modal dialog with an OK button.
  *
@@ -33,7 +30,6 @@ function showDialog(message, title) {
 		const close = () => {
 			dialog.close();
 			dialog.remove();
-			openDialogs--;
 			resolve();
 		};
 		ok.addEventListener('click', close);
@@ -47,7 +43,6 @@ function showDialog(message, title) {
 			}
 		});
 
-		openDialogs++;
 		dialog.showModal();
 		ok.focus();
 	});
@@ -62,13 +57,4 @@ function showDialog(message, title) {
  */
 export async function alertDialog(message, title) {
 	await showDialog(message, title);
-}
-
-/**
- * Check if a dialog is open.
- *
- * @returns {boolean} True while a dialog is open.
- */
-export function isDialogOpen() {
-	return openDialogs > 0;
 }

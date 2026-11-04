@@ -1,5 +1,5 @@
 /**
- * The shared state of the game.
+ * The shared state of the stage.
  */
 
 import { Transition } from './constants.js';
@@ -53,106 +53,40 @@ export const game = {
 	bossIsComing: undefined,
 	bossComingTime: undefined,
 	rumbleTime: undefined,
-	/** @type {string} The message of the events of the level, or an empty text for none. */
-	message: '',
+	/**
+	 * @type {{text: string, wait: boolean, portrait: number}|null} The message of the events of the level, or null:
+	 *     the text, true while the message waits for a click, and the speaker, 0 for the robot or the number of the
+	 *     boss. Each event creates a new object.
+	 */
+	message: null,
+	/** @type {import('./level.js').Level} The level that runs. */
+	level: undefined,
 };
 
-/** @type {object} The state of the menus, the intermission screen and the editor. */
+/** @type {object} The state of the stage: the mode, the pause, the level end effect and the editor. */
 export const ui = {
-	currentMenu: undefined,
-	selectMenu: 0,
-	previewMap: 0,
-	campaign: 0,
-	menuButton: 0,
-	currentLevel: 1,
-	escapeMenu: undefined,
-	goMenu: undefined,
-	fadeMenu: undefined,
-	drawIntermission: false,
-	intermissionChoice: undefined,
-	intermissionHover: -1,
-	/** @type {number} The hovered button of the pause menu, a value of PauseButton, or -1. */
-	pauseHover: -1,
-	/** @type {number} The clicked button of the pause menu, a value of PauseButton, or -1. The next tick takes it. */
-	pauseClick: -1,
-	/** @type {number} The hovered button of the main menu, a value of MainButton, or -1. */
-	mainHover: -1,
-	/** @type {number} The clicked button of the main menu, a value of MainButton, or -1. The next tick takes it. */
-	mainClick: -1,
-	/** @type {boolean} True after a click on the sound button of the main menu, until the next tick takes it. */
-	soundClick: false,
-	/** @type {number} The hovered button of the level selection, a value of SelectionButton, or -1. */
-	selectionHover: -1,
-	/** @type {number} The clicked button of the level selection, a value of SelectionButton, or -1. The next tick takes it. */
-	selectionClick: -1,
-	/** @type {number} The clicked level in the list of the level selection, or 0. The next tick takes it. */
-	selectionLevelClick: 0,
-	/** @type {number} The clicked button of the intermission screen, a value of IntermissionButton, or -1. The next tick takes it. */
-	intermissionClick: -1,
-	/** @type {number} The hovered button of the editor, a value of EditorButton, or -1. */
-	editorButtonHover: -1,
-	/** @type {number} The clicked button of the editor, a value of EditorButton, or -1. The next tick takes it. */
-	editorButtonClick: -1,
-	/** @type {number} The hovered button of the save or load screen of the editor, a value of EditorMenuButton, or -1. */
-	editorMenuHover: -1,
-	/** @type {number} The clicked button of the save or load screen of the editor, a value of EditorMenuButton, or -1. The next tick takes it. */
-	editorMenuClick: -1,
-	/** @type {number} The clicked slot of the save or load screen of the editor, or 0. The next tick takes it. */
-	editorSlotClick: 0,
-	/** @type {number} The clicked index of the tile palette of the editor, or -1. The next tick takes it. */
-	editorTileClick: -1,
-	/** @type {number} The clicked object id of the object palette of the editor, or 0. The next tick takes it. */
-	editorSpriteClick: 0,
-	/** @type {number} The clicked background arrow of the editor, -1 or 1, or 0. The next tick takes it. */
-	editorBgClick: 0,
-	/** @type {{time: number, alpha: number, speed: number}} The scroll position, the fade and the scroll speed of the credits. */
-	credits: { time: 0, alpha: 0, speed: 0.4 },
-	/** @type {boolean} True while the mouse is over the link of the loading screen that turns the sound off. */
-	loadingHover: false,
-	/**
-	 * @type {object} The animation of the splash screen: the fade from 0 to 60, the ticks since the start, and the
-	 *     positions and the speeds of the title and of the two names. over becomes true at its end.
-	 */
-	splash: {
-		over: false,
-		fade: 0,
-		time: 0,
-		titleY: -50,
-		titleVY: 0,
-		tailsY: -100,
-		tailsVY: 0,
-		blackosY: -100,
-		blackosVY: 0,
-	},
-	highscoreMessage: undefined,
-	drawCredits: false,
+	/** @type {string} What the stage shows: "idle", "play", "preview", "edit" or "test". */
+	mode: 'idle',
+	/** @type {boolean} True while the level time stands still for the pause menu. */
+	paused: false,
 	/** @type {number} The transition effect of the level end, chosen at random. */
 	transition: Transition.HORIZONTAL_LINES,
-	/** @type {boolean} True when the images and the font of the splash screen are loaded. */
-	canSplash: false,
-	/** @type {boolean} True while the player tests the map in the editor. */
-	isTestingLevel: false,
 	/**
-	 * @type {object} The state of the level editor: the selected tile and object, the tiles of the palette, the open
-	 *     save or load screen, and the flags for the drawing and the objects of the map.
+	 * @type {object} The state of the level editor: the brush and the flags for the drawing and the objects of the
+	 *     map.
 	 */
 	editor: {
-		/** @type {number} The index of the selected tile in tilesToDraw, or -1 while an object is selected. */
-		selectedTile: 1,
-		/** @type {number} The id of the selected object, or 0 or -1 while a tile is selected. */
-		selectedSprite: 0,
-		/** @type {number[]} The tile ids of the tile palette. */
-		tilesToDraw: [],
-		/** @type {boolean} True while the load screen is open. */
-		askLoading: false,
-		/** @type {boolean} True while the save screen is open. */
-		askSaving: false,
+		/** @type {number} The tile id or the object id that the editor paints. */
+		brush: 1,
 		/** @type {boolean} True when the drawing must draw the tile layer of the editor again. */
 		redrawTiles: true,
 		/** @type {boolean} True when the objects of the editor map must be created again. */
 		objectsChanged: false,
 	},
 };
+
+/** @type {{type: string, detail: *}[]} The events of the stage from a tick, which the stage element dispatches after the tick. */
+export const stageEvents = [];
 
 /** @type {object} The keys and the mouse, and the input state that the game derives from them. */
 export const input = {

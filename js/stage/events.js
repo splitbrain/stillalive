@@ -56,7 +56,7 @@ export function startEvents(restart = false) {
 	waiting = null;
 	triggers = new Set(['start']);
 	skipWaits = restart || game.replayMode;
-	game.message = '';
+	game.message = null;
 	runEvents();
 }
 
@@ -87,7 +87,7 @@ export function isWaiting() {
 export function endWait() {
 	if (waiting === null) return;
 	waiting = null;
-	game.message = '';
+	game.message = null;
 }
 
 /**
@@ -145,7 +145,10 @@ function fire(event) {
 	if (event.unlock) game.abilities[event.unlock] = true;
 	if (event.portals) event.portals.forEach((portal, p) => placePortal(p, portal));
 	if (event.wait && skipWaits && !isBossWait(event)) return;
-	if (event.text !== undefined) game.message = event.text.replace(/\{(Key[WASDE])\}/g, (_, code) => keyLabels[code]);
+	if (event.text !== undefined) {
+		const text = event.text.replace(/\{(Key[WASDE])\}/g, (_, code) => keyLabels[code]);
+		game.message = text ? { text, wait: Boolean(event.wait), portrait: game.bossNum } : null;
+	}
 	if (!event.wait) return;
 	waiting = event;
 	// the level time stops in this tick; the boss stops it after its death itself

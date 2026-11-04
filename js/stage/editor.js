@@ -1,37 +1,24 @@
 /**
- * The level editor.
+ * The level editor: the map with its objects, the painting, undo and redo, and the test run of the map.
  */
 
-import {
-	EDITOR_TILES,
-	EditorButton,
-	EditorMenuButton,
-	MAP_HEIGHT,
-	MAP_SIZE,
-	MAP_WIDTH,
-	Menu,
-	MouseButton,
-} from './constants.js';
-import { alertDialog } from '../dialog.js';
+import { MAP_HEIGHT, MAP_SIZE, MAP_WIDTH, MouseButton } from './constants.js';
 import { animateTiles } from './entities/AnimatedTile.js';
 import { openExit, updateCakes } from './entities/Cake.js';
 import { updateCrates } from './entities/Crate.js';
 import { rebuildGravPipeFields } from './entities/GravPipeField.js';
 import { updatePlasma } from './entities/Plasma.js';
 import { updatePlatforms } from './entities/Platform.js';
-import { Player } from './entities/Player.js';
 import { Portal, updatePortals } from './entities/Portal.js';
 import { updateSparkles } from './entities/Sparkle.js';
 import { updateTurrets } from './entities/Turret.js';
 import { bg } from './images.js';
 import { mouseOnPlayfield, unclick } from './inputState.js';
-import { isTileHere, isWallAt, loadEditorObjects, loadLevelEditor, loadPreviewMap, manageDoors } from './level.js';
-import { exportEditorMap, importEditorMap } from './mapFile.js';
+import { isTileHere, isWallAt, loadEditorObjects, loadLevelEditor, manageDoors } from './level.js';
 import { atExit } from './physics.js';
 import { isInPortal } from './portals.js';
-import { game, input, ui } from './state.js';
-import { getEditorMap, saveEditorMap } from '../storage.js';
-import { Tile, isGravPipeTile } from './tiles.js';
+import { game, input, stageEvents, ui } from './state.js';
+import { Tile, isGravPipeTile, isObjectTile } from './tiles.js';
 
 /** @type {number[][]} The map after each change, for undo and redo. */
 let undoMap;
@@ -39,8 +26,8 @@ let undoMap;
 let undoIndex;
 /** @type {number} The mouse release state of the previous tick. */
 let oldMouseReleased = 0;
-/** @type {number} The background of the map while the save or load screen is open. */
-let oldBG;
+/** @type {{tiles: number[], bg: number}} The editor map while the stage shows something else. */
+let storedMap = { tiles: new Array(MAP_SIZE).fill(0), bg: 0 };
 
 /**
  * Start the test run of the map.
@@ -49,7 +36,7 @@ let oldBG;
  */
 export function startPlayingLevel() {
 	let i;
-	ui.isTestingLevel = true;
+	ui.mode = 'test';
 	game.oldMap = new Array();
 	for (i = 0; i < game.map.length; i++) game.oldMap.push(game.map[i]);
 	loadLevelEditor();
@@ -60,19 +47,21 @@ export function startPlayingLevel() {
 /**
  * End the test run and go back to the editor.
  *
+ * @param {boolean} [report] True to report the end with the event "died".
  * @returns {void}
  */
-export function stopPlayingLevel() {
+export function stopPlayingLevel(report = true) {
 	let i;
 	game.portals = new Array();
 	game.portals.push(new Portal());
 	game.portals.push(new Portal());
 	unclick();
-	ui.isTestingLevel = false;
+	ui.mode = 'edit';
 	game.map = new Array();
 	for (i = 0; i < game.oldMap.length; i++) game.map.push(game.oldMap[i]);
 	ui.editor.redrawTiles = true;
 	rebuildObjects();
+	if (report) stageEvents.push({ type: 'died', detail: null });
 }
 
 /**
@@ -125,252 +114,125 @@ function rebuildObjects() {
 }
 
 /**
- * Open the editor with an empty map.
+ * Open the editor on a new map, or on the editor map from before. A new map starts a new undo list.
  *
+ * @param {{tiles: number[], bg: number}} [map] The new map, or nothing for the editor map from before.
  * @returns {void}
  */
-export function lvlEditorSetup() {
-	let i;
-	const editor = ui.editor;
-	game.background = 0;
-	editor.askLoading = false;
-	editor.askSaving = false;
+export function openEditor(map) {
+	if (map) storedMap = { tiles: map.tiles.slice(), bg: map.bg };
+	ui.mode = 'edit';
 	game.bossNum = 0;
-
-	game.map = new Array();
-	game.displayMap = new Array();
-	for (i = 0; i < MAP_SIZE; i++) {
-		game.map.push(0);
-		game.displayMap.push(0);
+	game.shakeX = 0;
+	game.shakeY = 0;
+	game.map = storedMap.tiles.slice();
+	game.displayMap = game.map.slice();
+	game.background = storedMap.bg;
+	if (map || !undoMap) {
+		undoMap = new Array();
+		undoIndex = -1;
+		addUndo();
 	}
 
-	undoMap = new Array();
-	undoIndex = -1;
-	addUndo();
-
-	editor.tilesToDraw = EDITOR_TILES.slice();
-
 	unclick();
-	editor.selectedTile = 1;
-	editor.selectedSprite = 0;
-
-	game.player = new Player();
-	game.player.x = -(16 << 8);
-	game.player.y = 0;
-
-	editor.redrawTiles = true;
+	game.sparkles = new Array();
+	ui.editor.redrawTiles = true;
 	rebuildObjects();
 }
 
 /**
- * Run one tick of the editor screen that is open: the test run, the load screen, the save screen or the editor. When
- * the map of the editor changed, its objects are created again.
+ * Keep the editor map while the stage shows something else.
+ *
+ * @returns {void}
+ */
+export function leaveEditor() {
+	storedMap = editorMap();
+}
+
+/**
+ * Get the editor map.
+ *
+ * @returns {{tiles: number[], bg: number}} A copy of the tiles and the background of the editor map.
+ */
+export function editorMap() {
+	if (ui.mode == 'edit') return { tiles: game.map.slice(), bg: game.background };
+	if (ui.mode == 'test') return { tiles: game.oldMap.slice(), bg: game.background };
+	return { tiles: storedMap.tiles.slice(), bg: storedMap.bg };
+}
+
+/**
+ * Run one tick of the editor or of the test run. When the map of the editor changed, its objects are created again.
  *
  * @returns {void}
  */
 export function updateLevelEditor() {
-	const editor = ui.editor;
-	if (ui.isTestingLevel) {
+	if (ui.mode == 'test') {
 		updateTestLevel();
 		if (atExit()) stopPlayingLevel();
-	} else if (editor.askLoading) {
-		updateLoadScreen();
-	} else if (editor.askSaving) {
-		updateSaveScreen();
 	} else {
 		updateEditor();
 	}
-	if (!ui.isTestingLevel && !editor.askLoading && !editor.askSaving && editor.objectsChanged) rebuildObjects();
+	if (ui.mode == 'edit' && ui.editor.objectsChanged) rebuildObjects();
 }
 
 /**
- * Take the clicks on the slots and the buttons of the save screen. The page sets the clicked slot and button.
- *
- * @returns {void}
- */
-function updateSaveScreen() {
-	const editor = ui.editor;
-	let i;
-	const slot = ui.editorSlotClick;
-	ui.editorSlotClick = 0;
-	if (slot > 0 && slot != ui.previewMap) {
-		unclick();
-		ui.previewMap = slot;
-		showEditorMap(slot);
-	}
-
-	let overMenu = ui.editorMenuClick;
-	ui.editorMenuClick = -1;
-	if (overMenu == EditorMenuButton.ACCEPT && ui.previewMap < 1) overMenu = -1;
-
-	if (overMenu > 0) {
-		unclick();
-		if (overMenu == EditorMenuButton.ACCEPT) {
-			if (!saveEditorMap(ui.previewMap, game.oldMap, oldBG)) {
-				alertDialog(
-					'The map could not be saved, because the browser blocks the storage or the storage is full. ' +
-						'Use Export to save the map as a file.',
-					'Save map',
-				);
-				return;
-			}
-
-			game.map = new Array();
-			for (i = 0; i < game.oldMap.length; i++) game.map.push(game.oldMap[i]);
-			game.background = oldBG;
-			editor.askSaving = false;
-			mapChanged();
-		} else if (overMenu == EditorMenuButton.EXIT) {
-			editor.askSaving = false;
-
-			game.map = new Array();
-			for (i = 0; i < game.oldMap.length; i++) game.map.push(game.oldMap[i]);
-			game.background = oldBG;
-			mapChanged();
-		} else if (overMenu == EditorMenuButton.EXPORT) {
-			exportEditorMap(game.oldMap, oldBG);
-		} else if (overMenu == EditorMenuButton.IMPORT) {
-			startMapImport();
-		}
-	}
-}
-
-/**
- * Show a stored editor map in the preview of the save or load screen.
- *
- * @param {number} slot The slot number, starting at 1.
- */
-function showEditorMap(slot) {
-	const stored = getEditorMap(slot);
-	if (stored == null) return;
-	game.map = stored.tiles.slice();
-	game.background = stored.bg;
-	loadPreviewMap(-1);
-}
-
-/**
- * Let the player select a map file and open it in the editor.
- */
-function startMapImport() {
-	importEditorMap()
-		.then(function (data) {
-			if (data === null || ui.currentMenu != Menu.EDITOR || !(ui.editor.askSaving || ui.editor.askLoading)) return;
-			game.map = data.tiles.slice();
-			game.background = data.bg;
-			loadPreviewMap(-1);
-			ui.editor.askSaving = false;
-			ui.editor.askLoading = false;
-			mapChanged();
-			undoMap = new Array();
-			undoIndex = -1;
-			addUndo();
-		})
-		.catch(function (e) {
-			alertDialog(e.message, 'Import map');
-		});
-}
-
-/**
- * Take the clicks on the slots and the buttons of the load screen. The page sets the clicked slot and button.
- *
- * @returns {void}
- */
-function updateLoadScreen() {
-	const editor = ui.editor;
-	let i;
-	const slot = ui.editorSlotClick;
-	ui.editorSlotClick = 0;
-	if (slot > 0 && slot != ui.previewMap && getEditorMap(slot) != null) {
-		unclick();
-		ui.previewMap = slot;
-		showEditorMap(slot);
-	}
-
-	let overMenu = ui.editorMenuClick;
-	ui.editorMenuClick = -1;
-	if ((overMenu == EditorMenuButton.ACCEPT || overMenu == EditorMenuButton.EXPORT) && ui.previewMap < 1) overMenu = -1;
-
-	if (overMenu > 0) {
-		unclick();
-		if (overMenu == EditorMenuButton.ACCEPT) {
-			editor.askLoading = false;
-			mapChanged();
-
-			undoMap = new Array();
-			undoIndex = -1;
-			addUndo();
-		} else if (overMenu == EditorMenuButton.EXIT) {
-			game.map = new Array();
-			for (i = 0; i < game.oldMap.length; i++) game.map.push(game.oldMap[i]);
-			game.background = oldBG;
-			editor.askLoading = false;
-			mapChanged();
-		} else if (overMenu == EditorMenuButton.EXPORT) {
-			exportEditorMap(game.map, game.background);
-		} else if (overMenu == EditorMenuButton.IMPORT) {
-			startMapImport();
-		}
-	}
-}
-
-/**
- * Take the edits of the map, the selections in the palettes and the clicks on the buttons. The page sets the
- * clicked button.
+ * Take the edits of the map and the undo and redo keys.
  *
  * @returns {void}
  */
 function updateEditor() {
-	let i;
 	updateDrawTile();
 	updateDrawSprite();
 	manageUndoRedo();
 
-	updateTileSelection();
-	updateSpriteSelection();
-
 	if (oldMouseReleased == 1 && input.mouseReleased == 1) input.mouseReleased = 0;
 	oldMouseReleased = input.mouseReleased;
+}
 
-	const overMenu = ui.editorButtonClick;
-	ui.editorButtonClick = -1;
+/**
+ * Remove all tiles and objects of the editor map.
+ *
+ * @returns {void}
+ */
+export function clearEditorMap() {
+	game.map.fill(0);
+	addUndo();
+	mapChanged();
+}
 
-	if (overMenu > 0) {
-		unclick();
-		if (overMenu == EditorButton.TRY) {
-			startPlayingLevel();
-		} else if (overMenu == EditorButton.HELP) {
-			alertDialog(
-				'Left click : Put tile or object\n' +
-					'Right click : Remove tile or object\n' +
-					'Middle click : Fill\n' +
-					'ctrl + z : Undo\n' +
-					'ctrl + y : Redo\n' +
-					'Return : Try Map / Stop trying\n' +
-					'Escape : Stop trying',
-				'Level Editor Shortcuts',
-			);
-		} else if (overMenu == EditorButton.SAVE) {
-			ui.editor.askSaving = true;
-			ui.previewMap = -1;
-			game.oldMap = new Array();
-			for (i = 0; i < game.map.length; i++) game.oldMap.push(game.map[i]);
-			oldBG = game.background;
-		} else if (overMenu == EditorButton.LOAD) {
-			ui.editor.askLoading = true;
-			ui.previewMap = -1;
-			game.oldMap = new Array();
-			for (i = 0; i < game.map.length; i++) game.oldMap.push(game.map[i]);
-			oldBG = game.background;
-		} else if (overMenu == EditorButton.CLEAR) {
-			for (i = 0; i < game.map.length; i++) game.map[i] = 0;
-			addUndo();
-			mapChanged();
-		} else if (overMenu == EditorButton.EXIT) {
-			ui.currentMenu = Menu.MAIN;
-			game.sparkles = new Array();
-			ui.fadeMenu = 30;
-		}
-	}
+/**
+ * Set the background of the editor map. A number outside the range of the backgrounds wraps around.
+ *
+ * @param {number} n The background index.
+ * @returns {void}
+ */
+export function setEditorBackground(n) {
+	game.background = ((n % bg.length) + bg.length) % bg.length;
+	mapChanged();
+}
+
+/**
+ * Go back to the map before the last change.
+ *
+ * @returns {void}
+ */
+export function undoEditor() {
+	if (undoIndex <= 0) return;
+	undoIndex--;
+	game.map = undoMap[undoIndex].slice();
+	mapChanged();
+}
+
+/**
+ * Go forward to the map of the next change after an undo.
+ *
+ * @returns {void}
+ */
+export function redoEditor() {
+	if (undoIndex + 1 >= undoMap.length) return;
+	undoIndex++;
+	game.map = undoMap[undoIndex].slice();
+	mapChanged();
 }
 
 /**
@@ -379,18 +241,8 @@ function updateEditor() {
  * @returns {void}
  */
 function manageUndoRedo() {
-	let i;
-	if (input.leftReleased && undoIndex > 0) {
-		game.map = new Array();
-		undoIndex--;
-		for (i = 0; i < MAP_SIZE; i++) game.map.push(undoMap[undoIndex][i]);
-		mapChanged();
-	} else if (input.rightReleased && undoIndex + 1 < undoMap.length) {
-		undoIndex++;
-		game.map = new Array();
-		for (i = 0; i < MAP_SIZE; i++) game.map.push(undoMap[undoIndex][i]);
-		mapChanged();
-	}
+	if (input.leftReleased) undoEditor();
+	else if (input.rightReleased) redoEditor();
 	input.leftReleased = 0;
 	input.rightReleased = 0;
 }
@@ -401,9 +253,9 @@ function manageUndoRedo() {
  * @returns {void}
  */
 function updateDrawSprite() {
-	const editor = ui.editor;
+	const brush = ui.editor.brush;
 	let i;
-	if (mouseOnPlayfield() && editor.selectedSprite > 0) {
+	if (mouseOnPlayfield() && isObjectTile(brush)) {
 		const x = (input.mouseX >> 4) << 4;
 		const y = (input.mouseY >> 4) << 4;
 		if (input.mousePressed) {
@@ -412,20 +264,20 @@ function updateDrawSprite() {
 
 			const tile = (y >> 4) * 32 + (x >> 4);
 			if (input.mouseButton == MouseButton.LEFT) {
-				if (editor.selectedSprite == Tile.PLAYER_START) {
+				if (brush == Tile.PLAYER_START) {
 					for (i = 0; i < game.map.length; i++) {
 						if (game.map[i] == Tile.PLAYER_START) game.map[i] = Tile.EMPTY;
 					}
 				}
 
-				eraseSprites(editor.selectedSprite, xt, yt);
+				eraseSprites(brush, xt, yt);
 
-				if (allowTile(editor.selectedSprite)) {
-					game.map[tile] = editor.selectedSprite;
+				if (allowTile(brush)) {
+					game.map[tile] = brush;
 				}
 			} else if (input.mouseButton == MouseButton.RIGHT) {
 				game.map[tile] = 0;
-				eraseSprites(editor.selectedSprite, xt, yt);
+				eraseSprites(brush, xt, yt);
 			}
 			build();
 			mapChanged();
@@ -547,15 +399,15 @@ function eraseSprites(til, xt, yt) {
  * @returns {void}
  */
 function updateDrawTile() {
-	const editor = ui.editor;
+	const brush = ui.editor.brush;
 	let i;
-	if (mouseOnPlayfield() && editor.selectedTile > -1) {
+	if (mouseOnPlayfield() && !isObjectTile(brush)) {
 		const x = (input.mouseX >> 4) << 4;
 		const y = (input.mouseY >> 4) << 4;
 		if (input.mousePressed) {
 			const tile = (y >> 4) * 32 + (x >> 4);
 			if (input.mouseButton == MouseButton.LEFT) {
-				if (editor.tilesToDraw[editor.selectedTile] == Tile.PLASMA_START) {
+				if (brush == Tile.PLASMA_START) {
 					for (i = 0; i < game.map.length; i++) {
 						if (game.map[i] == Tile.PLASMA_START) {
 							game.map[i] = 0;
@@ -563,10 +415,9 @@ function updateDrawTile() {
 						}
 					}
 				}
-				game.map[tile] = editor.tilesToDraw[editor.selectedTile];
+				game.map[tile] = brush;
 			} else if (input.mouseButton == MouseButton.RIGHT) game.map[tile] = 0;
-			else if (input.mouseButton == MouseButton.MIDDLE)
-				fill(editor.tilesToDraw[editor.selectedTile], game.map[tile], x >> 4, y >> 4);
+			else if (input.mouseButton == MouseButton.MIDDLE) fill(brush, game.map[tile], x >> 4, y >> 4);
 
 			const xt = x >> 4;
 			const yt = y >> 4;
@@ -604,46 +455,6 @@ function addUndo() {
 	if (undoIndex < undoMap.length - 1) {
 		const r = undoMap.length - 1 - undoIndex;
 		for (i = 0; i < r; i++) undoMap.pop();
-	}
-}
-
-/**
- * Find the hovered object of the object palette and the hovered arrow of the background, and take the clicks on them.
- *
- * @returns {void}
- */
-function updateSpriteSelection() {
-	const editor = ui.editor;
-	const sprite = ui.editorSpriteClick;
-	ui.editorSpriteClick = 0;
-	if (sprite > 0) {
-		unclick();
-		editor.selectedSprite = sprite;
-		editor.selectedTile = -1;
-	}
-
-	const dir = ui.editorBgClick;
-	ui.editorBgClick = 0;
-	if (dir != 0) {
-		unclick();
-		game.background = (game.background + dir + bg.length) % bg.length;
-		mapChanged();
-	}
-}
-
-/**
- * Select the tile that the player clicked in the tile palette.
- *
- * @returns {void}
- */
-function updateTileSelection() {
-	const editor = ui.editor;
-	const index = ui.editorTileClick;
-	ui.editorTileClick = -1;
-	if (index >= 0) {
-		unclick();
-		editor.selectedSprite = -1;
-		editor.selectedTile = index;
 	}
 }
 

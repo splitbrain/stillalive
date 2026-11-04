@@ -12,19 +12,19 @@ import { PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH } from './constants.js';
 import { game } from './state.js';
 
 /** @type {HTMLCanvasElement} The game canvas. */
-const canvas = document.getElementById('canvas');
+let canvas;
 
 /** @type {CanvasRenderingContext2D} The drawing context of the game canvas. */
-export const ctx = canvas.getContext('2d');
+export let ctx;
 
 /** @type {number} The number of buffer pixels per playfield unit. */
 let scale = 1;
 
 /** @type {number} The wanted width of the buffer in device pixels, from the size of the canvas on the page. */
-let wantedWidth = canvas.width;
+let wantedWidth;
 
 /** @type {number} The wanted height of the buffer in device pixels, from the size of the canvas on the page. */
-let wantedHeight = canvas.height;
+let wantedHeight;
 
 /** @type {WeakMap<HTMLImageElement, {scale: number, picture: OffscreenCanvas}>} The copies of the vector images at a scale. */
 const scaledImages = new WeakMap();
@@ -39,6 +39,19 @@ function onResize(entries) {
 	const rect = entries[0].contentRect;
 	wantedWidth = Math.round(rect.width * devicePixelRatio);
 	wantedHeight = Math.round(rect.height * devicePixelRatio);
+}
+
+/**
+ * Use a canvas for the drawing.
+ *
+ * @param {HTMLCanvasElement} element The canvas.
+ * @returns {void}
+ */
+export function setCanvas(element) {
+	canvas = element;
+	ctx = canvas.getContext('2d');
+	wantedWidth = canvas.width;
+	wantedHeight = canvas.height;
 }
 
 /**
@@ -74,6 +87,16 @@ export function beginFrame() {
 	}
 	scale = Math.min(canvas.width / PLAYFIELD_WIDTH, canvas.height / PLAYFIELD_HEIGHT);
 	ctx.setTransform(scale, 0, 0, scale, game.shakeX * scale, game.shakeY * scale);
+}
+
+/**
+ * Make the canvas empty.
+ *
+ * @returns {void}
+ */
+export function clearCanvas() {
+	ctx.setTransform(1, 0, 0, 1, 0, 0);
+	ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
 
 /**

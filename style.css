@@ -130,6 +130,16 @@ body {
 	pointer-events: none;
 }
 
+/* the loading screen and the credits are text over the stage; a click on them reaches the stage */
+#loading-screen,
+#credits {
+	position: absolute;
+	inset: 0;
+	overflow: auto;
+	padding: 0 2cqw;
+	pointer-events: auto;
+}
+
 .menu {
 	position: absolute;
 	inset: 0;
@@ -472,8 +482,12 @@ body {
 	cursor: default;
 }
 
+game-stage {
+	display: block;
+}
+
 /* the canvas fills its column, but stays low enough for the window height */
-#canvas {
+game-stage canvas {
 	cursor: url('./blank.png'), none;
 	touch-action: none;
 	display: block;

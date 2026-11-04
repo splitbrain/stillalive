@@ -3,10 +3,8 @@
  *
  * The game logic runs in ticks of 1/60 second. The loop runs one tick for each 1/60 second of real time, so the game
  * speed does not depend on the refresh rate of the monitor. After the ticks of a frame, the loop draws the screen
- * once. The game does not run while a dialog is open.
+ * once. The game does not run while a dialog of the page is open.
  */
-
-import { isDialogOpen } from '../dialog.js';
 
 /** @type {number} The length of a tick in milliseconds. */
 const TICK_LENGTH = 1000 / 60;
@@ -63,7 +61,7 @@ function frame(now) {
 	pendingTime += now - (lastFrameTime ?? now);
 	lastFrameTime = now;
 	let ticks = Math.floor(pendingTime / TICK_LENGTH);
-	if (isDialogOpen()) {
+	if (document.querySelector('dialog[open]') !== null) {
 		ticks = 0;
 		pendingTime = 0;
 	} else if (ticks > MAX_TICKS_PER_FRAME) {

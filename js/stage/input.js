@@ -2,10 +2,10 @@
  * Keyboard and pointer input.
  *
  * The handlers write the pressed keys and mouse buttons into the key bitmask of the game, and the mouse position in
- * playfield units. The game reads both once per tick.
+ * playfield units. The game reads both once per tick. The keys that command the stage call the stage element: Escape
+ * pauses a level and ends a test run, Enter starts and ends a test run in the editor, and M turns the sound on and off.
  */
 
-import { toggleSound } from './audio.js';
 import { playfieldPoint } from './canvas.js';
 import {
 	KEY_CLEAR,
@@ -16,11 +16,8 @@ import {
 	MOUSE_LEFT,
 	MOUSE_MIDDLE,
 	MOUSE_RIGHT,
-	Menu,
 } from './constants.js';
-import { startPlayingLevel, stopPlayingLevel } from './editor.js';
-import { captureInput, unclick } from './inputState.js';
-import { resumeReplay } from './replay.js';
+import { atExit } from './physics.js';
 import { game, input, ui } from './state.js';
 
 /**
@@ -52,42 +49,29 @@ function isForeignTarget(event) {
 	return target.isContentEditable || target.closest('input, textarea, select, dialog') !== null;
 }
 
+/** @type {import('./GameStage.js').GameStage} The stage element that the keys command. */
+let stage;
+
 /**
  * Check if a level runs and the pause menu can open.
  *
- * @returns {boolean} True outside the menus, the editor and the intermission screen.
+ * @returns {boolean} True in a level before its end.
  */
-function canPause() {
-	return ui.currentMenu === Menu.PLAY && !ui.drawIntermission;
-}
-
-/**
- * Open or close the pause menu. A replay stores its input state when it pauses and restores it when it continues.
- *
- * @returns {void}
- */
-function togglePause() {
-	ui.escapeMenu = !ui.escapeMenu;
-	if (!game.replayMode) return;
-	if (ui.escapeMenu) {
-		input.replayPauseInput = captureInput();
-		unclick();
-		input.keys = 0;
-	} else {
-		resumeReplay();
-	}
+export function canPause() {
+	return ui.mode == 'play' && !atExit();
 }
 
 /**
  * Release all keys and mouse buttons when the game loses the focus, because the release events do not reach the
- * game, and open the pause menu in a running level. A replay continues, because it sets the keys from the recording.
+ * game, and report the lost focus in a running level with the event "focuslost". A replay continues, because it sets
+ * the keys from the recording.
  *
  * @returns {void}
  */
 function onFocusLost() {
 	if (game.replayMode) return;
 	input.keys = 0;
-	if (canPause() && !ui.escapeMenu) togglePause();
+	if (canPause() && !ui.paused) stage.dispatchEvent(new Event('focuslost'));
 }
 
 /**
@@ -100,7 +84,7 @@ function onKeyDown(event) {
 	if (isForeignTarget(event)) return;
 	if (event.code in KEY_BITS) input.keys |= KEY_BITS[event.code];
 	const modified = event.ctrlKey || event.altKey || event.metaKey;
-	if ((event.key === 'm' || event.key === 'M') && !event.repeat && !modified) toggleSound();
+	if ((event.key === 'm' || event.key === 'M') && !event.repeat && !modified) stage.setSound(!stage.sound.get());
 }
 
 /**
@@ -118,16 +102,14 @@ function onKeyUp(event) {
 	if (event.ctrlKey && key === 'y') input.rightReleased = 1;
 
 	if (event.key === 'Escape') {
-		if (canPause()) {
-			togglePause();
-		} else if (ui.currentMenu === Menu.EDITOR && ui.isTestingLevel) {
-			stopPlayingLevel();
-		}
+		if (ui.paused) stage.resume();
+		else if (canPause()) stage.pause();
+		else if (ui.mode == 'test') stage.stop();
 	}
 
-	if (event.key === 'Enter' && ui.currentMenu === Menu.EDITOR) {
-		if (ui.isTestingLevel) stopPlayingLevel();
-		else startPlayingLevel();
+	if (event.key === 'Enter') {
+		if (ui.mode == 'test') stage.stop();
+		else if (ui.mode == 'edit') stage.test();
 	}
 }
 
@@ -153,7 +135,7 @@ function onPointer(event) {
 	if (event.buttons & 4) buttons |= MOUSE_MIDDLE;
 	input.keys = (input.keys & ~MOUSE_BITS) | buttons;
 
-	if (!game.replayMode || ui.escapeMenu) {
+	if (!game.replayMode || ui.paused) {
 		const rect = canvas.getBoundingClientRect();
 		[input.mouseX, input.mouseY] = playfieldPoint(
 			event.clientX - rect.left - canvas.clientLeft,
@@ -165,9 +147,12 @@ function onPointer(event) {
 /**
  * Add the input handlers.
  *
+ * @param {HTMLCanvasElement} canvas The canvas that takes the pointer input.
+ * @param {import('./GameStage.js').GameStage} element The stage element that the keys command.
  * @returns {void}
  */
-export function setupInput() {
+export function setupInput(canvas, element) {
+	stage = element;
 	window.addEventListener('keydown', onKeyDown);
 	window.addEventListener('keyup', onKeyUp);
 	window.addEventListener('blur', onFocusLost);
@@ -175,7 +160,6 @@ export function setupInput() {
 		if (document.hidden) onFocusLost();
 	});
 
-	const canvas = document.getElementById('canvas');
 	for (const type of ['pointerdown', 'pointermove', 'pointerup', 'pointercancel']) {
 		canvas.addEventListener(type, onPointer);
 	}

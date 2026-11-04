@@ -138,16 +138,17 @@ export function drawImage(image, ...args) {
 }
 
 /**
- * Copy a part of the canvas into a new offscreen canvas at the scale of the buffer.
+ * Copy a part of the canvas into a new offscreen canvas at the scale of the buffer. The copy remembers its scale.
  *
  * @param {number} x The left edge of the part in screen units.
  * @param {number} y The top edge of the part in screen units.
  * @param {number} w The width of the part in screen units.
  * @param {number} h The height of the part in screen units.
- * @returns {OffscreenCanvas} The copy.
+ * @returns {OffscreenCanvas} The copy, with the scale in its scale property.
  */
 export function copyCanvas(x, y, w, h) {
 	const copy = new OffscreenCanvas(Math.round(w * scale), Math.round(h * scale));
+	copy.scale = scale;
 	copy
 		.getContext('2d')
 		.drawImage(
@@ -166,7 +167,8 @@ export function copyCanvas(x, y, w, h) {
 
 /**
  * Draw a copy from copyCanvas() onto the canvas. The copy replaces the pixels, as the current transformation,
- * transparency and composition of the canvas do not apply.
+ * transparency and composition of the canvas do not apply. A copy from another scale of the buffer is scaled to
+ * the current scale.
  *
  * @param {OffscreenCanvas} copy The copy.
  * @param {number} x The left edge on the canvas in screen units.
@@ -179,10 +181,12 @@ export function drawCopy(copy, x, y) {
 	ctx.beginPath();
 	const px = Math.round((x - view.x) * scale);
 	const py = Math.round((y - view.y) * scale);
-	ctx.rect(px, py, copy.width, copy.height);
+	const w = Math.round((copy.width * scale) / copy.scale);
+	const h = Math.round((copy.height * scale) / copy.scale);
+	ctx.rect(px, py, w, h);
 	ctx.clip();
 	ctx.globalAlpha = 1;
 	ctx.globalCompositeOperation = 'copy';
-	ctx.drawImage(copy, px, py);
+	ctx.drawImage(copy, px, py, w, h);
 	ctx.restore();
 }

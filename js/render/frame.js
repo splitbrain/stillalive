@@ -20,8 +20,8 @@ import { drawLevel } from './game.js';
 import { drawCredits, drawLoadingScreen, drawMainMenu, drawMapSelection, drawPauseMenu, drawSplash } from './menus.js';
 
 /**
- * Check if the canvas shows only the playfield: in a level, in the tutorial, in the level selection and in the test
- * run of the editor. The page shows the parts around the playfield.
+ * Check if the canvas shows only the playfield: in a level, in the tutorial, in the level selection and in the
+ * editor. The page shows the parts around the playfield.
  *
  * @returns {boolean} True when the canvas shows the playfield.
  */
@@ -30,8 +30,8 @@ export function onStage() {
 	return (
 		ui.currentMenu == Menu.PLAY ||
 		ui.currentMenu == Menu.TUTORIAL ||
-		(ui.currentMenu == Menu.MAIN && ui.selectMenu == 1) ||
-		(ui.currentMenu == Menu.EDITOR && ui.isTestingLevel)
+		ui.currentMenu == Menu.EDITOR ||
+		(ui.currentMenu == Menu.MAIN && ui.selectMenu == 1)
 	);
 }
 

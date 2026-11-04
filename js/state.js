@@ -86,6 +86,22 @@ export const ui = {
 	selectionLevelClick: 0,
 	/** @type {number} The clicked button of the intermission screen, a value of IntermissionButton, or -1. The next tick takes it. */
 	intermissionClick: -1,
+	/** @type {number} The hovered button of the editor, a value of EditorButton, or -1. */
+	editorButtonHover: -1,
+	/** @type {number} The clicked button of the editor, a value of EditorButton, or -1. The next tick takes it. */
+	editorButtonClick: -1,
+	/** @type {number} The hovered button of the save or load screen of the editor, a value of EditorMenuButton, or -1. */
+	editorMenuHover: -1,
+	/** @type {number} The clicked button of the save or load screen of the editor, a value of EditorMenuButton, or -1. The next tick takes it. */
+	editorMenuClick: -1,
+	/** @type {number} The clicked slot of the save or load screen of the editor, or 0. The next tick takes it. */
+	editorSlotClick: 0,
+	/** @type {number} The clicked index of the tile palette of the editor, or -1. The next tick takes it. */
+	editorTileClick: -1,
+	/** @type {number} The clicked object id of the object palette of the editor, or 0. The next tick takes it. */
+	editorSpriteClick: 0,
+	/** @type {number} The clicked background arrow of the editor, -1 or 1, or 0. The next tick takes it. */
+	editorBgClick: 0,
 	/** @type {{time: number, alpha: number, speed: number}} The scroll position, the fade and the scroll speed of the credits. */
 	credits: { time: 0, alpha: 0, speed: 0.4 },
 	/** @type {boolean} True while the mouse is over the link of the loading screen that turns the sound off. */
@@ -122,7 +138,7 @@ export const ui = {
 	isTestingLevel: false,
 	/**
 	 * @type {object} The state of the level editor: the selected tile and object, the tiles of the palette, the open
-	 *     save or load screen, the flags for the drawing and the objects of the map, and the hovered parts.
+	 *     save or load screen, and the flags for the drawing and the objects of the map.
 	 */
 	editor: {
 		/** @type {number} The index of the selected tile in tilesToDraw, or -1 while an object is selected. */
@@ -139,18 +155,6 @@ export const ui = {
 		redrawTiles: true,
 		/** @type {boolean} True when the objects of the editor map must be created again. */
 		objectsChanged: false,
-		/** @type {number} The hovered button of the editor, a value of EditorButton, or -1. */
-		buttonHover: -1,
-		/** @type {number} The hovered button of the save or load screen, a value of EditorMenuButton, or -1. */
-		menuHover: -1,
-		/** @type {number} The hovered slot of the save or load screen, or -1. */
-		slotHover: -1,
-		/** @type {number} The id of the hovered object of the object palette, or 0. */
-		spriteHover: 0,
-		/** @type {number} The hovered arrow of the background, -1 or 1, or 0. */
-		arrowHover: 0,
-		/** @type {boolean} True while the mouse is over the tile palette. */
-		tileHover: false,
 	},
 };
 

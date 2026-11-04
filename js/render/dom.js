@@ -21,7 +21,7 @@ import { canContinue, isLevelLocked } from '../intermission.js';
 import { keyLabels } from '../keys.js';
 import { hasModeButton } from '../navigation.js';
 import { game, input, ui } from '../state.js';
-import { maxLevel } from '../storage.js';
+import { getEditorMap, maxLevel } from '../storage.js';
 import { toTime } from '../utils.js';
 
 /** @type {number} The width of the robot panel in screen units. */
@@ -67,14 +67,18 @@ function setStyle(element, name, value) {
 }
 
 /**
- * Get the name of the current screen for the page: loading, main, select, level, editor or credits.
+ * Get the name of the current screen for the page: loading, main, select, level, editor, editor-file (the save or
+ * load screen of the editor) or credits.
  *
  * @returns {string} The name.
  */
 function screenName() {
 	if (ui.drawCredits) return 'credits';
 	if (ui.currentMenu == Menu.PLAY || ui.currentMenu == Menu.TUTORIAL) return 'level';
-	if (ui.currentMenu == Menu.EDITOR) return ui.isTestingLevel ? 'level' : 'editor';
+	if (ui.currentMenu == Menu.EDITOR) {
+		if (ui.isTestingLevel) return 'level';
+		return ui.editor.askLoading || ui.editor.askSaving ? 'editor-file' : 'editor';
+	}
 	if (ui.currentMenu == Menu.MAIN) return ui.selectMenu == 0 ? 'main' : 'select';
 	return 'loading';
 }
@@ -134,8 +138,6 @@ function renderRobot() {
  * @returns {void}
  */
 function renderKeys() {
-	const keys = el('keys');
-	setStyle(keys, 'visibility', game.replayMode ? 'visible' : 'hidden');
 	if (!game.replayMode) return;
 	const pressed = {
 		KeyW: KEY_JUMP,
@@ -225,6 +227,48 @@ function renderLevelMenus() {
 }
 
 /**
+ * Update the editor: the selected tile or object in the palettes.
+ *
+ * @returns {void}
+ */
+function renderEditor() {
+	setText(el('narrator'), (ui.txtLines ?? []).join(' '));
+	for (const button of el('editor-tiles').children) {
+		button.classList.toggle('selected', Number(button.dataset.index) == ui.editor.selectedTile);
+	}
+	for (const button of el('editor-objects').querySelectorAll('button[data-sprite]')) {
+		button.classList.toggle('selected', Number(button.dataset.sprite) == ui.editor.selectedSprite);
+	}
+}
+
+/**
+ * Update the save or load screen of the editor: the slots and the buttons. The stored slots are read when the screen
+ * opens, because the storage does not change while it is open.
+ *
+ * @param {boolean} opened True in the first frame of the screen.
+ * @returns {void}
+ */
+function renderEditorFile(opened) {
+	setText(el('narrator'), (ui.txtLines ?? []).join(' '));
+	const saving = ui.editor.askSaving;
+	for (const button of el('slot-list').children) {
+		const slot = Number(button.dataset.slot);
+		if (opened) {
+			const stored = getEditorMap(slot) != null;
+			button.classList.toggle('stored', stored);
+			button.disabled = !saving && !stored;
+		}
+		button.classList.toggle('selected', slot == ui.previewMap);
+	}
+	setText(el('editor-accept'), saving ? 'Save' : 'Load');
+	show(el('editor-accept'), ui.previewMap > 0);
+	show(el('editor-export'), saving || ui.previewMap > 0);
+}
+
+/** @type {string} The screen of the previous frame. */
+let lastScreen = '';
+
+/**
  * Update the parts of the page for the current screen.
  *
  * @returns {void}
@@ -233,6 +277,19 @@ export function renderPage() {
 	const page = el('game');
 	const screen = screenName();
 	if (page.dataset.screen !== screen) page.dataset.screen = screen;
+	const opened = screen !== lastScreen;
+	lastScreen = screen;
+
+	show(el('robot'), screen === 'level');
+	show(el('speech'), screen === 'level' || screen === 'select' || screen.startsWith('editor'));
+	show(el('stats'), screen === 'level');
+	show(el('editor-tiles'), screen === 'editor');
+	show(el('editor-objects'), screen === 'editor');
+	show(el('side'), screen === 'level' || screen === 'select' || screen === 'editor-file');
+	show(el('level-list'), screen === 'select');
+	show(el('slot-list'), screen === 'editor-file');
+	show(el('highscores'), screen === 'level' || screen === 'select');
+	show(el('keys'), screen === 'level' && game.replayMode);
 
 	let menu = '';
 	if (screen === 'main') {
@@ -241,6 +298,12 @@ export function renderPage() {
 	} else if (screen === 'select') {
 		menu = 'selection';
 		renderSelection();
+	} else if (screen === 'editor') {
+		menu = 'editor';
+		renderEditor();
+	} else if (screen === 'editor-file') {
+		menu = 'editor-file';
+		renderEditorFile(opened);
 	} else if (screen === 'level') {
 		setText(el('narrator'), narratorText());
 		renderRobot();

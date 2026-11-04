@@ -3,9 +3,9 @@
  */
 
 import {
+	EDITOR_TILES,
 	EditorButton,
 	EditorMenuButton,
-	LEVELS_PER_CAMPAIGN,
 	MAP_HEIGHT,
 	MAP_SIZE,
 	MAP_WIDTH,
@@ -13,8 +13,6 @@ import {
 	MouseButton,
 	PLAYFIELD_HEIGHT,
 	PLAYFIELD_WIDTH,
-	PLAYFIELD_X,
-	PLAYFIELD_Y,
 } from './constants.js';
 import { alertDialog } from './dialog.js';
 import { animateTiles } from './entities/AnimatedTile.js';
@@ -154,19 +152,7 @@ export function lvlEditorSetup() {
 	undoIndex = -1;
 	addUndo();
 
-	editor.tilesToDraw = new Array();
-	editor.tilesToDraw.push(0);
-	editor.tilesToDraw.push(1);
-	for (i = 17; i < 24; i++) editor.tilesToDraw.push(i);
-	editor.tilesToDraw.push(29);
-	editor.tilesToDraw.push(36);
-	editor.tilesToDraw.push(38);
-	editor.tilesToDraw.push(40);
-	editor.tilesToDraw.push(46);
-	editor.tilesToDraw.push(47);
-	editor.tilesToDraw.push(49);
-	editor.tilesToDraw.push(55);
-	editor.tilesToDraw.push(57);
+	editor.tilesToDraw = EDITOR_TILES.slice();
 
 	unclick();
 	editor.selectedTile = 1;
@@ -229,34 +215,26 @@ export function updateLevelEditor() {
 }
 
 /**
- * Find the hovered slot and button of the save screen and take the clicks.
+ * Take the clicks on the slots and the buttons of the save screen. The page sets the clicked slot and button.
  *
  * @returns {void}
  */
 function updateSaveScreen() {
 	const editor = ui.editor;
 	let i;
-	editor.slotHover = -1;
-	if (mouseInZone(529, 117, 90, 29 * 12)) {
-		const y = Math.trunc((input.mouseY - 105) / 12);
-		if (y <= LEVELS_PER_CAMPAIGN) {
-			editor.slotHover = y;
-			if (input.mouseNewPress && y != ui.previewMap) {
-				unclick();
-				ui.previewMap = y;
-				showEditorMap(y);
-			}
-		}
+	const slot = ui.editorSlotClick;
+	ui.editorSlotClick = 0;
+	if (slot > 0 && slot != ui.previewMap) {
+		unclick();
+		ui.previewMap = slot;
+		showEditorMap(slot);
 	}
 
-	let overMenu = -1;
-	if (mouseInZone(20, 495, 120, 24)) overMenu = EditorMenuButton.EXIT;
-	if (ui.previewMap > 0 && mouseInZone(515, 495, 120, 24)) overMenu = EditorMenuButton.ACCEPT;
-	if (mouseInZone(180, 495, 120, 24)) overMenu = EditorMenuButton.EXPORT;
-	if (mouseInZone(340, 495, 120, 24)) overMenu = EditorMenuButton.IMPORT;
-	editor.menuHover = overMenu;
+	let overMenu = ui.editorMenuClick;
+	ui.editorMenuClick = -1;
+	if (overMenu == EditorMenuButton.ACCEPT && ui.previewMap < 1) overMenu = -1;
 
-	if (input.mouseNewPress && overMenu > 0) {
+	if (overMenu > 0) {
 		unclick();
 		if (overMenu == EditorMenuButton.ACCEPT) {
 			if (!saveEditorMap(ui.previewMap, game.oldMap, oldBG)) {
@@ -273,11 +251,7 @@ function updateSaveScreen() {
 			game.background = oldBG;
 			editor.askSaving = false;
 			mapChanged();
-			game.offsetX = PLAYFIELD_X;
-			game.offsetY = PLAYFIELD_Y;
 		} else if (overMenu == EditorMenuButton.EXIT) {
-			game.offsetX = PLAYFIELD_X;
-			game.offsetY = PLAYFIELD_Y;
 			editor.askSaving = false;
 
 			game.map = new Array();
@@ -317,8 +291,6 @@ function startMapImport() {
 			loadPreviewMap(-1);
 			ui.editor.askSaving = false;
 			ui.editor.askLoading = false;
-			game.offsetX = PLAYFIELD_X;
-			game.offsetY = PLAYFIELD_Y;
 			mapChanged();
 			undoMap = new Array();
 			undoIndex = -1;
@@ -330,50 +302,35 @@ function startMapImport() {
 }
 
 /**
- * Find the hovered slot and button of the load screen and take the clicks.
+ * Take the clicks on the slots and the buttons of the load screen. The page sets the clicked slot and button.
  *
  * @returns {void}
  */
 function updateLoadScreen() {
 	const editor = ui.editor;
 	let i;
-	editor.slotHover = -1;
-	if (mouseInZone(529, 117, 90, 29 * 12)) {
-		const y = Math.trunc((input.mouseY - 105) / 12);
-		if (y <= LEVELS_PER_CAMPAIGN && getEditorMap(y) != null) {
-			editor.slotHover = y;
-			if (input.mouseNewPress && y != ui.previewMap) {
-				unclick();
-				ui.previewMap = y;
-				showEditorMap(y);
-			}
-		}
+	const slot = ui.editorSlotClick;
+	ui.editorSlotClick = 0;
+	if (slot > 0 && slot != ui.previewMap && getEditorMap(slot) != null) {
+		unclick();
+		ui.previewMap = slot;
+		showEditorMap(slot);
 	}
 
-	let overMenu = -1;
-	if (mouseInZone(20, 495, 120, 24)) overMenu = EditorMenuButton.EXIT;
-	if (ui.previewMap > 0) {
-		if (mouseInZone(515, 495, 120, 24)) overMenu = EditorMenuButton.ACCEPT;
-		if (mouseInZone(180, 495, 120, 24)) overMenu = EditorMenuButton.EXPORT;
-	}
-	if (mouseInZone(340, 495, 120, 24)) overMenu = EditorMenuButton.IMPORT;
-	editor.menuHover = overMenu;
+	let overMenu = ui.editorMenuClick;
+	ui.editorMenuClick = -1;
+	if ((overMenu == EditorMenuButton.ACCEPT || overMenu == EditorMenuButton.EXPORT) && ui.previewMap < 1) overMenu = -1;
 
-	if (input.mouseNewPress && overMenu > 0) {
+	if (overMenu > 0) {
 		unclick();
 		if (overMenu == EditorMenuButton.ACCEPT) {
 			editor.askLoading = false;
 			mapChanged();
-			game.offsetX = PLAYFIELD_X;
-			game.offsetY = PLAYFIELD_Y;
 
 			undoMap = new Array();
 			undoIndex = -1;
 			addUndo();
 		} else if (overMenu == EditorMenuButton.EXIT) {
-			game.offsetX = PLAYFIELD_X;
-			game.offsetY = PLAYFIELD_Y;
-
 			game.map = new Array();
 			for (i = 0; i < game.oldMap.length; i++) game.map.push(game.oldMap[i]);
 			game.background = oldBG;
@@ -388,7 +345,8 @@ function updateLoadScreen() {
 }
 
 /**
- * Take the edits of the map, the selections in the palettes and the clicks on the buttons.
+ * Take the edits of the map, the selections in the palettes and the clicks on the buttons. The page sets the
+ * clicked button.
  *
  * @returns {void}
  */
@@ -404,17 +362,10 @@ function updateEditor() {
 	if (oldMouseReleased == 1 && input.mouseReleased == 1) input.mouseReleased = 0;
 	oldMouseReleased = input.mouseReleased;
 
-	let overMenu = -1;
-	if (mouseInZone(game.offsetX + PLAYFIELD_WIDTH - 250, game.offsetY + 394, 120, 24)) overMenu = EditorButton.LOAD;
-	else if (mouseInZone(game.offsetX + PLAYFIELD_WIDTH - 120, game.offsetY + 394, 120, 24)) overMenu = EditorButton.SAVE;
-	else if (mouseInZone(game.offsetX, game.offsetY + 394, 120, 24)) overMenu = EditorButton.EXIT;
-	else if (mouseInZone(game.offsetX + 130, game.offsetY + 394, 120, 24)) overMenu = EditorButton.CLEAR;
-	else if (mouseInZone(game.offsetX + 60, game.offsetY + 420, 120, 24)) overMenu = EditorButton.TRY;
-	else if (mouseInZone(game.offsetX + 60 + 130, game.offsetY + 420, 120, 24)) overMenu = EditorButton.HELP;
+	const overMenu = ui.editorButtonClick;
+	ui.editorButtonClick = -1;
 
-	ui.editor.buttonHover = overMenu;
-
-	if (overMenu > 0 && input.mouseNewPress) {
+	if (overMenu > 0) {
 		unclick();
 		if (overMenu == EditorButton.TRY) {
 			startPlayingLevel();
@@ -432,16 +383,12 @@ function updateEditor() {
 		} else if (overMenu == EditorButton.SAVE) {
 			ui.editor.askSaving = true;
 			ui.previewMap = -1;
-			game.offsetX = 0;
-			game.offsetY = PLAYFIELD_Y;
 			game.oldMap = new Array();
 			for (i = 0; i < game.map.length; i++) game.oldMap.push(game.map[i]);
 			oldBG = game.background;
 		} else if (overMenu == EditorButton.LOAD) {
 			ui.editor.askLoading = true;
 			ui.previewMap = -1;
-			game.offsetX = 0;
-			game.offsetY = PLAYFIELD_Y;
 			game.oldMap = new Array();
 			for (i = 0; i < game.map.length; i++) game.oldMap.push(game.map[i]);
 			oldBG = game.background;
@@ -702,65 +649,36 @@ function addUndo() {
  */
 function updateSpriteSelection() {
 	const editor = ui.editor;
-	editor.spriteHover = 0;
-	editor.arrowHover = 0;
-	if (mouseInZone(580, 140, 56, 216)) {
-		const x = 584;
-		const y = 142;
-		let inZone = 0;
-		if (mouseInZone(x, y, 16, 16)) inZone = Tile.CAKE;
-		else if (mouseInZone(x + 24, y, 16, 16)) inZone = Tile.CRATE;
-		else if (mouseInZone(x, y + 24, 16, 32)) inZone = Tile.TURRET_LEFT;
-		else if (mouseInZone(x + 24, y + 24, 16, 32)) inZone = Tile.TURRET_RIGHT;
-		else if (mouseInZone(x, y + 24 + 40, 48, 16)) inZone = Tile.PLATFORM_RIGHT;
-		else if (mouseInZone(x, y + 24 + 40 + 24, 48, 16)) inZone = Tile.PLATFORM_LEFT;
-		else if (mouseInZone(x, y + 24 + 40 + 24 + 24, 16, 26)) inZone = Tile.PLAYER_START;
-		else if (mouseInZone(x, y + 144, 16, 32)) inZone = Tile.TUNNEL_RIGHT;
-		else if (mouseInZone(x + 24, y + 144, 16, 32)) inZone = Tile.TUNNEL_LEFT;
-		else if (mouseInZone(x, y + 180, 32, 16)) inZone = Tile.TUNNEL_UP;
-		else if (mouseInZone(x, y + 200, 32, 16)) inZone = Tile.TUNNEL_DOWN;
-		editor.spriteHover = inZone;
+	const sprite = ui.editorSpriteClick;
+	ui.editorSpriteClick = 0;
+	if (sprite > 0) {
+		unclick();
+		editor.selectedSprite = sprite;
+		editor.selectedTile = -1;
+	}
 
-		if (input.mouseNewPress) {
-			unclick();
-			editor.selectedSprite = inZone;
-			editor.selectedTile = -1;
-		}
-	} else if (mouseInZone(0, 400, 62, 48)) {
-		if (mouseInZone(3, 412, 27, 47)) editor.arrowHover = -1;
-		else if (mouseInZone(32, 412, 27, 47)) editor.arrowHover = 1;
-
-		if (input.mouseNewPress) {
-			unclick();
-			if (editor.arrowHover < 0) {
-				game.background--;
-				mapChanged();
-				if (game.background < 0) game.background = bg.length - 1;
-			} else if (editor.arrowHover > 0) {
-				game.background++;
-				mapChanged();
-				if (game.background == bg.length) game.background = 0;
-			}
-		}
+	const dir = ui.editorBgClick;
+	ui.editorBgClick = 0;
+	if (dir != 0) {
+		unclick();
+		game.background = (game.background + dir + bg.length) % bg.length;
+		mapChanged();
 	}
 }
 
 /**
- * Find out if the mouse is over the tile palette, and select the tile under the mouse on a click.
+ * Select the tile that the player clicked in the tile palette.
  *
  * @returns {void}
  */
 function updateTileSelection() {
 	const editor = ui.editor;
-	editor.tileHover = mouseInZone(4, 140, 56, 118);
-	if (editor.tileHover && input.mouseNewPress) {
+	const index = ui.editorTileClick;
+	ui.editorTileClick = -1;
+	if (index >= 0) {
 		unclick();
 		editor.selectedSprite = -1;
-		const x = Math.trunc(input.mouseX / 20) * 20 + 2;
-		const y = Math.trunc(input.mouseY / 20) * 20 - 4;
-		const xt = Math.trunc(x / 20);
-		const yt = Math.trunc((y - 136) / 20);
-		editor.selectedTile = xt + yt * 3;
+		editor.selectedTile = index;
 	}
 }
 

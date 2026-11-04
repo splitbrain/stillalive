@@ -19,6 +19,30 @@
 				<div id="robot-eye"></div>
 			</div>
 			<div id="speech"><p id="narrator"></p></div>
+			<div id="editor-tiles" hidden></div>
+			<div id="editor-objects" hidden>
+				<button data-sprite="103" title="Cake"><span class="sprite cake"></span></button>
+				<button data-sprite="102" title="Crate"><span class="sprite crate"></span></button>
+				<button data-sprite="100" title="Turret, facing left"><span class="sprite turret-left"></span></button>
+				<button data-sprite="101" title="Turret, facing right"><span class="sprite turret-right"></span></button>
+				<button data-sprite="105" title="Platform, moving right" class="wide">
+					<span class="sprite platform"></span><span class="arrow">&#9654;</span>
+				</button>
+				<button data-sprite="106" title="Platform, moving left" class="wide">
+					<span class="sprite platform"></span><span class="arrow">&#9664;</span>
+				</button>
+				<button data-sprite="104" title="Player start">
+					<span class="sprite player"><span class="head"></span></span>
+				</button>
+				<button data-sprite="107" title="Tunnel to the right"><span class="sprite tunnel-right"></span></button>
+				<button data-sprite="108" title="Tunnel to the left"><span class="sprite tunnel-left"></span></button>
+				<button data-sprite="109" title="Tunnel up" class="wide"><span class="sprite tunnel-up"></span></button>
+				<button data-sprite="110" title="Tunnel down" class="wide"><span class="sprite tunnel-down"></span></button>
+				<div id="editor-bg">
+					<button data-bg="-1" title="Previous background">&#9664;</button>
+					<button data-bg="1" title="Next background">&#9654;</button>
+				</div>
+			</div>
 			<div id="stats">
 				<div class="stat"><span class="label">Life</span><span class="value" id="stat-life">100</span></div>
 				<div class="stat"><span class="label">Cakes</span><span class="value" id="stat-cakes">0</span></div>
@@ -67,10 +91,29 @@
 							<button class="small" id="selection-play" data-menu="selection" data-button="1">Play</button>
 						</div>
 					</div>
+					<div id="editor-menu" class="menu">
+						<div class="buttons">
+							<button class="small" id="editor-exit" data-menu="editorButton" data-button="3">Exit</button>
+							<button class="small" id="editor-clear" data-menu="editorButton" data-button="4">Clear</button>
+							<button class="small" id="editor-try" data-menu="editorButton" data-button="5">Try Map</button>
+							<button class="small" id="editor-help" data-menu="editorButton" data-button="6">Help</button>
+							<button class="small" id="editor-load" data-menu="editorButton" data-button="1">Load</button>
+							<button class="small" id="editor-save" data-menu="editorButton" data-button="2">Save</button>
+						</div>
+					</div>
+					<div id="editor-file" class="menu">
+						<div class="buttons">
+							<button class="small" id="editor-file-exit" data-menu="editorMenu" data-button="2">Exit</button>
+							<button class="small" id="editor-export" data-menu="editorMenu" data-button="3">Export</button>
+							<button class="small" id="editor-import" data-menu="editorMenu" data-button="4">Import</button>
+							<button class="small" id="editor-accept" data-menu="editorMenu" data-button="1">Save</button>
+						</div>
+					</div>
 				</div>
 			</div>
 			<div id="side">
 				<div id="level-list"></div>
+				<div id="slot-list" hidden></div>
 				<div id="highscores">
 					<div id="highscores_in"></div>
 				</div>

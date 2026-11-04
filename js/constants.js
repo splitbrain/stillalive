@@ -137,6 +137,9 @@ export const SelectionButton = {
 	MODE: 3,
 };
 
+/** @type {number[]} The tile ids of the tile palette of the editor, in the order of the palette. */
+export const EDITOR_TILES = [0, 1, 17, 18, 19, 20, 21, 22, 23, 29, 36, 38, 40, 46, 47, 49, 55, 57];
+
 /** @type {Object<string, number>} The buttons of the level editor. */
 export const EditorButton = {
 	LOAD: 1,

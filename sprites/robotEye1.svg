@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="19" height="76" viewBox="0 0 19 76">
+  <!-- the eye of the robot, four frames of the blink -->
+  <defs><clipPath id="open0"><rect x="0" y="1.00" width="19" height="17.00"/></clipPath><clipPath id="open1"><rect x="0" y="27.65" width="19" height="9.35"/></clipPath><clipPath id="open2"><rect x="0" y="52.60" width="19" height="3.40"/></clipPath><clipPath id="open3"><rect x="0" y="75.00" width="19" height="0.00"/></clipPath></defs>
+  <circle cx="9.5" cy="9.5" r="8.5" fill="#ffffff" stroke="#1a1410" stroke-width="0.35" stroke-linejoin="round"/>
+  <g clip-path="url(#open0)">
+    <circle cx="9.5" cy="9.5" r="5.8" fill="#00b5e3"/>
+    <circle cx="9.5" cy="9.5" r="5.8" fill="none" stroke="#006c87" stroke-width="1"/>
+    <circle cx="9.5" cy="9.5" r="2.6" fill="#001c23"/>
+    <circle cx="8" cy="7.5" r="1" fill="#ffffff"/>
+  </g>
+  <circle cx="9.5" cy="28.5" r="8.5" fill="#ffffff" stroke="#1a1410" stroke-width="0.35" stroke-linejoin="round"/>
+  <g clip-path="url(#open1)">
+    <circle cx="9.5" cy="28.5" r="5.8" fill="#00b5e3"/>
+    <circle cx="9.5" cy="28.5" r="5.8" fill="none" stroke="#006c87" stroke-width="1"/>
+    <circle cx="9.5" cy="28.5" r="2.6" fill="#001c23"/>
+    <circle cx="8" cy="26.5" r="1" fill="#ffffff"/>
+  </g>
+  <circle cx="9.5" cy="47.5" r="8.5" fill="#ffffff" stroke="#1a1410" stroke-width="0.35" stroke-linejoin="round"/>
+  <g clip-path="url(#open2)">
+    <circle cx="9.5" cy="47.5" r="5.8" fill="#00b5e3"/>
+    <circle cx="9.5" cy="47.5" r="5.8" fill="none" stroke="#006c87" stroke-width="1"/>
+    <circle cx="9.5" cy="47.5" r="2.6" fill="#001c23"/>
+    <circle cx="8" cy="45.5" r="1" fill="#ffffff"/>
+  </g>
+  <circle cx="9.5" cy="66.5" r="8.5" fill="#ffffff" stroke="#1a1410" stroke-width="0.35" stroke-linejoin="round"/>
+  <g clip-path="url(#open3)">
+    <circle cx="9.5" cy="66.5" r="5.8" fill="#00b5e3"/>
+    <circle cx="9.5" cy="66.5" r="5.8" fill="none" stroke="#006c87" stroke-width="1"/>
+    <circle cx="9.5" cy="66.5" r="2.6" fill="#001c23"/>
+    <circle cx="8" cy="64.5" r="1" fill="#ffffff"/>
+  </g>
+</svg>

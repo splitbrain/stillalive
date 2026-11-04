@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="74" height="58" viewBox="0 0 74 58">
+  <!-- the head of the robot -->
+  <path d="M37 1C56 1 71 24 72 57.5H2C3 24 18 1 37 1z" fill="#f2f2f2" stroke="#1a1410" stroke-width="0.35" stroke-linejoin="round"/>
+  <path d="M37 1C25 1 14 10 8 26 5 34 3 45 2 57.5H14C14 40 20 14 37 1z" fill="#c8c8c8"/>
+  <path d="M9 40C22 46 52 46 65 40" fill="none" stroke="#9a9a9a" stroke-width="1"/>
+  <path d="M20 10C26 6 32 4 37 4" fill="none" stroke="#ffffff" stroke-width="1.2" stroke-linecap="round"/>
+</svg>

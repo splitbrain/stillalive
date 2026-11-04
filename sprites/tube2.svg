@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
+  <!-- tube of the second boss -->
+  <rect x="0.5" y="0.5" width="47" height="47" rx="2" fill="#4141d6" stroke="#1a1410" stroke-width="0.35" stroke-linejoin="round"/>
+  <path d="M16 0.5v47M32 0.5v47" stroke="#2a2a9a" stroke-width="1"/>
+  <path d="M3 3h42v8H3z" fill="#5a5ae8" opacity="0.6"/>
+</svg>

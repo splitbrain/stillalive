@@ -128,7 +128,7 @@ function renderRobot() {
 	const eyeElement = el('robot-eye');
 	setStyle(eyeElement, 'left', `${((game.robot.ex >> 8) / ROBOT_PANEL_WIDTH) * 100}%`);
 	setStyle(eyeElement, 'top', `${((game.robot.ey >> 8) / ROBOT_PANEL_HEIGHT) * 100}%`);
-	setStyle(eyeElement, 'backgroundImage', `url("sprites/robotEye${eye + 1}.png")`);
+	setStyle(eyeElement, 'backgroundImage', `url("sprites/robotEye${eye + 1}.svg")`);
 	setStyle(eyeElement, 'backgroundPositionY', `${(game.robot.eye * 100) / 3}%`);
 }
 

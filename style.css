@@ -362,7 +362,7 @@ body {
 
 #editor-objects .cake {
 	height: calc(var(--u) * 12);
-	background-image: url('sprites/cake.png');
+	background-image: url('sprites/cake.svg');
 }
 
 #editor-objects .crate {
@@ -372,16 +372,16 @@ body {
 #editor-objects .turret-left,
 #editor-objects .turret-right {
 	height: calc(var(--u) * 32);
-	background-image: url('sprites/turret0.png');
+	background-image: url('sprites/turret0.svg');
 }
 
 #editor-objects .turret-right {
-	background-image: url('sprites/turret1.png');
+	background-image: url('sprites/turret1.svg');
 }
 
 #editor-objects .platform {
 	width: calc(var(--u) * 48);
-	background-image: url('sprites/platform.png');
+	background-image: url('sprites/platform.svg');
 }
 
 #editor-objects .arrow {
@@ -407,7 +407,7 @@ body {
 #editor-objects .tunnel-right,
 #editor-objects .tunnel-left {
 	height: calc(var(--u) * 32);
-	background-image: url('sprites/tunnel.png');
+	background-image: url('sprites/tunnel.svg');
 }
 
 #editor-objects .tunnel-left {
@@ -417,7 +417,7 @@ body {
 #editor-objects .tunnel-up,
 #editor-objects .tunnel-down {
 	width: calc(var(--u) * 32);
-	background-image: url('sprites/tunnel2.png');
+	background-image: url('sprites/tunnel2.svg');
 	background-size: auto 100%;
 }
 

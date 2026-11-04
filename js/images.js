@@ -110,7 +110,7 @@ export function loadGfx() {
 	}
 	controls = loadImage('decor/controls.png');
 
-	crosshair = loadImage('sprites/crosshair.png');
+	crosshair = loadImage('sprites/crosshair.svg');
 
 	bluePortal = loadImage('sprites/bluePortal.svg');
 
@@ -140,13 +140,13 @@ export function loadGfx() {
 
 	highscore = loadImage('bg/highscore.png');
 
-	tube = loadImage('sprites/tube.png');
+	tube = loadImage('sprites/tube.svg');
 
-	tube2 = loadImage('sprites/tube2.png');
+	tube2 = loadImage('sprites/tube2.svg');
 
-	tunnel = loadImage('sprites/tunnel.png');
+	tunnel = loadImage('sprites/tunnel.svg');
 
-	tunnel2 = loadImage('sprites/tunnel2.png');
+	tunnel2 = loadImage('sprites/tunnel2.svg');
 
 	crateImage = loadImage('sprites/crate.svg');
 
@@ -164,29 +164,29 @@ export function loadGfx() {
 
 	turretImages = new Array();
 	for (i = 0; i < 2; i++) {
-		t = loadImage('sprites/turret' + i + '.png');
+		t = loadImage('sprites/turret' + i + '.svg');
 		turretImages.push(t);
 	}
 
-	sparkle = loadImage('sprites/sparkle.png');
+	sparkle = loadImage('sprites/sparkle.svg');
 
-	cake = loadImage('sprites/cake.png');
+	cake = loadImage('sprites/cake.svg');
 
 	portalGun = loadImage('sprites/portalGun.svg');
 
-	cameraFollow = loadImage('sprites/cameraFollow.png');
+	cameraFollow = loadImage('sprites/cameraFollow.svg');
 
 	robotEye = new Array();
 	for (let rob = 1; rob < 5; rob++) {
-		r = loadImage('sprites/robotEye' + rob + '.png');
+		r = loadImage('sprites/robotEye' + rob + '.svg');
 		robotEye.push(r);
 	}
 
-	robotHead = loadImage('sprites/robotHead.png');
+	robotHead = loadImage('sprites/robotHead.svg');
 
-	plasma = loadImage('sprites/plasma.png');
+	plasma = loadImage('sprites/plasma.svg');
 
-	platform = loadImage('sprites/platform.png');
+	platform = loadImage('sprites/platform.svg');
 
 	tileset = new Array();
 	for (i = 0; i < NUM_TILES; i++) {

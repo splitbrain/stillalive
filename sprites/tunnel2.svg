@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="16" viewBox="0 0 64 16">
+  <!-- tunnels that push up (left) and down (right) -->
+  <rect x="0" y="0" width="32" height="16" fill="#003c53"/>
+  <rect x="2" y="2" width="28" height="12" fill="#0d4458"/>
+  <rect x="3.5" y="3.5" width="25" height="9" fill="#005674"/>
+  <path d="M18.5 10.5L16.0 5.5L13.5 10.5z" fill="#8fd8f0" opacity="0.9"/>
+  <rect x="32" y="0" width="32" height="16" fill="#003c53"/>
+  <rect x="34" y="2" width="28" height="12" fill="#0d4458"/>
+  <rect x="35.5" y="3.5" width="25" height="9" fill="#005674"/>
+  <path d="M45.5 5.5L48.0 10.5L50.5 5.5z" fill="#8fd8f0" opacity="0.9"/>
+</svg>

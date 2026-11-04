@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="352" viewBox="0 0 16 352">
+  <!-- turret: idle, firing, then nine frames of the explosion -->
+  <g transform="translate(0 0)"><g>
+    <path d="M4 10l1.5 7.5L4 29.5M12 10l-1.5 7.5L12 29.5M8 24v5" fill="none" stroke="#3a3f44" stroke-width="1.4" stroke-linecap="round"/>
+    <path d="M8 1C11.5 1 13.5 6 13.5 12 13.5 18 11.5 22 8 22 4.5 22 2.5 18 2.5 12 2.5 6 4.5 1 8 1z" fill="#eceeec" stroke="#1a1410" stroke-width="0.35" stroke-linejoin="round"/>
+    <path d="M8 1C5.5 2.5 4 7 4 12 4 17 5.5 20.5 8 22 4.5 22 2.5 18 2.5 12 2.5 6 4.5 1 8 1z" fill="#c9cccb"/>
+    <path d="M3 9.5h2.2v5H3z" fill="#d0182a"/>
+    <path d="M6.5 4v15" stroke="#a9adac" stroke-width="0.5"/>
+    
+  </g></g>
+  <g transform="translate(0 32)"><g>
+    <path d="M4 10l1.5 7.5L4 29.5M12 10l-1.5 7.5L12 29.5M8 24v5" fill="none" stroke="#3a3f44" stroke-width="1.4" stroke-linecap="round"/>
+    <path d="M8 1C11.5 1 13.5 6 13.5 12 13.5 18 11.5 22 8 22 4.5 22 2.5 18 2.5 12 2.5 6 4.5 1 8 1z" fill="#eceeec" stroke="#1a1410" stroke-width="0.35" stroke-linejoin="round"/>
+    <path d="M8 1C5.5 2.5 4 7 4 12 4 17 5.5 20.5 8 22 4.5 22 2.5 18 2.5 12 2.5 6 4.5 1 8 1z" fill="#c9cccb"/>
+    <path d="M3 9.5h2.2v5H3z" fill="#d0182a"/>
+    <path d="M6.5 4v15" stroke="#a9adac" stroke-width="0.5"/>
+    <path d="M2 11 -2 8 2.5 9.5 -1 5 3 8.5 1.5 3 4 8z" fill="#ffe14a"/>
+  </g></g>
+  <g transform="translate(0 64)"><g>
+    <path d="M4 10l1.5 7.5L4 29.5M12 10l-1.5 7.5L12 29.5M8 24v5" fill="none" stroke="#3a3f44" stroke-width="1.4" stroke-linecap="round"/>
+    <path d="M8 1C11.5 1 13.5 6 13.5 12 13.5 18 11.5 22 8 22 4.5 22 2.5 18 2.5 12 2.5 6 4.5 1 8 1z" fill="#eceeec" stroke="#1a1410" stroke-width="0.35" stroke-linejoin="round"/>
+    <path d="M8 1C5.5 2.5 4 7 4 12 4 17 5.5 20.5 8 22 4.5 22 2.5 18 2.5 12 2.5 6 4.5 1 8 1z" fill="#c9cccb"/>
+    <path d="M3 9.5h2.2v5H3z" fill="#d0182a"/>
+    <path d="M6.5 4v15" stroke="#a9adac" stroke-width="0.5"/>
+    
+  </g><g opacity="1.00">
+    
+    <circle cx="8" cy="14" r="3.0" fill="#f75e21"/>
+    <circle cx="8" cy="14" r="2.0" fill="#f9c36d"/>
+    <circle cx="8" cy="14" r="0.9" fill="#fff4a4"/>
+  </g></g>
+  <g transform="translate(0 96)"><g>
+    <path d="M4 10l1.5 7.5L4 29.5M12 10l-1.5 7.5L12 29.5M8 24v5" fill="none" stroke="#3a3f44" stroke-width="1.4" stroke-linecap="round"/>
+    <path d="M8 1C11.5 1 13.5 6 13.5 12 13.5 18 11.5 22 8 22 4.5 22 2.5 18 2.5 12 2.5 6 4.5 1 8 1z" fill="#eceeec" stroke="#1a1410" stroke-width="0.35" stroke-linejoin="round"/>
+    <path d="M8 1C5.5 2.5 4 7 4 12 4 17 5.5 20.5 8 22 4.5 22 2.5 18 2.5 12 2.5 6 4.5 1 8 1z" fill="#c9cccb"/>
+    <path d="M3 9.5h2.2v5H3z" fill="#d0182a"/>
+    <path d="M6.5 4v15" stroke="#a9adac" stroke-width="0.5"/>
+    
+  </g><g opacity="1.00">
+    
+    <circle cx="8" cy="14" r="4.8" fill="#f75e21"/>
+    <circle cx="8" cy="14" r="3.1" fill="#f9c36d"/>
+    <circle cx="8" cy="14" r="1.4" fill="#fff4a4"/>
+  </g></g>
+  <g transform="translate(0 128)"><g>
+    <path d="M4 10l1.5 7.5L4 29.5M12 10l-1.5 7.5L12 29.5M8 24v5" fill="none" stroke="#3a3f44" stroke-width="1.4" stroke-linecap="round"/>
+    <path d="M8 1C11.5 1 13.5 6 13.5 12 13.5 18 11.5 22 8 22 4.5 22 2.5 18 2.5 12 2.5 6 4.5 1 8 1z" fill="#eceeec" stroke="#1a1410" stroke-width="0.35" stroke-linejoin="round"/>
+    <path d="M8 1C5.5 2.5 4 7 4 12 4 17 5.5 20.5 8 22 4.5 22 2.5 18 2.5 12 2.5 6 4.5 1 8 1z" fill="#c9cccb"/>
+    <path d="M3 9.5h2.2v5H3z" fill="#d0182a"/>
+    <path d="M6.5 4v15" stroke="#a9adac" stroke-width="0.5"/>
+    
+  </g><g opacity="1.00">
+    
+    <circle cx="8" cy="14" r="6.6" fill="#f75e21"/>
+    <circle cx="8" cy="14" r="4.3" fill="#f9c36d"/>
+    <circle cx="8" cy="14" r="2.0" fill="#fff4a4"/>
+  </g></g>
+  <g transform="translate(0 160)"><g opacity="1.00">
+    
+    <circle cx="8" cy="14" r="8.4" fill="#f75e21"/>
+    <circle cx="8" cy="14" r="5.5" fill="#f9c36d"/>
+    <circle cx="8" cy="14" r="2.5" fill="#fff4a4"/>
+  </g></g>
+  <g transform="translate(0 192)"><g opacity="1.00">
+    <circle cx="8" cy="14" r="11.2" fill="#4a3a30" opacity="0.00"/>
+    <circle cx="8" cy="14" r="10.2" fill="#f75e21"/>
+    <circle cx="8" cy="14" r="6.6" fill="#f9c36d"/>
+    <circle cx="8" cy="14" r="3.1" fill="#fff4a4"/>
+  </g></g>
+  <g transform="translate(0 224)"><g opacity="0.75">
+    <circle cx="8" cy="14" r="13.2" fill="#4a3a30" opacity="0.12"/>
+    <circle cx="8" cy="14" r="12.0" fill="#f75e21"/>
+    <circle cx="8" cy="14" r="7.8" fill="#f9c36d"/>
+    <circle cx="8" cy="14" r="3.6" fill="#fff4a4"/>
+  </g></g>
+  <g transform="translate(0 256)"><g opacity="0.50">
+    <circle cx="8" cy="14" r="13.2" fill="#4a3a30" opacity="0.25"/>
+    <circle cx="8" cy="14" r="12.0" fill="#f75e21"/>
+    <circle cx="8" cy="14" r="7.8" fill="#f9c36d"/>
+    <circle cx="8" cy="14" r="3.6" fill="#fff4a4"/>
+  </g></g>
+  <g transform="translate(0 288)"><g opacity="0.25">
+    <circle cx="8" cy="14" r="13.2" fill="#4a3a30" opacity="0.38"/>
+    <circle cx="8" cy="14" r="12.0" fill="#f75e21"/>
+    <circle cx="8" cy="14" r="7.8" fill="#f9c36d"/>
+    <circle cx="8" cy="14" r="3.6" fill="#fff4a4"/>
+  </g></g>
+  <g transform="translate(0 320)"><g opacity="0.15">
+    <circle cx="8" cy="14" r="13.2" fill="#4a3a30" opacity="0.50"/>
+    <circle cx="8" cy="14" r="12.0" fill="#f75e21"/>
+    <circle cx="8" cy="14" r="7.8" fill="#f9c36d"/>
+    <circle cx="8" cy="14" r="3.6" fill="#fff4a4"/>
+  </g></g>
+</svg>

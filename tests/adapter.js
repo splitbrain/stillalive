@@ -84,7 +84,8 @@ export async function openGame(page) {
 /**
  * Start a level and run the game for a number of ticks.
  *
- * The level starts in the same way as from the level selection in the menu. Math.random() gets a pseudo-random
+ * The level starts in the same way as from the level selection in the menu, also in the tutorial. An event that waits
+ * for a click at the level start keeps waiting until the inputs click, as in the game. Math.random() gets a pseudo-random
  * generator with the given seed, so the visual effects that change the game state give the same result in each run.
  * The run stops early in the tick in which the player reaches the exit. In this tick, the game sets the fade of the
  * same player object from -1 to 120. More levels can run in the same page.
@@ -98,7 +99,8 @@ export async function openGame(page) {
  * @param {number[][]} [options.inputs] For each tick the key bitmask, the mouse x and the mouse y position. Without
  *     inputs, the run does not change the input state.
  * @param {object} [options.replay] A replay in the file format. The run plays the replay instead of using inputs.
- * @param {boolean} [options.skipBossIntro] True to skip the entrance and the speech of the boss, as a replay does.
+ * @param {boolean} [options.skipBossIntro] True to start the level as a restart, which skips the entrance of the boss
+ *     and the waits of the events, as a replay does.
  * @returns {Promise<string>} One JSON line for each snapshot, and the line "finished" if the player reached the exit.
  */
 export async function runLevel(
@@ -107,8 +109,7 @@ export async function runLevel(
 ) {
 	return page.evaluate(
 		async ({ campaign, level, ticks, seed, inputs, replay: replayData, skipBossIntro, interval }) => {
-			const { skipComingBoss } = await import('/js/boss.js');
-			const { CampaignId, Menu, PLAYFIELD_X, PLAYFIELD_Y } = await import('/js/constants.js');
+			const { Menu, PLAYFIELD_X, PLAYFIELD_Y } = await import('/js/constants.js');
 			const t = window.__test;
 			const { game, ui, input } = t;
 			let state = seed >>> 0;
@@ -124,24 +125,10 @@ export async function runLevel(
 			game.offsetY = PLAYFIELD_Y;
 			ui.campaign = campaign;
 			ui.currentLevel = level;
-			if (campaign === CampaignId.TUTORIAL) {
-				game.bossNum = 0;
-				ui.currentMenu = Menu.TUTORIAL;
-				ui.tutoJump = level > 1;
-				ui.tutoPortal = level > 4;
-				ui.tutoPause = true;
-				ui.portalsDisplayed = false;
-				ui.tutoEnded = false;
-				game.replayMode = false;
-				t.loadLevel(level);
-				t.unclick();
-			} else {
-				// the level selection in the menu loads the preview map before the level
-				ui.currentMenu = Menu.MAIN;
-				t.loadPreviewMap(level);
-				t.startLevel(campaign, level, replayData === null ? null : t.decodeReplay(replayData));
-			}
-			if (skipBossIntro) skipComingBoss();
+			// the level selection in the menu loads the preview map before the level
+			ui.currentMenu = Menu.MAIN;
+			t.loadPreviewMap(level);
+			t.startLevel(campaign, level, replayData === null ? null : t.decodeReplay(replayData), skipBossIntro);
 			const startMap = game.map.slice();
 
 			const pick = (obj, fields) => fields.map((field) => obj[field]);

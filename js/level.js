@@ -3,14 +3,13 @@
  */
 
 import { playSound, sfx_tick } from './audio.js';
-import { setupBoss } from './boss.js';
+import { setupBoss, skipComingBoss } from './boss.js';
 import {
 	CAMPAIGN_FOLDERS,
 	CampaignId,
 	Direction,
 	MAP_HEIGHT,
 	MAP_WIDTH,
-	Menu,
 	ORDERED,
 	PLAYFIELD_HEIGHT,
 	RANDOM,
@@ -28,6 +27,7 @@ import { Robot } from './entities/Robot.js';
 import { removeSparkles } from './entities/Sparkle.js';
 import { GravPipe } from './entities/GravPipe.js';
 import { Turret } from './entities/Turret.js';
+import { startEvents } from './events.js';
 import { parseMap } from './mapFile.js';
 import { getTileSimple } from './physics.js';
 import { Replay } from './replay.js';
@@ -542,6 +542,7 @@ export function loadLevelEditor() {
 	game.abilities = { jump: true, portals: true };
 	game.events = [];
 	game.labels = [];
+	startEvents();
 
 	game.camera = new Camera(game.player.x, game.player.y);
 	game.cakesLeft = game.cakes.length;
@@ -553,12 +554,13 @@ export function loadLevelEditor() {
  *
  * The function copies the map, creates the player, the objects and the animated tiles, resets the level time and starts
  * a new replay recording. In level 8 of the normal and the advanced campaign, the player drops into the level from a
- * fixed position.
+ * fixed position. A restart skips the waits of the events and the entrance of the boss.
  *
  * @param {number} level The level number, starting at 1, or -1 to start the map in game.oldMap again.
+ * @param {boolean} [restart] True for a restart of the same level, for example after a death.
  * @returns {void}
  */
-export function loadLevel(level) {
+export function loadLevel(level, restart = false) {
 	if (level > -1) {
 		game.map = campaigns[ui.campaign].levels[level - 1].slice();
 		game.oldMap = game.map.slice();
@@ -568,11 +570,6 @@ export function loadLevel(level) {
 	game.displayMap = game.map.slice();
 
 	resetLevelState();
-	if (ui.currentMenu == Menu.TUTORIAL) {
-		ui.txtLines.push('');
-		ui.txtLines.push('');
-		ui.txtLines.push('Follow the on-screen instructions to progress through the tutorial.');
-	}
 	if (!game.replayMode) game.replay = new Replay();
 
 	game.player = new Player();
@@ -592,11 +589,15 @@ export function loadLevel(level) {
 
 	if (level > -1) {
 		game.background = campaigns[ui.campaign].backgrounds[level - 1];
-		game.abilities = campaigns[ui.campaign].abilities[level - 1];
+		game.abilities = { ...campaigns[ui.campaign].abilities[level - 1] };
 		game.events = campaigns[ui.campaign].events[level - 1];
 		game.labels = campaigns[ui.campaign].labels[level - 1];
 	}
-	if (game.bossNum > 0) setupBoss();
+	startEvents(restart);
+	if (game.bossNum > 0) {
+		setupBoss();
+		if (restart) skipComingBoss();
+	}
 }
 
 /**

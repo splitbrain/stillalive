@@ -155,7 +155,8 @@ export function manageKeys() {
 	//jump
 	if (
 		input.keys & KEY_JUMP &&
-		(ui.isTestingLevel || ui.currentMenu == Menu.PLAY || (ui.currentMenu == Menu.TUTORIAL && ui.tutoJump)) &&
+		(ui.isTestingLevel || ui.currentMenu == Menu.PLAY) &&
+		game.abilities.jump &&
 		!isInPortal(game.player)
 	) {
 		if (!(input.oldKeys & KEY_JUMP)) game.player.oldIsJump = game.player.isJump;

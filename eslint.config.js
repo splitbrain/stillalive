@@ -17,11 +17,11 @@ const LAYERS = [
 		name: 'logic',
 		files: [
 			'./js/entities/*.js',
-			'./js/{boss,inputState,intermission,level,mapFile,navigation,physics,portals,replay,robotText}.js',
+			'./js/{boss,events,inputState,intermission,level,mapFile,navigation,physics,portals,replay,robotText}.js',
 		],
 	},
 	{ name: 'drawing', files: ['./js/render/*.js'] },
-	{ name: 'flow', files: ['./js/{editor,game,input,main,menus,panel,tutorial}.js'] },
+	{ name: 'flow', files: ['./js/{editor,game,input,main,menus,panel}.js'] },
 ];
 
 /** @type {object[]} The zones of import-x/no-restricted-paths: each layer must not import from a higher layer. */

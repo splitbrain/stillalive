@@ -98,7 +98,7 @@ export function updatePanel() {
  */
 function startReplay(data) {
 	const recorded = decodeReplay(data);
-	const campaign = campaigns.findIndex((c) => c.folder === data.campaign && c.folder !== 'tutorial');
+	const campaign = campaigns.findIndex((c) => c.folder === data.campaign && c.records);
 	if (campaign < 0 || data.level < 1 || data.level > LEVELS_PER_CAMPAIGN)
 		throw new Error('The replay is for an unknown level.');
 

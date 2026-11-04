@@ -13,7 +13,6 @@ import {
 	PLAYFIELD_HEIGHT,
 	PLAYFIELD_WIDTH,
 	SparkleType,
-	TUTORIAL_END_LEVEL,
 } from '../constants.js';
 import {
 	bg,
@@ -37,11 +36,15 @@ import {
 	gravPipe2,
 	turretImages,
 } from '../images.js';
-import { drawBoss, drawBossSpeech } from './boss.js';
+import { drawBoss } from './boss.js';
+import { prepareTxt } from './hud.js';
+import { atExit } from '../physics.js';
 import { drawTransition } from './transitions.js';
 import { game, input, ui } from '../state.js';
 import { degToRad, getAngle, radToDeg, random } from '../utils.js';
-import { drawTutorial } from './tutorial.js';
+
+/** @type {number} The maximum width of a line of the message in pixels. */
+const MESSAGE_WIDTH = 460;
 
 /**
  * Draw a line with the current stroke style.
@@ -87,7 +90,7 @@ function triangle(x1, y1, x2, y2, x3, y3) {
  * @returns {void}
  */
 function drawPortalGun() {
-	if (ui.currentMenu != Menu.TUTORIAL || ui.tutoPortal) {
+	if (game.abilities.portals) {
 		const a = getAngle(
 			(game.player.x >> 8) + (game.player.pX >> 1) + game.offsetX,
 			(game.player.y >> 8) + (game.player.pY >> 1) + game.offsetY,
@@ -214,7 +217,7 @@ export function drawLevel() {
 	drawFrontTiles();
 	drawPortals();
 	drawCamera();
-	if (ui.currentMenu == Menu.TUTORIAL) drawTutorial();
+	drawLabels();
 
 	if (game.player.dead) {
 		const a = -(game.player.life / 256);
@@ -226,14 +229,54 @@ export function drawLevel() {
 
 	drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
 
-	drawBossSpeech();
+	drawMessage();
+}
 
-	if (ui.currentMenu == Menu.TUTORIAL && ui.currentLevel == TUTORIAL_END_LEVEL) {
-		ctx.fillStyle = 'rgb(0, 0, 0)';
-		ctx.fillRect(game.offsetX, game.offsetY, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
-		drawTutorial();
-		drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
+/**
+ * Draw the labels of the level at their positions in the playfield.
+ *
+ * @returns {void}
+ */
+function drawLabels() {
+	if (atExit() || game.player.fadeNextLevel > 0) return;
+	ctx.font = '14px Arial';
+	ctx.fillStyle = 'rgb(255, 255, 255)';
+	for (const label of game.labels) ctx.fillText(label.text, label.x + game.offsetX, label.y + game.offsetY);
+}
+
+/**
+ * Draw the message of the events in a text box at the top of the playfield. The message does not show during the
+ * transitions.
+ *
+ * @returns {void}
+ */
+function drawMessage() {
+	if (!game.message || game.player.fadeNextLevel > 0) return;
+	ctx.font = '16px Arial';
+	const lines = wrapText(game.message, MESSAGE_WIDTH);
+	prepareTxt(15, 10, 477, 16 * lines.length + 12);
+	lines.forEach((line, i) => ctx.fillText(line, game.offsetX + 22, game.offsetY + 30 + 16 * i));
+}
+
+/**
+ * Split a text into lines that fit a width with the current font.
+ *
+ * @param {string} text The text.
+ * @param {number} width The maximum width of a line in pixels.
+ * @returns {string[]} The lines.
+ */
+function wrapText(text, width) {
+	const lines = [];
+	let line = '';
+	for (const word of text.split(' ')) {
+		const longer = line ? line + ' ' + word : word;
+		if (line && ctx.measureText(longer).width > width) {
+			lines.push(line);
+			line = word;
+		} else line = longer;
 	}
+	lines.push(line);
+	return lines;
 }
 
 /**

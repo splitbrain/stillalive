@@ -53,12 +53,12 @@ function isForeignTarget(event) {
 }
 
 /**
- * Check if a level or the tutorial runs and the pause menu can open.
+ * Check if a level runs and the pause menu can open.
  *
  * @returns {boolean} True outside the menus, the editor and the intermission screen.
  */
 function canPause() {
-	return (ui.currentMenu === Menu.PLAY || ui.currentMenu === Menu.TUTORIAL) && !ui.drawIntermission;
+	return ui.currentMenu === Menu.PLAY && !ui.drawIntermission;
 }
 
 /**

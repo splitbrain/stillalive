@@ -3,7 +3,6 @@
  */
 
 import { playSound, setSoundVolume, sfx_flatline, sfx_jump, sfx_pain } from '../audio.js';
-import { skipComingBoss } from '../boss.js';
 import { Direction, GRAVITY, Menu, MouseButton, PLAYFIELD_HEIGHT, SparkleType } from '../constants.js';
 import { reportBrokenReplay } from '../navigation.js';
 import { collectCakes } from './Cake.js';
@@ -147,10 +146,7 @@ export class Player {
 		} else if (this.dead) {
 			if (this.life >= 0) {
 				setSoundVolume(sfx_flatline, 1);
-				if (ui.currentMenu == Menu.PLAY || ui.currentMenu == Menu.TUTORIAL) {
-					loadLevel(ui.currentLevel);
-					if (game.bossNum > 0) skipComingBoss();
-				}
+				if (ui.currentMenu == Menu.PLAY) loadLevel(ui.currentLevel, true);
 			}
 		}
 	}
@@ -376,7 +372,7 @@ export class Player {
 		grabObject();
 		clearPortalsAtForceField();
 
-		if (ui.currentMenu != Menu.TUTORIAL || ui.tutoPortal) {
+		if (game.abilities.portals) {
 			if (input.mousePressed && this.portalCooldown == 25 && !isInPortal(this) && !carriesObject()) {
 				if (input.mouseButton == MouseButton.LEFT) {
 					launchPortal(0);

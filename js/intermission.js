@@ -4,6 +4,7 @@
 
 import { IntermissionButton, LEVELS_PER_CAMPAIGN, Menu } from './constants.js';
 import { unclick } from './inputState.js';
+import { campaigns } from './level.js';
 import { atExit } from './physics.js';
 import { game, ui } from './state.js';
 import { maxLevel } from './storage.js';
@@ -68,5 +69,5 @@ export function canContinue() {
  * @returns {boolean} True for a locked level.
  */
 export function isLevelLocked() {
-	return ui.currentMenu == Menu.PLAY && ui.currentLevel > maxLevel[ui.campaign];
+	return ui.currentMenu == Menu.PLAY && campaigns[ui.campaign].records && ui.currentLevel > maxLevel[ui.campaign];
 }

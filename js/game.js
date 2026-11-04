@@ -3,7 +3,7 @@
  */
 
 import { playSound, setSoundVolume, sfx_flatline, sfx_transition } from './audio.js';
-import { skipComingBoss, updateBoss, updateBossRumble } from './boss.js';
+import { updateBoss, updateBossRumble } from './boss.js';
 import {
 	CampaignId,
 	IntermissionButton,
@@ -12,7 +12,6 @@ import {
 	PLAYFIELD_X,
 	PLAYFIELD_Y,
 	Transition,
-	TUTORIAL_END_LEVEL,
 } from './constants.js';
 import { updateLevelEditor } from './editor.js';
 import { animateTiles } from './entities/AnimatedTile.js';
@@ -26,6 +25,7 @@ import { updateProjectiles } from './entities/Projectile.js';
 import { updateRobot } from './entities/Robot.js';
 import { updateSparkles } from './entities/Sparkle.js';
 import { updateTurrets } from './entities/Turret.js';
+import { isWaiting, updateEvents } from './events.js';
 import { manageKeys, unclick } from './inputState.js';
 import { updateTransition } from './intermission.js';
 import { campaigns, loadLevel, manageDoors } from './level.js';
@@ -45,7 +45,6 @@ import { encodeReplay } from './replay.js';
 import { updateText } from './robotText.js';
 import { game, input, ui } from './state.js';
 import { getBestTime, maxLevel, saveBestTime, saveProgress } from './storage.js';
-import { updateTutorial } from './tutorial.js';
 import { random, toTime } from './utils.js';
 
 /**
@@ -87,9 +86,9 @@ function checkBestTime() {
 function updateScreen() {
 	if (ui.currentMenu == Menu.EDITOR) {
 		updateLevelEditor();
-	} else if ((ui.currentMenu == Menu.PLAY || ui.currentMenu == Menu.TUTORIAL) && !ui.escapeMenu) {
+	} else if (ui.currentMenu == Menu.PLAY && !ui.escapeMenu) {
 		updateLevel();
-	} else if ((ui.currentMenu == Menu.PLAY || ui.currentMenu == Menu.TUTORIAL) && ui.escapeMenu) {
+	} else if (ui.currentMenu == Menu.PLAY && ui.escapeMenu) {
 		updatePauseMenu();
 	} else if (ui.currentMenu == Menu.LOADING) {
 		if (ui.canSplash && !ui.splash.over) updateSplash();
@@ -102,7 +101,7 @@ function updateScreen() {
 
 /**
  * Run one tick of a level: the level time, the player, the doors, the level end with the intermission screen, the
- * objects, the boss and the tutorial.
+ * objects, the boss and the events. The level time stands still while an event waits and while the boss comes in.
  *
  * @returns {void}
  */
@@ -130,26 +129,24 @@ function updateLevel() {
 		}
 	}
 
-	if (game.bossNum > 0 && game.bossIsComing && game.player.fadeNextLevel == -1) game.player.fadeNextLevel = 0;
+	if ((isWaiting() || (game.bossNum > 0 && game.bossIsComing)) && game.player.fadeNextLevel == -1) {
+		game.player.fadeNextLevel = 0;
+	}
 	updateObjects();
 	updateBoss();
-
-	if (ui.currentMenu == Menu.TUTORIAL && ui.currentLevel == TUTORIAL_END_LEVEL && input.mousePressed) {
-		unclick();
-		ui.currentMenu = Menu.MAIN;
-		ui.selectMenu = 0;
-		ui.fadeMenu = 30;
-		game.sparkles = new Array();
-	}
+	if (!atExit()) updateEvents();
 }
 
 /**
  * Run the end of a level: the closing transition, the best time, the progress and the choice of the intermission
- * screen. In the tutorial, the next level starts at once.
+ * screen. In a campaign without intermission screens, the next level starts at once. The last level always shows the
+ * intermission screen, with the end text of the campaign if it has one.
  *
  * @returns {void}
  */
 function updateLevelEnd() {
+	const campaign = campaigns[ui.campaign];
+	const isLastLevel = ui.currentLevel == campaign.levels.length;
 	game.bossNum = 0;
 	game.offsetX = PLAYFIELD_X;
 	game.offsetY = PLAYFIELD_Y;
@@ -164,10 +161,13 @@ function updateLevelEnd() {
 		ui.transition = random(Transition.TOP_LEFT, Transition.SQUARE + 1);
 		playSound(sfx_transition);
 		ui.highscoreMessage = '';
+		game.message = '';
 		unclick();
-		if (ui.currentMenu == Menu.PLAY && !game.replayMode) ui.highscoreMessage = checkBestTime();
+		const records = campaign.records && !game.replayMode;
+		if (records) ui.highscoreMessage = checkBestTime();
+		if (isLastLevel && campaign.endText) ui.highscoreMessage = campaign.endText;
 		ui.intermissionChoice = IntermissionButton.NONE;
-		if (ui.currentMenu == Menu.PLAY && !game.replayMode) {
+		if (records) {
 			if (maxLevel[ui.campaign] < ui.currentLevel + 1) {
 				if (ui.campaign == CampaignId.STORY && maxLevel[ui.campaign] == LEVELS_PER_CAMPAIGN) ui.drawCredits = true;
 				saveProgress(ui.campaign, ui.currentLevel + 1);
@@ -179,36 +179,23 @@ function updateLevelEnd() {
 	if (game.player.fadeNextLevel <= 0) {
 		game.player.fadeNextLevel = 0;
 
-		if (ui.currentMenu == Menu.TUTORIAL) {
-			ui.currentLevel++;
-			if (ui.currentLevel < TUTORIAL_END_LEVEL) {
-				unclick();
-				loadLevel(ui.currentLevel);
-			} else {
-				ui.currentLevel = TUTORIAL_END_LEVEL;
-				if (!ui.tutoEnded) game.player.fadeNextLevel = 1;
-			}
-			ui.tutoPause = true;
+		if (!campaign.intermission && !isLastLevel) {
+			startLevel(ui.campaign, ui.currentLevel + 1);
 		} else {
 			ui.drawIntermission = true;
 			if (ui.intermissionChoice == IntermissionButton.CONTINUE) {
 				unclick();
-				if (ui.currentMenu == Menu.PLAY) {
-					startLevel(ui.campaign, ui.currentLevel + 1);
-					game.player.intermissionFade = -20;
-				}
+				startLevel(ui.campaign, ui.currentLevel + 1);
+				game.player.intermissionFade = -20;
 			} else if (ui.intermissionChoice == IntermissionButton.RESTART) {
 				unclick();
-				if (ui.currentMenu == Menu.PLAY) {
-					startLevel(ui.campaign, ui.currentLevel);
-					if (game.bossNum > 0) skipComingBoss();
-				}
+				startLevel(ui.campaign, ui.currentLevel, null, true);
 				game.player.intermissionFade = -20;
 			} else if (ui.intermissionChoice == IntermissionButton.EXIT) {
 				exitFunc();
 			} else if (ui.intermissionChoice == IntermissionButton.REPLAY) {
 				unclick();
-				if (ui.currentMenu == Menu.PLAY) startLevel(ui.campaign, ui.currentLevel, game.replay);
+				startLevel(ui.campaign, ui.currentLevel, game.replay);
 				game.player.intermissionFade = -20;
 			}
 		}
@@ -218,7 +205,7 @@ function updateLevelEnd() {
 /**
  * Update the objects of a level in the order of the game logic: the tiles, the player direction, the pipe fields,
  * the cakes, the turrets, the plasma balls, the sparkles, the crates, the boss projectiles, the platforms, the
- * portals, the camera, the tutorial, the death fade, the transitions, the texts and the robot.
+ * portals, the camera, the death fade, the transitions, the texts and the robot.
  *
  * @returns {void}
  */
@@ -242,7 +229,6 @@ function updateObjects() {
 	updatePlatforms();
 	updatePortals();
 	game.camera.move();
-	if (ui.currentMenu == Menu.TUTORIAL) updateTutorial();
 
 	if (game.player.dead) {
 		const a = -(game.player.life / 256);
@@ -262,9 +248,11 @@ function updateObjects() {
  * @param {number} campaign The index of the campaign.
  * @param {number} level The level number, starting at 1.
  * @param {Replay|null} [replay] The replay to play, or null to let the player play.
+ * @param {boolean} [restart] True for a restart of the same level: the waits of the events and the entrance of the
+ *     boss are skipped.
  * @returns {void}
  */
-export function startLevel(campaign, level, replay = null) {
+export function startLevel(campaign, level, replay = null, restart = false) {
 	ui.campaign = campaign;
 	ui.currentLevel = level;
 	ui.currentMenu = Menu.PLAY;
@@ -272,6 +260,6 @@ export function startLevel(campaign, level, replay = null) {
 	game.offsetY = PLAYFIELD_Y;
 	game.replayMode = replay !== null;
 	if (replay) game.replay = replay;
-	loadLevel(level);
+	loadLevel(level, restart);
 	unclick();
 }

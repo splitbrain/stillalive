@@ -56,11 +56,12 @@ export const game = {
 	bossLife: undefined,
 	bossIsComing: undefined,
 	bossComingTime: undefined,
-	bossIsTalking: undefined,
 	rumbleTime: undefined,
+	/** @type {string} The message of the events of the level, or an empty text for none. */
+	message: '',
 };
 
-/** @type {object} The state of the menus, the intermission screen, the level texts and the tutorial. */
+/** @type {object} The state of the menus, the intermission screen and the level texts. */
 export const ui = {
 	currentMenu: undefined,
 	selectMenu: 0,
@@ -131,11 +132,6 @@ export const ui = {
 	drawCredits: false,
 	timeWriting: 0,
 	txtLines: undefined,
-	tutoJump: false,
-	tutoPortal: false,
-	tutoPause: false,
-	portalsDisplayed: false,
-	tutoEnded: false,
 	/** @type {number} The transition effect of the level end, chosen at random. */
 	transition: Transition.HORIZONTAL_LINES,
 	/** @type {boolean} True when the images and the font of the splash screen are loaded. */

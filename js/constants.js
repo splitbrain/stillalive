@@ -79,7 +79,6 @@ export const Menu = {
 	MAIN: 1,
 	PLAY: 2,
 	EDITOR: 3,
-	TUTORIAL: 6,
 };
 
 /** @type {Object<string, number>} The campaigns, their index in the campaigns list and the value of ui.campaign. */
@@ -87,7 +86,6 @@ export const CampaignId = {
 	NORMAL: 0,
 	ADVANCED: 1,
 	COMMUNITY: 2,
-	TUTORIAL: 3,
 	STORY: 4,
 };
 
@@ -185,9 +183,6 @@ export const LEVELS_PER_CAMPAIGN = 28;
 
 /** @type {number} The value of the highest unlocked level after the player finished the last level of a campaign. */
 export const CAMPAIGN_FINISHED = LEVELS_PER_CAMPAIGN + 1;
-
-/** @type {number} The level number of the end screen of the tutorial, after its last level. */
-export const TUTORIAL_END_LEVEL = 9;
 
 /** @type {Object<number, number>} The campaign that each campaign button of the main menu opens. */
 export const BUTTON_CAMPAIGN = {

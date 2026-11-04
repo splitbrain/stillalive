@@ -19,6 +19,7 @@ import {
 } from '../constants.js';
 import { canContinue, isLevelLocked } from '../intermission.js';
 import { keyLabels } from '../keys.js';
+import { campaigns } from '../level.js';
 import { hasModeButton } from '../navigation.js';
 import { game, input, ui } from '../state.js';
 import { getEditorMap, maxLevel } from '../storage.js';
@@ -74,7 +75,7 @@ function setStyle(element, name, value) {
  */
 function screenName() {
 	if (ui.drawCredits) return 'credits';
-	if (ui.currentMenu == Menu.PLAY || ui.currentMenu == Menu.TUTORIAL) return 'level';
+	if (ui.currentMenu == Menu.PLAY) return 'level';
 	if (ui.currentMenu == Menu.EDITOR) {
 		if (ui.isTestingLevel) return 'level';
 		return ui.editor.askLoading || ui.editor.askSaving ? 'editor-file' : 'editor';
@@ -210,8 +211,7 @@ function renderSelection() {
  */
 function renderLevelMenus() {
 	if (ui.escapeMenu) {
-		show(el('pause-restart'), ui.currentMenu != Menu.TUTORIAL);
-		show(el('pause-sound'), ui.currentMenu != Menu.TUTORIAL && isSoundAvailable());
+		show(el('pause-sound'), isSoundAvailable());
 		setText(el('pause-sound'), 'Sounds : ' + (isSoundOn() ? 'On' : 'Off'));
 		return 'pause';
 	}
@@ -221,6 +221,7 @@ function renderLevelMenus() {
 		setText(el('intermission-message'), ready ? ui.highscoreMessage : '');
 		show(el('intermission-restart'), !isLevelLocked());
 		show(el('intermission-continue'), canContinue());
+		show(el('intermission-replay'), campaigns[ui.campaign].records);
 		return 'intermission';
 	}
 	return '';

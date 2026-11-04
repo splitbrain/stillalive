@@ -3,17 +3,16 @@
  */
 
 import { ctx } from './canvas.js';
-import { Menu } from './constants.js';
 import { campaigns } from './level.js';
 import { game, ui } from './state.js';
 
 /**
- * Wrap the text of the current level into lines, if the lines are empty. The tutorial sets its own lines.
+ * Wrap the text of the current level into lines, if the lines are empty.
  *
  * @returns {void}
  */
 export function prepareTextLines() {
-	if (ui.txtLines.length > 0 || ui.currentMenu == Menu.TUTORIAL) return;
+	if (ui.txtLines.length > 0) return;
 	ctx.font = '13px Arial';
 	const txt = campaigns[ui.campaign].texts[ui.currentLevel - 1];
 	let l = 0;
@@ -42,8 +41,7 @@ export function prepareTextLines() {
  * @returns {void}
  */
 export function updateText() {
-	const visible = ui.currentMenu == Menu.TUTORIAL || game.player.fadeNextLevel == -1;
-	if (!visible) return;
+	if (game.player.fadeNextLevel != -1) return;
 	prepareTextLines();
 	let toWrite = Math.trunc(ui.timeWriting);
 	if (toWrite >= 0) {

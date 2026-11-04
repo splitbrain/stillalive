@@ -7,13 +7,14 @@ import { Crate } from './entities/Crate.js';
 import { Plasma } from './entities/Plasma.js';
 import { Projectile } from './entities/Projectile.js';
 import { createCakeOrSmokeSparkles } from './entities/Sparkle.js';
+import { endWait, isWaiting, triggerEvents } from './events.js';
 import { unclick } from './inputState.js';
 import { game, input } from './state.js';
 import { FIRST_OF_KIND, TileKind } from './tiles.js';
 import { getCos, getDistance, getSin, random } from './utils.js';
 
 /**
- * Put the boss in its start state. In a boss level, the boss comes in and speaks first.
+ * Put the boss in its start state. In a boss level, the boss comes in after the waits of the start events.
  *
  * @returns {void}
  */
@@ -25,7 +26,6 @@ export function setupBoss() {
 	if (game.bossNum != 0) {
 		game.bossIsComing = true;
 		game.bossComingTime = 0;
-		game.bossIsTalking = true;
 		game.bossX = 449 + 50 - (game.bossComingTime >> 8);
 		game.rumbleTime = 0;
 	} else skipComingBoss();
@@ -34,7 +34,7 @@ export function setupBoss() {
 }
 
 /**
- * Skip the entrance and the speech of the boss.
+ * Skip the entrance of the boss. The boss is at its place at once.
  *
  * @returns {void}
  */
@@ -42,15 +42,18 @@ export function skipComingBoss() {
 	if (game.bossNum != 0) {
 		game.bossIsComing = false;
 		game.bossComingTime = 0;
-		game.bossIsTalking = false;
 		game.bossX = 449;
 		game.rumbleTime = 0;
+		triggerEvents('bossArrived');
 	}
 }
 
 /**
- * Run the boss for one tick: the entrance with its speech, the attacks of each boss, the damage to the player and the
- * end of the fight.
+ * Run the boss for one tick: the entrance after the waits of the start events, the attacks of each boss, the damage
+ * to the player and the end of the fight.
+ *
+ * After its death, the boss waits for a click that ends the wait of the death event. The click counts only after 60
+ * ticks. A replay stores the time of this click and plays it back.
  *
  * @returns {void}
  */
@@ -58,32 +61,26 @@ export function updateBoss() {
 	let d, vx1, vy1, i;
 	if (game.bossNum == 0) return;
 	if (game.bossIsComing) {
-		if (game.bossIsTalking) {
-			if (game.bossLife == 0 && game.player.fadeNextLevel == 0) {
-				if (input.mouseNewPress) {
-					game.bossIsTalking = false;
-					if (game.bossX == 449) {
-						game.bossIsComing = false;
-					}
-					unclick();
-				}
-			} else if (game.player.fadeNextLevel == 0) {
-				if (game.replayMode ? game.rumbleTime >= game.replay.bossSpeech : input.mouseNewPress && game.rumbleTime > 60) {
-					if (!game.replayMode) game.replay.bossSpeech = game.rumbleTime;
-					game.bossIsTalking = false;
-					game.bossIsComing = false;
-					shakeScreen();
-					unclick();
-				}
+		if (game.bossLife == 3) {
+			if (
+				game.player.fadeNextLevel == 0 &&
+				(game.replayMode ? game.rumbleTime >= game.replay.bossSpeech : input.mouseNewPress && game.rumbleTime > 60)
+			) {
+				if (!game.replayMode) game.replay.bossSpeech = game.rumbleTime;
+				game.bossIsComing = false;
+				shakeScreen();
+				endWait();
+				unclick();
 			}
-		} else {
+		} else if (!isWaiting()) {
 			game.bossComingTime += 32;
 			game.rumbleTime++;
 			game.bossX = 449 + 50 - (game.bossComingTime >> 8);
 			if (game.bossX == 449) {
-				game.bossIsTalking = true;
+				game.bossIsComing = false;
 				game.offsetX = PLAYFIELD_X;
 				game.offsetY = PLAYFIELD_Y;
+				triggerEvents('bossArrived');
 			}
 			if (game.rumbleTime % 3 == 0) {
 				game.offsetX = PLAYFIELD_X + random(-3, 3);
@@ -328,8 +325,8 @@ export function hitBoss(obj) {
 			game.projectiles = new Array();
 			game.plasmaBall = new Array();
 			game.bossIsComing = true;
-			game.bossIsTalking = true;
 			game.rumbleTime = 0;
+			triggerEvents('bossDied');
 		}
 	}
 }

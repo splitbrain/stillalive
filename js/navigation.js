@@ -35,7 +35,8 @@ export function hasModeButton() {
 }
 
 /**
- * Leave the current level or the tutorial and go back to the menu.
+ * Leave the current level and go back to the menu: to the level selection, or to the main menu if the level started
+ * from there.
  *
  * @returns {void}
  */
@@ -46,14 +47,12 @@ export function exitFunc() {
 		game.offsetX = PLAYFIELD_X;
 		game.offsetY = PLAYFIELD_Y;
 		ui.currentMenu = Menu.MAIN;
-		prepareSelectionText();
-		ui.previewMap = ui.currentLevel;
-		loadPreviewMap(ui.previewMap);
-	} else if (ui.currentMenu == Menu.TUTORIAL) {
-		ui.currentMenu = Menu.MAIN;
-		ui.selectMenu = 0;
 		ui.fadeMenu = 30;
-		game.sparkles = new Array();
+		if (ui.selectMenu != 0) {
+			prepareSelectionText();
+			ui.previewMap = ui.currentLevel;
+			loadPreviewMap(ui.previewMap);
+		}
 	}
 
 	game.replayMode = false;

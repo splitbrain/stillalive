@@ -4,9 +4,10 @@
 
 import { allImagesLoaded } from './assets.js';
 import { allSoundsLoaded, disableSound, isSoundAvailable, toggleSound } from './audio.js';
-import { setupBoss, skipComingBoss } from './boss.js';
+import { setupBoss } from './boss.js';
 import {
 	BUTTON_CAMPAIGN,
+	CAMPAIGN_FOLDERS,
 	CampaignId,
 	MainButton,
 	Menu,
@@ -27,7 +28,6 @@ import { mainMenuPlayers } from './render/menus.js';
 import { resumeReplay } from './replay.js';
 import { game, input, ui } from './state.js';
 import { maxLevel } from './storage.js';
-import { setupTutorial } from './tutorial.js';
 
 /**
  * Take the click on a button of the pause menu and move the robot.
@@ -48,8 +48,7 @@ export function updatePauseMenu() {
 		} else if (overMenu == PauseButton.RESTART) {
 			ui.escapeMenu = !ui.escapeMenu;
 			if (ui.currentMenu == Menu.PLAY) {
-				startLevel(ui.campaign, ui.currentLevel, game.replayMode ? game.replay : null);
-				if (game.bossNum > 0) skipComingBoss();
+				startLevel(ui.campaign, ui.currentLevel, game.replayMode ? game.replay : null, true);
 			}
 		} else if (overMenu == PauseButton.EXIT) {
 			ui.escapeMenu = !ui.escapeMenu;
@@ -187,8 +186,7 @@ export function updateMainMenu() {
 					lvlEditorSetup();
 					game.sparkles = new Array();
 				} else if (ui.menuButton == MainButton.TUTORIAL) {
-					ui.currentMenu = Menu.TUTORIAL;
-					setupTutorial();
+					startLevel(CAMPAIGN_FOLDERS.indexOf('tutorial'), 1);
 				}
 			}
 		}

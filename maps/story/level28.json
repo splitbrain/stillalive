@@ -2,12 +2,15 @@
 	"format": 1,
 	"bg": 5,
 	"boss": 4,
-	"text": "Don't kill me, cause I'm close to the edge. I'm trying, not to shoot your head, HaHa-Ha-Ha.",
 	"events": [
 		{
 			"on": "start",
 			"text": "Well, Well Well ... It's getting serious. I guess I'm the only one left to stop you from getting out of these laboratories. I hope you enjoyed your life as long as it lasted. You won't suffer, I promise.",
 			"wait": "click"
+		},
+		{
+			"on": "start",
+			"text": "Don't kill me, cause I'm close to the edge. I'm trying, not to shoot your head, HaHa-Ha-Ha."
 		},
 		{
 			"on": "bossArrived",

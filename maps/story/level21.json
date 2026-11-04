@@ -2,12 +2,15 @@
 	"format": 1,
 	"bg": 9,
 	"boss": 3,
-	"text": "Error 404 : Text not found.",
 	"events": [
 		{
 			"on": "start",
 			"text": "You first started with my cousin, then you decided to take apart its brother ... I can't let you continue to destroy our family just like that. I'm coming to get you, and I'm sure you won't like the taste of it ...",
 			"wait": "click"
+		},
+		{
+			"on": "start",
+			"text": "Error 404 : Text not found."
 		},
 		{
 			"on": "bossArrived",

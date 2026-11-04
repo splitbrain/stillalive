@@ -37,14 +37,10 @@ import {
 	turretImages,
 } from '../images.js';
 import { drawBoss } from './boss.js';
-import { prepareTxt } from './hud.js';
 import { atExit } from '../physics.js';
 import { drawTransition } from './transitions.js';
 import { game, input, ui } from '../state.js';
 import { degToRad, getAngle, radToDeg, random } from '../utils.js';
-
-/** @type {number} The maximum width of a line of the message in pixels. */
-const MESSAGE_WIDTH = 460;
 
 /**
  * Draw a line with the current stroke style.
@@ -154,7 +150,7 @@ export function drawSparkles() {
 }
 
 /**
- * Draw a level: the tiles, the player, the objects, the boss, the transitions, the HUD and the texts.
+ * Draw a level: the tiles, the player, the objects, the boss, the transitions, the HUD and the labels.
  *
  * @returns {void}
  */
@@ -204,8 +200,6 @@ export function drawLevel() {
 	if (game.player.fadeNextLevel >= 0) drawTransition();
 
 	drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
-
-	drawMessage();
 }
 
 /**
@@ -218,41 +212,6 @@ function drawLabels() {
 	ctx.font = '14px Arial';
 	ctx.fillStyle = 'rgb(255, 255, 255)';
 	for (const label of game.labels) ctx.fillText(label.text, label.x, label.y);
-}
-
-/**
- * Draw the message of the events in a text box at the top of the playfield. The message does not show during the
- * transitions.
- *
- * @returns {void}
- */
-function drawMessage() {
-	if (!game.message || game.player.fadeNextLevel > 0) return;
-	ctx.font = '16px Arial';
-	const lines = wrapText(game.message, MESSAGE_WIDTH);
-	prepareTxt(15, 10, 477, 16 * lines.length + 12);
-	lines.forEach((line, i) => ctx.fillText(line, 22, 30 + 16 * i));
-}
-
-/**
- * Split a text into lines that fit a width with the current font.
- *
- * @param {string} text The text.
- * @param {number} width The maximum width of a line in pixels.
- * @returns {string[]} The lines.
- */
-function wrapText(text, width) {
-	const lines = [];
-	let line = '';
-	for (const word of text.split(' ')) {
-		const longer = line ? line + ' ' + word : word;
-		if (line && ctx.measureText(longer).width > width) {
-			lines.push(line);
-			line = word;
-		} else line = longer;
-	}
-	lines.push(line);
-	return lines;
 }
 
 /**

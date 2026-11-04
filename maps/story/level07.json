@@ -2,12 +2,15 @@
 	"format": 1,
 	"bg": 6,
 	"boss": 1,
-	"text": "Due to internal difficulties, Future Science is not able to perform your request ... Please try again later.",
 	"events": [
 		{
 			"on": "start",
 			"text": "Enough is enough little man. I've decided that you can no longer continue to progress through our laboratories anymore. Launching termination program in 3 ... 2 ... 1 .............",
 			"wait": "click"
+		},
+		{
+			"on": "start",
+			"text": "Due to internal difficulties, Future Science is not able to perform your request ... Please try again later."
 		},
 		{
 			"on": "bossArrived",

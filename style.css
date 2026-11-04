@@ -56,11 +56,15 @@ body {
 
 #robot-head {
 	position: absolute;
+	left: calc(100% * 18 / 120);
+	top: calc(100% * 30 / 96);
 	width: calc(100% * 74 / 120);
 }
 
 #robot-eye {
 	position: absolute;
+	left: calc(100% * 47 / 120);
+	top: calc(100% * 56 / 96);
 	width: calc(100% * 19 / 120);
 	aspect-ratio: 1;
 	background-size: 100% 400%;

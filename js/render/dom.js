@@ -25,11 +25,16 @@ import { game, input, ui } from '../state.js';
 import { getEditorMap, maxLevel } from '../storage.js';
 import { toTime } from '../utils.js';
 
-/** @type {number} The width of the robot panel in screen units. */
-const ROBOT_PANEL_WIDTH = 120;
+/** @type {string} The narrator text of the level selection. */
+const SELECTION_TEXT =
+	"Welcome to the campaign mode of StillAliveJS. Here you can select a map on the right and click 'Play' to play it. Good Luck !";
 
-/** @type {number} The height of the robot panel in screen units. */
-const ROBOT_PANEL_HEIGHT = 96;
+/** @type {string} The narrator text of the editor and of its save and load screen. */
+const EDITOR_TEXT =
+	'Welcome to the StillAliveJS Level Editor ! Here is a place where you can easily create your own maps. You can use your mouse to select tiles or object and draw them on the screen. Then, try out your map. Have Fun !';
+
+/** @type {string} The narrator text of the test run of the editor map. */
+const TEST_TEXT = 'Press <Enter> or <Escape> key to stop testing.';
 
 /** @type {Object<string, HTMLElement>} The elements of the page by id. */
 const elements = {};
@@ -85,37 +90,13 @@ function screenName() {
 }
 
 /**
- * Get the text of the narrator with the typewriter effect: the first characters of the lines of the level text.
- *
- * @returns {string} The visible text.
- */
-function narratorText() {
-	if (ui.currentMenu == Menu.EDITOR) return '';
-	if (ui.currentMenu == Menu.PLAY && game.player.fadeNextLevel != -1) return '';
-	const lines = ui.txtLines ?? [];
-	let toWrite = Math.trunc(ui.timeWriting);
-	const parts = [];
-	for (const line of lines) {
-		if (toWrite < 0 || line.length < toWrite) {
-			parts.push(line.trimEnd());
-			if (toWrite >= 0) toWrite -= line.length;
-		} else {
-			parts.push(line.substring(0, toWrite).trimEnd());
-			break;
-		}
-	}
-	return parts.join(' ');
-}
-
-/**
- * Place the robot head and its eye in the robot panel. The robot leaves the panel in the boss levels.
+ * Show the robot head in the robot panel with the eye of the boss of the current story level. The robot leaves the
+ * panel in the boss levels.
  *
  * @returns {void}
  */
 function renderRobot() {
-	const robot = el('robot');
-	setStyle(robot, 'visibility', game.bossNum > 0 || !game.robot ? 'hidden' : 'visible');
-	if (!game.robot) return;
+	setStyle(el('robot'), 'visibility', game.bossNum > 0 ? 'hidden' : 'visible');
 	let eye = 0;
 	if (ui.campaign == CampaignId.STORY) {
 		if (ui.currentLevel <= 7) eye = 0;
@@ -123,14 +104,7 @@ function renderRobot() {
 		else if (ui.currentLevel <= 21) eye = 2;
 		else eye = 3;
 	}
-	const head = el('robot-head');
-	setStyle(head, 'left', `${((game.robot.x >> 8) / ROBOT_PANEL_WIDTH) * 100}%`);
-	setStyle(head, 'top', `${((game.robot.y >> 8) / ROBOT_PANEL_HEIGHT) * 100}%`);
-	const eyeElement = el('robot-eye');
-	setStyle(eyeElement, 'left', `${((game.robot.ex >> 8) / ROBOT_PANEL_WIDTH) * 100}%`);
-	setStyle(eyeElement, 'top', `${((game.robot.ey >> 8) / ROBOT_PANEL_HEIGHT) * 100}%`);
-	setStyle(eyeElement, 'backgroundImage', `url("sprites/robotEye${eye + 1}.svg")`);
-	setStyle(eyeElement, 'backgroundPositionY', `${(game.robot.eye * 100) / 3}%`);
+	setStyle(el('robot-eye'), 'backgroundImage', `url("sprites/robotEye${eye + 1}.svg")`);
 }
 
 /**
@@ -192,7 +166,7 @@ function renderMainMenu() {
  * @returns {void}
  */
 function renderSelection() {
-	setText(el('narrator'), (ui.txtLines ?? []).join(' '));
+	setText(el('narrator'), SELECTION_TEXT);
 	for (const button of el('level-list').children) {
 		const level = Number(button.dataset.level);
 		const locked = level > maxLevel[ui.campaign];
@@ -233,7 +207,7 @@ function renderLevelMenus() {
  * @returns {void}
  */
 function renderEditor() {
-	setText(el('narrator'), (ui.txtLines ?? []).join(' '));
+	setText(el('narrator'), EDITOR_TEXT);
 	for (const button of el('editor-tiles').children) {
 		button.classList.toggle('selected', Number(button.dataset.index) == ui.editor.selectedTile);
 	}
@@ -250,7 +224,7 @@ function renderEditor() {
  * @returns {void}
  */
 function renderEditorFile(opened) {
-	setText(el('narrator'), (ui.txtLines ?? []).join(' '));
+	setText(el('narrator'), EDITOR_TEXT);
 	const saving = ui.editor.askSaving;
 	for (const button of el('slot-list').children) {
 		const slot = Number(button.dataset.slot);
@@ -306,7 +280,7 @@ export function renderPage() {
 		menu = 'editor-file';
 		renderEditorFile(opened);
 	} else if (screen === 'level') {
-		setText(el('narrator'), narratorText());
+		setText(el('narrator'), ui.isTestingLevel ? TEST_TEXT : game.message);
 		renderRobot();
 		setText(el('stat-life'), String(game.player.life >> 8 > 0 ? game.player.life >> 8 : 0));
 		setText(el('stat-cakes'), String(game.cakesLeft));

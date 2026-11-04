@@ -2,12 +2,15 @@
 	"format": 1,
 	"bg": 2,
 	"boss": 2,
-	"text": "Due to unforcing events, Future Science can't answer your request right now. Try later, maybe it will work, who knows ...",
 	"events": [
 		{
 			"on": "start",
 			"text": "All your cake are belong to us ! You little rat, I think I don't have the choice ... You destroyed my brother and it will be your last mistake in life. Prepare to suffer, here I come !",
 			"wait": "click"
+		},
+		{
+			"on": "start",
+			"text": "Due to unforcing events, Future Science can't answer your request right now. Try later, maybe it will work, who knows ..."
 		},
 		{
 			"on": "bossArrived",

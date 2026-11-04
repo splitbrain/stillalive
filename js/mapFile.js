@@ -8,8 +8,8 @@
  * - bg: the index of the background image
  * - boss: optional, the boss of the level from 1 to 4. Only a boss level can contain the tube. The editor does not
  *   support boss levels.
- * - text: optional, the text that the robot shows during the level. The campaign levels use the same format. The
- *   editor does not use the text.
+ * - text: optional, the message at the level start. It is the same as an event with the trigger "start" and this
+ *   text, before the other events. The campaign levels use the same format. The editor does not use the text.
  * - abilities: optional, an object that disables abilities of the player at the level start. The key "jump" or
  *   "portals" with the value false disables the ability. All abilities are enabled by default.
  * - events: optional, a list of events. An event fires once. Each event is an object with these properties:
@@ -66,7 +66,7 @@ const PORTAL_DIRECTIONS = ['up', 'down', 'left', 'right'];
  * @property {number} bg The background index.
  * @property {number} boss The boss, or 0 for a level without a boss.
  * @property {{jump: boolean, portals: boolean}} abilities The abilities of the player at the level start.
- * @property {MapEvent[]} events The events of the level.
+ * @property {MapEvent[]} events The events of the level, with the text of the level as the first start event.
  * @property {MapLabel[]} labels The texts at positions of the playfield.
  */
 
@@ -210,6 +210,7 @@ export function parseMap(data) {
 		!Number.isInteger(data.bg) ||
 		data.bg < 0 ||
 		data.bg >= bg.length ||
+		!(data.text === undefined || typeof data.text === 'string') ||
 		!isValidAbilities(data.abilities) ||
 		!(data.events === undefined || (Array.isArray(data.events) && data.events.every(isValidEvent))) ||
 		!(data.labels === undefined || (Array.isArray(data.labels) && data.labels.every(isValidLabel)))
@@ -221,7 +222,7 @@ export function parseMap(data) {
 		bg: data.bg,
 		boss,
 		abilities: { jump: true, portals: true, ...data.abilities },
-		events: data.events ?? [],
+		events: [...(data.text ? [{ on: 'start', text: data.text }] : []), ...(data.events ?? [])],
 		labels: data.labels ?? [],
 	};
 }

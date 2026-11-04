@@ -14,7 +14,6 @@ import { updatePlasma } from './entities/Plasma.js';
 import { updatePlatforms } from './entities/Platform.js';
 import { updatePortals } from './entities/Portal.js';
 import { updateProjectiles } from './entities/Projectile.js';
-import { updateRobot } from './entities/Robot.js';
 import { updateSparkles } from './entities/Sparkle.js';
 import { updateTurrets } from './entities/Turret.js';
 import { isWaiting, updateEvents } from './events.js';
@@ -34,7 +33,6 @@ import { updatePanel } from './panel.js';
 import { atExit } from './physics.js';
 import { isInPortal } from './portals.js';
 import { encodeReplay } from './replay.js';
-import { updateText } from './robotText.js';
 import { game, input, ui } from './state.js';
 import { getBestTime, maxLevel, saveBestTime, saveProgress } from './storage.js';
 import { random, toTime } from './utils.js';
@@ -197,7 +195,7 @@ function updateLevelEnd() {
 /**
  * Update the objects of a level in the order of the game logic: the tiles, the player direction, the pipe fields,
  * the cakes, the turrets, the plasma balls, the sparkles, the crates, the boss projectiles, the platforms, the
- * portals, the camera, the death fade, the transitions, the texts and the robot.
+ * portals, the camera, the death fade and the transitions.
  *
  * @returns {void}
  */
@@ -230,8 +228,6 @@ function updateObjects() {
 	}
 
 	if (game.player.fadeNextLevel >= 0) updateTransition();
-	updateText();
-	if (game.bossNum <= 0) updateRobot();
 }
 
 /**

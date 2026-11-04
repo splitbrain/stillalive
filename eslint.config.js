@@ -17,7 +17,7 @@ const LAYERS = [
 		name: 'logic',
 		files: [
 			'./js/entities/*.js',
-			'./js/{boss,events,inputState,intermission,level,mapFile,navigation,physics,portals,replay,robotText}.js',
+			'./js/{boss,events,inputState,intermission,level,mapFile,navigation,physics,portals,replay}.js',
 		],
 	},
 	{ name: 'drawing', files: ['./js/render/*.js'] },

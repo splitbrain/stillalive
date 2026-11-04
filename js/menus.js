@@ -16,19 +16,18 @@ import {
 	SparkleType,
 } from './constants.js';
 import { lvlEditorSetup } from './editor.js';
-import { updateRobot } from './entities/Robot.js';
 import { createSparkles, updateSparkles } from './entities/Sparkle.js';
 import { startLevel } from './game.js';
 import { mouseInZone, unclick } from './inputState.js';
 import { levelsLoaded, levelsToLoad, loadPreviewMap } from './level.js';
-import { exitFunc, hasModeButton, prepareSelectionText } from './navigation.js';
+import { exitFunc, hasModeButton } from './navigation.js';
 import { mainMenuPlayers } from './render/menus.js';
 import { resumeReplay } from './replay.js';
 import { game, input, ui } from './state.js';
 import { maxLevel } from './storage.js';
 
 /**
- * Take the click on a button of the pause menu and move the robot.
+ * Take the click on a button of the pause menu.
  *
  * @returns {void}
  */
@@ -55,8 +54,6 @@ export function updatePauseMenu() {
 			toggleSound();
 		}
 	}
-
-	updateRobot();
 }
 
 /**
@@ -169,7 +166,6 @@ export function updateMainMenu() {
 			if (ui.menuButton in BUTTON_CAMPAIGN) {
 				ui.selectMenu = 1;
 				ui.previewMap = 0;
-				prepareSelectionText();
 				document.getElementById('highscores').classList.add('open');
 				game.shakeX = 0;
 				game.shakeY = 0;

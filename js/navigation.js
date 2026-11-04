@@ -10,19 +10,6 @@ import { game, ui } from './state.js';
 import { maxLevel } from './storage.js';
 
 /**
- * Set the text of the robot panel for the level selection.
- *
- * @returns {void}
- */
-export function prepareSelectionText() {
-	ui.timeWriting = 0;
-	ui.txtLines = new Array();
-
-	ui.txtLines.push('Welcome to the campaign mode of StillAliveJS. Here you can select a map on the right and click');
-	ui.txtLines.push("'Play' to play it. Good Luck !");
-}
-
-/**
  * Check if the level selection has the button that switches between the normal and the hard campaign.
  *
  * @returns {boolean} True when the button is there.
@@ -43,13 +30,13 @@ export function hasModeButton() {
 export function exitFunc() {
 	unclick();
 	game.sparkles = new Array();
+	game.message = '';
 	if (ui.currentMenu == Menu.PLAY) {
 		game.shakeX = 0;
 		game.shakeY = 0;
 		ui.currentMenu = Menu.MAIN;
 		ui.fadeMenu = 30;
 		if (ui.selectMenu != 0) {
-			prepareSelectionText();
 			ui.previewMap = ui.currentLevel;
 			loadPreviewMap(ui.previewMap);
 		}

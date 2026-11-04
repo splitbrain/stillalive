@@ -55,7 +55,6 @@ export function startPlayingLevel() {
 	loadLevelEditor();
 	if (game.cakesLeft == 0) openExit();
 	game.player.fadeNextLevel = -1;
-	prepareLvlEditorPlayTxt();
 }
 
 /**
@@ -74,7 +73,6 @@ export function stopPlayingLevel() {
 	for (i = 0; i < game.oldMap.length; i++) game.map.push(game.oldMap[i]);
 	ui.editor.redrawTiles = true;
 	rebuildObjects();
-	prepareLvlEditorTxt();
 }
 
 /**
@@ -160,35 +158,8 @@ export function lvlEditorSetup() {
 	game.player.x = -(16 << 8);
 	game.player.y = 0;
 
-	prepareLvlEditorTxt();
 	editor.redrawTiles = true;
 	rebuildObjects();
-}
-
-/**
- * Set the text of the robot panel for the editor.
- *
- * @returns {void}
- */
-function prepareLvlEditorTxt() {
-	ui.timeWriting = 0;
-	ui.txtLines = new Array();
-
-	ui.txtLines.push('Welcome to the StillAliveJS Level Editor ! Here is a place where you can easily');
-	ui.txtLines.push('create your own maps. You can use your mouse to select tiles or object and draw');
-	ui.txtLines.push('them on the screen. Then, try out your map. Have Fun !');
-}
-
-/**
- * Set the text of the robot panel for the test run.
- *
- * @returns {void}
- */
-function prepareLvlEditorPlayTxt() {
-	ui.timeWriting = 0;
-	ui.txtLines = new Array();
-
-	ui.txtLines.push('Press <Enter> or <Escape> key to stop testing.');
 }
 
 /**

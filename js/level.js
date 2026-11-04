@@ -23,7 +23,6 @@ import { Plasma } from './entities/Plasma.js';
 import { Platform } from './entities/Platform.js';
 import { Player } from './entities/Player.js';
 import { Portal } from './entities/Portal.js';
-import { Robot } from './entities/Robot.js';
 import { removeSparkles } from './entities/Sparkle.js';
 import { GravPipe } from './entities/GravPipe.js';
 import { Turret } from './entities/Turret.js';
@@ -223,8 +222,6 @@ export class Campaign {
 		this.backgrounds = new Array();
 		/** @type {number[]} The boss of each level, or 0 for a level without a boss. */
 		this.bosses = new Array();
-		/** @type {string[]} The text that the robot shows in each level. */
-		this.texts = new Array();
 		/** @type {{jump: boolean, portals: boolean}[]} The abilities of the player at the start of each level. */
 		this.abilities = new Array();
 		/** @type {import('./mapFile.js').MapEvent[][]} The events of each level. */
@@ -292,7 +289,6 @@ function loadLevelFile(camp, index, url) {
 		campaigns[camp].levels[index] = level.tiles;
 		campaigns[camp].backgrounds[index] = level.bg;
 		campaigns[camp].bosses[index] = level.boss;
-		campaigns[camp].texts[index] = typeof data.text == 'string' ? data.text : '';
 		campaigns[camp].abilities[index] = level.abilities;
 		campaigns[camp].events[index] = level.events;
 		campaigns[camp].labels[index] = level.labels;
@@ -508,22 +504,19 @@ function parseObjects(mode, boss = 0) {
 }
 
 /**
- * Reset the level state that a level and the test run of the editor share: the robot, the portals, the sparkles, the
- * text, the counters and the input.
+ * Reset the level state that a level and the test run of the editor share: the portals, the sparkles, the counters
+ * and the input.
  *
  * @returns {void}
  */
 function resetLevelState() {
-	game.robot = new Robot();
 	game.portals = new Array();
 	game.portals.push(new Portal());
 	game.portals.push(new Portal());
 	game.sparkles = new Array();
-	ui.txtLines = new Array();
 	game.time = 0;
 	game.steps = 0;
 	game.portalShots = 0;
-	ui.timeWriting = 0;
 	ui.escapeMenu = false;
 	input.keys = 0;
 	input.oldKeys = 0;

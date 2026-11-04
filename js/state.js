@@ -39,7 +39,6 @@ export const game = {
 	portals: undefined,
 	plasmaBall: undefined,
 	camera: undefined,
-	robot: undefined,
 	/** @type {boolean} True when the tiles changed, so the drawing must draw the tile layer again. */
 	tilesChanged: undefined,
 	needRedrawTiles: undefined,
@@ -58,7 +57,7 @@ export const game = {
 	message: '',
 };
 
-/** @type {object} The state of the menus, the intermission screen and the level texts. */
+/** @type {object} The state of the menus, the intermission screen and the editor. */
 export const ui = {
 	currentMenu: undefined,
 	selectMenu: 0,
@@ -127,8 +126,6 @@ export const ui = {
 	},
 	highscoreMessage: undefined,
 	drawCredits: false,
-	timeWriting: 0,
-	txtLines: undefined,
 	/** @type {number} The transition effect of the level end, chosen at random. */
 	transition: Transition.HORIZONTAL_LINES,
 	/** @type {boolean} True when the images and the font of the splash screen are loaded. */

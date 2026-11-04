@@ -165,7 +165,7 @@ test.describe('units', () => {
 		}
 	});
 
-	test('a tunnel field between two facing portals ends', async () => {
+	test('a pipe field between two facing portals ends', async () => {
 		test.setTimeout(10000);
 		const fields = await page.evaluate(async () => {
 			const { CampaignId, Direction, MAP_SIZE, MAP_WIDTH, Menu } = await import('/js/constants.js');
@@ -181,15 +181,15 @@ test.describe('units', () => {
 				const x = i % MAP_WIDTH;
 				g.map[i] = x === 0 || x === MAP_WIDTH - 1 ? Tile.WALL : Tile.EMPTY;
 			}
-			g.tunnels = [Object.assign(g.tunnels[0], { x: 32 << 8, y: 160 << 8, dir: Direction.RIGHT })];
+			g.gravPipes = [Object.assign(g.gravPipes[0], { x: 32 << 8, y: 160 << 8, dir: Direction.RIGHT })];
 			Object.assign(g.portals[0], { used: true, direction: Direction.RIGHT, x: 496 << 8, y: 160 << 8 });
 			Object.assign(g.portals[1], { used: true, direction: Direction.LEFT, x: 12 << 8, y: 160 << 8 });
 			g.player.x = 200 << 8;
 			g.player.y = 300 << 8;
 			t.tick();
-			return g.tunnelFields.length;
+			return g.gravPipeFields.length;
 		});
-		// one field from the tunnel to the right portal, one field from the left portal back to the right portal
+		// one field from the gravitational pipe to the right portal, one field from the left portal back to the right portal
 		expect(fields).toBe(2);
 	});
 });

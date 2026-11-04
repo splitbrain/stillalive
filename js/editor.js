@@ -18,7 +18,7 @@ import { alertDialog } from './dialog.js';
 import { animateTiles } from './entities/AnimatedTile.js';
 import { openExit, updateCakes } from './entities/Cake.js';
 import { updateCrates } from './entities/Crate.js';
-import { rebuildTunnelFields } from './entities/TunnelField.js';
+import { rebuildGravPipeFields } from './entities/GravPipeField.js';
 import { updatePlasma } from './entities/Plasma.js';
 import { updatePlatforms } from './entities/Platform.js';
 import { Player } from './entities/Player.js';
@@ -33,7 +33,7 @@ import { atExit } from './physics.js';
 import { isInPortal } from './portals.js';
 import { game, input, ui } from './state.js';
 import { getEditorMap, saveEditorMap } from './storage.js';
-import { Tile, isTunnelTile } from './tiles.js';
+import { Tile, isGravPipeTile } from './tiles.js';
 
 /** @type {number[][]} The map after each change, for undo and redo. */
 let undoMap;
@@ -96,7 +96,7 @@ function updateTestLevel() {
 
 	animateTiles();
 	game.player.flip = input.mouseX > (game.player.x >> 8) + (game.player.pX >> 1) + game.offsetX ? 1 : -1;
-	rebuildTunnelFields();
+	rebuildGravPipeFields();
 	updateCakes();
 	updateTurrets();
 	updatePlasma();
@@ -487,12 +487,12 @@ function allowTile(tile) {
 		return countTile(Tile.TURRET_LEFT) + countTile(Tile.TURRET_RIGHT) < 15;
 	} else if (tile == Tile.PLATFORM_RIGHT || tile == Tile.PLATFORM_LEFT) {
 		return countTile(Tile.PLATFORM_RIGHT) + countTile(Tile.PLATFORM_LEFT) < 8;
-	} else if (isTunnelTile(tile)) {
+	} else if (isGravPipeTile(tile)) {
 		return (
-			countTile(Tile.TUNNEL_RIGHT) +
-				countTile(Tile.TUNNEL_LEFT) +
-				countTile(Tile.TUNNEL_UP) +
-				countTile(Tile.TUNNEL_DOWN) <
+			countTile(Tile.GRAVPIPE_RIGHT) +
+				countTile(Tile.GRAVPIPE_LEFT) +
+				countTile(Tile.GRAVPIPE_UP) +
+				countTile(Tile.GRAVPIPE_DOWN) <
 			8
 		);
 	}
@@ -526,15 +526,15 @@ function countTile(tile) {
  */
 function eraseSprites(til, xt, yt) {
 	let h, t;
-	if (til == Tile.PLATFORM_RIGHT || til == Tile.PLATFORM_LEFT || til == Tile.TUNNEL_UP || til == Tile.TUNNEL_DOWN) {
+	if (til == Tile.PLATFORM_RIGHT || til == Tile.PLATFORM_LEFT || til == Tile.GRAVPIPE_UP || til == Tile.GRAVPIPE_DOWN) {
 		// objects wider than one tile
 		for (h = 1; h < 3; h++) {
-			if (h == 2 && til >= Tile.TUNNEL_UP) continue;
+			if (h == 2 && til >= Tile.GRAVPIPE_UP) continue;
 			if (xt + h < MAP_WIDTH) {
 				game.map[yt * 32 + xt + h] = 0;
 				if (yt - 1 >= 0) {
 					t = game.map[(yt - 1) * 32 + xt + h];
-					if (t == Tile.PLAYER_START || t == Tile.TURRET_LEFT || t == Tile.TURRET_RIGHT || isTunnelTile(t))
+					if (t == Tile.PLAYER_START || t == Tile.TURRET_LEFT || t == Tile.TURRET_RIGHT || isGravPipeTile(t))
 						game.map[(yt - 1) * 32 + xt + h] = 0;
 				}
 			}
@@ -544,8 +544,8 @@ function eraseSprites(til, xt, yt) {
 		til == Tile.PLAYER_START ||
 		til == Tile.TURRET_LEFT ||
 		til == Tile.TURRET_RIGHT ||
-		til == Tile.TUNNEL_RIGHT ||
-		til == Tile.TUNNEL_LEFT
+		til == Tile.GRAVPIPE_RIGHT ||
+		til == Tile.GRAVPIPE_LEFT
 	) {
 		// objects taller than one tile
 		if (yt + 1 < MAP_HEIGHT) {
@@ -553,7 +553,7 @@ function eraseSprites(til, xt, yt) {
 			for (h = 1; h < 3; h++) {
 				if (xt - h >= 0) {
 					t = game.map[(yt + 1) * 32 + xt - h];
-					if (t == Tile.PLATFORM_RIGHT || t == Tile.PLATFORM_LEFT || t == Tile.TUNNEL_UP || t == Tile.TUNNEL_DOWN)
+					if (t == Tile.PLATFORM_RIGHT || t == Tile.PLATFORM_LEFT || t == Tile.GRAVPIPE_UP || t == Tile.GRAVPIPE_DOWN)
 						game.map[(yt + 1) * 32 + xt - h] = 0;
 				}
 			}
@@ -562,14 +562,14 @@ function eraseSprites(til, xt, yt) {
 
 	if (yt - 1 >= 0) {
 		t = game.map[(yt - 1) * 32 + xt];
-		if (t == Tile.PLAYER_START || t == Tile.TURRET_LEFT || t == Tile.TURRET_RIGHT || isTunnelTile(t))
+		if (t == Tile.PLAYER_START || t == Tile.TURRET_LEFT || t == Tile.TURRET_RIGHT || isGravPipeTile(t))
 			game.map[(yt - 1) * 32 + xt] = 0;
 	}
 	for (h = 1; h < 3; h++) {
 		if (xt - h >= 0) {
 			t = game.map[yt * 32 + xt - h];
 			if (t == Tile.PLATFORM_RIGHT || t == Tile.PLATFORM_LEFT) game.map[yt * 32 + xt - h] = 0;
-			else if ((t == Tile.TUNNEL_UP || t == Tile.TUNNEL_DOWN) && h < 2) game.map[yt * 32 + xt - h] = 0;
+			else if ((t == Tile.GRAVPIPE_UP || t == Tile.GRAVPIPE_DOWN) && h < 2) game.map[yt * 32 + xt - h] = 0;
 		}
 	}
 }
@@ -608,7 +608,7 @@ function updateDrawTile() {
 
 			if (yt - 1 >= 0) {
 				const t = game.map[(yt - 1) * 32 + xt];
-				if (t == Tile.PLAYER_START || t == Tile.TURRET_LEFT || t == Tile.TURRET_RIGHT || isTunnelTile(t))
+				if (t == Tile.PLAYER_START || t == Tile.TURRET_LEFT || t == Tile.TURRET_RIGHT || isGravPipeTile(t))
 					game.map[(yt - 1) * 32 + xt] = 0;
 			}
 

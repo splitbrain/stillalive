@@ -18,7 +18,7 @@ import { updateLevelEditor } from './editor.js';
 import { animateTiles } from './entities/AnimatedTile.js';
 import { updateCakes } from './entities/Cake.js';
 import { updateCrates } from './entities/Crate.js';
-import { rebuildTunnelFields } from './entities/TunnelField.js';
+import { rebuildGravPipeFields } from './entities/GravPipeField.js';
 import { updatePlasma } from './entities/Plasma.js';
 import { updatePlatforms } from './entities/Platform.js';
 import { updatePortals } from './entities/Portal.js';
@@ -216,7 +216,7 @@ function updateLevelEnd() {
 }
 
 /**
- * Update the objects of a level in the order of the game logic: the tiles, the player direction, the tunnel fields,
+ * Update the objects of a level in the order of the game logic: the tiles, the player direction, the pipe fields,
  * the cakes, the turrets, the plasma balls, the sparkles, the crates, the boss projectiles, the platforms, the
  * portals, the camera, the tutorial, the death fade, the transitions, the texts and the robot.
  *
@@ -227,7 +227,7 @@ function updateObjects() {
 
 	game.player.flip = input.mouseX > (game.player.x >> 8) + (game.player.pX >> 1) + game.offsetX ? 1 : -1;
 
-	rebuildTunnelFields();
+	rebuildGravPipeFields();
 	updateCakes();
 	updateTurrets();
 	updatePlasma();

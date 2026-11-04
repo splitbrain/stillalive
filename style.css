@@ -404,24 +404,24 @@ body {
 	background: url('sprites/head0.svg') no-repeat 0 0 / 500% auto;
 }
 
-#editor-objects .tunnel-right,
-#editor-objects .tunnel-left {
+#editor-objects .gravpipe-right,
+#editor-objects .gravpipe-left {
 	height: calc(var(--u) * 32);
-	background-image: url('sprites/tunnel.svg');
+	background-image: url('sprites/gravpipe.svg');
 }
 
-#editor-objects .tunnel-left {
+#editor-objects .gravpipe-left {
 	background-position: 0 calc(var(--u) * -32);
 }
 
-#editor-objects .tunnel-up,
-#editor-objects .tunnel-down {
+#editor-objects .gravpipe-up,
+#editor-objects .gravpipe-down {
 	width: calc(var(--u) * 32);
-	background-image: url('sprites/tunnel2.svg');
+	background-image: url('sprites/gravpipe2.svg');
 	background-size: auto 100%;
 }
 
-#editor-objects .tunnel-down {
+#editor-objects .gravpipe-down {
 	background-position: calc(var(--u) * -32) 0;
 }
 

@@ -26,7 +26,7 @@ import { Player } from './entities/Player.js';
 import { Portal } from './entities/Portal.js';
 import { Robot } from './entities/Robot.js';
 import { removeSparkles } from './entities/Sparkle.js';
-import { Tunnel } from './entities/Tunnel.js';
+import { GravPipe } from './entities/GravPipe.js';
 import { Turret } from './entities/Turret.js';
 import { parseMap } from './mapFile.js';
 import { getTileSimple } from './physics.js';
@@ -331,12 +331,12 @@ export function loadCreditsText() {
 /** @type {string[]} The lines of the credits. */
 export let creditsTxt = new Array();
 
-/** @type {Object<number, number>} The direction of each tunnel tile. */
-const TUNNEL_DIRECTIONS = {
-	[Tile.TUNNEL_RIGHT]: Direction.RIGHT,
-	[Tile.TUNNEL_LEFT]: Direction.LEFT,
-	[Tile.TUNNEL_UP]: Direction.UP,
-	[Tile.TUNNEL_DOWN]: Direction.DOWN,
+/** @type {Object<number, number>} The direction of each gravitational pipe tile. */
+const GRAVPIPE_DIRECTIONS = {
+	[Tile.GRAVPIPE_RIGHT]: Direction.RIGHT,
+	[Tile.GRAVPIPE_LEFT]: Direction.LEFT,
+	[Tile.GRAVPIPE_UP]: Direction.UP,
+	[Tile.GRAVPIPE_DOWN]: Direction.DOWN,
 };
 
 /** @type {{kind: string, type: number, speed: number}[]} The tile kinds that become animated tiles in a level. */
@@ -356,9 +356,9 @@ const ANIMATED_KINDS = [
  *
  * The mode selects what the function does with the map:
  *
- * - "play" for a level and for the test run of the editor: the object tiles leave the map, the tunnels block their
- *   tiles, the exits close, and the animated tiles and the plasma balls start. In the levels of boss 3 and boss 4, the
- *   plasma start tile is the start point of the plasma shots of the boss.
+ * - "play" for a level and for the test run of the editor: the object tiles leave the map, the gravitational pipes
+ *   block their tiles, the exits close, and the animated tiles and the plasma balls start. In the levels of boss 3 and
+ *   boss 4, the plasma start tile is the start point of the plasma shots of the boss.
  * - "preview" for the level selection and the editor menus: the map stays the same, and only game.displayMap shows
  *   the closed exits.
  * - "editor" for the objects in the editor: the map and game.displayMap stay the same.
@@ -375,8 +375,8 @@ function parseObjects(mode, boss = 0) {
 	game.cakes = new Array();
 	game.turrets = new Array();
 	game.crates = new Array();
-	game.tunnels = new Array();
-	game.tunnelFields = new Array();
+	game.gravPipes = new Array();
+	game.gravPipeFields = new Array();
 	game.platforms = new Array();
 	if (play) {
 		game.animatedTiles = new Array();
@@ -390,14 +390,14 @@ function parseObjects(mode, boss = 0) {
 		const tile = game.map[i];
 		const animated = play ? ANIMATED_KINDS.find((a) => isTileKind(tile, a.kind)) : undefined;
 
-		if (tile in TUNNEL_DIRECTIONS) {
-			const dir = TUNNEL_DIRECTIONS[tile];
-			game.tunnels.push(new Tunnel((x * 16) << 8, (y * 16) << 8, dir));
+		if (tile in GRAVPIPE_DIRECTIONS) {
+			const dir = GRAVPIPE_DIRECTIONS[tile];
+			game.gravPipes.push(new GravPipe((x * 16) << 8, (y * 16) << 8, dir));
 			if (play) {
-				// a tunnel covers two tiles
+				// a gravitational pipe covers two tiles
 				const next = dir == Direction.RIGHT || dir == Direction.LEFT ? x + ((y + 1) << 5) : x + 1 + (y << 5);
-				game.map[i] = Tile.TUNNEL_BLOCK;
-				game.map[next] = Tile.TUNNEL_BLOCK;
+				game.map[i] = Tile.GRAVPIPE_BLOCK;
+				game.map[next] = Tile.GRAVPIPE_BLOCK;
 				game.displayMap[i] = 0;
 				game.displayMap[next] = 0;
 			}

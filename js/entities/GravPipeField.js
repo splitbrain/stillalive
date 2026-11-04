@@ -1,5 +1,5 @@
 /**
- * The TunnelField object and its helper functions.
+ * The GravPipeField object and its helper functions.
  */
 
 import { Direction, NUM_TILES, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH } from '../constants.js';
@@ -9,9 +9,10 @@ import { game } from '../state.js';
 import { PLATFORM_CODE, Tile } from '../tiles.js';
 
 /**
- * The area in front of a tunnel that moves objects. rebuildTunnelFields() builds the fields again in each tick.
+ * The area in front of a gravitational pipe that moves objects. rebuildGravPipeFields() builds the fields again in
+ * each tick.
  */
-export class TunnelField {
+export class GravPipeField {
 	/**
 	 * @param {number} x The left edge in pixels.
 	 * @param {number} y The top edge in pixels.
@@ -37,12 +38,12 @@ export class TunnelField {
 }
 
 /**
- * Find the tunnel fields that an object overlaps.
+ * Find the pipe fields that an object overlaps.
  *
  * @param {object} obj The object with x, y, pX and pY.
- * @returns {number[]} The indexes of the fields in game.tunnelFields.
+ * @returns {number[]} The indexes of the fields in game.gravPipeFields.
  */
-export function tunnelFieldsAt(obj) {
+export function gravPipeFieldsAt(obj) {
 	let i;
 	const posx = obj.x >> 8;
 	const posy = obj.y >> 8;
@@ -51,11 +52,11 @@ export function tunnelFieldsAt(obj) {
 
 	const fields = new Array();
 
-	for (i = 0; i < game.tunnelFields.length; i++) {
-		let x = game.tunnelFields[i].x;
-		let y = game.tunnelFields[i].y;
-		let w = game.tunnelFields[i].w;
-		let h = game.tunnelFields[i].h;
+	for (i = 0; i < game.gravPipeFields.length; i++) {
+		let x = game.gravPipeFields[i].x;
+		let y = game.gravPipeFields[i].y;
+		let w = game.gravPipeFields[i].w;
+		let h = game.gravPipeFields[i].h;
 
 		if (w < 0) {
 			w = -w;
@@ -74,36 +75,36 @@ export function tunnelFieldsAt(obj) {
 }
 
 /**
- * Build the tunnel fields of all tunnels again. A field reaches from the tunnel to the first wall or platform. At a
- * portal, the field continues from the other portal.
+ * Build the pipe fields of all gravitational pipes again. A field reaches from the gravitational pipe to the first
+ * wall or platform. At a portal, the field continues from the other portal.
  *
  * @returns {void}
  */
-export function rebuildTunnelFields() {
-	if (game.tunnels.length == 0) return;
-	game.tunnelFields = new Array();
-	for (const t of game.tunnels) {
+export function rebuildGravPipeFields() {
+	if (game.gravPipes.length == 0) return;
+	game.gravPipeFields = new Array();
+	for (const t of game.gravPipes) {
 		let vx = 0;
 		let vy = 0;
 		if (t.dir == Direction.RIGHT) vx = 1;
 		else if (t.dir == Direction.LEFT) vx = -1;
 		else if (t.dir == Direction.UP) vy = -1;
 		else if (t.dir == Direction.DOWN) vy = 1;
-		traceTunnelField(t.x >> 8, t.y >> 8, vx, vy);
+		traceGravPipeField(t.x >> 8, t.y >> 8, vx, vy);
 	}
 }
 
 /**
- * Find the end of a tunnel field and add the field. At a portal, the trace continues from the other portal with a
+ * Find the end of a pipe field and add the field. At a portal, the trace continues from the other portal with a
  * second field. The trace leaves each portal only once, so the field between two facing portals ends.
  *
- * @param {number} sx The x coordinate of the tunnel in pixels.
- * @param {number} sy The y coordinate of the tunnel in pixels.
+ * @param {number} sx The x coordinate of the gravitational pipe in pixels.
+ * @param {number} sy The y coordinate of the gravitational pipe in pixels.
  * @param {number} vx The horizontal direction of the push, -1, 0 or 1.
  * @param {number} vy The vertical direction of the push, -1, 0 or 1.
  * @returns {void}
  */
-function traceTunnelField(sx, sy, vx, vy) {
+function traceGravPipeField(sx, sy, vx, vy) {
 	let tile, p1, p2;
 	const exits = [];
 	let y = sy;
@@ -125,7 +126,7 @@ function traceTunnelField(sx, sy, vx, vy) {
 			if (tile == Tile.EMPTY) tile = getTileWithoutCrates(x + 31, y);
 		}
 
-		if (tile != Tile.EMPTY && (tile < NUM_TILES || tile == Tile.TUNNEL_BLOCK || tile >= PLATFORM_CODE)) {
+		if (tile != Tile.EMPTY && (tile < NUM_TILES || tile == Tile.GRAVPIPE_BLOCK || tile >= PLATFORM_CODE)) {
 			x = (x >> 4) << 4;
 			y = (y >> 4) << 4;
 
@@ -187,10 +188,10 @@ function traceTunnelField(sx, sy, vx, vy) {
 }
 
 /**
- * Add the tunnel field from a tunnel to the end of its trace.
+ * Add the pipe field from a gravitational pipe to the end of its trace.
  *
- * @param {number} sx The x coordinate of the tunnel in pixels.
- * @param {number} sy The y coordinate of the tunnel in pixels.
+ * @param {number} sx The x coordinate of the gravitational pipe in pixels.
+ * @param {number} sy The y coordinate of the gravitational pipe in pixels.
  * @param {number} nx The x coordinate where the field ends in pixels.
  * @param {number} ny The y coordinate where the field ends in pixels.
  * @param {number} vx The horizontal direction of the push, -1, 0 or 1.
@@ -198,8 +199,8 @@ function traceTunnelField(sx, sy, vx, vy) {
  * @returns {void}
  */
 function addField(sx, sy, nx, ny, vx, vy) {
-	if (vx < 0) game.tunnelFields.push(new TunnelField(sx, sy, -(sx - nx - 16), 32, -1, 0));
-	else if (vx > 0) game.tunnelFields.push(new TunnelField(sx, sy, nx - sx, 32, 1, 0));
-	else if (vy < 0) game.tunnelFields.push(new TunnelField(sx, sy, 32, -(sy - ny - 16), 0, -1));
-	else if (vy > 0) game.tunnelFields.push(new TunnelField(sx, sy, 32, ny - sy, 0, 1));
+	if (vx < 0) game.gravPipeFields.push(new GravPipeField(sx, sy, -(sx - nx - 16), 32, -1, 0));
+	else if (vx > 0) game.gravPipeFields.push(new GravPipeField(sx, sy, nx - sx, 32, 1, 0));
+	else if (vy < 0) game.gravPipeFields.push(new GravPipeField(sx, sy, 32, -(sy - ny - 16), 0, -1));
+	else if (vy > 0) game.gravPipeFields.push(new GravPipeField(sx, sy, 32, ny - sy, 0, 1));
 }

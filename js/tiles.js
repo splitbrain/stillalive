@@ -26,12 +26,12 @@ export const Tile = {
 	PLAYER_START: 104,
 	PLATFORM_RIGHT: 105,
 	PLATFORM_LEFT: 106,
-	TUNNEL_RIGHT: 107,
-	TUNNEL_LEFT: 108,
-	TUNNEL_UP: 109,
-	TUNNEL_DOWN: 110,
+	GRAVPIPE_RIGHT: 107,
+	GRAVPIPE_LEFT: 108,
+	GRAVPIPE_UP: 109,
+	GRAVPIPE_DOWN: 110,
 	TUBE: 111,
-	TUNNEL_BLOCK: 199,
+	GRAVPIPE_BLOCK: 199,
 };
 
 /** @type {Object<string, string>} The kinds of tiles. */
@@ -157,13 +157,13 @@ export function isObjectTile(id) {
 }
 
 /**
- * Check if a tile id marks a tunnel in a level file.
+ * Check if a tile id marks a gravitational pipe in a level file.
  *
  * @param {number} id The tile id.
- * @returns {boolean} True for the four tunnel directions.
+ * @returns {boolean} True for the four gravitational pipe directions.
  */
-export function isTunnelTile(id) {
-	return id >= Tile.TUNNEL_RIGHT && id <= Tile.TUNNEL_DOWN;
+export function isGravPipeTile(id) {
+	return id >= Tile.GRAVPIPE_RIGHT && id <= Tile.GRAVPIPE_DOWN;
 }
 
 /**

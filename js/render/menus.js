@@ -34,7 +34,7 @@ import {
 import { keyLabels } from '../keys.js';
 import { creditsTxt, levelsLoaded, levelsToLoad, missingLevelFiles } from '../level.js';
 import { drawBoss } from './boss.js';
-import { drawPlayer, drawSparkles, drawTileLayer, drawTunnels, saveTileLayer } from './game.js';
+import { drawPlayer, drawSparkles, drawTileLayer, drawGravPipes, saveTileLayer } from './game.js';
 import { game, input, ui } from '../state.js';
 import { Tile } from '../tiles.js';
 import { getAngle } from '../utils.js';
@@ -451,7 +451,7 @@ export function drawPreviewMap() {
 			drawImage(platform, (game.platforms[pi].x >> 8) + game.offsetX, (game.platforms[pi].y >> 8) + game.offsetY);
 		}
 
-		drawTunnels();
+		drawGravPipes();
 
 		if (game.bossNum > 0) {
 			if (game.bossNum == 1 || game.bossNum == 3 || game.bossNum == 4)

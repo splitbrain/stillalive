@@ -1,8 +1,8 @@
 /**
- * The Tunnel object and its helper functions.
+ * The GravPipe object and its helper functions.
  */
 
-export class Tunnel {
+export class GravPipe {
 	/**
 	 * @param {number} x The x position in 1/256 pixels.
 	 * @param {number} y The y position in 1/256 pixels.

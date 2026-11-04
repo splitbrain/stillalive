@@ -7,7 +7,7 @@ import { skipComingBoss } from '../boss.js';
 import { Direction, GRAVITY, Menu, MouseButton, PLAYFIELD_HEIGHT, SparkleType } from '../constants.js';
 import { reportBrokenReplay } from '../navigation.js';
 import { collectCakes } from './Cake.js';
-import { tunnelFieldsAt } from './TunnelField.js';
+import { gravPipeFieldsAt } from './GravPipeField.js';
 import { plasmaTouching } from './Plasma.js';
 import { onBelt, onPlatform } from './Platform.js';
 import { Sparkle } from './Sparkle.js';
@@ -205,7 +205,7 @@ export class Player {
 			this.askClear = false;
 		}
 
-		const fields = tunnelFieldsAt(this);
+		const fields = gravPipeFieldsAt(this);
 		if (fields.length > 0) {
 			game.player.vx = 0;
 			game.player.vy = 0;
@@ -213,46 +213,46 @@ export class Player {
 		for (i = 0; i < fields.length; i++) {
 			const f = fields[i];
 			if (fields.length == 1) {
-				if (game.tunnelFields[f].vx != 0) {
+				if (game.gravPipeFields[f].vx != 0) {
 					if (portalAt(this, Direction.UP) || portalAt(this, Direction.DOWN)) {
-						if (game.player.y >> 8 < game.tunnelFields[f].y) game.player.y += 768;
-						else if ((game.player.y >> 8) + game.player.pY > game.tunnelFields[f].y + 32) game.player.y -= 768;
-					} else if (game.player.y >> 8 < game.tunnelFields[f].y) game.player.y += 512;
-					else if ((game.player.y >> 8) + game.player.pY > game.tunnelFields[f].y + 32) game.player.y -= 512;
-				} else if (game.tunnelFields[f].vy != 0) {
+						if (game.player.y >> 8 < game.gravPipeFields[f].y) game.player.y += 768;
+						else if ((game.player.y >> 8) + game.player.pY > game.gravPipeFields[f].y + 32) game.player.y -= 768;
+					} else if (game.player.y >> 8 < game.gravPipeFields[f].y) game.player.y += 512;
+					else if ((game.player.y >> 8) + game.player.pY > game.gravPipeFields[f].y + 32) game.player.y -= 512;
+				} else if (game.gravPipeFields[f].vy != 0) {
 					// the height pY centers the player on the x axis, in the same way as moveObject()
-					if (game.player.x >> 8 < game.tunnelFields[f].x + (16 - (game.player.pY >> 1))) game.player.x += 256;
-					else if ((game.player.x >> 8) + game.player.pX > game.tunnelFields[f].x + 32 - (16 - (game.player.pY >> 1)))
+					if (game.player.x >> 8 < game.gravPipeFields[f].x + (16 - (game.player.pY >> 1))) game.player.x += 256;
+					else if ((game.player.x >> 8) + game.player.pX > game.gravPipeFields[f].x + 32 - (16 - (game.player.pY >> 1)))
 						game.player.x -= 256;
 				}
 			}
 
-			game.player.vx += game.tunnelFields[f].vx * 384;
-			game.player.vy += game.tunnelFields[f].vy * 384;
+			game.player.vx += game.gravPipeFields[f].vx * 384;
+			game.player.vy += game.gravPipeFields[f].vy * 384;
 
-			if (game.tunnelFields[f].vx != 0) {
+			if (game.gravPipeFields[f].vx != 0) {
 				if (this.isJump) {
 					game.player.y -= 3 << 8;
-					fi = tunnelFieldsAt(this);
+					fi = gravPipeFieldsAt(this);
 					if (fi.length == 0) {
 						game.player.vy = -800;
-						game.player.vx = game.tunnelFields[f].vx << 9;
+						game.player.vx = game.gravPipeFields[f].vx << 9;
 					}
 				}
 				if (this.isDown) game.player.y += 3 << 8;
 			}
 
-			if (game.tunnelFields[f].vy != 0) {
+			if (game.gravPipeFields[f].vy != 0) {
 				if (this.isLeft) {
 					game.player.x -= 3 << 8;
-					fi = tunnelFieldsAt(this);
+					fi = gravPipeFieldsAt(this);
 					if (fi.length == 0) {
 						game.player.vx = -384;
 					}
 				}
 				if (this.isRight) {
 					game.player.x += 3 << 8;
-					fi = tunnelFieldsAt(this);
+					fi = gravPipeFieldsAt(this);
 					if (fi.length == 0) {
 						game.player.vx = 384;
 					}

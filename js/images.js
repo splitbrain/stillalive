@@ -48,10 +48,10 @@ export let platform;
 export let head;
 /** @type {HTMLImageElement[]} The body of the player, facing right and left. */
 export let body;
-/** @type {HTMLImageElement} The tunnels that push to the left and to the right. */
-export let tunnel;
-/** @type {HTMLImageElement} The tunnels that push up and down. */
-export let tunnel2;
+/** @type {HTMLImageElement} The gravitational pipes that push to the left and to the right. */
+export let gravPipe;
+/** @type {HTMLImageElement} The gravitational pipes that push up and down. */
+export let gravPipe2;
 /** @type {HTMLImageElement} The tube of the first, third and fourth boss. */
 export let tube;
 /** @type {HTMLImageElement} The tube of the second boss. */
@@ -144,9 +144,9 @@ export function loadGfx() {
 
 	tube2 = loadImage('sprites/tube2.svg');
 
-	tunnel = loadImage('sprites/tunnel.svg');
+	gravPipe = loadImage('sprites/gravpipe.svg');
 
-	tunnel2 = loadImage('sprites/tunnel2.svg');
+	gravPipe2 = loadImage('sprites/gravpipe2.svg');
 
 	crateImage = loadImage('sprites/crate.svg');
 

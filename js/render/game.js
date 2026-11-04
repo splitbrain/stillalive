@@ -33,8 +33,8 @@ import {
 	tileset,
 	tube,
 	tube2,
-	tunnel,
-	tunnel2,
+	gravPipe,
+	gravPipe2,
 	turretImages,
 } from '../images.js';
 import { drawBoss, drawBossSpeech } from './boss.js';
@@ -173,7 +173,7 @@ export function drawLevel() {
 	drawTileLayer();
 	drawAnimatedTiles();
 
-	drawTunnels();
+	drawGravPipes();
 
 	const flipDx = game.player.flip < 0 ? 1 : 0;
 	if (!flipDx) drawPortalGun();
@@ -415,33 +415,33 @@ export function drawArrow(x1, y1, x2, y2, lineWidth, dir) {
 }
 
 /**
- * Draw the tunnel fields as half transparent areas.
+ * Draw the pipe fields as half transparent areas.
  *
  * @returns {void}
  */
-function drawTunnelFields() {
+function drawGravPipeFields() {
 	ctx.fillStyle = 'rgb(151, 206, 233)';
 	ctx.globalAlpha = 0.5;
-	for (const field of game.tunnelFields) {
+	for (const field of game.gravPipeFields) {
 		ctx.fillRect(field.x + game.offsetX, field.y + game.offsetY, field.w, field.h);
 	}
 	ctx.globalAlpha = 1;
 }
 
 /**
- * Draw the tunnel fields and the tunnels.
+ * Draw the pipe fields and the gravitational pipes.
  *
  * @returns {void}
  */
-export function drawTunnels() {
-	drawTunnelFields();
-	for (const t of game.tunnels) {
+export function drawGravPipes() {
+	drawGravPipeFields();
+	for (const t of game.gravPipes) {
 		const x = (t.x >> 8) + game.offsetX;
 		const y = (t.y >> 8) + game.offsetY;
-		if (t.dir == Direction.RIGHT) drawImage(tunnel, 0, 0, 16, 32, x, y, 16, 32);
-		else if (t.dir == Direction.LEFT) drawImage(tunnel, 0, 32, 16, 32, x, y, 16, 32);
-		else if (t.dir == Direction.UP) drawImage(tunnel2, 0, 0, 32, 16, x, y, 32, 16);
-		else if (t.dir == Direction.DOWN) drawImage(tunnel2, 32, 0, 32, 16, x, y, 32, 16);
+		if (t.dir == Direction.RIGHT) drawImage(gravPipe, 0, 0, 16, 32, x, y, 16, 32);
+		else if (t.dir == Direction.LEFT) drawImage(gravPipe, 0, 32, 16, 32, x, y, 16, 32);
+		else if (t.dir == Direction.UP) drawImage(gravPipe2, 0, 0, 32, 16, x, y, 32, 16);
+		else if (t.dir == Direction.DOWN) drawImage(gravPipe2, 32, 0, 32, 16, x, y, 32, 16);
 	}
 }
 

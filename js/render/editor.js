@@ -15,8 +15,8 @@ import {
 	platform,
 	portalGun,
 	tileset,
-	tunnel,
-	tunnel2,
+	gravPipe,
+	gravPipe2,
 	turretImages,
 } from '../images.js';
 import { mouseInZone } from '../inputState.js';
@@ -38,7 +38,7 @@ import {
 	drawPortals,
 	drawSparkles,
 	drawTileLayer,
-	drawTunnels,
+	drawGravPipes,
 	drawTurrets,
 } from './game.js';
 import { drawPreviewMap } from './menus.js';
@@ -85,7 +85,7 @@ function drawTestLevel() {
 	drawImage(portalGun, -5, -5);
 	ctx.restore();
 
-	drawTunnels();
+	drawGravPipes();
 
 	const flipDx = game.player.flip < 0 ? 1 : 0;
 	drawImage(
@@ -167,7 +167,7 @@ function drawSprites() {
 	drawTurrets();
 	drawCrates();
 	drawPlatforms();
-	drawTunnels();
+	drawGravPipes();
 	drawPlayer((game.player.x >> 8) + game.offsetX, (game.player.y >> 8) + game.offsetY, 0);
 }
 
@@ -259,13 +259,13 @@ function drawSpriteCursor() {
 		ctx.strokeStyle = 'rgb(255, 0, 0)';
 		drawArrow(x + 5, y + 8, x + 15, y + 8, 3, -1);
 	} else if (sprite == Tile.PLAYER_START) drawPlayer(x, y, 0);
-	else if (sprite == Tile.TUNNEL_RIGHT) {
-		drawImage(tunnel, 0, 0, 16, 32, x, y, 16, 32);
-	} else if (sprite == Tile.TUNNEL_LEFT) {
-		drawImage(tunnel, 0, 32, 16, 32, x, y, 16, 32);
-	} else if (sprite == Tile.TUNNEL_UP) {
-		drawImage(tunnel2, 0, 0, 32, 16, x, y, 32, 16);
-	} else if (sprite == Tile.TUNNEL_DOWN) {
-		drawImage(tunnel2, 32, 0, 32, 16, x, y, 32, 16);
+	else if (sprite == Tile.GRAVPIPE_RIGHT) {
+		drawImage(gravPipe, 0, 0, 16, 32, x, y, 16, 32);
+	} else if (sprite == Tile.GRAVPIPE_LEFT) {
+		drawImage(gravPipe, 0, 32, 16, 32, x, y, 16, 32);
+	} else if (sprite == Tile.GRAVPIPE_UP) {
+		drawImage(gravPipe2, 0, 0, 32, 16, x, y, 32, 16);
+	} else if (sprite == Tile.GRAVPIPE_DOWN) {
+		drawImage(gravPipe2, 32, 0, 32, 16, x, y, 32, 16);
 	}
 }

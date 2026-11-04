@@ -5,7 +5,7 @@
 import { playSound, sfx_throwObject } from './audio.js';
 import { Direction, GRAVITY, MouseButton, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH } from './constants.js';
 import { crateAt, crateLandsOnPlayer, movingCrateTouching } from './entities/Crate.js';
-import { tunnelFieldsAt } from './entities/TunnelField.js';
+import { gravPipeFieldsAt } from './entities/GravPipeField.js';
 import { onBelt, platformAt } from './entities/Platform.js';
 import { isInPortal, passPortal, portalAt } from './portals.js';
 import { game, input } from './state.js';
@@ -196,7 +196,7 @@ export function placeObject(obj) {
 }
 
 /**
- * Move a crate or turret for one tick: tunnel fields, conveyor belts, gravity, friction, the push of the player and
+ * Move a crate or turret for one tick: pipe fields, conveyor belts, gravity, friction, the push of the player and
  * other crates, and the collisions.
  *
  * @param {object} obj The crate or turret.
@@ -204,23 +204,23 @@ export function placeObject(obj) {
  */
 export function moveObject(obj) {
 	let col, i, c;
-	const fields = tunnelFieldsAt(obj);
+	const fields = gravPipeFieldsAt(obj);
 	for (i = 0; i < fields.length; i++) {
 		const f = fields[i];
-		if (game.tunnelFields[f].vx != 0) {
+		if (game.gravPipeFields[f].vx != 0) {
 			if (portalAt(obj, Direction.UP) || portalAt(obj, Direction.DOWN)) {
-				if (obj.y >> 8 < game.tunnelFields[f].y) obj.y += 768;
-				else if ((obj.y >> 8) + obj.pY > game.tunnelFields[f].y + 32) obj.y -= 768;
-			} else if (obj.y >> 8 < game.tunnelFields[f].y + (16 - (obj.pY >> 1))) obj.y += 512;
-			else if ((obj.y >> 8) + obj.pY > game.tunnelFields[f].y + 32 - (16 - (obj.pY >> 1))) obj.y -= 512;
-		} else if (game.tunnelFields[f].vy != 0) {
+				if (obj.y >> 8 < game.gravPipeFields[f].y) obj.y += 768;
+				else if ((obj.y >> 8) + obj.pY > game.gravPipeFields[f].y + 32) obj.y -= 768;
+			} else if (obj.y >> 8 < game.gravPipeFields[f].y + (16 - (obj.pY >> 1))) obj.y += 512;
+			else if ((obj.y >> 8) + obj.pY > game.gravPipeFields[f].y + 32 - (16 - (obj.pY >> 1))) obj.y -= 512;
+		} else if (game.gravPipeFields[f].vy != 0) {
 			// the height pY centers the object on the x axis; a fix would change the gameplay for the turrets
-			if (obj.x >> 8 < game.tunnelFields[f].x + (16 - (obj.pY >> 1))) obj.x += 256;
-			else if ((obj.x >> 8) + obj.pX > game.tunnelFields[f].x + 32 - (16 - (obj.pY >> 1))) obj.x -= 256;
+			if (obj.x >> 8 < game.gravPipeFields[f].x + (16 - (obj.pY >> 1))) obj.x += 256;
+			else if ((obj.x >> 8) + obj.pX > game.gravPipeFields[f].x + 32 - (16 - (obj.pY >> 1))) obj.x -= 256;
 		}
 
-		obj.vx = game.tunnelFields[f].vx * 384;
-		obj.vy = game.tunnelFields[f].vy * 384;
+		obj.vx = game.gravPipeFields[f].vx * 384;
+		obj.vy = game.gravPipeFields[f].vy * 384;
 
 		if (obj.type == 'turret' && !obj.canExplode) {
 			obj.canExplode = true;

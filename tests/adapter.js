@@ -247,8 +247,8 @@ export async function runPortalScene(page, scene) {
 			'turrets',
 			'plasmaBall',
 			'platforms',
-			'tunnels',
-			'tunnelFields',
+			'gravPipes',
+			'gravPipeFields',
 			'animatedTiles',
 		])
 			game[list] = [];

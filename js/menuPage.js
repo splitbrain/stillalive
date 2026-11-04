@@ -6,7 +6,7 @@
  */
 
 import { screenPoint } from './canvas.js';
-import { EDITOR_TILES, LEVELS_PER_CAMPAIGN } from './constants.js';
+import { EDITOR_TILE_TITLES, EDITOR_TILES, LEVELS_PER_CAMPAIGN } from './constants.js';
 import { game, input, ui } from './state.js';
 
 /**
@@ -73,7 +73,7 @@ function setupEditorPage() {
 	EDITOR_TILES.forEach((tile, index) => {
 		const button = document.createElement('button');
 		button.dataset.index = String(index);
-		button.title = tile == 0 ? 'Eraser' : 'Tile ' + tile;
+		button.title = EDITOR_TILE_TITLES[tile];
 		const image = document.createElement('img');
 		image.src = `tiles/tile_${tile}.svg`;
 		image.alt = '';

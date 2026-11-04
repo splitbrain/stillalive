@@ -7,11 +7,9 @@ import { allSoundsLoaded, disableSound, isSoundAvailable, toggleSound } from './
 import { setupBoss, skipComingBoss } from './boss.js';
 import {
 	BUTTON_CAMPAIGN,
-	CAMPAIGN_FINISHED,
 	CampaignId,
 	MainButton,
 	Menu,
-	MouseButton,
 	PauseButton,
 	PLAYFIELD_X,
 	PLAYFIELD_Y,
@@ -24,29 +22,23 @@ import { createSparkles, updateSparkles } from './entities/Sparkle.js';
 import { startLevel } from './game.js';
 import { mouseInZone, unclick } from './inputState.js';
 import { levelsLoaded, levelsToLoad, loadPreviewMap } from './level.js';
-import { exitFunc, prepareSelectionText } from './navigation.js';
-import { MAIN_MENU_STEP, MAIN_MENU_Y, mainMenuPlayers } from './render/menus.js';
+import { exitFunc, hasModeButton, prepareSelectionText } from './navigation.js';
+import { mainMenuPlayers } from './render/menus.js';
 import { resumeReplay } from './replay.js';
 import { game, input, ui } from './state.js';
 import { maxLevel } from './storage.js';
 import { setupTutorial } from './tutorial.js';
 
 /**
- * Find the hovered button of the pause menu, take the click on it and move the robot.
+ * Take the click on a button of the pause menu and move the robot.
  *
  * @returns {void}
  */
 export function updatePauseMenu() {
-	let overMenu = -1;
-	if (mouseInZone(50 + game.offsetX, 180 + game.offsetY, 120, 24)) overMenu = PauseButton.RESUME;
-	else if (ui.currentMenu != Menu.TUTORIAL && mouseInZone(187 + game.offsetX, 180 + game.offsetY, 120, 24))
-		overMenu = PauseButton.RESTART;
-	else if (mouseInZone(324 + game.offsetX, 180 + game.offsetY, 120, 24)) overMenu = PauseButton.EXIT;
-	else if (ui.currentMenu != Menu.TUTORIAL && mouseInZone(187 + game.offsetX, 340 + game.offsetY, 120, 24))
-		overMenu = PauseButton.SOUND;
-	ui.pauseHover = overMenu;
+	const overMenu = ui.pauseClick;
+	ui.pauseClick = -1;
 
-	if (input.mousePressed && input.mouseButton == MouseButton.LEFT && overMenu > 0) {
+	if (overMenu > 0) {
 		unclick();
 		if (overMenu == PauseButton.RESUME) {
 			ui.escapeMenu = !ui.escapeMenu;
@@ -152,25 +144,21 @@ export function updateLoadingScreen() {
 }
 
 /**
- * Find the hovered button of the main menu and take the clicks. After a click on a button, the menu fades out and then
- * opens the level selection, the editor or the tutorial.
+ * Take the click on a button of the main menu. After a click on a button, the menu fades out and then opens the
+ * level selection, the editor or the tutorial. The page sets the hovered and the clicked button.
  *
  * @returns {void}
  */
 export function updateMainMenu() {
-	let overMenu = -1;
-	for (let button = MainButton.CLASSIC; button <= MainButton.TUTORIAL; button++) {
-		if (overMenu < 0 && mouseInZone(160, MAIN_MENU_Y + button * MAIN_MENU_STEP, 320, 64)) overMenu = button;
-	}
-	ui.mainHover = overMenu;
+	const overMenu = ui.mainClick;
+	ui.mainClick = -1;
 
-	ui.soundHover = isSoundAvailable() && mouseInZone(20, 385, 29, 48);
-	if (ui.soundHover && input.mousePressed && input.mouseButton == MouseButton.LEFT) {
-		unclick();
-		toggleSound();
+	if (ui.soundClick) {
+		ui.soundClick = false;
+		if (isSoundAvailable()) toggleSound();
 	}
 
-	if (input.mousePressed && input.mouseButton == MouseButton.LEFT && overMenu >= 0 && ui.goMenu == 0) {
+	if (overMenu >= 0 && ui.goMenu == 0) {
 		const [pX, pY, pX2] = mainMenuPlayers(overMenu);
 		ui.menuButton = overMenu;
 		ui.goMenu = 60;
@@ -186,7 +174,7 @@ export function updateMainMenu() {
 				ui.previewMap = 0;
 				prepareSelectionText();
 				document.getElementById('highscores').classList.add('open');
-				game.offsetX = 0;
+				game.offsetX = PLAYFIELD_X;
 				game.offsetY = PLAYFIELD_Y;
 				ui.campaign = BUTTON_CAMPAIGN[ui.menuButton];
 				if (ui.campaign == CampaignId.STORY) {
@@ -211,39 +199,26 @@ export function updateMainMenu() {
 }
 
 /**
- * Find the hovered level and button of the level selection and take the clicks.
+ * Take the clicks on the levels and the buttons of the level selection. The page sets the clicked level and button.
  *
  * @returns {void}
  */
 export function updateMapSelection() {
-	ui.selectionListHover = -1;
-	if (input.mouseX >= 529 && input.mouseX <= 529 + 90) {
-		if (input.mouseY >= 12 + 105 && input.mouseY <= 104 + 29 * 12) {
-			const y = Math.trunc((input.mouseY - 105) / 12);
-			if (y <= maxLevel[ui.campaign]) {
-				ui.selectionListHover = y;
-				if (input.mousePressed && input.mouseButton == MouseButton.LEFT) {
-					if (y != ui.previewMap) {
-						unclick();
-						ui.previewMap = y;
-						ui.currentLevel = y;
-						loadPreviewMap(ui.previewMap);
-					}
-				}
-			}
-		}
+	const level = ui.selectionLevelClick;
+	ui.selectionLevelClick = 0;
+	if (level > 0 && level <= maxLevel[ui.campaign] && level != ui.previewMap) {
+		unclick();
+		ui.previewMap = level;
+		ui.currentLevel = level;
+		loadPreviewMap(ui.previewMap);
 	}
 
-	let overMenu = -1;
-	if (mouseInZone(20, 495, 120, 24)) overMenu = SelectionButton.EXIT;
-	if (ui.previewMap > 0 && mouseInZone(515, 495, 120, 24)) overMenu = SelectionButton.PLAY;
-	const hasMode =
-		(ui.campaign == CampaignId.NORMAL && maxLevel[CampaignId.NORMAL] == CAMPAIGN_FINISHED) ||
-		ui.campaign == CampaignId.ADVANCED;
-	if (hasMode && mouseInZone(380, 495, 120, 24)) overMenu = SelectionButton.MODE;
-	ui.selectionHover = overMenu;
+	let overMenu = ui.selectionClick;
+	ui.selectionClick = -1;
+	if (overMenu == SelectionButton.PLAY && ui.previewMap < 1) overMenu = -1;
+	if (overMenu == SelectionButton.MODE && !hasModeButton()) overMenu = -1;
 
-	if (input.mousePressed && input.mouseButton == MouseButton.LEFT && overMenu > 0) {
+	if (overMenu > 0) {
 		if (overMenu == SelectionButton.PLAY) {
 			startLevel(ui.campaign, ui.previewMap);
 			return;

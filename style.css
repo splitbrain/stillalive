@@ -116,32 +116,203 @@ body {
 #stage {
 	grid-area: stage;
 	min-width: 0;
+	position: relative;
 }
 
+/* the menus lie over the stage; the overlay shows the menu that its attribute names */
+#overlay {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+}
+
+.menu {
+	position: absolute;
+	inset: 0;
+	display: none;
+}
+
+#overlay[data-menu='main'] #main-menu,
+#overlay[data-menu='pause'] #pause-menu,
+#overlay[data-menu='intermission'] #intermission,
+#overlay[data-menu='selection'] #selection-menu {
+	display: block;
+}
+
+.menu button {
+	pointer-events: auto;
+	font-family: yikes, Arial, sans-serif;
+	color: #fde900;
+	text-shadow: 0.1em 0.1em 0 #000;
+	background: #0b7a7a;
+	border: none;
+	clip-path: polygon(0 0, 100% 0, 97% 100%, 3% 100%);
+	cursor: pointer;
+	transition: transform 0.1s;
+}
+
+.menu button:hover {
+	transform: scale(0.95);
+}
+
+/* the big buttons of the main menu lie where the canvas draws the players next to them */
+#main-menu button.big {
+	position: absolute;
+	left: 25%;
+	width: 50%;
+	height: calc(100% * 64 / 544);
+	font-size: 5.6cqw;
+}
+
+#main-classic {
+	top: calc(100% * 32 / 544);
+}
+
+#main-enhanced {
+	top: calc(100% * 114 / 544);
+}
+
+#main-ultimate {
+	top: calc(100% * 196 / 544);
+}
+
+#main-editor {
+	top: calc(100% * 278 / 544);
+}
+
+#main-tutorial {
+	top: calc(100% * 360 / 544);
+}
+
+#sound-button {
+	position: absolute;
+	left: calc(100% * 20 / 640);
+	top: calc(100% * 385 / 544);
+	width: calc(100% * 50 / 640);
+	height: calc(100% * 70 / 544);
+	clip-path: none;
+	font-size: 2.8cqw;
+	background: #0b7a7a url('menu/tex_sound.png') no-repeat center top / auto 70%;
+	padding-top: 10%;
+	box-sizing: border-box;
+	display: flex;
+	align-items: flex-end;
+	justify-content: center;
+}
+
+#sound-button.off {
+	background-image: url('menu/tex_cross.png'), url('menu/tex_sound.png');
+	background-size:
+		auto 60%,
+		auto 70%;
+	background-position:
+		center top,
+		center top;
+}
+
+.menu .buttons {
+	position: absolute;
+	left: 0;
+	right: 0;
+	display: flex;
+	justify-content: center;
+	gap: 2cqw;
+	padding: 0 2cqw;
+}
+
+.menu button.small {
+	font-size: 2.5cqw;
+	padding: 0.5cqw 2.5cqw;
+	min-width: 12cqw;
+}
+
+#pause-menu .buttons:first-child {
+	top: calc(100% * 180 / 384);
+}
+
+#pause-menu .buttons:last-child {
+	top: calc(100% * 340 / 384);
+}
+
+#intermission p {
+	position: absolute;
+	left: calc(100% * 35 / 512);
+	margin: 0;
+	font-weight: bold;
+	font-size: 2cqw;
+}
+
+#intermission-time {
+	top: calc(100% * 250 / 384);
+}
+
+#intermission-message {
+	top: calc(100% * 268 / 384);
+}
+
+#intermission .buttons,
+#selection-menu .buttons {
+	bottom: 2%;
+}
+
+#level-list {
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
+	gap: 0.5cqw;
+	margin-bottom: 1cqw;
+}
+
+#level-list button {
+	font-size: 1.6cqw;
+	font-weight: bold;
+	color: white;
+	background: #073140;
+	border: none;
+	border-radius: 0.5cqw;
+	padding: 0.4cqw 0;
+	cursor: pointer;
+}
+
+#level-list button:hover:not(:disabled),
+#level-list button.selected {
+	background: #0f7090;
+}
+
+#level-list button:disabled {
+	color: #8aa;
+	cursor: default;
+}
+
+#game:not([data-screen='select']) #level-list {
+	display: none;
+}
+
+/* the canvas fills its column, but stays low enough for the window height */
 #canvas {
 	cursor: url('./blank.png'), none;
 	touch-action: none;
 	display: block;
-	width: 100%;
+	width: min(100%, calc(85vh * var(--view-ratio, 1.1765)));
+	margin: 0 auto;
 	aspect-ratio: 640 / 544;
 	background: black;
 	border-radius: 1cqw;
 }
 
 /* in the menus the canvas shows the whole screen, so it takes the place of the parts around the stage */
-#game:not([data-screen='level']) #robot,
-#game:not([data-screen='level']) #speech,
+#game:not([data-screen='level']):not([data-screen='select']) #robot,
+#game:not([data-screen='level']):not([data-screen='select']) #speech,
 #game:not([data-screen='level']) #stats,
 #game:not([data-screen='level']) #keys {
 	display: none;
 }
 
-#game:not([data-screen='level']) #stage {
+#game:not([data-screen='level']):not([data-screen='select']) #stage {
 	grid-column: 1 / 4;
 	grid-row: 1 / 3;
 }
 
-/* the level selection shows the replay panel next to the screen */
+/* the level selection shows the speech bubble, the stage and the list of the levels next to it */
 #game[data-screen='select'] #stage {
 	grid-column: 1 / 3;
 }

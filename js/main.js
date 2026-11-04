@@ -13,6 +13,7 @@ import { loadGfx, loadSplashImages } from './images.js';
 import { setupInput } from './input.js';
 import { unclick } from './inputState.js';
 import { loadKeyLabels } from './keys.js';
+import { setupMenuPage } from './menuPage.js';
 import {
 	campaigns,
 	levelsLoaded,
@@ -40,6 +41,7 @@ function setup() {
 
 	watchCanvasSize();
 	setupInput();
+	setupMenuPage();
 	loadKeyLabels();
 	loadSplashImages();
 	Promise.all([whenImagesDone(), document.fonts.load('48px yikes')]).then(function () {

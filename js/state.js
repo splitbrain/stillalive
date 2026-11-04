@@ -70,14 +70,22 @@ export const ui = {
 	intermissionHover: -1,
 	/** @type {number} The hovered button of the pause menu, a value of PauseButton, or -1. */
 	pauseHover: -1,
+	/** @type {number} The clicked button of the pause menu, a value of PauseButton, or -1. The next tick takes it. */
+	pauseClick: -1,
 	/** @type {number} The hovered button of the main menu, a value of MainButton, or -1. */
 	mainHover: -1,
-	/** @type {boolean} True while the mouse is over the sound icon of the main menu. */
-	soundHover: false,
+	/** @type {number} The clicked button of the main menu, a value of MainButton, or -1. The next tick takes it. */
+	mainClick: -1,
+	/** @type {boolean} True after a click on the sound button of the main menu, until the next tick takes it. */
+	soundClick: false,
 	/** @type {number} The hovered button of the level selection, a value of SelectionButton, or -1. */
 	selectionHover: -1,
-	/** @type {number} The hovered level in the list of the level selection, or -1. */
-	selectionListHover: -1,
+	/** @type {number} The clicked button of the level selection, a value of SelectionButton, or -1. The next tick takes it. */
+	selectionClick: -1,
+	/** @type {number} The clicked level in the list of the level selection, or 0. The next tick takes it. */
+	selectionLevelClick: 0,
+	/** @type {number} The clicked button of the intermission screen, a value of IntermissionButton, or -1. The next tick takes it. */
+	intermissionClick: -1,
 	/** @type {{time: number, alpha: number, speed: number}} The scroll position, the fade and the scroll speed of the credits. */
 	credits: { time: 0, alpha: 0, speed: 0.4 },
 	/** @type {boolean} True while the mouse is over the link of the loading screen that turns the sound off. */

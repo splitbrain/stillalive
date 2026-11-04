@@ -53,7 +53,8 @@ export function watchCanvasSize() {
 }
 
 /**
- * Set the part of the screen that the canvas shows. The canvas on the page gets the ratio of the view.
+ * Set the part of the screen that the canvas shows. The canvas on the page gets the ratio of the view, also as the
+ * CSS variable --view-ratio for its size limit.
  *
  * @param {number} x The left edge in screen units.
  * @param {number} y The top edge in screen units.
@@ -65,6 +66,7 @@ export function setView(x, y, w, h) {
 	if (view.x === x && view.y === y && view.w === w && view.h === h) return;
 	view = { x, y, w, h };
 	canvas.style.aspectRatio = `${w} / ${h}`;
+	canvas.style.setProperty('--view-ratio', String(w / h));
 }
 
 /**

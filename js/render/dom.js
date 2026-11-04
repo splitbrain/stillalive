@@ -1,9 +1,12 @@
 /**
- * Drawing of the parts of the page around the canvas: the robot, the narrator text, the values of the HUD and the
- * replay keys. The page shows and hides its parts by the screen attribute of the game element.
+ * Drawing of the parts of the page around the canvas: the robot, the narrator text, the values of the HUD, the replay
+ * keys and the menus. The page shows and hides its parts by the screen attribute of the game element and by the menu
+ * attribute of the overlay over the stage.
  */
 
+import { isSoundAvailable, isSoundOn } from '../audio.js';
 import {
+	CAMPAIGN_FINISHED,
 	CampaignId,
 	KEY_CLEAR,
 	KEY_DOWN,
@@ -14,8 +17,12 @@ import {
 	MOUSE_LEFT,
 	MOUSE_RIGHT,
 } from '../constants.js';
+import { canContinue, isLevelLocked } from '../intermission.js';
 import { keyLabels } from '../keys.js';
+import { hasModeButton } from '../navigation.js';
 import { game, input, ui } from '../state.js';
+import { maxLevel } from '../storage.js';
+import { toTime } from '../utils.js';
 
 /** @type {number} The width of the robot panel in screen units. */
 const ROBOT_PANEL_WIDTH = 120;
@@ -147,6 +154,77 @@ function renderKeys() {
 }
 
 /**
+ * Show or hide an element.
+ *
+ * @param {HTMLElement} element The element.
+ * @param {boolean} shown True to show the element.
+ * @returns {void}
+ */
+function show(element, shown) {
+	if (element.hidden === shown) element.hidden = !shown;
+}
+
+/**
+ * Update the main menu: the buttons fade with the canvas, and only the clicked button stays during the fade out.
+ *
+ * @returns {void}
+ */
+function renderMainMenu() {
+	let opacity = 1;
+	if (ui.goMenu) opacity = ui.goMenu / 60;
+	else if (ui.fadeMenu > 0) opacity = 1 - ui.fadeMenu / 30;
+	setStyle(el('main-menu'), 'opacity', String(opacity));
+	for (const button of el('main-menu').querySelectorAll('[data-menu="main"]')) {
+		show(button, !ui.goMenu || Number(button.dataset.button) == ui.menuButton);
+	}
+	setText(el('main-classic'), 'Classic Mode' + (maxLevel[CampaignId.NORMAL] == CAMPAIGN_FINISHED ? ' +' : ''));
+	const sound = el('sound-button');
+	show(sound, isSoundAvailable() && !ui.goMenu);
+	sound.classList.toggle('off', !isSoundOn());
+}
+
+/**
+ * Update the level selection: the list of the levels and the buttons.
+ *
+ * @returns {void}
+ */
+function renderSelection() {
+	setText(el('narrator'), (ui.txtLines ?? []).join(' '));
+	for (const button of el('level-list').children) {
+		const level = Number(button.dataset.level);
+		const locked = level > maxLevel[ui.campaign];
+		if (button.disabled !== locked) button.disabled = locked;
+		button.classList.toggle('selected', level == ui.previewMap);
+	}
+	show(el('selection-play'), ui.previewMap > 0);
+	show(el('selection-mode'), hasModeButton());
+	setText(el('selection-mode'), ui.campaign == CampaignId.NORMAL ? 'Hard Mode' : 'Normal Mode');
+}
+
+/**
+ * Update the pause menu and the intermission screen over the stage.
+ *
+ * @returns {string} The name of the menu that the overlay shows, or an empty string.
+ */
+function renderLevelMenus() {
+	if (ui.escapeMenu) {
+		show(el('pause-restart'), ui.currentMenu != Menu.TUTORIAL);
+		show(el('pause-sound'), ui.currentMenu != Menu.TUTORIAL && isSoundAvailable());
+		setText(el('pause-sound'), 'Sounds : ' + (isSoundOn() ? 'On' : 'Off'));
+		return 'pause';
+	}
+	if (ui.drawIntermission && game.player.fadeNextLevel == 0) {
+		const ready = game.player.intermissionFade == 0;
+		setText(el('intermission-time'), ready ? 'Your time : ' + toTime(game.time) : '');
+		setText(el('intermission-message'), ready ? ui.highscoreMessage : '');
+		show(el('intermission-restart'), !isLevelLocked());
+		show(el('intermission-continue'), canContinue());
+		return 'intermission';
+	}
+	return '';
+}
+
+/**
  * Update the parts of the page for the current screen.
  *
  * @returns {void}
@@ -155,13 +233,24 @@ export function renderPage() {
 	const page = el('game');
 	const screen = screenName();
 	if (page.dataset.screen !== screen) page.dataset.screen = screen;
-	if (screen !== 'level') return;
 
-	setText(el('narrator'), narratorText());
-	renderRobot();
-	setText(el('stat-life'), String(game.player.life >> 8 > 0 ? game.player.life >> 8 : 0));
-	setText(el('stat-cakes'), String(game.cakesLeft));
-	setText(el('stat-steps'), String(game.steps >> 8));
-	setText(el('stat-portals'), String(game.portalShots));
-	renderKeys();
+	let menu = '';
+	if (screen === 'main') {
+		menu = 'main';
+		renderMainMenu();
+	} else if (screen === 'select') {
+		menu = 'selection';
+		renderSelection();
+	} else if (screen === 'level') {
+		setText(el('narrator'), narratorText());
+		renderRobot();
+		setText(el('stat-life'), String(game.player.life >> 8 > 0 ? game.player.life >> 8 : 0));
+		setText(el('stat-cakes'), String(game.cakesLeft));
+		setText(el('stat-steps'), String(game.steps >> 8));
+		setText(el('stat-portals'), String(game.portalShots));
+		renderKeys();
+		menu = renderLevelMenus();
+	}
+	const overlay = el('overlay');
+	if (overlay.dataset.menu !== menu) overlay.dataset.menu = menu;
 }

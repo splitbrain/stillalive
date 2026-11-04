@@ -2,10 +2,10 @@
  * The logic of the transitions between the levels and of the intermission screen.
  */
 
-import { IntermissionButton, LEVELS_PER_CAMPAIGN, Menu, MouseButton } from './constants.js';
-import { mouseInZone, unclick } from './inputState.js';
+import { IntermissionButton, LEVELS_PER_CAMPAIGN, Menu } from './constants.js';
+import { unclick } from './inputState.js';
 import { atExit } from './physics.js';
-import { game, input, ui } from './state.js';
+import { game, ui } from './state.js';
 import { maxLevel } from './storage.js';
 
 /**
@@ -33,30 +33,32 @@ export function updateIntermission() {
 }
 
 /**
- * Find the hovered button of the intermission screen and take the click on it.
+ * Take the click on a button of the intermission screen. The page sets the clicked button.
  *
  * @returns {void}
  */
 export function updateIntermissionButtons() {
-	let overMenu = -1;
-	if (mouseInZone(74, 445, 120, 24)) overMenu = IntermissionButton.EXIT;
-	else if (mouseInZone(74 + 130, 445, 120, 24) && !isLevelLocked()) overMenu = IntermissionButton.RESTART;
-	else if (
-		mouseInZone(74 + 260, 445, 120, 24) &&
-		ui.currentMenu == Menu.PLAY &&
-		ui.currentLevel < LEVELS_PER_CAMPAIGN
-	) {
-		if (maxLevel[ui.campaign] >= ui.currentLevel + 1) {
-			overMenu = IntermissionButton.CONTINUE;
-		}
-	} else if (mouseInZone(74 + 390, 445, 120, 24)) overMenu = IntermissionButton.REPLAY;
+	let overMenu = ui.intermissionClick;
+	ui.intermissionClick = -1;
+	if (overMenu == IntermissionButton.RESTART && isLevelLocked()) overMenu = -1;
+	if (overMenu == IntermissionButton.CONTINUE && !canContinue()) overMenu = -1;
 
-	ui.intermissionHover = overMenu;
-
-	if (input.mousePressed && input.mouseButton == MouseButton.LEFT && overMenu > 0) {
+	if (overMenu > 0) {
 		ui.intermissionChoice = overMenu;
 		unclick();
 	}
+}
+
+/**
+ * Check if the intermission screen has the button that starts the next level: in a campaign, when the next level
+ * is unlocked.
+ *
+ * @returns {boolean} True when the button is there.
+ */
+export function canContinue() {
+	return (
+		ui.currentMenu == Menu.PLAY && ui.currentLevel < LEVELS_PER_CAMPAIGN && maxLevel[ui.campaign] >= ui.currentLevel + 1
+	);
 }
 
 /**

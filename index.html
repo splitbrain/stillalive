@@ -27,8 +27,50 @@
 			</div>
 			<div id="stage">
 				<canvas id="canvas" width="640" height="544"> Your browser doesn't support canvas. </canvas>
+				<div id="overlay" data-menu="">
+					<div id="main-menu" class="menu">
+						<button class="big" id="main-classic" data-menu="main" data-button="0">Classic Mode</button>
+						<button class="big" id="main-enhanced" data-menu="main" data-button="1">Enhanced Mode</button>
+						<button class="big" id="main-ultimate" data-menu="main" data-button="2">Ultimate Mode</button>
+						<button class="big" id="main-editor" data-menu="main" data-button="3">Level Editor</button>
+						<button class="big" id="main-tutorial" data-menu="main" data-button="4">Tutorial</button>
+						<button id="sound-button" title="Click here or press M to turn the sound on and off.">SFX</button>
+					</div>
+					<div id="pause-menu" class="menu">
+						<div class="buttons">
+							<button class="small" id="pause-resume" data-menu="pause" data-button="1">Resume</button>
+							<button class="small" id="pause-restart" data-menu="pause" data-button="2">Restart</button>
+							<button class="small" id="pause-exit" data-menu="pause" data-button="3">Exit</button>
+						</div>
+						<div class="buttons">
+							<button class="small" id="pause-sound" data-menu="pause" data-button="4">Sounds : On</button>
+						</div>
+					</div>
+					<div id="intermission" class="menu">
+						<p id="intermission-time"></p>
+						<p id="intermission-message"></p>
+						<div class="buttons">
+							<button class="small" id="intermission-exit" data-menu="intermission" data-button="1">Exit</button>
+							<button class="small" id="intermission-restart" data-menu="intermission" data-button="2">Restart</button>
+							<button class="small" id="intermission-continue" data-menu="intermission" data-button="3">
+								Continue
+							</button>
+							<button class="small" id="intermission-replay" data-menu="intermission" data-button="4">
+								Watch Replay
+							</button>
+						</div>
+					</div>
+					<div id="selection-menu" class="menu">
+						<div class="buttons">
+							<button class="small" id="selection-exit" data-menu="selection" data-button="2">Exit</button>
+							<button class="small" id="selection-mode" data-menu="selection" data-button="3">Hard Mode</button>
+							<button class="small" id="selection-play" data-menu="selection" data-button="1">Play</button>
+						</div>
+					</div>
+				</div>
 			</div>
 			<div id="side">
+				<div id="level-list"></div>
 				<div id="highscores">
 					<div id="highscores_in"></div>
 				</div>

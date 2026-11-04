@@ -17,12 +17,11 @@ import { ui } from '../state.js';
 import { renderPage } from './dom.js';
 import { drawLevelEditor } from './editor.js';
 import { drawLevel } from './game.js';
-import { drawText } from './hud.js';
 import { drawCredits, drawLoadingScreen, drawMainMenu, drawMapSelection, drawPauseMenu, drawSplash } from './menus.js';
 
 /**
- * Check if the canvas shows only the playfield: in a level, in the tutorial and in the test run of the editor. The
- * page shows the parts around the playfield.
+ * Check if the canvas shows only the playfield: in a level, in the tutorial, in the level selection and in the test
+ * run of the editor. The page shows the parts around the playfield.
  *
  * @returns {boolean} True when the canvas shows the playfield.
  */
@@ -31,6 +30,7 @@ export function onStage() {
 	return (
 		ui.currentMenu == Menu.PLAY ||
 		ui.currentMenu == Menu.TUTORIAL ||
+		(ui.currentMenu == Menu.MAIN && ui.selectMenu == 1) ||
 		(ui.currentMenu == Menu.EDITOR && ui.isTestingLevel)
 	);
 }
@@ -57,10 +57,7 @@ export function render() {
 		else if (ui.splash.over) drawLoadingScreen();
 	} else if (ui.currentMenu == Menu.MAIN) {
 		if (ui.selectMenu == 0) drawMainMenu();
-		else {
-			drawMapSelection();
-			drawText(30, 25, 14);
-		}
+		else drawMapSelection();
 	}
 	ctx.font = 'bold 10px Arial';
 	ctx.strokeStyle = 'rgb(255, 255, 255)';

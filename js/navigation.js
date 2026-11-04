@@ -2,11 +2,12 @@
  * The way back from a level to the menus.
  */
 
-import { Menu, PLAYFIELD_Y } from './constants.js';
+import { CAMPAIGN_FINISHED, CampaignId, Menu, PLAYFIELD_X, PLAYFIELD_Y } from './constants.js';
 import { alertDialog } from './dialog.js';
 import { unclick } from './inputState.js';
 import { loadPreviewMap } from './level.js';
 import { game, ui } from './state.js';
+import { maxLevel } from './storage.js';
 
 /**
  * Set the text of the robot panel for the level selection.
@@ -22,6 +23,18 @@ export function prepareSelectionText() {
 }
 
 /**
+ * Check if the level selection has the button that switches between the normal and the hard campaign.
+ *
+ * @returns {boolean} True when the button is there.
+ */
+export function hasModeButton() {
+	return (
+		(ui.campaign == CampaignId.NORMAL && maxLevel[CampaignId.NORMAL] == CAMPAIGN_FINISHED) ||
+		ui.campaign == CampaignId.ADVANCED
+	);
+}
+
+/**
  * Leave the current level or the tutorial and go back to the menu.
  *
  * @returns {void}
@@ -30,7 +43,7 @@ export function exitFunc() {
 	unclick();
 	game.sparkles = new Array();
 	if (ui.currentMenu == Menu.PLAY) {
-		game.offsetX = 0;
+		game.offsetX = PLAYFIELD_X;
 		game.offsetY = PLAYFIELD_Y;
 		ui.currentMenu = Menu.MAIN;
 		prepareSelectionText();

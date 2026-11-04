@@ -1,27 +1,16 @@
 /**
- * Drawing of the splash screen, the loading screen, the menus, the intermission screen and the credits.
+ * Drawing of the splash screen, the loading screen, the backgrounds of the menus, the intermission screen and the
+ * credits.
  */
 
 import { allImagesLoaded, areImagesLoaded, imageProgress, missingImages } from '../assets.js';
-import { allSoundsLoaded, isSoundAvailable, isSoundOn, soundProgress } from '../audio.js';
+import { allSoundsLoaded, soundProgress } from '../audio.js';
 import { ctx, drawImage } from '../canvas.js';
-import {
-	CAMPAIGN_FINISHED,
-	CampaignId,
-	IntermissionButton,
-	LEVELS_PER_CAMPAIGN,
-	MainButton,
-	MAP_SIZE,
-	Menu,
-	NUM_TILES,
-	PauseButton,
-	PLAYFIELD_HEIGHT,
-	PLAYFIELD_WIDTH,
-	SelectionButton,
-} from '../constants.js';
+import { MAP_SIZE, NUM_TILES, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH } from '../constants.js';
 import {
 	bg,
 	bluePortal,
+	tex_button,
 	body,
 	cake,
 	controls,
@@ -29,7 +18,6 @@ import {
 	crosshair,
 	head,
 	highscore,
-	mapSelection,
 	menuBG,
 	noLevel,
 	pauseBG,
@@ -37,43 +25,19 @@ import {
 	portalGun,
 	redPortal,
 	tex_blackos,
-	tex_button,
-	tex_cross,
-	tex_sound,
 	tex_tails,
 	tileset,
 	tube,
 	tube2,
 	turretImages,
 } from '../images.js';
-import { isLevelLocked } from '../intermission.js';
 import { keyLabels } from '../keys.js';
 import { creditsTxt, levelsLoaded, levelsToLoad, missingLevelFiles } from '../level.js';
 import { drawBoss } from './boss.js';
 import { drawPlayer, drawSparkles, drawTileLayer, drawTunnels, saveTileLayer } from './game.js';
 import { game, input, ui } from '../state.js';
-import { maxLevel } from '../storage.js';
 import { Tile } from '../tiles.js';
-import { getAngle, toTime } from '../utils.js';
-
-/**
- * Draw the buttons of the intermission screen. The hovered button is smaller.
- *
- * @returns {void}
- */
-function drawIntermissionButtons() {
-	const hover = ui.intermissionHover;
-	drawTinyButton(74, 445, hover == IntermissionButton.EXIT ? 0.9 : 1, 'Exit');
-	if (!isLevelLocked()) drawTinyButton(74 + 130, 445, hover == IntermissionButton.RESTART ? 0.9 : 1, 'Restart');
-	if (
-		ui.currentMenu == Menu.PLAY &&
-		ui.currentLevel < LEVELS_PER_CAMPAIGN &&
-		maxLevel[ui.campaign] >= ui.currentLevel + 1
-	) {
-		drawTinyButton(74 + 260, 445, hover == IntermissionButton.CONTINUE ? 0.9 : 1, 'Continue');
-	}
-	drawTinyButton(74 + 390, 445, hover == IntermissionButton.REPLAY ? 0.9 : 1, 'Watch Replay');
-}
+import { getAngle } from '../utils.js';
 
 /**
  * Draw a portal gun in the main menu.
@@ -93,26 +57,12 @@ function drawPortalGunMenu(x, y, angle) {
 }
 
 /**
- * Draw the pause menu.
+ * Draw the background of the pause menu. The page draws the buttons.
  *
  * @returns {void}
  */
 export function drawPauseMenu() {
-	ctx.fillStyle = 'rgb(0, 65, 88)';
 	drawImage(pauseBG, game.offsetX, game.offsetY);
-
-	ctx.fillStyle = 'rgb(255, 255, 255)';
-	const hover = ui.pauseHover;
-	const scale1 = hover == PauseButton.RESUME ? 0.9 : 1;
-	const scale2 = hover == PauseButton.RESTART ? 0.9 : 1;
-	const scale3 = hover == PauseButton.EXIT ? 0.9 : 1;
-	const scale4 = hover == PauseButton.SOUND ? 0.9 : 1;
-
-	drawTinyButton(game.offsetX + 50, game.offsetY + 180, scale1, 'Resume');
-	if (ui.currentMenu != Menu.TUTORIAL) drawTinyButton(game.offsetX + 187, game.offsetY + 180, scale2, 'Restart');
-	drawTinyButton(game.offsetX + 324, game.offsetY + 180, scale3, 'Exit');
-	if (ui.currentMenu != Menu.TUTORIAL && isSoundAvailable())
-		drawTinyButton(187 + game.offsetX, 340 + game.offsetY, scale4, 'Sounds : ' + (isSoundOn() ? 'On' : 'Off'));
 
 	drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
 }
@@ -261,77 +211,15 @@ export function drawLoadingScreen() {
 }
 
 /**
- * Draw the level selection of a campaign.
+ * Draw the preview of the selected level. The page draws the list of the levels and the buttons.
  *
  * @returns {void}
  */
 export function drawMapSelection() {
-	let i;
 	if (ui.previewMap < 1) drawImage(noLevel, game.offsetX, game.offsetY);
 	if (ui.previewMap > 0) drawPreviewMap();
-	drawImage(mapSelection, 0, 0);
-
-	if (ui.selectionListHover >= 0) {
-		ctx.fillStyle = 'rgb(15, 112, 144)';
-		ctx.fillRect(529, 105 + ui.selectionListHover * 12 + 2, 90, 14);
-	}
-
-	const hover = ui.selectionHover;
-	drawTinyButton(20, 495, hover == SelectionButton.EXIT ? 0.9 : 1, 'Exit');
-
-	if (ui.previewMap > 0) {
-		ctx.fillStyle = 'rgb(15, 112, 144)';
-		ctx.fillRect(529, 105 + ui.previewMap * 12 + 2, 90, 14);
-
-		drawTinyButton(515, 495, hover == SelectionButton.PLAY ? 0.9 : 1, 'Play');
-	}
-
-	if (ui.campaign == CampaignId.NORMAL && maxLevel[CampaignId.NORMAL] == CAMPAIGN_FINISHED) {
-		drawTinyButton(380, 495, hover == SelectionButton.MODE ? 0.9 : 1, 'Hard Mode');
-	} else if (ui.campaign == CampaignId.ADVANCED) {
-		drawTinyButton(380, 495, hover == SelectionButton.MODE ? 0.9 : 1, 'Normal Mode');
-	}
-
-	ctx.font = 'bold 12px Arial';
-	for (i = 0; i < LEVELS_PER_CAMPAIGN; i++) {
-		ctx.strokeStyle = 'rgb(0, 0, 0)';
-		if (i + 1 <= maxLevel[ui.campaign]) {
-			ctx.fillStyle = 'rgb(255, 255, 255)';
-		} else {
-			ctx.fillStyle = 'rgb(200, 200, 200)';
-		}
-		ctx.fillText('Level ' + (i + 1), 549, 105 + 24 + i * 12);
-	}
 
 	drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
-}
-
-/**
- * Draw a large button with a text.
- *
- * @param {number} x The x coordinate in canvas pixels.
- * @param {number} y The y coordinate in canvas pixels.
- * @param {number} scale The size, 1 for normal and smaller when the mouse is over the button.
- * @param {string} text The text on the button.
- * @returns {void}
- */
-function drawBigButton(x, y, scale, text) {
-	drawImage(tex_button, x + ((1 - scale) * 320) / 2, y + ((1 - scale) * 64) / 2, 320 * scale, 64 * scale);
-
-	x += 320 / 2;
-
-	ctx.font = '36px yikes';
-	if (scale != 1) ctx.font = '34px yikes';
-
-	const metrics = ctx.measureText(text);
-	x -= metrics.width / 2;
-	y += 45;
-
-	ctx.fillStyle = 'rgb(0, 0, 0)';
-	ctx.fillText(text, x + 4, y + 4);
-	ctx.fillStyle = 'rgb(253, 233, 0)';
-
-	ctx.fillText(text, x, y);
 }
 
 /**
@@ -362,9 +250,9 @@ export function drawTinyButton(x, y, scale, text) {
 }
 
 /** @type {number} The y position of the first button of the main menu. */
-export const MAIN_MENU_Y = 32;
+const MAIN_MENU_Y = 32;
 /** @type {number} The distance between the buttons of the main menu. */
-export const MAIN_MENU_STEP = 64 + 18;
+const MAIN_MENU_STEP = 64 + 18;
 
 /**
  * Get the positions of the two players next to a button of the main menu.
@@ -378,94 +266,23 @@ export function mainMenuPlayers(button) {
 }
 
 /**
- * Draw the main menu with the sound button and the fades.
+ * Draw the background of the main menu, the players next to the hovered button and the fades. The page draws the
+ * buttons.
  *
  * @returns {void}
  */
 export function drawMainMenu() {
-	ctx.strokeStyle = 'rgb(0, 0, 0)';
-	ctx.fillStyle = 'rgb(0, 65, 88)';
 	drawImage(menuBG, 0, 0);
 
+	// the players stand next to the hovered button
 	const hover = ui.mainHover;
-	const scale1 = hover == MainButton.CLASSIC ? 0.9 : 1;
-	const scale2 = hover == MainButton.ENHANCED ? 0.9 : 1;
-	const scale3 = hover == MainButton.ULTIMATE ? 0.9 : 1;
-	const scale4 = hover == MainButton.EDITOR ? 0.9 : 1;
-	const scale5 = hover == MainButton.TUTORIAL ? 0.9 : 1;
+	if (!ui.goMenu && hover >= 0) {
+		const [pX, pY, pX2] = mainMenuPlayers(hover);
+		drawPortalGunMenu(pX, pY, getAngle(pX, pY, input.mouseX, input.mouseY));
+		drawPlayer(pX, pY, 1);
 
-	if (ui.goMenu) {
-		if (ui.menuButton == MainButton.CLASSIC)
-			drawBigButton(
-				160,
-				MAIN_MENU_Y,
-				scale1,
-				'Classic Mode' + (maxLevel[CampaignId.NORMAL] == CAMPAIGN_FINISHED ? ' +' : ''),
-			);
-		else if (ui.menuButton == MainButton.ENHANCED)
-			drawBigButton(160, MAIN_MENU_Y + 1 * MAIN_MENU_STEP, scale2, 'Enhanced Mode');
-		else if (ui.menuButton == MainButton.ULTIMATE)
-			drawBigButton(160, MAIN_MENU_Y + 2 * MAIN_MENU_STEP, scale3, 'Ultimate Mode');
-		else if (ui.menuButton == MainButton.EDITOR)
-			drawBigButton(160, MAIN_MENU_Y + 3 * MAIN_MENU_STEP, scale4, 'Level Editor');
-		else if (ui.menuButton == MainButton.TUTORIAL)
-			drawBigButton(160, MAIN_MENU_Y + 4 * MAIN_MENU_STEP, scale5, 'Tutorial');
-	} else {
-		drawBigButton(
-			160,
-			MAIN_MENU_Y,
-			scale1,
-			'Classic Mode' + (maxLevel[CampaignId.NORMAL] == CAMPAIGN_FINISHED ? ' +' : ''),
-		);
-		drawBigButton(160, MAIN_MENU_Y + 1 * MAIN_MENU_STEP, scale2, 'Enhanced Mode');
-		drawBigButton(160, MAIN_MENU_Y + 2 * MAIN_MENU_STEP, scale3, 'Ultimate Mode');
-		drawBigButton(160, MAIN_MENU_Y + 3 * MAIN_MENU_STEP, scale4, 'Level Editor');
-		drawBigButton(160, MAIN_MENU_Y + 4 * MAIN_MENU_STEP, scale5, 'Tutorial');
-
-		// the players stand next to the hovered button
-		if (hover >= 0) {
-			const [pX, pY, pX2] = mainMenuPlayers(hover);
-			drawPortalGunMenu(pX, pY, getAngle(pX, pY, input.mouseX, input.mouseY));
-			drawPlayer(pX, pY, 1);
-
-			drawPortalGunMenu(pX2, pY, getAngle(pX2, pY, input.mouseX, input.mouseY));
-			drawPlayer(pX2, pY, -1);
-		}
-	}
-
-	const zoomSound = ui.soundHover ? 0.9 : 1;
-	if (ui.soundHover) {
-		ctx.globalAlpha = 0.8;
-		ctx.fillStyle = 'rgb(7, 49, 63)';
-		ctx.fillRect(20, 385, 300, 48);
-
-		ctx.fillStyle = 'rgb(255, 255, 255)';
-		ctx.font = 'bold 12px Arial';
-		ctx.fillText('Click here or press M to turn the sound', 55, 404);
-		ctx.fillText('on and off.', 55, 420);
-
-		ctx.globalAlpha = 1;
-	}
-
-	if (isSoundAvailable()) {
-		ctx.font = '18px yikes';
-		ctx.fillStyle = 'rgb(253, 233, 0)';
-		drawImage(
-			tex_sound,
-			20 + ((1 - zoomSound) * 29) / 2,
-			385 + ((1 - zoomSound) * 48) / 2,
-			29 * zoomSound,
-			48 * zoomSound,
-		);
-		if (!isSoundOn())
-			drawImage(
-				tex_cross,
-				15 + ((1 - zoomSound) * 40) / 2,
-				390 + ((1 - zoomSound) * 40) / 2,
-				40 * zoomSound,
-				34 * zoomSound,
-			);
-		ctx.fillText('SFX', 20, 450);
+		drawPortalGunMenu(pX2, pY, getAngle(pX2, pY, input.mouseX, input.mouseY));
+		drawPlayer(pX2, pY, -1);
 	}
 
 	drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
@@ -526,7 +343,8 @@ export function drawCredits() {
 }
 
 /**
- * Draw the intermission screen after a level with the time and the message.
+ * Draw the background of the intermission screen after a level. The page draws the time, the message and the
+ * buttons.
  *
  * @returns {void}
  */
@@ -538,15 +356,6 @@ export function drawIntermission() {
 	}
 	drawImage(highscore, game.offsetX, game.offsetY);
 	if (game.player.intermissionFade > 0) ctx.globalAlpha = 1;
-
-	drawIntermissionButtons();
-
-	if (game.player.intermissionFade == 0) {
-		ctx.fillStyle = 'rgb(255, 255, 255)';
-		ctx.font = 'bold 12px Arial';
-		ctx.fillText('Your time : ' + toTime(game.time), game.offsetX + 35, game.offsetY + 260);
-		ctx.fillText(ui.highscoreMessage, game.offsetX + 35, game.offsetY + 278);
-	}
 }
 
 /**

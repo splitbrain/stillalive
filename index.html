@@ -14,11 +14,7 @@
 	</head>
 	<body>
 		<game-app id="game" data-screen="loading">
-			<div id="robot" data-screens="play" hidden>
-				<img id="robot-head" src="sprites/robotHead.svg" alt="" />
-				<div id="robot-eye"></div>
-			</div>
-			<div id="speech" data-screens="select play editor editor-file" hidden><p id="narrator"></p></div>
+			<narrator-text id="speech" data-screens="select play editor editor-file" hidden><p></p></narrator-text>
 			<div id="editor-tiles" data-screens="editor" hidden></div>
 			<div id="editor-objects" data-screens="editor" hidden>
 				<button data-sprite="103" title="Cake"><span class="sprite cake"></span></button>
@@ -50,12 +46,6 @@
 					<button data-bg="-1" title="Previous background">&#9664;</button>
 					<button data-bg="1" title="Next background">&#9654;</button>
 				</div>
-			</div>
-			<div id="stats" data-screens="play" hidden>
-				<div class="stat"><span class="label">Life</span><span class="value" id="stat-life">100</span></div>
-				<div class="stat"><span class="label">Cakes</span><span class="value" id="stat-cakes">0</span></div>
-				<div class="stat"><span class="label">Steps</span><span class="value" id="stat-steps">0</span></div>
-				<div class="stat"><span class="label">Portals</span><span class="value" id="stat-portals">0</span></div>
 			</div>
 			<div id="stage">
 				<game-stage id="game-stage" data-screens="select play editor editor-file" hidden></game-stage>
@@ -92,26 +82,6 @@
 						<a class="big" id="main-tutorial" href="#/campaign/tutorial/1/play">Tutorial</a>
 						<button id="sound-button" title="Click here or press M to turn the sound on and off.">SFX</button>
 					</main-menu>
-					<div id="pause-menu" class="menu" hidden>
-						<div class="buttons">
-							<button class="small" id="pause-resume">Resume</button>
-							<button class="small" id="pause-restart">Restart</button>
-							<a class="small" id="pause-exit">Exit</a>
-						</div>
-						<div class="buttons">
-							<button class="small" id="pause-sound">Sounds : On</button>
-						</div>
-					</div>
-					<div id="intermission" class="menu" hidden>
-						<p id="intermission-time"></p>
-						<p id="intermission-message"></p>
-						<div class="buttons">
-							<a class="small" id="intermission-exit">Exit</a>
-							<a class="small" id="intermission-restart">Restart</a>
-							<a class="small" id="intermission-continue">Continue</a>
-							<button class="small" id="intermission-replay">Watch Replay</button>
-						</div>
-					</div>
 					<div id="editor-menu" class="menu" data-screens="editor" hidden>
 						<div class="buttons">
 							<a class="small" id="editor-exit" href="#/">Exit</a>
@@ -132,6 +102,55 @@
 					</div>
 				</div>
 			</div>
+			<play-screen id="play-screen" data-screens="play" hidden>
+				<robot-head id="robot">
+					<img class="head" src="sprites/robotHead.svg" alt="" />
+					<div class="eye"></div>
+				</robot-head>
+				<div id="hud">
+					<game-hud id="stats">
+						<div class="stat"><span class="label">Life</span><span class="value" data-value="life">100</span></div>
+						<div class="stat"><span class="label">Cakes</span><span class="value" data-value="cakes">0</span></div>
+						<div class="stat"><span class="label">Steps</span><span class="value" data-value="steps">0</span></div>
+						<div class="stat"><span class="label">Portals</span><span class="value" data-value="portals">0</span></div>
+					</game-hud>
+					<replay-keys id="keys" hidden>
+						<div class="row">
+							<span class="mouse" data-key="left"></span>
+							<span class="key" data-key="KeyW">W</span>
+							<span class="key" data-key="KeyE">E</span>
+							<span class="mouse" data-key="right"></span>
+						</div>
+						<div class="row">
+							<span class="key" data-key="KeyA">A</span>
+							<span class="key" data-key="KeyS">S</span>
+							<span class="key" data-key="KeyD">D</span>
+						</div>
+					</replay-keys>
+				</div>
+				<div id="play-menus">
+					<pause-menu id="pause-menu" class="menu" hidden>
+						<div class="buttons">
+							<button class="small resume">Resume</button>
+							<a class="small restart">Restart</a>
+							<a class="small exit">Exit</a>
+						</div>
+						<div class="buttons">
+							<button class="small sound">Sounds : On</button>
+						</div>
+					</pause-menu>
+					<intermission-panel id="intermission" class="menu" hidden>
+						<p class="time"></p>
+						<p class="message"></p>
+						<div class="buttons">
+							<a class="small exit">Exit</a>
+							<a class="small restart">Restart</a>
+							<a class="small next">Continue</a>
+							<button class="small replay">Watch Replay</button>
+						</div>
+					</intermission-panel>
+				</div>
+			</play-screen>
 			<div id="side" data-screens="select play editor-file" hidden>
 				<level-selection id="level-selection" data-screens="select" hidden>
 					<level-list id="level-list">
@@ -153,19 +172,6 @@
 					<p class="import"><button>Import replay</button></p>
 					<p class="total">Campaign total: <span class="total-time"></span><br /><span class="total-levels"></span></p>
 				</best-times>
-				<div id="keys" hidden>
-					<div class="row">
-						<span class="mouse" id="key-left"></span>
-						<span class="key" id="key-KeyW">W</span>
-						<span class="key" id="key-KeyE">E</span>
-						<span class="mouse" id="key-right"></span>
-					</div>
-					<div class="row">
-						<span class="key" id="key-KeyA">A</span>
-						<span class="key" id="key-KeyS">S</span>
-						<span class="key" id="key-KeyD">D</span>
-					</div>
-				</div>
 			</div>
 			<div id="footer">
 				Copyright (c) 2010 Christophe<br />

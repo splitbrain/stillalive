@@ -7,21 +7,10 @@ import { CAMPAIGN_FINISHED, CAMPAIGN_FOLDERS, CampaignId, LEVELS_PER_CAMPAIGN } 
 import { decodeReplay } from '../stage/replay.js';
 import { campaigns } from './campaigns.js';
 import { alertDialog } from './dialog.js';
+import { setLink } from './dom.js';
 import { downloadJson, pickJsonFile } from './files.js';
 import { bestTimes, getBestTime, getCampaignTotal, loadBestReplay, maxLevel } from './storage.js';
-import { toTime } from './tempPage.js';
-
-/**
- * Set the path of a link and show it, or hide the link.
- *
- * @param {HTMLAnchorElement} link The link.
- * @param {string|null} path The path, or null to hide the link.
- * @returns {void}
- */
-function setLink(link, path) {
-	link.hidden = path === null;
-	if (path !== null) link.setAttribute('href', path);
-}
+import { toTime } from './time.js';
 
 /**
  * The custom element <level-selection>. It is the selection screen of a campaign. Its markup in the page has the

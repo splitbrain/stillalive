@@ -6,6 +6,7 @@ import { campaignPath, navigate, route } from '../router.js';
 import { CampaignId, CAMPAIGN_FOLDERS, LEVELS_PER_CAMPAIGN, MAP_SIZE } from '../stage/constants.js';
 import { campaigns, campaignsReady, loadCampaigns, loadCreditsText } from './campaigns.js';
 import { alertDialog } from './dialog.js';
+import { setAttributes } from './dom.js';
 import {
 	getBestTime,
 	loadBestReplay,
@@ -15,7 +16,16 @@ import {
 	saveProgress,
 	saveSoundSetting,
 } from './storage.js';
-import { setIntermission, setScreen, startPage, toTime } from './tempPage.js';
+import { setScreen, startPage } from './tempPage.js';
+import { toTime } from './time.js';
+
+/** @type {string} The narrator text of the level selection. */
+const SELECTION_TEXT =
+	"Welcome to the campaign mode of StillAliveJS. Here you can select a map on the right and click 'Play' to play it. Good Luck !";
+
+/** @type {string} The narrator text of the editor and of its save and load screen. */
+const EDITOR_TEXT =
+	'Welcome to the StillAliveJS Level Editor ! Here is a place where you can easily create your own maps. You can use your mouse to select tiles or object and draw them on the screen. Then, try out your map. Have Fun !';
 
 /**
  * The custom element <game-app>. It wraps the screens of the page and the stage.
@@ -31,9 +41,13 @@ import { setIntermission, setScreen, startPage, toTime } from './tempPage.js';
  *
  * The element sets the campaign and the level of the route as attributes of the level selection, and the campaign, the
  * level and the play mode as attributes of the best times panel. The panel gets a campaign only on the select and the
- * play routes. A replay-import event from a page element plays the replay in its detail.
+ * play routes. It sets the campaign, the level, the play mode and the exit path of the play route as attributes of the
+ * play screen, and the fixed text of the selection and the editor screens as the text attribute of the narrator text.
+ * A replay-import event from a page element plays the replay in its detail.
  *
- * At the end of a level, the element stores the best time, the replay and the progress, and chooses the next route.
+ * At the end of a level, the element stores the best time, the replay and the progress, and chooses the next route or
+ * shows the intermission panel of the play screen. A replay-watch event from the panel plays the replay of the level
+ * that ended. When the window loses the focus during a level, the element pauses the stage.
  *
  * The element starts the loading of the campaigns and the credits, and sets the sound of the stage from the storage.
  * It stores each change of the sound after the game starts, from the buttons of the page or from the key of the stage.
@@ -55,6 +69,9 @@ export class GameApp extends HTMLElement {
 	/** @type {object|null} The replay that watch() gives to the next replay route, or null. */
 	#pendingReplay = null;
 
+	/** @type {object|null} The replay of the level that ended, for the Watch Replay button of the intermission, or null. */
+	#intermissionReplay = null;
+
 	/** @type {Array<function(): void>} The functions that remove the subscriptions. */
 	#unsubscribe = [];
 
@@ -64,7 +81,7 @@ export class GameApp extends HTMLElement {
 	/**
 	 * Subscribe to the route, to the loading and to the sound. On the first connect, set the sound from the storage,
 	 * start the loading, start the temporary page module and handle the clicks of the loading screen, the events of the
-	 * stage and the import of a replay.
+	 * stage, the import of a replay and the Watch Replay button of the intermission.
 	 *
 	 * @returns {void}
 	 */
@@ -79,7 +96,9 @@ export class GameApp extends HTMLElement {
 			this.querySelector('loading-screen').addEventListener('click', () => this.#start());
 			this.stage.addEventListener('finished', (event) => this.#onFinished(event.detail));
 			this.stage.addEventListener('brokenreplay', () => this.#onBrokenReplay());
+			this.stage.addEventListener('focuslost', () => this.stage.pause());
 			this.addEventListener('replay-import', (event) => this.watch(event.detail.replay));
+			this.addEventListener('replay-watch', () => this.watch(this.#intermissionReplay));
 		}
 		this.#unsubscribe = [
 			route.subscribe(() => this.#applyRoute()),
@@ -240,28 +259,26 @@ export class GameApp extends HTMLElement {
 			this.stage.stop();
 		}
 		this.#showScreen();
-		this.#setAttributes(this.querySelector('level-selection'), { campaign: r.campaign, level: r.level });
+		setAttributes(this.querySelector('level-selection'), { campaign: r.campaign, level: r.level });
 		const panel = r.name == 'select' || r.name == 'play';
-		this.#setAttributes(this.querySelector('best-times'), {
+		setAttributes(this.querySelector('best-times'), {
 			campaign: panel ? r.campaign : null,
 			level: r.level,
 			mode: r.name == 'play' ? r.mode : null,
 		});
-		setScreen(r.name, { campaign: index, level: r.level, mode: r.mode, exit: r.level > 0 ? this.#exitPath(r) : '#/' });
-	}
-
-	/**
-	 * Set the attributes of a screen or a part of it. A null value removes the attribute.
-	 *
-	 * @param {HTMLElement} element The element.
-	 * @param {Object<string, string|number|null>} attributes The values of the attributes by name.
-	 * @returns {void}
-	 */
-	#setAttributes(element, attributes) {
-		for (const [name, value] of Object.entries(attributes)) {
-			if (value === null) element.removeAttribute(name);
-			else element.setAttribute(name, String(value));
-		}
+		const play = r.name == 'play';
+		setAttributes(this.querySelector('play-screen'), {
+			campaign: play ? r.campaign : null,
+			level: play ? r.level : null,
+			mode: play ? r.mode : null,
+			exit: play ? this.#exitPath(r) : null,
+			intermission: null,
+		});
+		let text = null;
+		if (r.name == 'select') text = SELECTION_TEXT;
+		else if (r.name.startsWith('editor')) text = EDITOR_TEXT;
+		setAttributes(this.querySelector('narrator-text'), { text });
+		setScreen(r.name, r.mode);
 	}
 
 	/**
@@ -330,7 +347,8 @@ export class GameApp extends HTMLElement {
 	/**
 	 * Handle the end of a level: the best time, the progress and the next route. In a campaign without intermission
 	 * screens, the next level starts at once. The last level always shows the intermission screen, with the end text of
-	 * the campaign if it has one. After the last story level, the credits show the first time.
+	 * the campaign if it has one. After the last story level, the credits show the first time. Else the intermission
+	 * panel of the play screen shows the time, the message and the links of the choice.
 	 *
 	 * @param {{time: number, replay: object}} detail The detail of the finished event of the stage.
 	 * @returns {void}
@@ -356,13 +374,15 @@ export class GameApp extends HTMLElement {
 		} else if (credits) {
 			navigate('#/credits', true);
 		} else {
-			setIntermission({
+			this.#intermissionReplay = campaign.records ? replay : null;
+			setAttributes(this.querySelector('intermission-panel'), {
 				time,
 				message,
-				replay: campaign.records ? replay : null,
+				replay: campaign.records ? '' : null,
 				next: !isLastLevel && this.#isOpen(index, r.level + 1) ? campaignPath(r.campaign, r.level + 1, 'play') : null,
 				restart: this.#isOpen(index, r.level) ? campaignPath(r.campaign, r.level, 'play') : null,
 			});
+			this.querySelector('play-screen').setAttribute('intermission', '');
 		}
 	}
 

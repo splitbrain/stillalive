@@ -229,7 +229,7 @@ test.describe('units', () => {
 			36001: '10:00.017',
 		};
 		for (const [ticks, expected] of Object.entries(cases)) {
-			const { result } = await call(page, '/js/chrome/tempPage.js', 'toTime', Number(ticks));
+			const { result } = await call(page, '/js/chrome/time.js', 'toTime', Number(ticks));
 			expect(result, `${ticks} ticks`).toBe(expected);
 		}
 	});

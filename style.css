@@ -54,14 +54,26 @@ body {
 	background: #073140;
 }
 
-#robot-head {
+/*
+ * The idle animation of the robot sets --head-x, --eye-x and --eye-y to -1, 0 or 1. The head moves 17 pixels to a
+ * side, the eye moves 9 pixels to a side and 10 pixels up or down, in the pixels of the 120 by 96 panel.
+ */
+/* a hidden robot keeps its place in the grid, so the stage does not move in boss levels */
+#robot[hidden] {
+	display: block !important;
+	visibility: hidden;
+}
+
+#robot .head {
 	position: absolute;
 	left: calc(100% * 18 / 120);
 	top: calc(100% * 30 / 96);
 	width: calc(100% * 74 / 120);
+	transform: translateX(calc(var(--head-x, 0) * 100% * 17 / 74));
+	transition: transform 0.5s;
 }
 
-#robot-eye {
+#robot .eye {
 	position: absolute;
 	left: calc(100% * 47 / 120);
 	top: calc(100% * 56 / 96);
@@ -69,6 +81,35 @@ body {
 	aspect-ratio: 1;
 	background-size: 100% 400%;
 	background-repeat: no-repeat;
+	transform: translate(
+		calc((var(--head-x, 0) * 17 + var(--eye-x, 0) * 9) * 100% / 19),
+		calc(var(--eye-y, 0) * 10 * 100% / 19)
+	);
+	transition: transform 0.5s;
+}
+
+/* the eye image has four frames from open to closed */
+#robot .eye.blink {
+	animation: robot-blink 0.2s step-end;
+}
+
+@keyframes robot-blink {
+	0% {
+		background-position-y: 33.333%;
+	}
+	20% {
+		background-position-y: 66.667%;
+	}
+	40% {
+		background-position-y: 100%;
+	}
+	60% {
+		background-position-y: 66.667%;
+	}
+	80%,
+	100% {
+		background-position-y: 33.333%;
+	}
 }
 
 #speech {
@@ -80,14 +121,22 @@ body {
 	min-height: 0;
 }
 
-#narrator {
+#speech p {
 	margin: 0;
 	font-size: 2cqw;
 	line-height: 1.3;
 }
 
-#stats {
+/* the play screen has no box: its parts take their places in the grid of the game */
+play-screen {
+	display: contents;
+}
+
+#hud {
 	grid-area: stats;
+}
+
+#stats {
 	display: flex;
 	flex-direction: column;
 	justify-content: flex-start;
@@ -127,6 +176,12 @@ body {
 #overlay {
 	position: absolute;
 	inset: 0;
+	pointer-events: none;
+}
+
+#play-menus {
+	grid-area: stage;
+	position: relative;
 	pointer-events: none;
 }
 
@@ -271,6 +326,14 @@ body {
 	top: calc(100% * 340 / 384);
 }
 
+#pause-menu {
+	background: url('menu/pauseBG.png') no-repeat center / 100% 100%;
+}
+
+#intermission {
+	background: url('bg/highscore.png') no-repeat center / 100% 100%;
+}
+
 #intermission p {
 	position: absolute;
 	left: calc(100% * 35 / 512);
@@ -279,11 +342,11 @@ body {
 	font-size: 2cqw;
 }
 
-#intermission-time {
+#intermission .time {
 	top: calc(100% * 250 / 384);
 }
 
-#intermission-message {
+#intermission .message {
 	top: calc(100% * 268 / 384);
 }
 

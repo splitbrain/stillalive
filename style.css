@@ -127,8 +127,9 @@ body {
 	line-height: 1.3;
 }
 
-/* the play screen has no box: its parts take their places in the grid of the game */
-play-screen {
+/* the play screen and the editor screen have no box: their parts take their places in the grid of the game */
+play-screen,
+editor-screen {
 	display: contents;
 }
 
@@ -179,7 +180,8 @@ play-screen {
 	pointer-events: none;
 }
 
-#play-menus {
+#play-menus,
+#editor-menus {
 	grid-area: stage;
 	position: relative;
 	pointer-events: none;
@@ -539,6 +541,7 @@ play-screen {
 }
 
 #slot-list {
+	grid-area: side;
 	display: grid;
 	grid-template-columns: repeat(2, 1fr);
 	gap: 0.5cqw;

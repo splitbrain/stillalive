@@ -4,6 +4,14 @@
  */
 
 import { CreditsScreen } from './chrome/CreditsScreen.js';
+import {
+	EditorButtons,
+	EditorFileButtons,
+	EditorScreen,
+	ObjectPalette,
+	SlotList,
+	TilePalette,
+} from './chrome/EditorScreen.js';
 import { GameApp } from './chrome/GameApp.js';
 import { BestTimes, LevelList, LevelSelection } from './chrome/LevelSelection.js';
 import { LoadingScreen } from './chrome/LoadingScreen.js';
@@ -33,4 +41,10 @@ customElements.define('replay-keys', ReplayKeys);
 customElements.define('pause-menu', PauseMenu);
 customElements.define('intermission-panel', IntermissionPanel);
 customElements.define('play-screen', PlayScreen);
+customElements.define('tile-palette', TilePalette);
+customElements.define('object-palette', ObjectPalette);
+customElements.define('editor-buttons', EditorButtons);
+customElements.define('slot-list', SlotList);
+customElements.define('editor-file-buttons', EditorFileButtons);
+customElements.define('editor-screen', EditorScreen);
 customElements.define('game-app', GameApp);

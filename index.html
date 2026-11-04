@@ -15,38 +15,6 @@
 	<body>
 		<game-app id="game" data-screen="loading">
 			<narrator-text id="speech" data-screens="select play editor editor-file" hidden><p></p></narrator-text>
-			<div id="editor-tiles" data-screens="editor" hidden></div>
-			<div id="editor-objects" data-screens="editor" hidden>
-				<button data-sprite="103" title="Cake"><span class="sprite cake"></span></button>
-				<button data-sprite="102" title="Crate"><span class="sprite crate"></span></button>
-				<button data-sprite="100" title="Turret, facing left"><span class="sprite turret-left"></span></button>
-				<button data-sprite="101" title="Turret, facing right"><span class="sprite turret-right"></span></button>
-				<button data-sprite="105" title="Platform, moving right" class="wide">
-					<span class="sprite platform"></span><span class="arrow">&#9654;</span>
-				</button>
-				<button data-sprite="106" title="Platform, moving left" class="wide">
-					<span class="sprite platform"></span><span class="arrow">&#9664;</span>
-				</button>
-				<button data-sprite="104" title="Player start">
-					<span class="sprite player"><span class="head"></span></span>
-				</button>
-				<button data-sprite="107" title="Gravitational pipe: carries the player and objects to the right">
-					<span class="sprite gravpipe-right"></span>
-				</button>
-				<button data-sprite="108" title="Gravitational pipe: carries the player and objects to the left">
-					<span class="sprite gravpipe-left"></span>
-				</button>
-				<button data-sprite="109" title="Gravitational pipe: carries the player and objects up" class="wide">
-					<span class="sprite gravpipe-up"></span>
-				</button>
-				<button data-sprite="110" title="Gravitational pipe: carries the player and objects down" class="wide">
-					<span class="sprite gravpipe-down"></span>
-				</button>
-				<div id="editor-bg">
-					<button data-bg="-1" title="Previous background">&#9664;</button>
-					<button data-bg="1" title="Next background">&#9654;</button>
-				</div>
-			</div>
 			<div id="stage">
 				<game-stage id="game-stage" data-screens="select play editor editor-file" hidden></game-stage>
 				<div id="overlay">
@@ -82,24 +50,6 @@
 						<a class="big" id="main-tutorial" href="#/campaign/tutorial/1/play">Tutorial</a>
 						<button id="sound-button" title="Click here or press M to turn the sound on and off.">SFX</button>
 					</main-menu>
-					<div id="editor-menu" class="menu" data-screens="editor" hidden>
-						<div class="buttons">
-							<a class="small" id="editor-exit" href="#/">Exit</a>
-							<button class="small" id="editor-clear">Clear</button>
-							<button class="small" id="editor-try">Try Map</button>
-							<button class="small" id="editor-help">Help</button>
-							<a class="small" id="editor-load" href="#/editor/load">Load</a>
-							<a class="small" id="editor-save" href="#/editor/save">Save</a>
-						</div>
-					</div>
-					<div id="editor-file" class="menu" data-screens="editor-file" hidden>
-						<div class="buttons">
-							<a class="small" id="editor-file-exit" href="#/editor">Exit</a>
-							<button class="small" id="editor-export">Export</button>
-							<button class="small" id="editor-import">Import</button>
-							<button class="small" id="editor-accept">Save</button>
-						</div>
-					</div>
 				</div>
 			</div>
 			<play-screen id="play-screen" data-screens="play" hidden>
@@ -151,7 +101,68 @@
 					</intermission-panel>
 				</div>
 			</play-screen>
-			<div id="side" data-screens="select play editor-file" hidden>
+			<editor-screen id="editor-screen" data-screens="editor editor-file" hidden>
+				<tile-palette id="editor-tiles">
+					<template
+						><button><img alt="" /></button
+					></template>
+				</tile-palette>
+				<object-palette id="editor-objects">
+					<button data-sprite="103" title="Cake"><span class="sprite cake"></span></button>
+					<button data-sprite="102" title="Crate"><span class="sprite crate"></span></button>
+					<button data-sprite="100" title="Turret, facing left"><span class="sprite turret-left"></span></button>
+					<button data-sprite="101" title="Turret, facing right"><span class="sprite turret-right"></span></button>
+					<button data-sprite="105" title="Platform, moving right" class="wide">
+						<span class="sprite platform"></span><span class="arrow">&#9654;</span>
+					</button>
+					<button data-sprite="106" title="Platform, moving left" class="wide">
+						<span class="sprite platform"></span><span class="arrow">&#9664;</span>
+					</button>
+					<button data-sprite="104" title="Player start">
+						<span class="sprite player"><span class="head"></span></span>
+					</button>
+					<button data-sprite="107" title="Gravitational pipe: carries the player and objects to the right">
+						<span class="sprite gravpipe-right"></span>
+					</button>
+					<button data-sprite="108" title="Gravitational pipe: carries the player and objects to the left">
+						<span class="sprite gravpipe-left"></span>
+					</button>
+					<button data-sprite="109" title="Gravitational pipe: carries the player and objects up" class="wide">
+						<span class="sprite gravpipe-up"></span>
+					</button>
+					<button data-sprite="110" title="Gravitational pipe: carries the player and objects down" class="wide">
+						<span class="sprite gravpipe-down"></span>
+					</button>
+					<div id="editor-bg">
+						<button data-bg="-1" title="Previous background">&#9664;</button>
+						<button data-bg="1" title="Next background">&#9654;</button>
+					</div>
+				</object-palette>
+				<div id="editor-menus">
+					<editor-buttons id="editor-menu" class="menu">
+						<div class="buttons">
+							<a class="small" href="#/">Exit</a>
+							<button class="small" data-event="map-clear">Clear</button>
+							<button class="small" data-event="map-test">Try Map</button>
+							<button class="small" data-event="help-show">Help</button>
+							<a class="small" href="#/editor/load">Load</a>
+							<a class="small" href="#/editor/save">Save</a>
+						</div>
+					</editor-buttons>
+					<editor-file-buttons id="editor-file" class="menu" hidden>
+						<div class="buttons">
+							<a class="small" href="#/editor">Exit</a>
+							<button class="small export" data-event="file-export">Export</button>
+							<button class="small" data-event="file-import">Import</button>
+							<button class="small accept" data-event="file-accept" hidden>Save</button>
+						</div>
+					</editor-file-buttons>
+				</div>
+				<slot-list id="slot-list" hidden>
+					<template><button></button></template>
+				</slot-list>
+			</editor-screen>
+			<div id="side" data-screens="select play" hidden>
 				<level-selection id="level-selection" data-screens="select" hidden>
 					<level-list id="level-list">
 						<template><a></a></template>
@@ -162,7 +173,6 @@
 						<a class="play" hidden>Play</a>
 					</div>
 				</level-selection>
-				<div id="slot-list" data-screens="editor-file" hidden></div>
 				<best-times id="highscores" data-screens="select play" hidden>
 					<p class="title"></p>
 					<p class="time">Time: <span></span></p>

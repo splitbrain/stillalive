@@ -16,7 +16,6 @@ import {
 	saveProgress,
 	saveSoundSetting,
 } from './storage.js';
-import { setScreen, startPage } from './tempPage.js';
 import { toTime } from './time.js';
 
 /** @type {string} The narrator text of the level selection. */
@@ -43,6 +42,7 @@ const EDITOR_TEXT =
  * level and the play mode as attributes of the best times panel. The panel gets a campaign only on the select and the
  * play routes. It sets the campaign, the level, the play mode and the exit path of the play route as attributes of the
  * play screen, and the fixed text of the selection and the editor screens as the text attribute of the narrator text.
+ * It sets the mode attribute of the editor screen: empty on the editor route, save or load on the editor-file route.
  * A replay-import event from a page element plays the replay in its detail.
  *
  * At the end of a level, the element stores the best time, the replay and the progress, and chooses the next route or
@@ -75,13 +75,13 @@ export class GameApp extends HTMLElement {
 	/** @type {Array<function(): void>} The functions that remove the subscriptions. */
 	#unsubscribe = [];
 
-	/** @type {boolean} True after the first connect, which starts the page and adds the event handlers. */
+	/** @type {boolean} True after the first connect, which adds the event handlers. */
 	#setUp = false;
 
 	/**
 	 * Subscribe to the route, to the loading and to the sound. On the first connect, set the sound from the storage,
-	 * start the loading, start the temporary page module and handle the clicks of the loading screen, the events of the
-	 * stage, the import of a replay and the Watch Replay button of the intermission.
+	 * start the loading and handle the clicks of the loading screen, the events of the stage, the import of a replay
+	 * and the Watch Replay button of the intermission.
 	 *
 	 * @returns {void}
 	 */
@@ -92,7 +92,6 @@ export class GameApp extends HTMLElement {
 			this.stage.setSound(loadSoundSetting());
 			loadCampaigns();
 			loadCreditsText();
-			startPage(this);
 			this.querySelector('loading-screen').addEventListener('click', () => this.#start());
 			this.stage.addEventListener('finished', (event) => this.#onFinished(event.detail));
 			this.stage.addEventListener('brokenreplay', () => this.#onBrokenReplay());
@@ -221,7 +220,6 @@ export class GameApp extends HTMLElement {
 	#applyRoute() {
 		if (!this.#started) {
 			this.#showScreen();
-			setScreen('loading');
 			return;
 		}
 		const r = route.get();
@@ -278,7 +276,10 @@ export class GameApp extends HTMLElement {
 		if (r.name == 'select') text = SELECTION_TEXT;
 		else if (r.name.startsWith('editor')) text = EDITOR_TEXT;
 		setAttributes(this.querySelector('narrator-text'), { text });
-		setScreen(r.name, r.mode);
+		let editorMode = null;
+		if (r.name == 'editor') editorMode = '';
+		else if (r.name == 'editor-file') editorMode = r.mode;
+		setAttributes(this.querySelector('editor-screen'), { mode: editorMode });
 	}
 
 	/**

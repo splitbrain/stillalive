@@ -2,18 +2,18 @@
  * Start code of the game and the test hook.
  */
 
-import { allImagesLoaded, whenImagesDone } from './assets.js';
-import { allSoundsLoaded, loadSfx } from './audio.js';
-import { ctx, watchCanvasSize } from './canvas.js';
-import { Menu } from './constants.js';
-import { openExit } from './entities/Cake.js';
-import { Player } from './entities/Player.js';
-import { startLevel, tick } from './game.js';
-import { loadGfx, loadSplashImages } from './images.js';
-import { setupInput } from './input.js';
-import { unclick } from './inputState.js';
-import { loadKeyLabels } from './keys.js';
-import { setupMenuPage } from './menuPage.js';
+import { allImagesLoaded, whenImagesDone } from './stage/assets.js';
+import { allSoundsLoaded, loadSfx } from './stage/audio.js';
+import { ctx, watchCanvasSize } from './stage/canvas.js';
+import { Menu } from './stage/constants.js';
+import { openExit } from './stage/entities/Cake.js';
+import { Player } from './stage/entities/Player.js';
+import { startLevel, tick } from './stage/game.js';
+import { loadGfx, loadSplashImages } from './stage/images.js';
+import { setupInput } from './stage/input.js';
+import { unclick } from './stage/inputState.js';
+import { loadKeyLabels } from './stage/keys.js';
+import { setupMenuPage } from './stage/menuPage.js';
 import {
 	campaigns,
 	levelsLoaded,
@@ -22,11 +22,11 @@ import {
 	loadCreditsText,
 	loadLevel,
 	loadPreviewMap,
-} from './level.js';
-import { startLoop } from './loop.js';
-import { render } from './render/frame.js';
-import { decodeReplay, encodeReplay } from './replay.js';
-import { game, input, ui } from './state.js';
+} from './stage/level.js';
+import { startLoop } from './stage/loop.js';
+import { render } from './stage/render/frame.js';
+import { decodeReplay, encodeReplay } from './stage/replay.js';
+import { game, input, ui } from './stage/state.js';
 import { loadProgress } from './storage.js';
 
 /**

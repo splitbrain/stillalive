@@ -7,7 +7,7 @@
  */
 
 import { readFileSync } from 'node:fs';
-import { CAMPAIGN_FOLDERS } from '../js/constants.js';
+import { CAMPAIGN_FOLDERS } from '../js/stage/constants.js';
 
 /**
  * The campaigns with their index in the campaigns array of the game and their number of levels from the campaign
@@ -109,7 +109,7 @@ export async function runLevel(
 ) {
 	return page.evaluate(
 		async ({ campaign, level, ticks, seed, inputs, replay: replayData, skipBossIntro, interval }) => {
-			const { Menu } = await import('/js/constants.js');
+			const { Menu } = await import('/js/stage/constants.js');
 			const t = window.__test;
 			const { game, ui, input } = t;
 			let state = seed >>> 0;
@@ -207,11 +207,11 @@ export async function runPortalScene(page, scene) {
 	return page.evaluate(async (scene) => {
 		const t = window.__test;
 		const { game, input } = t;
-		const { launchPortal } = await import('/js/portals.js');
-		const { Crate } = await import('/js/entities/Crate.js');
-		const { Turret } = await import('/js/entities/Turret.js');
-		const { Plasma } = await import('/js/entities/Plasma.js');
-		const { MAP_HEIGHT, MAP_WIDTH } = await import('/js/constants.js');
+		const { launchPortal } = await import('/js/stage/portals.js');
+		const { Crate } = await import('/js/stage/entities/Crate.js');
+		const { Turret } = await import('/js/stage/entities/Turret.js');
+		const { Plasma } = await import('/js/stage/entities/Plasma.js');
+		const { MAP_HEIGHT, MAP_WIDTH } = await import('/js/stage/constants.js');
 		let state = scene.seed >>> 0;
 		Math.random = () => {
 			state = (state + 0x6d2b79f5) >>> 0;

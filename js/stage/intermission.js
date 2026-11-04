@@ -7,7 +7,7 @@ import { unclick } from './inputState.js';
 import { campaigns } from './level.js';
 import { atExit } from './physics.js';
 import { game, ui } from './state.js';
-import { maxLevel } from './storage.js';
+import { maxLevel } from '../storage.js';
 
 /**
  * Advance the transitions between the levels: the fade of the intermission screen at the level end and the fade in

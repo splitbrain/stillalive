@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { hashString, openGame, runPortalScene } from './adapter.js';
-import { KEY_RIGHT } from '../js/constants.js';
+import { KEY_RIGHT } from '../js/stage/constants.js';
 
 /** @type {number[]} The shot from the middle of the room to the floor, below the x position 208. */
 const FLOOR = [200, 200, 208, 380];

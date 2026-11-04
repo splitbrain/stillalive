@@ -3,11 +3,11 @@
  */
 
 import { CAMPAIGN_FINISHED, CampaignId, Menu } from './constants.js';
-import { alertDialog } from './dialog.js';
+import { alertDialog } from '../dialog.js';
 import { unclick } from './inputState.js';
 import { loadPreviewMap } from './level.js';
 import { game, ui } from './state.js';
-import { maxLevel } from './storage.js';
+import { maxLevel } from '../storage.js';
 
 /**
  * Check if the level selection has the button that switches between the normal and the hard campaign.

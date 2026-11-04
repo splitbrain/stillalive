@@ -7,7 +7,7 @@
  * decodes the sounds.
  */
 
-import { loadSoundSetting, saveSoundSetting } from './storage.js';
+import { loadSoundSetting, saveSoundSetting } from '../storage.js';
 
 /** @type {OfflineAudioContext} The context that decodes the sounds before the audio context exists. */
 const decoder = new OfflineAudioContext(1, 1, 44100);

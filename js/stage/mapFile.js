@@ -33,7 +33,7 @@
  */
 
 import { MAP_SIZE, NUM_TILES } from './constants.js';
-import { downloadJson, pickJsonFile } from './files.js';
+import { downloadJson, pickJsonFile } from '../files.js';
 import { bg } from './images.js';
 import { Tile, isObjectTile } from './tiles.js';
 

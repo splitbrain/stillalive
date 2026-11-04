@@ -6,7 +6,7 @@
  * private mode. The game then runs without stored data.
  */
 
-import { CAMPAIGN_FOLDERS } from './constants.js';
+import { CAMPAIGN_FOLDERS } from './stage/constants.js';
 
 /** @type {string} The localStorage key of the highest unlocked level of each campaign. */
 const PROGRESS_KEY = 'sajs_progress';

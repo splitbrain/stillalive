@@ -11,17 +11,20 @@ import globals from 'globals';
 const LAYERS = [
 	{
 		name: 'base',
-		files: ['./js/{assets,audio,canvas,constants,dialog,files,images,keys,loop,state,storage,tiles,utils}.js'],
+		files: [
+			'./js/{dialog,files,storage}.js',
+			'./js/stage/{assets,audio,canvas,constants,images,keys,loop,state,tiles,utils}.js',
+		],
 	},
 	{
 		name: 'logic',
 		files: [
-			'./js/entities/*.js',
-			'./js/{boss,events,inputState,intermission,level,mapFile,navigation,physics,portals,replay}.js',
+			'./js/stage/entities/*.js',
+			'./js/stage/{boss,events,inputState,intermission,level,mapFile,navigation,physics,portals,replay}.js',
 		],
 	},
-	{ name: 'drawing', files: ['./js/render/*.js'] },
-	{ name: 'flow', files: ['./js/{editor,game,input,main,menus,panel}.js'] },
+	{ name: 'drawing', files: ['./js/stage/render/*.js'] },
+	{ name: 'flow', files: ['./js/[m]ain.js', './js/stage/{editor,game,input,menus,panel}.js'] },
 ];
 
 /** @type {object[]} The zones of import-x/no-restricted-paths: each layer must not import from a higher layer. */

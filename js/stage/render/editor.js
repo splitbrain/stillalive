@@ -22,7 +22,7 @@ import {
 import { mouseOnPlayfield } from '../inputState.js';
 import { isTileHere } from '../level.js';
 import { game, input, ui } from '../state.js';
-import { getEditorMap } from '../storage.js';
+import { getEditorMap } from '../../storage.js';
 import { Tile } from '../tiles.js';
 import { getAngle } from '../utils.js';
 import {

@@ -12,7 +12,7 @@ import {
 	Menu,
 	MouseButton,
 } from './constants.js';
-import { alertDialog } from './dialog.js';
+import { alertDialog } from '../dialog.js';
 import { animateTiles } from './entities/AnimatedTile.js';
 import { openExit, updateCakes } from './entities/Cake.js';
 import { updateCrates } from './entities/Crate.js';
@@ -30,7 +30,7 @@ import { exportEditorMap, importEditorMap } from './mapFile.js';
 import { atExit } from './physics.js';
 import { isInPortal } from './portals.js';
 import { game, input, ui } from './state.js';
-import { getEditorMap, saveEditorMap } from './storage.js';
+import { getEditorMap, saveEditorMap } from '../storage.js';
 import { Tile, isGravPipeTile } from './tiles.js';
 
 /** @type {number[][]} The map after each change, for undo and redo. */

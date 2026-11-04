@@ -7,13 +7,13 @@
  */
 
 import { LEVELS_PER_CAMPAIGN, Menu } from './constants.js';
-import { alertDialog } from './dialog.js';
-import { pickJsonFile } from './files.js';
+import { alertDialog } from '../dialog.js';
+import { pickJsonFile } from '../files.js';
 import { startLevel } from './game.js';
 import { campaigns } from './level.js';
 import { decodeReplay, downloadReplay } from './replay.js';
 import { game, ui } from './state.js';
-import { getBestTime, getCampaignTotal, loadBestReplay } from './storage.js';
+import { getBestTime, getCampaignTotal, loadBestReplay } from '../storage.js';
 import { toTime } from './utils.js';
 
 /** @type {number} Number of ticks between two updates of the current time. */

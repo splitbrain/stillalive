@@ -22,7 +22,7 @@ import { keyLabels } from '../keys.js';
 import { campaigns } from '../level.js';
 import { hasModeButton } from '../navigation.js';
 import { game, input, ui } from '../state.js';
-import { getEditorMap, maxLevel } from '../storage.js';
+import { getEditorMap, maxLevel } from '../../storage.js';
 import { toTime } from '../utils.js';
 
 /** @type {string} The narrator text of the level selection. */

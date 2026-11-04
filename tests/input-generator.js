@@ -15,7 +15,7 @@ import {
 	MOUSE_RIGHT,
 	PLAYFIELD_HEIGHT,
 	PLAYFIELD_WIDTH,
-} from '../js/constants.js';
+} from '../js/stage/constants.js';
 
 /**
  * Create a pseudo-random generator with the mulberry32 algorithm.

@@ -34,7 +34,7 @@ import { atExit } from './physics.js';
 import { isInPortal } from './portals.js';
 import { encodeReplay } from './replay.js';
 import { game, input, ui } from './state.js';
-import { getBestTime, maxLevel, saveBestTime, saveProgress } from './storage.js';
+import { getBestTime, maxLevel, saveBestTime, saveProgress } from '../storage.js';
 import { random, toTime } from './utils.js';
 
 /**

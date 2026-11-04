@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { MAP_SIZE } from '../js/constants.js';
+import { MAP_SIZE } from '../js/stage/constants.js';
 import { openGame } from './adapter.js';
 
 /**
@@ -8,7 +8,7 @@ import { openGame } from './adapter.js';
  * The page imports the module, so the function uses the same module instance and state as the game.
  *
  * @param {import('@playwright/test').Page} page The Playwright page.
- * @param {string} module The path of the module, e.g. "/js/replay.js".
+ * @param {string} module The path of the module, e.g. "/js/stage/replay.js".
  * @param {string} name The name of the exported function.
  * @param {...*} args The arguments for the function. They must be serializable.
  * @returns {Promise<{result?: *, error?: string}>} The return value or the message of the thrown error.
@@ -72,7 +72,7 @@ test.describe('units', () => {
 	});
 
 	test('decodeReplay() accepts a valid replay', async () => {
-		const { result, error } = await call(page, '/js/replay.js', 'decodeReplay', validReplay());
+		const { result, error } = await call(page, '/js/stage/replay.js', 'decodeReplay', validReplay());
 		expect(error).toBeUndefined();
 		expect(result.inputs).toEqual([1, 1, 4, 4, 4]);
 		expect(result.mouseX).toEqual([10, 10, 30, 30, 30]);
@@ -84,7 +84,7 @@ test.describe('units', () => {
 	test('decodeReplay() rejects data that is not a replay', async () => {
 		const cases = [null, 'text', { ...validReplay(), format: 1 }, { ...validReplay(), campaign: 1 }];
 		for (const data of cases) {
-			const { error } = await call(page, '/js/replay.js', 'decodeReplay', data);
+			const { error } = await call(page, '/js/stage/replay.js', 'decodeReplay', data);
 			expect(error, JSON.stringify(data)).toBe('This is not a StillAliveJS replay file.');
 		}
 	});
@@ -100,7 +100,7 @@ test.describe('units', () => {
 			'no boss speech': { bossSpeech: undefined },
 		};
 		for (const [name, change] of Object.entries(cases)) {
-			const { error } = await call(page, '/js/replay.js', 'decodeReplay', { ...validReplay(), ...change });
+			const { error } = await call(page, '/js/stage/replay.js', 'decodeReplay', { ...validReplay(), ...change });
 			expect(error, name).toBe('The replay file is damaged.');
 		}
 	});
@@ -109,7 +109,7 @@ test.describe('units', () => {
 		const data = validMap();
 		data.tiles[0] = 22;
 		data.tiles[1] = 110;
-		const { result, error } = await call(page, '/js/mapFile.js', 'parseMap', data);
+		const { result, error } = await call(page, '/js/stage/mapFile.js', 'parseMap', data);
 		expect(error).toBeUndefined();
 		expect(result).toEqual({
 			tiles: data.tiles,
@@ -138,7 +138,7 @@ test.describe('units', () => {
 		];
 		const labels = [{ x: 10, y: 20, text: 'Here' }];
 		const data = { ...validMap(), abilities: { portals: false }, events, labels };
-		const { result, error } = await call(page, '/js/mapFile.js', 'parseMap', data);
+		const { result, error } = await call(page, '/js/stage/mapFile.js', 'parseMap', data);
 		expect(error).toBeUndefined();
 		expect(result.abilities).toEqual({ jump: true, portals: false });
 		expect(result.events).toEqual(events);
@@ -148,19 +148,19 @@ test.describe('units', () => {
 	test('parseMap() puts the text before the events as a start event', async () => {
 		const events = [{ on: 'bossArrived', text: 'Here I am' }];
 		const data = { ...validMap(), text: 'Hello', events };
-		const { result, error } = await call(page, '/js/mapFile.js', 'parseMap', data);
+		const { result, error } = await call(page, '/js/stage/mapFile.js', 'parseMap', data);
 		expect(error).toBeUndefined();
 		expect(result.events).toEqual([{ on: 'start', text: 'Hello' }, ...events]);
 	});
 
 	test('parseMap() reads the boss and accepts the tube only in a boss level', async () => {
 		const data = validMap();
-		expect((await call(page, '/js/mapFile.js', 'parseMap', data)).result.boss).toBe(0);
+		expect((await call(page, '/js/stage/mapFile.js', 'parseMap', data)).result.boss).toBe(0);
 		data.tiles[1] = 111;
-		const boss = await call(page, '/js/mapFile.js', 'parseMap', { ...data, boss: 4 });
+		const boss = await call(page, '/js/stage/mapFile.js', 'parseMap', { ...data, boss: 4 });
 		expect(boss.error).toBeUndefined();
 		expect(boss.result.boss).toBe(4);
-		const noBoss = await call(page, '/js/mapFile.js', 'parseMap', data);
+		const noBoss = await call(page, '/js/stage/mapFile.js', 'parseMap', data);
 		expect(noBoss.error).toBe('This is not a valid StillAliveJS map file.');
 	});
 
@@ -212,7 +212,7 @@ test.describe('units', () => {
 			'label position as text': { ...validMap(), labels: [{ x: '1', y: 2, text: 'Here' }] },
 		};
 		for (const [name, data] of Object.entries(cases)) {
-			const { error } = await call(page, '/js/mapFile.js', 'parseMap', data);
+			const { error } = await call(page, '/js/stage/mapFile.js', 'parseMap', data);
 			expect(error, name).toBe('This is not a valid StillAliveJS map file.');
 		}
 	});
@@ -229,7 +229,7 @@ test.describe('units', () => {
 			36001: '10:00.017',
 		};
 		for (const [ticks, expected] of Object.entries(cases)) {
-			const { result } = await call(page, '/js/utils.js', 'toTime', Number(ticks));
+			const { result } = await call(page, '/js/stage/utils.js', 'toTime', Number(ticks));
 			expect(result, `${ticks} ticks`).toBe(expected);
 		}
 	});
@@ -237,8 +237,8 @@ test.describe('units', () => {
 	test('a pipe field between two facing portals ends', async () => {
 		test.setTimeout(10000);
 		const fields = await page.evaluate(async () => {
-			const { CampaignId, Direction, MAP_SIZE, MAP_WIDTH, Menu } = await import('/js/constants.js');
-			const { Tile } = await import('/js/tiles.js');
+			const { CampaignId, Direction, MAP_SIZE, MAP_WIDTH, Menu } = await import('/js/stage/constants.js');
+			const { Tile } = await import('/js/stage/tiles.js');
 			const t = window.__test;
 			t.ui.campaign = CampaignId.STORY;
 			t.ui.currentMenu = Menu.PLAY;

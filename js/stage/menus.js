@@ -24,7 +24,7 @@ import { exitFunc, hasModeButton } from './navigation.js';
 import { mainMenuPlayers } from './render/menus.js';
 import { resumeReplay } from './replay.js';
 import { game, input, ui } from './state.js';
-import { maxLevel } from './storage.js';
+import { maxLevel } from '../storage.js';
 
 /**
  * Take the click on a button of the pause menu.

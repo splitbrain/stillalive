@@ -14,7 +14,7 @@
  * - bossSpeech: the length of the speech after the boss died, in ticks, or -1
  */
 
-import { downloadJson } from './files.js';
+import { downloadJson } from '../files.js';
 import { restoreInput } from './inputState.js';
 import { game, input } from './state.js';
 

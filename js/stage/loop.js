@@ -6,7 +6,7 @@
  * once. The game does not run while a dialog is open.
  */
 
-import { isDialogOpen } from './dialog.js';
+import { isDialogOpen } from '../dialog.js';
 
 /** @type {number} The length of a tick in milliseconds. */
 const TICK_LENGTH = 1000 / 60;

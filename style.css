@@ -6,7 +6,6 @@
 /* the custom elements of the page take the full width, so that a click on their area reaches them */
 game-app,
 game-stage,
-level-selection,
 play-screen,
 editor-screen {
 	display: block;
@@ -104,11 +103,6 @@ intermission-panel {
 	background: url('bg/highscore.png') no-repeat center / 100% 100%;
 }
 
-/* the panel has content only in a campaign with records */
-best-times:not(.open) {
-	display: none;
-}
-
 /* the key caps of a replay show the pressed keys */
 replay-keys :is(.key, .mouse) {
 	display: inline-block;
@@ -127,11 +121,6 @@ replay-keys .mouse {
 
 replay-keys .pressed {
 	background-position-y: 100%;
-}
-
-/* the level links come from a template without white space between them */
-level-list a {
-	margin-right: 1em;
 }
 
 /* the selected level, slot, tile or object */

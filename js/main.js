@@ -3,6 +3,7 @@
  * the chrome elements find it ready for use when they connect.
  */
 
+import { BestTimes } from './chrome/elements/BestTimes.js';
 import { CreditsScreen } from './chrome/elements/CreditsScreen.js';
 import {
 	EditorButtons,
@@ -13,7 +14,8 @@ import {
 	TilePalette,
 } from './chrome/EditorScreen.js';
 import { GameApp } from './chrome/GameApp.js';
-import { BestTimes, LevelList, LevelSelection } from './chrome/LevelSelection.js';
+import { LevelList } from './chrome/elements/LevelList.js';
+import { LevelSelection } from './chrome/elements/LevelSelection.js';
 import { LoadingScreen } from './chrome/elements/LoadingScreen.js';
 import { MainMenu } from './chrome/elements/MainMenu.js';
 import {

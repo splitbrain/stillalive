@@ -1,0 +1,20 @@
+<template>
+	<p class="title"></p>
+	<p class="time">Time: <span></span></p>
+	<p class="best">Best time: <span></span></p>
+	<p class="watch"><a>Watch replay</a></p>
+	<p class="export"><button>Export replay</button></p>
+	<p class="import"><button>Import replay</button></p>
+	<p>Campaign total: <span class="total-time"></span><br /><span class="total-levels"></span></p>
+</template>
+
+<style>
+	best-times {
+		display: block;
+	}
+
+	/* the panel has content only in a campaign with records */
+	best-times:not(.open) {
+		display: none;
+	}
+</style>

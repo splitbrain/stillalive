@@ -209,4 +209,23 @@ test.describe('chrome', () => {
 		});
 		expect(counts).toEqual({ before: 0, connected: 6, reconnected: 6, toggled: true });
 	});
+
+	test('renders the attributes that are set before the first connect', async ({ page }) => {
+		await startGame(page);
+		// an attribute change before the build must not render, which would throw in the browser
+		const errors = [];
+		page.on('pageerror', (error) => errors.push(error.message));
+		const result = await page.evaluate(() => {
+			const panel = document.createElement('best-times');
+			panel.setAttribute('campaign', 'normal');
+			panel.setAttribute('level', '1');
+			document.body.append(panel);
+			const open = panel.classList.contains('open');
+			const title = panel.querySelector('.title')?.textContent;
+			panel.remove();
+			return { open, title };
+		});
+		expect(result).toEqual({ open: true, title: 'Level 1' });
+		expect(errors).toEqual([]);
+	});
 });

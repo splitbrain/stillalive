@@ -122,25 +122,8 @@
 					<template><button></button></template>
 				</slot-list>
 			</editor-screen>
-			<level-selection data-screens="select" hidden>
-				<level-list>
-					<template><a></a></template>
-				</level-list>
-				<div>
-					<a class="exit" href="#/">Exit</a>
-					<a class="mode" hidden>Hard Mode</a>
-					<a class="play" hidden>Play</a>
-				</div>
-			</level-selection>
-			<best-times data-screens="select play" hidden>
-				<p class="title"></p>
-				<p class="time">Time: <span></span></p>
-				<p class="best">Best time: <span></span></p>
-				<p class="watch"><a>Watch replay</a></p>
-				<p class="export"><button>Export replay</button></p>
-				<p class="import"><button>Import replay</button></p>
-				<p>Campaign total: <span class="total-time"></span><br /><span class="total-levels"></span></p>
-			</best-times>
+			<level-selection data-screens="select" hidden></level-selection>
+			<best-times data-screens="select play" hidden></best-times>
 			<footer>
 				Copyright (c) 2010 Christophe<br />
 				Source code licensed under the

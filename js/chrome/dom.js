@@ -1,5 +1,5 @@
 /**
- * Helpers for the elements of the page that set attributes and links.
+ * Helpers for the elements of the page that set attributes and links and dispatch events.
  */
 
 /**
@@ -26,4 +26,16 @@ export function setAttributes(element, attributes) {
 export function setLink(link, path) {
 	link.hidden = path === null;
 	if (path !== null) link.setAttribute('href', path);
+}
+
+/**
+ * Dispatch a bubbling event from an element.
+ *
+ * @param {HTMLElement} element The element.
+ * @param {string} type The event type.
+ * @param {object} [detail] The detail of the event.
+ * @returns {void}
+ */
+export function dispatch(element, type, detail = {}) {
+	element.dispatchEvent(new CustomEvent(type, { bubbles: true, detail }));
 }

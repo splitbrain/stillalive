@@ -21,61 +21,11 @@
 			<main-menu data-screens="main" hidden></main-menu>
 			<play-screen data-screens="play" hidden></play-screen>
 			<editor-screen data-screens="editor editor-file" hidden>
-				<tile-palette>
-					<template
-						><button><img alt="" /></button
-					></template>
-				</tile-palette>
-				<object-palette>
-					<button data-sprite="103" title="Cake"><span class="sprite cake"></span></button>
-					<button data-sprite="102" title="Crate"><span class="sprite crate"></span></button>
-					<button data-sprite="100" title="Turret, facing left"><span class="sprite turret-left"></span></button>
-					<button data-sprite="101" title="Turret, facing right"><span class="sprite turret-right"></span></button>
-					<button data-sprite="105" title="Platform, moving right">
-						<span class="sprite platform"></span><span class="arrow">&#9654;</span>
-					</button>
-					<button data-sprite="106" title="Platform, moving left">
-						<span class="sprite platform"></span><span class="arrow">&#9664;</span>
-					</button>
-					<button data-sprite="104" title="Player start">
-						<span class="sprite player"><span class="head"></span></span>
-					</button>
-					<button data-sprite="107" title="Gravitational pipe: carries the player and objects to the right">
-						<span class="sprite gravpipe-right"></span>
-					</button>
-					<button data-sprite="108" title="Gravitational pipe: carries the player and objects to the left">
-						<span class="sprite gravpipe-left"></span>
-					</button>
-					<button data-sprite="109" title="Gravitational pipe: carries the player and objects up">
-						<span class="sprite gravpipe-up"></span>
-					</button>
-					<button data-sprite="110" title="Gravitational pipe: carries the player and objects down">
-						<span class="sprite gravpipe-down"></span>
-					</button>
-					<button data-bg="-1" title="Previous background">&#9664;</button>
-					<button data-bg="1" title="Next background">&#9654;</button>
-				</object-palette>
-				<editor-buttons>
-					<div>
-						<a href="#/">Exit</a>
-						<button data-event="map-clear">Clear</button>
-						<button data-event="map-test">Try Map</button>
-						<button data-event="help-show">Help</button>
-						<a href="#/editor/load">Load</a>
-						<a href="#/editor/save">Save</a>
-					</div>
-				</editor-buttons>
-				<editor-file-buttons hidden>
-					<div>
-						<a href="#/editor">Exit</a>
-						<button class="export" data-event="file-export">Export</button>
-						<button data-event="file-import">Import</button>
-						<button class="accept" data-event="file-accept" hidden>Save</button>
-					</div>
-				</editor-file-buttons>
-				<slot-list hidden>
-					<template><button></button></template>
-				</slot-list>
+				<tile-palette></tile-palette>
+				<object-palette></object-palette>
+				<editor-buttons></editor-buttons>
+				<editor-file-buttons hidden></editor-file-buttons>
+				<slot-list hidden></slot-list>
 			</editor-screen>
 			<level-selection data-screens="select" hidden></level-selection>
 			<best-times data-screens="select play" hidden></best-times>

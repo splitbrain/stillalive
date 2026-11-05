@@ -5,14 +5,9 @@
 
 import { BestTimes } from './chrome/elements/BestTimes.js';
 import { CreditsScreen } from './chrome/elements/CreditsScreen.js';
-import {
-	EditorButtons,
-	EditorFileButtons,
-	EditorScreen,
-	ObjectPalette,
-	SlotList,
-	TilePalette,
-} from './chrome/EditorScreen.js';
+import { EditorButtons } from './chrome/elements/EditorButtons.js';
+import { EditorFileButtons } from './chrome/elements/EditorFileButtons.js';
+import { EditorScreen } from './chrome/EditorScreen.js';
 import { GameApp } from './chrome/GameApp.js';
 import { GameHud } from './chrome/elements/GameHud.js';
 import { IntermissionPanel } from './chrome/elements/IntermissionPanel.js';
@@ -21,10 +16,13 @@ import { LevelSelection } from './chrome/elements/LevelSelection.js';
 import { LoadingScreen } from './chrome/elements/LoadingScreen.js';
 import { MainMenu } from './chrome/elements/MainMenu.js';
 import { NarratorText } from './chrome/elements/NarratorText.js';
+import { ObjectPalette } from './chrome/elements/ObjectPalette.js';
 import { PauseMenu } from './chrome/elements/PauseMenu.js';
 import { PlayScreen } from './chrome/elements/PlayScreen.js';
 import { ReplayKeys } from './chrome/elements/ReplayKeys.js';
 import { RobotHead } from './chrome/elements/RobotHead.js';
+import { SlotList } from './chrome/elements/SlotList.js';
+import { TilePalette } from './chrome/elements/TilePalette.js';
 import { GameStage } from './stage/GameStage.js';
 
 customElements.define('game-stage', GameStage);

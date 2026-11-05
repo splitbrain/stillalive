@@ -33,7 +33,7 @@ const LAYER_ZONES = LAYERS.slice(0, -1).map((layer, i) => ({
 /**
  * The zones of import-x/no-restricted-paths for the page: it uses the stage through the element instance. It can
  * import only the modules of the stage with data and pure functions: the constants, the key labels, the check of the
- * map files and the decoding of the replays. The start code also imports the element class.
+ * map files, the decoding of the replays and the tile ids. The start code also imports the element class.
  *
  * @type {object[]}
  */
@@ -41,7 +41,7 @@ const PAGE_ZONES = [
 	{
 		target: ['./js/chrome/**/*.js', './js/[r]outer.js'],
 		from: './js/stage',
-		except: ['./constants.js', './keys.js', './mapFile.js', './replay.js'],
+		except: ['./constants.js', './keys.js', './mapFile.js', './replay.js', './tiles.js'],
 		message: 'The page must use the stage through the stage element.',
 	},
 	{

@@ -128,6 +128,15 @@ test.describe('chrome', () => {
 		await expect(page.locator('object-palette')).toBeVisible();
 		await expect.poll(() => stageValue(page, 'mode')).toBe('edit');
 
+		// the palettes name the objects by their constants and set the brush of the stage
+		const cake = page.locator('object-palette button[title="Cake"]');
+		await cake.click();
+		await expect.poll(() => stageValue(page, 'brush')).toBe(103);
+		await expect(cake).toHaveClass(/selected/);
+		const tile = page.locator('tile-palette button').first();
+		await tile.click();
+		await expect.poll(() => stageValue(page, 'brush')).toBe(Number(await tile.getAttribute('data-tile')));
+
 		await waitForNarrator(page);
 		await page.locator('editor-buttons').getByRole('link', { name: 'Save' }).click();
 		await expectScreen(page, '#/editor/save', EDITOR_PARTS);

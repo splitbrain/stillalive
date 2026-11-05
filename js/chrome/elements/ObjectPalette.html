@@ -1,0 +1,115 @@
+<template>
+	<button data-object="CAKE" title="Cake"><span class="sprite cake"></span></button>
+	<button data-object="CRATE" title="Crate"><span class="sprite crate"></span></button>
+	<button data-object="TURRET_LEFT" title="Turret, facing left"><span class="sprite turret-left"></span></button>
+	<button data-object="TURRET_RIGHT" title="Turret, facing right"><span class="sprite turret-right"></span></button>
+	<button data-object="PLATFORM_RIGHT" title="Platform, moving right">
+		<span class="sprite platform"></span><span class="arrow">&#9654;</span>
+	</button>
+	<button data-object="PLATFORM_LEFT" title="Platform, moving left">
+		<span class="sprite platform"></span><span class="arrow">&#9664;</span>
+	</button>
+	<button data-object="PLAYER_START" title="Player start">
+		<span class="sprite player"><span class="head"></span></span>
+	</button>
+	<button data-object="GRAVPIPE_RIGHT" title="Gravitational pipe: carries the player and objects to the right">
+		<span class="sprite gravpipe-right"></span>
+	</button>
+	<button data-object="GRAVPIPE_LEFT" title="Gravitational pipe: carries the player and objects to the left">
+		<span class="sprite gravpipe-left"></span>
+	</button>
+	<button data-object="GRAVPIPE_UP" title="Gravitational pipe: carries the player and objects up">
+		<span class="sprite gravpipe-up"></span>
+	</button>
+	<button data-object="GRAVPIPE_DOWN" title="Gravitational pipe: carries the player and objects down">
+		<span class="sprite gravpipe-down"></span>
+	</button>
+	<button data-bg="-1" title="Previous background">&#9664;</button>
+	<button data-bg="1" title="Next background">&#9654;</button>
+</template>
+
+<style>
+	/* the sprites of the objects; --u is the size of one pixel of a sprite */
+	object-palette {
+		--u: 2px;
+	}
+
+	object-palette button {
+		position: relative;
+		vertical-align: top;
+	}
+
+	object-palette .sprite {
+		display: block;
+		width: calc(var(--u) * 16);
+		height: calc(var(--u) * 16);
+		background-repeat: no-repeat;
+		background-size: 100% auto;
+	}
+
+	object-palette .cake {
+		height: calc(var(--u) * 12);
+		background-image: url('sprites/cake.svg');
+	}
+
+	object-palette .crate {
+		background-image: url('sprites/crate.svg');
+	}
+
+	object-palette .turret-left,
+	object-palette .turret-right {
+		height: calc(var(--u) * 32);
+		background-image: url('sprites/turret0.svg');
+	}
+
+	object-palette .turret-right {
+		background-image: url('sprites/turret1.svg');
+	}
+
+	object-palette .platform {
+		width: calc(var(--u) * 48);
+		background-image: url('sprites/platform.svg');
+	}
+
+	object-palette .arrow {
+		position: absolute;
+		left: calc(var(--u) * 6);
+		top: 0;
+		color: #f33;
+		line-height: calc(var(--u) * 16 + 6px);
+	}
+
+	object-palette .player {
+		height: calc(var(--u) * 27);
+		background-image: url('sprites/body0.svg');
+		background-size: 500% auto;
+	}
+
+	object-palette .player .head {
+		display: block;
+		width: 100%;
+		height: calc(var(--u) * 12);
+		background: url('sprites/head0.svg') no-repeat 0 0 / 500% auto;
+	}
+
+	object-palette .gravpipe-right,
+	object-palette .gravpipe-left {
+		height: calc(var(--u) * 32);
+		background-image: url('sprites/gravpipe.svg');
+	}
+
+	object-palette .gravpipe-left {
+		background-position: 0 calc(var(--u) * -32);
+	}
+
+	object-palette .gravpipe-up,
+	object-palette .gravpipe-down {
+		width: calc(var(--u) * 32);
+		background-image: url('sprites/gravpipe2.svg');
+		background-size: auto 100%;
+	}
+
+	object-palette .gravpipe-down {
+		background-position: calc(var(--u) * -32) 0;
+	}
+</style>

@@ -55,7 +55,8 @@ export class MainMenu extends ChromeElement {
 	}
 
 	/**
-	 * Create the list item of a campaign. The link shows the title and the number of finished levels.
+	 * Create the list item of a campaign with a menu button. The link shows the title and the number of finished levels.
+	 * A campaign with a parent gets a small button.
 	 *
 	 * @param {import('../campaigns.js').Campaign} campaign The campaign.
 	 * @returns {HTMLLIElement} The list item.
@@ -66,8 +67,11 @@ export class MainMenu extends ChromeElement {
 		const link = document.createElement('a');
 		link.href = campaign.direct ? campaignPath(campaign.folder, 1, 'play') : campaignPath(campaign.folder);
 		link.append(campaign.title, ' ', count);
+		const button = document.createElement('menu-button');
+		button.toggleAttribute('small', campaign.parent !== '');
+		button.append(link);
 		const item = document.createElement('li');
-		item.append(link);
+		item.append(button);
 		return item;
 	}
 

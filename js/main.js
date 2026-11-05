@@ -16,6 +16,7 @@ import { LevelList } from './chrome/elements/LevelList.js';
 import { LevelSelection } from './chrome/elements/LevelSelection.js';
 import { LoadingScreen } from './chrome/elements/LoadingScreen.js';
 import { MainMenu } from './chrome/elements/MainMenu.js';
+import { MenuButton } from './chrome/elements/MenuButton.js';
 import { NarratorText } from './chrome/elements/NarratorText.js';
 import { ObjectPalette } from './chrome/elements/ObjectPalette.js';
 import { PauseMenu } from './chrome/elements/PauseMenu.js';
@@ -27,6 +28,7 @@ import { GameStage } from './stage/GameStage.js';
 
 customElements.define('game-stage', GameStage);
 customElements.define('loading-screen', LoadingScreen);
+customElements.define('menu-button', MenuButton);
 customElements.define('main-menu', MainMenu);
 customElements.define('credits-screen', CreditsScreen);
 customElements.define('level-list', LevelList);

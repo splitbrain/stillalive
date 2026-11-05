@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
   <!-- plasma door, an energy field, frame 1 of 6 -->
   <rect width="16" height="16" fill="#0f8a2a"/>
-  <path d="M0 -14.00q4-2 8 0t8 0M0 -6.00q4-2 8 0t8 0M0 2.00q4-2 8 0t8 0" fill="none" stroke="#5ee07a" stroke-width="1.5"/>
-  <path d="M0 -10.00q4-2 8 0t8 0M0 -2.00q4-2 8 0t8 0M0 6.00q4-2 8 0t8 0" fill="none" stroke="#d2ffd8" stroke-width="0.75"/>
+  <path d="M0 2C2 2 2 1 4 1S6 2 8 2S10 3 12 3S14 2 16 2M0 10C2 10 2 9 4 9S6 10 8 10S10 11 12 11S14 10 16 10" fill="none" stroke="#5ee07a" stroke-width="1.5"/>
+  <path d="M0 6C2 6 2 7 4 7S6 6 8 6S10 5 12 5S14 6 16 6M0 14C2 14 2 15 4 15S6 14 8 14S10 13 12 13S14 14 16 14" fill="none" stroke="#d2ffd8" stroke-width="0.75"/>
 </svg>

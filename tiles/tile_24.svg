@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
   <!-- switch door, an energy field, frame 2 of 6 -->
   <rect width="16" height="16" fill="#0f4fd6"/>
-  <path d="M0 -11.33q4-2 8 0t8 0M0 -3.33q4-2 8 0t8 0M0 4.67q4-2 8 0t8 0" fill="none" stroke="#5aa0ff" stroke-width="1.5"/>
-  <path d="M0 -7.33q4-2 8 0t8 0M0 0.67q4-2 8 0t8 0M0 8.67q4-2 8 0t8 0" fill="none" stroke="#c8e6ff" stroke-width="0.75"/>
+  <path d="M0 2C2 2 2 3.2 4 3.2S6 2 8 2S10 1.6 12 1.6S14 2 16 2M0 10C2 10 2 10.8 4 10.8S6 10 8 10S10 8.8 12 8.8S14 10 16 10" fill="none" stroke="#5aa0ff" stroke-width="1.5"/>
+  <path d="M0 6C2 6 2 5.4 4 5.4S6 6 8 6S10 7 12 7S14 6 16 6M0 14C2 14 2 13 4 13S6 14 8 14S10 14.5 12 14.5S14 14 16 14" fill="none" stroke="#c8e6ff" stroke-width="0.75"/>
 </svg>

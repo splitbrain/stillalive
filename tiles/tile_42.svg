@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
   <!-- no portal surface, an energy field, frame 3 of 6 -->
   <rect width="16" height="16" fill="#b8231a"/>
-  <path d="M0 -8.67q4-2 8 0t8 0M0 -0.67q4-2 8 0t8 0M0 7.33q4-2 8 0t8 0" fill="none" stroke="#ff7a6a" stroke-width="1.5"/>
-  <path d="M0 -4.67q4-2 8 0t8 0M0 3.33q4-2 8 0t8 0M0 11.33q4-2 8 0t8 0" fill="none" stroke="#ffd6cf" stroke-width="0.75"/>
+  <path d="M0 2C2 2 2 1.5 4 1.5S6 2 8 2S10 3.2 12 3.2S14 2 16 2M0 10C2 10 2 8.8 4 8.8S6 10 8 10S10 10.6 12 10.6S14 10 16 10" fill="none" stroke="#ff7a6a" stroke-width="1.5"/>
+  <path d="M0 6C2 6 2 7 4 7S6 6 8 6S10 6.3 12 6.3S14 6 16 6M0 14C2 14 2 14.4 4 14.4S6 14 8 14S10 13 12 13S14 14 16 14" fill="none" stroke="#ffd6cf" stroke-width="0.75"/>
 </svg>

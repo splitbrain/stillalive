@@ -15,7 +15,7 @@ import {
 import { GameApp } from './chrome/GameApp.js';
 import { BestTimes, LevelList, LevelSelection } from './chrome/LevelSelection.js';
 import { LoadingScreen } from './chrome/LoadingScreen.js';
-import { MainMenu } from './chrome/MainMenu.js';
+import { MainMenu } from './chrome/elements/MainMenu.js';
 import {
 	GameHud,
 	IntermissionPanel,

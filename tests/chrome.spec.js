@@ -186,4 +186,27 @@ test.describe('chrome', () => {
 		await page.locator('credits-screen a').click();
 		await expectScreen(page, '#/', ['main-menu']);
 	});
+
+	test('builds the markup of an element once, on its first connect', async ({ page }) => {
+		await startGame(page);
+		const counts = await page.evaluate(() => {
+			const stage = window.__test.stage;
+			const menu = document.createElement('main-menu');
+			const count = () => menu.querySelectorAll('a, button').length;
+			const before = count();
+			document.body.append(menu);
+			const connected = count();
+			menu.remove();
+			document.body.append(menu);
+			const reconnected = count();
+			// one click handler after the second connect: a click changes the sound once
+			const sound = stage.sound.get();
+			menu.querySelector('#sound-button').click();
+			const toggled = stage.sound.get() !== sound;
+			stage.setSound(sound);
+			menu.remove();
+			return { before, connected, reconnected, toggled };
+		});
+		expect(counts).toEqual({ before: 0, connected: 6, reconnected: 6, toggled: true });
+	});
 });

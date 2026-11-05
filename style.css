@@ -7,7 +7,6 @@
 game-app,
 game-stage,
 loading-screen,
-main-menu,
 level-selection,
 play-screen,
 editor-screen,
@@ -115,19 +114,6 @@ credits-screen .scroll {
 	to {
 		transform: translateY(-100%);
 	}
-}
-
-/* the sound button of the main menu shows the sound setting */
-#sound-button {
-	background: url('menu/tex_sound.png') no-repeat center top / auto 70%;
-	padding-top: 40px;
-}
-
-#sound-button.off {
-	background-image: url('menu/tex_cross.png'), url('menu/tex_sound.png');
-	background-size:
-		auto 60%,
-		auto 70%;
 }
 
 pause-menu,

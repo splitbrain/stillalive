@@ -1,0 +1,27 @@
+<template>
+	<a id="main-classic" href="#/campaign/normal">Classic Mode</a>
+	<a href="#/campaign/community">Enhanced Mode</a>
+	<a href="#/campaign/story">Ultimate Mode</a>
+	<a href="#/editor">Level Editor</a>
+	<a href="#/campaign/tutorial/1/play">Tutorial</a>
+	<button id="sound-button" title="Click here or press M to turn the sound on and off.">SFX</button>
+</template>
+
+<style>
+	main-menu {
+		display: block;
+	}
+
+	/* the sound button shows the sound setting */
+	main-menu #sound-button {
+		background: url('menu/tex_sound.png') no-repeat center top / auto 70%;
+		padding-top: 40px;
+	}
+
+	main-menu #sound-button.off {
+		background-image: url('menu/tex_cross.png'), url('menu/tex_sound.png');
+		background-size:
+			auto 60%,
+			auto 70%;
+	}
+</style>

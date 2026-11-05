@@ -6,11 +6,9 @@
 /* the custom elements of the page take the full width, so that a click on their area reaches them */
 game-app,
 game-stage,
-loading-screen,
 level-selection,
 play-screen,
-editor-screen,
-credits-screen {
+editor-screen {
 	display: block;
 }
 
@@ -87,32 +85,6 @@ robot-head .eye.blink {
 	80%,
 	100% {
 		background-position-y: 33.333%;
-	}
-}
-
-/* the credits scroll from the bottom edge out of the top edge; the end of the scroll leads to the main menu */
-credits-screen {
-	display: block;
-	height: 80vh;
-	overflow: hidden;
-	container-type: size;
-}
-
-credits-screen a {
-	display: block;
-	height: 100%;
-}
-
-credits-screen .scroll {
-	animation: credits-scroll 30s linear;
-}
-
-@keyframes credits-scroll {
-	from {
-		transform: translateY(100cqh);
-	}
-	to {
-		transform: translateY(-100%);
 	}
 }
 

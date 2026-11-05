@@ -1,0 +1,26 @@
+<template>
+	<p>Loading gfx ... <progress data-progress="images" max="1" value="0"></progress></p>
+	<p>Loading maps ... <progress data-progress="campaigns" max="1" value="0"></progress></p>
+	<p>
+		Loading sfx ... <progress data-progress="sounds" max="1" value="0"></progress>
+		<button class="sound-off">(click here if not loading)</button>
+	</p>
+	<p>- Grab cakes and reach the exit of each level.</p>
+	<p>- Use your portal gun to teleport through levels.</p>
+	<p data-missing="images" hidden></p>
+	<p data-missing="sounds" hidden></p>
+	<p data-missing="campaigns" hidden></p>
+	<img src="decor/controls.png" alt="The controls: keys to move and jump, the mouse to shoot portals" />
+	<p>
+		Jump: <kbd data-key="KeyW">W</kbd>, Left: <kbd data-key="KeyA">A</kbd>, Down: <kbd data-key="KeyS">S</kbd>, Right:
+		<kbd data-key="KeyD">D</kbd>, Clear Portals:
+		<kbd data-key="KeyE">E</kbd>
+	</p>
+	<p class="continue" hidden>Click to continue ...</p>
+</template>
+
+<style>
+	loading-screen {
+		display: block;
+	}
+</style>

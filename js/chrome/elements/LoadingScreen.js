@@ -2,45 +2,47 @@
  * The loading screen element.
  */
 
-import { keyLabels } from '../stage/keys.js';
-import { campaignsLoading, campaignsReady } from './campaigns.js';
+import { keyLabels } from '../../stage/keys.js';
+import { campaignsLoading, campaignsReady } from '../campaigns.js';
+import { ChromeElement, loadMarkup, Screen } from '../element.js';
+
+/** @type {HTMLTemplateElement|null} The markup of the loading screen. */
+const TEMPLATE = await loadMarkup(import.meta.url);
 
 /**
  * The custom element <loading-screen>. It shows the loading progress of the images, the sounds and the campaigns, the
  * files that could not be loaded, the controls with the key labels of the keyboard of the player, and "Click to
- * continue" when everything is loaded. Its markup is in the page.
+ * continue" when everything is loaded.
  *
  * The sound-off button turns the sound off, so that the stage does not wait for the sounds. The app element does not
  * store sound changes before the game starts, so this change is for the session only. The click that starts the game
  * bubbles to the app element, which handles it.
- *
- * The element gets the stage with document.querySelector('game-stage') when it connects. The start code registers the
- * stage element before the chrome elements, so the stage is ready for use at that time.
  */
-export class LoadingScreen extends HTMLElement {
-	/** @type {Array<function(): void>} The functions that remove the subscriptions. */
-	#unsubscribe = [];
-
-	/** @type {boolean} True after the first connect, which adds the event handler. */
-	#setUp = false;
+export class LoadingScreen extends ChromeElement {
+	/** @type {HTMLTemplateElement|null} The markup of the loading screen. */
+	static template = TEMPLATE;
 
 	/**
-	 * Subscribe to the loading of the stage and the campaigns and to the key labels. On the first connect, add the
-	 * handler of the sound-off button.
+	 * Add the handler of the sound-off button.
 	 *
 	 * @returns {void}
 	 */
-	connectedCallback() {
-		const stage = document.querySelector('game-stage');
-		if (!this.#setUp) {
-			this.#setUp = true;
-			this.querySelector('.sound-off').addEventListener('click', () => stage.setSound(false));
-		}
+	setUp() {
+		this.querySelector('.sound-off').addEventListener('click', () => this.stage.setSound(false));
+	}
+
+	/**
+	 * Subscribe to the loading of the stage and the campaigns and to the key labels.
+	 *
+	 * @returns {Array<function(): void>} The functions that remove the subscriptions.
+	 */
+	subscribe() {
+		const stage = this.stage;
 		// the click to continue is possible when the stage and the campaigns are ready
 		const showContinue = () => {
 			this.querySelector('.continue').hidden = !(stage.ready.get() && campaignsReady.get());
 		};
-		this.#unsubscribe = [
+		return [
 			stage.loading.subscribe(({ images, sounds }) => {
 				this.#showProgress('images', images, 'Some images could not be loaded: ');
 				this.#showProgress('sounds', sounds, 'Some sounds could not be loaded: ');
@@ -57,13 +59,13 @@ export class LoadingScreen extends HTMLElement {
 	}
 
 	/**
-	 * Remove the subscriptions.
+	 * Tell if the loading screen shows on a screen of the app.
 	 *
-	 * @returns {void}
+	 * @param {string} screen The screen, a value of Screen.
+	 * @returns {boolean} True on the loading screen only.
 	 */
-	disconnectedCallback() {
-		for (const unsubscribe of this.#unsubscribe) unsubscribe();
-		this.#unsubscribe = [];
+	shouldShow(screen) {
+		return screen === Screen.LOADING;
 	}
 
 	/**

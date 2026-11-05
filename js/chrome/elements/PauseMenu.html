@@ -1,20 +1,26 @@
 <template>
-	<div>
-		<button class="resume">Resume</button>
-		<a class="restart">Restart</a>
-		<a class="exit" data-replace>Exit</a>
-	</div>
-	<div>
-		<button class="sound">Sounds : On</button>
-	</div>
+	<menu-button><button class="resume">Resume</button></menu-button>
+	<menu-button><a class="restart">Restart</a></menu-button>
+	<menu-button><a class="exit" data-replace>Exit</a></menu-button>
+	<menu-button small><button class="sound">Sounds : On</button></menu-button>
 </template>
 
 <style>
+	/*
+	 * The pause menu covers the whole cell of the screen. It shows the paused level behind it in black and white and
+	 * darker, and the buttons in a centered column on top.
+	 */
 	pause-menu {
-		display: block;
-		max-width: 512px;
-		aspect-ratio: 512 / 384;
-		color: white;
-		background: url('menu/pauseBG.png') no-repeat center / 100% 100%;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 1.8cqw;
+		backdrop-filter: grayscale(1) brightness(0.6);
+
+		/* the sound button is set apart from the buttons that leave the pause */
+		> :last-child {
+			margin-top: 1.8cqw;
+		}
 	}
 </style>

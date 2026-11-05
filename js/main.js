@@ -7,7 +7,7 @@ import { BestTimes } from './chrome/elements/BestTimes.js';
 import { CreditsScreen } from './chrome/elements/CreditsScreen.js';
 import { EditorButtons } from './chrome/elements/EditorButtons.js';
 import { EditorFileButtons } from './chrome/elements/EditorFileButtons.js';
-import { EditorScreen } from './chrome/EditorScreen.js';
+import { EditorScreen } from './chrome/elements/EditorScreen.js';
 import { GameApp } from './chrome/GameApp.js';
 import { GameHud } from './chrome/elements/GameHud.js';
 import { IntermissionPanel } from './chrome/elements/IntermissionPanel.js';

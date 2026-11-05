@@ -2,12 +2,16 @@
  * The editor screen element.
  */
 
-import { navigate } from '../router.js';
-import { MAP_FORMAT, parseMap } from '../stage/mapFile.js';
-import { alertDialog } from './dialog.js';
-import { setAttributes } from './dom.js';
-import { downloadJson, pickJsonFile } from './files.js';
-import { editorMap, saveEditorMap } from './storage.js';
+import { navigate } from '../../router.js';
+import { MAP_FORMAT, parseMap } from '../../stage/mapFile.js';
+import { alertDialog } from '../dialog.js';
+import { setAttributes } from '../dom.js';
+import { ChromeElement, loadMarkup, Screen } from '../element.js';
+import { downloadJson, pickJsonFile } from '../files.js';
+import { editorMap, saveEditorMap } from '../storage.js';
+
+/** @type {HTMLTemplateElement|null} The markup of the editor screen. */
+const TEMPLATE = await loadMarkup(import.meta.url);
 
 /** @type {string} The text of the help dialog of the editor. */
 const EDITOR_HELP =
@@ -20,13 +24,15 @@ const EDITOR_HELP =
 	'Escape : Stop trying';
 
 /**
- * The custom element <editor-screen>. It is the frame of the editor and of its save and load screen. Its markup in the
- * page has the tile palette, the object palette, the editor buttons, the list of the slots and the buttons of the save
- * and load screen.
+ * The custom element <editor-screen>. It is the frame of the editor and of its save and load screen. Its parts are the
+ * tile palette, the object palette, the editor buttons, the buttons of the save and load screen and the list of the
+ * slots.
  *
  * The attribute mode is empty for the editor, and save or load for the save or load screen. The app element sets it on
  * the editor routes and removes it on the other routes. The editor shows the palettes and the editor buttons, the save
- * and load screen shows the slots and its buttons. The element marks the brush of the stage in the palettes.
+ * and load screen shows the slots and its buttons. The element gives the brush of the stage to the palettes as their
+ * selected attribute, and the mode and the selected slot to the slot list and to the buttons of the save and load
+ * screen.
  *
  * The element handles the events of its parts: it sets the brush and the background of the stage, clears the editor
  * map, starts the test run and shows the help. On the save and load screen, a selected slot shows its map on the stage
@@ -35,12 +41,12 @@ const EDITOR_HELP =
  * editor: back in the history if the player came from the editor, else to the editor route in place of the current
  * entry. So after an accept or an import the history holds the editor route only once.
  */
-export class EditorScreen extends HTMLElement {
+export class EditorScreen extends ChromeElement {
+	/** @type {HTMLTemplateElement|null} The markup of the editor screen. */
+	static template = TEMPLATE;
+
 	/** @type {string[]} The attributes that cause a new render when they change. */
 	static observedAttributes = ['mode'];
-
-	/** @type {import('../stage/GameStage.js').GameStage} The stage element. */
-	#stage;
 
 	/** @type {number} The selected slot of the save or load screen, or 0 for none. */
 	#slot = 0;
@@ -48,51 +54,39 @@ export class EditorScreen extends HTMLElement {
 	/** @type {boolean} True if the save or load screen was opened from the editor. */
 	#fromEditor = false;
 
-	/** @type {Array<function(): void>} The functions that remove the subscriptions. */
-	#unsubscribe = [];
-
-	/** @type {boolean} True after the first connect, which adds the event handlers. */
-	#setUp = false;
-
 	/**
-	 * Subscribe to the brush of the stage. On the first connect, add the handlers of the events of the parts.
+	 * Add the handlers of the events of the parts.
 	 *
 	 * @returns {void}
 	 */
-	connectedCallback() {
-		this.#stage = document.querySelector('game-stage');
-		if (!this.#setUp) {
-			this.#setUp = true;
-			const onImportError = (error) => alertDialog(error.message, 'Import map');
-			this.addEventListener('brush-select', (event) => this.#stage.setBrush(event.detail.tile));
-			this.addEventListener('background-change', (event) =>
-				this.#stage.setBackground(this.#stage.getMap().bg + event.detail.step),
-			);
-			this.addEventListener('map-clear', () => this.#stage.clearMap());
-			this.addEventListener('map-test', () => this.#stage.test());
-			this.addEventListener('help-show', () => alertDialog(EDITOR_HELP, 'Level Editor Shortcuts'));
-			this.addEventListener('slot-select', (event) => this.#selectSlot(event.detail.slot));
-			this.addEventListener('file-accept', () => this.#accept());
-			this.addEventListener('file-export', () => this.#export());
-			this.addEventListener('file-import', () => this.#import().catch(onImportError));
-		}
-		this.#unsubscribe = [
-			this.#stage.brush.subscribe((brush) => {
+	setUp() {
+		const onImportError = (error) => alertDialog(error.message, 'Import map');
+		this.addEventListener('brush-select', (event) => this.stage.setBrush(event.detail.tile));
+		this.addEventListener('background-change', (event) =>
+			this.stage.setBackground(this.stage.getMap().bg + event.detail.step),
+		);
+		this.addEventListener('map-clear', () => this.stage.clearMap());
+		this.addEventListener('map-test', () => this.stage.test());
+		this.addEventListener('help-show', () => alertDialog(EDITOR_HELP, 'Level Editor Shortcuts'));
+		this.addEventListener('slot-select', (event) => this.#selectSlot(event.detail.slot));
+		this.addEventListener('file-accept', () => this.#accept());
+		this.addEventListener('file-export', () => this.#export());
+		this.addEventListener('file-import', () => this.#import().catch(onImportError));
+	}
+
+	/**
+	 * Subscribe to the brush of the stage and mark it in the palettes.
+	 *
+	 * @returns {Array<function(): void>} The functions that remove the subscriptions.
+	 */
+	subscribe() {
+		return [
+			this.stage.brush.subscribe((brush) => {
 				for (const palette of this.querySelectorAll('tile-palette, object-palette')) {
 					palette.setAttribute('selected', String(brush));
 				}
 			}),
 		];
-	}
-
-	/**
-	 * Remove the subscriptions.
-	 *
-	 * @returns {void}
-	 */
-	disconnectedCallback() {
-		for (const unsubscribe of this.#unsubscribe) unsubscribe();
-		this.#unsubscribe = [];
 	}
 
 	/**
@@ -107,7 +101,7 @@ export class EditorScreen extends HTMLElement {
 	attributeChangedCallback(name, oldValue, newValue) {
 		if (oldValue !== newValue) this.#fromEditor = oldValue === '';
 		this.#slot = 0;
-		this.render();
+		super.attributeChangedCallback();
 	}
 
 	/**
@@ -136,8 +130,8 @@ export class EditorScreen extends HTMLElement {
 		const stored = editorMap(slot).get();
 		if (slot == this.#slot || (this.getAttribute('mode') == 'load' && stored == null)) return;
 		this.#slot = slot;
-		if (stored) this.#stage.preview(stored);
-		else this.#stage.stop();
+		if (stored) this.stage.preview(stored);
+		else this.stage.stop();
 		this.render();
 	}
 
@@ -150,9 +144,9 @@ export class EditorScreen extends HTMLElement {
 	#accept() {
 		if (this.#slot < 1) return;
 		if (this.getAttribute('mode') == 'load') {
-			this.#stage.edit(editorMap(this.#slot).get());
+			this.stage.edit(editorMap(this.#slot).get());
 		} else {
-			const map = this.#stage.getMap();
+			const map = this.stage.getMap();
 			if (!saveEditorMap(this.#slot, map.tiles, map.bg)) {
 				alertDialog(
 					'The map could not be saved, because the browser blocks the storage or the storage is full. ' +
@@ -171,7 +165,7 @@ export class EditorScreen extends HTMLElement {
 	 * @returns {void}
 	 */
 	#export() {
-		const map = this.getAttribute('mode') == 'save' ? this.#stage.getMap() : editorMap(this.#slot).get();
+		const map = this.getAttribute('mode') == 'save' ? this.stage.getMap() : editorMap(this.#slot).get();
 		if (!map) return;
 		downloadJson({ format: MAP_FORMAT, tiles: map.tiles, bg: map.bg }, 'stillalivejs-map.json');
 	}
@@ -189,7 +183,7 @@ export class EditorScreen extends HTMLElement {
 		if (data === null || (mode != 'save' && mode != 'load')) return;
 		const map = parseMap(data);
 		if (map.boss > 0) throw new Error('The editor does not support boss levels.');
-		this.#stage.edit(map);
+		this.stage.edit(map);
 		this.#backToEditor();
 	}
 
@@ -203,5 +197,15 @@ export class EditorScreen extends HTMLElement {
 		this.render();
 		if (this.#fromEditor) history.back();
 		else navigate('#/editor', true);
+	}
+
+	/**
+	 * Tell if the editor screen shows on a screen of the app.
+	 *
+	 * @param {string} screen The screen, a value of Screen.
+	 * @returns {boolean} True on the editor and on the save and load screen.
+	 */
+	shouldShow(screen) {
+		return screen === Screen.EDITOR || screen === Screen.EDITOR_FILE;
 	}
 }

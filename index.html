@@ -14,56 +14,17 @@
 	</head>
 	<body>
 		<game-app data-screen="loading">
-			<narrator-text data-screens="select play editor editor-file" hidden><p></p></narrator-text>
+			<narrator-text data-screens="select play editor editor-file" hidden></narrator-text>
 			<game-stage data-screens="select play editor editor-file" hidden></game-stage>
 			<loading-screen data-screens="loading"></loading-screen>
 			<credits-screen data-screens="credits" hidden></credits-screen>
 			<main-menu data-screens="main" hidden></main-menu>
 			<play-screen data-screens="play" hidden>
-				<pause-menu hidden>
-					<div>
-						<button class="resume">Resume</button>
-						<a class="restart">Restart</a>
-						<a class="exit" data-replace>Exit</a>
-					</div>
-					<div>
-						<button class="sound">Sounds : On</button>
-					</div>
-				</pause-menu>
-				<intermission-panel hidden>
-					<p class="time"></p>
-					<p class="message"></p>
-					<div>
-						<a class="exit" data-replace>Exit</a>
-						<a class="restart">Restart</a>
-						<a class="next">Continue</a>
-						<button class="replay">Watch Replay</button>
-					</div>
-				</intermission-panel>
-				<robot-head>
-					<img class="head" src="sprites/robotHead.svg" alt="" />
-					<div class="eye"></div>
-				</robot-head>
-				<game-hud>
-					<div>Life: <span data-value="life">100</span></div>
-					<div>Cakes: <span data-value="cakes">0</span></div>
-					<div>Steps: <span data-value="steps">0</span></div>
-					<div>Portals: <span data-value="portals">0</span></div>
-					<div>FPS: <span data-value="fps">0</span></div>
-				</game-hud>
-				<replay-keys hidden>
-					<div>
-						<span class="mouse" data-key="left"></span>
-						<span class="key" data-key="KeyW">W</span>
-						<span class="key" data-key="KeyE">E</span>
-						<span class="mouse" data-key="right"></span>
-					</div>
-					<div>
-						<span class="key" data-key="KeyA">A</span>
-						<span class="key" data-key="KeyS">S</span>
-						<span class="key" data-key="KeyD">D</span>
-					</div>
-				</replay-keys>
+				<pause-menu hidden></pause-menu>
+				<intermission-panel hidden></intermission-panel>
+				<robot-head></robot-head>
+				<game-hud></game-hud>
+				<replay-keys hidden></replay-keys>
 			</play-screen>
 			<editor-screen data-screens="editor editor-file" hidden>
 				<tile-palette>

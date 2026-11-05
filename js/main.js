@@ -14,19 +14,17 @@ import {
 	TilePalette,
 } from './chrome/EditorScreen.js';
 import { GameApp } from './chrome/GameApp.js';
+import { GameHud } from './chrome/elements/GameHud.js';
+import { IntermissionPanel } from './chrome/elements/IntermissionPanel.js';
 import { LevelList } from './chrome/elements/LevelList.js';
 import { LevelSelection } from './chrome/elements/LevelSelection.js';
 import { LoadingScreen } from './chrome/elements/LoadingScreen.js';
 import { MainMenu } from './chrome/elements/MainMenu.js';
-import {
-	GameHud,
-	IntermissionPanel,
-	NarratorText,
-	PauseMenu,
-	PlayScreen,
-	ReplayKeys,
-	RobotHead,
-} from './chrome/PlayScreen.js';
+import { NarratorText } from './chrome/elements/NarratorText.js';
+import { PauseMenu } from './chrome/elements/PauseMenu.js';
+import { ReplayKeys } from './chrome/elements/ReplayKeys.js';
+import { RobotHead } from './chrome/elements/RobotHead.js';
+import { PlayScreen } from './chrome/PlayScreen.js';
 import { GameStage } from './stage/GameStage.js';
 
 customElements.define('game-stage', GameStage);

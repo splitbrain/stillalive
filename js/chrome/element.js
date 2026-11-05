@@ -42,22 +42,23 @@ export const Screen = Object.freeze({
 
 /**
  * The base class of the chrome elements. On its first connect, the element clones the template of its class into
- * itself, in the light DOM, and then calls setUp() and render(). On every connect, it subscribes with subscribe(), and
- * on every disconnect it removes these subscriptions. A change of an observed attribute calls render() after the
+ * itself, in the light DOM, and then calls setUp() and render(). On every connect, it subscribes to the state and
+ * starts timers with subscribe(), and on every disconnect it removes these subscriptions and stops these timers. A
+ * change of an observed attribute calls render() after the
  * build only. A change before the build has no effect, because the first render() applies all attributes.
  */
 export class ChromeElement extends HTMLElement {
 	/** @type {HTMLTemplateElement|null} The template of the component, from loadMarkup(), or null for no markup. */
 	static template = null;
 
-	/** @type {Array<function(): void>} The functions that remove the subscriptions. */
+	/** @type {Array<function(): void>} The functions that remove the subscriptions and stop the timers. */
 	#unsubscribe = [];
 
 	/** @type {boolean} True after the first connect, which builds the markup. */
 	#built = false;
 
 	/**
-	 * On the first connect, build the markup and call setUp() and render(). On every connect, subscribe.
+	 * On the first connect, build the markup and call setUp() and render(). On every connect, call subscribe().
 	 *
 	 * @returns {void}
 	 */
@@ -73,7 +74,7 @@ export class ChromeElement extends HTMLElement {
 	}
 
 	/**
-	 * Remove the subscriptions.
+	 * Remove the subscriptions and stop the timers.
 	 *
 	 * @returns {void}
 	 */
@@ -99,9 +100,10 @@ export class ChromeElement extends HTMLElement {
 	setUp() {}
 
 	/**
-	 * Hook that runs on every connect and subscribes to the state.
+	 * Hook that runs on every connect. It subscribes to the state and starts the timers of the element.
 	 *
-	 * @returns {Array<function(): void>} The functions that remove the subscriptions. The default is an empty list.
+	 * @returns {Array<function(): void>} The functions that remove the subscriptions and stop the timers. The default
+	 *     is an empty list.
 	 */
 	subscribe() {
 		return [];

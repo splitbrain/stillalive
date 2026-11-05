@@ -1,0 +1,72 @@
+<template>
+	<img class="head" src="sprites/robotHead.svg" alt="" />
+	<div class="eye"></div>
+</template>
+
+<style>
+	/*
+	 * The robot head is a panel of 120 by 96 pixels. The idle animation sets --head-x, --eye-x and --eye-y to -1, 0 or 1.
+	 * The head moves 17 pixels to a side, the eye moves 9 pixels to a side and 10 pixels up or down.
+	 */
+	robot-head {
+		display: block;
+		position: relative;
+		width: 120px;
+		aspect-ratio: 120 / 96;
+		overflow: hidden;
+	}
+
+	/* a hidden robot keeps its place, so the parts after it do not move in boss levels */
+	robot-head[hidden] {
+		display: block !important;
+		visibility: hidden;
+	}
+
+	robot-head .head {
+		position: absolute;
+		left: calc(100% * 18 / 120);
+		top: calc(100% * 30 / 96);
+		width: calc(100% * 74 / 120);
+		transform: translateX(calc(var(--head-x, 0) * 100% * 17 / 74));
+		transition: transform 0.5s;
+	}
+
+	robot-head .eye {
+		position: absolute;
+		left: calc(100% * 47 / 120);
+		top: calc(100% * 56 / 96);
+		width: calc(100% * 19 / 120);
+		aspect-ratio: 1;
+		background-size: 100% 400%;
+		background-repeat: no-repeat;
+		transform: translate(
+			calc((var(--head-x, 0) * 17 + var(--eye-x, 0) * 9) * 100% / 19),
+			calc(var(--eye-y, 0) * 10 * 100% / 19)
+		);
+		transition: transform 0.5s;
+	}
+
+	/* the eye image has four frames from open to closed */
+	robot-head .eye.blink {
+		animation: robot-blink 0.2s step-end;
+	}
+
+	@keyframes robot-blink {
+		0% {
+			background-position-y: 33.333%;
+		}
+		20% {
+			background-position-y: 66.667%;
+		}
+		40% {
+			background-position-y: 100%;
+		}
+		60% {
+			background-position-y: 66.667%;
+		}
+		80%,
+		100% {
+			background-position-y: 33.333%;
+		}
+	}
+</style>

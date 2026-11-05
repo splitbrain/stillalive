@@ -52,6 +52,20 @@ const PAGE_ZONES = [
 	},
 ];
 
+/**
+ * The zone of import-x/no-restricted-paths for the stage: no module in the stage folder imports from the page, also a
+ * new module that is not in a layer yet.
+ *
+ * @type {object[]}
+ */
+const STAGE_ZONES = [
+	{
+		target: './js/stage/**/*.js',
+		from: LAYERS.at(-1).files,
+		message: 'The stage must not import from the page.',
+	},
+];
+
 export default [
 	js.configs.recommended,
 	{
@@ -66,7 +80,7 @@ export default [
 			'no-var': 'error',
 			'guard-for-in': 'error',
 			'import-x/no-cycle': 'warn',
-			'import-x/no-restricted-paths': ['error', { zones: [...LAYER_ZONES, ...PAGE_ZONES] }],
+			'import-x/no-restricted-paths': ['error', { zones: [...LAYER_ZONES, ...PAGE_ZONES, ...STAGE_ZONES] }],
 		},
 	},
 	{

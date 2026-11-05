@@ -13,23 +13,25 @@
 </template>
 
 <style>
-	/* the key caps of a replay show the pressed keys */
-	replay-keys :is(.key, .mouse) {
-		display: inline-block;
-		width: 36px;
-		aspect-ratio: 1;
-		background: url('images/key.png') no-repeat 0 0 / 100% 200%;
-		color: black;
-		text-align: center;
-		line-height: 36px;
-	}
+	replay-keys {
+		/* the key caps of a replay show the pressed keys */
+		:is(.key, .mouse) {
+			display: inline-block;
+			width: 36px;
+			aspect-ratio: 1;
+			background: url('images/key.png') no-repeat 0 0 / 100% 200%;
+			color: black;
+			text-align: center;
+			line-height: 36px;
+		}
 
-	replay-keys .mouse {
-		background-image: url('images/mouseIcon.png');
-		aspect-ratio: 24 / 40;
-	}
+		.mouse {
+			background-image: url('images/mouseIcon.png');
+			aspect-ratio: 24 / 40;
+		}
 
-	replay-keys .pressed {
-		background-position-y: 100%;
+		.pressed {
+			background-position-y: 100%;
+		}
 	}
 </style>

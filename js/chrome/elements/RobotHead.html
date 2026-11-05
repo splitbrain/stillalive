@@ -14,40 +14,40 @@
 		width: 120px;
 		aspect-ratio: 120 / 96;
 		overflow: hidden;
-	}
 
-	/* an absent robot keeps its place, so the parts after it do not move */
-	robot-head[absent] {
-		visibility: hidden;
-	}
+		/* an absent robot keeps its place, so the parts after it do not move */
+		&[absent] {
+			visibility: hidden;
+		}
 
-	robot-head .head {
-		position: absolute;
-		left: calc(100% * 18 / 120);
-		top: calc(100% * 30 / 96);
-		width: calc(100% * 74 / 120);
-		transform: translateX(calc(var(--head-x, 0) * 100% * 17 / 74));
-		transition: transform 0.5s;
-	}
+		.head {
+			position: absolute;
+			left: calc(100% * 18 / 120);
+			top: calc(100% * 30 / 96);
+			width: calc(100% * 74 / 120);
+			transform: translateX(calc(var(--head-x, 0) * 100% * 17 / 74));
+			transition: transform 0.5s;
+		}
 
-	robot-head .eye {
-		position: absolute;
-		left: calc(100% * 47 / 120);
-		top: calc(100% * 56 / 96);
-		width: calc(100% * 19 / 120);
-		aspect-ratio: 1;
-		background-size: 100% 400%;
-		background-repeat: no-repeat;
-		transform: translate(
-			calc((var(--head-x, 0) * 17 + var(--eye-x, 0) * 9) * 100% / 19),
-			calc(var(--eye-y, 0) * 10 * 100% / 19)
-		);
-		transition: transform 0.5s;
-	}
+		.eye {
+			position: absolute;
+			left: calc(100% * 47 / 120);
+			top: calc(100% * 56 / 96);
+			width: calc(100% * 19 / 120);
+			aspect-ratio: 1;
+			background-size: 100% 400%;
+			background-repeat: no-repeat;
+			transform: translate(
+				calc((var(--head-x, 0) * 17 + var(--eye-x, 0) * 9) * 100% / 19),
+				calc(var(--eye-y, 0) * 10 * 100% / 19)
+			);
+			transition: transform 0.5s;
 
-	/* the eye image has four frames from open to closed */
-	robot-head .eye.blink {
-		animation: robot-blink 0.2s step-end;
+			/* the eye image has four frames from open to closed */
+			&.blink {
+				animation: robot-blink 0.2s step-end;
+			}
+		}
 	}
 
 	@keyframes robot-blink {

@@ -10,18 +10,18 @@
 <style>
 	main-menu {
 		display: block;
-	}
 
-	/* the sound button shows the sound setting */
-	main-menu #sound-button {
-		background: url('menu/tex_sound.png') no-repeat center top / auto 70%;
-		padding-top: 40px;
-	}
+		/* the sound button shows the sound setting */
+		#sound-button {
+			background: url('menu/tex_sound.png') no-repeat center top / auto 70%;
+			padding-top: 40px;
 
-	main-menu #sound-button.off {
-		background-image: url('menu/tex_cross.png'), url('menu/tex_sound.png');
-		background-size:
-			auto 60%,
-			auto 70%;
+			&.off {
+				background-image: url('menu/tex_cross.png'), url('menu/tex_sound.png');
+				background-size:
+					auto 60%,
+					auto 70%;
+			}
+		}
 	}
 </style>

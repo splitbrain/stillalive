@@ -32,89 +32,89 @@
 	/* the sprites of the objects; --u is the size of one pixel of a sprite */
 	object-palette {
 		--u: 2px;
-	}
 
-	object-palette button {
-		position: relative;
-		vertical-align: top;
-	}
+		button {
+			position: relative;
+			vertical-align: top;
+		}
 
-	object-palette .sprite {
-		display: block;
-		width: calc(var(--u) * 16);
-		height: calc(var(--u) * 16);
-		background-repeat: no-repeat;
-		background-size: 100% auto;
-	}
+		.sprite {
+			display: block;
+			width: calc(var(--u) * 16);
+			height: calc(var(--u) * 16);
+			background-repeat: no-repeat;
+			background-size: 100% auto;
+		}
 
-	object-palette .cake {
-		height: calc(var(--u) * 12);
-		background-image: url('sprites/cake.svg');
-	}
+		.cake {
+			height: calc(var(--u) * 12);
+			background-image: url('sprites/cake.svg');
+		}
 
-	object-palette .crate {
-		background-image: url('sprites/crate.svg');
-	}
+		.crate {
+			background-image: url('sprites/crate.svg');
+		}
 
-	object-palette .turret-left,
-	object-palette .turret-right {
-		height: calc(var(--u) * 32);
-		background-image: url('sprites/turret0.svg');
-	}
+		.turret-left,
+		.turret-right {
+			height: calc(var(--u) * 32);
+			background-image: url('sprites/turret0.svg');
+		}
 
-	object-palette .turret-right {
-		background-image: url('sprites/turret1.svg');
-	}
+		.turret-right {
+			background-image: url('sprites/turret1.svg');
+		}
 
-	object-palette .platform {
-		width: calc(var(--u) * 48);
-		background-image: url('sprites/platform.svg');
-	}
+		.platform {
+			width: calc(var(--u) * 48);
+			background-image: url('sprites/platform.svg');
+		}
 
-	object-palette .arrow {
-		position: absolute;
-		left: calc(var(--u) * 6);
-		top: 0;
-		color: #f33;
-		line-height: calc(var(--u) * 16 + 6px);
-	}
+		.arrow {
+			position: absolute;
+			left: calc(var(--u) * 6);
+			top: 0;
+			color: #f33;
+			line-height: calc(var(--u) * 16 + 6px);
+		}
 
-	object-palette .player {
-		height: calc(var(--u) * 27);
-		background-image: url('sprites/body0.svg');
-		background-size: 500% auto;
-	}
+		.player {
+			height: calc(var(--u) * 27);
+			background-image: url('sprites/body0.svg');
+			background-size: 500% auto;
 
-	object-palette .player .head {
-		display: block;
-		width: 100%;
-		height: calc(var(--u) * 12);
-		background: url('sprites/head0.svg') no-repeat 0 0 / 500% auto;
-	}
+			.head {
+				display: block;
+				width: 100%;
+				height: calc(var(--u) * 12);
+				background: url('sprites/head0.svg') no-repeat 0 0 / 500% auto;
+			}
+		}
 
-	object-palette .gravpipe-right,
-	object-palette .gravpipe-left {
-		height: calc(var(--u) * 32);
-		background-image: url('sprites/gravpipe.svg');
-	}
+		.gravpipe-right,
+		.gravpipe-left {
+			height: calc(var(--u) * 32);
+			background-image: url('sprites/gravpipe.svg');
+		}
 
-	object-palette .gravpipe-left {
-		background-position: 0 calc(var(--u) * -32);
-	}
+		.gravpipe-left {
+			background-position: 0 calc(var(--u) * -32);
+		}
 
-	object-palette .gravpipe-up,
-	object-palette .gravpipe-down {
-		width: calc(var(--u) * 32);
-		background-image: url('sprites/gravpipe2.svg');
-		background-size: auto 100%;
-	}
+		.gravpipe-up,
+		.gravpipe-down {
+			width: calc(var(--u) * 32);
+			background-image: url('sprites/gravpipe2.svg');
+			background-size: auto 100%;
+		}
 
-	object-palette .gravpipe-down {
-		background-position: calc(var(--u) * -32) 0;
-	}
+		.gravpipe-down {
+			background-position: calc(var(--u) * -32) 0;
+		}
 
-	/* the selected object */
-	object-palette .selected {
-		outline: 2px solid #3f3;
+		/* the selected object */
+		.selected {
+			outline: 2px solid #3f3;
+		}
 	}
 </style>

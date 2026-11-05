@@ -114,9 +114,7 @@ test.describe('chrome', () => {
 		await expectScreen(page, '#/campaign/normal/1', SELECT_PARTS);
 		await expect.poll(() => stageValue(page, 'mode')).toBe('preview');
 
-		// the Exit link adds an entry to the history, so the back button goes into the level again first
-		await page.goBack();
-		await expectScreen(page, '#/campaign/normal/1/play', PLAY_PARTS);
+		// the Exit link replaces the entry of the level, so the back button goes to the entry before the level
 		await page.goBack();
 		await expectScreen(page, '#/campaign/normal/1', SELECT_PARTS);
 

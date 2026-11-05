@@ -409,8 +409,9 @@ export class ReplayKeys extends HTMLElement {
 /**
  * The custom element <pause-menu>. Its markup in the page has the Resume button, the Restart and Exit links and the
  * sound button. The attribute restart is the path of the Restart link, the current play route, and the attribute exit
- * is the path of the Exit link. The Resume button continues the level; the sound button turns the sound on and off and
- * shows the setting. The app element stores the change of the sound.
+ * is the path of the Exit link. The Exit link replaces the entry of the level in the history. The Resume button
+ * continues the level; the sound button turns the sound on and off and shows the setting. The app element stores the
+ * change of the sound.
  */
 export class PauseMenu extends HTMLElement {
 	/** @type {string[]} The attributes that cause a new render when they change. */
@@ -478,8 +479,8 @@ export class PauseMenu extends HTMLElement {
  *
  * The attribute time is the level time in ticks, message is the message under the time, exit, restart and next are the
  * paths of the Exit, Restart and Continue links, and the attribute replay shows the Watch Replay button. A link without
- * its attribute is hidden. The Watch Replay button dispatches the bubbling event replay-watch; the app element plays
- * the replay of the level that just ended.
+ * its attribute is hidden. The Exit link replaces the entry of the level in the history. The Watch Replay button
+ * dispatches the bubbling event replay-watch; the app element plays the replay of the level that just ended.
  */
 export class IntermissionPanel extends HTMLElement {
 	/** @type {string[]} The attributes that cause a new render when they change. */

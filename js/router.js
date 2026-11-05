@@ -14,6 +14,9 @@
  *
  * A navigation to the hash that the URL has already, by a link or by navigate(), sets the route again. The subscribers
  * then apply the same route again, e.g. to restart a level.
+ *
+ * A link with the attribute data-replace replaces the current entry of the history instead of adding a new entry, so
+ * the back button does not go to the screen the link leaves. A click with a modifier key is left to the browser.
  */
 
 import { CAMPAIGN_FOLDERS } from './stage/constants.js';
@@ -92,7 +95,13 @@ window.addEventListener('hashchange', () => route.set(currentRoute()));
 document.addEventListener('click', (event) => {
 	if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
 	const link = event.target.closest?.('a[href^="#/"]');
-	if (link && link.getAttribute('href') === location.hash) route.set(currentRoute());
+	if (!link) return;
+	if (link.hasAttribute('data-replace')) {
+		event.preventDefault();
+		navigate(link.getAttribute('href'), true);
+	} else if (link.getAttribute('href') === location.hash) {
+		route.set(currentRoute());
+	}
 });
 
 /**

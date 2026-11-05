@@ -6,7 +6,6 @@
 /* the custom elements of the page take the full width, so that a click on their area reaches them */
 game-app,
 game-stage,
-play-screen,
 editor-screen {
 	display: block;
 }

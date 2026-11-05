@@ -22,9 +22,9 @@ import { LoadingScreen } from './chrome/elements/LoadingScreen.js';
 import { MainMenu } from './chrome/elements/MainMenu.js';
 import { NarratorText } from './chrome/elements/NarratorText.js';
 import { PauseMenu } from './chrome/elements/PauseMenu.js';
+import { PlayScreen } from './chrome/elements/PlayScreen.js';
 import { ReplayKeys } from './chrome/elements/ReplayKeys.js';
 import { RobotHead } from './chrome/elements/RobotHead.js';
-import { PlayScreen } from './chrome/PlayScreen.js';
 import { GameStage } from './stage/GameStage.js';
 
 customElements.define('game-stage', GameStage);

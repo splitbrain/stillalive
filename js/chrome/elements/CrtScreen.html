@@ -1,0 +1,106 @@
+<template>
+	<style>
+		/*
+		 * The host is the size container: all sizes come from its width in --crt-unit, so the screen scales as one piece.
+		 * The glass shape is a custom property on the host, so the content inherits it.
+		 * The corners of the glass cut at most 1.4% of the width and 1.9% of the height off the content.
+		 */
+		:host {
+			--crt-unit: 1cqw;
+			--crt-frame: calc(var(--crt-unit) * 3.2);
+			--crt-face: var(--color-chrome);
+			--crt-bezel: color-mix(in srgb, color-mix(in srgb, var(--color-page) 60%, var(--color-chrome)), black 20%);
+			--crt-glass: shape(
+				from 1.4% 0.3%,
+				curve to 99.7% 1.9% with 50% -0.9%,
+				curve to 98.6% 99.7% with 100.9% 50%,
+				curve to 0.3% 98.1% with 50% 100.9%,
+				curve to 1.4% 0.3% with -0.9% 50%,
+				close
+			);
+			display: block;
+			container-type: inline-size;
+
+			/*
+			 * The frame is drawn a little crooked. Its outer edge is cut to an uneven quadrangle, where no two edges are
+			 * parallel. Four bands of the front face lie on top of the dark blue bezel, each at a slightly different angle,
+			 * so the bezel is uneven too. The edges of the bands blend over one pixel, because a hard stop of a gradient has
+			 * no antialiasing. The angles suit a frame that is not much wider than high.
+			 */
+			.frame {
+				position: relative;
+				isolation: isolate;
+				padding: var(--crt-frame);
+				background:
+					linear-gradient(
+						179.6deg,
+						var(--crt-face) calc(var(--crt-unit) * 2.4 - 0.5px),
+						transparent calc(var(--crt-unit) * 2.4 + 0.5px)
+					),
+					linear-gradient(
+						90.5deg,
+						var(--crt-face) calc(var(--crt-unit) * 2 - 0.5px),
+						transparent calc(var(--crt-unit) * 2 + 0.5px)
+					),
+					linear-gradient(
+						269.3deg,
+						var(--crt-face) calc(var(--crt-unit) * 2.1 - 0.5px),
+						transparent calc(var(--crt-unit) * 2.1 + 0.5px)
+					),
+					linear-gradient(
+						0.4deg,
+						var(--crt-face) calc(var(--crt-unit) * 2.4 - 0.5px),
+						transparent calc(var(--crt-unit) * 2.4 + 0.5px)
+					),
+					var(--crt-bezel);
+				clip-path: polygon(0.7% 1.6%, 99.2% 0, 100% 99.4%, 0 98.4%);
+			}
+
+			/*
+			 * The glass lies inside the bezel. It looks turned a little clockwise: each corner moves in along one edge only,
+			 * and the edges bow out between the corners. It lies behind the content, and the effects lie on top of it.
+			 */
+			.glass,
+			.effects {
+				position: absolute;
+				inset: var(--crt-frame);
+				pointer-events: none;
+				clip-path: var(--crt-glass);
+			}
+
+			.glass {
+				z-index: -1;
+				background: radial-gradient(
+					ellipse at 40% 35%,
+					color-mix(in srgb, var(--color-screen), white 12%),
+					var(--color-screen) 55%,
+					color-mix(in srgb, var(--color-screen), black 30%)
+				);
+			}
+
+			/* the dark corners, a soft band of light at the top and two small reflections at the bottom right */
+			.effects {
+				z-index: 2;
+				background:
+					radial-gradient(ellipse 40% 9% at 35% 7%, rgb(255 255 255 / 0.2), transparent),
+					radial-gradient(ellipse 5% 2.5% at 90% 92%, rgb(255 255 255 / 0.3), transparent),
+					radial-gradient(ellipse 2.5% 1.5% at 84% 94.5%, rgb(255 255 255 / 0.25), transparent),
+					radial-gradient(ellipse at center, transparent 70%, rgb(0 0 0 / 0.2));
+				box-shadow: inset 0 0 calc(var(--crt-unit) * 2.5) rgb(0 0 0 / 0.25);
+			}
+
+			/* the content fills the glass and takes its shape, in the aspect ratio of --crt-aspect if it is set */
+			.content {
+				display: grid;
+				grid-template: minmax(0, 1fr) / minmax(0, 1fr);
+				aspect-ratio: var(--crt-aspect);
+				clip-path: var(--crt-glass);
+			}
+		}
+	</style>
+	<div class="frame">
+		<div class="glass"></div>
+		<div class="content"><slot></slot></div>
+		<div class="effects"></div>
+	</div>
+</template>

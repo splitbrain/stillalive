@@ -35,7 +35,7 @@ const EDITOR_TEXT =
 
 /**
  * The custom element <game-app>. It creates the parts of the screens and the stage from its template. The stage and
- * the parts that show in its place are in the <main> element, the glass of the CRT; the other parts are around it.
+ * the parts that show in its place are inside the CRT screen; the other parts are around it.
  *
  * On each change of the screen, the element asks each part with shouldShow() if it shows on the current screen, and
  * sets the hidden attribute of the parts that do not show. The stage shows on the select, play, editor and editor-file
@@ -171,7 +171,7 @@ export class GameApp extends ChromeElement {
 	#showScreen() {
 		const screen = this.#screen();
 		const stage = this.stage;
-		for (const child of this.querySelectorAll(':scope > *, main > *')) {
+		for (const child of this.querySelectorAll(':scope > *, crt-screen > *')) {
 			if (child instanceof ChromeElement) child.hidden = !child.shouldShow(screen);
 			else if (child === stage) child.hidden = !STAGE_SCREENS.includes(screen);
 		}

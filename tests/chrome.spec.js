@@ -226,7 +226,7 @@ test.describe('chrome', () => {
 			// the app applies the route after the hashchange event, so the check polls
 			const result = () =>
 				page.evaluate((screen) => {
-					const children = [...document.querySelectorAll('game-app > *, game-app main > *')];
+					const children = [...document.querySelectorAll('game-app > *, game-app crt-screen > *')];
 					const parts = children.filter((child) => typeof child.shouldShow == 'function');
 					return {
 						parts: parts.length,
@@ -234,7 +234,7 @@ test.describe('chrome', () => {
 						stage: !document.querySelector('game-stage').hidden,
 					};
 				}, screen);
-			await expect.poll(result).toEqual({ parts: 15, mismatches: [], stage: screen != 'main' });
+			await expect.poll(result).toEqual({ parts: 16, mismatches: [], stage: screen != 'main' });
 		}
 	});
 

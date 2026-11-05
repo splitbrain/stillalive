@@ -14,11 +14,11 @@
  */
 function showDialog(message, title) {
 	const dialog = document.createElement('dialog');
-	dialog.className = 'message';
 	const heading = document.createElement('h2');
 	heading.textContent = title;
 	const text = document.createElement('p');
 	text.textContent = message;
+	text.style.whiteSpace = 'pre-line';
 	const buttons = document.createElement('p');
 	const ok = Object.assign(document.createElement('button'), { textContent: 'OK' });
 	buttons.append(ok);

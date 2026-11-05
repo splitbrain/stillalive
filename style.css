@@ -3,22 +3,7 @@
 	display: none !important;
 }
 
-/* the app takes the full width, so that a click on its area reaches it */
-game-app {
-	display: block;
-}
-
 /* the page gives the stage its box, and the stage fits the playfield into it */
 game-stage {
 	height: 85vh;
-}
-
-/* the selected level, slot, tile or object */
-.selected {
-	outline: 2px solid #3f3;
-}
-
-/* the messages of the dialogs contain line breaks */
-dialog.message p {
-	white-space: pre-line;
 }

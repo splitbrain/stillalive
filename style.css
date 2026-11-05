@@ -1,3 +1,49 @@
+/* the display font of the game, used for titles */
+@font-face {
+	font-family: yikes;
+	src: url('fonts/yikes.ttf');
+}
+
+/* the key colors and fonts of the page; elements calculate their bevels from a base color and a bevel strength */
+:root {
+	--color-page: #005674;
+	--color-screen: #00a49f;
+	--color-slot: #04abd4;
+	--color-chrome: #97cee9;
+	--color-text: #fff;
+	--color-accent: #fde900;
+	--color-selected: #3f3;
+	--color-danger: #f33;
+	--color-stage: #000;
+
+	--bevel-dark: 27%;
+	--bevel-light: 30%;
+
+	--font-text: 13px Arial, sans-serif;
+	--font-title: 20px yikes, sans-serif;
+}
+
+/* the page fills the window and sets the base look for all elements */
+body {
+	margin: 0;
+	background: url('decor/bg.svg') center top var(--color-page);
+	color: var(--color-text);
+	font: var(--font-text);
+}
+
+/* titles use the display font in the accent color */
+h1,
+h2,
+h3 {
+	font: var(--font-title);
+	color: var(--color-accent);
+}
+
+/* links keep the text color, so they stay readable on the dark page */
+a {
+	color: inherit;
+}
+
 /* the page shows and hides its parts per screen */
 [hidden] {
 	display: none !important;

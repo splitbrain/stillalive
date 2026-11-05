@@ -47,14 +47,15 @@ const EDITOR_TEXT =
  *
  * The element sets the campaign and the level of the route as attributes of the level selection, and the campaign, the
  * level and the play mode as attributes of the best times panel. The panel gets a campaign only on the select and the
- * play routes. It sets the campaign, the level, the play mode and the exit path of the play route as attributes of the
- * play screen, and the fixed text of the selection and the editor screens as the text attribute of the narrator text.
- * It sets the mode attribute of the editor screen: empty on the editor route, save or load on the editor-file route.
- * A replay-import event from a page element plays the replay in its detail.
+ * play routes. On the play route, it gives the restart and the exit paths to the pause menu and the exit path to the
+ * intermission panel. It gives the robot head the eye of the part of the story and marks it as absent in boss levels,
+ * because the boss is the robot. It sets the fixed text of the selection and the editor screens as the text attribute
+ * of the narrator text. It sets the mode attribute of the editor screen: empty on the editor route, save or load on the
+ * editor-file route. A replay-import event from a page element plays the replay in its detail.
  *
  * At the end of a level, the element stores the best time, the replay and the progress, and chooses the next route or
- * shows the intermission panel of the play screen. A replay-watch event from the panel plays the replay of the level
- * that ended. When the window loses the focus during a level, the element pauses the stage.
+ * opens the intermission panel. A new route closes the panel. A replay-watch event from the panel plays the replay of
+ * the level that ended. When the window loses the focus during a level, the element pauses the stage.
  *
  * The element starts the loading of the campaigns and the credits, and sets the sound of the stage from the storage.
  * It stores each change of the sound after the game starts, from the buttons of the page or from the key of the stage.
@@ -99,7 +100,7 @@ export class GameApp extends ChromeElement {
 	}
 
 	/**
-	 * Subscribe to the route, to the loading, to the mode of the stage and to the sound. The first call of the route
+	 * Subscribe to the route, to the loading, to the mode and the pause of the stage and to the sound. The first call of the route
 	 * subscription shows the screen, so that only the loading screen shows at the end of the first connect.
 	 *
 	 * @returns {Array<function(): void>} The functions that remove the subscriptions.
@@ -111,6 +112,7 @@ export class GameApp extends ChromeElement {
 			stage.ready.subscribe(() => this.#applyRoute()),
 			campaignsReady.subscribe(() => this.#applyRoute()),
 			stage.mode.subscribe(() => this.#showScreen()),
+			stage.paused.subscribe(() => this.#showScreen()),
 			stage.sound.subscribe((on) => {
 				if (this.#started) saveSoundSetting(on);
 			}),
@@ -254,7 +256,6 @@ export class GameApp extends ChromeElement {
 		} else {
 			this.stage.stop();
 		}
-		this.#showScreen();
 		setAttributes(this.querySelector('level-selection'), { campaign: r.campaign, level: r.level });
 		const panel = r.name == 'select' || r.name == 'play';
 		setAttributes(this.querySelector('best-times'), {
@@ -263,12 +264,15 @@ export class GameApp extends ChromeElement {
 			mode: r.name == 'play' ? r.mode : null,
 		});
 		const play = r.name == 'play';
-		setAttributes(this.querySelector('play-screen'), {
-			campaign: play ? r.campaign : null,
-			level: play ? r.level : null,
-			mode: play ? r.mode : null,
-			exit: play ? this.#exitPath(r) : null,
-			intermission: null,
+		const exit = play ? this.#exitPath(r) : null;
+		setAttributes(this.querySelector('pause-menu'), {
+			restart: play ? campaignPath(r.campaign, r.level, r.mode) : null,
+			exit,
+		});
+		setAttributes(this.querySelector('intermission-panel'), { exit, open: null });
+		setAttributes(this.querySelector('robot-head'), {
+			eye: play && index == CampaignId.STORY ? Math.min(Math.floor((r.level - 1) / 7), 3) + 1 : null,
+			absent: play && level.boss > 0 ? '' : null,
 		});
 		let text = null;
 		if (r.name == 'select') text = SELECTION_TEXT;
@@ -278,6 +282,7 @@ export class GameApp extends ChromeElement {
 		if (r.name == 'editor') editorMode = '';
 		else if (r.name == 'editor-file') editorMode = r.mode;
 		setAttributes(this.querySelector('editor-screen'), { mode: editorMode });
+		this.#showScreen();
 	}
 
 	/**
@@ -347,7 +352,7 @@ export class GameApp extends ChromeElement {
 	 * Handle the end of a level: the best time, the progress and the next route. In a campaign without intermission
 	 * screens, the next level starts at once. The last level always shows the intermission screen, with the end text of
 	 * the campaign if it has one. After the last story level, the credits show the first time. Else the intermission
-	 * panel of the play screen shows the time, the message and the links of the choice.
+	 * panel shows the time, the message and the links of the choice.
 	 *
 	 * @param {{time: number, replay: object}} detail The detail of the finished event of the stage.
 	 * @returns {void}
@@ -380,8 +385,9 @@ export class GameApp extends ChromeElement {
 				replay: campaign.records ? '' : null,
 				next: !isLastLevel && this.#isOpen(index, r.level + 1) ? campaignPath(r.campaign, r.level + 1, 'play') : null,
 				restart: this.#isOpen(index, r.level) ? campaignPath(r.campaign, r.level, 'play') : null,
+				open: '',
 			});
-			this.querySelector('play-screen').setAttribute('intermission', '');
+			this.#showScreen();
 		}
 	}
 

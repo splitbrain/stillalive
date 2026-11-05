@@ -3,16 +3,17 @@
  */
 
 import { setLink } from '../dom.js';
-import { ChromeElement, loadMarkup } from '../element.js';
+import { ChromeElement, loadMarkup, Screen } from '../element.js';
 
 /** @type {HTMLTemplateElement|null} The markup of the pause menu. */
 const TEMPLATE = await loadMarkup(import.meta.url);
 
 /**
- * The custom element <pause-menu>. It shows the Resume button, the Restart and Exit links and the sound button. The
- * attribute restart is the path of the Restart link, the current play route, and the attribute exit is the path of the
- * Exit link. The Exit link replaces the entry of the level in the history. The Resume button continues the level; the
- * sound button turns the sound on and off and shows the setting. The app element stores the change of the sound.
+ * The custom element <pause-menu>. It shows the Resume button, the Restart and Exit links and the sound button. It shows
+ * on the play screen while the stage is paused. The attribute restart is the path of the Restart link, the current
+ * play route, and the attribute exit is the path of the Exit link. The Exit link replaces the entry of the level in the
+ * history. The Resume button continues the level; the sound button turns the sound on and off and shows the setting.
+ * The app element stores the change of the sound.
  */
 export class PauseMenu extends ChromeElement {
 	/** @type {HTMLTemplateElement|null} The markup of the pause menu. */
@@ -53,5 +54,15 @@ export class PauseMenu extends ChromeElement {
 	render() {
 		setLink(this.querySelector('.restart'), this.getAttribute('restart'));
 		setLink(this.querySelector('.exit'), this.getAttribute('exit'));
+	}
+
+	/**
+	 * Tell if the pause menu shows on a screen of the app.
+	 *
+	 * @param {string} screen The screen, a value of Screen.
+	 * @returns {boolean} True on the play screen while the stage is paused.
+	 */
+	shouldShow(screen) {
+		return screen === Screen.PLAY && this.stage.paused.get();
 	}
 }

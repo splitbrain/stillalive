@@ -15,7 +15,11 @@ const SCREEN_PARTS = [
 	'best-times',
 	'narrator-text',
 	'game-stage',
-	'play-screen',
+	'pause-menu',
+	'intermission-panel',
+	'robot-head',
+	'game-hud',
+	'replay-keys',
 	'editor-screen',
 	'credits-screen',
 ];
@@ -32,7 +36,14 @@ const SELECT_PARTS = ['level-selection', 'best-times', 'narrator-text', 'game-st
  *
  * @type {string[]}
  */
-const PLAY_PARTS = ['play-screen', 'best-times', 'narrator-text', 'game-stage'];
+const PLAY_PARTS = ['robot-head', 'game-hud', 'best-times', 'narrator-text', 'game-stage'];
+
+/**
+ * The screen parts of a boss level. The robot is absent, because the boss is the robot.
+ *
+ * @type {string[]}
+ */
+const BOSS_PARTS = PLAY_PARTS.filter((part) => part != 'robot-head');
 
 /**
  * The screen parts of the editor and of its save and load screen.
@@ -183,7 +194,7 @@ test.describe('chrome', () => {
 
 		await waitForNarrator(page);
 		await page.locator('level-selection .play').click();
-		await expectScreen(page, `#/campaign/story/${last}/play`, PLAY_PARTS);
+		await expectScreen(page, `#/campaign/story/${last}/play`, BOSS_PARTS);
 
 		// the restart skips the entrance of the boss and the waits of its speeches, which hold the level end
 		await page.keyboard.press('Escape');
@@ -213,7 +224,7 @@ test.describe('chrome', () => {
 						stage: !document.querySelector('game-stage').hidden,
 					};
 				}, screen);
-			await expect.poll(result).toEqual({ parts: 8, mismatches: [], stage: screen != 'main' });
+			await expect.poll(result).toEqual({ parts: 12, mismatches: [], stage: screen != 'main' });
 		}
 	});
 

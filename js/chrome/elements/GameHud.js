@@ -2,7 +2,7 @@
  * The HUD element.
  */
 
-import { ChromeElement, loadMarkup } from '../element.js';
+import { ChromeElement, loadMarkup, Screen } from '../element.js';
 
 /** @type {HTMLTemplateElement|null} The markup of the HUD. */
 const TEMPLATE = await loadMarkup(import.meta.url);
@@ -12,6 +12,7 @@ const HUD_VALUES = ['life', 'cakes', 'steps', 'portals', 'fps'];
 
 /**
  * The custom element <game-hud>. It shows the HUD values of the stage: life, cakes, steps, portals and the frame rate.
+ * It shows on the play screen.
  */
 export class GameHud extends ChromeElement {
 	/** @type {HTMLTemplateElement|null} The markup of the HUD. */
@@ -29,5 +30,15 @@ export class GameHud extends ChromeElement {
 				node.textContent = String(value);
 			});
 		});
+	}
+
+	/**
+	 * Tell if the HUD shows on a screen of the app.
+	 *
+	 * @param {string} screen The screen, a value of Screen.
+	 * @returns {boolean} True on the play screen only.
+	 */
+	shouldShow(screen) {
+		return screen === Screen.PLAY;
 	}
 }

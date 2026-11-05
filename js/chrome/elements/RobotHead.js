@@ -2,7 +2,7 @@
  * The robot head element.
  */
 
-import { ChromeElement, loadMarkup } from '../element.js';
+import { ChromeElement, loadMarkup, Screen } from '../element.js';
 
 /** @type {HTMLTemplateElement|null} The markup of the robot head. */
 const TEMPLATE = await loadMarkup(import.meta.url);
@@ -11,8 +11,8 @@ const TEMPLATE = await loadMarkup(import.meta.url);
 const ROBOT_STEP_TIME = 250;
 
 /**
- * The custom element <robot-head>. It shows the head image and the eye. The attribute eye is the number of the eye
- * image, from 1 to 4.
+ * The custom element <robot-head>. It shows the head image and the eye on the play screen. The attribute eye is the
+ * number of the eye image, from 1 to 4. The attribute absent hides the head but keeps its place.
  *
  * An idle animation runs on a timer while the element is visible: from time to time the eye looks to a side, up or
  * down, the head moves to a side, or the eye blinks. The element sets the custom properties --eye-x, --eye-y and
@@ -85,5 +85,15 @@ export class RobotHead extends ChromeElement {
 	#move(property, dir) {
 		this.#positions[property] = Math.max(-1, Math.min(1, this.#positions[property] + dir));
 		this.style.setProperty(property, String(this.#positions[property]));
+	}
+
+	/**
+	 * Tell if the robot head shows on a screen of the app.
+	 *
+	 * @param {string} screen The screen, a value of Screen.
+	 * @returns {boolean} True on the play screen only.
+	 */
+	shouldShow(screen) {
+		return screen === Screen.PLAY;
 	}
 }

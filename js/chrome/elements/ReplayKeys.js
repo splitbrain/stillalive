@@ -2,9 +2,10 @@
  * The replay keys element.
  */
 
+import { route } from '../../router.js';
 import { KEY_CLEAR, KEY_DOWN, KEY_JUMP, KEY_LEFT, KEY_RIGHT, MOUSE_LEFT, MOUSE_RIGHT } from '../../stage/constants.js';
 import { keyLabels } from '../../stage/keys.js';
-import { ChromeElement, loadMarkup } from '../element.js';
+import { ChromeElement, loadMarkup, Screen } from '../element.js';
 
 /** @type {HTMLTemplateElement|null} The markup of the replay keys. */
 const TEMPLATE = await loadMarkup(import.meta.url);
@@ -21,9 +22,9 @@ const KEY_CAPS = {
 };
 
 /**
- * The custom element <replay-keys>. It shows a key cap for each key and mouse button of the controls. The element marks
- * the caps that are pressed in the playback of a replay with the class pressed, and shows the key labels of the
- * keyboard of the player on the key caps.
+ * The custom element <replay-keys>. It shows a key cap for each key and mouse button of the controls. It shows on the
+ * play screen in the playback of a replay. The element marks the caps that are pressed in the playback with the class
+ * pressed, and shows the key labels of the keyboard of the player on the key caps.
  */
 export class ReplayKeys extends ChromeElement {
 	/** @type {HTMLTemplateElement|null} The markup of the replay keys. */
@@ -44,5 +45,15 @@ export class ReplayKeys extends ChromeElement {
 				for (const cap of caps) if (cap.dataset.key in labels) cap.textContent = labels[cap.dataset.key];
 			}),
 		];
+	}
+
+	/**
+	 * Tell if the replay keys element shows on a screen of the app.
+	 *
+	 * @param {string} screen The screen, a value of Screen.
+	 * @returns {boolean} True on the play screen of a replay route.
+	 */
+	shouldShow(screen) {
+		return screen === Screen.PLAY && route.get().mode === 'replay';
 	}
 }

@@ -19,8 +19,15 @@
 	--bevel-dark: 27%;
 	--bevel-light: 30%;
 
-	--font-text: 13px Arial, sans-serif;
-	--font-title: 20px yikes, sans-serif;
+	--font-text: 16px Arial, sans-serif;
+	--font-title: 24px yikes, sans-serif;
+}
+
+/* the sizes of all boxes include their padding and border */
+*,
+::before,
+::after {
+	box-sizing: border-box;
 }
 
 /* the page fills the window and sets the base look for all elements */

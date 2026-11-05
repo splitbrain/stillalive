@@ -5,6 +5,7 @@
 import { CAMPAIGN_FOLDERS, CampaignId } from '../stage/constants.js';
 import { parseMap } from '../stage/mapFile.js';
 import { Value } from '../value.js';
+import { maxLevel } from './storage.js';
 
 /** @type {Campaign[]} The loaded campaigns, by campaign id. */
 export let campaigns;
@@ -29,13 +30,24 @@ export const credits = new Value([]);
 /**
  * A campaign with its levels.
  */
-class Campaign {
+export class Campaign {
 	/**
+	 * @param {number} id The campaign id, the index in the campaigns list.
 	 * @param {string} folder The folder name of the campaign below maps/.
 	 */
-	constructor(folder) {
+	constructor(id, folder) {
+		/** @type {number} The campaign id, the index in the campaigns list. */
+		this.id = id;
 		/** @type {string} The folder name of the campaign below maps/. */
 		this.folder = folder;
+		/** @type {string} The name of the campaign in the main menu. */
+		this.title = folder;
+		/** @type {number} The position of the campaign in the main menu, low numbers first. */
+		this.sort = 0;
+		/** @type {string} The folder of the campaign that the main menu shows this campaign under, or empty for none. */
+		this.parent = '';
+		/** @type {boolean} True if the main menu link starts the first level, false if it opens the level selection. */
+		this.direct = false;
 		/** @type {import('../stage/level.js').Level[]} The levels of the campaign. */
 		this.levels = [];
 		/** @type {boolean} True if the intermission screen shows after each level, false if the next level starts at once. */
@@ -45,6 +57,16 @@ class Campaign {
 		/** @type {string} The message of the last intermission screen, or an empty text for none. */
 		this.endText = '';
 	}
+
+	/**
+	 * Get the number of levels that the player has finished. The levels unlock one after the other, so this is the
+	 * highest unlocked level minus one.
+	 *
+	 * @returns {number} The number of finished levels.
+	 */
+	get completed() {
+		return maxLevel[this.id].get() - 1;
+	}
 }
 
 /**
@@ -53,8 +75,17 @@ class Campaign {
  * @returns {void}
  */
 export function loadCampaigns() {
-	campaigns = CAMPAIGN_FOLDERS.map((folder) => new Campaign(folder));
+	campaigns = CAMPAIGN_FOLDERS.map((folder, id) => new Campaign(id, folder));
 	for (let c = 0; c < campaigns.length; c++) loadCampaignFiles(c);
+}
+
+/**
+ * Get the campaigns in the order of the main menu.
+ *
+ * @returns {Campaign[]} The campaigns, sorted by their sort number.
+ */
+export function listCampaigns() {
+	return campaigns.toSorted((a, b) => a.sort - b.sort);
 }
 
 /**
@@ -65,6 +96,10 @@ export function loadCampaigns() {
  * - intermission: false starts the next level at once after the exit. The default is true.
  * - records: false stores no best times and no replays. The default is true.
  * - endText: the message of the last intermission screen. The default is none.
+ * - title: the name in the main menu. The default is the folder name.
+ * - sort: the position in the main menu, low numbers first. The default is 0.
+ * - parent: the folder name of the campaign that the main menu shows this campaign under. The default is none.
+ * - direct: true starts the first level from the main menu, without the level selection. The default is false.
  *
  * @param {number} camp The index of the campaign.
  * @returns {void}
@@ -75,6 +110,10 @@ function loadCampaignFiles(camp) {
 		campaigns[camp].intermission = data.intermission !== false;
 		campaigns[camp].records = data.records !== false;
 		campaigns[camp].endText = typeof data.endText == 'string' ? data.endText : '';
+		if (typeof data.title == 'string') campaigns[camp].title = data.title;
+		campaigns[camp].sort = Number.isFinite(data.sort) ? data.sort : 0;
+		campaigns[camp].parent = typeof data.parent == 'string' ? data.parent : '';
+		campaigns[camp].direct = data.direct === true;
 		levelsToLoad += data.levels.length;
 		for (let i = 0; i < data.levels.length; i++) {
 			loadLevelFile(camp, i, folder + data.levels[i]);

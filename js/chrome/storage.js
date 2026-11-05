@@ -117,7 +117,8 @@ function readProgress() {
 export const bestTimes = new Value(readBestTimes());
 
 /**
- * The highest unlocked level of each campaign, by campaign index. CAMPAIGN_FINISHED marks a finished campaign.
+ * The highest unlocked level of each campaign, by campaign index. After the last level, it is the number of levels
+ * plus one.
  *
  * @type {Value[]}
  */

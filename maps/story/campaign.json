@@ -1,6 +1,8 @@
 {
 	"format": 1,
 	"name": "story",
+	"title": "Ultimate Mode",
+	"sort": 5,
 	"levels": [
 		"level01.json",
 		"level02.json",

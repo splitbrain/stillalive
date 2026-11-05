@@ -242,7 +242,7 @@ test.describe('chrome', () => {
 		await startGame(page);
 		const counts = await page.evaluate(() => {
 			const stage = window.__test.stage;
-			const menu = document.createElement('main-menu');
+			const menu = document.createElement('pause-menu');
 			const count = () => menu.querySelectorAll('a, button').length;
 			const before = count();
 			document.body.append(menu);
@@ -252,13 +252,13 @@ test.describe('chrome', () => {
 			const reconnected = count();
 			// one click handler after the second connect: a click changes the sound once
 			const sound = stage.sound.get();
-			menu.querySelector('#sound-button').click();
+			menu.querySelector('.sound').click();
 			const toggled = stage.sound.get() !== sound;
 			stage.setSound(sound);
 			menu.remove();
 			return { before, connected, reconnected, toggled };
 		});
-		expect(counts).toEqual({ before: 0, connected: 6, reconnected: 6, toggled: true });
+		expect(counts).toEqual({ before: 0, connected: 4, reconnected: 4, toggled: true });
 	});
 
 	test('renders the attributes that are set before the first connect', async ({ page }) => {

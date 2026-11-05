@@ -2,7 +2,8 @@
  * The main menu element.
  */
 
-import { CAMPAIGN_FINISHED, CampaignId } from '../../stage/constants.js';
+import { campaignPath } from '../../router.js';
+import { campaignsReady, listCampaigns } from '../campaigns.js';
 import { ChromeElement, loadMarkup, Screen } from '../element.js';
 import { maxLevel } from '../storage.js';
 
@@ -10,37 +11,64 @@ import { maxLevel } from '../storage.js';
 const TEMPLATE = await loadMarkup(import.meta.url);
 
 /**
- * The custom element <main-menu>. It shows the links to the campaigns, the editor and the tutorial, and the sound
- * button. The element adds a plus to the label of the first campaign when the player has finished it, shows the sound
- * setting on the sound button and turns the sound on and off with it. The app element stores the change.
+ * The custom element <main-menu>. It shows the list of the campaigns with the number of finished levels and the link to
+ * the editor. A campaign with a parent shows in a sub list below its parent.
  */
 export class MainMenu extends ChromeElement {
 	/** @type {HTMLTemplateElement|null} The markup of the main menu. */
 	static template = TEMPLATE;
 
 	/**
-	 * Add the handler of the sound button.
-	 *
-	 * @returns {void}
-	 */
-	setUp() {
-		this.querySelector('#sound-button').addEventListener('click', () => this.stage.setSound(!this.stage.sound.get()));
-	}
-
-	/**
-	 * Subscribe to the progress of the first campaign and to the sound setting.
+	 * Subscribe to the loading of the campaigns and to the progress of all campaigns.
 	 *
 	 * @returns {Array<function(): void>} The functions that remove the subscriptions.
 	 */
 	subscribe() {
-		const classic = this.querySelector('#main-classic');
-		const soundButton = this.querySelector('#sound-button');
 		return [
-			maxLevel[CampaignId.NORMAL].subscribe((level) => {
-				classic.textContent = 'Classic Mode' + (level == CAMPAIGN_FINISHED ? ' +' : '');
-			}),
-			this.stage.sound.subscribe((on) => soundButton.classList.toggle('off', !on)),
+			campaignsReady.subscribe(() => this.render()),
+			...maxLevel.map((value) => value.subscribe(() => this.render())),
 		];
+	}
+
+	/**
+	 * Build the list of the campaigns after all campaign files are loaded.
+	 *
+	 * @returns {void}
+	 */
+	render() {
+		if (!campaignsReady.get()) return;
+		const items = new Map();
+		const top = [];
+		for (const campaign of listCampaigns()) {
+			const item = this.#createItem(campaign);
+			items.set(campaign.folder, item);
+			const parent = items.get(campaign.parent);
+			if (parent) {
+				let list = parent.querySelector('ul');
+				if (!list) list = parent.appendChild(document.createElement('ul'));
+				list.append(item);
+			} else {
+				top.push(item);
+			}
+		}
+		this.querySelector('.campaigns').replaceChildren(...top);
+	}
+
+	/**
+	 * Create the list item of a campaign. The link shows the title and the number of finished levels.
+	 *
+	 * @param {import('../campaigns.js').Campaign} campaign The campaign.
+	 * @returns {HTMLLIElement} The list item.
+	 */
+	#createItem(campaign) {
+		const count = document.createElement('span');
+		count.textContent = campaign.completed + '/' + campaign.levels.length;
+		const link = document.createElement('a');
+		link.href = campaign.direct ? campaignPath(campaign.folder, 1, 'play') : campaignPath(campaign.folder);
+		link.append(campaign.title, ' ', count);
+		const item = document.createElement('li');
+		item.append(link);
+		return item;
 	}
 
 	/**

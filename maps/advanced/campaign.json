@@ -1,6 +1,9 @@
 {
 	"format": 1,
 	"name": "advanced",
+	"title": "Hard Mode",
+	"sort": 3,
+	"parent": "normal",
 	"levels": [
 		"level01.json",
 		"level02.json",

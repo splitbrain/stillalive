@@ -350,10 +350,11 @@ export class GameApp extends ChromeElement {
 	}
 
 	/**
-	 * Handle the end of a level: the best time, the progress and the next route. In a campaign without intermission
-	 * screens, the next level starts at once. The last level always shows the intermission screen, with the end text of
-	 * the campaign if it has one. After the last story level, the credits show the first time. Else the intermission
-	 * panel shows the time, the message and the links of the choice.
+	 * Handle the end of a level: the best time, the progress and the next route. A campaign without records stores no
+	 * best time, but it stores the progress. In a campaign without intermission screens, the next level starts at once.
+	 * The last level always shows the intermission screen, with the end text of the campaign if it has one. After the
+	 * last story level, the credits show the first time. Else the intermission panel shows the time, the message and
+	 * the links of the choice.
 	 *
 	 * @param {{time: number, replay: object}} detail The detail of the finished event of the stage.
 	 * @returns {void}
@@ -369,7 +370,7 @@ export class GameApp extends ChromeElement {
 		let credits = false;
 		if (records) message = this.#checkBestTime(r, time, replay);
 		if (isLastLevel && campaign.endText) message = campaign.endText;
-		if (records && maxLevel[index].get() < r.level + 1) {
+		if (r.mode == 'play' && maxLevel[index].get() < r.level + 1) {
 			credits = index == CampaignId.STORY && maxLevel[index].get() == LEVELS_PER_CAMPAIGN;
 			saveProgress(index, r.level + 1);
 		}

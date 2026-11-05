@@ -1,27 +1,72 @@
 <template>
-	<a id="main-classic" href="#/campaign/normal">Classic Mode</a>
-	<a href="#/campaign/community">Enhanced Mode</a>
-	<a href="#/campaign/story">Ultimate Mode</a>
+	<ul class="campaigns"></ul>
 	<a href="#/editor">Level Editor</a>
-	<a href="#/campaign/tutorial/1/play">Tutorial</a>
-	<button id="sound-button" title="Click here or press M to turn the sound on and off.">SFX</button>
 </template>
 
 <style>
+	/* the menu sits vertically centered in the cell of the screen */
 	main-menu {
 		display: block;
+		align-self: center;
 
-		/* the sound button shows the sound setting */
-		#sound-button {
-			background: url('menu/tex_sound.png') no-repeat center top / auto 70%;
-			padding-top: 40px;
+		/* the campaigns are a centered column of buttons, the sub lists are indented; all sizes scale with the screen */
+		ul {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			gap: 1.8cqw;
+			margin: 0;
+			padding: 0;
+			list-style: none;
+		}
 
-			&.off {
-				background-image: url('menu/tex_cross.png'), url('menu/tex_sound.png');
-				background-size:
-					auto 60%,
-					auto 70%;
+		li {
+			display: contents;
+		}
+
+		li > ul {
+			margin-top: -0.9cqw;
+			padding-left: 8cqw;
+		}
+
+		/* the slanted button with the title in the accent color and the count at the right */
+		.campaigns a,
+		> a {
+			display: flex;
+			align-items: baseline;
+			justify-content: space-between;
+			gap: 0.5em;
+			width: 40cqw;
+			margin-inline: auto;
+			padding: 0.4em 1.2em 0.3em;
+			background: rgb(2 108 103 / 70%);
+			clip-path: polygon(0 7%, 100% 0, 96.5% 100%, 6.5% 93%);
+			font: var(--font-title);
+			font-size: 3.6cqw;
+			color: var(--color-accent);
+			text-decoration: none;
+			text-shadow: 0.1em 0.1em 0 #000;
+			transition: scale 0.1s;
+
+			&:hover,
+			&:focus-visible {
+				scale: 0.9;
 			}
+
+			span {
+				font-size: 0.6em;
+				color: var(--color-text);
+			}
+		}
+
+		.campaigns ul a {
+			width: 24cqw;
+			font-size: 2.4cqw;
+		}
+
+		> a {
+			margin-block: 1.8cqw;
+			justify-content: center;
 		}
 	}
 </style>

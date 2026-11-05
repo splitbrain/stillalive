@@ -1,6 +1,8 @@
 {
 	"format": 1,
 	"name": "normal",
+	"title": "Classic Mode",
+	"sort": 2,
 	"levels": [
 		"level01.json",
 		"level02.json",

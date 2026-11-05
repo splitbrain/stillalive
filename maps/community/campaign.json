@@ -1,6 +1,8 @@
 {
 	"format": 1,
 	"name": "community",
+	"title": "Enhanced Mode",
+	"sort": 4,
 	"levels": [
 		"level01.json",
 		"level02.json",

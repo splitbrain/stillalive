@@ -115,6 +115,3 @@ export const EDITOR_TILE_TITLES = {
 
 /** @type {number} The number of levels of a campaign. */
 export const LEVELS_PER_CAMPAIGN = 28;
-
-/** @type {number} The value of the highest unlocked level after the player finished the last level of a campaign. */
-export const CAMPAIGN_FINISHED = LEVELS_PER_CAMPAIGN + 1;

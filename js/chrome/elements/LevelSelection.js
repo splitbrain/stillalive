@@ -3,7 +3,7 @@
  */
 
 import { campaignPath } from '../../router.js';
-import { CAMPAIGN_FINISHED, CAMPAIGN_FOLDERS, CampaignId } from '../../stage/constants.js';
+import { CAMPAIGN_FOLDERS } from '../../stage/constants.js';
 import { setLink } from '../dom.js';
 import { ChromeElement, loadMarkup, Screen } from '../element.js';
 import { maxLevel } from '../storage.js';
@@ -13,12 +13,11 @@ const TEMPLATE = await loadMarkup(import.meta.url);
 
 /**
  * The custom element <level-selection>. It is the selection screen of a campaign. It shows the list of the levels and
- * the Exit, mode and Play links.
+ * the Exit and Play links.
  *
  * The attribute campaign is the folder name of the campaign, and the attribute level is the selected level number, or
  * 0 for none. The element gives the campaign, the selected level and the highest unlocked level to the level list. The
- * Play link goes to the play route of the selected level. The mode link switches between the normal and the advanced
- * campaign. It shows in the advanced campaign, and in the normal campaign after the player has finished it.
+ * Play link goes to the play route of the selected level.
  */
 export class LevelSelection extends ChromeElement {
 	/** @type {HTMLTemplateElement|null} The markup of the level selection. */
@@ -28,7 +27,7 @@ export class LevelSelection extends ChromeElement {
 	static observedAttributes = ['campaign', 'level'];
 
 	/**
-	 * Subscribe to the progress of all campaigns. The mode link depends on the progress of the normal campaign.
+	 * Subscribe to the progress of all campaigns.
 	 *
 	 * @returns {Array<function(): void>} The functions that remove the subscriptions.
 	 */
@@ -52,13 +51,6 @@ export class LevelSelection extends ChromeElement {
 		list.setAttribute('unlocked', String(maxLevel[index].get()));
 
 		setLink(this.querySelector('.play'), level > 0 ? campaignPath(folder, level, 'play') : null);
-		const hasMode =
-			index == CampaignId.ADVANCED ||
-			(index == CampaignId.NORMAL && maxLevel[CampaignId.NORMAL].get() == CAMPAIGN_FINISHED);
-		const other = index == CampaignId.NORMAL ? CampaignId.ADVANCED : CampaignId.NORMAL;
-		const mode = this.querySelector('.mode');
-		setLink(mode, hasMode ? campaignPath(CAMPAIGN_FOLDERS[other]) : null);
-		mode.textContent = index == CampaignId.NORMAL ? 'Hard Mode' : 'Normal Mode';
 	}
 
 	/**

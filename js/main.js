@@ -1,6 +1,6 @@
 /**
- * Start code of the page: registers the stage element and the chrome elements. The stage element comes first, so that
- * the chrome elements find it ready for use when they connect.
+ * Start code of the page: registers the stage element and the chrome elements. The stage element comes first. The app
+ * element comes last, because it creates all other elements from its template when it connects.
  */
 
 import { BestTimes } from './chrome/elements/BestTimes.js';
@@ -8,7 +8,7 @@ import { CreditsScreen } from './chrome/elements/CreditsScreen.js';
 import { EditorButtons } from './chrome/elements/EditorButtons.js';
 import { EditorFileButtons } from './chrome/elements/EditorFileButtons.js';
 import { EditorScreen } from './chrome/elements/EditorScreen.js';
-import { GameApp } from './chrome/GameApp.js';
+import { GameApp } from './chrome/elements/GameApp.js';
 import { GameHud } from './chrome/elements/GameHud.js';
 import { IntermissionPanel } from './chrome/elements/IntermissionPanel.js';
 import { LevelList } from './chrome/elements/LevelList.js';

@@ -130,7 +130,7 @@ export class ChromeElement extends HTMLElement {
 	/**
 	 * The stage element of the page.
 	 *
-	 * @returns {HTMLElement} The <game-stage> element.
+	 * @returns {import('../stage/GameStage.js').GameStage} The <game-stage> element.
 	 */
 	get stage() {
 		return document.querySelector('game-stage');

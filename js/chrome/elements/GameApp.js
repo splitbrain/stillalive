@@ -2,11 +2,12 @@
  * The app element: it shows the screen of the route and drives the stage.
  */
 
-import { campaignPath, navigate, route } from '../router.js';
-import { CampaignId, CAMPAIGN_FOLDERS, LEVELS_PER_CAMPAIGN, MAP_SIZE } from '../stage/constants.js';
-import { campaigns, campaignsReady, loadCampaigns, loadCreditsText } from './campaigns.js';
-import { alertDialog } from './dialog.js';
-import { setAttributes } from './dom.js';
+import { campaignPath, navigate, route } from '../../router.js';
+import { CampaignId, CAMPAIGN_FOLDERS, LEVELS_PER_CAMPAIGN, MAP_SIZE } from '../../stage/constants.js';
+import { campaigns, campaignsReady, loadCampaigns, loadCreditsText } from '../campaigns.js';
+import { alertDialog } from '../dialog.js';
+import { setAttributes } from '../dom.js';
+import { ChromeElement, loadMarkup, Screen } from '../element.js';
 import {
 	getBestTime,
 	loadBestReplay,
@@ -15,8 +16,14 @@ import {
 	saveBestTime,
 	saveProgress,
 	saveSoundSetting,
-} from './storage.js';
-import { toTime } from './time.js';
+} from '../storage.js';
+import { toTime } from '../time.js';
+
+/** @type {HTMLTemplateElement|null} The markup of the app: its parts and the stage. */
+const TEMPLATE = await loadMarkup(import.meta.url);
+
+/** @type {string[]} The screens that show the stage. */
+const STAGE_SCREENS = [Screen.SELECT, Screen.PLAY, Screen.EDITOR, Screen.EDITOR_FILE];
 
 /** @type {string} The narrator text of the level selection. */
 const SELECTION_TEXT =
@@ -27,11 +34,11 @@ const EDITOR_TEXT =
 	'Welcome to the StillAliveJS Level Editor ! Here is a place where you can easily create your own maps. You can use your mouse to select tiles or object and draw them on the screen. Then, try out your map. Have Fun !';
 
 /**
- * The custom element <game-app>. It wraps the screens of the page and the stage.
+ * The custom element <game-app>. It creates the parts of the screens and the stage from its template.
  *
- * Each part of a screen names the screens that show it in its data-screens attribute: loading, main, select, play,
- * editor, editor-file or credits. The element sets the hidden attribute of the parts that the current screen does not
- * show, and it sets its data-screen attribute to the current screen.
+ * On each change of the screen, the element asks each part with shouldShow() if it shows on the current screen, and
+ * sets the hidden attribute of the parts that do not show. The stage shows on the select, play, editor and editor-file
+ * screens.
  *
  * The loading screen shows until the stage and the campaigns are ready and the player clicks the loading screen,
  * whatever the route is. Then the element shows the screen of the route and commands the stage. The test run of the
@@ -53,14 +60,14 @@ const EDITOR_TEXT =
  * It stores each change of the sound after the game starts, from the buttons of the page or from the key of the stage.
  * A change on the loading screen is for the session only.
  */
-export class GameApp extends HTMLElement {
-	/** @type {import('../stage/GameStage.js').GameStage} The stage element. */
-	stage;
+export class GameApp extends ChromeElement {
+	/** @type {HTMLTemplateElement|null} The markup of the app: its parts and the stage. */
+	static template = TEMPLATE;
 
 	/** @type {boolean} True after the click on the loading screen that starts the game. */
 	#started = false;
 
-	/** @type {import('../router.js').Route|null} The route that the element applied last, or null. */
+	/** @type {import('../../router.js').Route|null} The route that the element applied last, or null. */
 	#applied = null;
 
 	/** @type {object|null} The replay in the file format that the replay route plays, or null. */
@@ -72,52 +79,42 @@ export class GameApp extends HTMLElement {
 	/** @type {object|null} The replay of the level that ended, for the Watch Replay button of the intermission, or null. */
 	#intermissionReplay = null;
 
-	/** @type {Array<function(): void>} The functions that remove the subscriptions. */
-	#unsubscribe = [];
-
-	/** @type {boolean} True after the first connect, which adds the event handlers. */
-	#setUp = false;
-
 	/**
-	 * Subscribe to the route, to the loading and to the sound. On the first connect, set the sound from the storage,
-	 * start the loading and handle the clicks of the loading screen, the events of the stage, the import of a replay
-	 * and the Watch Replay button of the intermission.
+	 * Set the sound from the storage, start the loading and handle the clicks of the loading screen, the events of the
+	 * stage, the import of a replay and the Watch Replay button of the intermission.
 	 *
 	 * @returns {void}
 	 */
-	connectedCallback() {
-		if (!this.#setUp) {
-			this.#setUp = true;
-			this.stage = this.querySelector('game-stage');
-			this.stage.setSound(loadSoundSetting());
-			loadCampaigns();
-			loadCreditsText();
-			this.querySelector('loading-screen').addEventListener('click', () => this.#start());
-			this.stage.addEventListener('finished', (event) => this.#onFinished(event.detail));
-			this.stage.addEventListener('brokenreplay', () => this.#onBrokenReplay());
-			this.stage.addEventListener('focuslost', () => this.stage.pause());
-			this.addEventListener('replay-import', (event) => this.watch(event.detail.replay));
-			this.addEventListener('replay-watch', () => this.watch(this.#intermissionReplay));
-		}
-		this.#unsubscribe = [
-			route.subscribe(() => this.#applyRoute()),
-			this.stage.ready.subscribe(() => this.#applyRoute()),
-			campaignsReady.subscribe(() => this.#applyRoute()),
-			this.stage.mode.subscribe(() => this.#showScreen()),
-			this.stage.sound.subscribe((on) => {
-				if (this.#started) saveSoundSetting(on);
-			}),
-		];
+	setUp() {
+		const stage = this.stage;
+		stage.setSound(loadSoundSetting());
+		loadCampaigns();
+		loadCreditsText();
+		this.querySelector('loading-screen').addEventListener('click', () => this.#start());
+		stage.addEventListener('finished', (event) => this.#onFinished(event.detail));
+		stage.addEventListener('brokenreplay', () => this.#onBrokenReplay());
+		stage.addEventListener('focuslost', () => stage.pause());
+		this.addEventListener('replay-import', (event) => this.watch(event.detail.replay));
+		this.addEventListener('replay-watch', () => this.watch(this.#intermissionReplay));
 	}
 
 	/**
-	 * Remove the subscriptions.
+	 * Subscribe to the route, to the loading, to the mode of the stage and to the sound. The first call of the route
+	 * subscription shows the screen, so that only the loading screen shows at the end of the first connect.
 	 *
-	 * @returns {void}
+	 * @returns {Array<function(): void>} The functions that remove the subscriptions.
 	 */
-	disconnectedCallback() {
-		for (const unsubscribe of this.#unsubscribe) unsubscribe();
-		this.#unsubscribe = [];
+	subscribe() {
+		const stage = this.stage;
+		return [
+			route.subscribe(() => this.#applyRoute()),
+			stage.ready.subscribe(() => this.#applyRoute()),
+			campaignsReady.subscribe(() => this.#applyRoute()),
+			stage.mode.subscribe(() => this.#showScreen()),
+			stage.sound.subscribe((on) => {
+				if (this.#started) saveSoundSetting(on);
+			}),
+		];
 	}
 
 	/**
@@ -154,32 +151,33 @@ export class GameApp extends HTMLElement {
 	/**
 	 * Get the screen to show.
 	 *
-	 * @returns {string} The name of the screen.
+	 * @returns {string} The screen, a value of Screen. The route names have the same values.
 	 */
 	#screen() {
-		if (!this.#started) return 'loading';
+		if (!this.#started) return Screen.LOADING;
 		const name = route.get().name;
-		if (name == 'editor' && this.stage.mode.get() == 'test') return 'play';
+		if (name == Screen.EDITOR && this.stage.mode.get() == 'test') return Screen.PLAY;
 		return name;
 	}
 
 	/**
-	 * Show the parts of the current screen and hide all other parts.
+	 * Show the parts and the stage that the current screen shows and hide all other parts.
 	 *
 	 * @returns {void}
 	 */
 	#showScreen() {
 		const screen = this.#screen();
-		this.dataset.screen = screen;
-		for (const part of this.querySelectorAll('[data-screens]')) {
-			part.hidden = !part.dataset.screens.split(' ').includes(screen);
+		const stage = this.stage;
+		for (const child of this.children) {
+			if (child instanceof ChromeElement) child.hidden = !child.shouldShow(screen);
+			else if (child === stage) child.hidden = !STAGE_SCREENS.includes(screen);
 		}
 	}
 
 	/**
 	 * Get the index of the campaign of a route.
 	 *
-	 * @param {import('../router.js').Route} r The route.
+	 * @param {import('../../router.js').Route} r The route.
 	 * @returns {number} The campaign index.
 	 */
 	#campaignIndex(r) {
@@ -202,7 +200,7 @@ export class GameApp extends HTMLElement {
 	 * Get the path to leave a level to: the selection with the level selected. A campaign without records, like the
 	 * tutorial, has no selection in the main menu, so its levels go back to the main menu.
 	 *
-	 * @param {import('../router.js').Route} r The route of the level.
+	 * @param {import('../../router.js').Route} r The route of the level.
 	 * @returns {string} The path.
 	 */
 	#exitPath(r) {
@@ -286,8 +284,8 @@ export class GameApp extends HTMLElement {
 	 * Play a replay on the replay route: the replay from watch(), the same replay again for a restart, or else the
 	 * stored replay of the best time.
 	 *
-	 * @param {import('../router.js').Route} r The replay route.
-	 * @param {import('../stage/level.js').Level} level The level.
+	 * @param {import('../../router.js').Route} r The replay route.
+	 * @param {import('../../stage/level.js').Level} level The level.
 	 * @param {boolean} restart True if the route applies again.
 	 * @returns {void}
 	 */
@@ -312,8 +310,8 @@ export class GameApp extends HTMLElement {
 	 * Start the playback of a replay. If there is no replay or the replay is not valid, a message shows and the
 	 * selection of the level replaces the route.
 	 *
-	 * @param {import('../router.js').Route} r The replay route.
-	 * @param {import('../stage/level.js').Level} level The level.
+	 * @param {import('../../router.js').Route} r The replay route.
+	 * @param {import('../../stage/level.js').Level} level The level.
 	 * @param {object|null|undefined} data The replay in the file format, or nothing.
 	 * @param {boolean} restart True to skip the waits at the level start.
 	 * @returns {void}
@@ -332,7 +330,7 @@ export class GameApp extends HTMLElement {
 	/**
 	 * Store the level time and the replay if the time is a new best time.
 	 *
-	 * @param {import('../router.js').Route} r The route of the level.
+	 * @param {import('../../router.js').Route} r The route of the level.
 	 * @param {number} time The level time in ticks.
 	 * @param {object} replay The replay in the file format.
 	 * @returns {string} The message for the intermission screen.

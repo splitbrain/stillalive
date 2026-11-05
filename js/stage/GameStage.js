@@ -3,6 +3,9 @@
  *
  * The page commands the stage with the methods, reads and observes its state with the Value properties, and gets the
  * events "finished", "died", "focuslost" and "brokenreplay".
+ *
+ * The canvas is in the shadow root of the element, with the styles of the stage. The page gives the element its width
+ * and its height; the stage fits the playfield into that box at its fixed aspect ratio, centered, and never cuts it.
  */
 
 import { allImagesLoaded, imageProgress, missingImages, onImageDone } from './assets.js';
@@ -35,6 +38,29 @@ import { Value } from '../value.js';
 
 /** @type {number} The number of ticks between two updates of the level time. */
 const TIME_UPDATE_INTERVAL = 30;
+
+/**
+ * The styles of the stage in its shadow root. The element is a grid that centers the canvas. A size container gives
+ * the canvas the height of the element in cqh units, so the canvas takes the width of the element or the width that
+ * fits the height, whichever is smaller, and keeps the aspect ratio of the playfield.
+ *
+ * @type {string}
+ */
+const STAGE_STYLE = `
+	:host {
+		display: grid;
+		place-items: center;
+		container-type: size;
+	}
+
+	canvas {
+		width: min(100%, calc(100cqh * ${PLAYFIELD_WIDTH} / ${PLAYFIELD_HEIGHT}));
+		aspect-ratio: ${PLAYFIELD_WIDTH} / ${PLAYFIELD_HEIGHT};
+		background: black;
+		cursor: url('blank.png'), none;
+		touch-action: none;
+	}
+`;
 
 /**
  * The stage: it plays a level, shows the preview of a level or opens the editor on a map.
@@ -77,7 +103,8 @@ export class GameStage extends HTMLElement {
 	#started = false;
 
 	/**
-	 * Create the canvas, start the loading of the images and the sounds, the input and the game loop.
+	 * Create the shadow root with the styles and the canvas, start the loading of the images and the sounds, the input
+	 * and the game loop.
 	 *
 	 * @returns {void}
 	 */
@@ -85,10 +112,12 @@ export class GameStage extends HTMLElement {
 		if (this.#started) return;
 		this.#started = true;
 
+		const style = document.createElement('style');
+		style.textContent = STAGE_STYLE;
 		const canvas = document.createElement('canvas');
 		canvas.width = PLAYFIELD_WIDTH;
 		canvas.height = PLAYFIELD_HEIGHT;
-		this.append(canvas);
+		this.attachShadow({ mode: 'open' }).append(style, canvas);
 		setCanvas(canvas);
 		ctx.strokeStyle = 'rgb(255, 0, 0)';
 		ctx.font = 'bold 10px Arial';

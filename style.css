@@ -3,20 +3,14 @@
 	display: none !important;
 }
 
-/* the app and the stage take the full width, so that a click on their area reaches them */
-game-app,
-game-stage {
+/* the app takes the full width, so that a click on its area reaches it */
+game-app {
 	display: block;
 }
 
-/* the canvas keeps the aspect ratio of the playfield and stays low enough for the window height */
-game-stage canvas {
-	cursor: url('./blank.png'), none;
-	touch-action: none;
-	display: block;
-	width: min(100%, calc(85vh * 512 / 384));
-	aspect-ratio: 512 / 384;
-	background: black;
+/* the page gives the stage its box, and the stage fits the playfield into it */
+game-stage {
+	height: 85vh;
 }
 
 /* the selected level, slot, tile or object */

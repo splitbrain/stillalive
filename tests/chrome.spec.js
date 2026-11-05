@@ -20,7 +20,10 @@ const SCREEN_PARTS = [
 	'robot-head',
 	'game-hud',
 	'replay-keys',
-	'editor-screen',
+	'tile-palette',
+	'object-palette',
+	'editor-buttons',
+	'editor-files',
 	'credits-screen',
 ];
 
@@ -46,11 +49,18 @@ const PLAY_PARTS = ['robot-head', 'game-hud', 'best-times', 'narrator-text', 'ga
 const BOSS_PARTS = PLAY_PARTS.filter((part) => part != 'robot-head');
 
 /**
- * The screen parts of the editor and of its save and load screen.
+ * The screen parts of the editor.
  *
  * @type {string[]}
  */
-const EDITOR_PARTS = ['editor-screen', 'narrator-text', 'game-stage'];
+const EDITOR_PARTS = ['tile-palette', 'object-palette', 'editor-buttons', 'narrator-text', 'game-stage'];
+
+/**
+ * The screen parts of the save and load screen of the editor.
+ *
+ * @type {string[]}
+ */
+const FILE_PARTS = ['editor-files', 'narrator-text', 'game-stage'];
 
 /**
  * Check the hash of the URL and the parts of the page that show. All other screen parts must be hidden.
@@ -151,7 +161,7 @@ test.describe('chrome', () => {
 
 		await waitForNarrator(page);
 		await page.locator('editor-buttons').getByRole('link', { name: 'Save' }).click();
-		await expectScreen(page, '#/editor/save', EDITOR_PARTS);
+		await expectScreen(page, '#/editor/save', FILE_PARTS);
 		await expect(page.locator('slot-list')).toBeVisible();
 		await expect(page.locator('slot-list button').first()).toBeVisible();
 		await expect(page.locator('tile-palette')).toBeHidden();
@@ -164,7 +174,7 @@ test.describe('chrome', () => {
 		await expect.poll(() => stageValue(page, 'mode')).toBe('edit');
 
 		await page.locator('editor-buttons').getByRole('link', { name: 'Save' }).click();
-		await expectScreen(page, '#/editor/save', EDITOR_PARTS);
+		await expectScreen(page, '#/editor/save', FILE_PARTS);
 		await page.locator('editor-file-buttons').getByRole('link', { name: 'Exit' }).click();
 		await expectScreen(page, '#/editor', EDITOR_PARTS);
 		await expect(page.locator('tile-palette')).toBeVisible();
@@ -224,7 +234,7 @@ test.describe('chrome', () => {
 						stage: !document.querySelector('game-stage').hidden,
 					};
 				}, screen);
-			await expect.poll(result).toEqual({ parts: 12, mismatches: [], stage: screen != 'main' });
+			await expect.poll(result).toEqual({ parts: 15, mismatches: [], stage: screen != 'main' });
 		}
 	});
 

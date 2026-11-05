@@ -50,8 +50,8 @@ const EDITOR_TEXT =
  * play routes. On the play route, it gives the restart and the exit paths to the pause menu and the exit path to the
  * intermission panel. It gives the robot head the eye of the part of the story and marks it as absent in boss levels,
  * because the boss is the robot. It sets the fixed text of the selection and the editor screens as the text attribute
- * of the narrator text. It sets the mode attribute of the editor screen: empty on the editor route, save or load on the
- * editor-file route. A replay-import event from a page element plays the replay in its detail.
+ * of the narrator text. It sets the mode attribute of the save and load screen: empty on the editor route, save or
+ * load on the editor-file route. A replay-import event from a page element plays the replay in its detail.
  *
  * At the end of a level, the element stores the best time, the replay and the progress, and chooses the next route or
  * opens the intermission panel. A new route closes the panel. A replay-watch event from the panel plays the replay of
@@ -281,7 +281,7 @@ export class GameApp extends ChromeElement {
 		let editorMode = null;
 		if (r.name == 'editor') editorMode = '';
 		else if (r.name == 'editor-file') editorMode = r.mode;
-		setAttributes(this.querySelector('editor-screen'), { mode: editorMode });
+		setAttributes(this.querySelector('editor-files'), { mode: editorMode });
 		this.#showScreen();
 	}
 

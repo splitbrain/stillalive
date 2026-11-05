@@ -3,25 +3,19 @@
  */
 
 import { EDITOR_TILE_TITLES, EDITOR_TILES } from '../../stage/constants.js';
-import { dispatch } from '../dom.js';
-import { ChromeElement, loadMarkup } from '../element.js';
+import { ChromeElement, loadMarkup, Screen } from '../element.js';
 
 /** @type {HTMLTemplateElement|null} The markup of the tile palette, null because the palette has only a style. */
 const TEMPLATE = await loadMarkup(import.meta.url);
 
 /**
- * The custom element <tile-palette>. It shows a button for each tile of the editor. Each button shows the image of its
- * tile.
- *
- * The attribute selected is the tile id or the object id that the editor paints. Its button has the class selected. A
- * click on a button dispatches the bubbling event brush-select with the tile id as detail.tile.
+ * The custom element <tile-palette>. It shows a button for each tile of the editor on the editor screen. Each button
+ * shows the image of its tile. A click on a button makes its tile the brush of the stage. The button of the brush has
+ * the class selected.
  */
 export class TilePalette extends ChromeElement {
 	/** @type {HTMLTemplateElement|null} The markup of the tile palette, null because the palette has only a style. */
 	static template = TEMPLATE;
-
-	/** @type {string[]} The attributes that cause a new render when they change. */
-	static observedAttributes = ['selected'];
 
 	/**
 	 * Add the click handler of the tile buttons.
@@ -31,17 +25,26 @@ export class TilePalette extends ChromeElement {
 	setUp() {
 		this.addEventListener('click', (event) => {
 			const button = event.target.closest('button[data-tile]');
-			if (button) dispatch(this, 'brush-select', { tile: Number(button.dataset.tile) });
+			if (button) this.stage.setBrush(Number(button.dataset.tile));
 		});
 	}
 
 	/**
-	 * Make the tile buttons from the selected tile and replace the children with them.
+	 * Subscribe to the brush of the stage.
+	 *
+	 * @returns {Array<function(): void>} The functions that remove the subscriptions.
+	 */
+	subscribe() {
+		return [this.stage.brush.subscribe(() => this.render())];
+	}
+
+	/**
+	 * Make the tile buttons from the brush of the stage and replace the children with them.
 	 *
 	 * @returns {void}
 	 */
 	render() {
-		const selected = Number(this.getAttribute('selected'));
+		const brush = this.stage.brush.get();
 		const buttons = EDITOR_TILES.map((tile) => {
 			const button = document.createElement('button');
 			const image = document.createElement('img');
@@ -50,9 +53,19 @@ export class TilePalette extends ChromeElement {
 			button.append(image);
 			button.dataset.tile = String(tile);
 			button.title = EDITOR_TILE_TITLES[tile];
-			button.classList.toggle('selected', this.hasAttribute('selected') && tile == selected);
+			button.classList.toggle('selected', tile == brush);
 			return button;
 		});
 		this.replaceChildren(...buttons);
+	}
+
+	/**
+	 * Tell if the tile palette shows on a screen of the app.
+	 *
+	 * @param {string} screen The screen, a value of Screen.
+	 * @returns {boolean} True on the editor screen only.
+	 */
+	shouldShow(screen) {
+		return screen === Screen.EDITOR;
 	}
 }

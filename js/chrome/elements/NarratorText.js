@@ -16,7 +16,8 @@ const TEST_TEXT = 'Press <Enter> or <Escape> key to stop testing.';
 /**
  * The custom element <narrator-text>. It shows a text in a paragraph. The element types the text at 45 characters per
  * second, and starts again for each new text and for each new message of the stage, also when the message has the same
- * text. The typing stops while the stage is paused.
+ * text. The typing stops while the stage is paused. A text that is longer than the paragraph scrolls, and the typing
+ * keeps its end in view.
  *
  * The text is the key hint during the test run of the editor map, else the attribute text, which the app element sets
  * on the screens with a fixed text, else the text of the message of the stage.
@@ -96,12 +97,14 @@ export class NarratorText extends ChromeElement {
 	}
 
 	/**
-	 * Show the typed part of the text.
+	 * Show the typed part of the text, and scroll to its end.
 	 *
 	 * @returns {void}
 	 */
 	#show() {
-		this.querySelector('p').textContent = this.#text.slice(0, this.#shown);
+		const paragraph = this.querySelector('p');
+		paragraph.textContent = this.#text.slice(0, this.#shown);
+		paragraph.scrollTop = paragraph.scrollHeight;
 	}
 
 	/**

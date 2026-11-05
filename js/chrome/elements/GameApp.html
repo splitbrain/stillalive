@@ -23,13 +23,19 @@
 	game-app {
 		display: block;
 
+		/* the narrator text has the width of the CRT screen */
+		> narrator-text {
+			width: var(--width-screen);
+			margin: 0 auto;
+		}
+
 		/*
-		 * The CRT screen shows the stage and the parts that show in its place. It is never taller than the window. Its
-		 * content has the aspect ratio of the playfield, so the stage fills the glass.
+		 * The CRT screen shows the stage and the parts that show in its place. Its content has the aspect ratio of the
+		 * playfield, so the stage fills the glass.
 		 */
-		crt-screen {
+		> crt-screen {
 			--crt-aspect: 4 / 3;
-			width: min(100vw - 4rem, 112vh);
+			width: var(--width-screen);
 			margin: 0 auto;
 
 			/* the parts in the CRT screen lie on top of each other in one cell */

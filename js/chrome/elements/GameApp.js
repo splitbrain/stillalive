@@ -34,7 +34,8 @@ const EDITOR_TEXT =
 	'Welcome to the StillAliveJS Level Editor ! Here is a place where you can easily create your own maps. You can use your mouse to select tiles or object and draw them on the screen. Then, try out your map. Have Fun !';
 
 /**
- * The custom element <game-app>. It creates the parts of the screens and the stage from its template.
+ * The custom element <game-app>. It creates the parts of the screens and the stage from its template. The stage and
+ * the parts that show in its place are in the <main> element, the glass of the CRT; the other parts are around it.
  *
  * On each change of the screen, the element asks each part with shouldShow() if it shows on the current screen, and
  * sets the hidden attribute of the parts that do not show. The stage shows on the select, play, editor and editor-file
@@ -170,7 +171,7 @@ export class GameApp extends ChromeElement {
 	#showScreen() {
 		const screen = this.#screen();
 		const stage = this.stage;
-		for (const child of this.children) {
+		for (const child of this.querySelectorAll(':scope > *, main > *')) {
 			if (child instanceof ChromeElement) child.hidden = !child.shouldShow(screen);
 			else if (child === stage) child.hidden = !STAGE_SCREENS.includes(screen);
 		}

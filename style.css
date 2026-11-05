@@ -48,8 +48,3 @@ a {
 [hidden] {
 	display: none !important;
 }
-
-/* the page gives the stage its box, and the stage fits the playfield into it */
-game-stage {
-	height: 85vh;
-}

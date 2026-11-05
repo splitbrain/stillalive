@@ -1,24 +1,139 @@
 <template>
 	<narrator-text></narrator-text>
-	<game-stage></game-stage>
-	<loading-screen></loading-screen>
-	<credits-screen></credits-screen>
-	<main-menu></main-menu>
-	<pause-menu></pause-menu>
-	<intermission-panel></intermission-panel>
+	<main>
+		<game-stage></game-stage>
+		<loading-screen></loading-screen>
+		<credits-screen></credits-screen>
+		<main-menu></main-menu>
+		<pause-menu></pause-menu>
+		<intermission-panel></intermission-panel>
+		<level-selection></level-selection>
+		<editor-files></editor-files>
+	</main>
 	<robot-head></robot-head>
 	<game-hud></game-hud>
 	<replay-keys></replay-keys>
 	<tile-palette></tile-palette>
 	<object-palette></object-palette>
 	<editor-buttons></editor-buttons>
-	<editor-files></editor-files>
-	<level-selection></level-selection>
 	<best-times></best-times>
 </template>
 
 <style>
 	game-app {
 		display: block;
+	}
+
+	/*
+	 * The main element is a CRT screen, drawn a little crooked. Its outer edge is cut to an uneven quadrangle, where no
+	 * two edges are parallel. Four bands of the front face lie on top of the dark blue bezel, each at a slightly
+	 * different angle, so the bezel is uneven too. The glass lies inside the bezel. It looks turned a little clockwise:
+	 * each corner moves in along one edge only, and the edges bow out between the corners. No corner cuts more than half
+	 * a tile off the playfield, which is 1.56% of its width and 2.08% of its height. A light spot in the glass, dark
+	 * corners and a glare lie on top of the content. All sizes come from the outer width of the screen in --crt-unit, so
+	 * it scales as one piece. It is never taller than the window. The edges of the bands blend over one pixel, because a
+	 * hard stop of a gradient has no antialiasing.
+	 *
+	 * The content box is the glass, with the aspect ratio of the playfield. It shows the parts in one cell, on top of
+	 * each other. The level selection and the save and load screen take a column on the right of the stage.
+	 */
+	game-app main {
+		--crt-size: min(100vw - 4rem, 112vh);
+		--crt-unit: calc(var(--crt-size) / 100);
+		--crt-frame: calc(var(--crt-unit) * 3.2);
+		--crt-face: var(--color-chrome);
+		--crt-bezel: color-mix(in srgb, color-mix(in srgb, var(--color-page) 60%, var(--color-chrome)), black 20%);
+		--crt-glass: shape(
+			from 1.4% 0.3%,
+			curve to 99.7% 1.9% with 50% -0.9%,
+			curve to 98.6% 99.7% with 100.9% 50%,
+			curve to 0.3% 98.1% with 50% 100.9%,
+			curve to 1.4% 0.3% with -0.9% 50%,
+			close
+		);
+		position: relative;
+		isolation: isolate;
+		display: grid;
+		grid-template: minmax(0, 1fr) / minmax(0, 1fr) fit-content(30%);
+		width: calc(var(--crt-size) - 2 * var(--crt-frame));
+		aspect-ratio: 4 / 3;
+		margin: 0 auto;
+		padding: var(--crt-frame);
+		background:
+			linear-gradient(
+				179.6deg,
+				var(--crt-face) calc(var(--crt-unit) * 2.4 - 0.5px),
+				transparent calc(var(--crt-unit) * 2.4 + 0.5px)
+			),
+			linear-gradient(
+				90.5deg,
+				var(--crt-face) calc(var(--crt-unit) * 2 - 0.5px),
+				transparent calc(var(--crt-unit) * 2 + 0.5px)
+			),
+			linear-gradient(
+				269.3deg,
+				var(--crt-face) calc(var(--crt-unit) * 2.1 - 0.5px),
+				transparent calc(var(--crt-unit) * 2.1 + 0.5px)
+			),
+			linear-gradient(
+				0.4deg,
+				var(--crt-face) calc(var(--crt-unit) * 2.4 - 0.5px),
+				transparent calc(var(--crt-unit) * 2.4 + 0.5px)
+			),
+			var(--crt-bezel);
+		clip-path: polygon(0.7% 1.6%, 99.2% 0, 100% 99.4%, 0 98.4%);
+	}
+
+	/* the glass behind the content and the effects on top of it */
+	game-app main::before,
+	game-app main::after {
+		content: '';
+		position: absolute;
+		inset: var(--crt-frame);
+		pointer-events: none;
+		clip-path: var(--crt-glass);
+	}
+
+	game-app main::before {
+		z-index: -1;
+		background: radial-gradient(
+			ellipse at 40% 35%,
+			color-mix(in srgb, var(--color-screen), white 12%),
+			var(--color-screen) 55%,
+			color-mix(in srgb, var(--color-screen), black 30%)
+		);
+	}
+
+	/* the dark corners, a soft band of light at the top and two small reflections at the bottom right */
+	game-app main::after {
+		z-index: 2;
+		background:
+			radial-gradient(ellipse 40% 9% at 35% 7%, rgb(255 255 255 / 0.2), transparent),
+			radial-gradient(ellipse 5% 2.5% at 90% 92%, rgb(255 255 255 / 0.3), transparent),
+			radial-gradient(ellipse 2.5% 1.5% at 84% 94.5%, rgb(255 255 255 / 0.25), transparent),
+			radial-gradient(ellipse at center, transparent 70%, rgb(0 0 0 / 0.2));
+		box-shadow: inset 0 0 calc(var(--crt-unit) * 2.5) rgb(0 0 0 / 0.25);
+	}
+
+	game-app main > * {
+		grid-area: 1 / 1;
+		min-width: 0;
+		min-height: 0;
+	}
+
+	game-app main > :is(level-selection, editor-files) {
+		grid-area: 1 / 2;
+		margin-left: calc(var(--crt-unit) * 2);
+	}
+
+	/* the stage fills the glass and takes its shape */
+	game-app main > game-stage {
+		clip-path: var(--crt-glass);
+	}
+
+	/* the pause menu and the intermission panel cover the stage */
+	game-app main > :is(pause-menu, intermission-panel) {
+		place-self: center;
+		z-index: 1;
 	}
 </style>

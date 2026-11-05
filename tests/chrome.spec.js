@@ -226,7 +226,7 @@ test.describe('chrome', () => {
 			// the app applies the route after the hashchange event, so the check polls
 			const result = () =>
 				page.evaluate((screen) => {
-					const children = [...document.querySelector('game-app').children];
+					const children = [...document.querySelectorAll('game-app > *, game-app main > *')];
 					const parts = children.filter((child) => typeof child.shouldShow == 'function');
 					return {
 						parts: parts.length,

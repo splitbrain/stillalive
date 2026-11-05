@@ -1,39 +1,81 @@
 <template>
-	<img class="head" src="sprites/robotHead.svg" alt="" />
-	<div class="eye"></div>
+	<div class="glass">
+		<img class="head" src="sprites/robotHead.svg" alt="" />
+		<div class="eye"></div>
+	</div>
 </template>
 
 <style>
 	/*
-	 * The robot head is a panel of 120 by 96 pixels. The idle animation sets --head-x, --eye-x and --eye-y to -1, 0 or 1.
-	 * The head moves 17 pixels to a side, the eye moves 9 pixels to a side and 10 pixels up or down.
+	 * The robot head sits behind the glass of a small window in a light frame. The window has the aspect ratio of a
+	 * panel of 108 by 92 units, and all sizes are relative to the width that the element gets. The host is the size
+	 * container of the glass. The frame is drawn a little crooked: its outer edge and the dark blue bezel are uneven
+	 * quadrangles. The glass lies inside the bezel with round corners and shows the lab scene behind the robot. The glass
+	 * covers the whole panel, so the head and the eye use the coordinates of the panel, and the shape of the glass cuts
+	 * them off at the bezel.
+	 *
+	 * The idle animation sets --head-x, --eye-x and --eye-y to -1, 0 or 1. The head moves 17 units to a side, the eye
+	 * moves 9 units to a side and 10 units up or down.
 	 */
 	robot-head {
+		--robot-bezel: color-mix(in srgb, color-mix(in srgb, var(--color-page) 60%, var(--color-chrome)), black 20%);
+		--robot-glass: color-mix(in srgb, var(--color-chrome) 75%, var(--color-page));
 		display: block;
 		position: relative;
-		width: 120px;
-		aspect-ratio: 120 / 96;
-		overflow: hidden;
+		container-type: inline-size;
+		aspect-ratio: 108 / 92;
+		background: var(--color-chrome);
+		clip-path: polygon(1.9% 10.3%, 99.1% 1.1%, 99.1% 98.9%, 5.6% 98.9%);
 
 		/* an absent robot keeps its place, so the parts after it do not move */
 		&[absent] {
 			visibility: hidden;
 		}
 
+		/* the bezel lies behind the glass and shows about 2 units around it */
+		&::before {
+			content: '';
+			position: absolute;
+			inset: 0;
+			background: var(--robot-bezel);
+			clip-path: polygon(5.6% 16.8%, 94.4% 7.6%, 94.4% 93.5%, 9.3% 93.5%);
+		}
+
+		.glass {
+			position: absolute;
+			inset: 0;
+			background:
+				url('decor/robotScene.svg') 0 0 / 100% 100% no-repeat,
+				var(--robot-glass);
+			box-shadow: inset 0 0 calc(100cqw * 6 / 108) rgb(0 0 0 / 0.25);
+			clip-path: shape(
+				from 10.2% 19.3%,
+				line to 88.9% 11.2%,
+				curve to 91.7% 14.1% with 91.7% 10.9%,
+				line to 91.7% 88%,
+				curve to 88.9% 91.3% with 91.7% 91.3%,
+				line to 13.9% 91.3%,
+				curve to 10.9% 88% with 11.1% 91.3%,
+				line to 7.6% 22.8%,
+				curve to 10.2% 19.3% with 7.4% 19.6%,
+				close
+			);
+		}
+
 		.head {
 			position: absolute;
-			left: calc(100% * 18 / 120);
-			top: calc(100% * 30 / 96);
-			width: calc(100% * 74 / 120);
+			left: calc(100% * 18 / 108);
+			top: calc(100% * 28 / 92);
+			width: calc(100% * 74 / 108);
 			transform: translateX(calc(var(--head-x, 0) * 100% * 17 / 74));
 			transition: transform 0.5s;
 		}
 
 		.eye {
 			position: absolute;
-			left: calc(100% * 47 / 120);
-			top: calc(100% * 56 / 96);
-			width: calc(100% * 19 / 120);
+			left: calc(100% * 47 / 108);
+			top: calc(100% * 54 / 92);
+			width: calc(100% * 19 / 108);
 			aspect-ratio: 1;
 			background-size: 100% 400%;
 			background-repeat: no-repeat;

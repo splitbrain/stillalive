@@ -11,8 +11,9 @@ const TEMPLATE = await loadMarkup(import.meta.url);
 const ROBOT_STEP_TIME = 250;
 
 /**
- * The custom element <robot-head>. It shows the head image and the eye on the play screen. The attribute eye is the
- * number of the eye image, from 1 to 4. The attribute absent hides the head but keeps its place.
+ * The custom element <robot-head>. It shows the head image and the eye on the play screen, behind the glass of a
+ * framed window with a lab scene in the background. The attribute eye is the number of the eye image, from 1 to 4. The
+ * attribute absent hides the head but keeps its place.
  *
  * An idle animation runs on a timer while the element is visible: from time to time the eye looks to a side, up or
  * down, the head moves to a side, or the eye blinks. The element sets the custom properties --eye-x, --eye-y and

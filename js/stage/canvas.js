@@ -119,8 +119,9 @@ function scaledImage(image) {
 /**
  * Draw an image like ctx.drawImage(), with the same arguments after the image. The source rectangle and the size of
  * the image are in playfield units: the pixels of a raster image, or the viewBox of a vector image. The browser scales
- * a raster image directly. A vector image is drawn from its copy at the scale of the buffer. An image that is not
- * loaded is not drawn.
+ * a raster image directly. A vector image is drawn from its copy at the scale of the buffer. Without a rotation in
+ * the current transformation, the edges of a vector image are on whole buffer pixels. An image that is not loaded is
+ * not drawn.
  *
  * @param {HTMLImageElement} image The image.
  * @param {...number} args The destination position, or the destination rectangle, or the source rectangle followed
@@ -134,14 +135,34 @@ export function drawImage(image, ...args) {
 		return;
 	}
 	const picture = scaledImage(image);
-	if (args.length === 2) {
-		ctx.drawImage(picture, args[0], args[1], image.naturalWidth, image.naturalHeight);
-	} else if (args.length === 4) {
-		ctx.drawImage(picture, args[0], args[1], args[2], args[3]);
-	} else {
-		const [sx, sy, sw, sh, dx, dy, dw, dh] = args;
-		ctx.drawImage(picture, sx * scale, sy * scale, sw * scale, sh * scale, dx, dy, dw, dh);
+	let [dx, dy, dw, dh] = args.length === 2 ? [...args, image.naturalWidth, image.naturalHeight] : args.slice(-4);
+	const m = ctx.getTransform();
+	if (m.b === 0 && m.c === 0) {
+		[dx, dw] = snapSpan(dx, dw, m.a, m.e);
+		[dy, dh] = snapSpan(dy, dh, m.d, m.f);
 	}
+	if (args.length === 8) {
+		const [sx, sy, sw, sh] = args;
+		ctx.drawImage(picture, sx * scale, sy * scale, sw * scale, sh * scale, dx, dy, dw, dh);
+	} else {
+		ctx.drawImage(picture, dx, dy, dw, dh);
+	}
+}
+
+/**
+ * Move the edges of a destination span to the nearest buffer pixels. Images that touch then share their edge pixels
+ * and leave no seam between them.
+ *
+ * @param {number} start The start of the span in playfield units.
+ * @param {number} size The size of the span in playfield units.
+ * @param {number} factor The buffer pixels per playfield unit of the current transformation on this axis.
+ * @param {number} offset The offset of the current transformation on this axis in buffer pixels.
+ * @returns {number[]} The start and the size of the moved span in playfield units.
+ */
+function snapSpan(start, size, factor, offset) {
+	const first = (Math.round(start * factor + offset) - offset) / factor;
+	const last = (Math.round((start + size) * factor + offset) - offset) / factor;
+	return [first, last - first];
 }
 
 /**

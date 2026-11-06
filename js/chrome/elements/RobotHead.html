@@ -1,15 +1,17 @@
 <template>
-	<div class="glass">
-		<img class="head" src="sprites/robotHead.svg" alt="" />
-		<div class="eye"></div>
+	<div class="window">
+		<div class="glass">
+			<img class="head" src="sprites/robotHead.svg" alt="" />
+			<div class="eye"></div>
+		</div>
 	</div>
 </template>
 
 <style>
 	/*
 	 * The robot head sits behind the glass of a small window in a light frame. The window has the aspect ratio of a
-	 * panel of 108 by 92 units, and all sizes are relative to the width that the element gets. The host is the size
-	 * container of the glass. The frame is drawn a little crooked: its outer edge and the dark blue bezel are uneven
+	 * panel of 108 by 92 units. It is as large as the element allows and centered in it, and all sizes are relative to
+	 * its width. The window is the size container of the glass. The frame is drawn a little crooked: its outer edge and the dark blue bezel are uneven
 	 * quadrangles. The glass lies inside the bezel with round corners and shows the lab scene behind the robot. The glass
 	 * covers the whole panel, so the head and the eye use the coordinates of the panel, and the shape of the glass cuts
 	 * them off at the bezel.
@@ -20,25 +22,31 @@
 	robot-head {
 		--robot-bezel: color-mix(in srgb, color-mix(in srgb, var(--color-page) 60%, var(--color-chrome)), black 20%);
 		--robot-glass: color-mix(in srgb, var(--color-chrome) 75%, var(--color-page));
-		display: block;
-		position: relative;
-		container-type: inline-size;
-		aspect-ratio: 108 / 92;
-		background: var(--color-chrome);
-		clip-path: polygon(1.9% 10.3%, 99.1% 1.1%, 99.1% 98.9%, 5.6% 98.9%);
+		display: grid;
+		place-items: center;
+		container-type: size;
 
 		/* an absent robot keeps its place, so the parts after it do not move */
 		&[absent] {
 			visibility: hidden;
 		}
 
-		/* the bezel lies behind the glass and shows about 2 units around it */
-		&::before {
-			content: '';
-			position: absolute;
-			inset: 0;
-			background: var(--robot-bezel);
-			clip-path: polygon(5.6% 16.8%, 94.4% 7.6%, 94.4% 93.5%, 9.3% 93.5%);
+		.window {
+			position: relative;
+			width: min(100cqw, 100cqh * 108 / 92);
+			container-type: inline-size;
+			aspect-ratio: 108 / 92;
+			background: var(--color-chrome);
+			clip-path: polygon(1.9% 10.3%, 99.1% 1.1%, 99.1% 98.9%, 5.6% 98.9%);
+
+			/* the bezel lies behind the glass and shows about 2 units around it */
+			&::before {
+				content: '';
+				position: absolute;
+				inset: 0;
+				background: var(--robot-bezel);
+				clip-path: polygon(5.6% 16.8%, 94.4% 7.6%, 94.4% 93.5%, 9.3% 93.5%);
+			}
 		}
 
 		.glass {

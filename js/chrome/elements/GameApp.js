@@ -236,12 +236,12 @@ export class GameApp extends ChromeElement {
 			this.stage.stop();
 		}
 		setAttributes(this.querySelector('level-selection'), { campaign: r.campaign, level: r.level });
-		const panel = r.name == 'select' || r.name == 'play';
-		setAttributes(this.querySelector('best-times'), {
-			campaign: panel ? r.campaign : null,
-			level: r.level,
-			mode: r.name == 'play' ? r.mode : null,
-		});
+		// const panel = r.name == 'select' || r.name == 'play';
+		// setAttributes(this.querySelector('best-times'), {
+		// 	campaign: panel ? r.campaign : null,
+		// 	level: r.level,
+		// 	mode: r.name == 'play' ? r.mode : null,
+		// });
 		const play = r.name == 'play';
 		const exit = play ? '#/' : null;
 		setAttributes(this.querySelector('pause-menu'), {

@@ -12,7 +12,7 @@ const SCREEN_PARTS = [
 	'loading-screen',
 	'main-menu',
 	'level-selection',
-	'best-times',
+	// 'best-times',
 	'narrator-text',
 	'game-stage',
 	'pause-menu',
@@ -32,14 +32,14 @@ const SCREEN_PARTS = [
  *
  * @type {string[]}
  */
-const SELECT_PARTS = ['level-selection', 'best-times', 'game-stage'];
+const SELECT_PARTS = ['level-selection', /* 'best-times', */ 'game-stage'];
 
 /**
  * The screen parts of a level.
  *
  * @type {string[]}
  */
-const PLAY_PARTS = ['robot-head', 'game-hud', 'best-times', 'narrator-text', 'game-stage'];
+const PLAY_PARTS = ['robot-head', 'game-hud', /* 'best-times', */ 'narrator-text', 'game-stage'];
 
 /**
  * The screen parts of a boss level. The robot is absent, because the boss is the robot.
@@ -269,7 +269,7 @@ test.describe('chrome', () => {
 						stage: !document.querySelector('game-stage').hidden,
 					};
 				}, screen);
-			await expect.poll(result).toEqual({ parts: 15, mismatches: [], stage: screen != 'main' });
+			await expect.poll(result).toEqual({ parts: 14, mismatches: [], stage: screen != 'main' });
 		}
 	});
 

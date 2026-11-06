@@ -20,7 +20,22 @@
 </template>
 
 <style>
+	/* the lines keep their size, and the image of the controls shrinks to the height that is left */
 	loading-screen {
-		display: block;
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 1em;
+		padding-block: 1em;
+
+		> p {
+			margin: 0;
+		}
+
+		> img {
+			min-height: 0;
+			object-fit: contain;
+			object-position: left;
+		}
 	}
 </style>

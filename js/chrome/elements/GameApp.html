@@ -1,5 +1,8 @@
 <template>
-	<narrator-text></narrator-text>
+	<div class="top">
+		<robot-head></robot-head>
+		<narrator-text></narrator-text>
+	</div>
 	<crt-screen>
 		<game-stage></game-stage>
 		<loading-screen></loading-screen>
@@ -10,23 +13,82 @@
 		<level-selection></level-selection>
 		<editor-files></editor-files>
 	</crt-screen>
-	<robot-head></robot-head>
 	<game-hud></game-hud>
 	<replay-keys></replay-keys>
 	<tile-palette></tile-palette>
 	<object-palette></object-palette>
 	<editor-buttons></editor-buttons>
-	<best-times></best-times>
+	<!-- <best-times></best-times> -->
 </template>
 
 <style>
+	/*
+	 * The app is a grid that is centered horizontally in the window. Its first two rows and columns are a block of four
+	 * cells: a narrow corner and top row and a narrow side column around a large main cell. The width of this block
+	 * follows the window up to a maximum. The height follows the window too, but the main cell is never higher than the
+	 * aspect ratio of the playfield allows. The parts adjust to their cells. The other parts go in rows below it, each in
+	 * the full width.
+	 */
 	game-app {
-		display: block;
+		/* the top row is at least as high as the narrator text with four lines of text */
+		--grid-row-top-min: 149px;
+		--grid-gap: 1rem;
+		--grid-width: min(100vw - 2rem, 1400px);
+		--grid-height: min(100dvh - 2rem, var(--grid-col-main) * 3 / 4 / 0.85 + var(--grid-gap));
+		--grid-col-side: calc((var(--grid-width) - var(--grid-gap)) * 0.15);
+		--grid-col-main: calc(var(--grid-width) - var(--grid-gap) - var(--grid-col-side));
+		--grid-row-top: max((var(--grid-height) - var(--grid-gap)) * 0.15, var(--grid-row-top-min));
+		--grid-row-main: calc(var(--grid-height) - var(--grid-gap) - var(--grid-row-top));
+		display: grid;
+		grid-template:
+			'corner top' var(--grid-row-top)
+			'side main' var(--grid-row-main)
+			/ var(--grid-col-side) var(--grid-col-main);
+		gap: var(--grid-gap);
+		justify-content: center;
+		padding-top: 1rem;
 
-		/* the narrator text has the width of the CRT screen */
-		> narrator-text {
-			width: var(--width-screen);
-			margin: 0 auto;
+		/* on a window that is taller than wide, the main cell takes the full width and the side cell goes below it */
+		@media (orientation: portrait) {
+			--grid-height: min(100dvh - 2rem, var(--grid-width) * 3 / 4 / 0.7 + 2 * var(--grid-gap));
+			--grid-row-side: calc((var(--grid-height) - 2 * var(--grid-gap)) * 0.15);
+			--grid-row-top: max((var(--grid-height) - 2 * var(--grid-gap)) * 0.15, var(--grid-row-top-min));
+			--grid-row-main: calc(var(--grid-height) - 2 * var(--grid-gap) - var(--grid-row-top) - var(--grid-row-side));
+			grid-template:
+				'corner top' var(--grid-row-top)
+				'main main' var(--grid-row-main)
+				'side side' var(--grid-row-side)
+				/ var(--grid-col-side) var(--grid-col-main);
+		}
+
+		> * {
+			grid-column: 1 / -1;
+		}
+
+		/*
+		 * The robot head and the narrator text share the first row and have its height. The robot head keeps its aspect
+		 * ratio, and the narrator text takes the rest of the width.
+		 */
+		> .top {
+			grid-row: corner;
+			grid-column: corner-start / top-end;
+			display: flex;
+			gap: var(--grid-gap);
+
+			> robot-head {
+				aspect-ratio: 108 / 92;
+			}
+
+			> narrator-text {
+				flex: 1;
+				--narrator-height: var(--grid-row-top);
+			}
+		}
+
+		/* the HUD fills its cell */
+		> game-hud {
+			grid-area: side;
+			aspect-ratio: auto;
 		}
 
 		/*
@@ -35,8 +97,7 @@
 		 */
 		> crt-screen {
 			--crt-aspect: 4 / 3;
-			width: var(--width-screen);
-			margin: 0 auto;
+			grid-area: main;
 
 			/* the parts in the CRT screen lie on top of each other in one cell */
 			> * {
@@ -44,12 +105,6 @@
 				min-width: 0;
 				min-height: 0;
 			}
-		}
-
-		/* the HUD has the width of the CRT screen */
-		> game-hud {
-			width: var(--width-screen);
-			margin: 0 auto;
 		}
 	}
 </style>

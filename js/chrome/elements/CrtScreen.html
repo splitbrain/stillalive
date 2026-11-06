@@ -1,8 +1,11 @@
 <template>
 	<style>
 		/*
-		 * The host is the size container: all sizes come from its width in --crt-unit, so the screen scales as one piece.
-		 * The glass shape is a custom property on the host, so the content inherits it.
+		 * The host is a size container, and the screen is as large as the host allows and centered in it. The frame adds
+		 * 3.2% of the width on each side of the content, so the screen is 100 units wide and 93.6 units divided by
+		 * --crt-aspect plus 6.4 units high. The screen is the size container of the frame and the content: all sizes come
+		 * from its width in --crt-unit, so the screen scales as one piece. The glass shape is a custom property on the
+		 * host, so the content inherits it.
 		 * The corners of the glass cut at most 1.4% of the width and 1.9% of the height off the content.
 		 */
 		:host {
@@ -18,8 +21,14 @@
 				curve to 1.4% 0.3% with -0.9% 50%,
 				close
 			);
-			display: block;
-			container-type: inline-size;
+			display: grid;
+			place-items: center;
+			container-type: size;
+
+			.screen {
+				width: min(100cqw, 10000cqh / (93.6 / (var(--crt-aspect)) + 6.4));
+				container-type: inline-size;
+			}
 
 			/*
 			 * The frame is drawn a little crooked. Its outer edge is cut to an uneven quadrangle, where no two edges are
@@ -89,7 +98,7 @@
 				box-shadow: inset 0 0 calc(var(--crt-unit) * 2.5) rgb(0 0 0 / 0.25);
 			}
 
-			/* the content fills the glass and takes its shape, in the aspect ratio of --crt-aspect if it is set */
+			/* the content fills the glass and takes its shape, in the aspect ratio of --crt-aspect */
 			.content {
 				display: grid;
 				grid-template: minmax(0, 1fr) / minmax(0, 1fr);
@@ -98,9 +107,11 @@
 			}
 		}
 	</style>
-	<div class="frame">
-		<div class="glass"></div>
-		<div class="content"><slot></slot></div>
-		<div class="effects"></div>
+	<div class="screen">
+		<div class="frame">
+			<div class="glass"></div>
+			<div class="content"><slot></slot></div>
+			<div class="effects"></div>
+		</div>
 	</div>
 </template>

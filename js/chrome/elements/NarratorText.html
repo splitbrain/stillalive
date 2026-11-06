@@ -5,18 +5,19 @@
 <style>
 	/*
 	 * The narrator text is a small screen in a light panel: a crooked dark blue bezel around a teal glass, with a red LED
-	 * on the left and a speaker grille on the right. The panel is low and wide, so the heights and the edges have fixed
-	 * sizes and only scale with the text, not with the width. The left edge of the panel is vertical. The left edges of
-	 * the bezel and the glass slant in towards the bottom at the same angle: --narrator-lean is the shift to the right
-	 * per pixel of height. The right edges of all three slant in towards the bottom at the same angle: --narrator-tilt is
-	 * the shift to the left per pixel of height. The glass has room for four lines, so --narrator-glass is its height.
+	 * on the left and a speaker grille on the right. The edges have fixed sizes and do not scale with the panel. The left
+	 * edge of the panel is vertical. The left edges of the bezel and the glass slant in towards the bottom at the same
+	 * angle: --narrator-lean is the shift to the right per pixel of height. The right edges of all three slant in towards
+	 * the bottom at the same angle: --narrator-tilt is the shift to the left per pixel of height. The page sets the height
+	 * of the panel in --narrator-height, and --narrator-glass is the height of the glass in it.
 	 */
 	narrator-text {
 		--narrator-bezel: color-mix(in srgb, color-mix(in srgb, var(--color-page) 60%, var(--color-chrome)), black 20%);
 		--narrator-lean: 0.05;
 		--narrator-tilt: 0.09;
-		--narrator-glass: calc(4lh + 36px);
+		--narrator-glass: calc(var(--narrator-height) - 17px);
 		display: block;
+		height: var(--narrator-height);
 		position: relative;
 		isolation: isolate;
 		padding: 10px 70px 7px 26px;

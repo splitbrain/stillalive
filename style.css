@@ -6,7 +6,6 @@
 
 /*
  * The key colors, fonts and sizes of the page; elements calculate their bevels from a base color and a bevel strength.
- * At the screen width, a screen in the aspect ratio of the playfield is never taller than the window.
  */
 :root {
 	--color-page: #005674;
@@ -24,8 +23,6 @@
 
 	--font-text: 16px Arial, sans-serif;
 	--font-title: 24px yikes, sans-serif;
-
-	--width-screen: min(100vw - 4rem, 112vh);
 }
 
 /* the sizes of all boxes include their padding and border */

@@ -86,7 +86,7 @@ export async function openGame(page) {
 }
 
 /**
- * Open the game and start it as a player does: click the loading screen and wait until the main menu shows.
+ * Open the game and start it as a player does: click the start button and wait until the main menu shows.
  *
  * The game loop and the timers of the page run at the real speed, so the stage, the narrator and the robot work as in
  * the game.
@@ -96,7 +96,7 @@ export async function openGame(page) {
  */
 export async function startGame(page) {
 	await openGame(page);
-	await page.locator('loading-screen .continue').click();
+	await page.locator('loading-screen .start').click();
 	await page.locator('main-menu').waitFor();
 }
 

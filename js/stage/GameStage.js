@@ -9,7 +9,16 @@
  */
 
 import { allImagesLoaded, imageProgress, missingImages, onImageDone } from './assets.js';
-import { allSoundsLoaded, loadSfx, missingSounds, onSoundDone, setSoundOn, soundProgress } from './audio.js';
+import {
+	allSoundsLoaded,
+	loadSfx,
+	missingSounds,
+	onSoundDone,
+	playSound,
+	setSoundOn,
+	sfx_tick,
+	soundProgress,
+} from './audio.js';
 import { clearCanvas, ctx, setCanvas, watchCanvasSize } from './canvas.js';
 import { PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH } from './constants.js';
 import {
@@ -300,6 +309,15 @@ export class GameStage extends HTMLElement {
 		setSoundOn(on);
 		this.sound.set(on);
 		this.#checkReady();
+	}
+
+	/**
+	 * Play the click sound that tells the player that the game starts and the sound works.
+	 *
+	 * @returns {void}
+	 */
+	playStartSound() {
+		playSound(sfx_tick);
 	}
 
 	/**

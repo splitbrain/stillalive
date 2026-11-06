@@ -1,41 +1,60 @@
 <template>
-	<p>Loading gfx ... <progress data-progress="images" max="1" value="0"></progress></p>
-	<p>Loading maps ... <progress data-progress="campaigns" max="1" value="0"></progress></p>
-	<p>
-		Loading sfx ... <progress data-progress="sounds" max="1" value="0"></progress>
-		<button class="sound-off">(click here if not loading)</button>
-	</p>
-	<p>- Grab cakes and reach the exit of each level.</p>
-	<p>- Use your portal gun to teleport through levels.</p>
+	<h2 class="title">Warming up the test equipment ...</h2>
+	<menu-button><button class="start" disabled>Loading ...</button></menu-button>
+	<ul class="credits">
+		<li>Original game by t4ils</li>
+		<li>Graphics by ZeBlackos</li>
+		<li>Based on Portal by Valve</li>
+	</ul>
 	<p data-missing="images" hidden></p>
 	<p data-missing="sounds" hidden></p>
 	<p data-missing="campaigns" hidden></p>
-	<img src="decor/controls.png" alt="The controls: keys to move and jump, the mouse to shoot portals" />
-	<p>
-		Jump: <kbd data-key="KeyW">W</kbd>, Left: <kbd data-key="KeyA">A</kbd>, Down: <kbd data-key="KeyS">S</kbd>, Right:
-		<kbd data-key="KeyD">D</kbd>, Clear Portals:
-		<kbd data-key="KeyE">E</kbd>
-	</p>
-	<p class="continue" hidden>Click to continue ...</p>
 </template>
 
 <style>
-	/* the lines keep their size, and the image of the controls shrinks to the height that is left */
+	/*
+	 * The loading screen is a centered column: the title, the start button, the credits and the files that could not be
+	 * loaded. All sizes scale with the CRT screen.
+	 */
 	loading-screen {
 		display: flex;
 		flex-direction: column;
-		align-items: flex-start;
-		gap: 1em;
-		padding-block: 1em;
+		align-items: center;
+		justify-content: center;
+		gap: 4cqw;
+		text-align: center;
+
+		> .title {
+			margin: 0;
+			font: var(--font-title);
+			font-size: 3.6cqw;
+			color: var(--color-accent);
+			text-shadow: 0.1em 0.1em 0 #000;
+		}
+
+		/* while the files load, the disabled start button is the progress bar: it fills from the left up to --progress */
+		.start:disabled {
+			filter: none;
+			color: var(--color-text);
+			background: linear-gradient(
+				90deg,
+				rgb(2 108 103 / 85%) var(--progress, 0%),
+				rgb(0 60 70 / 25%) var(--progress, 0%)
+			);
+		}
+
+		> .credits {
+			margin: 0;
+			padding: 0;
+			list-style: none;
+			font-size: 1.6cqw;
+			line-height: 1.6;
+			opacity: 0.85;
+		}
 
 		> p {
 			margin: 0;
-		}
-
-		> img {
-			min-height: 0;
-			object-fit: contain;
-			object-position: left;
+			font-size: 1.6cqw;
 		}
 	}
 </style>

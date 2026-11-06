@@ -3,8 +3,8 @@
  *
  * Each sound is decoded once into an audio buffer, so the same sound can play more than once at the same time. Each
  * sound has its own gain node for its volume. Browsers block sound until the player clicks or presses a key on the
- * page, so the module creates the audio context on the first click or key press. Until then, an offline audio context
- * decodes the sounds.
+ * page, so the module creates the audio context on the first click or key press. It handles them in the capture
+ * phase, so that no other handler can stop them before. Until then, an offline audio context decodes the sounds.
  */
 
 /** @type {OfflineAudioContext} The context that decodes the sounds before the audio context exists. */
@@ -218,8 +218,8 @@ function resumeAudio() {
 	if (context.state === 'suspended') context.resume();
 }
 
-window.addEventListener('pointerdown', resumeAudio);
-window.addEventListener('keydown', resumeAudio);
+window.addEventListener('pointerdown', resumeAudio, { capture: true });
+window.addEventListener('keydown', resumeAudio, { capture: true });
 
 /** @type {Sound} An object enters a portal. */
 export let sfx_enterPortal;

@@ -2,7 +2,6 @@
  * The loading screen element.
  */
 
-import { keyLabels } from '../../stage/keys.js';
 import { campaignsLoading, campaignsReady } from '../campaigns.js';
 import { ChromeScreen, loadMarkup, Screen } from '../element.js';
 
@@ -10,51 +9,35 @@ import { ChromeScreen, loadMarkup, Screen } from '../element.js';
 const TEMPLATE = await loadMarkup(import.meta.url);
 
 /**
- * The custom element <loading-screen>. It shows the loading progress of the images, the sounds and the campaigns, the
- * files that could not be loaded, the controls with the key labels of the keyboard of the player, and "Click to
- * continue" when everything is loaded.
- *
- * The sound-off button turns the sound off, so that the stage does not wait for the sounds. The app element does not
- * store sound changes before the game starts, so this change is for the session only. The click that starts the game
- * bubbles to the app element, which handles it.
+ * The custom element <loading-screen>. It shows a title, the start button, the credits and the files that could not be
+ * loaded. While the images, the sounds and the campaigns load, the start button is disabled and shows the total
+ * progress. When everything is loaded, the title and the button tell that the game can start. The app element handles
+ * the click or the key press that starts the game.
  */
 export class LoadingScreen extends ChromeScreen {
 	/** @type {HTMLTemplateElement|null} The markup of the loading screen. */
 	static template = TEMPLATE;
 
 	/**
-	 * Add the handler of the sound-off button.
-	 *
-	 * @returns {void}
-	 */
-	setUp() {
-		this.querySelector('.sound-off').addEventListener('click', () => this.stage.setSound(false));
-	}
-
-	/**
-	 * Subscribe to the loading of the stage and the campaigns and to the key labels.
+	 * Subscribe to the loading of the stage and the campaigns.
 	 *
 	 * @returns {Array<function(): void>} The functions that remove the subscriptions.
 	 */
 	subscribe() {
 		const stage = this.stage;
-		// the click to continue is possible when the stage and the campaigns are ready
-		const showContinue = () => {
-			this.querySelector('.continue').hidden = !(stage.ready.get() && campaignsReady.get());
-		};
+		const update = () => this.#update();
 		return [
 			stage.loading.subscribe(({ images, sounds }) => {
-				this.#showProgress('images', images, 'Some images could not be loaded: ');
-				this.#showProgress('sounds', sounds, 'Some sounds could not be loaded: ');
+				this.#showMissing('images', images, 'Some images could not be loaded: ');
+				this.#showMissing('sounds', sounds, 'Some sounds could not be loaded: ');
+				update();
 			}),
 			campaignsLoading.subscribe((loading) => {
-				this.#showProgress('campaigns', loading, 'Some levels could not be loaded: ');
+				this.#showMissing('campaigns', loading, 'Some levels could not be loaded: ');
+				update();
 			}),
-			stage.ready.subscribe(showContinue),
-			campaignsReady.subscribe(showContinue),
-			keyLabels.subscribe((labels) => {
-				for (const key of this.querySelectorAll('kbd[data-key]')) key.textContent = labels[key.dataset.key];
-			}),
+			stage.ready.subscribe(update),
+			campaignsReady.subscribe(update),
 		];
 	}
 
@@ -69,15 +52,33 @@ export class LoadingScreen extends ChromeScreen {
 	}
 
 	/**
-	 * Show the progress of one kind of files and the files of this kind that could not be loaded.
+	 * Show the total progress in the start button, or enable the button when the stage and the campaigns are ready.
+	 * The total progress is the mean of the progress of the images, the sounds and the campaigns.
+	 *
+	 * @returns {void}
+	 */
+	#update() {
+		const ready = this.stage.ready.get() && campaignsReady.get();
+		const { images, sounds } = this.stage.loading.get();
+		const percent = Math.floor(((images.progress + sounds.progress + campaignsLoading.get().progress) / 3) * 100);
+		const button = this.querySelector('.start');
+		button.disabled = !ready;
+		button.style.setProperty('--progress', `${percent}%`);
+		button.textContent = ready ? 'Begin testing' : `Loading ... ${percent}%`;
+		this.querySelector('.title').textContent = ready
+			? 'The test equipment is ready.'
+			: 'Warming up the test equipment ...';
+	}
+
+	/**
+	 * Show the files of one kind that could not be loaded.
 	 *
 	 * @param {string} kind The kind of files: images, sounds or campaigns.
 	 * @param {{progress: number, missing: string[]}} loading The progress from 0 to 1 and the missing files.
 	 * @param {string} prefix The text before the list of the missing files.
 	 * @returns {void}
 	 */
-	#showProgress(kind, { progress, missing }, prefix) {
-		this.querySelector(`progress[data-progress="${kind}"]`).value = progress;
+	#showMissing(kind, { missing }, prefix) {
 		const line = this.querySelector(`[data-missing="${kind}"]`);
 		line.hidden = missing.length == 0;
 		line.textContent = prefix + missing.join(', ');

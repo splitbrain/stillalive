@@ -37,9 +37,10 @@ const EDITOR_TEXT =
  * screen, and sets the hidden attribute of the parts that do not show. It finds the screen parts at any depth by their
  * class chrome-screen. The stage shows on the select, play, editor and editor-file screens.
  *
- * The loading screen shows until the stage and the campaigns are ready and the player clicks the loading screen,
- * whatever the route is. Then the element shows the screen of the route and commands the stage. The test run of the
- * editor map shows the play screen. The element replaces a route with a locked level by the selection of the campaign,
+ * The loading screen shows until the stage and the campaigns are ready and the player clicks or presses a key,
+ * whatever the route is. The start plays a click sound. The stage does not get the key that starts the game, so the
+ * key does not move the player or command the stage. Then the element shows the screen of the route and commands the
+ * stage. The test run of the editor map shows the play screen. The element replaces a route with a locked level by the selection of the campaign,
  * because the router does not know the progress of the player.
  *
  * The element sets the campaign and the level of the route as attributes of the level selection, and the campaign, the
@@ -57,14 +58,16 @@ const EDITOR_TEXT =
  *
  * The element starts the loading of the campaigns and the credits, and sets the sound of the stage from the storage.
  * It stores each change of the sound after the game starts, from the buttons of the page or from the key of the stage.
- * A change on the loading screen is for the session only.
  */
 export class GameApp extends ChromeElement {
 	/** @type {HTMLTemplateElement|null} The markup of the app: its parts and the stage. */
 	static template = TEMPLATE;
 
-	/** @type {boolean} True after the click on the loading screen that starts the game. */
+	/** @type {boolean} True after the click or the key press that starts the game. */
 	#started = false;
+
+	/** @type {string|null} The code of the key that started the game while the player holds it, or null. */
+	#startKey = null;
 
 	/** @type {import('../../router.js').Route|null} The route that the element applied last, or null. */
 	#applied = null;
@@ -79,8 +82,8 @@ export class GameApp extends ChromeElement {
 	#intermissionReplay = null;
 
 	/**
-	 * Set the sound from the storage, start the loading and handle the clicks of the loading screen, the events of the
-	 * stage, the import of a replay and the Watch Replay button of the intermission.
+	 * Set the sound from the storage, start the loading and handle the clicks and key presses that start the game, the
+	 * events of the stage, the import of a replay and the Watch Replay button of the intermission.
 	 *
 	 * @returns {void}
 	 */
@@ -89,7 +92,9 @@ export class GameApp extends ChromeElement {
 		stage.setSound(loadSoundSetting());
 		loadCampaigns();
 		loadCreditsText();
-		this.querySelector('loading-screen').addEventListener('click', () => this.#start());
+		window.addEventListener('click', () => this.#start());
+		window.addEventListener('keydown', (event) => this.#onStartKey(event), { capture: true });
+		window.addEventListener('keyup', (event) => this.#onStartKey(event), { capture: true });
 		stage.addEventListener('finished', (event) => this.#onFinished(event.detail));
 		stage.addEventListener('brokenreplay', () => this.#onBrokenReplay());
 		stage.addEventListener('focuslost', () => stage.pause());
@@ -140,12 +145,33 @@ export class GameApp extends ChromeElement {
 	/**
 	 * Leave the loading screen and apply the route, when everything is loaded.
 	 *
-	 * @returns {void}
+	 * @returns {boolean} True if the game starts now.
 	 */
 	#start() {
-		if (this.#started || !this.#isLoaded()) return;
+		if (this.#started || !this.#isLoaded()) return false;
 		this.#started = true;
+		this.stage.playStartSound();
 		this.#applyRoute();
+		return true;
+	}
+
+	/**
+	 * Start the game on a key press, and keep the key that starts the game from the stage: its press, the repeats while
+	 * the player holds it, and its release. The handler runs in the capture phase, before the stage gets the key.
+	 *
+	 * @param {KeyboardEvent} event The keydown or keyup event.
+	 * @returns {void}
+	 */
+	#onStartKey(event) {
+		if (this.#startKey === null) {
+			if (event.type != 'keydown' || !this.#start()) return;
+			this.#startKey = event.code;
+		} else if (event.code != this.#startKey) {
+			return;
+		} else if (event.type == 'keyup') {
+			this.#startKey = null;
+		}
+		event.stopImmediatePropagation();
 	}
 
 	/**

@@ -44,11 +44,12 @@ const EDITOR_TEXT =
  *
  * The element sets the campaign and the level of the route as attributes of the level selection, and the campaign, the
  * level and the play mode as attributes of the best times panel. The panel gets a campaign only on the select and the
- * play routes. On the play route, it gives the restart and the exit paths to the pause menu and the exit path to the
- * intermission panel. It gives the robot head the eye of the part of the story and marks it as absent in boss levels,
- * because the boss is the robot. It sets the fixed text of the editor screens as the text attribute of the narrator
- * text. It sets the mode attribute of the save and load screen: empty on the editor route, save or
- * load on the editor-file route. A replay-import event from a page element plays the replay in its detail.
+ * play routes. On the play route, it gives the restart path to the pause menu, and the path of the main menu as the
+ * exit path to the pause menu and the intermission panel. It gives the robot head the eye of the part of the story and
+ * marks it as absent in boss levels, because the boss is the robot. It sets the fixed text of the editor screens as the
+ * text attribute of the narrator text. It sets the mode attribute of the save and load screen: empty on the editor
+ * route, save or load on the editor-file route. A replay-import event from a page element plays the replay in its
+ * detail.
  *
  * At the end of a level, the element stores the best time, the replay and the progress, and chooses the next route or
  * opens the intermission panel. A new route closes the panel. A replay-watch event from the panel plays the replay of
@@ -245,7 +246,7 @@ export class GameApp extends ChromeElement {
 			mode: r.name == 'play' ? r.mode : null,
 		});
 		const play = r.name == 'play';
-		const exit = play ? campaignPath(r.campaign, r.level) : null;
+		const exit = play ? '#/' : null;
 		setAttributes(this.querySelector('pause-menu'), {
 			restart: play ? campaignPath(r.campaign, r.level, r.mode) : null,
 			exit,

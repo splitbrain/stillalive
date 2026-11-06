@@ -139,12 +139,12 @@ test.describe('chrome', () => {
 
 		await page.keyboard.press('Escape');
 		await page.locator('pause-menu .exit').click();
-		await expectScreen(page, '#/campaign/normal/1', SELECT_PARTS);
-		await expect.poll(() => stageValue(page, 'mode')).toBe('preview');
+		await expectScreen(page, '#/', ['main-menu']);
 
 		// the Exit link replaces the entry of the level, so the back button goes to the entry before the level
 		await page.goBack();
 		await expectScreen(page, '#/campaign/normal/1', SELECT_PARTS);
+		await expect.poll(() => stageValue(page, 'mode')).toBe('preview');
 
 		await page.locator('level-selection .back').click();
 		await expectScreen(page, '#/campaign/normal', SELECT_PARTS);

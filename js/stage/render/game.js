@@ -531,8 +531,9 @@ export function drawPlayer(x, y, flipX) {
 }
 
 /**
- * Draw the preview of a map with its objects. The first frame after a new map draws the tile layer and keeps a copy
- * of it.
+ * Draw the preview of a map with its objects. The first frame after a new map builds the tile layer and keeps a copy
+ * of it. Each frame draws the copy and the objects on top. The cakes stand at their rest position, so each preview of
+ * a map looks the same.
  *
  * @returns {void}
  */
@@ -550,62 +551,58 @@ export function drawPreviewMap() {
 			}
 		}
 		saveTileLayer();
-		ctx.fillStyle = 'rgb(0, 0, 0)';
-		ctx.fillRect(0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
-	} else {
-		drawTileLayer();
-
-		game.player.flip = 1;
-
-		ctx.save();
-		ctx.translate((game.player.x >> 8) + (game.player.pX >> 1), (game.player.y >> 8) + (game.player.pY >> 1));
-		drawImage(portalGun, -5, -5);
-		ctx.restore();
-
-		const flipDx = game.player.flip < 0 ? 1 : 0;
-		drawImage(head[flipDx], game.player.animationFrame * 16, 0, 15, 12, game.player.x >> 8, game.player.y >> 8, 16, 12);
-		drawImage(body[flipDx], game.player.animationFrame * 16, 0, 16, 27, game.player.x >> 8, game.player.y >> 8, 16, 27);
-
-		for (i = 0; i < game.cakes.length; i++) {
-			if (game.cakes[i].used) {
-				drawImage(cake, game.cakes[i].x >> 8, (game.cakes[i].y + game.cakes[i].vy) >> 8, 16, 12);
-			}
-		}
-
-		for (ti = 0; ti < game.turrets.length; ti++) {
-			const side = game.turrets[ti].dir < 0 ? 0 : 1;
-			drawImage(
-				turretImages[side],
-				0,
-				game.turrets[ti].animFrame * 32,
-				16,
-				32,
-				game.turrets[ti].x >> 8,
-				game.turrets[ti].y >> 8,
-				16,
-				32,
-			);
-		}
-
-		for (ci = 0; ci < game.crates.length; ci++) {
-			drawImage(crateImage, game.crates[ci].x >> 8, game.crates[ci].y >> 8);
-		}
-
-		for (pi = 0; pi < game.platforms.length; pi++) {
-			drawImage(platform, game.platforms[pi].x >> 8, game.platforms[pi].y >> 8);
-		}
-
-		drawGravPipes();
-
-		if (game.bossNum > 0) {
-			if (game.bossNum == 1 || game.bossNum == 3 || game.bossNum == 4)
-				drawImage(tube, game.tubeX >> 8, game.tubeY >> 8);
-			else if (game.bossNum == 2) drawImage(tube2, game.tubeX >> 8, game.tubeY >> 8);
-			drawBoss();
-		}
-
-		drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
-		ctx.strokeStyle = 'rgb(0, 0, 0)';
-		ctx.lineWidth = 1;
 	}
+	drawTileLayer();
+
+	game.player.flip = 1;
+
+	ctx.save();
+	ctx.translate((game.player.x >> 8) + (game.player.pX >> 1), (game.player.y >> 8) + (game.player.pY >> 1));
+	drawImage(portalGun, -5, -5);
+	ctx.restore();
+
+	const flipDx = game.player.flip < 0 ? 1 : 0;
+	drawImage(head[flipDx], game.player.animationFrame * 16, 0, 15, 12, game.player.x >> 8, game.player.y >> 8, 16, 12);
+	drawImage(body[flipDx], game.player.animationFrame * 16, 0, 16, 27, game.player.x >> 8, game.player.y >> 8, 16, 27);
+
+	for (i = 0; i < game.cakes.length; i++) {
+		if (game.cakes[i].used) {
+			drawImage(cake, game.cakes[i].x >> 8, game.cakes[i].y >> 8, 16, 12);
+		}
+	}
+
+	for (ti = 0; ti < game.turrets.length; ti++) {
+		const side = game.turrets[ti].dir < 0 ? 0 : 1;
+		drawImage(
+			turretImages[side],
+			0,
+			game.turrets[ti].animFrame * 32,
+			16,
+			32,
+			game.turrets[ti].x >> 8,
+			game.turrets[ti].y >> 8,
+			16,
+			32,
+		);
+	}
+
+	for (ci = 0; ci < game.crates.length; ci++) {
+		drawImage(crateImage, game.crates[ci].x >> 8, game.crates[ci].y >> 8);
+	}
+
+	for (pi = 0; pi < game.platforms.length; pi++) {
+		drawImage(platform, game.platforms[pi].x >> 8, game.platforms[pi].y >> 8);
+	}
+
+	drawGravPipes();
+
+	if (game.bossNum > 0) {
+		if (game.bossNum == 1 || game.bossNum == 3 || game.bossNum == 4) drawImage(tube, game.tubeX >> 8, game.tubeY >> 8);
+		else if (game.bossNum == 2) drawImage(tube2, game.tubeX >> 8, game.tubeY >> 8);
+		drawBoss();
+	}
+
+	drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
+	ctx.strokeStyle = 'rgb(0, 0, 0)';
+	ctx.lineWidth = 1;
 }

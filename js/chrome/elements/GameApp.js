@@ -58,6 +58,8 @@ const EDITOR_TEXT =
  *
  * The element starts the loading of the campaigns and the credits, and sets the sound of the stage from the storage.
  * It stores each change of the sound after the game starts, from the buttons of the page or from the key of the stage.
+ * When the URL contains "?unlock", the element stores all levels of all campaigns as finished when the campaigns are
+ * loaded. This is for manual tests.
  */
 export class GameApp extends ChromeElement {
 	/** @type {HTMLTemplateElement|null} The markup of the app: its parts and the stage. */
@@ -92,6 +94,7 @@ export class GameApp extends ChromeElement {
 		stage.setSound(loadSoundSetting());
 		loadCampaigns();
 		loadCreditsText();
+		if (new URLSearchParams(location.search).has('unlock')) campaignsReady.subscribe((ready) => this.#unlockAll(ready));
 		window.addEventListener('click', () => this.#start());
 		window.addEventListener('keydown', (event) => this.#onStartKey(event), { capture: true });
 		window.addEventListener('keyup', (event) => this.#onStartKey(event), { capture: true });
@@ -131,6 +134,17 @@ export class GameApp extends ChromeElement {
 	watch(replay) {
 		this.#pendingReplay = replay;
 		navigate(campaignPath(replay.campaign, replay.level, 'replay'));
+	}
+
+	/**
+	 * Store all levels of all campaigns as finished, so that the player can play each level.
+	 *
+	 * @param {boolean} ready True when all campaign and level files are loaded. Before that, the method does nothing.
+	 * @returns {void}
+	 */
+	#unlockAll(ready) {
+		if (!ready) return;
+		for (const campaign of campaigns) saveProgress(campaign.id, campaign.levels.length + 1);
 	}
 
 	/**

@@ -11,8 +11,21 @@ const TEMPLATE = await loadMarkup(import.meta.url);
 const HUD_VALUES = ['life', 'cakes', 'steps', 'portals', 'fps'];
 
 /**
- * The custom element <game-hud>. It shows the HUD values of the stage: life, cakes, steps, portals and the frame rate.
- * It shows on the play screen.
+ * Get the level of a life value, which sets the color of the life display.
+ *
+ * @param {number} life The life, from 0 to 100.
+ * @returns {string} "high" above 50, "mid" above 25, else "low".
+ */
+function lifeLevel(life) {
+	if (life > 50) return 'high';
+	if (life > 25) return 'mid';
+	return 'low';
+}
+
+/**
+ * The custom element <game-hud>. It shows the HUD values of the stage on the displays of a control panel: life, cakes,
+ * steps, portals and the frame rate. The color of the life display shows the level of the life. It shows on the play
+ * screen.
  */
 export class GameHud extends ChromeElement {
 	/** @type {HTMLTemplateElement|null} The markup of the HUD. */
@@ -24,12 +37,18 @@ export class GameHud extends ChromeElement {
 	 * @returns {Array<function(): void>} The functions that remove the subscriptions.
 	 */
 	subscribe() {
-		return HUD_VALUES.map((name) => {
-			const node = this.querySelector(`[data-value="${name}"]`);
-			return this.stage[name].subscribe((value) => {
-				node.textContent = String(value);
-			});
-		});
+		const life = this.querySelector('.life');
+		return [
+			...HUD_VALUES.map((name) => {
+				const node = this.querySelector(`[data-value="${name}"]`);
+				return this.stage[name].subscribe((value) => {
+					node.textContent = String(value);
+				});
+			}),
+			this.stage.life.subscribe((value) => {
+				life.dataset.level = lifeLevel(value);
+			}),
+		];
 	}
 
 	/**

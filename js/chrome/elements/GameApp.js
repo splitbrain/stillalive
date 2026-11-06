@@ -184,34 +184,21 @@ export class GameApp extends ChromeElement {
 	}
 
 	/**
-	 * Check if a level can be played: the level exists, and in a campaign with records, the player has unlocked it.
+	 * Check if a level can be played: the level exists, and the player has unlocked it.
 	 *
 	 * @param {number} index The campaign index.
 	 * @param {number} level The level number.
 	 * @returns {boolean} True for a level that can be played.
 	 */
 	#isOpen(index, level) {
-		const campaign = campaigns[index];
-		return level <= campaign.levels.length && (!campaign.records || level <= maxLevel[index].get());
-	}
-
-	/**
-	 * Get the path to leave a level to: the selection with the level selected. A campaign without records, like the
-	 * tutorial, has no selection in the main menu, so its levels go back to the main menu.
-	 *
-	 * @param {import('../../router.js').Route} r The route of the level.
-	 * @returns {string} The path.
-	 */
-	#exitPath(r) {
-		return campaigns[this.#campaignIndex(r)].records ? campaignPath(r.campaign, r.level) : '#/';
+		return level <= campaigns[index].levels.length && level <= maxLevel[index].get();
 	}
 
 	/**
 	 * Apply the route: command the stage and show the screen. A level that does not exist or that is locked goes to the
-	 * selection of its campaign. The playback of a replay needs only an existing level. A campaign without records has
-	 * no selection, so its selection goes to the main menu. The selection shows the preview of the selected level, or
-	 * of the highest unlocked level when no level is selected. A level that follows a play route of the same level starts
-	 * as a restart, which skips the waits at the level start.
+	 * selection of its campaign. The playback of a replay needs only an existing level. The selection shows the preview
+	 * of the selected level, or of the highest unlocked level when no level is selected. A level that follows a play
+	 * route of the same level starts as a restart, which skips the waits at the level start.
 	 *
 	 * @returns {void}
 	 */
@@ -222,10 +209,6 @@ export class GameApp extends ChromeElement {
 		}
 		const r = route.get();
 		const index = this.#campaignIndex(r);
-		if (r.name == 'select' && !campaigns[index].records) {
-			navigate('#/', true);
-			return;
-		}
 		if (r.level > 0) {
 			const usable = r.mode == 'replay' ? r.level <= campaigns[index].levels.length : this.#isOpen(index, r.level);
 			if (!usable) {
@@ -262,7 +245,7 @@ export class GameApp extends ChromeElement {
 			mode: r.name == 'play' ? r.mode : null,
 		});
 		const play = r.name == 'play';
-		const exit = play ? this.#exitPath(r) : null;
+		const exit = play ? campaignPath(r.campaign, r.level) : null;
 		setAttributes(this.querySelector('pause-menu'), {
 			restart: play ? campaignPath(r.campaign, r.level, r.mode) : null,
 			exit,
@@ -344,11 +327,9 @@ export class GameApp extends ChromeElement {
 	}
 
 	/**
-	 * Handle the end of a level: the best time, the progress and the next route. A campaign without records stores no
-	 * best time, but it stores the progress. In a campaign without intermission screens, the next level starts at once.
-	 * The last level always shows the intermission screen, with the end text of the campaign if it has one. After the
-	 * last story level, the credits show the first time. Else the intermission panel shows the time, the message and
-	 * the links of the choice.
+	 * Handle the end of a level: the best time, the progress and the next route. The last level shows the end text of
+	 * the campaign if it has one. After the last story level, the credits show the first time. Else the intermission
+	 * panel shows the time, the message and the links of the choice.
 	 *
 	 * @param {{time: number, replay: object}} detail The detail of the finished event of the stage.
 	 * @returns {void}
@@ -359,26 +340,22 @@ export class GameApp extends ChromeElement {
 		const index = this.#campaignIndex(r);
 		const campaign = campaigns[index];
 		const isLastLevel = r.level == campaign.levels.length;
-		const records = campaign.records && r.mode == 'play';
 		let message = '';
 		let credits = false;
-		if (records) message = this.#checkBestTime(r, time, replay);
+		if (r.mode == 'play') message = this.#checkBestTime(r, time, replay);
 		if (isLastLevel && campaign.endText) message = campaign.endText;
 		if (r.mode == 'play' && maxLevel[index].get() < r.level + 1) {
 			credits = index == CampaignId.STORY && maxLevel[index].get() == LEVELS_PER_CAMPAIGN;
 			saveProgress(index, r.level + 1);
 		}
 
-		if (!campaign.intermission && !isLastLevel) {
-			navigate(campaignPath(r.campaign, r.level + 1, 'play'), true);
-		} else if (credits) {
+		if (credits) {
 			navigate('#/credits', true);
 		} else {
-			this.#intermissionReplay = campaign.records ? replay : null;
+			this.#intermissionReplay = replay;
 			setAttributes(this.querySelector('intermission-panel'), {
 				time,
 				message,
-				replay: campaign.records ? '' : null,
 				next: !isLastLevel && this.#isOpen(index, r.level + 1) ? campaignPath(r.campaign, r.level + 1, 'play') : null,
 				restart: this.#isOpen(index, r.level) ? campaignPath(r.campaign, r.level, 'play') : null,
 				open: '',
@@ -393,11 +370,12 @@ export class GameApp extends ChromeElement {
 	 * @returns {void}
 	 */
 	#onBrokenReplay() {
-		if (route.get().name != 'play') return;
+		const r = route.get();
+		if (r.name != 'play') return;
 		alertDialog(
 			"The replay you're watching seems to be broken -_-;\n" + 'Sorry for any inconveniences.',
 			'An error occurred',
 		);
-		navigate(this.#exitPath(route.get()), true);
+		navigate(campaignPath(r.campaign, r.level), true);
 	}
 }

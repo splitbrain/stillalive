@@ -65,7 +65,7 @@ export class MainMenu extends ChromeElement {
 		const count = document.createElement('span');
 		count.textContent = campaign.completed + '/' + campaign.levels.length;
 		const link = document.createElement('a');
-		link.href = campaign.direct ? campaignPath(campaign.folder, 1, 'play') : campaignPath(campaign.folder);
+		link.href = campaignPath(campaign.folder);
 		link.append(campaign.title, ' ', count);
 		const button = document.createElement('menu-button');
 		button.toggleAttribute('small', campaign.parent !== '');

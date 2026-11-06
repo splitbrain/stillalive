@@ -46,14 +46,8 @@ export class Campaign {
 		this.sort = 0;
 		/** @type {string} The folder of the campaign that the main menu shows this campaign under, or empty for none. */
 		this.parent = '';
-		/** @type {boolean} True if the main menu link starts the first level, false if it opens the level selection. */
-		this.direct = false;
 		/** @type {import('../stage/level.js').Level[]} The levels of the campaign. */
 		this.levels = [];
-		/** @type {boolean} True if the intermission screen shows after each level, false if the next level starts at once. */
-		this.intermission = true;
-		/** @type {boolean} True if the best times and the replays of the levels are stored. */
-		this.records = true;
 		/** @type {string} The message of the last intermission screen, or an empty text for none. */
 		this.endText = '';
 	}
@@ -102,13 +96,10 @@ export function listCampaigns() {
  *
  * The campaign file is JSON with the list of the level files in "levels". These properties are optional:
  *
- * - intermission: false starts the next level at once after the exit. The default is true.
- * - records: false stores no best times and no replays. The default is true.
  * - endText: the message of the last intermission screen. The default is none.
  * - title: the name in the main menu. The default is the folder name.
  * - sort: the position in the main menu, low numbers first. The default is 0.
  * - parent: the folder name of the campaign that the main menu shows this campaign under. The default is none.
- * - direct: true starts the first level from the main menu, without the level selection. The default is false.
  *
  * @param {number} camp The index of the campaign.
  * @returns {void}
@@ -116,13 +107,10 @@ export function listCampaigns() {
 function loadCampaignFiles(camp) {
 	const folder = 'maps/' + campaigns[camp].folder + '/';
 	loadLevelJsonFile(folder + 'campaign.json', function (data) {
-		campaigns[camp].intermission = data.intermission !== false;
-		campaigns[camp].records = data.records !== false;
 		campaigns[camp].endText = typeof data.endText == 'string' ? data.endText : '';
 		if (typeof data.title == 'string') campaigns[camp].title = data.title;
 		campaigns[camp].sort = Number.isFinite(data.sort) ? data.sort : 0;
 		campaigns[camp].parent = typeof data.parent == 'string' ? data.parent : '';
-		campaigns[camp].direct = data.direct === true;
 		levelsToLoad += data.levels.length;
 		for (let i = 0; i < data.levels.length; i++) {
 			loadLevelFile(camp, i, folder + data.levels[i]);

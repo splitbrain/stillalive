@@ -3,7 +3,7 @@
  */
 
 import { campaignPath } from '../../router.js';
-import { LEVELS_PER_CAMPAIGN } from '../../stage/constants.js';
+import { campaigns } from '../campaigns.js';
 import { ChromeElement, loadMarkup } from '../element.js';
 
 /** @type {HTMLTemplateElement|null} The markup of the level list, null because the list has only a style. */
@@ -31,8 +31,9 @@ export class LevelList extends ChromeElement {
 	render() {
 		const folder = this.getAttribute('campaign');
 		const unlocked = Number(this.getAttribute('unlocked') ?? 0);
+		const count = campaigns?.find((c) => c.folder === folder)?.levels.length ?? 0;
 		const buttons = [];
-		for (let n = 1; folder !== null && n <= LEVELS_PER_CAMPAIGN; n++) {
+		for (let n = 1; n <= count; n++) {
 			const link = document.createElement('a');
 			link.textContent = 'Level ' + n;
 			link.dataset.level = String(n);

@@ -14,16 +14,16 @@ const TEMPLATE = await loadMarkup(import.meta.url);
  * and Continue links and the Watch Replay button. It shows on the play screen while it has the attribute open.
  *
  * The attribute time is the level time in ticks, message is the message under the time, exit, restart and next are the
- * paths of the Exit, Restart and Continue links, and the attribute replay shows the Watch Replay button. A link without
- * its attribute is hidden. The Exit link replaces the entry of the level in the history. The Watch Replay button
- * dispatches the bubbling event replay-watch; the app element plays the replay of the level that just ended.
+ * paths of the Exit, Restart and Continue links. A link without its attribute is hidden. The Exit link replaces the
+ * entry of the level in the history. The Watch Replay button dispatches the bubbling event replay-watch; the app
+ * element plays the replay of the level that just ended.
  */
 export class IntermissionPanel extends ChromeElement {
 	/** @type {HTMLTemplateElement|null} The markup of the intermission panel. */
 	static template = TEMPLATE;
 
 	/** @type {string[]} The attributes that cause a new render when they change. */
-	static observedAttributes = ['time', 'message', 'exit', 'restart', 'next', 'replay'];
+	static observedAttributes = ['time', 'message', 'exit', 'restart', 'next'];
 
 	/**
 	 * Add the handler of the Watch Replay button.
@@ -47,7 +47,6 @@ export class IntermissionPanel extends ChromeElement {
 		setLink(this.querySelector('.exit'), this.getAttribute('exit'));
 		setLink(this.querySelector('.restart'), this.getAttribute('restart'));
 		setLink(this.querySelector('.next'), this.getAttribute('next'));
-		this.querySelector('.replay').hidden = !this.hasAttribute('replay');
 	}
 
 	/**

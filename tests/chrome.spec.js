@@ -194,6 +194,14 @@ test.describe('chrome', () => {
 		await expectScreen(page, '#/', ['main-menu']);
 	});
 
+	test('opens the tutorial with a button for each of its levels', async ({ page }) => {
+		await startGame(page);
+		await setHash(page, '#/');
+		await page.getByRole('link', { name: 'Tutorial' }).click();
+		await expectScreen(page, '#/campaign/tutorial', SELECT_PARTS);
+		await expect(page.locator('level-list menu-button')).toHaveCount(8);
+	});
+
 	test('replaces an unknown route and a locked level', async ({ page }) => {
 		await startGame(page);
 		await setHash(page, '#/unknown/route');

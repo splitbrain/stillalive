@@ -3,7 +3,6 @@
  */
 
 import { campaignPath } from '../../router.js';
-import { LEVELS_PER_CAMPAIGN } from '../../stage/constants.js';
 import { decodeReplay } from '../../stage/replay.js';
 import { campaigns } from '../campaigns.js';
 import { alertDialog } from '../dialog.js';
@@ -23,8 +22,8 @@ const TEMPLATE = await loadMarkup(import.meta.url);
  * none. Without the attribute mode, the panel is the one of the level selection: the best time of the selected level,
  * the Watch link to the replay route, the Export button for the stored replay of the best time, and the Import button
  * for a replay file. With the attribute mode, play or replay, the panel is the one of a running level: the level time
- * and the best time. The panel always shows the sum of the best times of the campaign. It opens only for a campaign
- * with records, and then has the class open.
+ * and the best time. The panel always shows the sum of the best times of the campaign. It opens only for a known
+ * campaign, and then has the class open.
  *
  * The import checks the replay file and dispatches the bubbling event replay-import with the replay in the file format
  * as detail.replay. The app element plays it.
@@ -70,8 +69,8 @@ export class BestTimes extends ChromeElement {
 	render() {
 		const folder = this.getAttribute('campaign');
 		const campaign = folder === null ? undefined : campaigns?.find((c) => c.folder === folder);
-		this.classList.toggle('open', campaign?.records === true);
-		if (!campaign?.records) return;
+		this.classList.toggle('open', campaign !== undefined);
+		if (!campaign) return;
 
 		const level = Number(this.getAttribute('level') ?? 0);
 		const mode = this.getAttribute('mode');
@@ -91,7 +90,7 @@ export class BestTimes extends ChromeElement {
 		this.querySelector('.export').hidden = !selecting || best === null;
 		this.querySelector('.import').hidden = !selecting;
 		this.querySelector('.total-time').textContent = toTime(total.ticks);
-		this.querySelector('.total-levels').textContent = total.levels + ' of ' + LEVELS_PER_CAMPAIGN + ' levels';
+		this.querySelector('.total-levels').textContent = total.levels + ' of ' + campaign.levels.length + ' levels';
 	}
 
 	/**
@@ -127,8 +126,8 @@ export class BestTimes extends ChromeElement {
 		const data = await pickJsonFile();
 		if (data === null || !this.hasAttribute('campaign') || this.hasAttribute('mode')) return;
 		decodeReplay(data);
-		const known = campaigns.some((c) => c.folder === data.campaign && c.records);
-		if (!known || data.level < 1 || data.level > LEVELS_PER_CAMPAIGN) {
+		const campaign = campaigns.find((c) => c.folder === data.campaign);
+		if (!campaign || data.level < 1 || data.level > campaign.levels.length) {
 			throw new Error('The replay is for an unknown level.');
 		}
 		this.dispatchEvent(new CustomEvent('replay-import', { bubbles: true, detail: { replay: data } }));

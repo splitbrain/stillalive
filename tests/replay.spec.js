@@ -24,7 +24,7 @@ const INTRO_TICKS = 30;
  */
 const BOSS_ATTEMPTS = 30;
 
-for (const campaign of CAMPAIGNS.filter((c) => c.name !== 'tutorial')) {
+for (const campaign of CAMPAIGNS) {
 	test(`replay ${campaign.name}`, async ({ page }) => {
 		await openGame(page);
 		let checked = 0;

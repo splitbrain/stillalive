@@ -6,6 +6,7 @@
  * - format: the version of the file format, always 1
  * - tiles: the 768 tile ids of the 32 x 24 tiles, row by row
  * - bg: the index of the background image
+ * - title: optional, the name of the level in the level selection. The editor does not use the title.
  * - boss: optional, the boss of the level from 1 to 4. Only a boss level can contain the tube. The editor does not
  *   support boss levels.
  * - text: optional, the message at the level start. It is the same as an event with the trigger "start" and this
@@ -63,6 +64,7 @@ const PORTAL_DIRECTIONS = ['up', 'down', 'left', 'right'];
  * @typedef {object} MapData
  * @property {number[]} tiles The 768 tile ids.
  * @property {number} bg The background index.
+ * @property {string} title The name of the level, or an empty text for none.
  * @property {number} boss The boss, or 0 for a level without a boss.
  * @property {{jump: boolean, portals: boolean}} abilities The abilities of the player at the level start.
  * @property {MapEvent[]} events The events of the level, with the text of the level as the first start event.
@@ -198,6 +200,7 @@ export function parseMap(data) {
 		!Number.isInteger(data.bg) ||
 		data.bg < 0 ||
 		data.bg >= bg.length ||
+		!(data.title === undefined || typeof data.title === 'string') ||
 		!(data.text === undefined || typeof data.text === 'string') ||
 		!isValidAbilities(data.abilities) ||
 		!(data.events === undefined || (Array.isArray(data.events) && data.events.every(isValidEvent))) ||
@@ -208,6 +211,7 @@ export function parseMap(data) {
 	return {
 		tiles: data.tiles,
 		bg: data.bg,
+		title: data.title ?? '',
 		boss,
 		abilities: { jump: true, portals: true, ...data.abilities },
 		events: [...(data.text ? [{ on: 'start', text: data.text }] : []), ...(data.events ?? [])],

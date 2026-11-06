@@ -79,10 +79,10 @@ export class NarratorText extends ChromeElement {
 	 * Tell if the narrator text shows on a screen of the app.
 	 *
 	 * @param {string} screen The screen, a value of Screen.
-	 * @returns {boolean} True on the select, the play, the editor and the editor-file screen.
+	 * @returns {boolean} True on the play, the editor and the editor-file screen.
 	 */
 	shouldShow(screen) {
-		return [Screen.SELECT, Screen.PLAY, Screen.EDITOR, Screen.EDITOR_FILE].includes(screen);
+		return [Screen.PLAY, Screen.EDITOR, Screen.EDITOR_FILE].includes(screen);
 	}
 
 	/**

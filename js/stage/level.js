@@ -192,6 +192,7 @@ function crateOnSwitch() {
  * @typedef {object} Level
  * @property {number[]} tiles The 768 tile ids.
  * @property {number} bg The background index.
+ * @property {string} title The name of the level, or an empty text for none.
  * @property {number} boss The boss, or 0 for a level without a boss.
  * @property {{jump: boolean, portals: boolean}} abilities The abilities of the player at the level start.
  * @property {import('./mapFile.js').MapEvent[]} events The events of the level.

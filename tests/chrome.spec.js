@@ -32,7 +32,7 @@ const SCREEN_PARTS = [
  *
  * @type {string[]}
  */
-const SELECT_PARTS = ['level-selection', 'best-times', 'narrator-text', 'game-stage'];
+const SELECT_PARTS = ['level-selection', 'best-times', 'game-stage'];
 
 /**
  * The screen parts of a level.
@@ -108,12 +108,18 @@ test.describe('chrome', () => {
 
 		await page.getByRole('link', { name: 'Classic Mode' }).click();
 		await expectScreen(page, '#/campaign/normal', SELECT_PARTS);
+		await expect(page.locator('level-list')).toBeVisible();
+		await expect(page.locator('level-selection .details')).toBeHidden();
+		await expect.poll(() => stageValue(page, 'mode')).toBe('preview');
 
-		await waitForNarrator(page);
-		const level1 = page.locator('level-list').getByRole('link', { name: 'Level 1', exact: true });
-		await level1.click();
+		// a locked level is a link without a target
+		await expect(page.locator('level-list a:not([href])')).toHaveCount(27);
+		await page.locator('level-list').getByRole('link', { name: 'Level 1', exact: true }).click();
 		await expectScreen(page, '#/campaign/normal/1', SELECT_PARTS);
-		await expect(level1).toHaveClass('selected');
+		await expect(page.locator('level-list')).toBeHidden();
+		await expect(page.locator('level-selection .title')).toHaveText('Holes in One');
+		await expect(page.locator('level-selection .number')).toHaveText('Level 1');
+		await expect(page.locator('level-selection .replay')).not.toHaveAttribute('href');
 		await expect.poll(() => stageValue(page, 'mode')).toBe('preview');
 
 		await page.locator('level-selection .play').click();
@@ -140,8 +146,11 @@ test.describe('chrome', () => {
 		await page.goBack();
 		await expectScreen(page, '#/campaign/normal/1', SELECT_PARTS);
 
-		await waitForNarrator(page);
-		await page.locator('level-selection .exit').click();
+		await page.locator('level-selection .back').click();
+		await expectScreen(page, '#/campaign/normal', SELECT_PARTS);
+		await expect(page.locator('level-list')).toBeVisible();
+
+		await page.locator('level-selection .back').click();
 		await expectScreen(page, '#/', ['main-menu']);
 
 		await page.getByRole('link', { name: 'Level Editor' }).click();
@@ -202,7 +211,6 @@ test.describe('chrome', () => {
 		await setHash(page, `#/campaign/story/${last}`);
 		await expectScreen(page, `#/campaign/story/${last}`, SELECT_PARTS);
 
-		await waitForNarrator(page);
 		await page.locator('level-selection .play').click();
 		await expectScreen(page, `#/campaign/story/${last}/play`, BOSS_PARTS);
 

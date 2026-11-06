@@ -1,13 +1,71 @@
 <template>
+	<a class="back"><img src="images/back.svg" alt="Back" /></a>
 	<level-list></level-list>
-	<div>
-		<a class="exit" href="#/">Exit</a>
-		<a class="play" hidden>Play</a>
+	<div class="details">
+		<h2 class="title"></h2>
+		<p class="number"></p>
+		<p class="best">Best time: <span></span></p>
+		<menu-button><a class="play">Play</a></menu-button>
+		<menu-button><a class="replay">Replay</a></menu-button>
 	</div>
 </template>
 
 <style>
+	/*
+	 * The level selection covers the whole cell of the screen. It shows the preview behind it in black and white and
+	 * darker, and the level list or the details of the level centered on top. The back button sits in the top left
+	 * corner. All sizes scale with the screen.
+	 */
 	level-selection {
-		display: block;
+		display: flex;
+		position: relative;
+		align-items: center;
+		justify-content: center;
+		backdrop-filter: grayscale(1) brightness(0.6);
+
+		.back {
+			position: absolute;
+			top: 3cqw;
+			left: 3cqw;
+			width: 6cqw;
+			transition: scale 0.1s;
+
+			&:hover,
+			&:focus-visible {
+				scale: 0.9;
+			}
+
+			img {
+				display: block;
+				width: 100%;
+			}
+		}
+
+		.details {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			gap: 1.8cqw;
+			text-shadow: 0.1em 0.1em 0 #000;
+		}
+
+		h2,
+		p {
+			margin: 0;
+		}
+
+		.title {
+			font-size: 6cqw;
+		}
+
+		.number {
+			font: var(--font-title);
+			font-size: 3cqw;
+		}
+
+		.best {
+			margin-bottom: 1.8cqw;
+			font-size: 2.4cqw;
+		}
 	}
 </style>

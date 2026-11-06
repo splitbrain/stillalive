@@ -10,36 +10,37 @@ import { ChromeElement, loadMarkup } from '../element.js';
 const TEMPLATE = await loadMarkup(import.meta.url);
 
 /**
- * The custom element <level-list>. It shows a link for each level of a campaign.
+ * The custom element <level-list>. It shows a menu button with a link for each level of a campaign.
  *
- * The attribute campaign is the folder name of the campaign, the attribute selected is the selected level number, and
- * the attribute unlocked is the highest unlocked level number. A locked level has no link target. The selected level
- * has the class selected.
+ * The attribute campaign is the folder name of the campaign, and the attribute unlocked is the highest unlocked level
+ * number. A locked level has no link target, so its button is disabled. Each link has the level number in the
+ * attribute data-level.
  */
 export class LevelList extends ChromeElement {
 	/** @type {HTMLTemplateElement|null} The markup of the level list, null because the list has only a style. */
 	static template = TEMPLATE;
 
 	/** @type {string[]} The attributes that cause a new render when they change. */
-	static observedAttributes = ['campaign', 'selected', 'unlocked'];
+	static observedAttributes = ['campaign', 'unlocked'];
 
 	/**
-	 * Make the level links from the attributes and replace the children with them.
+	 * Make the level buttons from the attributes and replace the children with them.
 	 *
 	 * @returns {void}
 	 */
 	render() {
 		const folder = this.getAttribute('campaign');
-		const selected = Number(this.getAttribute('selected') ?? 0);
 		const unlocked = Number(this.getAttribute('unlocked') ?? 0);
-		const links = [];
+		const buttons = [];
 		for (let n = 1; folder !== null && n <= LEVELS_PER_CAMPAIGN; n++) {
 			const link = document.createElement('a');
 			link.textContent = 'Level ' + n;
+			link.dataset.level = String(n);
 			if (n <= unlocked) link.setAttribute('href', campaignPath(folder, n));
-			link.classList.toggle('selected', n == selected);
-			links.push(link);
+			const button = document.createElement('menu-button');
+			button.append(link);
+			buttons.push(button);
 		}
-		this.replaceChildren(...links);
+		this.replaceChildren(...buttons);
 	}
 }

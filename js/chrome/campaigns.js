@@ -67,6 +67,15 @@ export class Campaign {
 	get completed() {
 		return maxLevel[this.id].get() - 1;
 	}
+
+	/**
+	 * Get the highest level that the player can play. After the last level, this is the last level.
+	 *
+	 * @returns {number} The level number.
+	 */
+	get unlocked() {
+		return Math.min(maxLevel[this.id].get(), this.levels.length);
+	}
 }
 
 /**

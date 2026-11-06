@@ -48,6 +48,12 @@
 				scale: 0.9;
 			}
 
+			/* a link without a target and a disabled button are gray and take no pointer input */
+			&:is(a:not([href]), button:disabled) {
+				filter: grayscale(1);
+				pointer-events: none;
+			}
+
 			/* an extra value, like a count, goes to the right end in a smaller size */
 			span {
 				margin-left: auto;

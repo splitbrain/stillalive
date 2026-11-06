@@ -12,7 +12,8 @@ const SKEW_PROPERTIES = 8;
 
 /**
  * The custom element <menu-button>. It gives the look of a menu button to the link or the button inside it. The link
- * or the button keeps all its attributes and its behavior. The attribute small gives a smaller button.
+ * or the button keeps all its attributes and its behavior. The attribute small gives a smaller button. A link without a
+ * target and a disabled button show as disabled.
  *
  * Each menu button gets a random crooked shape when it is built.
  */

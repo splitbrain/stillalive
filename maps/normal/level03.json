@@ -1,5 +1,6 @@
 {
 	"format": 1,
+	"title": "Hazard Stripes",
 	"bg": 2,
 	"text": "Some rooms feature black/yellow walls. These indicate that you can't put any portal on them. It makes some rooms more tricky so that you don't get out too easily. Go ahead and try to put portal on these walls if you dare. ",
 	"tiles": [

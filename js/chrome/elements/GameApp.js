@@ -25,10 +25,6 @@ const TEMPLATE = await loadMarkup(import.meta.url);
 /** @type {string[]} The screens that show the stage. */
 const STAGE_SCREENS = [Screen.SELECT, Screen.PLAY, Screen.EDITOR, Screen.EDITOR_FILE];
 
-/** @type {string} The narrator text of the level selection. */
-const SELECTION_TEXT =
-	"Welcome to the campaign mode of StillAliveJS. Here you can select a map on the right and click 'Play' to play it. Good Luck !";
-
 /** @type {string} The narrator text of the editor and of its save and load screen. */
 const EDITOR_TEXT =
 	'Welcome to the StillAliveJS Level Editor ! Here is a place where you can easily create your own maps. You can use your mouse to select tiles or object and draw them on the screen. Then, try out your map. Have Fun !';
@@ -50,8 +46,8 @@ const EDITOR_TEXT =
  * level and the play mode as attributes of the best times panel. The panel gets a campaign only on the select and the
  * play routes. On the play route, it gives the restart and the exit paths to the pause menu and the exit path to the
  * intermission panel. It gives the robot head the eye of the part of the story and marks it as absent in boss levels,
- * because the boss is the robot. It sets the fixed text of the selection and the editor screens as the text attribute
- * of the narrator text. It sets the mode attribute of the save and load screen: empty on the editor route, save or
+ * because the boss is the robot. It sets the fixed text of the editor screens as the text attribute of the narrator
+ * text. It sets the mode attribute of the save and load screen: empty on the editor route, save or
  * load on the editor-file route. A replay-import event from a page element plays the replay in its detail.
  *
  * At the end of a level, the element stores the best time, the replay and the progress, and chooses the next route or
@@ -213,7 +209,8 @@ export class GameApp extends ChromeElement {
 	/**
 	 * Apply the route: command the stage and show the screen. A level that does not exist or that is locked goes to the
 	 * selection of its campaign. The playback of a replay needs only an existing level. A campaign without records has
-	 * no selection, so its selection goes to the main menu. A level that follows a play route of the same level starts
+	 * no selection, so its selection goes to the main menu. The selection shows the preview of the selected level, or
+	 * of the highest unlocked level when no level is selected. A level that follows a play route of the same level starts
 	 * as a restart, which skips the waits at the level start.
 	 *
 	 * @returns {void}
@@ -243,8 +240,8 @@ export class GameApp extends ChromeElement {
 		this.#applied = r;
 		const level = r.level > 0 ? campaigns[index].levels[r.level - 1] : null;
 
-		if (r.name == 'select' && level) {
-			this.stage.preview(level);
+		if (r.name == 'select') {
+			this.stage.preview(level ?? campaigns[index].levels[campaigns[index].unlocked - 1]);
 		} else if (r.name == 'play' && r.mode == 'play') {
 			this.stage.play(level, { restart: sameLevel });
 		} else if (r.name == 'play') {
@@ -275,10 +272,7 @@ export class GameApp extends ChromeElement {
 			eye: play && index == CampaignId.STORY ? Math.min(Math.floor((r.level - 1) / 7), 3) + 1 : null,
 			absent: play && level.boss > 0 ? '' : null,
 		});
-		let text = null;
-		if (r.name == 'select') text = SELECTION_TEXT;
-		else if (r.name.startsWith('editor')) text = EDITOR_TEXT;
-		setAttributes(this.querySelector('narrator-text'), { text });
+		setAttributes(this.querySelector('narrator-text'), { text: r.name.startsWith('editor') ? EDITOR_TEXT : null });
 		let editorMode = null;
 		if (r.name == 'editor') editorMode = '';
 		else if (r.name == 'editor-file') editorMode = r.mode;

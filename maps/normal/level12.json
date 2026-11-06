@@ -1,5 +1,6 @@
 {
 	"format": 1,
+	"title": "Great Balls of Plasma",
 	"bg": 0,
 	"text": "Alright ! As you can see, a plasma ball is floating around the level, and a green energy wall is blocking the way. In order to open it, you have to activate the red switch located on the right. The green switch is the plasma ball respawn point, in case you accidentaly throw it out of the map. To open the energy wall, try to teleport the plasma ball on the red switch ... and by the way, don't ever try to face the plasma ball, or you'll get a little surprise ... ",
 	"tiles": [

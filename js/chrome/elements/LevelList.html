@@ -1,13 +1,13 @@
 <style>
+	/* the level buttons fill a grid of four columns; all sizes scale with the screen */
 	level-list {
-		/* the level links have no white space between them, so a margin separates them */
-		a {
-			margin-right: 1em;
-		}
+		display: grid;
+		grid-template-columns: repeat(4, auto);
+		gap: 1.6cqw 2.4cqw;
 
-		/* the selected level */
-		.selected {
-			outline: 2px solid #3f3;
+		> menu-button {
+			width: 19cqw;
+			font-size: 2.6cqw;
 		}
 	}
 </style>

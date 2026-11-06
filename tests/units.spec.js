@@ -114,6 +114,7 @@ test.describe('units', () => {
 		expect(result).toEqual({
 			tiles: data.tiles,
 			bg: 0,
+			title: '',
 			boss: 0,
 			abilities: { jump: true, portals: true },
 			events: [],
@@ -153,6 +154,12 @@ test.describe('units', () => {
 		expect(result.events).toEqual([{ on: 'start', text: 'Hello' }, ...events]);
 	});
 
+	test('parseMap() reads the title', async () => {
+		const { result, error } = await call(page, '/js/stage/mapFile.js', 'parseMap', { ...validMap(), title: 'Hello' });
+		expect(error).toBeUndefined();
+		expect(result.title).toBe('Hello');
+	});
+
 	test('parseMap() reads the boss and accepts the tube only in a boss level', async () => {
 		const data = validMap();
 		expect((await call(page, '/js/stage/mapFile.js', 'parseMap', data)).result.boss).toBe(0);
@@ -181,6 +188,7 @@ test.describe('units', () => {
 			'negative boss': { ...validMap(), boss: -1 },
 			'boss as text': { ...validMap(), boss: '1' },
 			'text as number': { ...validMap(), text: 1 },
+			'title as number': { ...validMap(), title: 1 },
 			'abilities as list': { ...validMap(), abilities: [false] },
 			'unknown ability': { ...validMap(), abilities: { fly: false } },
 			'ability as text': { ...validMap(), abilities: { jump: 'false' } },

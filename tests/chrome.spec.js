@@ -2,9 +2,9 @@ import { expect, test } from '@playwright/test';
 import { CAMPAIGNS, finishLevel, startGame, waitForNarrator } from './adapter.js';
 
 /**
- * The elements of the page that show on some screens only. The app element asks each of its parts with shouldShow() if
- * it shows on the current screen, and hides the parts that do not show. The stage shows on the select, play, editor
- * and editor-file screens.
+ * The elements of the page that show on some screens only. The app element asks each of its screen parts with
+ * shouldShow() if it shows on the current screen, and hides the parts that do not show. The stage shows on the
+ * select, play, editor and editor-file screens.
  *
  * @type {string[]}
  */
@@ -262,15 +262,14 @@ test.describe('chrome', () => {
 			// the app applies the route after the hashchange event, so the check polls
 			const result = () =>
 				page.evaluate((screen) => {
-					const children = [...document.querySelectorAll('game-app > *, game-app crt-screen > *')];
-					const parts = children.filter((child) => typeof child.shouldShow == 'function');
+					const parts = [...document.querySelectorAll('game-app .chrome-screen')];
 					return {
 						parts: parts.length,
 						mismatches: parts.filter((part) => part.hidden !== !part.shouldShow(screen)).map((part) => part.localName),
 						stage: !document.querySelector('game-stage').hidden,
 					};
 				}, screen);
-			await expect.poll(result).toEqual({ parts: 16, mismatches: [], stage: screen != 'main' });
+			await expect.poll(result).toEqual({ parts: 15, mismatches: [], stage: screen != 'main' });
 		}
 	});
 

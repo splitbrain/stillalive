@@ -2,7 +2,7 @@
  * The narrator text element.
  */
 
-import { ChromeElement, loadMarkup, Screen } from '../element.js';
+import { ChromeScreen, loadMarkup, Screen } from '../element.js';
 
 /** @type {HTMLTemplateElement|null} The markup of the narrator text. */
 const TEMPLATE = await loadMarkup(import.meta.url);
@@ -22,7 +22,7 @@ const TEST_TEXT = 'Press <Enter> or <Escape> key to stop testing.';
  * The text is the key hint during the test run of the editor map, else the attribute text, which the app element sets
  * on the screens with a fixed text, else the text of the message of the stage.
  */
-export class NarratorText extends ChromeElement {
+export class NarratorText extends ChromeScreen {
 	/** @type {HTMLTemplateElement|null} The markup of the narrator text. */
 	static template = TEMPLATE;
 

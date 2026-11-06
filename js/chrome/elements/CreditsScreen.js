@@ -4,7 +4,7 @@
 
 import { navigate } from '../../router.js';
 import { credits } from '../campaigns.js';
-import { ChromeElement, loadMarkup, Screen } from '../element.js';
+import { ChromeScreen, loadMarkup, Screen } from '../element.js';
 
 /** @type {HTMLTemplateElement|null} The markup of the credits. */
 const TEMPLATE = await loadMarkup(import.meta.url);
@@ -17,7 +17,7 @@ const TEMPLATE = await loadMarkup(import.meta.url);
  * The animation starts again each time the screen shows, because the hidden attribute removes the screen from the
  * layout and a CSS animation starts when its element comes back into the layout.
  */
-export class CreditsScreen extends ChromeElement {
+export class CreditsScreen extends ChromeScreen {
 	/** @type {HTMLTemplateElement|null} The markup of the credits. */
 	static template = TEMPLATE;
 

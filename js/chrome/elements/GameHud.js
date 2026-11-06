@@ -2,7 +2,7 @@
  * The HUD element.
  */
 
-import { ChromeElement, loadMarkup, Screen } from '../element.js';
+import { ChromeScreen, loadMarkup, Screen } from '../element.js';
 
 /** @type {HTMLTemplateElement|null} The markup of the HUD. */
 const TEMPLATE = await loadMarkup(import.meta.url);
@@ -27,7 +27,7 @@ function lifeLevel(life) {
  * steps, portals and the frame rate. The color of the life display shows the level of the life. It shows on the play
  * screen.
  */
-export class GameHud extends ChromeElement {
+export class GameHud extends ChromeScreen {
 	/** @type {HTMLTemplateElement|null} The markup of the HUD. */
 	static template = TEMPLATE;
 

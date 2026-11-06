@@ -33,9 +33,9 @@ const EDITOR_TEXT =
  * The custom element <game-app>. It creates the parts of the screens and the stage from its template. The stage and
  * the parts that show in its place are inside the CRT screen; the other parts are around it.
  *
- * On each change of the screen, the element asks each part with shouldShow() if it shows on the current screen, and
- * sets the hidden attribute of the parts that do not show. The stage shows on the select, play, editor and editor-file
- * screens.
+ * On each change of the screen, the element asks each screen part with shouldShow() if it shows on the current
+ * screen, and sets the hidden attribute of the parts that do not show. It finds the screen parts at any depth by their
+ * class chrome-screen. The stage shows on the select, play, editor and editor-file screens.
  *
  * The loading screen shows until the stage and the campaigns are ready and the player clicks the loading screen,
  * whatever the route is. Then the element shows the screen of the route and commands the stage. The test run of the
@@ -167,11 +167,8 @@ export class GameApp extends ChromeElement {
 	 */
 	#showScreen() {
 		const screen = this.#screen();
-		const stage = this.stage;
-		for (const child of this.querySelectorAll(':scope > *, crt-screen > *')) {
-			if (child instanceof ChromeElement) child.hidden = !child.shouldShow(screen);
-			else if (child === stage) child.hidden = !STAGE_SCREENS.includes(screen);
-		}
+		for (const part of this.querySelectorAll('.chrome-screen')) part.hidden = !part.shouldShow(screen);
+		this.stage.hidden = !STAGE_SCREENS.includes(screen);
 	}
 
 	/**

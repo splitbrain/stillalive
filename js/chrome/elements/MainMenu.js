@@ -4,7 +4,7 @@
 
 import { campaignPath } from '../../router.js';
 import { campaignsReady, listCampaigns } from '../campaigns.js';
-import { ChromeElement, loadMarkup, Screen } from '../element.js';
+import { ChromeScreen, loadMarkup, Screen } from '../element.js';
 import { maxLevel } from '../storage.js';
 
 /** @type {HTMLTemplateElement|null} The markup of the main menu. */
@@ -14,7 +14,7 @@ const TEMPLATE = await loadMarkup(import.meta.url);
  * The custom element <main-menu>. It shows the list of the campaigns with the number of finished levels and the link to
  * the editor. A campaign with a parent shows in a sub list below its parent.
  */
-export class MainMenu extends ChromeElement {
+export class MainMenu extends ChromeScreen {
 	/** @type {HTMLTemplateElement|null} The markup of the main menu. */
 	static template = TEMPLATE;
 

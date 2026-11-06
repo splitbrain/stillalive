@@ -3,7 +3,7 @@
  */
 
 import { alertDialog } from '../dialog.js';
-import { ChromeElement, loadMarkup, Screen } from '../element.js';
+import { ChromeScreen, loadMarkup, Screen } from '../element.js';
 
 /** @type {HTMLTemplateElement|null} The markup of the editor buttons. */
 const TEMPLATE = await loadMarkup(import.meta.url);
@@ -23,7 +23,7 @@ const EDITOR_HELP =
  * on the editor screen. The Clear button clears the map of the stage, the Try Map button starts the test run of the
  * map, and the Help button shows the shortcuts of the editor.
  */
-export class EditorButtons extends ChromeElement {
+export class EditorButtons extends ChromeScreen {
 	/** @type {HTMLTemplateElement|null} The markup of the editor buttons. */
 	static template = TEMPLATE;
 

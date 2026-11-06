@@ -3,7 +3,7 @@
  */
 
 import { Tile } from '../../stage/tiles.js';
-import { ChromeElement, loadMarkup, Screen } from '../element.js';
+import { ChromeScreen, loadMarkup, Screen } from '../element.js';
 
 /** @type {HTMLTemplateElement|null} The markup of the object palette. */
 const TEMPLATE = await loadMarkup(import.meta.url);
@@ -16,7 +16,7 @@ const TEMPLATE = await loadMarkup(import.meta.url);
  * A click on a background button changes the background of the stage to the previous or the next one, by the step of
  * the button, -1 or 1, in its data-bg attribute.
  */
-export class ObjectPalette extends ChromeElement {
+export class ObjectPalette extends ChromeScreen {
 	/** @type {HTMLTemplateElement|null} The markup of the object palette. */
 	static template = TEMPLATE;
 

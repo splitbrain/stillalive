@@ -3,7 +3,7 @@
  */
 
 import { setLink } from '../dom.js';
-import { ChromeElement, loadMarkup, Screen } from '../element.js';
+import { ChromeScreen, loadMarkup, Screen } from '../element.js';
 
 /** @type {HTMLTemplateElement|null} The markup of the pause menu. */
 const TEMPLATE = await loadMarkup(import.meta.url);
@@ -15,7 +15,7 @@ const TEMPLATE = await loadMarkup(import.meta.url);
  * history. The Resume button continues the level; the sound button turns the sound on and off and shows the setting.
  * The app element stores the change of the sound.
  */
-export class PauseMenu extends ChromeElement {
+export class PauseMenu extends ChromeScreen {
 	/** @type {HTMLTemplateElement|null} The markup of the pause menu. */
 	static template = TEMPLATE;
 

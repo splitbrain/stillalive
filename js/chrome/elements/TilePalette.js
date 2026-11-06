@@ -3,7 +3,7 @@
  */
 
 import { EDITOR_TILE_TITLES, EDITOR_TILES } from '../../stage/constants.js';
-import { ChromeElement, loadMarkup, Screen } from '../element.js';
+import { ChromeScreen, loadMarkup, Screen } from '../element.js';
 
 /** @type {HTMLTemplateElement|null} The markup of the tile palette, null because the palette has only a style. */
 const TEMPLATE = await loadMarkup(import.meta.url);
@@ -13,7 +13,7 @@ const TEMPLATE = await loadMarkup(import.meta.url);
  * shows the image of its tile. A click on a button makes its tile the brush of the stage. The button of the brush has
  * the class selected.
  */
-export class TilePalette extends ChromeElement {
+export class TilePalette extends ChromeScreen {
 	/** @type {HTMLTemplateElement|null} The markup of the tile palette, null because the palette has only a style. */
 	static template = TEMPLATE;
 

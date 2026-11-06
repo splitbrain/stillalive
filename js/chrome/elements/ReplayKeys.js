@@ -5,7 +5,7 @@
 import { route } from '../../router.js';
 import { KEY_CLEAR, KEY_DOWN, KEY_JUMP, KEY_LEFT, KEY_RIGHT, MOUSE_LEFT, MOUSE_RIGHT } from '../../stage/constants.js';
 import { keyLabels } from '../../stage/keys.js';
-import { ChromeElement, loadMarkup, Screen } from '../element.js';
+import { ChromeScreen, loadMarkup, Screen } from '../element.js';
 
 /** @type {HTMLTemplateElement|null} The markup of the replay keys. */
 const TEMPLATE = await loadMarkup(import.meta.url);
@@ -26,7 +26,7 @@ const KEY_CAPS = {
  * play screen in the playback of a replay. The element marks the caps that are pressed in the playback with the class
  * pressed, and shows the key labels of the keyboard of the player on the key caps.
  */
-export class ReplayKeys extends ChromeElement {
+export class ReplayKeys extends ChromeScreen {
 	/** @type {HTMLTemplateElement|null} The markup of the replay keys. */
 	static template = TEMPLATE;
 

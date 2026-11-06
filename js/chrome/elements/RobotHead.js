@@ -2,7 +2,7 @@
  * The robot head element.
  */
 
-import { ChromeElement, loadMarkup, Screen } from '../element.js';
+import { ChromeScreen, loadMarkup, Screen } from '../element.js';
 
 /** @type {HTMLTemplateElement|null} The markup of the robot head. */
 const TEMPLATE = await loadMarkup(import.meta.url);
@@ -19,7 +19,7 @@ const ROBOT_STEP_TIME = 250;
  * down, the head moves to a side, or the eye blinks. The element sets the custom properties --eye-x, --eye-y and
  * --head-x to -1, 0 or 1 and adds the class blink to the eye; the style moves the parts and runs the blink.
  */
-export class RobotHead extends ChromeElement {
+export class RobotHead extends ChromeScreen {
 	/** @type {HTMLTemplateElement|null} The markup of the robot head. */
 	static template = TEMPLATE;
 

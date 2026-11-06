@@ -6,7 +6,7 @@ import { campaignPath } from '../../router.js';
 import { decodeReplay } from '../../stage/replay.js';
 import { campaigns } from '../campaigns.js';
 import { alertDialog } from '../dialog.js';
-import { ChromeElement, loadMarkup, Screen } from '../element.js';
+import { ChromeScreen, loadMarkup, Screen } from '../element.js';
 import { downloadJson, pickJsonFile } from '../files.js';
 import { bestTimes, getBestTime, getCampaignTotal, loadBestReplay } from '../storage.js';
 import { toTime } from '../time.js';
@@ -28,7 +28,7 @@ const TEMPLATE = await loadMarkup(import.meta.url);
  * The import checks the replay file and dispatches the bubbling event replay-import with the replay in the file format
  * as detail.replay. The app element plays it.
  */
-export class BestTimes extends ChromeElement {
+export class BestTimes extends ChromeScreen {
 	/** @type {HTMLTemplateElement|null} The markup of the best times panel. */
 	static template = TEMPLATE;
 

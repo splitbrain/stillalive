@@ -5,7 +5,7 @@
 import { campaignPath } from '../../router.js';
 import { CAMPAIGN_FOLDERS } from '../../stage/constants.js';
 import { campaigns } from '../campaigns.js';
-import { ChromeElement, loadMarkup, Screen } from '../element.js';
+import { ChromeScreen, loadMarkup, Screen } from '../element.js';
 import { bestTimes, getBestTime, maxLevel } from '../storage.js';
 import { toTime } from '../time.js';
 
@@ -22,7 +22,7 @@ const TEMPLATE = await loadMarkup(import.meta.url);
  * Replay link. The Replay link is disabled when the level has no best time. The back link goes from the details to the
  * level list, and from the level list to the main menu.
  */
-export class LevelSelection extends ChromeElement {
+export class LevelSelection extends ChromeScreen {
 	/** @type {HTMLTemplateElement|null} The markup of the level selection. */
 	static template = TEMPLATE;
 

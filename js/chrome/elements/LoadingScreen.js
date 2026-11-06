@@ -4,7 +4,7 @@
 
 import { keyLabels } from '../../stage/keys.js';
 import { campaignsLoading, campaignsReady } from '../campaigns.js';
-import { ChromeElement, loadMarkup, Screen } from '../element.js';
+import { ChromeScreen, loadMarkup, Screen } from '../element.js';
 
 /** @type {HTMLTemplateElement|null} The markup of the loading screen. */
 const TEMPLATE = await loadMarkup(import.meta.url);
@@ -18,7 +18,7 @@ const TEMPLATE = await loadMarkup(import.meta.url);
  * store sound changes before the game starts, so this change is for the session only. The click that starts the game
  * bubbles to the app element, which handles it.
  */
-export class LoadingScreen extends ChromeElement {
+export class LoadingScreen extends ChromeScreen {
 	/** @type {HTMLTemplateElement|null} The markup of the loading screen. */
 	static template = TEMPLATE;
 

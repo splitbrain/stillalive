@@ -1,5 +1,5 @@
 /**
- * The base of the chrome elements: the loader of their markup, the names of the screens and the base class.
+ * The base of the chrome elements: the loader of their markup, the names of the screens and the base classes.
  */
 
 /**
@@ -117,6 +117,32 @@ export class ChromeElement extends HTMLElement {
 	render() {}
 
 	/**
+	 * The stage element of the page.
+	 *
+	 * @returns {import('../stage/GameStage.js').GameStage} The <game-stage> element.
+	 */
+	get stage() {
+		return document.querySelector('game-stage');
+	}
+}
+
+/**
+ * The base class of the screen parts: the chrome elements that the app shows and hides per screen. On each connect, the
+ * element adds the class chrome-screen to itself, so that the app finds it at any depth. A part inside a screen part is
+ * a plain chrome element, because the screen part controls it.
+ */
+export class ChromeScreen extends ChromeElement {
+	/**
+	 * Add the class chrome-screen, then build and subscribe as a chrome element.
+	 *
+	 * @returns {void}
+	 */
+	connectedCallback() {
+		this.classList.add('chrome-screen');
+		super.connectedCallback();
+	}
+
+	/**
 	 * Tell if the element shows on a screen of the app.
 	 *
 	 * @param {string} screen The screen, a value of Screen.
@@ -125,14 +151,5 @@ export class ChromeElement extends HTMLElement {
 	// eslint-disable-next-line no-unused-vars
 	shouldShow(screen) {
 		return true;
-	}
-
-	/**
-	 * The stage element of the page.
-	 *
-	 * @returns {import('../stage/GameStage.js').GameStage} The <game-stage> element.
-	 */
-	get stage() {
-		return document.querySelector('game-stage');
 	}
 }

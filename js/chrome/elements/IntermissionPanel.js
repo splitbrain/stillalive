@@ -3,7 +3,7 @@
  */
 
 import { setLink } from '../dom.js';
-import { ChromeElement, loadMarkup, Screen } from '../element.js';
+import { ChromeScreen, loadMarkup, Screen } from '../element.js';
 import { toTime } from '../time.js';
 
 /** @type {HTMLTemplateElement|null} The markup of the intermission panel. */
@@ -18,7 +18,7 @@ const TEMPLATE = await loadMarkup(import.meta.url);
  * entry of the level in the history. The Watch Replay button dispatches the bubbling event replay-watch; the app
  * element plays the replay of the level that just ended.
  */
-export class IntermissionPanel extends ChromeElement {
+export class IntermissionPanel extends ChromeScreen {
 	/** @type {HTMLTemplateElement|null} The markup of the intermission panel. */
 	static template = TEMPLATE;
 

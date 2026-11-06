@@ -6,7 +6,7 @@ import { navigate } from '../../router.js';
 import { MAP_FORMAT, parseMap } from '../../stage/mapFile.js';
 import { alertDialog } from '../dialog.js';
 import { setAttributes } from '../dom.js';
-import { ChromeElement, loadMarkup, Screen } from '../element.js';
+import { ChromeScreen, loadMarkup, Screen } from '../element.js';
 import { downloadJson, pickJsonFile } from '../files.js';
 import { editorMap, saveEditorMap } from '../storage.js';
 
@@ -27,7 +27,7 @@ const TEMPLATE = await loadMarkup(import.meta.url);
  * editor: back in the history if the player came from the editor, else to the editor route in place of the current
  * entry. So after an accept or an import the history holds the editor route only once.
  */
-export class EditorFiles extends ChromeElement {
+export class EditorFiles extends ChromeScreen {
 	/** @type {HTMLTemplateElement|null} The markup of the save and load screen. */
 	static template = TEMPLATE;
 

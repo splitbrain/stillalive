@@ -6,11 +6,9 @@ import { copyCanvas, ctx, drawCopy, drawImage } from '../canvas.js';
 import { MAP_HEIGHT, MAP_WIDTH, NUM_TILES, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH } from '../constants.js';
 import {
 	bg,
-	body,
 	cake,
 	crateImage,
 	crosshair,
-	head,
 	platform,
 	portalGun,
 	tileset,
@@ -78,9 +76,7 @@ function drawTestLevel() {
 
 	drawGravPipes();
 
-	const flipDx = game.player.flip < 0 ? 1 : 0;
-	drawImage(head[flipDx], game.player.animationFrame * 16, 0, 15, 12, game.player.x >> 8, game.player.y >> 8, 16, 12);
-	drawImage(body[flipDx], game.player.animationFrame * 16, 0, 16, 27, game.player.x >> 8, game.player.y >> 8, 16, 27);
+	drawPlayer(game.player.x >> 8, game.player.y >> 8, game.player.flip, game.player.animationFrame);
 
 	drawCakes();
 	drawTurrets();

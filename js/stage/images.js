@@ -18,9 +18,9 @@ export let robotEye;
 export let robotHead;
 /** @type {HTMLImageElement} The platform. */
 export let platform;
-/** @type {HTMLImageElement[]} The head of the player, facing right and left. */
+/** @type {HTMLImageElement} The head of the player, facing right. */
 export let head;
-/** @type {HTMLImageElement[]} The body of the player, facing right and left. */
+/** @type {HTMLImageElement} The body of the player, facing right: the standing frame and the 4 frames of the walk cycle. */
 export let body;
 /** @type {HTMLImageElement} The gravitational pipes that push to the left and to the right. */
 export let gravPipe;
@@ -60,17 +60,9 @@ export let tileset;
  */
 export function loadGfx() {
 	let i, t, r;
-	body = new Array();
-	for (i = 0; i < 2; i++) {
-		t = loadImage('sprites/body' + i + '.svg');
-		body.push(t);
-	}
+	body = loadImage('sprites/body.svg');
 
-	head = new Array();
-	for (i = 0; i < 2; i++) {
-		t = loadImage('sprites/head' + i + '.svg');
-		head.push(t);
-	}
+	head = loadImage('sprites/head.svg');
 
 	crosshair = loadImage('sprites/crosshair.svg');
 

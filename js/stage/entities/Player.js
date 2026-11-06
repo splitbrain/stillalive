@@ -70,7 +70,7 @@ export class Player {
 		this.switchPressed = 0;
 		/** @type {number} Ticks until the next frame of the walk animation. */
 		this.animationTime = 10;
-		/** @type {number} The frame of the walk animation. */
+		/** @type {number} The frame of the walk animation: 0 is the standing frame, 1 to 4 are the walk cycle. */
 		this.animationFrame = 0;
 		/** @type {number} The life in 1/256 points; 100 points is full life. */
 		this.life = 100 << 8;
@@ -258,7 +258,7 @@ export class Player {
 		this.animationTime -= 1 + 2 * (1 - (ground == 2 ? 1 : 0));
 		if (this.animationTime <= 0) {
 			this.animationTime = 10;
-			if (++this.animationFrame == 4) this.animationFrame = 1;
+			if (++this.animationFrame == 5) this.animationFrame = 1;
 		}
 
 		if (++this.portalCooldown > 25) this.portalCooldown = 25;

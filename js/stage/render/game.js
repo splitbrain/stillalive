@@ -42,6 +42,15 @@ import { Tile } from '../tiles.js';
 import { degToRad, getAngle, radToDeg, random } from '../utils.js';
 
 /**
+ * @type {number[]} The vertical offset of the head for each frame of the body, in canvas pixels. The head follows the
+ *     collar, which is higher in the frames where one leg passes the other.
+ */
+const HEAD_BOB = [0, 0, -0.21, 0, -0.21];
+
+/** @type {number[]} The point of the head image that the head turns around, the neck, in canvas pixels. */
+const HEAD_PIVOT = [7, 11];
+
+/**
  * Draw a line with the current stroke style.
  *
  * @param {number} x1 The x coordinate of the start in canvas pixels.
@@ -114,7 +123,12 @@ function drawRotatedHead(flipDx) {
 		input.mouseY,
 	);
 	ctx.save();
-	ctx.translate((game.player.x >> 8) + 8, (game.player.y >> 8) + 6);
+	// facing left, the head image is mirrored around the pivot, so the pivot sits at the mirrored x of the neck
+	const [pivotX, pivotY] = HEAD_PIVOT;
+	ctx.translate(
+		(game.player.x >> 8) + (flipDx ? 16 - pivotX : pivotX),
+		(game.player.y >> 8) + pivotY + HEAD_BOB[game.player.animationFrame],
+	);
 	let ad = radToDeg(a);
 
 	if (!flipDx) {
@@ -129,7 +143,35 @@ function drawRotatedHead(flipDx) {
 
 	a = degToRad(ad);
 	ctx.rotate(a);
-	drawImage(head[flipDx], game.player.animationFrame * 16, 0, 15, 12, -8, -6, 16, 12);
+	if (flipDx) ctx.scale(-1, 1);
+	drawImage(head, -pivotX, -pivotY, 16, 14);
+	ctx.restore();
+}
+
+/**
+ * Mirror the next drawings of the canvas around a vertical line.
+ *
+ * @param {number} x The x coordinate of the line in canvas pixels.
+ * @returns {void}
+ */
+function mirrorAround(x) {
+	ctx.translate(2 * x, 0);
+	ctx.scale(-1, 1);
+}
+
+/**
+ * Draw a frame of the body of the player. The body faces right; facing left mirrors it.
+ *
+ * @param {number} x The x coordinate in canvas pixels.
+ * @param {number} y The y coordinate in canvas pixels.
+ * @param {number} frame The frame: 0 for the standing figure, 1 to 4 for the walk cycle.
+ * @param {number} flipX The direction, 1 right or -1 left.
+ * @returns {void}
+ */
+function drawBody(x, y, frame, flipX) {
+	ctx.save();
+	if (flipX < 0) mirrorAround(x + 8);
+	drawImage(body, frame * 16, 0, 16, 27, x, y, 16, 27);
 	ctx.restore();
 }
 
@@ -164,7 +206,7 @@ export function drawLevel() {
 	const flipDx = game.player.flip < 0 ? 1 : 0;
 	if (!flipDx) drawPortalGun();
 	drawRotatedHead(flipDx);
-	drawImage(body[flipDx], game.player.animationFrame * 16, 0, 16, 27, game.player.x >> 8, game.player.y >> 8, 16, 27);
+	drawBody(game.player.x >> 8, game.player.y >> 8, game.player.animationFrame, game.player.flip);
 	if (flipDx) drawPortalGun();
 
 	drawCakes();
@@ -517,17 +559,20 @@ export function drawPortals() {
 }
 
 /**
- * Draw the standing player figure, e.g. in the editor.
+ * Draw the player figure with the head straight, e.g. in the editor. The figure faces right; facing left mirrors it.
  *
  * @param {number} x The x coordinate in canvas pixels.
  * @param {number} y The y coordinate in canvas pixels.
  * @param {number} flipX The direction, 1 right or -1 left.
+ * @param {number} [frame] The frame of the body: 0 for the standing figure, 1 to 4 for the walk cycle.
  * @returns {void}
  */
-export function drawPlayer(x, y, flipX) {
-	const flipDx = flipX < 0 ? 1 : 0;
-	drawImage(body[flipDx], 16, 0, 16, 27, x, y, 16, 27);
-	drawImage(head[flipDx], 16, 0, 15, 12, x, y, 16, 12);
+export function drawPlayer(x, y, flipX, frame = 0) {
+	ctx.save();
+	if (flipX < 0) mirrorAround(x + 8);
+	drawImage(head, x, y + HEAD_BOB[frame], 16, 14);
+	ctx.restore();
+	drawBody(x, y, frame, flipX);
 }
 
 /**
@@ -561,9 +606,7 @@ export function drawPreviewMap() {
 	drawImage(portalGun, -5, -5);
 	ctx.restore();
 
-	const flipDx = game.player.flip < 0 ? 1 : 0;
-	drawImage(head[flipDx], game.player.animationFrame * 16, 0, 15, 12, game.player.x >> 8, game.player.y >> 8, 16, 12);
-	drawImage(body[flipDx], game.player.animationFrame * 16, 0, 16, 27, game.player.x >> 8, game.player.y >> 8, 16, 27);
+	drawPlayer(game.player.x >> 8, game.player.y >> 8, game.player.flip, game.player.animationFrame);
 
 	for (i = 0; i < game.cakes.length; i++) {
 		if (game.cakes[i].used) {

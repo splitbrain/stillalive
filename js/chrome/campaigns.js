@@ -48,8 +48,6 @@ export class Campaign {
 		this.parent = '';
 		/** @type {import('../stage/level.js').Level[]} The levels of the campaign. */
 		this.levels = [];
-		/** @type {string} The message of the last intermission screen, or an empty text for none. */
-		this.endText = '';
 	}
 
 	/**
@@ -96,7 +94,6 @@ export function listCampaigns() {
  *
  * The campaign file is JSON with the list of the level files in "levels". These properties are optional:
  *
- * - endText: the message of the last intermission screen. The default is none.
  * - title: the name in the main menu. The default is the folder name.
  * - sort: the position in the main menu, low numbers first. The default is 0.
  * - parent: the folder name of the campaign that the main menu shows this campaign under. The default is none.
@@ -107,7 +104,6 @@ export function listCampaigns() {
 function loadCampaignFiles(camp) {
 	const folder = 'maps/' + campaigns[camp].folder + '/';
 	loadLevelJsonFile(folder + 'campaign.json', function (data) {
-		campaigns[camp].endText = typeof data.endText == 'string' ? data.endText : '';
 		if (typeof data.title == 'string') campaigns[camp].title = data.title;
 		campaigns[camp].sort = Number.isFinite(data.sort) ? data.sort : 0;
 		campaigns[camp].parent = typeof data.parent == 'string' ? data.parent : '';

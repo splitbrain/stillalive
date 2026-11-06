@@ -26,7 +26,7 @@ let fired = [];
 /** @type {import('./mapFile.js').MapEvent|null} The event that waits for a click, or null. */
 let waiting = null;
 
-/** @type {Set<string>} The triggers without a condition that happened in the level: start, bossArrived and bossDied. */
+/** @type {Set<string>} The triggers without a condition that happened: start, bossArrived, bossDied and exit. */
 let triggers = new Set();
 
 /** @type {boolean} True if the waits end at once and their texts do not show: in a replay and after a restart. */
@@ -63,7 +63,7 @@ export function startEvents(restart = false) {
 /**
  * Note a trigger without a condition. The events of the trigger fire in the next call of updateEvents().
  *
- * @param {string} trigger The trigger: "bossArrived" or "bossDied".
+ * @param {string} trigger The trigger: "bossArrived", "bossDied" or "exit".
  * @returns {void}
  */
 export function triggerEvents(trigger) {
@@ -93,8 +93,8 @@ export function endWait() {
 /**
  * Run the events for one tick of the level: end the wait after a click, then fire the events whose trigger happened.
  *
- * A click ends the wait only while the level time stands still, so not during the transition at the level start. The
- * caller does not call this function at the level end.
+ * A click ends the wait only while the level time stands still, so not during the transition at the level start. At
+ * the level end, the caller calls this function only until the closing transition starts.
  *
  * @returns {void}
  */

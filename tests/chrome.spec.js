@@ -202,6 +202,26 @@ test.describe('chrome', () => {
 		await expect(page.locator('level-list menu-button')).toHaveCount(8);
 	});
 
+	test('holds the level end for the exit text until a click', async ({ page }) => {
+		await page.addInitScript(() => localStorage.setItem('sajs_progress', JSON.stringify({ tutorial: 8 })));
+		await startGame(page);
+		await setHash(page, '#/campaign/tutorial/8/play');
+		await page.waitForFunction(() => window.__test.game.time > 0);
+		await finishLevel(page);
+		await expect.poll(() => stageValue(page, 'message')).toMatchObject({ text: /^Congratulations/, wait: true });
+		await expect(page.locator('narrator-text')).toBeVisible();
+		await expect(page.locator('intermission-panel')).toBeHidden();
+
+		// the stage reads the mouse button once per tick, so the button stays down until the stage has ended the wait
+		const stage = await page.locator('game-stage').boundingBox();
+		await page.mouse.move(stage.x + stage.width / 2, stage.y + stage.height / 2);
+		await page.mouse.down();
+		await expect.poll(() => stageValue(page, 'message')).toBeNull();
+		await page.mouse.up();
+		await expect(page.locator('intermission-panel')).toBeVisible();
+		await expect(page.locator('intermission-panel .message')).toHaveText('New best time !');
+	});
+
 	test('replaces an unknown route and a locked level', async ({ page }) => {
 		await startGame(page);
 		await setHash(page, '#/unknown/route');

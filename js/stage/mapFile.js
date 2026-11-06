@@ -20,6 +20,8 @@
  *     - "time": the level time reaches the number of ticks in the property ticks.
  *     - "bossArrived": the boss reached its place.
  *     - "bossDied": the life of the boss reached 0.
+ *     - "exit": the player reached the exit. The closing transition of the level clears the message, so the text of
+ *       an exit event shows only with the wait "click", which holds the transition until the click.
  *   - x: the x position in pixels for the trigger "playerX".
  *   - ticks: the level time in ticks for the trigger "time".
  *   - text: optional, the new message. An empty text removes the message. The text can contain {KeyW}, {KeyA},
@@ -53,6 +55,7 @@ const EVENT_TRIGGERS = {
 	time: ['ticks'],
 	bossArrived: [],
 	bossDied: [],
+	exit: [],
 };
 
 /** @type {string[]} The directions of a portal that an event places. */
@@ -75,7 +78,7 @@ const PORTAL_DIRECTIONS = ['up', 'down', 'left', 'right'];
  * An event of a map.
  *
  * @typedef {object} MapEvent
- * @property {string} on The trigger: "start", "playerX", "time", "bossArrived" or "bossDied".
+ * @property {string} on The trigger: "start", "playerX", "time", "bossArrived", "bossDied" or "exit".
  * @property {number} [x] The x position in pixels for the trigger "playerX".
  * @property {number} [ticks] The level time in ticks for the trigger "time".
  * @property {string} [text] The new message.

@@ -6,6 +6,11 @@
 		{
 			"on": "start",
 			"text": "Plasma balls can open special green walls when guided to their red slot. They can also destroy turrets and kill you. Follow instructions on the walls to guide the plasma ball and use that crate to destroy the turret blocking your way."
+		},
+		{
+			"on": "exit",
+			"text": "Congratulations ! You just learned the basics of StillAliveJS. You have now a better understanding of the mechanics of the game. However, there are still a lot more features waiting for you. Pick a campaign in the main menu and start an amazing journey ! Click to continue ...",
+			"wait": "click"
 		}
 	],
 	"labels": [

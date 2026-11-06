@@ -136,6 +136,7 @@ test.describe('units', () => {
 			},
 			{ on: 'bossArrived', text: 'Here I am' },
 			{ on: 'bossDied', unlock: 'portals' },
+			{ on: 'exit', text: 'Goodbye', wait: 'click' },
 		];
 		const labels = [{ x: 10, y: 20, text: 'Here' }];
 		const data = { ...validMap(), abilities: { portals: false }, events, labels };

@@ -327,9 +327,9 @@ export class GameApp extends ChromeElement {
 	}
 
 	/**
-	 * Handle the end of a level: the best time, the progress and the next route. The last level shows the end text of
-	 * the campaign if it has one. After the last story level, the credits show the first time. Else the intermission
-	 * panel shows the time, the message and the links of the choice.
+	 * Handle the end of a level: the best time, the progress and the next route. After the last story level, the
+	 * credits show the first time. Else the intermission panel shows the time, the message and the links of the
+	 * choice.
 	 *
 	 * @param {{time: number, replay: object}} detail The detail of the finished event of the stage.
 	 * @returns {void}
@@ -343,7 +343,6 @@ export class GameApp extends ChromeElement {
 		let message = '';
 		let credits = false;
 		if (r.mode == 'play') message = this.#checkBestTime(r, time, replay);
-		if (isLastLevel && campaign.endText) message = campaign.endText;
 		if (r.mode == 'play' && maxLevel[index].get() < r.level + 1) {
 			credits = index == CampaignId.STORY && maxLevel[index].get() == LEVELS_PER_CAMPAIGN;
 			saveProgress(index, r.level + 1);

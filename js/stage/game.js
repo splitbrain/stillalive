@@ -16,7 +16,7 @@ import { updatePortals } from './entities/Portal.js';
 import { updateProjectiles } from './entities/Projectile.js';
 import { updateSparkles } from './entities/Sparkle.js';
 import { updateTurrets } from './entities/Turret.js';
-import { isWaiting, updateEvents } from './events.js';
+import { isWaiting, triggerEvents, updateEvents } from './events.js';
 import { manageKeys, unclick } from './inputState.js';
 import { loadLevel, manageDoors } from './level.js';
 import { atExit } from './physics.js';
@@ -75,7 +75,8 @@ function updateLevel() {
 }
 
 /**
- * Run the end of a level: the closing transition, and the finished event of the stage when the transition ends. Then
+ * Run the end of a level: the exit events, the closing transition, and the finished event of the stage when the
+ * transition ends. An exit event that waits for a click holds the transition until the click. After the transition,
  * the level waits in the exit freeze until the next command of the stage.
  *
  * @returns {void}
@@ -93,7 +94,10 @@ function updateLevelEnd() {
 			stageEvents.push({ type: 'finished', detail: { time: game.time, replay } });
 		}
 	}
-	if (game.player.fadeNextLevel == -1) {
+	if (game.player.fadeNextLevel == -1 || isWaiting()) {
+		triggerEvents('exit');
+		updateEvents();
+		if (isWaiting()) return;
 		game.player.fadeNextLevel = 120;
 		ui.transition = random(Transition.TOP_LEFT, Transition.SQUARE + 1);
 		playSound(sfx_transition);

@@ -3,7 +3,6 @@
 	"name": "tutorial",
 	"title": "Tutorial",
 	"sort": 1,
-	"endText": "Congratulations ! You just learned the basics of StillAliveJS. You have now a better understanding of the mechanics of the game. However, there are still a lot more features waiting for you. Click on Exit to go back to the menu and start an amazing journey !",
 	"levels": [
 		"level01.json",
 		"level02.json",

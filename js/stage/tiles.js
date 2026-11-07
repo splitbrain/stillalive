@@ -8,17 +8,32 @@
 
 import { NUM_TILES } from './constants.js';
 
-/** @type {Object<string, number>} The tile ids that the game logic checks. */
+/**
+ * The tile ids that the game logic checks and the editor puts in a map. For a kind with several ids, like an animated
+ * door, this is the id that the editor puts in a map.
+ *
+ * @type {Object<string, number>}
+ */
 export const Tile = {
 	EMPTY: 0,
 	WALL: 1,
+	STRIPES: 17,
+	STRIPES_MIRRORED: 18,
 	SWITCH: 19,
 	PLASMA_START: 20,
 	PLASMA_SLOT: 21,
 	EXIT: 22,
+	SWITCH_DOOR: 23,
+	PLASMA_DOOR: 29,
 	EXIT_CLOSED: 35,
+	WHEEL: 36,
+	ACID: 38,
+	ENERGYWALL: 40,
 	ICYWALL: 46,
 	ACIDPOOL: 47,
+	FORCE_FIELD: 49,
+	BELT_RIGHT: 55,
+	BELT_LEFT: 57,
 	TURRET_LEFT: 100,
 	TURRET_RIGHT: 101,
 	CRATE: 102,

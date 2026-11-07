@@ -15,8 +15,7 @@
 	</crt-screen>
 	<game-hud></game-hud>
 	<replay-keys></replay-keys>
-	<tile-palette></tile-palette>
-	<object-palette></object-palette>
+	<editor-palette></editor-palette>
 	<editor-buttons></editor-buttons>
 	<!-- <best-times></best-times> -->
 </template>
@@ -85,10 +84,14 @@
 			}
 		}
 
-		/* the HUD fills its cell */
+		/* the HUD and the editor palette fill the side cell */
 		> game-hud {
 			grid-area: side;
 			aspect-ratio: auto;
+		}
+
+		> editor-palette {
+			grid-area: side;
 		}
 
 		/*

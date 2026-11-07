@@ -1,0 +1,464 @@
+<template>
+	<div class="body">
+		<div class="tray"></div>
+		<div class="panel">
+			<div class="plate"></div>
+			<div class="keys">
+				<button data-bg="-1" title="Previous background"><img src="images/push-button.svg#prev" alt="" /></button>
+				<button data-bg="1" title="Next background"><img src="images/push-button.svg#next" alt="" /></button>
+				<img class="icon" src="images/tape-picture.svg" alt="" />
+			</div>
+		</div>
+	</div>
+</template>
+
+<style>
+	/*
+	 * The palette is a parts tray and a small button panel. Its size comes from outside. The host is the size
+	 * container, and the body of the palette keeps a fixed aspect ratio and is centered in the host. All sizes are in
+	 * --u, the unit that scales the body to the host. On a tall host the tray is a column of bins and the panel is below
+	 * it; on a wide host the tray is a row of bins and the panel is right of it.
+	 *
+	 * The tray is one dark block with the bins cut into it. The element fills the tray with the bins and their rows of
+	 * items. Each bin is an uneven quadrangle with a dark top wall, a light bottom wall and a sunken floor. The items
+	 * lie in the bins at their natural sizes, each turned by a small angle. The panel has the frame, the bezel and the plate of the HUD, with two push buttons for the background and
+	 * a piece of tape with a sketch of a picture.
+	 */
+	editor-palette {
+		--palette-bezel: color-mix(in srgb, color-mix(in srgb, var(--color-page) 60%, var(--color-chrome)), black 20%);
+		--palette-wall-top: color-mix(in srgb, var(--color-page), black 45%);
+		--palette-wall-bottom: color-mix(in srgb, var(--color-chrome) 60%, var(--color-page));
+		--palette-floor: color-mix(in srgb, var(--color-chrome) 45%, var(--color-page));
+		display: block;
+		position: relative;
+		container-type: size;
+
+		.body {
+			--tw: 108;
+			--th: 373;
+			--u: min(100cqw / var(--tw), 100cqh / var(--th));
+			position: absolute;
+			left: 50%;
+			top: 50%;
+			width: calc(var(--u) * var(--tw));
+			height: calc(var(--u) * var(--th));
+			translate: -50% -50%;
+			display: flex;
+			flex-direction: column;
+			gap: calc(var(--u) * 6);
+		}
+
+		button {
+			display: block;
+			padding: 0;
+			border: 0;
+			background: none;
+			cursor: pointer;
+		}
+
+		/* the tray: a crooked dark block with a light rim at the top left and a shadow on the page */
+		.tray {
+			position: relative;
+			isolation: isolate;
+			flex: 1;
+			display: flex;
+			flex-direction: column;
+			justify-content: space-evenly;
+			gap: calc(var(--u) * 4);
+			padding: calc(var(--u) * 5);
+
+			&::before,
+			&::after {
+				content: '';
+				position: absolute;
+				inset: 0;
+				clip-path: polygon(
+					calc(var(--u) * 1) calc(var(--u) * 1.4),
+					100% 0,
+					calc(100% - var(--u) * 0.8) calc(100% - var(--u) * 0.6),
+					0 100%
+				);
+			}
+
+			&::before {
+				z-index: -1;
+				background:
+					linear-gradient(165deg, rgb(255 255 255 / 0.22), transparent calc(var(--u) * 10)),
+					linear-gradient(-15deg, rgb(0 0 0 / 0.3), transparent calc(var(--u) * 10)), var(--palette-bezel);
+			}
+
+			&::after {
+				inset: calc(var(--u) * 2) calc(var(--u) * -1.5) calc(var(--u) * -2) calc(var(--u) * 1.5);
+				z-index: -2;
+				background: rgb(0 0 0 / 0.3);
+			}
+		}
+
+		/* a bin: a column of rows, centered. The walls and the floor are crooked by --k1 to --k8, in units. */
+		.bin {
+			position: relative;
+			isolation: isolate;
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+			gap: calc(var(--u) * 4);
+			padding: calc(var(--u) * 6) calc(var(--u) * 4) calc(var(--u) * 4);
+
+			&::before,
+			&::after {
+				content: '';
+				position: absolute;
+				clip-path: polygon(
+					calc(var(--u) * var(--k1, 0)) calc(var(--u) * var(--k2, 0)),
+					calc(100% - var(--u) * var(--k3, 0)) calc(var(--u) * var(--k4, 0)),
+					calc(100% - var(--u) * var(--k5, 0)) calc(100% - var(--u) * var(--k6, 0)),
+					calc(var(--u) * var(--k7, 0)) calc(100% - var(--u) * var(--k8, 0))
+				);
+			}
+
+			/* the walls: dark at the top, light at the bottom */
+			&::before {
+				inset: 0;
+				z-index: -2;
+				background: linear-gradient(to bottom, var(--palette-wall-top), var(--palette-wall-bottom));
+				border-radius: calc(var(--u) * 3);
+			}
+
+			/* the floor lies lower, so the top wall shows wider than the bottom wall */
+			&::after {
+				inset: calc(var(--u) * 3.2) calc(var(--u) * 1.6) calc(var(--u) * 1.2);
+				z-index: -1;
+				background: var(--palette-floor);
+				border-radius: calc(var(--u) * 2.4);
+				box-shadow: inset 0 calc(var(--u) * 1.4) calc(var(--u) * 1.6) rgb(0 0 0 / 0.35);
+			}
+
+			&:nth-child(1) {
+				--k1: 1.1;
+				--k4: 1.8;
+				--k5: 0.7;
+				--k8: 1.4;
+			}
+
+			&:nth-child(2) {
+				--k2: 1.4;
+				--k3: 1.1;
+				--k6: 1.1;
+				--k7: 0.7;
+			}
+
+			&:nth-child(3) {
+				--k1: 0.7;
+				--k3: 1.4;
+				--k6: 1.8;
+				--k8: 0.7;
+			}
+
+			&:nth-child(4) {
+				--k2: 1.8;
+				--k4: 0.7;
+				--k5: 1.4;
+				--k7: 1.1;
+			}
+
+			&:nth-child(5) {
+				--k1: 1.4;
+				--k4: 1.4;
+				--k6: 0.7;
+				--k8: 1.8;
+			}
+
+			&:nth-child(6) {
+				--k2: 1.1;
+				--k3: 0.7;
+				--k5: 1.1;
+				--k7: 1.4;
+			}
+
+			/* the items of a row wrap when the bin is too narrow for them */
+			.row {
+				display: flex;
+				flex-wrap: wrap;
+				justify-content: center;
+				align-items: center;
+				gap: calc(var(--u) * 4);
+			}
+
+			/* an item lies a little turned in its bin and casts a soft shadow on the floor */
+			.row > button {
+				position: relative;
+				rotate: var(--tilt);
+				filter: drop-shadow(calc(var(--u) * 1) calc(var(--u) * 1.4) calc(var(--u) * 0.8) rgb(0 0 0 / 0.45));
+
+				&:nth-child(8n + 1) {
+					--tilt: -4deg;
+				}
+
+				&:nth-child(8n + 2) {
+					--tilt: 3deg;
+				}
+
+				&:nth-child(8n + 3) {
+					--tilt: -1.5deg;
+				}
+
+				&:nth-child(8n + 4) {
+					--tilt: 5deg;
+				}
+
+				&:nth-child(8n + 5) {
+					--tilt: -3deg;
+				}
+
+				&:nth-child(8n + 6) {
+					--tilt: 2deg;
+				}
+
+				&:nth-child(8n + 7) {
+					--tilt: -5deg;
+				}
+
+				&:nth-child(8n + 8) {
+					--tilt: 1.5deg;
+				}
+			}
+
+			/* the item that is the brush */
+			.selected {
+				outline: calc(var(--u) * 1) solid var(--color-selected);
+				outline-offset: calc(var(--u) * 1);
+			}
+		}
+
+		/* the image of a tile; the empty eraser tile shows as a dashed square */
+		img[src^='tiles/'] {
+			display: block;
+			width: calc(var(--u) * 16);
+			aspect-ratio: 1;
+		}
+
+		[data-tile='0'] {
+			border: calc(var(--u) * 0.8) dashed rgb(255 255 255 / 0.6);
+			filter: none;
+		}
+
+		/* the sprites of the objects, in their size in the stage */
+		.sprite {
+			display: block;
+			width: calc(var(--u) * 16);
+			height: calc(var(--u) * 16);
+			background-repeat: no-repeat;
+			background-size: 100% auto;
+		}
+
+		.cake {
+			height: calc(var(--u) * 12);
+			background-image: url('sprites/cake.svg');
+		}
+
+		.crate {
+			background-image: url('sprites/crate.svg');
+		}
+
+		.turret-left,
+		.turret-right {
+			height: calc(var(--u) * 32);
+			background-image: url('sprites/turret0.svg');
+		}
+
+		.turret-right {
+			background-image: url('sprites/turret1.svg');
+		}
+
+		.platform {
+			width: calc(var(--u) * 48);
+			background-image: url('sprites/platform.svg');
+		}
+
+		.arrow {
+			position: absolute;
+			left: calc(var(--u) * 6);
+			top: 0;
+			color: var(--color-danger);
+			font-size: calc(var(--u) * 7);
+			line-height: calc(var(--u) * 16);
+		}
+
+		.player {
+			height: calc(var(--u) * 27);
+			background:
+				url('sprites/head.svg') no-repeat 0 0 / 100% calc(var(--u) * 14),
+				url('sprites/body.svg') no-repeat 0 0 / 500% auto;
+		}
+
+		.gravpipe-right,
+		.gravpipe-left {
+			height: calc(var(--u) * 32);
+			background-image: url('sprites/gravpipe.svg');
+		}
+
+		.gravpipe-left {
+			background-position: 0 calc(var(--u) * -32);
+		}
+
+		.gravpipe-up,
+		.gravpipe-down {
+			width: calc(var(--u) * 32);
+			background-image: url('sprites/gravpipe2.svg');
+			background-size: auto 100%;
+		}
+
+		.gravpipe-down {
+			background-position: calc(var(--u) * -32) 0;
+		}
+
+		/* the panel: the frame with four screws, the bezel and the plate, as in the HUD */
+		.panel {
+			--frame: calc(var(--u) * 4);
+			--screw: calc(var(--u) * 3.4);
+			position: relative;
+			isolation: isolate;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			height: calc(var(--u) * 42);
+			padding: var(--frame);
+
+			&::before {
+				content: '';
+				position: absolute;
+				inset: 0;
+				z-index: -3;
+				background:
+					url('images/screw.svg#a') left calc(var(--u) * 0.8) top calc(var(--u) * 1.6) / var(--screw) var(--screw)
+						no-repeat,
+					url('images/screw.svg#b') right calc(var(--u) * 0.6) top calc(var(--u) * 0.6) / var(--screw) var(--screw)
+						no-repeat,
+					url('images/screw.svg#c') right calc(var(--u) * 1.4) bottom calc(var(--u) * 1.2) / var(--screw) var(--screw)
+						no-repeat,
+					url('images/screw.svg#d') left calc(var(--u) * 1) bottom calc(var(--u) * 0.6) / var(--screw) var(--screw)
+						no-repeat,
+					var(--color-chrome);
+				clip-path: polygon(
+					0 calc(var(--u) * 1.4),
+					100% 0,
+					calc(100% - var(--u) * 0.8) calc(100% - var(--u) * 1.2),
+					calc(var(--u) * 0.6) 100%
+				);
+			}
+
+			&::after {
+				content: '';
+				position: absolute;
+				inset: var(--frame);
+				z-index: -2;
+				background: var(--palette-bezel);
+				clip-path: polygon(
+					0 calc(var(--u) * 1),
+					100% 0,
+					calc(100% - var(--u) * 0.6) calc(100% - var(--u) * 1),
+					calc(var(--u) * 0.4) 100%
+				);
+			}
+		}
+
+		/* the plate with a flat shadow of the bezel at its top */
+		.plate {
+			position: absolute;
+			inset: calc(var(--frame) + var(--u) * 1.6) calc(var(--frame) + var(--u) * 1.4);
+			z-index: -1;
+			background:
+				linear-gradient(
+					-0.6deg,
+					transparent calc(100% - var(--u) * 2.2),
+					color-mix(in srgb, var(--color-chrome), var(--palette-bezel) 45%) calc(100% - var(--u) * 2.2 + 0.5px)
+				),
+				color-mix(in srgb, var(--color-chrome) 85%, var(--color-page));
+			clip-path: polygon(
+				calc(var(--u) * 0.4) calc(var(--u) * 1.2),
+				calc(100% - var(--u) * 0.8) 0,
+				100% calc(100% - var(--u) * 1),
+				calc(var(--u) * 1) 100%
+			);
+		}
+
+		/* the push buttons and the tape, each turned by a small angle; a pressed button goes down into the panel */
+		.keys {
+			display: flex;
+			align-items: center;
+			gap: calc(var(--u) * 1);
+
+			img {
+				display: block;
+				width: calc(var(--u) * 29);
+				height: calc(var(--u) * 29);
+			}
+
+			button:nth-child(1) {
+				rotate: 1.5deg;
+			}
+
+			button:nth-child(2) {
+				rotate: -1deg;
+			}
+
+			button:active img {
+				translate: 0 calc(var(--u) * 1);
+			}
+
+			.icon {
+				width: calc(var(--u) * 31);
+				height: calc(var(--u) * 31);
+				margin-left: calc(var(--u) * 2);
+			}
+		}
+
+		/* on a wide host: the bins in a row, the items in columns, the panel right of the tray */
+		@container (aspect-ratio > 1) {
+			.body {
+				--tw: 556;
+				--th: 70;
+				flex-direction: row;
+			}
+
+			.tray {
+				flex-direction: row;
+			}
+
+			.bin {
+				flex-direction: row;
+				height: 100%;
+			}
+
+			.row {
+				flex-direction: column;
+				height: 100%;
+			}
+
+			.panel {
+				flex: none;
+				height: auto;
+				width: calc(var(--u) * 66);
+			}
+
+			.keys {
+				flex-wrap: wrap;
+				justify-content: center;
+				width: calc(var(--u) * 56);
+				gap: calc(var(--u) * 2);
+
+				img {
+					width: calc(var(--u) * 26);
+					height: calc(var(--u) * 26);
+				}
+
+				.icon {
+					width: calc(var(--u) * 28);
+					height: calc(var(--u) * 28);
+					margin: 0;
+				}
+			}
+		}
+	}
+</style>

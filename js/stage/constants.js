@@ -88,30 +88,5 @@ export const Transition = {
 	SQUARE: 6,
 };
 
-/** @type {number[]} The tile ids of the tile palette of the editor, in the order of the palette. */
-export const EDITOR_TILES = [0, 1, 17, 18, 19, 20, 21, 22, 23, 29, 36, 38, 40, 46, 47, 49, 55, 57];
-
-/** @type {Object<number, string>} The titles of the tiles of the tile palette of the editor, by tile id. */
-export const EDITOR_TILE_TITLES = {
-	0: 'Eraser: removes the tile',
-	1: 'Wall: solid, takes portals',
-	17: 'Warning stripes: solid, takes no portals',
-	18: 'Warning stripes: solid, takes no portals',
-	19: 'Switch: opens the switch doors while the player or a crate stands on it',
-	20: 'Plasma emitter: shoots a plasma ball away from the walls around it, one per level',
-	21: 'Plasma receiver: opens the plasma doors when a plasma ball hits it',
-	22: 'Exit: opens when all cakes are eaten',
-	23: 'Switch door: solid, opens while a switch is pressed',
-	29: 'Plasma door: solid, opens when a plasma ball hits the receiver',
-	36: 'Razor wheel: kills the player and destroys objects, portal shots go through it',
-	38: 'Acid surface: kills the player and destroys objects, sends plasma balls back',
-	40: 'Red energy wall: solid, portal shots go through it',
-	46: 'Icy wall: reflects portal shots, slippery to walk on',
-	47: 'Acid pool: goes below the acid surface, kills the player and destroys objects, sends plasma balls back',
-	49: 'Force field: removes the portals when the player goes through, destroys crates',
-	55: 'Conveyor belt: moves the player and objects to the right',
-	57: 'Conveyor belt: moves the player and objects to the left',
-};
-
 /** @type {number} The number of levels of a campaign. */
 export const LEVELS_PER_CAMPAIGN = 28;

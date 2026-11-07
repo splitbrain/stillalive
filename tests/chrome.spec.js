@@ -20,8 +20,7 @@ const SCREEN_PARTS = [
 	'robot-head',
 	'game-hud',
 	'replay-keys',
-	'tile-palette',
-	'object-palette',
+	'editor-palette',
 	'editor-buttons',
 	'editor-files',
 	'credits-screen',
@@ -53,7 +52,7 @@ const BOSS_PARTS = PLAY_PARTS.filter((part) => part != 'robot-head');
  *
  * @type {string[]}
  */
-const EDITOR_PARTS = ['tile-palette', 'object-palette', 'editor-buttons', 'narrator-text', 'game-stage'];
+const EDITOR_PARTS = ['editor-palette', 'editor-buttons', 'narrator-text', 'game-stage'];
 
 /**
  * The screen parts of the save and load screen of the editor.
@@ -155,16 +154,15 @@ test.describe('chrome', () => {
 
 		await page.getByRole('link', { name: 'Level Editor' }).click();
 		await expectScreen(page, '#/editor', EDITOR_PARTS);
-		await expect(page.locator('tile-palette')).toBeVisible();
-		await expect(page.locator('object-palette')).toBeVisible();
+		await expect(page.locator('editor-palette')).toBeVisible();
 		await expect.poll(() => stageValue(page, 'mode')).toBe('edit');
 
-		// the palettes name the objects by their constants and set the brush of the stage
-		const cake = page.locator('object-palette button[title="Cake"]');
+		// the palette names the objects by their constants and sets the brush of the stage
+		const cake = page.locator('editor-palette button[title="Cake"]');
 		await cake.click();
 		await expect.poll(() => stageValue(page, 'brush')).toBe(103);
 		await expect(cake).toHaveClass(/selected/);
-		const tile = page.locator('tile-palette button').first();
+		const tile = page.locator('editor-palette button[data-tile]').first();
 		await tile.click();
 		await expect.poll(() => stageValue(page, 'brush')).toBe(Number(await tile.getAttribute('data-tile')));
 
@@ -173,12 +171,11 @@ test.describe('chrome', () => {
 		await expectScreen(page, '#/editor/save', FILE_PARTS);
 		await expect(page.locator('slot-list')).toBeVisible();
 		await expect(page.locator('slot-list button').first()).toBeVisible();
-		await expect(page.locator('tile-palette')).toBeHidden();
+		await expect(page.locator('editor-palette')).toBeHidden();
 
 		await page.goBack();
 		await expectScreen(page, '#/editor', EDITOR_PARTS);
-		await expect(page.locator('tile-palette')).toBeVisible();
-		await expect(page.locator('object-palette')).toBeVisible();
+		await expect(page.locator('editor-palette')).toBeVisible();
 		await expect(page.locator('slot-list')).toBeHidden();
 		await expect.poll(() => stageValue(page, 'mode')).toBe('edit');
 
@@ -186,7 +183,7 @@ test.describe('chrome', () => {
 		await expectScreen(page, '#/editor/save', FILE_PARTS);
 		await page.locator('editor-file-buttons').getByRole('link', { name: 'Exit' }).click();
 		await expectScreen(page, '#/editor', EDITOR_PARTS);
-		await expect(page.locator('tile-palette')).toBeVisible();
+		await expect(page.locator('editor-palette')).toBeVisible();
 		await expect(page.locator('slot-list')).toBeHidden();
 		await expect.poll(() => stageValue(page, 'mode')).toBe('edit');
 
@@ -269,7 +266,7 @@ test.describe('chrome', () => {
 						stage: !document.querySelector('game-stage').hidden,
 					};
 				}, screen);
-			await expect.poll(result).toEqual({ parts: 14, mismatches: [], stage: screen != 'main' });
+			await expect.poll(result).toEqual({ parts: 13, mismatches: [], stage: screen != 'main' });
 		}
 	});
 

@@ -3,7 +3,7 @@
  *
  * The handlers write the pressed keys and mouse buttons into the key bitmask of the game, and the mouse position in
  * playfield units. The game reads both once per tick. The keys that command the stage call the stage element: Escape
- * pauses a level and ends a test run, Enter starts and ends a test run in the editor, and M turns the sound on and off.
+ * pauses a level and ends a test run, Enter ends a test run, and M turns the sound on and off.
  */
 
 import { playfieldPoint } from './canvas.js';
@@ -108,10 +108,7 @@ function onKeyUp(event) {
 		else if (ui.mode == 'test') stopPlayingLevel();
 	}
 
-	if (event.key === 'Enter') {
-		if (ui.mode == 'test') stopPlayingLevel();
-		else if (ui.mode == 'edit') stage.test();
-	}
+	if (event.key === 'Enter' && ui.mode == 'test') stopPlayingLevel();
 }
 
 /**

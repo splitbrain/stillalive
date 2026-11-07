@@ -1,6 +1,6 @@
 <template>
 	<a class="back"><img src="images/back.svg" alt="Back" /></a>
-	<level-list></level-list>
+	<level-list class="choices"></level-list>
 	<div class="details">
 		<h2 class="title"></h2>
 		<p class="number"></p>
@@ -11,36 +11,8 @@
 </template>
 
 <style>
-	/*
-	 * The level selection covers the whole cell of the screen. It shows the preview behind it in black and white and
-	 * darker, and the level list or the details of the level centered on top. The back button sits in the top left
-	 * corner. All sizes scale with the screen.
-	 */
+	/* the details of the selected level; the frame and the level list have the style of the selection screens */
 	level-selection {
-		display: flex;
-		position: relative;
-		align-items: center;
-		justify-content: center;
-		backdrop-filter: grayscale(1) brightness(0.6);
-
-		.back {
-			position: absolute;
-			top: 3cqw;
-			left: 3cqw;
-			width: 6cqw;
-			transition: scale 0.1s;
-
-			&:hover,
-			&:focus-visible {
-				scale: 0.9;
-			}
-
-			img {
-				display: block;
-				width: 100%;
-			}
-		}
-
 		.details {
 			display: flex;
 			flex-direction: column;

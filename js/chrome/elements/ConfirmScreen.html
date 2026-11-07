@@ -1,0 +1,54 @@
+<template>
+	<h2></h2>
+	<p></p>
+	<div class="buttons">
+		<menu-button><button class="yes">Yes</button></menu-button>
+		<menu-button><button class="no">No</button></menu-button>
+	</div>
+</template>
+
+<style>
+	/*
+	 * The confirmation screen covers the whole cell of the screen. It shows the stage behind it in black and white and
+	 * darker, and the title, the question and the buttons in a centered column on top. The other parts on the stage
+	 * hide while it shows. All sizes scale with the screen.
+	 */
+	confirm-screen {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 1.8cqw;
+		backdrop-filter: grayscale(1) brightness(0.6);
+		text-shadow: 0.1em 0.1em 0 #000;
+		text-align: center;
+
+		h2,
+		p {
+			margin: 0;
+		}
+
+		h2 {
+			font-size: 6cqw;
+		}
+
+		p {
+			max-width: 70cqw;
+			margin-bottom: 1.8cqw;
+			font-size: 2.4cqw;
+		}
+
+		.buttons {
+			display: flex;
+			gap: 2.4cqw;
+
+			> menu-button {
+				width: 19cqw;
+			}
+		}
+	}
+
+	crt-screen:has(> confirm-screen:not([hidden])) > :not(game-stage, confirm-screen) {
+		visibility: hidden;
+	}
+</style>

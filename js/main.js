@@ -5,9 +5,9 @@
 
 import { BestTimes } from './chrome/elements/BestTimes.js';
 import { CreditsScreen } from './chrome/elements/CreditsScreen.js';
+import { ConfirmScreen } from './chrome/elements/ConfirmScreen.js';
 import { CrtScreen } from './chrome/elements/CrtScreen.js';
 import { EditorButtons } from './chrome/elements/EditorButtons.js';
-import { EditorFileButtons } from './chrome/elements/EditorFileButtons.js';
 import { EditorFiles } from './chrome/elements/EditorFiles.js';
 import { EditorPalette } from './chrome/elements/EditorPalette.js';
 import { GameApp } from './chrome/elements/GameApp.js';
@@ -42,7 +42,7 @@ customElements.define('intermission-panel', IntermissionPanel);
 customElements.define('editor-palette', EditorPalette);
 customElements.define('editor-buttons', EditorButtons);
 customElements.define('slot-list', SlotList);
-customElements.define('editor-file-buttons', EditorFileButtons);
 customElements.define('editor-files', EditorFiles);
+customElements.define('confirm-screen', ConfirmScreen);
 customElements.define('crt-screen', CrtScreen);
 customElements.define('game-app', GameApp);

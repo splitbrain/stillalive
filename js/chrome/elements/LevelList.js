@@ -4,22 +4,16 @@
 
 import { campaignPath } from '../../router.js';
 import { campaigns } from '../campaigns.js';
-import { ChromeElement, loadMarkup } from '../element.js';
-
-/** @type {HTMLTemplateElement|null} The markup of the level list, null because the list has only a style. */
-const TEMPLATE = await loadMarkup(import.meta.url);
+import { ChromeElement } from '../element.js';
 
 /**
  * The custom element <level-list>. It shows a menu button with a link for each level of a campaign.
  *
  * The attribute campaign is the folder name of the campaign, and the attribute unlocked is the highest unlocked level
  * number. A locked level has no link target, so its button is disabled. Each link has the level number in the
- * attribute data-level.
+ * attribute data-choice.
  */
 export class LevelList extends ChromeElement {
-	/** @type {HTMLTemplateElement|null} The markup of the level list, null because the list has only a style. */
-	static template = TEMPLATE;
-
 	/** @type {string[]} The attributes that cause a new render when they change. */
 	static observedAttributes = ['campaign', 'unlocked'];
 
@@ -36,7 +30,7 @@ export class LevelList extends ChromeElement {
 		for (let n = 1; n <= count; n++) {
 			const link = document.createElement('a');
 			link.textContent = 'Level ' + n;
-			link.dataset.level = String(n);
+			link.dataset.choice = String(n);
 			if (n <= unlocked) link.setAttribute('href', campaignPath(folder, n));
 			const button = document.createElement('menu-button');
 			button.append(link);

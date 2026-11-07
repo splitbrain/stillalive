@@ -2,19 +2,24 @@
  * The editor buttons element.
  */
 
-import { navigate } from '../../router.js';
+import { navigate, route } from '../../router.js';
+import { MAP_FORMAT, parseMap } from '../../stage/mapFile.js';
+import { alertDialog } from '../dialog.js';
 import { ChromeScreen, loadMarkup, Screen } from '../element.js';
+import { downloadJson, pickJsonFile } from '../files.js';
+import { confirmReplaceMap, confirmShown } from './ConfirmScreen.js';
 
 /** @type {HTMLTemplateElement|null} The markup of the editor buttons. */
 const TEMPLATE = await loadMarkup(import.meta.url);
 
 /**
- * The custom element <editor-buttons>. It shows the row of the Try, Clear, Save, Load, Export, Import and Exit buttons
- * on the editor screen and during the test run of the map. The Try button starts the test run of the map, and the
- * Clear button clears the map of the stage. A button with a data-href attribute goes to that route. The Export and
- * Import buttons have no function yet.
+ * The custom element <editor-buttons>. It shows the row of the Try, Undo, Redo, Clear, Save, Load, Export, Import and
+ * Exit buttons on the editor screen and during the test run of the map. The Undo and Redo buttons show arrows. The Try button starts the test run of the map.
+ * The Undo, Redo and Clear buttons change the map of the stage. The Export button downloads the map as a JSON file,
+ * and the Import button replaces the map with a map file. A button with a data-href attribute goes to that route.
  *
- * During the test run, the Try button is labeled Stop and ends the test run, and all other buttons are disabled.
+ * During the test run, the Try button is labeled Stop and ends the test run, and all other buttons are disabled. On
+ * the save and load screen and while the confirmation screen shows a question, all buttons are disabled.
  */
 export class EditorButtons extends ChromeScreen {
 	/** @type {HTMLTemplateElement|null} The markup of the editor buttons. */
@@ -30,37 +35,77 @@ export class EditorButtons extends ChromeScreen {
 			if (this.stage.mode.get() == 'test') this.stage.stopTest();
 			else this.stage.test();
 		});
+		this.querySelector('.undo').addEventListener('click', () => this.stage.undo());
+		this.querySelector('.redo').addEventListener('click', () => this.stage.redo());
 		this.querySelector('.clear').addEventListener('click', () => this.stage.clearMap());
+		this.querySelector('.export').addEventListener('click', () => this.#export());
+		this.querySelector('.import').addEventListener('click', () => {
+			this.#import().catch((error) => alertDialog(error.message, 'Import map'));
+		});
 		for (const button of this.querySelectorAll('[data-href]')) {
 			button.addEventListener('click', () => navigate(button.dataset.href));
 		}
 	}
 
 	/**
-	 * Subscribe to the mode of the stage to label the Try button and to disable the other buttons during the test run.
+	 * Subscribe to the mode of the stage, to the route and to the confirmation screen, to label the Try button and to
+	 * disable the buttons.
 	 *
 	 * @returns {Array<function(): void>} The functions that remove the subscriptions.
 	 */
 	subscribe() {
+		const update = () => this.#updateButtons();
+		return [this.stage.mode.subscribe(update), route.subscribe(update), confirmShown.subscribe(update)];
+	}
+
+	/**
+	 * Label the Try button by the mode of the stage, and disable the buttons that do not apply.
+	 *
+	 * @returns {void}
+	 */
+	#updateButtons() {
 		const test = this.querySelector('.test');
-		return [
-			this.stage.mode.subscribe((mode) => {
-				const testing = mode == 'test';
-				test.textContent = testing ? 'Stop' : 'Try';
-				for (const button of this.querySelectorAll('button')) {
-					if (button != test) button.disabled = testing;
-				}
-			}),
-		];
+		const testing = this.stage.mode.get() == 'test';
+		const locked = route.get().name == 'editor-file' || confirmShown.get();
+		test.textContent = testing ? 'Stop' : 'Try';
+		for (const button of this.querySelectorAll('button')) button.disabled = locked || (testing && button != test);
+	}
+
+	/**
+	 * Let the browser download the map of the stage as a JSON file.
+	 *
+	 * @returns {void}
+	 */
+	#export() {
+		const map = this.stage.getMap();
+		downloadJson({ format: MAP_FORMAT, tiles: map.tiles, bg: map.bg }, 'stillalivejs-map.json');
+	}
+
+	/**
+	 * Let the player select a map file and open it in the editor. If the map of the stage is not empty, the player must
+	 * first confirm that it is replaced. Nothing happens if the editor is closed when the player has selected the file.
+	 *
+	 * @returns {Promise<void>}
+	 * @throws {Error} If the file is not a valid map or is a boss level.
+	 */
+	async #import() {
+		if (!(await confirmReplaceMap(this.stage))) return;
+		const data = await pickJsonFile();
+		if (data === null || this.stage.mode.get() != 'edit') return;
+		const map = parseMap(data);
+		if (map.boss > 0) throw new Error('The editor does not support boss levels.');
+		this.stage.edit(map);
 	}
 
 	/**
 	 * Tell if the editor buttons show on a screen of the app.
 	 *
 	 * @param {string} screen The screen, a value of Screen.
-	 * @returns {boolean} True on the editor screen, and on the play screen during the test run of the editor map.
+	 * @returns {boolean} True on the editor screen and on the save and load screen, and on the play screen during the
+	 *     test run of the editor map.
 	 */
 	shouldShow(screen) {
-		return screen === Screen.EDITOR || (screen === Screen.PLAY && this.stage.mode.get() == 'test');
+		if (screen === Screen.EDITOR || screen === Screen.EDITOR_FILE) return true;
+		return screen === Screen.PLAY && this.stage.mode.get() == 'test';
 	}
 }

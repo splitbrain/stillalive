@@ -2,8 +2,10 @@
  * The editor palette element.
  */
 
+import { route } from '../../router.js';
 import { Tile } from '../../stage/tiles.js';
 import { ChromeScreen, loadMarkup, Screen } from '../element.js';
+import { confirmShown } from './ConfirmScreen.js';
 
 /** @type {HTMLTemplateElement|null} The markup of the editor palette. */
 const TEMPLATE = await loadMarkup(import.meta.url);
@@ -134,7 +136,9 @@ function createButton(item) {
 
 /**
  * The custom element <editor-palette>. It shows a parts tray with a button for each tile and each object of the
- * editor, grouped by function, and a panel with the buttons that change the background, on the editor screen.
+ * editor, grouped by function, and a panel with the buttons that change the background, on the editor screen and on
+ * the save and load screen. On the save and load screen and while the confirmation screen shows a question, the
+ * palette is inert and gray.
  *
  * A click on an item button, with the tile id or the object id in its data-tile attribute, makes its tile or object
  * the brush of the stage. The button of the brush has the class selected. A click on a background button changes the
@@ -172,12 +176,15 @@ export class EditorPalette extends ChromeScreen {
 	}
 
 	/**
-	 * Subscribe to the brush of the stage.
+	 * Subscribe to the brush of the stage, and to the route and the confirmation screen to disable the palette.
 	 *
 	 * @returns {Array<function(): void>} The functions that remove the subscriptions.
 	 */
 	subscribe() {
-		return [this.stage.brush.subscribe(() => this.render())];
+		const lock = () => {
+			this.inert = route.get().name == 'editor-file' || confirmShown.get();
+		};
+		return [this.stage.brush.subscribe(() => this.render()), route.subscribe(lock), confirmShown.subscribe(lock)];
 	}
 
 	/**
@@ -196,9 +203,9 @@ export class EditorPalette extends ChromeScreen {
 	 * Tell if the editor palette shows on a screen of the app.
 	 *
 	 * @param {string} screen The screen, a value of Screen.
-	 * @returns {boolean} True on the editor screen only.
+	 * @returns {boolean} True on the editor screen and on the save and load screen.
 	 */
 	shouldShow(screen) {
-		return screen === Screen.EDITOR;
+		return screen === Screen.EDITOR || screen === Screen.EDITOR_FILE;
 	}
 }

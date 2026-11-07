@@ -59,7 +59,7 @@ const EDITOR_PARTS = ['editor-palette', 'editor-buttons', 'narrator-text', 'game
  *
  * @type {string[]}
  */
-const FILE_PARTS = ['editor-files', 'narrator-text', 'game-stage'];
+const FILE_PARTS = ['editor-files', 'editor-palette', 'editor-buttons', 'narrator-text', 'game-stage'];
 
 /**
  * Check the hash of the URL and the parts of the page that show. All other screen parts must be hidden.
@@ -171,17 +171,18 @@ test.describe('chrome', () => {
 		await expectScreen(page, '#/editor/save', FILE_PARTS);
 		await expect(page.locator('slot-list')).toBeVisible();
 		await expect(page.locator('slot-list button').first()).toBeVisible();
-		await expect(page.locator('editor-palette')).toBeHidden();
+		await expect(page.locator('editor-palette')).toHaveAttribute('inert');
+		await expect(page.locator('editor-buttons button:enabled')).toHaveCount(0);
 
 		await page.goBack();
 		await expectScreen(page, '#/editor', EDITOR_PARTS);
-		await expect(page.locator('editor-palette')).toBeVisible();
+		await expect(page.locator('editor-palette')).not.toHaveAttribute('inert');
 		await expect(page.locator('slot-list')).toBeHidden();
 		await expect.poll(() => stageValue(page, 'mode')).toBe('edit');
 
 		await page.locator('editor-buttons').getByRole('button', { name: 'Save' }).click();
 		await expectScreen(page, '#/editor/save', FILE_PARTS);
-		await page.locator('editor-file-buttons').getByRole('link', { name: 'Exit' }).click();
+		await page.locator('editor-files .back').click();
 		await expectScreen(page, '#/editor', EDITOR_PARTS);
 		await expect(page.locator('editor-palette')).toBeVisible();
 		await expect(page.locator('slot-list')).toBeHidden();
@@ -189,6 +190,75 @@ test.describe('chrome', () => {
 
 		await page.locator('editor-buttons').getByRole('button', { name: 'Exit' }).click();
 		await expectScreen(page, '#/', ['main-menu']);
+	});
+
+	test('keeps one map in memory and saves, loads, undoes and redoes it', async ({ page }) => {
+		await startGame(page);
+		await setHash(page, '#/editor');
+		await expectScreen(page, '#/editor', EDITOR_PARTS);
+		await waitForNarrator(page);
+		const tiles = new Array(768).fill(0);
+		tiles[100] = 16;
+		await page.evaluate((tiles) => window.__test.stage.edit({ tiles, bg: 2 }), tiles);
+		const map = () => page.evaluate(() => window.__test.stage.getMap());
+		const buttons = page.locator('editor-buttons');
+		const slot = page.locator('slot-list button').first();
+		const confirm = page.locator('confirm-screen');
+
+		// an empty slot saves at once and then shows its number
+		await buttons.getByRole('button', { name: 'Save' }).click();
+		await expectScreen(page, '#/editor/save', FILE_PARTS);
+		await expect(slot).toHaveText('Empty');
+		await slot.click();
+		await expectScreen(page, '#/editor', EDITOR_PARTS);
+		await expect(slot).toHaveText('Slot 1');
+
+		await buttons.getByRole('button', { name: 'Clear' }).click();
+		await expect.poll(async () => (await map()).tiles[100]).toBe(0);
+		await buttons.getByRole('button', { name: 'Undo' }).click();
+		await expect.poll(async () => (await map()).tiles[100]).toBe(16);
+		await buttons.getByRole('button', { name: 'Redo' }).click();
+		await expect.poll(async () => (await map()).tiles[100]).toBe(0);
+
+		// an empty map loads at once
+		await buttons.getByRole('button', { name: 'Load' }).click();
+		await expectScreen(page, '#/editor/load', FILE_PARTS);
+		await slot.click();
+		await expectScreen(page, '#/editor', EDITOR_PARTS);
+		expect(await map()).toEqual({ tiles, bg: 2 });
+
+		// a map that is not empty is replaced only after the confirmation
+		await buttons.getByRole('button', { name: 'Load' }).click();
+		await slot.click();
+		await confirm.getByRole('button', { name: 'No' }).click();
+		await expectScreen(page, '#/editor/load', FILE_PARTS);
+		await slot.click();
+		await confirm.getByRole('button', { name: 'Yes' }).click();
+		await expectScreen(page, '#/editor', EDITOR_PARTS);
+
+		// a stored slot is overwritten only after the confirmation
+		await buttons.getByRole('button', { name: 'Save' }).click();
+		await slot.click();
+		await expect(confirm).toContainText('Slot 1 contains a map');
+		await confirm.getByRole('button', { name: 'Yes' }).click();
+		await expectScreen(page, '#/editor', EDITOR_PARTS);
+
+		// the question of the import disables the palette and the buttons until Escape answers it with No
+		await buttons.getByRole('button', { name: 'Import' }).click();
+		await expect(confirm).toBeVisible();
+		await expect(page.locator('editor-palette')).toHaveAttribute('inert');
+		await expect(page.locator('editor-buttons button:enabled')).toHaveCount(0);
+		await page.keyboard.press('Escape');
+		await expect(confirm).toBeHidden();
+		await expect(page.locator('editor-palette')).not.toHaveAttribute('inert');
+		await expect(page.locator('editor-buttons button:enabled')).toHaveCount(9);
+
+		// the map stays in memory after the exit
+		await buttons.getByRole('button', { name: 'Exit' }).click();
+		await expectScreen(page, '#/', ['main-menu']);
+		await page.getByRole('link', { name: 'Level Editor' }).click();
+		await expectScreen(page, '#/editor', EDITOR_PARTS);
+		expect(await map()).toEqual({ tiles, bg: 2 });
 	});
 
 	test('opens the tutorial with a button for each of its levels', async ({ page }) => {

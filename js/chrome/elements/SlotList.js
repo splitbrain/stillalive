@@ -4,25 +4,20 @@
 
 import { LEVELS_PER_CAMPAIGN } from '../../stage/constants.js';
 import { dispatch } from '../dom.js';
-import { ChromeElement, loadMarkup } from '../element.js';
+import { ChromeElement } from '../element.js';
 import { editorMap } from '../storage.js';
 
-/** @type {HTMLTemplateElement|null} The markup of the slot list, null because the list has only a style. */
-const TEMPLATE = await loadMarkup(import.meta.url);
-
 /**
- * The custom element <slot-list>. It shows a button for each slot of the editor maps.
+ * The custom element <slot-list>. It shows a menu button for each slot of the editor maps.
  *
- * The attribute mode is save or load, and the attribute selected is the selected slot number, or 0 for none. A slot
- * with a stored map has the class stored. The load screen disables the empty slots. The selected slot has the class
- * selected. A click on a slot dispatches the bubbling event slot-select with the slot number as detail.slot.
+ * The attribute mode is save or load. A slot with a stored map is labeled with its number, an empty slot is labeled
+ * Empty. The load screen disables the empty slots. Each button has the slot number in the
+ * attribute data-choice. A click on a slot dispatches the bubbling event slot-select with the slot number as
+ * detail.slot.
  */
 export class SlotList extends ChromeElement {
-	/** @type {HTMLTemplateElement|null} The markup of the slot list, null because the list has only a style. */
-	static template = TEMPLATE;
-
 	/** @type {string[]} The attributes that cause a new render when they change. */
-	static observedAttributes = ['mode', 'selected'];
+	static observedAttributes = ['mode'];
 
 	/**
 	 * Add the click handler of the slot buttons.
@@ -31,8 +26,8 @@ export class SlotList extends ChromeElement {
 	 */
 	setUp() {
 		this.addEventListener('click', (event) => {
-			const button = event.target.closest('button[data-slot]');
-			if (button) dispatch(this, 'slot-select', { slot: Number(button.dataset.slot) });
+			const button = event.target.closest('button[data-choice]');
+			if (button) dispatch(this, 'slot-select', { slot: Number(button.dataset.choice) });
 		});
 	}
 
@@ -48,23 +43,22 @@ export class SlotList extends ChromeElement {
 	}
 
 	/**
-	 * Make the slot buttons from the attributes and the stored maps and replace the children with them.
+	 * Make the slot buttons from the attribute and the stored maps and replace the children with them.
 	 *
 	 * @returns {void}
 	 */
 	render() {
 		const loading = this.getAttribute('mode') == 'load';
-		const selected = Number(this.getAttribute('selected') ?? 0);
 		const buttons = [];
 		for (let n = 1; n <= LEVELS_PER_CAMPAIGN; n++) {
-			const button = document.createElement('button');
 			const stored = editorMap(n).get() != null;
-			button.textContent = 'Slot ' + n;
-			button.dataset.slot = String(n);
-			button.classList.toggle('stored', stored);
-			button.classList.toggle('selected', n == selected);
+			const button = document.createElement('button');
+			button.textContent = stored ? 'Slot ' + n : 'Empty';
+			button.dataset.choice = String(n);
 			button.disabled = loading && !stored;
-			buttons.push(button);
+			const menuButton = document.createElement('menu-button');
+			menuButton.append(button);
+			buttons.push(menuButton);
 		}
 		this.replaceChildren(...buttons);
 	}

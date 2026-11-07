@@ -33,6 +33,11 @@
 		position: relative;
 		container-type: size;
 
+		/* an inert palette is gray like a disabled menu button */
+		&[inert] {
+			filter: grayscale(1);
+		}
+
 		.body {
 			--tw: 108;
 			--th: 373;

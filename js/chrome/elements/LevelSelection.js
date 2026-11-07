@@ -5,9 +5,10 @@
 import { campaignPath } from '../../router.js';
 import { CAMPAIGN_FOLDERS } from '../../stage/constants.js';
 import { campaigns } from '../campaigns.js';
-import { ChromeScreen, loadMarkup, Screen } from '../element.js';
+import { loadMarkup, Screen } from '../element.js';
 import { bestTimes, getBestTime, maxLevel } from '../storage.js';
 import { toTime } from '../time.js';
+import { SelectionScreen } from './SelectionScreen.js';
 
 /** @type {HTMLTemplateElement|null} The markup of the level selection. */
 const TEMPLATE = await loadMarkup(import.meta.url);
@@ -22,26 +23,12 @@ const TEMPLATE = await loadMarkup(import.meta.url);
  * Replay link. The Replay link is disabled when the level has no best time. The back link goes from the details to the
  * level list, and from the level list to the main menu.
  */
-export class LevelSelection extends ChromeScreen {
+export class LevelSelection extends SelectionScreen {
 	/** @type {HTMLTemplateElement|null} The markup of the level selection. */
 	static template = TEMPLATE;
 
 	/** @type {string[]} The attributes that cause a new render when they change. */
 	static observedAttributes = ['campaign', 'level'];
-
-	/**
-	 * Add the handlers that show the preview of the level under the pointer.
-	 *
-	 * @returns {void}
-	 */
-	setUp() {
-		const list = this.querySelector('level-list');
-		list.addEventListener('pointerover', (event) => {
-			const link = event.target.closest('a[href]');
-			if (link) this.#preview(Number(link.dataset.level));
-		});
-		list.addEventListener('pointerleave', () => this.#preview(0));
-	}
 
 	/**
 	 * Subscribe to the progress of all campaigns and to the best times.
@@ -100,7 +87,7 @@ export class LevelSelection extends ChromeScreen {
 	 * @param {number} level The level number, or 0 for the highest unlocked level.
 	 * @returns {void}
 	 */
-	#preview(level) {
+	previewChoice(level) {
 		if (Number(this.getAttribute('level') ?? 0) > 0) return;
 		const campaign = campaigns[CAMPAIGN_FOLDERS.indexOf(this.getAttribute('campaign'))];
 		this.stage.preview(campaign.levels[(level || campaign.unlocked) - 1]);

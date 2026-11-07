@@ -164,13 +164,13 @@ function drawTileMap() {
 }
 
 /**
- * Draw the selected tile at the mouse while the mouse is over the map.
+ * Draw the selected tile at the mouse while the pointer is over the canvas and the mouse is over the map.
  *
  * @returns {void}
  */
 function drawTileCursor() {
 	const brush = ui.editor.brush;
-	if (!mouseOnPlayfield() || isObjectTile(brush)) return;
+	if (!input.mouseOver || !mouseOnPlayfield() || isObjectTile(brush)) return;
 	const x = (input.mouseX >> 4) << 4;
 	const y = (input.mouseY >> 4) << 4;
 	drawImage(tileset[brush], x, y);
@@ -180,13 +180,13 @@ function drawTileCursor() {
 }
 
 /**
- * Draw the selected object at the mouse while the mouse is over the map.
+ * Draw the selected object at the mouse while the pointer is over the canvas and the mouse is over the map.
  *
  * @returns {void}
  */
 function drawSpriteCursor() {
 	const sprite = ui.editor.brush;
-	if (!mouseOnPlayfield() || !isObjectTile(sprite)) return;
+	if (!input.mouseOver || !mouseOnPlayfield() || !isObjectTile(sprite)) return;
 	const x = (input.mouseX >> 4) << 4;
 	const y = (input.mouseY >> 4) << 4;
 	if (sprite == Tile.CAKE) drawImage(cake, x, y);

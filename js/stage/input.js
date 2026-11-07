@@ -1,9 +1,10 @@
 /**
  * Keyboard and pointer input.
  *
- * The handlers write the pressed keys and mouse buttons into the key bitmask of the game, and the mouse position in
- * playfield units. The game reads both once per tick. The keys that command the stage call the stage element: Escape
- * pauses a level and ends a test run, Enter ends a test run, and M turns the sound on and off.
+ * The handlers write the pressed keys and mouse buttons into the key bitmask of the game, the mouse position in
+ * playfield units, and if the pointer is over the canvas. The game reads them once per tick. The keys that command
+ * the stage call the stage element: Escape pauses a level and ends a test run, Enter ends a test run, and M turns the
+ * sound on and off.
  */
 
 import { playfieldPoint } from './canvas.js';
@@ -161,5 +162,7 @@ export function setupInput(canvas, element) {
 	for (const type of ['pointerdown', 'pointermove', 'pointerup', 'pointercancel']) {
 		canvas.addEventListener(type, onPointer);
 	}
+	canvas.addEventListener('pointerenter', () => (input.mouseOver = true));
+	canvas.addEventListener('pointerleave', () => (input.mouseOver = false));
 	canvas.addEventListener('contextmenu', (event) => event.preventDefault());
 }

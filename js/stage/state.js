@@ -94,6 +94,7 @@ export const input = {
 	oldKeys: 0,
 	mouseX: 0,
 	mouseY: 0,
+	mouseOver: false,
 	mousePressed: 0,
 	mouseReleased: 0,
 	mouseButton: 0,

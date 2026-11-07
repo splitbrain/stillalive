@@ -138,7 +138,10 @@ test.describe('units', () => {
 			{ on: 'bossDied', unlock: 'portals' },
 			{ on: 'exit', text: 'Goodbye', wait: 'click' },
 		];
-		const labels = [{ x: 10, y: 20, text: 'Here' }];
+		const labels = [
+			{ x: 10, y: 20, text: 'Here' },
+			{ x: 16.5, y: 3.5, text: 'Portal\nHere' },
+		];
 		const data = { ...validMap(), abilities: { portals: false }, events, labels };
 		const { result, error } = await call(page, '/js/stage/mapFile.js', 'parseMap', data);
 		expect(error).toBeUndefined();
@@ -219,6 +222,7 @@ test.describe('units', () => {
 			'labels as object': { ...validMap(), labels: { x: 1, y: 2, text: 'Here' } },
 			'label without text': { ...validMap(), labels: [{ x: 1, y: 2 }] },
 			'label position as text': { ...validMap(), labels: [{ x: '1', y: 2, text: 'Here' }] },
+			'label position in quarter tiles': { ...validMap(), labels: [{ x: 1.25, y: 2, text: 'Here' }] },
 		};
 		for (const [name, data] of Object.entries(cases)) {
 			const { error } = await call(page, '/js/stage/mapFile.js', 'parseMap', data);

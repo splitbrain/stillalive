@@ -32,7 +32,8 @@
  *   - portals: optional, the two portals to place, as [[x, y, direction], [x, y, direction]] with the position in
  *     pixels and the direction "up", "down", "left" or "right".
  * - labels: optional, a list of texts that show at positions of the playfield. Each label is an object with x and y,
- *   the start of the base line of the text in pixels, and text.
+ *   the tile that the text is centered on, and text. The tile position can be a half tile, for example 16.5 to center
+ *   the text between two tiles. A line break in the text starts a new line.
  */
 
 import { MAP_SIZE, NUM_TILES } from './constants.js';
@@ -91,9 +92,9 @@ const PORTAL_DIRECTIONS = ['up', 'down', 'left', 'right'];
  * A text at a position of the playfield.
  *
  * @typedef {object} MapLabel
- * @property {number} x The x position of the start of the base line in pixels.
- * @property {number} y The y position of the base line in pixels.
- * @property {string} text The text.
+ * @property {number} x The x position of the tile that the text is centered on, in whole or half tiles.
+ * @property {number} y The y position of the tile that the text is centered on, in whole or half tiles.
+ * @property {string} text The text, with a line break between the lines.
  */
 
 /**
@@ -174,13 +175,23 @@ function isValidEvent(event) {
 }
 
 /**
+ * Check if a value is a position in whole or half tiles.
+ *
+ * @param {*} value The value.
+ * @returns {boolean} True for a number that is a multiple of 0.5.
+ */
+function isHalfTile(value) {
+	return typeof value === 'number' && Number.isInteger(value * 2);
+}
+
+/**
  * Check a label of a map.
  *
  * @param {*} label The label.
- * @returns {boolean} True for a label with an integer x and y and a text.
+ * @returns {boolean} True for a label with an x and y in whole or half tiles and a text.
  */
 function isValidLabel(label) {
-	return isObject(label) && Number.isInteger(label.x) && Number.isInteger(label.y) && typeof label.text === 'string';
+	return isObject(label) && isHalfTile(label.x) && isHalfTile(label.y) && typeof label.text === 'string';
 }
 
 /**

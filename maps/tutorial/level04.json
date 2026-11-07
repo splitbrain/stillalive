@@ -19,24 +19,14 @@
 	],
 	"labels": [
 		{
-			"x": 50,
-			"y": 269,
-			"text": "Portal"
+			"x": 4,
+			"y": 16.5,
+			"text": "Portal\nHere"
 		},
 		{
-			"x": 54,
-			"y": 284,
-			"text": "Here"
-		},
-		{
-			"x": 259,
-			"y": 219,
-			"text": "And"
-		},
-		{
-			"x": 258,
-			"y": 234,
-			"text": "Here"
+			"x": 16.5,
+			"y": 13,
+			"text": "And\nHere\n←"
 		}
 	],
 	"tiles": [

@@ -11,19 +11,19 @@
 	],
 	"labels": [
 		{
-			"x": 213,
-			"y": 40,
+			"x": 14,
+			"y": 1.5,
 			"text": "First"
 		},
 		{
-			"x": 210,
-			"y": 369,
+			"x": 14,
+			"y": 22.5,
 			"text": "Second"
 		},
 		{
-			"x": 295,
-			"y": 369,
-			"text": "First again (while falling)"
+			"x": 24,
+			"y": 22.5,
+			"text": "↖ First again (while falling)"
 		}
 	],
 	"tiles": [

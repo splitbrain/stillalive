@@ -4,6 +4,12 @@
 	src: url('fonts/yikes.ttf');
 }
 
+/* the handwriting font of the labels in the levels, reduced to the Latin characters and the arrows */
+@font-face {
+	font-family: mynerve;
+	src: url('fonts/Mynerve-Regular.woff2');
+}
+
 /*
  * The key colors, fonts and sizes of the page; elements calculate their bevels from a base color and a bevel strength.
  */

@@ -15,19 +15,19 @@
 	],
 	"labels": [
 		{
-			"x": 228,
-			"y": 273,
+			"x": 16,
+			"y": 16,
 			"text": "Use to kill"
 		},
 		{
-			"x": 436,
-			"y": 314,
-			"text": "<= Portal"
+			"x": 28.5,
+			"y": 19,
+			"text": "← Portal"
 		},
 		{
-			"x": 51,
-			"y": 108,
-			"text": "Portal =>"
+			"x": 4.5,
+			"y": 6,
+			"text": "Portal →"
 		}
 	],
 	"tiles": [

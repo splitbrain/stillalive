@@ -26,14 +26,16 @@
 	 * cells: a narrow corner and top row and a narrow side column around a large main cell. The width of this block
 	 * follows the window up to a maximum. The height follows the window too, but the main cell is never higher than the
 	 * aspect ratio of the playfield allows. The parts adjust to their cells. The other parts go in rows below it, each in
-	 * the full width.
+	 * the full width. The block leaves room for the row of the editor buttons while they show.
 	 */
 	game-app {
 		/* the top row is at least as high as the narrator text with four lines of text */
 		--grid-row-top-min: 149px;
 		--grid-gap: 1rem;
 		--grid-width: min(100vw - 2rem, 1400px);
-		--grid-height: min(100dvh - 2rem, var(--grid-col-main) * 3 / 4 / 0.85 + var(--grid-gap));
+		--editor-buttons-height: clamp(2rem, var(--grid-width) * 0.032, 3rem);
+		--grid-row-bottom: 0px;
+		--grid-height: min(100dvh - 2rem - var(--grid-row-bottom), var(--grid-col-main) * 3 / 4 / 0.85 + var(--grid-gap));
 		--grid-col-side: calc((var(--grid-width) - var(--grid-gap)) * 0.15);
 		--grid-col-main: calc(var(--grid-width) - var(--grid-gap) - var(--grid-col-side));
 		--grid-row-top: max((var(--grid-height) - var(--grid-gap)) * 0.15, var(--grid-row-top-min));
@@ -49,7 +51,7 @@
 
 		/* on a window that is taller than wide, the main cell takes the full width and the side cell goes below it */
 		@media (orientation: portrait) {
-			--grid-height: min(100dvh - 2rem, var(--grid-width) * 3 / 4 / 0.7 + 2 * var(--grid-gap));
+			--grid-height: min(100dvh - 2rem - var(--grid-row-bottom), var(--grid-width) * 3 / 4 / 0.7 + 2 * var(--grid-gap));
 			--grid-row-side: calc((var(--grid-height) - 2 * var(--grid-gap)) * 0.15);
 			--grid-row-top: max((var(--grid-height) - 2 * var(--grid-gap)) * 0.15, var(--grid-row-top-min));
 			--grid-row-main: calc(var(--grid-height) - 2 * var(--grid-gap) - var(--grid-row-top) - var(--grid-row-side));
@@ -58,6 +60,10 @@
 				'main main' var(--grid-row-main)
 				'side side' var(--grid-row-side)
 				/ var(--grid-col-side) var(--grid-col-main);
+		}
+
+		&:has(> editor-buttons:not([hidden])) {
+			--grid-row-bottom: calc(var(--editor-buttons-height) + var(--grid-gap));
 		}
 
 		> * {

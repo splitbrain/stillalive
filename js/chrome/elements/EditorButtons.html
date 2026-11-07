@@ -1,10 +1,33 @@
 <template>
-	<div>
-		<a href="#/">Exit</a>
-		<button class="clear">Clear</button>
-		<button class="test">Try Map</button>
-		<button class="help">Help</button>
-		<a href="#/editor/load">Load</a>
-		<a href="#/editor/save">Save</a>
-	</div>
+	<menu-button small><button class="test">Try</button></menu-button>
+	<menu-button small><button class="clear">Clear</button></menu-button>
+	<menu-button small><button data-href="#/editor/save">Save</button></menu-button>
+	<menu-button small><button data-href="#/editor/load">Load</button></menu-button>
+	<menu-button small><button class="export">Export</button></menu-button>
+	<menu-button small><button class="import">Import</button></menu-button>
+	<menu-button small><button data-href="#/">Exit</button></menu-button>
 </template>
+
+<style>
+	/*
+	 * The editor buttons are a row of small menu buttons with equal widths. The height of the row and the font size come
+	 * from --editor-buttons-height, which the app sets.
+	 */
+	editor-buttons {
+		display: flex;
+		gap: var(--grid-gap);
+		height: var(--editor-buttons-height);
+
+		> menu-button {
+			flex: 1;
+			width: auto;
+			font-size: calc(var(--editor-buttons-height) * 0.5);
+
+			> button {
+				align-items: center;
+				height: 100%;
+				padding-block: 0;
+			}
+		}
+	}
+</style>

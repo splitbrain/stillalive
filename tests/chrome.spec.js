@@ -167,7 +167,7 @@ test.describe('chrome', () => {
 		await expect.poll(() => stageValue(page, 'brush')).toBe(Number(await tile.getAttribute('data-tile')));
 
 		await waitForNarrator(page);
-		await page.locator('editor-buttons').getByRole('link', { name: 'Save' }).click();
+		await page.locator('editor-buttons').getByRole('button', { name: 'Save' }).click();
 		await expectScreen(page, '#/editor/save', FILE_PARTS);
 		await expect(page.locator('slot-list')).toBeVisible();
 		await expect(page.locator('slot-list button').first()).toBeVisible();
@@ -179,7 +179,7 @@ test.describe('chrome', () => {
 		await expect(page.locator('slot-list')).toBeHidden();
 		await expect.poll(() => stageValue(page, 'mode')).toBe('edit');
 
-		await page.locator('editor-buttons').getByRole('link', { name: 'Save' }).click();
+		await page.locator('editor-buttons').getByRole('button', { name: 'Save' }).click();
 		await expectScreen(page, '#/editor/save', FILE_PARTS);
 		await page.locator('editor-file-buttons').getByRole('link', { name: 'Exit' }).click();
 		await expectScreen(page, '#/editor', EDITOR_PARTS);
@@ -187,7 +187,7 @@ test.describe('chrome', () => {
 		await expect(page.locator('slot-list')).toBeHidden();
 		await expect.poll(() => stageValue(page, 'mode')).toBe('edit');
 
-		await page.locator('editor-buttons').getByRole('link', { name: 'Exit' }).click();
+		await page.locator('editor-buttons').getByRole('button', { name: 'Exit' }).click();
 		await expectScreen(page, '#/', ['main-menu']);
 	});
 

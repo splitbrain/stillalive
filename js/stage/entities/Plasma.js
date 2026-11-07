@@ -2,7 +2,7 @@
  * The Plasma object and its helper functions.
  */
 
-import { playSound, setSoundVolume, sfx_bounce } from '../audio.js';
+import { playSound, setSoundVolume, sfx_bounce, sfx_plasmaField } from '../audio.js';
 import { Direction, MAP_SIZE, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH } from '../constants.js';
 import { reloadTiles } from '../level.js';
 import { getCollision, getTileSimple } from '../physics.js';
@@ -128,6 +128,7 @@ export class Plasma {
 	 */
 	openSwitchDoors() {
 		let i;
+		playSound(sfx_plasmaField);
 		for (i = 0; i < game.animatedTiles.length; i++) {
 			if (isTileKind(game.animatedTiles[i].current, TileKind.PLASMA_DOOR)) {
 				game.animatedTiles[i].used = false;

@@ -2,7 +2,7 @@
  * The tick function: the modes of the stage, the level and the end of a level.
  */
 
-import { playSound, setSoundVolume, sfx_flatline, sfx_transition } from './audio.js';
+import { playSound, sfx_transition } from './audio.js';
 import { updateBoss, updateBossRumble } from './boss.js';
 import { Transition } from './constants.js';
 import { updateLevelEditor } from './editor.js';
@@ -136,10 +136,8 @@ function updateObjects() {
 	game.camera.move();
 
 	if (game.player.dead) {
-		const a = -(game.player.life / 256);
 		game.player.life += 6;
 		game.player.checkDeath();
-		setSoundVolume(sfx_flatline, a / 2);
 	}
 }
 

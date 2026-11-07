@@ -22,6 +22,9 @@ import { toTime } from '../time.js';
 /** @type {HTMLTemplateElement|null} The markup of the app: its parts and the stage. */
 const TEMPLATE = await loadMarkup(import.meta.url);
 
+/** @type {string} The selector of the buttons with a hover and a click sound: the menu buttons and the back link. */
+const SOUND_BUTTONS = 'menu-button, level-selection a.back';
+
 /** @type {string[]} The screens that show the stage. */
 const STAGE_SCREENS = [Screen.SELECT, Screen.PLAY, Screen.EDITOR, Screen.EDITOR_FILE];
 
@@ -38,10 +41,12 @@ const EDITOR_TEXT =
  * class chrome-screen. The stage shows on the select, play, editor and editor-file screens.
  *
  * The loading screen shows until the stage and the campaigns are ready and the player clicks or presses a key,
- * whatever the route is. The start plays a click sound. The stage does not get the key that starts the game, so the
- * key does not move the player or command the stage. Then the element shows the screen of the route and commands the
- * stage. The test run of the editor map shows the play screen. The element replaces a route with a locked level by the selection of the campaign,
- * because the router does not know the progress of the player.
+ * whatever the route is. The start plays a click sound, and after the start each click on a menu button plays it
+ * too. A menu button plays a hover sound when the pointer moves onto it or the keyboard focus moves to it. The back
+ * link of the level selection plays the same sounds. The stage does not get the key that starts the game, so the key
+ * does not move the player or command the stage. Then the element shows the screen of the route and commands the
+ * stage. The test run of the editor map shows the play screen. The element replaces a route with a locked level by
+ * the selection of the campaign, because the router does not know the progress of the player.
  *
  * The element sets the campaign and the level of the route as attributes of the level selection, and the campaign, the
  * level and the play mode as attributes of the best times panel. The panel gets a campaign only on the select and the
@@ -95,7 +100,16 @@ export class GameApp extends ChromeElement {
 		loadCampaigns();
 		loadCreditsText();
 		if (new URLSearchParams(location.search).has('unlock')) campaignsReady.subscribe((ready) => this.#unlockAll(ready));
-		window.addEventListener('click', () => this.#start());
+		window.addEventListener('click', (event) => {
+			if (!this.#start() && event.target.closest(SOUND_BUTTONS)) stage.playClickSound();
+		});
+		window.addEventListener('pointerover', (event) => {
+			const button = event.target.closest(SOUND_BUTTONS);
+			if (button && !button.contains(event.relatedTarget)) stage.playHoverSound();
+		});
+		window.addEventListener('focusin', (event) => {
+			if (event.target.closest(SOUND_BUTTONS) && event.target.matches(':focus-visible')) stage.playHoverSound();
+		});
 		window.addEventListener('keydown', (event) => this.#onStartKey(event), { capture: true });
 		window.addEventListener('keyup', (event) => this.#onStartKey(event), { capture: true });
 		stage.addEventListener('finished', (event) => this.#onFinished(event.detail));
@@ -164,7 +178,7 @@ export class GameApp extends ChromeElement {
 	#start() {
 		if (this.#started || !this.#isLoaded()) return false;
 		this.#started = true;
-		this.stage.playStartSound();
+		this.stage.playClickSound();
 		this.#applyRoute();
 		return true;
 	}

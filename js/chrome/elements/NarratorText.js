@@ -86,13 +86,15 @@ export class NarratorText extends ChromeScreen {
 	}
 
 	/**
-	 * Type one more character, and stop the typing at the end of the text.
+	 * Type one more character, with a tick sound on every second character that is not a space, and stop the typing
+	 * at the end of the text.
 	 *
 	 * @returns {void}
 	 */
 	#type() {
 		this.#shown++;
 		this.#show();
+		if (this.#text[this.#shown - 1] != ' ' && this.#shown % 2 == 0) this.stage.playTypeSound();
 		if (this.#shown >= this.#text.length) this.#stopTyping();
 	}
 

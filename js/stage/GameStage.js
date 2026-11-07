@@ -15,7 +15,10 @@ import {
 	missingSounds,
 	onSoundDone,
 	playSound,
+	randomRate,
 	setSoundOn,
+	sfx_click,
+	sfx_hover,
 	sfx_tick,
 	soundProgress,
 } from './audio.js';
@@ -312,12 +315,30 @@ export class GameStage extends HTMLElement {
 	}
 
 	/**
-	 * Play the click sound that tells the player that the game starts and the sound works.
+	 * Play the click sound of the menu buttons. At the start of the game, it also tells the player that the sound works.
 	 *
 	 * @returns {void}
 	 */
-	playStartSound() {
-		playSound(sfx_tick);
+	playClickSound() {
+		playSound(sfx_click);
+	}
+
+	/**
+	 * Play the sound of a menu button that the pointer or the keyboard focus moves onto.
+	 *
+	 * @returns {void}
+	 */
+	playHoverSound() {
+		playSound(sfx_hover);
+	}
+
+	/**
+	 * Play the tick sound of the narrator, with a small random change of the pitch.
+	 *
+	 * @returns {void}
+	 */
+	playTypeSound() {
+		playSound(sfx_tick, randomRate(0.1));
 	}
 
 	/**

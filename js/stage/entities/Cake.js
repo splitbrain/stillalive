@@ -2,7 +2,7 @@
  * The Cake object and its helper functions.
  */
 
-import { playSound, sfx_grabCake } from '../audio.js';
+import { playSound, sfx_exit, sfx_grabCake } from '../audio.js';
 import { MAP_SIZE, SparkleType } from '../constants.js';
 import { reloadTiles } from '../level.js';
 import { createCakeOrSmokeSparkles } from './Sparkle.js';
@@ -40,7 +40,10 @@ export function collectCakes() {
 				game.cakesLeft--;
 				createCakeOrSmokeSparkles(game.cakes[i].x, game.cakes[i].y, SparkleType.CAKE, 2, 180);
 				playSound(sfx_grabCake);
-				if (game.cakesLeft == 0) openExit();
+				if (game.cakesLeft == 0) {
+					openExit();
+					playSound(sfx_exit);
+				}
 			}
 		}
 	}

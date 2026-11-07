@@ -2,7 +2,18 @@
  * The Player object and its helper functions.
  */
 
-import { playSound, setSoundVolume, sfx_flatline, sfx_jump, sfx_pain } from '../audio.js';
+import {
+	playLoop,
+	playSound,
+	randomRate,
+	sfx_acid,
+	sfx_die,
+	sfx_float,
+	sfx_iceStep,
+	sfx_jump,
+	sfx_land,
+	sfx_step,
+} from '../audio.js';
 import { Direction, GRAVITY, MouseButton, PLAYFIELD_HEIGHT, SparkleType } from '../constants.js';
 import { collectCakes } from './Cake.js';
 import { gravPipeFieldsAt } from './GravPipeField.js';
@@ -24,7 +35,7 @@ import {
 } from '../physics.js';
 import { clearPortals, clearPortalsAtForceField, isInPortal, launchPortal, passPortal, portalAt } from '../portals.js';
 import { game, input, ui } from '../state.js';
-import { isPlatformCode, PLATFORM_CODE } from '../tiles.js';
+import { isPlatformCode, isTileKind, PLATFORM_CODE, TileKind } from '../tiles.js';
 import { random } from '../utils.js';
 
 /**
@@ -72,6 +83,10 @@ export class Player {
 		this.animationTime = 10;
 		/** @type {number} The frame of the walk animation: 0 is the standing frame, 1 to 4 are the walk cycle. */
 		this.animationFrame = 0;
+		/** @type {boolean} True if the player stood on the ground at the start of the last tick. */
+		this.onGround = false;
+		/** @type {boolean} True while the player touches acid. */
+		this.inAcid = false;
 		/** @type {number} The life in 1/256 points; 100 points is full life. */
 		this.life = 100 << 8;
 		/** @type {boolean} True while the player is dead and the screen fades to the restart. */
@@ -122,8 +137,7 @@ export class Player {
 
 			this.dead = true;
 			this.life = -256;
-			playSound(sfx_pain);
-			playSound(sfx_flatline);
+			playSound(this.inAcid ? sfx_acid : sfx_die);
 			if (game.player.y >> 8 < PLAYFIELD_HEIGHT) {
 				for (let i = 0; i < 20; i++) {
 					const s = new Sparkle();
@@ -140,7 +154,6 @@ export class Player {
 			}
 		} else if (this.dead) {
 			if (this.life >= 0) {
-				setSoundVolume(sfx_flatline, 1);
 				if (ui.mode == 'play') loadLevel(game.level, true);
 			}
 		}
@@ -200,6 +213,7 @@ export class Player {
 		if (fields.length > 0) {
 			game.player.vx = 0;
 			game.player.vy = 0;
+			playLoop(sfx_float);
 		}
 		for (i = 0; i < fields.length; i++) {
 			const f = fields[i];
@@ -252,6 +266,8 @@ export class Player {
 		}
 
 		let ground = touchingGround(this);
+		if (ground && !this.onGround && fields.length == 0) playSound(sfx_land);
+		this.onGround = ground > 0;
 		const belt = onBelt(this);
 		this.x += belt == 3 ? 384 : belt == 4 ? -384 : 0;
 
@@ -259,6 +275,10 @@ export class Player {
 		if (this.animationTime <= 0) {
 			this.animationTime = 10;
 			if (++this.animationFrame == 5) this.animationFrame = 1;
+			if (ground && this.isLeft != this.isRight && this.animationFrame % 2 == 1) {
+				const steps = ground == 2 ? sfx_iceStep : sfx_step;
+				playSound(steps[random(0, steps.length)], randomRate(0.08));
+			}
 		}
 
 		if (++this.portalCooldown > 25) this.portalCooldown = 25;
@@ -385,7 +405,9 @@ export class Player {
 			}
 		}
 
-		if (plasmaTouching(this) || touchesDeadlyTile(this)) {
+		const deadly = touchesDeadlyTile(this);
+		this.inAcid = isTileKind(deadly, TileKind.ACID, TileKind.ACIDPOOL);
+		if (plasmaTouching(this) || deadly) {
 			this.life = 0;
 		}
 

@@ -2,7 +2,7 @@
  * Collision and tile query functions, and the handling of objects that the player carries.
  */
 
-import { playSound, sfx_throwObject } from './audio.js';
+import { playSound, sfx_pickUp, sfx_throwObject } from './audio.js';
 import { Direction, GRAVITY, MouseButton, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH } from './constants.js';
 import { crateAt, crateLandsOnPlayer, movingCrateTouching } from './entities/Crate.js';
 import { gravPipeFieldsAt } from './entities/GravPipeField.js';
@@ -37,19 +37,19 @@ export function touchingGround(obj) {
  *
  * @param {number} x The x coordinate in pixels.
  * @param {number} y The y coordinate in pixels.
- * @returns {boolean} True if the tile at the point is deadly.
+ * @returns {number} The id of the deadly tile at the point, or 0.
  */
 function pointOnDeadlyTile(x, y) {
 	if (x >= PLAYFIELD_WIDTH || y >= PLAYFIELD_HEIGHT || y < 0 || x < 0) return 0;
 	const tile = game.map[(y >> 4) * 32 + (x >> 4)];
-	return isDeadlyTile(tile);
+	return isDeadlyTile(tile) ? tile : 0;
 }
 
 /**
  * Check if an object touches a deadly tile at one of its six test points.
  *
  * @param {object} obj The object with x, y, pX and pY.
- * @returns {boolean} True if the object touches a deadly tile.
+ * @returns {number} The id of the deadly tile that the object touches, or 0.
  */
 export function touchesDeadlyTile(obj) {
 	const x = obj.x >> 8;
@@ -387,6 +387,7 @@ export function grabObject() {
 				y1 = (game.crates[i].y >> 8) + (game.crates[i].pY >> 1);
 				if (getDistance(x1, y1, x2, y2) < 32 && pointInObject(input.mouseX, input.mouseY, game.crates[i])) {
 					game.crates[i].carried = true;
+					playSound(sfx_pickUp);
 					ok = 1;
 					break;
 				}
@@ -401,6 +402,7 @@ export function grabObject() {
 						pointInObject(input.mouseX, input.mouseY, game.turrets[i])
 					) {
 						game.turrets[i].carried = true;
+						playSound(sfx_pickUp);
 						break;
 					}
 				}

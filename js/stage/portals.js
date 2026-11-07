@@ -2,7 +2,7 @@
  * Portal shots and the teleport of objects through portals.
  */
 
-import { playSound, sfx_enterPortal, sfx_noPortal, sfx_portal } from './audio.js';
+import { playSound, sfx_cancelPortals, sfx_enterPortal, sfx_noPortal, sfx_portal } from './audio.js';
 import { Direction, SparkleType } from './constants.js';
 import { Sparkle, removeSparkles } from './entities/Sparkle.js';
 import { getTile, getTilePortal, getTileSimple } from './physics.js';
@@ -487,15 +487,21 @@ function teleport(p, obj) {
  * @returns {void}
  */
 export function clearPortalsAtForceField() {
-	if (game.portals[0].used || game.portals[1].used) {
-		if (inForceField(game.player)) {
-			let i;
-			for (i = 0; i < 2; i++) {
-				game.portals[i].used = false;
-				removeSparkles(i, SparkleType.PORTAL_GLOW);
-			}
-		}
+	if (inForceField(game.player)) removePortals();
+}
+
+/**
+ * Remove both portals with the cancel sound, if a portal is placed.
+ *
+ * @returns {void}
+ */
+function removePortals() {
+	if (!game.portals[0].used && !game.portals[1].used) return;
+	for (let i = 0; i < 2; i++) {
+		game.portals[i].used = false;
+		removeSparkles(i, SparkleType.PORTAL_GLOW);
 	}
+	playSound(sfx_cancelPortals);
 }
 
 /**
@@ -540,12 +546,7 @@ export function clearPortals() {
 
 	if (ok && isInPortal(game.player)) ok = 0;
 
-	if (ok) {
-		for (i = 0; i < 2; i++) {
-			game.portals[i].used = false;
-			removeSparkles(i, SparkleType.PORTAL_GLOW);
-		}
-	}
+	if (ok) removePortals();
 }
 
 /**

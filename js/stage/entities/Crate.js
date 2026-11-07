@@ -2,6 +2,7 @@
  * The Crate object and its helper functions.
  */
 
+import { playSound, sfx_crateLand, sfx_dissolve } from '../audio.js';
 import { hitBoss, manageInTube } from '../boss.js';
 import { PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH } from '../constants.js';
 import { plasmaTouching } from './Plasma.js';
@@ -98,7 +99,9 @@ export class Crate {
 
 		if (this.shrink == 0) {
 			if (!this.carried) {
+				const falling = this.vy > 0;
 				moveObject(this);
+				if (falling && this.vy == 0 && touchingGround(this)) playSound(sfx_crateLand);
 
 				if (game.bossNum > 0) {
 					if (game.bossNum == 1 || game.bossNum == 4) manageInTube(this);
@@ -187,6 +190,7 @@ export class Crate {
 		if (this.shrink == 0 && inForceField(this)) {
 			this.carried = false;
 			this.shrink = 60;
+			playSound(sfx_dissolve);
 		}
 	}
 }

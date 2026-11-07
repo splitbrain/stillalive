@@ -52,6 +52,10 @@ class Sound {
 		this.volume = 1;
 		/** @type {number} The number of playbacks of the sound that have not ended. */
 		this.playing = 0;
+		/** @type {AudioBufferSourceNode|null} The playback of the sound as a loop, or null while no loop plays. */
+		this.loop = null;
+		/** @type {number} The time of performance.now() until which the loop plays on, in milliseconds. */
+		this.loopUntil = 0;
 	}
 }
 
@@ -90,12 +94,15 @@ function loadSound(name) {
  * Play a sound if the sound is on.
  *
  * @param {Sound} sound The sound.
+ * @param {number} rate The playback rate: 1 for the normal speed and pitch, less for slower and lower, more for faster
+ *     and higher.
  * @returns {void}
  */
-export function playSound(sound) {
+export function playSound(sound, rate = 1) {
 	if (!context || !isSoundOn() || !sound.buffer) return;
 	const source = context.createBufferSource();
 	source.buffer = sound.buffer;
+	source.playbackRate.value = rate;
 	source.connect(sound.gain);
 	sound.playing++;
 	source.addEventListener('ended', () => sound.playing--);
@@ -110,6 +117,53 @@ export function playSound(sound) {
  */
 export function playSoundIfFinished(sound) {
 	if (sound.playing === 0) playSound(sound);
+}
+
+/** @type {number} The time that a loop plays on after the last call of playLoop, in milliseconds. */
+const LOOP_HOLD = 100;
+
+/**
+ * Keep a sound playing as a loop. Call it in each tick while the loop should play: the loop starts on the first call
+ * and stops a short time after the last call, so a pause or the end of the level also stops it.
+ *
+ * @param {Sound} sound The sound.
+ * @returns {void}
+ */
+export function playLoop(sound) {
+	sound.loopUntil = performance.now() + LOOP_HOLD;
+	if (sound.loop || !context || !isSoundOn() || !sound.buffer) return;
+	const source = context.createBufferSource();
+	source.buffer = sound.buffer;
+	source.loop = true;
+	source.connect(sound.gain);
+	source.start();
+	sound.loop = source;
+}
+
+/**
+ * Stop the loops that playLoop did not keep alive.
+ *
+ * @returns {void}
+ */
+function stopOldLoops() {
+	for (const sound of sounds) {
+		if (sound.loop && performance.now() > sound.loopUntil) {
+			sound.loop.stop();
+			sound.loop = null;
+		}
+	}
+}
+
+setInterval(stopOldLoops, LOOP_HOLD / 2);
+
+/**
+ * Get a random playback rate near the normal speed, so that a repeated sound does not sound the same each time.
+ *
+ * @param {number} range The largest change of the rate, e.g. 0.1 for rates from 0.9 to 1.1.
+ * @returns {number} The playback rate.
+ */
+export function randomRate(range) {
+	return 1 + (Math.random() * 2 - 1) * range;
 }
 
 /**
@@ -224,35 +278,60 @@ window.addEventListener('keydown', resumeAudio, { capture: true });
 /** @type {Sound} An object enters a portal. */
 export let sfx_enterPortal;
 /** @type {Sound} The player dies. */
-export let sfx_flatline;
+export let sfx_die;
+/** @type {Sound} The player dies in acid. */
+export let sfx_acid;
 /** @type {Sound} A portal shot hits an invalid wall. */
 export let sfx_noPortal;
-/** @type {Sound} The player takes damage. */
-export let sfx_pain;
+/** @type {Sound} The portals are removed. */
+export let sfx_cancelPortals;
 /** @type {Sound} A turret shoots. */
 export let sfx_shoot;
-
+/** @type {Sound} The player is hit by a shot. */
+export let sfx_pain;
 /** @type {Sound} A turret explodes. */
 export let sfx_explode;
 /** @type {Sound} The player jumps. */
 export let sfx_jump;
+/** @type {Sound} The player lands after a jump or a fall. */
+export let sfx_land;
+/** @type {Sound[]} The player makes a step, thirteen variants. */
+export let sfx_step;
+/** @type {Sound[]} The player makes a step on ice, four variants. */
+export let sfx_iceStep;
+/** @type {Sound} The player floats in the field of a gravitational pipe, as a loop. */
+export let sfx_float;
 /** @type {Sound} A plasma ball bounces. */
 export let sfx_bounce;
 /** @type {Sound} The player collects a cake. */
 export let sfx_grabCake;
-
+/** @type {Sound} The exit opens. */
+export let sfx_exit;
+/** @type {Sound} The player picks up an object. */
+export let sfx_pickUp;
 /** @type {Sound} The player throws an object. */
 export let sfx_throwObject;
-/** @type {Sound} A switch door opens or closes. */
-export let sfx_tick;
+/** @type {Sound} A crate lands. */
+export let sfx_crateLand;
+/** @type {Sound} A crate dissolves in a force field. */
+export let sfx_dissolve;
+/** @type {Sound} A switch force field goes on or off. */
+export let sfx_field;
+/** @type {Sound} A plasma force field goes off. */
+export let sfx_plasmaField;
 /** @type {Sound} A level ends. */
 export let sfx_transition;
-
+/** @type {Sound} The player clicks a menu button. */
+export let sfx_click;
+/** @type {Sound} The pointer or the keyboard focus moves onto a menu button. */
+export let sfx_hover;
+/** @type {Sound} The narrator types a character. */
+export let sfx_tick;
 /** @type {Sound[]} A portal is placed, two variants. */
 export let sfx_portal;
 
 /**
- * Start to load all sounds of the game.
+ * Start to load all sounds of the game, and set the volume of the quiet sounds.
  *
  * @returns {void}
  */
@@ -260,14 +339,32 @@ export function loadSfx() {
 	sfx_explode = loadSound('explode');
 	sfx_bounce = loadSound('bounce');
 	sfx_grabCake = loadSound('grabCake');
+	sfx_exit = loadSound('exit');
 	sfx_jump = loadSound('jump');
+	sfx_land = loadSound('land');
+	sfx_step = Array.from({ length: 13 }, (_, n) => loadSound(`step${n + 1}`));
+	sfx_iceStep = Array.from({ length: 4 }, (_, n) => loadSound(`iceStep${n + 1}`));
+	sfx_float = loadSound('float');
+	sfx_pickUp = loadSound('pickUp');
 	sfx_throwObject = loadSound('throwObject');
+	sfx_crateLand = loadSound('crateLand');
+	sfx_dissolve = loadSound('dissolve');
 	sfx_enterPortal = loadSound('enterPortal');
 	sfx_transition = loadSound('transition');
-	sfx_tick = loadSound('tick');
-	sfx_pain = loadSound('pain');
-	sfx_flatline = loadSound('flatline');
+	sfx_field = loadSound('field');
+	sfx_plasmaField = loadSound('plasmaField');
+	sfx_die = loadSound('die');
+	sfx_acid = loadSound('acid');
 	sfx_noPortal = loadSound('noPortal');
+	sfx_cancelPortals = loadSound('cancelPortals');
 	sfx_shoot = loadSound('shoot');
+	sfx_pain = loadSound('pain');
+	sfx_click = loadSound('click');
+	sfx_hover = loadSound('hover');
+	sfx_tick = loadSound('tick');
 	sfx_portal = [loadSound('portal1'), loadSound('portal2')];
+	sfx_step.concat(sfx_iceStep).forEach((sound) => setSoundVolume(sound, 0.25));
+	setSoundVolume(sfx_jump, 0.2);
+	setSoundVolume(sfx_land, 0.35);
+	setSoundVolume(sfx_tick, 0.2);
 }

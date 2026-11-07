@@ -2,7 +2,7 @@
  * The start of a level, of a preview and of the editor map, and the doors of a level.
  */
 
-import { playSound, sfx_tick } from './audio.js';
+import { playSound, sfx_field } from './audio.js';
 import { setupBoss, skipComingBoss } from './boss.js';
 import { Direction, MAP_HEIGHT, MAP_WIDTH, ORDERED, PLAYFIELD_HEIGHT, RANDOM, SparkleType } from './constants.js';
 import { AnimatedTile } from './entities/AnimatedTile.js';
@@ -130,7 +130,7 @@ function clearDoorBlockers() {
  */
 function closeSwitchDoors() {
 	let i;
-	playSound(sfx_tick);
+	playSound(sfx_field);
 	for (i = 0; i < game.animatedTiles.length; i++) {
 		if (isTileKind(game.animatedTiles[i].current, TileKind.SWITCH_DOOR)) {
 			game.animatedTiles[i].used = true;
@@ -147,7 +147,7 @@ function closeSwitchDoors() {
  */
 function openSwitchDoors() {
 	let i;
-	playSound(sfx_tick);
+	playSound(sfx_field);
 	for (i = 0; i < game.animatedTiles.length; i++) {
 		if (isTileKind(game.animatedTiles[i].current, TileKind.SWITCH_DOOR)) {
 			game.animatedTiles[i].used = false;

@@ -2,7 +2,7 @@
  * The Turret object and its helper functions.
  */
 
-import { playSound, playSoundIfFinished, sfx_explode, sfx_shoot } from '../audio.js';
+import { playSound, playSoundIfFinished, sfx_explode, sfx_pain, sfx_shoot } from '../audio.js';
 import { PLAYFIELD_WIDTH, SparkleType } from '../constants.js';
 import { isInPortal } from '../portals.js';
 import { anyCrateAt, movingCrateTouching } from './Crate.js';
@@ -186,7 +186,8 @@ export class Turret {
 						game.player.recoveryTime = 300;
 						game.player.vx += this.dir << 8;
 						this.coolTime = COOL_TIME;
-						playSoundIfFinished(sfx_shoot);
+						playSound(sfx_shoot);
+						playSoundIfFinished(sfx_pain);
 
 						for (let i = 0; i < 5; i++) {
 							const s = new Sparkle();

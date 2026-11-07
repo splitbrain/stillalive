@@ -2,7 +2,7 @@
 	"format": 1,
 	"title": "Round and Round",
 	"bg": 3,
-	"text": "Turn around and around and around ... When you reach the top, don't land on the plasma ball, or you'll lose yours ... ",
+	"text": "Turn around and around and around... When you reach the top, don't land on the plasma ball, or you'll lose yours...",
 	"tiles": [
 		1,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,
 		18,0,0,0,0,0,0,0,0,0,0,0,23,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,

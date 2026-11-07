@@ -2,7 +2,7 @@
 	"format": 1,
 	"title": "Infinite Loop",
 	"bg": 0,
-	"text": "Don't worry, we will not turn round again as in the old rooms ... You'll need an infinite loop to move into the right side of the room, but it won't be easy.",
+	"text": "Don't worry, we won't go round in circles like in the old rooms... You'll need an infinite loop to get to the right side of the room, but it won't be easy.",
 	"tiles": [
 		1,5,5,5,5,5,18,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,1,
 		4,0,0,0,0,0,18,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,

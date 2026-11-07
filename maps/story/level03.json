@@ -2,7 +2,7 @@
 	"format": 1,
 	"title": "Pipe Dreams",
 	"bg": 2,
-	"text": "Let me introduce you to our latest creation here at Future Science : the Gravitational Pipe ! (or GP). GPs allow you to be carried in the air according to the direction the pipe is facing. Don't be scared to jump in it, you won't touch the razor wheels waiting for you. In a pipe, you can move using movement keys. Good luck.",
+	"text": "Let me introduce our latest creation here at Future Science: the Gravitational Pipe (or GP)! GPs carry you through the air in the direction the pipe is facing. Don't be scared to jump in, you won't touch the razor wheels waiting for you. Inside a pipe, you can move with the movement keys. Good luck.",
 	"tiles": [
 		18,17,18,17,18,17,18,17,18,17,18,17,18,17,18,17,18,17,18,17,18,17,18,17,18,17,18,17,18,17,18,18,
 		17,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,22,

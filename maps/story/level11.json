@@ -2,7 +2,7 @@
 	"format": 1,
 	"title": "Hole Punch",
 	"bg": 10,
-	"text": "GPs, razor wheels, plasma ball and turrets ... Nothing new here, just use you portal gun to pass through holes.",
+	"text": "GPs, razor wheels, plasma ball and turrets... Nothing new here, just use your portal gun to pass through the holes.",
 	"tiles": [
 		1,5,5,5,17,17,17,0,0,0,0,0,17,17,17,17,17,103,0,103,17,17,20,17,17,17,1,5,5,5,1,1,
 		4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,17,0,17,0,0,0,0,0,17,4,0,0,0,2,1,

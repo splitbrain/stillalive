@@ -5,7 +5,7 @@
 	"events": [
 		{
 			"on": "start",
-			"text": "Sometimes, your body is not enough to use the switch efficiently. Here is a crate you can use in this level. Get close enough and hold left mouse button to carry the crate with your portal gun. Release mouse to shoot the crate on the switch and leave. Pay attention to that turret that can kill you if you're in range."
+			"text": "Sometimes, standing on the switch yourself is not enough. Here is a crate you can use in this level. Get close enough and hold the left mouse button to carry the crate with your portal gun. Release the mouse button to throw the crate onto the switch, then leave. Watch out for that turret, it can kill you if you're in range."
 		}
 	],
 	"labels": [

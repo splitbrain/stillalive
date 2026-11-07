@@ -5,7 +5,7 @@
 	"events": [
 		{
 			"on": "start",
-			"text": "This special blue wall can be deactivated thanks to a switch. Step on this switch to be able to clear the wall and shoot a portal behind it. Cross the finish line to continue the tutorial."
+			"text": "This special blue wall can be turned off with a switch. Step on this switch to clear the wall and shoot a portal behind it. Cross the finish line to continue the tutorial."
 		}
 	],
 	"tiles": [

@@ -2,7 +2,7 @@
 	"format": 1,
 	"title": "Speedy Thing Comes Out",
 	"bg": 5,
-	"text": "Nothing special here, just don't get too mad at these no-portal walls. Try to reach a good speed to be able to make the last jump. ",
+	"text": "Nothing special here, just don't get too mad at these no-portal walls. Try to build up enough speed to make the last jump.",
 	"tiles": [
 		1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,17,17,17,17,17,17,17,17,17,17,17,17,17,17,
 		1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,4,0,0,0,0,0,0,0,0,0,0,0,0,0,18,

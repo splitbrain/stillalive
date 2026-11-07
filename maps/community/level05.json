@@ -2,7 +2,7 @@
 	"format": 1,
 	"title": "Cool Runnings",
 	"bg": 4,
-	"text": "Icy walls allow you to reach impossible places in normal times. Go ahead, show me that you know how to use them effectively !",
+	"text": "Icy walls let you reach places that are normally out of reach. Go ahead, show me that you know how to use them!",
 	"tiles": [
 		4,0,0,0,0,0,0,0,0,18,0,0,0,0,46,46,46,0,0,0,0,0,0,46,46,0,0,0,0,0,0,0,
 		4,103,0,0,103,0,0,103,0,18,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,

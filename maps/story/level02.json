@@ -2,7 +2,7 @@
 	"format": 1,
 	"title": "Ice to Meet You",
 	"bg": 1,
-	"text": "You did it, great. This room uses a physic particularity you might have already discovered. When getting out of a left or right portal, you can hold left, or right according to the direction, to gain even more speed ! Use this technique to grab the two cakes on the right. I'm waiting for you in the next room.",
+	"text": "You did it, great. This room uses a physics trick you might have already discovered. When you come out of a portal on a left or right wall, you can hold left or right, in the direction you are moving, to gain even more speed! Use this technique to grab the two cakes on the right. I'm waiting for you in the next room.",
 	"tiles": [
 		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 		0,104,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,

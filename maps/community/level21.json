@@ -2,7 +2,7 @@
 	"format": 1,
 	"title": "Outside the Box",
 	"bg": 9,
-	"text": "Want to think outside the box ? Good thing, this level will take you over the box, more precisely outside the room ! Sometimes, we must walk on the ceiling to reach its goal. Make things in the right order if you want to leave this room.",
+	"text": "Want to think outside the box? Good, because this level will take you over the box, or more precisely outside the room! Sometimes you have to walk on the ceiling to reach your goal. Do things in the right order if you want to leave this room.",
 	"tiles": [
 		0,17,18,18,18,18,18,18,18,18,18,0,0,18,18,18,18,18,5,5,5,5,5,5,5,18,18,18,0,0,18,0,
 		0,17,0,0,0,0,0,0,0,0,11,0,103,11,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,17,0,

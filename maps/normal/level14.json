@@ -2,7 +2,7 @@
 	"format": 1,
 	"title": "Turret Syndrome",
 	"bg": 2,
-	"text": "Let me introduce you the turrets ! These new elements will shoot you if you're in range. Make sure not te be in front of them for too long or you'll have a bad day. Each bullet lower you health, so make sure not to be killed. You can destroy turrets by teleporting them with portals.",
+	"text": "Let me introduce the turrets! These new elements will shoot you if you're in range. Make sure not to stand in front of them for too long or you'll have a bad day. Each bullet lowers your health, so make sure you don't get killed. You can destroy turrets by teleporting them with portals.",
 	"tiles": [
 		1,1,1,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,1,
 		1,1,1,4,0,0,0,103,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,1,

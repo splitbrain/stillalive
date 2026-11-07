@@ -286,7 +286,7 @@ test.describe('chrome', () => {
 		await expect.poll(() => stageValue(page, 'message')).toBeNull();
 		await page.mouse.up();
 		await expect(page.locator('intermission-panel')).toBeVisible();
-		await expect(page.locator('intermission-panel .message')).toHaveText('New best time !');
+		await expect(page.locator('intermission-panel .message')).toHaveText('New best time!');
 	});
 
 	test('replaces an unknown route and a locked level', async ({ page }) => {

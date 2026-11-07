@@ -2,7 +2,7 @@
 	"format": 1,
 	"title": "Stair Master",
 	"bg": 8,
-	"text": "These steps on the right will certainly cause you a lot of trouble. The hardest part will be to jump on them but once done, consider the level as complete, there will be no other difficulies.",
+	"text": "These steps on the right will surely cause you a lot of trouble. The hardest part is to jump onto them, but once that's done, consider the level complete, there are no other difficulties.",
 	"tiles": [
 		17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,5,5,5,17,17,17,
 		18,0,0,0,0,0,0,0,11,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,18,0,0,0,0,0,0,22,

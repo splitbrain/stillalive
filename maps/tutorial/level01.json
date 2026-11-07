@@ -9,20 +9,20 @@
 	"events": [
 		{
 			"on": "start",
-			"text": "Welcome to the tutorial. First, start moving around the room with {KeyA} or {KeyD}. Click to continue ...",
+			"text": "Welcome to the tutorial. First, move around the room with {KeyA} and {KeyD}. Click to continue...",
 			"wait": "click"
 		},
 		{
 			"on": "playerX",
 			"x": 100,
-			"text": "You can't pass these obstacles unless you jump over them. Press {KeyW} to perform a jump and hold it to jump higher ! Click to continue ...",
+			"text": "You can't get past these obstacles unless you jump over them. Press {KeyW} to jump, and hold it to jump higher! Click to continue...",
 			"wait": "click",
 			"unlock": "jump"
 		},
 		{
 			"on": "playerX",
 			"x": 256,
-			"text": "See this checkered flag on the right ? Just touch it to finish the level."
+			"text": "See the checkered flag on the right? Just touch it to finish the level."
 		}
 	],
 	"tiles": [

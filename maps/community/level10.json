@@ -2,7 +2,7 @@
 	"format": 1,
 	"title": "Light Show",
 	"bg": 9,
-	"text": "Hmmm ... the design must be reviewed here, but at least, it's luminous. Beware of the three turrets on top of the level, get rid of them will not be as simple as expected ...",
+	"text": "Hmmm... this design needs some more work, but at least it's bright. Beware of the three turrets at the top of the level, getting rid of them won't be as simple as you think...",
 	"tiles": [
 		36,46,46,46,46,46,46,46,46,46,46,46,46,46,46,46,46,46,46,46,46,46,46,46,46,46,46,46,46,46,46,36,
 		36,22,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,40,40,40,40,40,40,29,29,29,8,3,3,9,36,

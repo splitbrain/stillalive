@@ -6,21 +6,21 @@
 	"events": [
 		{
 			"on": "start",
-			"text": "Enough is enough little man. I've decided that you can no longer continue to progress through our laboratories anymore. Launching termination program in 3 ... 2 ... 1 .............",
+			"text": "Enough is enough, little man. I've decided that you can no longer continue through our laboratories. Launching termination program in 3... 2... 1.............",
 			"wait": "click"
 		},
 		{
 			"on": "start",
-			"text": "Due to internal difficulties, Future Science is not able to perform your request ... Please try again later."
+			"text": "Due to internal difficulties, Future Science is unable to process your request... Please try again later."
 		},
 		{
 			"on": "bossArrived",
-			"text": "I saw in previous rooms that you loved crates. But how many of them can you take at the same time ? I'll give you a little hint to survive ... ... Don't try to jump in the acid ! Ha - Ha - Ha -",
+			"text": "I saw in the previous rooms that you love crates. But how many of them can you take at the same time? I'll give you a little hint to survive... Don't try to jump into the acid! Ha - Ha - Ha -",
 			"wait": "click"
 		},
 		{
 			"on": "bossDied",
-			"text": "I ... I can't believe it. I never thought you would be able to take me down that easily ... You deserve the right to continue your journey through next levels ... Come meet my brother in the next ro.............",
+			"text": "I... I can't believe it. I never thought you would be able to take me down that easily... You have earned the right to continue your journey through the next levels... Come meet my brother in the next ro.............",
 			"wait": "click"
 		}
 	],

@@ -2,7 +2,7 @@
 	"format": 1,
 	"title": "Pinpoint",
 	"bg": 1,
-	"text": "You ? Here ?! Congratulations, you're starting to acquire the right reflexes. But this is not enough, you will also need precision. This room will tell us if you have enough skill to put the plasma ball in the space provided. Do not be frustrated too quickly, it could last for a long time ...",
+	"text": "You? Here?! Congratulations, you're starting to get the right reflexes. But that's not enough, you will also need precision. This room will show whether you have enough skill to put the plasma ball where it belongs. Don't get frustrated too quickly, this could take a long time...",
 	"tiles": [
 		17,17,17,17,17,17,17,17,17,1,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,
 		18,0,0,0,0,0,0,0,0,11,0,0,0,103,0,11,0,0,0,0,0,0,103,0,0,0,0,0,0,0,0,18,

@@ -2,7 +2,7 @@
 	"format": 1,
 	"title": "Leaky Pipes",
 	"bg": 7,
-	"text": "It seems that we have some problems with plumbing here ... Never mind, join me in the next room.",
+	"text": "It seems that we have some plumbing problems here... Never mind, join me in the next room.",
 	"tiles": [
 		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 		38,38,38,38,38,38,38,38,8,10,10,10,10,10,10,10,10,10,10,10,10,9,38,38,38,38,38,38,38,38,38,38,

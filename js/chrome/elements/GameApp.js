@@ -30,7 +30,7 @@ const STAGE_SCREENS = [Screen.SELECT, Screen.PLAY, Screen.EDITOR, Screen.EDITOR_
 
 /** @type {string} The narrator text of the editor and of its save and load screen. */
 const EDITOR_TEXT =
-	'Welcome to the Still Alive Level Editor ! Here is a place where you can easily create your own maps. Select a tile or an object, then draw it with the left mouse button, remove it with the right mouse button, or fill an area with a tile with the middle mouse button. Then, try out your map. Have Fun !';
+	'Welcome to the Still Alive Level Editor! Here you can easily create your own maps. Select a tile or an object, then draw it with the left mouse button, remove it with the right mouse button, or fill an area with a tile with the middle mouse button. Then, try out your map. Have fun!';
 
 /**
  * The custom element <game-app>. It creates the parts of the screens and the stage from its template. The stage and
@@ -374,10 +374,10 @@ export class GameApp extends ChromeElement {
 	 */
 	#checkBestTime(r, time, replay) {
 		const best = getBestTime(r.campaign, r.level);
-		if (best != null && best <= time) return 'Best time : ' + toTime(best);
+		if (best != null && best <= time) return 'Best time: ' + toTime(best);
 
 		saveBestTime(r.campaign, r.level, time, replay).catch((e) => console.error(e));
-		return 'New best time !';
+		return 'New best time!';
 	}
 
 	/**
@@ -426,7 +426,7 @@ export class GameApp extends ChromeElement {
 		const r = route.get();
 		if (r.name != 'play') return;
 		alertDialog(
-			"The replay you're watching seems to be broken -_-;\n" + 'Sorry for any inconveniences.',
+			"The replay you're watching seems to be broken -_-;\n" + 'Sorry for the inconvenience.',
 			'An error occurred',
 		);
 		navigate(campaignPath(r.campaign, r.level), true);

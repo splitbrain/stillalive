@@ -2,7 +2,7 @@
 	"format": 1,
 	"title": "Triple Threat",
 	"bg": 1,
-	"text": "Here we go ! This level combines 3 elements we already saw. Avoid the plasma ball, activate the red switch, place the crate on the floor switch and leave this room safe. ",
+	"text": "Here we go! This level combines 3 elements we have already seen. Avoid the plasma ball, activate the red switch, place the crate on the floor switch and leave this room safely.",
 	"tiles": [
 		1,1,1,1,1,1,1,1,1,1,1,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,17,17,17,17,17,
 		1,5,5,5,5,5,5,5,5,5,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,18,

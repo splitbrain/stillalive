@@ -2,7 +2,7 @@
 	"format": 1,
 	"title": "Tower of Terror",
 	"bg": 4,
-	"text": "First floor : Run !\nSecond floor : Do not jump !\nThird floor : Avoid bullets.\nFourth floor : Avoid the plasma ball.\nLast floor : Do not get overwhelmed by the platforms.",
+	"text": "First floor: Run!\nSecond floor: Do not jump!\nThird floor: Avoid the bullets.\nFourth floor: Avoid the plasma ball.\nLast floor: Do not get overwhelmed by the platforms.",
 	"tiles": [
 		1,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,
 		4,105,0,0,0,0,0,0,0,0,0,0,0,0,103,103,0,0,105,0,0,0,0,0,0,0,0,0,0,0,0,22,

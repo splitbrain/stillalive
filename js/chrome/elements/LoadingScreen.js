@@ -64,10 +64,10 @@ export class LoadingScreen extends ChromeScreen {
 		const button = this.querySelector('.start');
 		button.disabled = !ready;
 		button.style.setProperty('--progress', `${percent}%`);
-		button.textContent = ready ? 'Begin testing' : `Loading ... ${percent}%`;
+		button.textContent = ready ? 'Begin testing' : `Loading... ${percent}%`;
 		this.querySelector('.title').textContent = ready
 			? 'The test equipment is ready.'
-			: 'Warming up the test equipment ...';
+			: 'Warming up the test equipment...';
 	}
 
 	/**

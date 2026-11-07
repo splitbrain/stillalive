@@ -2,7 +2,7 @@
 	"format": 1,
 	"title": "Flip the Switch",
 	"bg": 4,
-	"text": "If you can't go to the crate, the crate will come to you ! Use this switch wisely to activate / deactivate G.Pipes and reach the finish line.",
+	"text": "If you can't go to the crate, the crate will come to you! Use this switch wisely to turn the G.Pipes on and off and reach the finish line.",
 	"tiles": [
 		17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,
 		17,17,17,17,102,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,

@@ -2,7 +2,7 @@
 	"format": 1,
 	"title": "Force of Habit",
 	"bg": 8,
-	"text": "White forcefields disable launched portals, stop portals shoots and destroy crates. Find a way to put that crate on its switch and gain momentum to grab all the cakes over the acid pool. See you in next level.",
+	"text": "White force fields disable the portals you have shot, stop portal shots and destroy crates. Find a way to put that crate on its switch, and gain momentum to grab all the cakes over the acid pool. See you in the next level.",
 	"tiles": [
 		1,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,
 		4,0,0,0,0,103,0,0,0,0,0,0,0,0,0,0,0,0,0,49,0,0,0,0,0,0,0,0,0,0,0,22,

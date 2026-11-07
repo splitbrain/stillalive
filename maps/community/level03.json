@@ -2,7 +2,7 @@
 	"format": 1,
 	"title": "Loop Hole",
 	"bg": 2,
-	"text": "This level requires a minimum of reflection if you want to reach these cakes. Remember how loops works ...",
+	"text": "This level takes a bit of thinking if you want to reach these cakes. Remember how loops work...",
 	"tiles": [
 		18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,
 		17,0,0,0,0,0,0,23,23,23,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,17,

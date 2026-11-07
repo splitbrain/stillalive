@@ -2,7 +2,7 @@
 	"format": 1,
 	"title": "Companion Crate",
 	"bg": 9,
-	"text": "You did it, was it hard ? In this one, you can't use the same trick, as the exit of the room is not reachable from the switch. Here comes the crate element. If you are close enough, clik it with left mouse button and hold to lift it with your portal gun and throw it where you want. Try to activate the switch with it to see what happens ... ",
+	"text": "You did it, was it hard? In this one, you can't use the same trick, because you can't reach the exit of the room from the switch. Here comes the crate. When you are close enough, click it with the left mouse button and hold to lift it with your portal gun, then throw it where you want. Try to activate the switch with it and see what happens...",
 	"tiles": [
 		1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
 		1,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,1,

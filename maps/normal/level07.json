@@ -2,7 +2,7 @@
 	"format": 1,
 	"title": "Through the Roof",
 	"bg": 6,
-	"text": "This one mixes what we have seen in previous rooms : loop, map opening, no-portal walls ... Oh, wait ! The exit is on the roof of the room, will you be able to reach it ? If you can't finish this room,try to find someone to help you. Maybe Black Mesa ... ",
+	"text": "This one mixes what we have seen in the previous rooms: loops, openings in the map, no-portal walls... Oh, wait! The exit is in the ceiling, will you be able to reach it? If you can't finish this room, try to find someone to help you. Maybe Black Mesa...",
 	"tiles": [
 		1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,4,22,22,7,5,5,1,5,5,5,5,1,
 		17,5,5,5,5,5,1,17,17,17,17,17,17,17,17,5,5,5,5,1,4,0,103,0,0,0,11,0,0,0,0,2,

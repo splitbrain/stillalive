@@ -2,7 +2,7 @@
 	"format": 1,
 	"title": "Fireworks Factory",
 	"bg": 3,
-	"text": "Sometimes, trying to avoid turrets won't be possible. If you can't teleport them, there is another way to destroy them. See the plasma ball ? Try to teleport it in the turrets, beautiful fireworks ahead. ",
+	"text": "Sometimes, you won't be able to avoid the turrets. If you can't teleport them, there is another way to destroy them. See the plasma ball? Try to teleport it into the turrets, beautiful fireworks ahead.",
 	"tiles": [
 		0,0,0,7,5,5,5,5,5,5,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,

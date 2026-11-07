@@ -41,7 +41,7 @@ export class PauseMenu extends ChromeScreen {
 		const sound = this.querySelector('.sound');
 		return [
 			this.stage.sound.subscribe((on) => {
-				sound.textContent = 'Sounds : ' + (on ? 'On' : 'Off');
+				sound.textContent = 'Sounds: ' + (on ? 'On' : 'Off');
 			}),
 		];
 	}

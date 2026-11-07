@@ -2,7 +2,7 @@
 	"format": 1,
 	"title": "Turret Drop",
 	"bg": 7,
-	"text": "Now that you feel better, use your portal to reach these crates and cakes. Once your inside, throw the crate on the turrets with a portal on top of them. Finally, use the two crates to jump higher and reach the switch. ",
+	"text": "Now that you feel better, use your portals to reach these crates and cakes. Once you're inside, drop the crate onto the turrets through a portal above them. Finally, use the two crates to jump higher and reach the switch.",
 	"tiles": [
 		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,

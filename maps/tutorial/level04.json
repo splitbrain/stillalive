@@ -8,13 +8,13 @@
 	"events": [
 		{
 			"on": "start",
-			"text": "Your portal gun has been activated. You can shoot portals by pressing left or right mouse button. They allow you to reach places where your body can't go and can only be placed on blue walls. Click to continue ...",
+			"text": "Your portal gun has been activated. You can shoot portals with the left or right mouse button. Portals let you reach places your body can't go, and you can only place them on blue walls. Click to continue...",
 			"wait": "click",
 			"unlock": "portals"
 		},
 		{
 			"on": "start",
-			"text": "Shoot a portal in the hole on the right and the other one under your feet. That way, you will be able to pass through. Then, just finish the level to continue the tutorial. If you want to clear portals, press the {KeyE} key."
+			"text": "Shoot a portal into the hole on the right and the other one under your feet. That way, you will be able to pass through. Then, just finish the level to continue the tutorial. To clear your portals, press the {KeyE} key."
 		}
 	],
 	"labels": [

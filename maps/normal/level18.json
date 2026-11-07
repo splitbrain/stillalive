@@ -2,7 +2,7 @@
 	"format": 1,
 	"title": "Jump Around",
 	"bg": 6,
-	"text": "Hey, you seem to be a little tired. How about some platforming to keep you in good shape ? Jump, jump and jump again to reach the end of the level. ",
+	"text": "Hey, you seem a little tired. How about some platforming to keep you in good shape? Jump, jump and jump again to reach the end of the level.",
 	"tiles": [
 		6,22,22,12,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 		0,0,0,103,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,

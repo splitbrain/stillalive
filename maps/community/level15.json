@@ -2,7 +2,7 @@
 	"format": 1,
 	"title": "Pool Rules",
 	"bg": 3,
-	"text": "You don't seem to be dead, congratulations. The only difficulty with this room is not to jump in the pool. Use these icy blocks with ingenuity and put the plasma ball in its right place.",
+	"text": "You don't seem to be dead, congratulations. The only challenge in this room is not to fall into the pool. Use these icy blocks cleverly and put the plasma ball in its place.",
 	"tiles": [
 		17,17,17,17,17,17,17,1,1,5,5,5,5,5,5,5,5,5,5,17,46,46,46,17,5,5,5,5,17,17,17,17,
 		18,0,0,0,0,0,0,2,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,23,22,22,22,18,

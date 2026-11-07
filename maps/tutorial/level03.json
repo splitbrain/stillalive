@@ -8,27 +8,27 @@
 	"events": [
 		{
 			"on": "start",
-			"text": "Let's get familiar with portals now. Please wait 5 seconds while we are gathering energy to activate them ..."
+			"text": "Let's get familiar with portals now. Please wait 5 seconds while we gather the energy to activate them..."
 		},
 		{
 			"on": "time",
 			"ticks": 60,
-			"text": "Let's get familiar with portals now. Please wait 4 seconds while we are gathering energy to activate them ..."
+			"text": "Let's get familiar with portals now. Please wait 4 seconds while we gather the energy to activate them..."
 		},
 		{
 			"on": "time",
 			"ticks": 120,
-			"text": "Let's get familiar with portals now. Please wait 3 seconds while we are gathering energy to activate them ..."
+			"text": "Let's get familiar with portals now. Please wait 3 seconds while we gather the energy to activate them..."
 		},
 		{
 			"on": "time",
 			"ticks": 180,
-			"text": "Let's get familiar with portals now. Please wait 2 seconds while we are gathering energy to activate them ..."
+			"text": "Let's get familiar with portals now. Please wait 2 seconds while we gather the energy to activate them..."
 		},
 		{
 			"on": "time",
 			"ticks": 240,
-			"text": "Let's get familiar with portals now. Please wait 1 seconds while we are gathering energy to activate them ..."
+			"text": "Let's get familiar with portals now. Please wait 1 second while we gather the energy to activate them..."
 		},
 		{
 			"on": "time",
@@ -39,7 +39,7 @@
 		{
 			"on": "time",
 			"ticks": 360,
-			"text": "Fully loaded ! Technology is beautiful. When you enter a portal, you're teleported in the other one. Enter the blue portal to pass through the wall."
+			"text": "Fully loaded! Technology is beautiful. When you enter a portal, you come out of the other one. Enter the blue portal to pass through the wall."
 		}
 	],
 	"tiles": [

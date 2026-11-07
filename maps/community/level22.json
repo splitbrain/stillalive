@@ -2,7 +2,7 @@
 	"format": 1,
 	"title": "Free Fall",
 	"bg": 10,
-	"text": "Fancy a free-fall ? Do not be afraid, you can't be hurt. However, same can't be said concerning the two turrets waiting for you down there. Get rid of them and use the mirror blocks wisely to reach the exit.",
+	"text": "Fancy a free fall? Don't be afraid, you can't get hurt. But I can't say the same about the two turrets waiting for you down there. Get rid of them and use the mirror blocks wisely to reach the exit.",
 	"tiles": [
 		17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,
 		18,104,0,0,18,0,0,0,0,0,0,0,0,0,0,0,0,11,0,0,0,18,0,0,0,0,0,0,0,0,0,18,

@@ -6,21 +6,21 @@
 	"events": [
 		{
 			"on": "start",
-			"text": "Well, Well Well ... It's getting serious. I guess I'm the only one left to stop you from getting out of these laboratories. I hope you enjoyed your life as long as it lasted. You won't suffer, I promise.",
+			"text": "Well, well, well... It's getting serious. I guess I'm the only one left to stop you from getting out of these laboratories. I hope you enjoyed your life while it lasted. You won't suffer, I promise.",
 			"wait": "click"
 		},
 		{
 			"on": "start",
-			"text": "Don't kill me, cause I'm close to the edge. I'm trying, not to shoot your head, HaHa-Ha-Ha."
+			"text": "Don't kill me, 'cause I'm close to the edge. I'm trying not to shoot your head, ha-ha-ha-ha."
 		},
 		{
 			"on": "bossArrived",
-			"text": "Previous robots were too kind with you. You won't have the same chance here. I won't throw you crates, razor wheels or plasma balls ... No, I will throw you ... the three of them at the same time !",
+			"text": "The previous robots were too kind to you. You won't be so lucky here. I won't throw crates, razor wheels or plasma balls at you... No, I will throw... all three of them at the same time!",
 			"wait": "click"
 		},
 		{
 			"on": "bossDied",
-			"text": "........ Was I too kind with you ? I don't think so ... It seems that you were bound to get out of here from the beginning. Well, it was nice to know you after all ... So long, and thanks for all the cakes ...",
+			"text": "........ Was I too kind to you? I don't think so... It seems that you were bound to get out of here from the beginning. Well, it was nice knowing you after all... So long, and thanks for all the cakes...",
 			"wait": "click"
 		}
 	],

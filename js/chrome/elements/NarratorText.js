@@ -11,7 +11,7 @@ const TEMPLATE = await loadMarkup(import.meta.url);
 const TYPE_TIME = 1000 / 45;
 
 /** @type {string} The narrator text of the test run of the editor map. */
-const TEST_TEXT = 'Press <Enter> or <Escape> key to stop testing.';
+const TEST_TEXT = 'Press <Enter> or <Escape> to stop testing.';
 
 /**
  * The custom element <narrator-text>. It shows a text in a paragraph. The element types the text at 45 characters per

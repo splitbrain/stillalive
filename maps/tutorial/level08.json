@@ -9,7 +9,7 @@
 		},
 		{
 			"on": "exit",
-			"text": "Congratulations ! You just learned the basics of StillAliveJS. You have now a better understanding of the mechanics of the game. However, there are still a lot more features waiting for you. Pick a campaign in the main menu and start an amazing journey ! Click to continue ...",
+			"text": "Congratulations ! You just learned the basics of Still Alive. You have now a better understanding of the mechanics of the game. However, there are still a lot more features waiting for you. Pick a campaign in the main menu and start an amazing journey ! Click to continue ...",
 			"wait": "click"
 		}
 	],

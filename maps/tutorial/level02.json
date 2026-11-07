@@ -8,7 +8,7 @@
 	"events": [
 		{
 			"on": "start",
-			"text": "In StillAliveJS, grabbing cakes enables the finish line. When no cakes are left in a level, finish line turns white. Take that cake on the left and leave this room."
+			"text": "In Still Alive, grabbing cakes enables the finish line. When no cakes are left in a level, finish line turns white. Take that cake on the left and leave this room."
 		}
 	],
 	"tiles": [

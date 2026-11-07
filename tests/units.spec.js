@@ -85,7 +85,7 @@ test.describe('units', () => {
 		const cases = [null, 'text', { ...validReplay(), format: 1 }, { ...validReplay(), campaign: 1 }];
 		for (const data of cases) {
 			const { error } = await call(page, '/js/stage/replay.js', 'decodeReplay', data);
-			expect(error, JSON.stringify(data)).toBe('This is not a StillAliveJS replay file.');
+			expect(error, JSON.stringify(data)).toBe('This is not a Still Alive replay file.');
 		}
 	});
 
@@ -172,7 +172,7 @@ test.describe('units', () => {
 		expect(boss.error).toBeUndefined();
 		expect(boss.result.boss).toBe(4);
 		const noBoss = await call(page, '/js/stage/mapFile.js', 'parseMap', data);
-		expect(noBoss.error).toBe('This is not a valid StillAliveJS map file.');
+		expect(noBoss.error).toBe('This is not a valid Still Alive map file.');
 	});
 
 	test('parseMap() rejects a damaged map', async () => {
@@ -226,7 +226,7 @@ test.describe('units', () => {
 		};
 		for (const [name, data] of Object.entries(cases)) {
 			const { error } = await call(page, '/js/stage/mapFile.js', 'parseMap', data);
-			expect(error, name).toBe('This is not a valid StillAliveJS map file.');
+			expect(error, name).toBe('This is not a valid Still Alive map file.');
 		}
 	});
 

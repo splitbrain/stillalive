@@ -81,7 +81,7 @@ export function decodeReplay(data) {
 		!Number.isInteger(data.level) ||
 		!Array.isArray(data.inputs)
 	) {
-		throw new Error('This is not a StillAliveJS replay file.');
+		throw new Error('This is not a Still Alive replay file.');
 	}
 
 	if (

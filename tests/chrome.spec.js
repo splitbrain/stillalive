@@ -270,7 +270,7 @@ test.describe('chrome', () => {
 	});
 
 	test('holds the level end for the exit text until a click', async ({ page }) => {
-		await page.addInitScript(() => localStorage.setItem('sajs_progress', JSON.stringify({ tutorial: 8 })));
+		await page.addInitScript(() => localStorage.setItem('stillalive_progress', JSON.stringify({ tutorial: 8 })));
 		await startGame(page);
 		await setHash(page, '#/campaign/tutorial/8/play');
 		await page.waitForFunction(() => window.__test.game.time > 0);
@@ -301,7 +301,7 @@ test.describe('chrome', () => {
 	test('shows the credits after the last story level', async ({ page }) => {
 		const last = CAMPAIGNS.find((campaign) => campaign.name == 'story').levels;
 		// the progress is read when the page loads: the last story level is unlocked and not finished
-		await page.addInitScript((last) => localStorage.setItem('sajs_progress', JSON.stringify({ story: last })), last);
+		await page.addInitScript((last) => localStorage.setItem('stillalive_progress', JSON.stringify({ story: last })), last);
 		await startGame(page);
 		await setHash(page, `#/campaign/story/${last}`);
 		await expectScreen(page, `#/campaign/story/${last}`, SELECT_PARTS);

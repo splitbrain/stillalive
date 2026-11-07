@@ -2,7 +2,7 @@
 	"format": 1,
 	"title": "Holes in One",
 	"bg": 0,
-	"text": "Welcome to StillAliveJS subject 267x10, you seem to be in good shape ... for a human being. Your task for this first room is to reach the end of the level. To do so, I gave you a little gift you'll certainly love. Try shooting two holes, one in your cell and one out of it, and see what happens ........ Oh by the way, I forgot some cakes I wanted to give to previous subjects, grab them or you won't be able to leave this room. ",
+	"text": "Welcome to Still Alive subject 267x10, you seem to be in good shape ... for a human being. Your task for this first room is to reach the end of the level. To do so, I gave you a little gift you'll certainly love. Try shooting two holes, one in your cell and one out of it, and see what happens ........ Oh by the way, I forgot some cakes I wanted to give to previous subjects, grab them or you won't be able to leave this room. ",
 	"tiles": [
 		1,1,1,1,1,1,1,1,1,1,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,1,
 		1,1,1,1,5,5,5,5,5,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,

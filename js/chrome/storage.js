@@ -13,19 +13,19 @@ import { CAMPAIGN_FOLDERS } from '../stage/constants.js';
 import { Value } from '../value.js';
 
 /** @type {string} The localStorage key of the highest unlocked level of each campaign. */
-const PROGRESS_KEY = 'sajs_progress';
+const PROGRESS_KEY = 'stillalive_progress';
 
 /** @type {string} The localStorage key of the best times. */
-const BEST_TIMES_KEY = 'sajs_bestTimes';
+const BEST_TIMES_KEY = 'stillalive_bestTimes';
 
 /** @type {string} The localStorage key of the sound setting. */
-const SOUND_SETTING_KEY = 'sajs_sound';
+const SOUND_SETTING_KEY = 'stillalive_sound';
 
 /** @type {string} The prefix of the localStorage keys of the editor maps. The slot number follows the prefix. */
-const EDITOR_MAP_PREFIX = 'sajs_editorMap';
+const EDITOR_MAP_PREFIX = 'stillalive_editorMap';
 
 /** @type {string} The name of the IndexedDB database. */
-const DB_NAME = 'stillalivejs';
+const DB_NAME = 'stillalive';
 
 /** @type {string} The name of the IndexedDB object store for the replays. */
 const REPLAY_STORE = 'replays';

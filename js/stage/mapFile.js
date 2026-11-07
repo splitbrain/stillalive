@@ -220,7 +220,7 @@ export function parseMap(data) {
 		!(data.events === undefined || (Array.isArray(data.events) && data.events.every(isValidEvent))) ||
 		!(data.labels === undefined || (Array.isArray(data.labels) && data.labels.every(isValidLabel)))
 	) {
-		throw new Error('This is not a valid StillAliveJS map file.');
+		throw new Error('This is not a valid Still Alive map file.');
 	}
 	return {
 		tiles: data.tiles,

@@ -112,7 +112,7 @@ export class BestTimes extends ChromeScreen {
 	async #export() {
 		const data = await loadBestReplay(this.getAttribute('campaign'), Number(this.getAttribute('level')));
 		if (!data) throw new Error('There is no stored replay for this level.');
-		downloadJson(data, `stillalivejs-${data.campaign}-${String(data.level).padStart(2, '0')}.json`);
+		downloadJson(data, `stillalive-${data.campaign}-${String(data.level).padStart(2, '0')}.json`);
 	}
 
 	/**

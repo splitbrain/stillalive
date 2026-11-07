@@ -78,7 +78,7 @@ export class EditorButtons extends ChromeScreen {
 	 */
 	#export() {
 		const map = this.stage.getMap();
-		downloadJson({ format: MAP_FORMAT, tiles: map.tiles, bg: map.bg }, 'stillalivejs-map.json');
+		downloadJson({ format: MAP_FORMAT, tiles: map.tiles, bg: map.bg }, 'stillalive-map.json');
 	}
 
 	/**

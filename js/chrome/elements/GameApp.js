@@ -30,7 +30,7 @@ const STAGE_SCREENS = [Screen.SELECT, Screen.PLAY, Screen.EDITOR, Screen.EDITOR_
 
 /** @type {string} The narrator text of the editor and of its save and load screen. */
 const EDITOR_TEXT =
-	'Welcome to the StillAliveJS Level Editor ! Here is a place where you can easily create your own maps. You can use your mouse to select tiles or object and draw them on the screen. Then, try out your map. Have Fun !';
+	'Welcome to the StillAliveJS Level Editor ! Here is a place where you can easily create your own maps. Select a tile or an object, then draw it with the left mouse button, remove it with the right mouse button, or fill an area with a tile with the middle mouse button. Then, try out your map. Have Fun !';
 
 /**
  * The custom element <game-app>. It creates the parts of the screens and the stage from its template. The stage and

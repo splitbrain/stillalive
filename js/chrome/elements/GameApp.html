@@ -129,7 +129,7 @@
 		 * The dome on the chain shelf decorates the side cell while the side cell is left of the CRT and the HUD and the
 		 * editor palette are hidden. It fills the width of the cell, or its height when the cell is too low. Its pipe
 		 * continues up to the top of the page, with a cap at the top, and right into the main cell, where it ends behind
-		 * the CRT. The decoration lies behind all other parts.
+		 * the left edge of the CRT. The decoration lies behind all other parts.
 		 */
 		> .side-deco {
 			--deco-unit: min(var(--grid-col-side) / 246.5, var(--grid-row-main) / 572);
@@ -162,7 +162,7 @@
 			&::after {
 				left: 100%;
 				top: calc(var(--deco-unit) * 399.5);
-				width: calc(var(--grid-col-side) + var(--grid-gap) + var(--grid-col-main) / 2 - var(--deco-unit) * 246.5);
+				width: calc(var(--grid-col-side) + var(--grid-gap) + 3rem - var(--deco-unit) * 246.5);
 				height: calc(var(--deco-unit) * 60);
 				background: linear-gradient(to bottom, var(--pipe-bands));
 			}

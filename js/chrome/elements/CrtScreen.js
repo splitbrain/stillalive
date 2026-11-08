@@ -12,10 +12,11 @@ const SHADOW_TEMPLATE = await loadMarkup(import.meta.url);
  * frame, the glass and the effects on the glass are in the shadow root; the content stays in the light DOM, so the
  * styles of the page still apply to it.
  *
- * The page gives the element its size, and the screen is as large as this size allows, centered in it. The custom
- * property --crt-aspect sets the aspect ratio of the content, and the page must set it. The content is clipped to the
- * shape of the glass, which the element also sets as the custom property --crt-glass. Apart from its custom
- * properties, the element sets no inherited properties, so the content inherits from the page as before.
+ * The page gives the element its size, and the screen is as large as this size allows. It is centered vertically and
+ * lies at the left edge. The custom property --crt-aspect sets the aspect ratio of the content, and the page must set
+ * it. The content is clipped to the shape of the glass, which the element also sets as the custom property
+ * --crt-glass. Apart from its custom properties, the element sets no inherited properties, so the content inherits from
+ * the page as before.
  */
 export class CrtScreen extends ChromeElement {
 	/**

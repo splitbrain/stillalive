@@ -1,11 +1,11 @@
 <template>
 	<style>
 		/*
-		 * The host is a size container, and the screen is as large as the host allows and centered in it. The frame adds
-		 * 3.2% of the width on each side of the content, so the screen is 100 units wide and 93.6 units divided by
-		 * --crt-aspect plus 6.4 units high. The screen is the size container of the frame and the content: all sizes come
-		 * from its width in --crt-unit, so the screen scales as one piece. The glass shape is a custom property on the
-		 * host, so the content inherits it.
+		 * The host is a size container, and the screen is as large as the host allows. It is centered vertically and lies
+		 * at the left edge, so free space is on the right. The frame adds 3.2% of the width on each side of the content, so
+		 * the screen is 100 units wide and 93.6 units divided by --crt-aspect plus 6.4 units high. The screen is the size
+		 * container of the frame and the content: all sizes come from its width in --crt-unit, so the screen scales as one
+		 * piece. The glass shape is a custom property on the host, so the content inherits it.
 		 * The corners of the glass cut at most 1.4% of the width and 1.9% of the height off the content.
 		 */
 		:host {
@@ -22,7 +22,7 @@
 				close
 			);
 			display: grid;
-			place-items: center;
+			place-items: center start;
 			container-type: size;
 
 			.screen {

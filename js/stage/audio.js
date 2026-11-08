@@ -59,6 +59,8 @@ class Sound {
 		this.loop = null;
 		/** @type {number} The time of performance.now() until which the loop plays on, in milliseconds. */
 		this.loopUntil = 0;
+		/** @type {boolean} True if the loop plays to the end of the sound when it stops, false if it stops at once. */
+		this.finishLoop = false;
 	}
 }
 
@@ -127,7 +129,8 @@ const LOOP_HOLD = 100;
 
 /**
  * Keep a sound playing as a loop. Call it in each tick while the loop should play: the loop starts on the first call
- * and stops a short time after the last call, so a pause or the end of the level also stops it.
+ * and stops a short time after the last call, so a pause or the end of the level also stops it. A sound with finishLoop
+ * plays to its end before the loop stops.
  *
  * @param {Sound} sound The sound.
  * @returns {void}
@@ -152,7 +155,8 @@ export function playLoop(sound) {
 function stopOldLoops() {
 	for (const sound of sounds) {
 		if (sound.loop && performance.now() > sound.loopUntil) {
-			sound.loop.stop();
+			if (sound.finishLoop) sound.loop.loop = false;
+			else sound.loop.stop();
 			sound.loop = null;
 		}
 	}
@@ -334,6 +338,18 @@ export let sfx_dissolve;
 export let sfx_field;
 /** @type {Sound} A plasma force field goes off. */
 export let sfx_plasmaField;
+/** @type {Sound} The screen shakes while the boss comes in or after its death, as a loop. */
+export let sfx_bossRumble;
+/** @type {Sound} The alarm while the boss comes in, as a loop on top of the rumble. */
+export let sfx_bossAlarm;
+/** @type {Sound} An object hits the boss. */
+export let sfx_bossHit;
+/** @type {Sound} A crate hits the yellow wall of a boss level, and the wall cracks. */
+export let sfx_wallCrack;
+/** @type {Sound} A crate hits the yellow wall of a boss level, and the wall falls apart. */
+export let sfx_wallBreak;
+/** @type {Sound} A razor wheel of the boss sticks in a wall or the floor. */
+export let sfx_bladeStick;
 /** @type {Sound} A level ends. */
 export let sfx_transition;
 /** @type {Sound} The player clicks a menu button. */
@@ -372,6 +388,12 @@ export function loadSfx() {
 	sfx_acid = loadSound('acid');
 	sfx_noPortal = loadSound('noPortal');
 	sfx_cancelPortals = loadSound('cancelPortals');
+	sfx_bossHit = loadSound('bossHit');
+	sfx_bossRumble = loadSound('bossRumble');
+	sfx_bossAlarm = loadSound('bossAlarm');
+	sfx_wallCrack = loadSound('wallCrack');
+	sfx_wallBreak = loadSound('wallBreak');
+	sfx_bladeStick = loadSound('bladeStick');
 	sfx_shoot = loadSound('shoot');
 	sfx_pain = loadSound('pain');
 	sfx_click = loadSound('click');
@@ -382,4 +404,6 @@ export function loadSfx() {
 	setSoundVolume(sfx_jump, 0.2);
 	setSoundVolume(sfx_land, 0.35);
 	setSoundVolume(sfx_tick, 0.2);
+	setSoundVolume(sfx_wallBreak, 0.25);
+	sfx_bossAlarm.finishLoop = true;
 }

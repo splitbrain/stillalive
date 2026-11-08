@@ -2,7 +2,7 @@
  * The Crate object and its helper functions.
  */
 
-import { playSound, sfx_crateLand, sfx_dissolve } from '../audio.js';
+import { playSound, sfx_crateLand, sfx_dissolve, sfx_wallBreak, sfx_wallCrack } from '../audio.js';
 import { hitBoss, manageInTube } from '../boss.js';
 import { PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH } from '../constants.js';
 import { plasmaTouching } from './Plasma.js';
@@ -108,6 +108,7 @@ export class Crate {
 
 					const t = getTileSimple((this.x >> 8) + this.pX + 1, this.y >> 8);
 					if (isTileKind(t, TileKind.BOSS_BLOCK)) {
+						playSound(t < LAST_OF_KIND[TileKind.BOSS_BLOCK] ? sfx_wallCrack : sfx_wallBreak);
 						for (i = 0; i < game.map.length; i++) {
 							if (game.map[i] == t) {
 								if (t < LAST_OF_KIND[TileKind.BOSS_BLOCK]) {

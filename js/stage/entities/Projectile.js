@@ -2,6 +2,7 @@
  * The Projectile object and its helper functions.
  */
 
+import { playSound, sfx_bladeStick } from '../audio.js';
 import { anyCrateAt } from './Crate.js';
 import { getTile } from '../physics.js';
 import { game } from '../state.js';
@@ -59,7 +60,7 @@ export class Projectile {
 				this.timer = 180;
 				if (t >= PLATFORM_CODE) {
 					this.timer = 0;
-				}
+				} else playSound(sfx_bladeStick);
 			} else {
 				if (anyCrateAt(this.x >> 8, this.y >> 8)) this.needKill = true;
 				else if (anyCrateAt((this.x >> 8) + 16, this.y >> 8)) this.needKill = true;

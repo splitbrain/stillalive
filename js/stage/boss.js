@@ -2,6 +2,7 @@
  * The logic of the boss levels of the story campaign: the entrance, the attacks, the hits and the end of the fight.
  */
 
+import { playLoop, playSound, sfx_bossAlarm, sfx_bossHit, sfx_bossRumble } from './audio.js';
 import { SparkleType } from './constants.js';
 import { Crate } from './entities/Crate.js';
 import { Plasma } from './entities/Plasma.js';
@@ -73,6 +74,8 @@ export function updateBoss() {
 				unclick();
 			}
 		} else if (!isWaiting()) {
+			playLoop(sfx_bossRumble);
+			playLoop(sfx_bossAlarm);
 			game.bossComingTime += 32;
 			game.rumbleTime++;
 			game.bossX = 449 + 50 - (game.bossComingTime >> 8);
@@ -261,6 +264,7 @@ export function updateBoss() {
  */
 export function updateBossRumble() {
 	if (game.bossLife != 3) return;
+	playLoop(sfx_bossRumble);
 	game.rumbleTime++;
 	if (!game.bossIsComing) shakeScreen();
 	else if (game.rumbleTime % 3 == 0) {
@@ -313,6 +317,7 @@ export function hitBoss(obj) {
 			obj.vy = 0;
 		}
 		game.bossLife++;
+		playSound(sfx_bossHit);
 		if (game.bossLife < 3) {
 			for (i = 0; i < game.oldMap.length; i++) {
 				if (game.oldMap[i] == FIRST_OF_KIND[TileKind.BOSS_BLOCK]) {

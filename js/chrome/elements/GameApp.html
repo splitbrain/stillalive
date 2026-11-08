@@ -3,6 +3,7 @@
 		<img class="logo" src="images/logo.svg" alt="Still Alive (revived)" />
 		<robot-head></robot-head>
 		<narrator-text></narrator-text>
+		<img class="mascot" src="images/character.svg" alt="" />
 	</div>
 	<div class="side-deco"></div>
 	<crt-screen>
@@ -103,7 +104,13 @@
 				z-index: 1;
 			}
 
-			&:has(> robot-head:not([hidden]), > narrator-text:not([hidden])) > .logo {
+			/* the character stands at the right end of the row and points to the left, at the same times as the logo */
+			> .mascot {
+				height: 100%;
+				margin-left: auto;
+			}
+
+			&:has(> robot-head:not([hidden]), > narrator-text:not([hidden])) > :is(.logo, .mascot) {
 				display: none;
 			}
 		}

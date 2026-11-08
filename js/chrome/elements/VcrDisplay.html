@@ -1,0 +1,67 @@
+<template>
+	<div class="mode"><span class="symbol"></span><span class="label">PLAY</span></div>
+	<div class="time">0:00:00</div>
+</template>
+
+<style>
+	/* the font of the VCR display */
+	@font-face {
+		font-family: press-start;
+		src: url('fonts/PressStart2P-Regular.woff2');
+	}
+
+	/*
+	 * The display lies on top of the stage and lets the pointer through. The texts are white and a little transparent,
+	 * with a hard dark shadow, in a blocky pixel font. Their size follows the width of the display.
+	 */
+	vcr-display {
+		display: block;
+		position: relative;
+		container-type: size;
+		pointer-events: none;
+		font-family: press-start, monospace;
+		font-size: 3.2cqw;
+		line-height: 1;
+		color: rgb(255 255 255 / 0.75);
+		filter: drop-shadow(0.12em 0.12em 0 rgb(0 0 0 / 0.45));
+
+		.mode,
+		.time {
+			position: absolute;
+		}
+
+		.mode {
+			top: 3.5cqh;
+			left: 3cqw;
+			display: flex;
+			align-items: center;
+			gap: 0.6em;
+		}
+
+		.time {
+			right: 3cqw;
+			bottom: 3.5cqh;
+		}
+
+		/* the symbol of the mode: a triangle for play, two triangles for fast, two bars for pause */
+		.symbol {
+			width: 1em;
+			height: 1em;
+			background: currentColor;
+		}
+
+		[data-mode='play'] .symbol {
+			clip-path: polygon(0 0, 100% 50%, 0 100%);
+		}
+
+		[data-mode='fast'] .symbol {
+			width: 1.6em;
+			clip-path: polygon(0 0, 50% 50%, 50% 0, 100% 50%, 50% 100%, 50% 50%, 0 100%);
+		}
+
+		[data-mode='pause'] .symbol {
+			width: 0.9em;
+			clip-path: polygon(0 0, 35% 0, 35% 100%, 0 100%, 0 0, 65% 0, 100% 0, 100% 100%, 65% 100%, 65% 0);
+		}
+	}
+</style>

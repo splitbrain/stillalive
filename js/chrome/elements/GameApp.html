@@ -8,6 +8,7 @@
 	<div class="side-deco"></div>
 	<crt-screen>
 		<game-stage></game-stage>
+		<vcr-display></vcr-display>
 		<loading-screen></loading-screen>
 		<credits-screen></credits-screen>
 		<main-menu></main-menu>
@@ -18,7 +19,7 @@
 		<confirm-screen></confirm-screen>
 	</crt-screen>
 	<game-hud></game-hud>
-	<replay-keys></replay-keys>
+	<vcr-panel></vcr-panel>
 	<editor-palette></editor-palette>
 	<editor-buttons></editor-buttons>
 	<!-- <best-times></best-times> -->
@@ -115,21 +116,21 @@
 			}
 		}
 
-		/* the HUD and the editor palette fill the side cell */
+		/* the HUD, the VCR panel and the editor palette fill the side cell */
 		> game-hud {
 			grid-area: side;
 			aspect-ratio: auto;
 		}
 
-		> editor-palette {
+		> :is(vcr-panel, editor-palette) {
 			grid-area: side;
 		}
 
 		/*
-		 * The dome on the chain shelf decorates the side cell while the side cell is left of the CRT and the HUD and the
-		 * editor palette are hidden. It fills the width of the cell, or its height when the cell is too low. Its pipe
-		 * continues up to the top of the page, with a cap at the top, and right into the main cell, where it ends behind
-		 * the left edge of the CRT. The decoration lies behind all other parts.
+		 * The dome on the chain shelf decorates the side cell while the side cell is left of the CRT and the HUD, the VCR
+		 * panel and the editor palette are hidden. It fills the width of the cell, or its height when the cell is too
+		 * low. Its pipe continues up to the top of the page, with a cap at the top, and right into the main cell, where it
+		 * ends behind the left edge of the CRT. The decoration lies behind all other parts.
 		 */
 		> .side-deco {
 			--deco-unit: min(var(--grid-col-side) / 246.5, var(--grid-row-main) / 572);
@@ -172,7 +173,7 @@
 			}
 		}
 
-		&:has(> game-hud:not([hidden]), > editor-palette:not([hidden])) > .side-deco {
+		&:has(> game-hud:not([hidden]), > vcr-panel:not([hidden]), > editor-palette:not([hidden])) > .side-deco {
 			display: none;
 		}
 

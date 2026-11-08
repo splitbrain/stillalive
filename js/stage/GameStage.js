@@ -2,7 +2,7 @@
  * The stage element <game-stage>: the canvas, the game loop and the interface of the stage for the page.
  *
  * The page commands the stage with the methods, reads and observes its state with the Value properties, and gets the
- * events "finished", "died", "focuslost" and "brokenreplay".
+ * events "finished", "died", "focuslost", "brokenreplay" and "replaystop".
  *
  * The canvas is in the shadow root of the element, with the styles of the stage. The page gives the element its width
  * and its height; the stage fits the playfield into that box at its fixed aspect ratio, centered, and never cuts it.
@@ -16,6 +16,7 @@ import {
 	onSoundDone,
 	playSound,
 	randomRate,
+	setSoundMuted,
 	setSoundOn,
 	sfx_click,
 	sfx_hover,
@@ -102,8 +103,8 @@ export class GameStage extends HTMLElement {
 	paused = new Value(false);
 	/** @type {Value<{text: string, wait: boolean, portrait: number}|null>} The message for the narrator, or null. */
 	message = new Value(null);
-	/** @type {Value<number>} The key bitmask in the playback of a replay, else 0. */
-	replayKeys = new Value(0);
+	/** @type {Value<number>} The speed of the playback of a replay: 1, 2 or 4 ticks per tick of real time. */
+	speed = new Value(1);
 	/** @type {Value<number>} The tile id or the object id that the editor paints. */
 	brush = new Value(ui.editor.brush);
 	/** @type {Value<number>} The measured number of frames per second. */
@@ -113,6 +114,9 @@ export class GameStage extends HTMLElement {
 
 	/** @type {boolean} True after the first connection, which starts the loop. */
 	#started = false;
+
+	/** @type {number} The number of ticks that the stage runs for each tick of real time. */
+	#speed = 1;
 
 	/**
 	 * Create the shadow root with the styles and the canvas, start the loading of the images and the sounds, the input
@@ -246,6 +250,19 @@ export class GameStage extends HTMLElement {
 	}
 
 	/**
+	 * Set the speed of the playback of a replay. Only a speed of 1 plays the sounds of the game. Outside of a replay,
+	 * the method does nothing.
+	 *
+	 * @param {number} speed The number of ticks for each tick of real time: 1, 2 or 4.
+	 * @returns {void}
+	 */
+	setSpeed(speed) {
+		if (!game.replayMode) return;
+		this.#speed = speed;
+		this.#publish();
+	}
+
+	/**
 	 * Leave the level, the preview, the test run or the editor, so the canvas shows nothing.
 	 *
 	 * @returns {void}
@@ -355,7 +372,7 @@ export class GameStage extends HTMLElement {
 
 	/**
 	 * Leave the current mode before a new command: end the test run without an event, keep the editor map, and end
-	 * the pause and the playback of a replay.
+	 * the pause and the playback of a replay with its speed.
 	 *
 	 * @returns {void}
 	 */
@@ -366,18 +383,21 @@ export class GameStage extends HTMLElement {
 		if (ui.mode == 'edit') leaveEditor();
 		ui.paused = false;
 		game.replayMode = false;
+		this.#speed = 1;
 		game.message = null;
 		game.shakeX = 0;
 		game.shakeY = 0;
 	}
 
 	/**
-	 * Run one tick and publish the state.
+	 * Run the ticks of one tick of real time and publish the state. Above the normal speed, the ticks start no sounds.
 	 *
 	 * @returns {void}
 	 */
 	#step() {
-		tick();
+		setSoundMuted(this.#speed > 1);
+		for (let i = 0; i < this.#speed; i++) tick();
+		setSoundMuted(false);
 		this.#publish();
 	}
 
@@ -397,7 +417,7 @@ export class GameStage extends HTMLElement {
 		this.time.set(player.fadeNextLevel == -1 ? time - (time % TIME_UPDATE_INTERVAL) : time);
 		this.paused.set(ui.paused);
 		this.message.set(game.message);
-		this.replayKeys.set(ui.mode == 'play' && game.replayMode ? input.keys : 0);
+		this.speed.set(this.#speed);
 		this.brush.set(ui.editor.brush);
 		this.fps.set(getFps());
 

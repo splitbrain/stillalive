@@ -2,6 +2,7 @@
  * The HUD element.
  */
 
+import { route } from '../../router.js';
 import { ChromeScreen, loadMarkup, Screen } from '../element.js';
 
 /** @type {HTMLTemplateElement|null} The markup of the HUD. */
@@ -25,7 +26,7 @@ function lifeLevel(life) {
 /**
  * The custom element <game-hud>. It shows the HUD values of the stage on the displays of a control panel: life, cakes,
  * steps, portals and the frame rate. The color of the life display shows the level of the life. It shows on the play
- * screen.
+ * screen, but not in the playback of a replay.
  */
 export class GameHud extends ChromeScreen {
 	/** @type {HTMLTemplateElement|null} The markup of the HUD. */
@@ -55,9 +56,9 @@ export class GameHud extends ChromeScreen {
 	 * Tell if the HUD shows on a screen of the app.
 	 *
 	 * @param {string} screen The screen, a value of Screen.
-	 * @returns {boolean} True on the play screen only.
+	 * @returns {boolean} True on the play screen, except on a replay route.
 	 */
 	shouldShow(screen) {
-		return screen === Screen.PLAY;
+		return screen === Screen.PLAY && route.get().mode !== 'replay';
 	}
 }

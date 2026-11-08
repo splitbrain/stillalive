@@ -19,7 +19,8 @@ const SCREEN_PARTS = [
 	'intermission-panel',
 	'robot-head',
 	'game-hud',
-	'replay-keys',
+	'vcr-panel',
+	'vcr-display',
 	'editor-palette',
 	'editor-buttons',
 	'editor-files',
@@ -336,7 +337,7 @@ test.describe('chrome', () => {
 						stage: !document.querySelector('game-stage').hidden,
 					};
 				}, screen);
-			await expect.poll(result).toEqual({ parts: 13, mismatches: [], stage: screen != 'main' });
+			await expect.poll(result).toEqual({ parts: 14, mismatches: [], stage: screen != 'main' });
 		}
 	});
 

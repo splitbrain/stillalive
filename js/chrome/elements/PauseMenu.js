@@ -2,6 +2,7 @@
  * The pause menu element.
  */
 
+import { route } from '../../router.js';
 import { setLink } from '../dom.js';
 import { ChromeScreen, loadMarkup, Screen } from '../element.js';
 
@@ -10,7 +11,7 @@ const TEMPLATE = await loadMarkup(import.meta.url);
 
 /**
  * The custom element <pause-menu>. It shows the Resume button, the Restart and Exit links and the sound button. It shows
- * on the play screen while the stage is paused. The attribute restart is the path of the Restart link, the current
+ * on the play screen while the stage is paused, but not in the playback of a replay, which the VCR panel controls. The attribute restart is the path of the Restart link, the current
  * play route, and the attribute exit is the path of the Exit link. The Exit link replaces the entry of the level in the
  * history. The Resume button continues the level; the sound button turns the sound on and off and shows the setting.
  * The app element stores the change of the sound.
@@ -60,9 +61,9 @@ export class PauseMenu extends ChromeScreen {
 	 * Tell if the pause menu shows on a screen of the app.
 	 *
 	 * @param {string} screen The screen, a value of Screen.
-	 * @returns {boolean} True on the play screen while the stage is paused.
+	 * @returns {boolean} True on the play screen while the stage is paused, except on a replay route.
 	 */
 	shouldShow(screen) {
-		return screen === Screen.PLAY && this.stage.paused.get();
+		return screen === Screen.PLAY && this.stage.paused.get() && route.get().mode !== 'replay';
 	}
 }

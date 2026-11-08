@@ -22,6 +22,9 @@ const sounds = [];
 /** @type {boolean} True if the player wants to hear the sounds. */
 let enabled = true;
 
+/** @type {boolean} True while no new sounds start, whatever the player wants. */
+let muted = false;
+
 /** @type {number} The number of requested sounds. */
 let requested = 0;
 
@@ -91,7 +94,7 @@ function loadSound(name) {
 }
 
 /**
- * Play a sound if the sound is on.
+ * Play a sound if the sound is on and new sounds can start.
  *
  * @param {Sound} sound The sound.
  * @param {number} rate The playback rate: 1 for the normal speed and pitch, less for slower and lower, more for faster
@@ -99,7 +102,7 @@ function loadSound(name) {
  * @returns {void}
  */
 export function playSound(sound, rate = 1) {
-	if (!context || !isSoundOn() || !sound.buffer) return;
+	if (!context || !isSoundOn() || muted || !sound.buffer) return;
 	const source = context.createBufferSource();
 	source.buffer = sound.buffer;
 	source.playbackRate.value = rate;
@@ -130,6 +133,7 @@ const LOOP_HOLD = 100;
  * @returns {void}
  */
 export function playLoop(sound) {
+	if (muted) return;
 	sound.loopUntil = performance.now() + LOOP_HOLD;
 	if (sound.loop || !context || !isSoundOn() || !sound.buffer) return;
 	const source = context.createBufferSource();
@@ -196,6 +200,17 @@ function isSoundOn() {
 export function setSoundOn(on) {
 	enabled = on;
 	updateMasterVolume();
+}
+
+/**
+ * Stop or allow the start of new sounds. The sounds that play continue, and the loops end. The setting of the player
+ * does not change.
+ *
+ * @param {boolean} on True to start no new sounds.
+ * @returns {void}
+ */
+export function setSoundMuted(on) {
+	muted = on;
 }
 
 /**

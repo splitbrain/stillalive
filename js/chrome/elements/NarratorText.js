@@ -2,6 +2,7 @@
  * The narrator text element.
  */
 
+import { route } from '../../router.js';
 import { ChromeScreen, loadMarkup, Screen } from '../element.js';
 
 /** @type {HTMLTemplateElement|null} The markup of the narrator text. */
@@ -16,8 +17,9 @@ const TEST_TEXT = 'Press <Enter> or <Escape> to stop testing.';
 /**
  * The custom element <narrator-text>. It shows a text in a paragraph. The element types the text at 45 characters per
  * second, and starts again for each new text and for each new message of the stage, also when the message has the same
- * text. The typing stops while the stage is paused. A text that is longer than the paragraph scrolls, and the typing
- * keeps its end in view.
+ * text. The typing stops while the stage is paused. In the playback of a replay, which can run faster than the
+ * typing, each text shows in full at once. A text that is longer than the paragraph scrolls, and the typing keeps its
+ * end in view.
  *
  * The text is the key hint during the test run of the editor map, else the attribute text, which the app element sets
  * on the screens with a fixed text, else the text of the message of the stage.
@@ -57,8 +59,8 @@ export class NarratorText extends ChromeScreen {
 	}
 
 	/**
-	 * Start a new text from its first character, and run the typing while the stage is not paused and characters are
-	 * left to type.
+	 * Start a new text from its first character, or in full on a replay route, and run the typing while the stage is
+	 * not paused and characters are left to type.
 	 *
 	 * @returns {void}
 	 */
@@ -68,7 +70,7 @@ export class NarratorText extends ChromeScreen {
 		if (source !== this.#source) {
 			this.#source = source;
 			this.#text = typeof source == 'string' ? source : (source?.text ?? '');
-			this.#shown = 0;
+			this.#shown = route.get().mode == 'replay' ? this.#text.length : 0;
 			this.#show();
 		}
 		if (this.stage.paused.get() || this.#shown >= this.#text.length) this.#stopTyping();

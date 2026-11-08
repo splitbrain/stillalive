@@ -22,8 +22,11 @@ import { toTime } from '../time.js';
 /** @type {HTMLTemplateElement|null} The markup of the app: its parts and the stage. */
 const TEMPLATE = await loadMarkup(import.meta.url);
 
-/** @type {string} The selector of the buttons with a hover and a click sound: the menu buttons and the back links. */
-const SOUND_BUTTONS = 'menu-button, .selection-screen a.back';
+/**
+ * @type {string} The selector of the buttons with a hover and a click sound: the menu buttons, the back links and the
+ *     buttons of the VCR panel.
+ */
+const SOUND_BUTTONS = 'menu-button, .selection-screen a.back, vcr-panel button';
 
 /** @type {string[]} The screens that show the stage. */
 const STAGE_SCREENS = [Screen.SELECT, Screen.PLAY, Screen.EDITOR, Screen.EDITOR_FILE];
@@ -43,9 +46,9 @@ const EDITOR_TEXT =
  * The loading screen shows until the stage and the campaigns are ready and the player clicks or presses a key,
  * whatever the route is. The start plays a click sound, and after the start each click on a menu button plays it
  * too. A menu button plays a hover sound when the pointer moves onto it or the keyboard focus moves to it. The back
- * links of the selection screens play the same sounds. The stage does not get the key that starts the game, so the key
- * does not move the player or command the stage. Then the element shows the screen of the route and commands the
- * stage. The editor route opens the editor map from before, so the map stays until the page reloads. The save and
+ * links of the selection screens and the buttons of the VCR panel play the same sounds. The stage does not get the key
+ * that starts the game, so the key does not move the player or command the stage. Then the element shows the screen
+ * of the route and commands the stage. The editor route opens the editor map from before, so the map stays until the page reloads. The save and
  * load screen shows the preview of the editor map. The test run of the editor map shows the play screen. The element
  * replaces a route with a locked level by the selection of the campaign, because the router does not know the
  * progress of the player.
@@ -62,6 +65,10 @@ const EDITOR_TEXT =
  * At the end of a level, the element stores the best time, the replay and the progress, and chooses the next route or
  * opens the intermission panel. A new route closes the panel. A replay-watch event from the panel plays the replay of
  * the level that ended. When the window loses the focus during a level, the element pauses the stage.
+ *
+ * The end of a replay, the Stop button of the VCR panel and the Escape key go back to where the replay started: a
+ * replay from the intermission panel opens the panel again with the same content on an empty stage, any other replay
+ * goes to the selection of its level.
  *
  * The element starts the loading of the campaigns and the credits, and sets the sound of the stage from the storage.
  * It stores each change of the sound after the game starts, from the buttons of the page or from the key of the stage.
@@ -90,9 +97,25 @@ export class GameApp extends ChromeElement {
 	/** @type {object|null} The replay of the level that ended, for the Watch Replay button of the intermission, or null. */
 	#intermissionReplay = null;
 
+	/** @type {object|null} The attributes of the open intermission panel without open, or null. */
+	#intermission = null;
+
+	/**
+	 * @type {{path: string, intermission: object|null}|null} Where the running replay goes back to: the path of the
+	 *     route and the attributes of the intermission panel to open there, or null for no panel.
+	 */
+	#replayReturn = null;
+
+	/** @type {{path: string, intermission: object|null}|null} The return that watch() gives to the next replay route. */
+	#pendingReturn = null;
+
+	/** @type {object|null} The attributes of the intermission panel that the next play route opens, or null. */
+	#reopen = null;
+
 	/**
 	 * Set the sound from the storage, start the loading and handle the clicks and key presses that start the game, the
-	 * events of the stage, the import of a replay and the Watch Replay button of the intermission.
+	 * events of the stage, the import of a replay, the Watch Replay button of the intermission and the Stop button of
+	 * the VCR panel.
 	 *
 	 * @returns {void}
 	 */
@@ -116,9 +139,15 @@ export class GameApp extends ChromeElement {
 		window.addEventListener('keyup', (event) => this.#onStartKey(event), { capture: true });
 		stage.addEventListener('finished', (event) => this.#onFinished(event.detail));
 		stage.addEventListener('brokenreplay', () => this.#onBrokenReplay());
+		stage.addEventListener('replaystop', () => this.#leaveReplay());
 		stage.addEventListener('focuslost', () => stage.pause());
 		this.addEventListener('replay-import', (event) => this.watch(event.detail.replay));
-		this.addEventListener('replay-watch', () => this.watch(this.#intermissionReplay));
+		this.addEventListener('replay-stop', () => this.#leaveReplay());
+		this.addEventListener('replay-watch', () => {
+			const r = route.get();
+			const path = campaignPath(r.campaign, r.level, r.mode);
+			this.watch(this.#intermissionReplay, { path, intermission: this.#intermission });
+		});
 	}
 
 	/**
@@ -145,11 +174,27 @@ export class GameApp extends ChromeElement {
 	 * Play a replay: go to the replay route of its level with this replay.
 	 *
 	 * @param {object} replay The replay in the file format.
+	 * @param {{path: string, intermission: object|null}|null} [back] Where the replay goes back to, or null for the
+	 *     selection of its level.
 	 * @returns {void}
 	 */
-	watch(replay) {
+	watch(replay, back = null) {
 		this.#pendingReplay = replay;
+		this.#pendingReturn = back;
 		navigate(campaignPath(replay.campaign, replay.level, 'replay'));
+	}
+
+	/**
+	 * End the replay and go back to where it started. Outside of a replay route, the method does nothing.
+	 *
+	 * @returns {void}
+	 */
+	#leaveReplay() {
+		const r = route.get();
+		if (r.name != 'play' || r.mode != 'replay') return;
+		const back = this.#replayReturn ?? { path: campaignPath(r.campaign, r.level), intermission: null };
+		this.#reopen = back.intermission;
+		navigate(back.path, true);
 	}
 
 	/**
@@ -271,6 +316,8 @@ export class GameApp extends ChromeElement {
 			}
 		}
 
+		const reopen = this.#reopen;
+		this.#reopen = null;
 		const previous = this.#applied;
 		const sameLevel = previous?.name == 'play' && previous.campaign === r.campaign && previous.level === r.level;
 		const again = sameLevel && previous.mode === r.mode;
@@ -279,9 +326,13 @@ export class GameApp extends ChromeElement {
 
 		if (r.name == 'select') {
 			this.stage.preview(level ?? campaigns[index].levels[campaigns[index].unlocked - 1]);
+		} else if (r.name == 'play' && r.mode == 'play' && reopen) {
+			this.stage.stop();
 		} else if (r.name == 'play' && r.mode == 'play') {
 			this.stage.play(level, { restart: sameLevel });
 		} else if (r.name == 'play') {
+			this.#replayReturn = this.#pendingReturn;
+			this.#pendingReturn = null;
 			this.#playReplay(r, level, again);
 		} else if (r.name == 'editor') {
 			this.stage.edit();
@@ -304,7 +355,8 @@ export class GameApp extends ChromeElement {
 			restart: play ? campaignPath(r.campaign, r.level, r.mode) : null,
 			exit,
 		});
-		setAttributes(this.querySelector('intermission-panel'), { exit, open: null });
+		this.#intermission = r.name == 'play' ? reopen : null;
+		setAttributes(this.querySelector('intermission-panel'), { exit, ...reopen, open: reopen ? '' : null });
 		setAttributes(this.querySelector('robot-head'), {
 			eye: play && index == CampaignId.STORY ? Math.min(Math.floor((r.level - 1) / 7), 3) + 1 : null,
 			absent: play && level.boss > 0 ? '' : null,
@@ -383,7 +435,7 @@ export class GameApp extends ChromeElement {
 	/**
 	 * Handle the end of a level: the best time, the progress and the next route. After the last story level, the
 	 * credits show the first time. Else the intermission panel shows the time, the message and the links of the
-	 * choice.
+	 * choice. The end of a replay goes back to where the replay started.
 	 *
 	 * @param {{time: number, replay: object}} detail The detail of the finished event of the stage.
 	 * @returns {void}
@@ -391,6 +443,10 @@ export class GameApp extends ChromeElement {
 	#onFinished({ time, replay }) {
 		const r = route.get();
 		if (!this.#started || r.name != 'play') return;
+		if (r.mode == 'replay') {
+			this.#leaveReplay();
+			return;
+		}
 		const index = this.#campaignIndex(r);
 		const campaign = campaigns[index];
 		const isLastLevel = r.level == campaign.levels.length;
@@ -406,13 +462,13 @@ export class GameApp extends ChromeElement {
 			navigate('#/credits', true);
 		} else {
 			this.#intermissionReplay = replay;
-			setAttributes(this.querySelector('intermission-panel'), {
+			this.#intermission = {
 				time,
 				message,
 				next: !isLastLevel && this.#isOpen(index, r.level + 1) ? campaignPath(r.campaign, r.level + 1, 'play') : null,
 				restart: this.#isOpen(index, r.level) ? campaignPath(r.campaign, r.level, 'play') : null,
-				open: '',
-			});
+			};
+			setAttributes(this.querySelector('intermission-panel'), { ...this.#intermission, open: '' });
 			this.#showScreen();
 		}
 	}

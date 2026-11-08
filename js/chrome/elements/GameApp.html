@@ -4,6 +4,7 @@
 		<robot-head></robot-head>
 		<narrator-text></narrator-text>
 	</div>
+	<div class="side-deco"></div>
 	<crt-screen>
 		<game-stage></game-stage>
 		<loading-screen></loading-screen>
@@ -115,6 +116,57 @@
 
 		> editor-palette {
 			grid-area: side;
+		}
+
+		/*
+		 * The dome on the chain shelf decorates the side cell while the side cell is left of the CRT and the HUD and the
+		 * editor palette are hidden. It fills the width of the cell, or its height when the cell is too low. Its pipe
+		 * continues up to the top of the page, with a cap at the top, and right into the main cell, where it ends behind
+		 * the CRT. The decoration lies behind all other parts.
+		 */
+		> .side-deco {
+			--deco-unit: min(var(--grid-col-side) / 246.5, var(--grid-row-main) / 572);
+			--pipe-bands:
+				#527080 12.5%, #456472 12.5% 22.5%, #3d5b6b 22.5% 30%, #38515d 30% 38%, #36434f 38% 62%,
+				#38515d 62% 70%, #3d5b6b 70% 77.5%, #456472 77.5% 87.5%, #527080 87.5%;
+			grid-area: side;
+			position: relative;
+			z-index: -1;
+			width: calc(var(--deco-unit) * 246.5);
+			height: calc(var(--deco-unit) * 572);
+			background: url('images/dome-shelf.svg') center / 100% 100% no-repeat;
+
+			&::before,
+			&::after {
+				content: '';
+				position: absolute;
+			}
+
+			&::before {
+				left: calc(var(--deco-unit) * -2.5);
+				bottom: 100%;
+				width: calc(var(--deco-unit) * 44.5);
+				height: calc(1rem + var(--grid-row-top) + var(--grid-gap));
+				background:
+					linear-gradient(to right, #3c6b7c, #213645, #3c6b7c) top / 100% calc(var(--deco-unit) * 17) no-repeat,
+					linear-gradient(to right, var(--pipe-bands)) center / calc(var(--deco-unit) * 39.5) 100% no-repeat;
+			}
+
+			&::after {
+				left: 100%;
+				top: calc(var(--deco-unit) * 399.5);
+				width: calc(var(--grid-col-side) + var(--grid-gap) + var(--grid-col-main) / 2 - var(--deco-unit) * 246.5);
+				height: calc(var(--deco-unit) * 60);
+				background: linear-gradient(to bottom, var(--pipe-bands));
+			}
+
+			@media (orientation: portrait) {
+				display: none;
+			}
+		}
+
+		&:has(> game-hud:not([hidden]), > editor-palette:not([hidden])) > .side-deco {
+			display: none;
 		}
 
 		/*

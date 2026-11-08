@@ -34,12 +34,14 @@
 			}
 
 			/*
-			 * The machinery lies behind the screen and has its height. Its graphic is aligned to the right edge of the
-			 * host, so it fills the free space right of the screen, and the screen covers the rest of it.
+			 * The machinery has the height of the screen. Its graphic is aligned to the right edge of the host, so it fills
+			 * the free space right of the screen. It starts where the crooked right edge of the frame starts, so it does not
+			 * show through the gaps at the other edges of the frame.
 			 */
 			.machine {
 				grid-area: 1 / 1;
 				justify-self: stretch;
+				margin-left: calc(var(--crt-width) * 0.992);
 				height: var(--crt-height);
 				background: url('images/crt-machine.svg') right center / auto 100% no-repeat;
 			}

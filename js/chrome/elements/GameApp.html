@@ -1,5 +1,6 @@
 <template>
 	<div class="top">
+		<img class="logo" src="images/logo.svg" alt="Still Alive (revived)" />
 		<robot-head></robot-head>
 		<narrator-text></narrator-text>
 	</div>
@@ -88,6 +89,21 @@
 			> narrator-text {
 				flex: 1;
 				--narrator-height: var(--grid-row-top);
+			}
+
+			/*
+			 * The logo shows in the left corner while the robot head and the narrator text are hidden. It is larger than
+			 * the corner and reaches into the empty top row and side column.
+			 */
+			> .logo {
+				width: calc(var(--grid-col-side) * 2.1);
+				align-self: start;
+				position: relative;
+				z-index: 1;
+			}
+
+			&:has(> robot-head:not([hidden]), > narrator-text:not([hidden])) > .logo {
+				display: none;
 			}
 		}
 

@@ -1,0 +1,11 @@
+{"tick":0,"time":0,"player":[36864,73728,0,0,25600,0],"crates":[],"turrets":[],"plasma":[[61440,12288,424,0,1]],"platforms":[],"portals":[[0,0,false,0],[0,0,false,0]],"cakesLeft":1,"map":[]}
+{"tick":60,"time":30,"player":[36864,75136,0,0,25600,0],"crates":[],"turrets":[],"plasma":[[73480,12288,-424,0,1]],"platforms":[],"portals":[[0,0,false,0],[0,0,false,0]],"cakesLeft":1,"map":[]}
+{"tick":120,"time":90,"player":[36864,75136,0,0,25600,0],"crates":[],"turrets":[],"plasma":[[73480,12288,-424,0,1]],"platforms":[],"portals":[[0,0,false,0],[0,0,false,0]],"cakesLeft":1,"map":[]}
+{"tick":180,"time":150,"player":[36864,75136,0,0,25600,0],"crates":[],"turrets":[],"plasma":[[73480,12288,-424,0,1]],"platforms":[],"portals":[[0,0,false,0],[0,0,false,0]],"cakesLeft":1,"map":[]}
+{"tick":240,"time":210,"player":[36864,75136,0,0,25600,0],"crates":[],"turrets":[],"plasma":[[73480,12288,-424,0,1]],"platforms":[],"portals":[[0,0,false,0],[0,0,false,0]],"cakesLeft":1,"map":[]}
+{"tick":300,"time":270,"player":[36864,75136,0,0,25600,0],"crates":[],"turrets":[],"plasma":[[73480,12288,-424,0,1]],"platforms":[],"portals":[[0,0,false,0],[0,0,false,0]],"cakesLeft":1,"map":[]}
+{"tick":360,"time":330,"player":[36864,75136,0,0,25600,0],"crates":[],"turrets":[],"plasma":[[73480,12288,-424,0,1]],"platforms":[],"portals":[[0,0,false,0],[0,0,false,0]],"cakesLeft":1,"map":[]}
+{"tick":420,"time":390,"player":[36864,75136,0,0,25600,0],"crates":[],"turrets":[],"plasma":[[73480,12288,-424,0,1]],"platforms":[],"portals":[[0,0,false,0],[0,0,false,0]],"cakesLeft":1,"map":[]}
+{"tick":480,"time":450,"player":[36864,75136,0,0,25600,0],"crates":[],"turrets":[],"plasma":[[73480,12288,-424,0,1]],"platforms":[],"portals":[[0,0,false,0],[0,0,false,0]],"cakesLeft":1,"map":[]}
+{"tick":540,"time":510,"player":[36864,75136,0,0,25600,0],"crates":[],"turrets":[],"plasma":[[73480,12288,-424,0,1]],"platforms":[],"portals":[[0,0,false,0],[0,0,false,0]],"cakesLeft":1,"map":[]}
+{"tick":600,"time":570,"player":[36864,75136,0,0,25600,0],"crates":[],"turrets":[],"plasma":[[73480,12288,-424,0,1]],"platforms":[],"portals":[[0,0,false,0],[0,0,false,0]],"cakesLeft":1,"map":[]}

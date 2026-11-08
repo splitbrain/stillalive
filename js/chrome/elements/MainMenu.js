@@ -3,6 +3,7 @@
  */
 
 import { campaignPath } from '../../router.js';
+import { CampaignId } from '../../stage/constants.js';
 import { campaignsReady, listCampaigns } from '../campaigns.js';
 import { ChromeScreen, loadMarkup, Screen } from '../element.js';
 import { maxLevel } from '../storage.js';
@@ -12,7 +13,8 @@ const TEMPLATE = await loadMarkup(import.meta.url);
 
 /**
  * The custom element <main-menu>. It shows the list of the campaigns with the number of finished levels and the link to
- * the editor. A campaign with a parent shows in a sub list below its parent.
+ * the editor. A campaign with a parent shows in a sub list below its parent. The test campaign shows only when the URL
+ * contains "?test".
  */
 export class MainMenu extends ChromeScreen {
 	/** @type {HTMLTemplateElement|null} The markup of the main menu. */
@@ -39,7 +41,9 @@ export class MainMenu extends ChromeScreen {
 		if (!campaignsReady.get()) return;
 		const items = new Map();
 		const top = [];
+		const showTest = new URLSearchParams(location.search).has('test');
 		for (const campaign of listCampaigns()) {
+			if (campaign.id === CampaignId.TEST && !showTest) continue;
 			const item = this.#createItem(campaign);
 			items.set(campaign.folder, item);
 			const parent = items.get(campaign.parent);

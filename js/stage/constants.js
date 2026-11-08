@@ -73,10 +73,11 @@ export const CampaignId = {
 	ADVANCED: 1,
 	COMMUNITY: 2,
 	STORY: 4,
+	TEST: 5,
 };
 
 /** @type {string[]} The folder names of the campaigns in the maps folder, by campaign id. */
-export const CAMPAIGN_FOLDERS = ['normal', 'advanced', 'community', 'tutorial', 'story'];
+export const CAMPAIGN_FOLDERS = ['normal', 'advanced', 'community', 'tutorial', 'story', 'test'];
 
 /** @type {Object<string, number>} The transition effects at the end and the start of a level, the value of ui.transition. */
 export const Transition = {

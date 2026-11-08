@@ -1,0 +1,12 @@
+{
+	"format": 1,
+	"name": "test",
+	"title": "Test",
+	"sort": 99,
+	"levels": [
+		"level01.json",
+		"level02.json",
+		"level03.json",
+		"level04.json"
+	]
+}

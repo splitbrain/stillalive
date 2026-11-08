@@ -82,7 +82,7 @@ export function loadGfx() {
 
 	bg = new Array();
 	for (i = 1; i < 12; i++) {
-		const img = loadImage('bg/level' + i + '.png');
+		const img = loadImage('bg/level' + i + '.svg');
 		bg.push(img);
 	}
 

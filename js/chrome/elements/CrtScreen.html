@@ -21,13 +21,27 @@
 				curve to 1.4% 0.3% with -0.9% 50%,
 				close
 			);
+			--crt-width: min(100cqw, 10000cqh / (93.6 / (var(--crt-aspect)) + 6.4));
+			--crt-height: calc(var(--crt-width) * (93.6 / (var(--crt-aspect)) + 6.4) / 100);
 			display: grid;
 			place-items: center start;
 			container-type: size;
 
 			.screen {
-				width: min(100cqw, 10000cqh / (93.6 / (var(--crt-aspect)) + 6.4));
+				grid-area: 1 / 1;
+				width: var(--crt-width);
 				container-type: inline-size;
+			}
+
+			/*
+			 * The machinery lies behind the screen and has its height. Its graphic is aligned to the right edge of the
+			 * host, so it fills the free space right of the screen, and the screen covers the rest of it.
+			 */
+			.machine {
+				grid-area: 1 / 1;
+				justify-self: stretch;
+				height: var(--crt-height);
+				background: url('images/crt-machine.svg') right center / auto 100% no-repeat;
 			}
 
 			/*
@@ -107,6 +121,7 @@
 			}
 		}
 	</style>
+	<div class="machine"></div>
 	<div class="screen">
 		<div class="frame">
 			<div class="glass"></div>

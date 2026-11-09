@@ -61,7 +61,7 @@ export function hashString(text) {
 }
 
 /**
- * Open the game and wait until the stage is ready and all campaigns are loaded.
+ * Open the game and wait until the game is loaded: the code, the images, the sounds and the campaigns.
  *
  * The game loop and the timers of the page run at the real speed. runLevel() and runPortalScene() run all their ticks
  * in one call, so the game loop cannot run a tick between them.
@@ -71,18 +71,11 @@ export function hashString(text) {
  */
 export async function openGame(page) {
 	await page.goto('./?test');
-	// the wait needs a function that answers at once, so the check of the campaigns is imported before
+	// the wait needs a function that answers at once, so the state of the loading is imported before
 	await page.evaluate(async () => {
-		window.__campaignsLoaded = (await import('/js/chrome/campaigns.js')).areCampaignsLoaded;
+		window.__loaded = (await import('/js/loader.js')).ready;
 	});
-	await page.waitForFunction(
-		() => {
-			const t = window.__test;
-			return t !== undefined && t.stage.ready.get() && window.__campaignsLoaded();
-		},
-		null,
-		{ polling: 50 },
-	);
+	await page.waitForFunction(() => window.__loaded.get(), null, { polling: 50 });
 }
 
 /**

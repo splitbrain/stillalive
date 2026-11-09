@@ -2,17 +2,18 @@
  * The loading screen element.
  */
 
+import { loading, ready } from '../../loader.js';
 import { keyLabels } from '../../stage/keys.js';
-import { campaignsLoading, campaignsReady } from '../campaigns.js';
+import { campaignsLoading } from '../campaigns.js';
 import { ChromeScreen, loadMarkup, Screen } from '../element.js';
 
 /** @type {HTMLTemplateElement|null} The markup of the loading screen. */
 const TEMPLATE = await loadMarkup(import.meta.url);
 
 /**
- * The custom element <loading-screen>. It shows a title, the start button, the controls of the game and the files
- * that could not be loaded. While the images, the sounds and the campaigns load, the start button is disabled and shows
- * the total progress. When everything is loaded, the title and the button tell that the game can start. The app element
+ * The custom element <loading-screen>. It shows a title, the start button, the controls of the game and the parts
+ * and files that could not be loaded. While the code, the images, the sounds and the campaigns load, the start button
+ * is disabled and shows the total progress. When everything is loaded, the title and the button tell that the game can start. The app element
  * handles the click or the key press that starts the game.
  */
 export class LoadingScreen extends ChromeScreen {
@@ -20,15 +21,15 @@ export class LoadingScreen extends ChromeScreen {
 	static template = TEMPLATE;
 
 	/**
-	 * Subscribe to the loading of the stage and the campaigns, and to the key labels of the keyboard of the player.
+	 * Subscribe to the loading of the game and the campaigns, and to the key labels of the keyboard of the player.
 	 *
 	 * @returns {Array<function(): void>} The functions that remove the subscriptions.
 	 */
 	subscribe() {
-		const stage = this.stage;
 		const update = () => this.#update();
 		return [
-			stage.loading.subscribe(({ images, sounds }) => {
+			loading.subscribe(({ code, images, sounds }) => {
+				this.#showMissing('code', code, 'Some parts of the game could not be loaded: ');
 				this.#showMissing('images', images, 'Some images could not be loaded: ');
 				this.#showMissing('sounds', sounds, 'Some sounds could not be loaded: ');
 				update();
@@ -37,8 +38,7 @@ export class LoadingScreen extends ChromeScreen {
 				this.#showMissing('campaigns', loading, 'Some levels could not be loaded: ');
 				update();
 			}),
-			stage.ready.subscribe(update),
-			campaignsReady.subscribe(update),
+			ready.subscribe(update),
 			keyLabels.subscribe((labels) => {
 				for (const span of this.querySelectorAll('[data-key]')) span.textContent = labels[span.dataset.key];
 			}),
@@ -56,20 +56,21 @@ export class LoadingScreen extends ChromeScreen {
 	}
 
 	/**
-	 * Show the total progress in the start button, or enable the button when the stage and the campaigns are ready.
-	 * The total progress is the mean of the progress of the images, the sounds and the campaigns.
+	 * Show the total progress in the start button, or enable the button when the game is loaded. The total progress is
+	 * the mean of the progress of the code, the images, the sounds and the campaigns.
 	 *
 	 * @returns {void}
 	 */
 	#update() {
-		const ready = this.stage.ready.get() && campaignsReady.get();
-		const { images, sounds } = this.stage.loading.get();
-		const percent = Math.floor(((images.progress + sounds.progress + campaignsLoading.get().progress) / 3) * 100);
+		const done = ready.get();
+		const { code, images, sounds } = loading.get();
+		const progress = code.progress + images.progress + sounds.progress + campaignsLoading.get().progress;
+		const percent = Math.floor((progress / 4) * 100);
 		const button = this.querySelector('.start');
-		button.disabled = !ready;
+		button.disabled = !done;
 		button.style.setProperty('--progress', `${percent}%`);
-		button.textContent = ready ? 'Begin testing' : `Loading... ${percent}%`;
-		this.querySelector('.title').textContent = ready
+		button.textContent = done ? 'Begin testing' : `Loading... ${percent}%`;
+		this.querySelector('.title').textContent = done
 			? 'The test equipment is ready.'
 			: 'Warming up the test equipment...';
 	}
@@ -77,7 +78,7 @@ export class LoadingScreen extends ChromeScreen {
 	/**
 	 * Show the files of one kind that could not be loaded.
 	 *
-	 * @param {string} kind The kind of files: images, sounds or campaigns.
+	 * @param {string} kind The kind of files: code, images, sounds or campaigns.
 	 * @param {{progress: number, missing: string[]}} loading The progress from 0 to 1 and the missing files.
 	 * @param {string} prefix The text before the list of the missing files.
 	 * @returns {void}

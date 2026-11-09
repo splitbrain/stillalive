@@ -191,7 +191,7 @@ export function setSoundVolume(sound, volume) {
  *
  * @returns {boolean} True if the game plays sounds.
  */
-function isSoundOn() {
+export function isSoundOn() {
 	return enabled;
 }
 

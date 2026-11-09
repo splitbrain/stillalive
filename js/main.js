@@ -1,50 +1,39 @@
 /**
- * Start code of the page: registers the stage element and the chrome elements. The stage element comes first. The app
- * element comes last, because it creates all other elements from its template when it connects.
+ * Start code of the page: starts the loading of the game and defines the custom elements in the order of their need.
+ * The page contains all elements from the start; an element shows when it is defined. The CRT screen and the loading
+ * screen come first, so the player sees the progress early. The app element comes after the stage, because it commands
+ * the stage, and the other elements come last. In a group, an element comes after the elements in its markup.
  */
 
-import { BestTimes } from './chrome/elements/BestTimes.js';
-import { CreditsScreen } from './chrome/elements/CreditsScreen.js';
-import { ConfirmScreen } from './chrome/elements/ConfirmScreen.js';
-import { CrtScreen } from './chrome/elements/CrtScreen.js';
-import { EditorButtons } from './chrome/elements/EditorButtons.js';
-import { EditorFiles } from './chrome/elements/EditorFiles.js';
-import { EditorPalette } from './chrome/elements/EditorPalette.js';
-import { GameApp } from './chrome/elements/GameApp.js';
-import { GameHud } from './chrome/elements/GameHud.js';
-import { IntermissionPanel } from './chrome/elements/IntermissionPanel.js';
-import { LevelList } from './chrome/elements/LevelList.js';
-import { LevelSelection } from './chrome/elements/LevelSelection.js';
-import { LoadingScreen } from './chrome/elements/LoadingScreen.js';
-import { MainMenu } from './chrome/elements/MainMenu.js';
-import { MenuButton } from './chrome/elements/MenuButton.js';
-import { NarratorText } from './chrome/elements/NarratorText.js';
-import { PauseMenu } from './chrome/elements/PauseMenu.js';
-import { RobotHead } from './chrome/elements/RobotHead.js';
-import { SlotList } from './chrome/elements/SlotList.js';
-import { VcrDisplay } from './chrome/elements/VcrDisplay.js';
-import { VcrPanel } from './chrome/elements/VcrPanel.js';
-import { GameStage } from './stage/GameStage.js';
+import { loadGame } from './loader.js';
 
-customElements.define('game-stage', GameStage);
-customElements.define('loading-screen', LoadingScreen);
-customElements.define('menu-button', MenuButton);
-customElements.define('main-menu', MainMenu);
-customElements.define('credits-screen', CreditsScreen);
-customElements.define('level-list', LevelList);
-customElements.define('level-selection', LevelSelection);
-customElements.define('best-times', BestTimes);
-customElements.define('robot-head', RobotHead);
-customElements.define('narrator-text', NarratorText);
-customElements.define('game-hud', GameHud);
-customElements.define('vcr-panel', VcrPanel);
-customElements.define('vcr-display', VcrDisplay);
-customElements.define('pause-menu', PauseMenu);
-customElements.define('intermission-panel', IntermissionPanel);
-customElements.define('editor-palette', EditorPalette);
-customElements.define('editor-buttons', EditorButtons);
-customElements.define('slot-list', SlotList);
-customElements.define('editor-files', EditorFiles);
-customElements.define('confirm-screen', ConfirmScreen);
-customElements.define('crt-screen', CrtScreen);
-customElements.define('game-app', GameApp);
+loadGame(
+	[
+		{ tag: 'crt-screen', url: './chrome/elements/CrtScreen.js', name: 'CrtScreen' },
+		{ tag: 'menu-button', url: './chrome/elements/MenuButton.js', name: 'MenuButton' },
+		{ tag: 'loading-screen', url: './chrome/elements/LoadingScreen.js', name: 'LoadingScreen' },
+	],
+	[
+		[{ tag: 'game-stage', url: './stage/GameStage.js', name: 'GameStage' }],
+		[{ tag: 'game-app', url: './chrome/elements/GameApp.js', name: 'GameApp' }],
+		[
+			{ tag: 'level-list', url: './chrome/elements/LevelList.js', name: 'LevelList' },
+			{ tag: 'slot-list', url: './chrome/elements/SlotList.js', name: 'SlotList' },
+			{ tag: 'main-menu', url: './chrome/elements/MainMenu.js', name: 'MainMenu' },
+			{ tag: 'credits-screen', url: './chrome/elements/CreditsScreen.js', name: 'CreditsScreen' },
+			{ tag: 'level-selection', url: './chrome/elements/LevelSelection.js', name: 'LevelSelection' },
+			{ tag: 'best-times', url: './chrome/elements/BestTimes.js', name: 'BestTimes' },
+			{ tag: 'robot-head', url: './chrome/elements/RobotHead.js', name: 'RobotHead' },
+			{ tag: 'narrator-text', url: './chrome/elements/NarratorText.js', name: 'NarratorText' },
+			{ tag: 'game-hud', url: './chrome/elements/GameHud.js', name: 'GameHud' },
+			{ tag: 'vcr-panel', url: './chrome/elements/VcrPanel.js', name: 'VcrPanel' },
+			{ tag: 'vcr-display', url: './chrome/elements/VcrDisplay.js', name: 'VcrDisplay' },
+			{ tag: 'pause-menu', url: './chrome/elements/PauseMenu.js', name: 'PauseMenu' },
+			{ tag: 'intermission-panel', url: './chrome/elements/IntermissionPanel.js', name: 'IntermissionPanel' },
+			{ tag: 'editor-palette', url: './chrome/elements/EditorPalette.js', name: 'EditorPalette' },
+			{ tag: 'editor-buttons', url: './chrome/elements/EditorButtons.js', name: 'EditorButtons' },
+			{ tag: 'editor-files', url: './chrome/elements/EditorFiles.js', name: 'EditorFiles' },
+			{ tag: 'confirm-screen', url: './chrome/elements/ConfirmScreen.js', name: 'ConfirmScreen' },
+		],
+	],
+);

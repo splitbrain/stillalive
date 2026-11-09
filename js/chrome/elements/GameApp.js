@@ -4,10 +4,10 @@
 
 import { campaignPath, navigate, route } from '../../router.js';
 import { CampaignId, CAMPAIGN_FOLDERS, LEVELS_PER_CAMPAIGN } from '../../stage/constants.js';
-import { campaigns, campaignsReady, loadCampaigns } from '../campaigns.js';
+import { campaigns, campaignsReady } from '../campaigns.js';
 import { alertDialog } from '../dialog.js';
 import { setAttributes } from '../dom.js';
-import { ChromeElement, loadMarkup, Screen } from '../element.js';
+import { ChromeElement, Screen } from '../element.js';
 import {
 	getBestTime,
 	loadBestReplay,
@@ -18,9 +18,7 @@ import {
 	saveSoundSetting,
 } from '../storage.js';
 import { toTime } from '../time.js';
-
-/** @type {HTMLTemplateElement|null} The markup of the app: its parts and the stage. */
-const TEMPLATE = await loadMarkup(import.meta.url);
+import { ready } from '../../loader.js';
 
 /**
  * @type {string} The selector of the buttons with a hover and a click sound: the menu buttons, the back links and the
@@ -36,18 +34,19 @@ const EDITOR_TEXT =
 	'Welcome to the Still Alive Level Editor! Here you can easily create your own maps. Select a tile or an object, then draw it with the left mouse button, remove it with the right mouse button, or fill an area with a tile with the middle mouse button. Then, try out your map. Have fun!';
 
 /**
- * The custom element <game-app>. It creates the parts of the screens and the stage from its template. The stage and
- * the parts that show in its place are inside the CRT screen; the other parts are around it.
+ * The custom element <game-app>. It contains the parts of the screens and the stage in the page. The stage and the
+ * parts that show in its place are inside the CRT screen; the other parts are around it.
  *
  * On each change of the screen, the element asks each screen part with shouldShow() if it shows on the current
  * screen, and sets the hidden attribute of the parts that do not show. It finds the screen parts at any depth by their
- * class chrome-screen. The stage shows on the select, play, editor and editor-file screens.
+ * class chrome-screen. The parts are hidden until the element shows them, so a part does not show before its element is
+ * defined. The stage shows on the select, play, editor and editor-file screens.
  *
- * The loading screen shows until the stage and the campaigns are ready and the player clicks or presses a key,
- * whatever the route is. The start plays a click sound, and after the start each click on a menu button plays it
- * too. A menu button plays a hover sound when the pointer moves onto it or the keyboard focus moves to it. The back
- * links of the selection screens and the buttons of the VCR panel play the same sounds. The stage does not get the key
- * that starts the game, so the key does not move the player or command the stage. Then the element shows the screen
+ * The loading screen shows until the game is loaded and the player clicks or presses a key, whatever the route is. The
+ * start plays a click sound, and after the start each click on a menu button plays it too. A menu button plays a hover
+ * sound when the pointer moves onto it or the keyboard focus moves to it. The back links of the selection screens and
+ * the buttons of the VCR panel play the same sounds. The stage does not get the key that starts the game, so the key
+ * does not move the player or command the stage. Then the element shows the screen
  * of the route and commands the stage. The editor route opens the editor map from before, so the map stays until the page reloads. The save and
  * load screen shows the preview of the editor map. The test run of the editor map shows the play screen. The element
  * replaces a route with a locked level by the selection of the campaign, because the router does not know the
@@ -70,15 +69,12 @@ const EDITOR_TEXT =
  * replay from the intermission panel opens the panel again with the same content on an empty stage, any other replay
  * goes to the selection of its level.
  *
- * The element starts the loading of the campaigns, and sets the sound of the stage from the storage.
+ * The element sets the sound of the stage from the storage.
  * It stores each change of the sound after the game starts, from the buttons of the page or from the key of the stage.
  * When the URL contains "?unlock", the element stores all levels of all campaigns as finished when the campaigns are
  * loaded. This is for manual tests.
  */
 export class GameApp extends ChromeElement {
-	/** @type {HTMLTemplateElement|null} The markup of the app: its parts and the stage. */
-	static template = TEMPLATE;
-
 	/** @type {boolean} True after the click or the key press that starts the game. */
 	#started = false;
 
@@ -113,16 +109,14 @@ export class GameApp extends ChromeElement {
 	#reopen = null;
 
 	/**
-	 * Set the sound from the storage, start the loading and handle the clicks and key presses that start the game, the
-	 * events of the stage, the import of a replay, the Watch Replay button of the intermission and the Stop button of
-	 * the VCR panel.
+	 * Set the sound from the storage and handle the clicks and key presses that start the game, the events of the stage,
+	 * the import of a replay, the Watch Replay button of the intermission and the Stop button of the VCR panel.
 	 *
 	 * @returns {void}
 	 */
 	setUp() {
 		const stage = this.stage;
 		stage.setSound(loadSoundSetting());
-		loadCampaigns();
 		if (new URLSearchParams(location.search).has('unlock')) campaignsReady.subscribe((ready) => this.#unlockAll(ready));
 		window.addEventListener('click', (event) => {
 			if (!this.#start() && event.target.closest(SOUND_BUTTONS)) stage.playClickSound();
@@ -159,8 +153,7 @@ export class GameApp extends ChromeElement {
 		const stage = this.stage;
 		return [
 			route.subscribe(() => this.#applyRoute()),
-			stage.ready.subscribe(() => this.#applyRoute()),
-			campaignsReady.subscribe(() => this.#applyRoute()),
+			ready.subscribe(() => this.#applyRoute()),
 			stage.mode.subscribe(() => this.#showScreen()),
 			stage.paused.subscribe(() => this.#showScreen()),
 			stage.sound.subscribe((on) => {
@@ -208,21 +201,12 @@ export class GameApp extends ChromeElement {
 	}
 
 	/**
-	 * Check if the stage and the campaigns are loaded.
-	 *
-	 * @returns {boolean} True when the game can start.
-	 */
-	#isLoaded() {
-		return this.stage.ready.get() && campaignsReady.get();
-	}
-
-	/**
 	 * Leave the loading screen and apply the route, when everything is loaded.
 	 *
 	 * @returns {boolean} True if the game starts now.
 	 */
 	#start() {
-		if (this.#started || !this.#isLoaded()) return false;
+		if (this.#started || !ready.get()) return false;
 		this.#started = true;
 		this.stage.playClickSound();
 		this.#applyRoute();

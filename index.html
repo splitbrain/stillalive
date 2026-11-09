@@ -15,7 +15,32 @@
 		<link rel="stylesheet" type="text/css" href="style.css" />
 	</head>
 	<body>
-		<game-app></game-app>
+		<game-app>
+			<div class="top">
+				<img class="logo" src="images/logo.svg" alt="Still Alive (revived)" />
+				<robot-head hidden></robot-head>
+				<narrator-text hidden></narrator-text>
+				<img class="mascot" src="images/character.svg" alt="" />
+			</div>
+			<div class="side-deco"></div>
+			<crt-screen>
+				<game-stage hidden></game-stage>
+				<vcr-display hidden></vcr-display>
+				<loading-screen></loading-screen>
+				<credits-screen hidden></credits-screen>
+				<main-menu hidden></main-menu>
+				<pause-menu hidden></pause-menu>
+				<intermission-panel hidden></intermission-panel>
+				<level-selection hidden></level-selection>
+				<editor-files hidden></editor-files>
+				<confirm-screen hidden></confirm-screen>
+			</crt-screen>
+			<game-hud hidden></game-hud>
+			<vcr-panel hidden></vcr-panel>
+			<editor-palette hidden></editor-palette>
+			<editor-buttons hidden></editor-buttons>
+			<!-- <best-times hidden></best-times> -->
+		</game-app>
 		<footer>
 			Copyright (c) 2010 Christophe<br />
 			Source code licensed under the

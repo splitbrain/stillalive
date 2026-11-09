@@ -8,21 +8,7 @@
  * and its height; the stage fits the playfield into that box at its fixed aspect ratio, centered, and never cuts it.
  */
 
-import { allImagesLoaded, imageProgress, missingImages, onImageDone } from './assets.js';
-import {
-	allSoundsLoaded,
-	loadSfx,
-	missingSounds,
-	onSoundDone,
-	playSound,
-	randomRate,
-	setSoundMuted,
-	setSoundOn,
-	sfx_click,
-	sfx_hover,
-	sfx_tick,
-	soundProgress,
-} from './audio.js';
+import { playSound, randomRate, setSoundMuted, setSoundOn, sfx_click, sfx_hover, sfx_tick } from './audio.js';
 import { clearCanvas, ctx, setCanvas, watchCanvasSize } from './canvas.js';
 import { PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH } from './constants.js';
 import {
@@ -38,15 +24,14 @@ import {
 } from './editor.js';
 import { Player } from './entities/Player.js';
 import { startLevel, tick } from './game.js';
-import { loadGfx } from './images.js';
 import { canPause, setupInput } from './input.js';
 import { captureInput, unclick } from './inputState.js';
-import { loadKeyLabels } from './keys.js';
 import { loadLevel, loadPreviewMap } from './level.js';
 import { getFps, startLoop } from './loop.js';
 import { render } from './render/frame.js';
 import { decodeReplay, resumeReplay } from './replay.js';
 import { game, input, stageEvents, ui } from './state.js';
+import { checkReady } from '../loader.js';
 import { Value } from '../value.js';
 
 /** @type {number} The number of ticks between two updates of the level time. */
@@ -79,14 +64,6 @@ const STAGE_STYLE = `
  * The stage: it plays a level, shows the preview of a level or opens the editor on a map.
  */
 export class GameStage extends HTMLElement {
-	/** @type {Value<boolean>} False until the images and the sounds are loaded. The sounds are not needed while the sound is off. */
-	ready = new Value(false);
-	/**
-	 * @type {Value<{images: {progress: number, missing: string[]}, sounds: {progress: number, missing: string[]}}>}
-	 *     The loading progress of the images and the sounds from 0 to 1, and the files that could not be loaded. A
-	 *     new object each time a file is done.
-	 */
-	loading = new Value({ images: { progress: 0, missing: [] }, sounds: { progress: 0, missing: [] } });
 	/** @type {Value<string>} What the stage shows: "idle", "play", "preview", "edit" or "test". */
 	mode = new Value('idle');
 	/** @type {Value<number>} The life of the player in points. */
@@ -119,8 +96,7 @@ export class GameStage extends HTMLElement {
 	#speed = 1;
 
 	/**
-	 * Create the shadow root with the styles and the canvas, start the loading of the images and the sounds, the input
-	 * and the game loop.
+	 * Create the shadow root with the styles and the canvas, and start the input and the game loop.
 	 *
 	 * @returns {void}
 	 */
@@ -140,11 +116,6 @@ export class GameStage extends HTMLElement {
 
 		watchCanvasSize();
 		setupInput(canvas, this);
-		loadKeyLabels();
-		onImageDone(() => this.#fileDone());
-		onSoundDone(() => this.#fileDone());
-		loadGfx();
-		loadSfx();
 
 		game.player = new Player(); // the input reads the player before the first level starts
 		game.time = 0;
@@ -340,7 +311,7 @@ export class GameStage extends HTMLElement {
 	setSound(on) {
 		setSoundOn(on);
 		this.sound.set(on);
-		this.#checkReady();
+		checkReady();
 	}
 
 	/**
@@ -423,28 +394,6 @@ export class GameStage extends HTMLElement {
 
 		const events = stageEvents.splice(0);
 		for (const { type, detail } of events) this.dispatchEvent(new CustomEvent(type, { detail }));
-	}
-
-	/**
-	 * Set the loading progress after an image or a sound is loaded or failed, and check if the stage is ready.
-	 *
-	 * @returns {void}
-	 */
-	#fileDone() {
-		this.loading.set({
-			images: { progress: imageProgress(), missing: missingImages().slice() },
-			sounds: { progress: soundProgress(), missing: missingSounds().slice() },
-		});
-		this.#checkReady();
-	}
-
-	/**
-	 * Set the stage ready when the images are loaded, and the sounds too while the sound is on. The stage stays ready.
-	 *
-	 * @returns {void}
-	 */
-	#checkReady() {
-		if (allImagesLoaded() && (allSoundsLoaded() || !this.sound.get())) this.ready.set(true);
 	}
 
 	/**

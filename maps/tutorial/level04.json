@@ -14,7 +14,7 @@
 		},
 		{
 			"on": "start",
-			"text": "Shoot a portal into the hole on the right and the other one under your feet. That way, you will be able to pass through. Then, just finish the level to continue the tutorial. To clear your portals, press the {KeyE} key."
+			"text": "Shoot a portal into the hole on the right and the other one under your feet. That way, you will be able to pass through. Then, just finish the level to continue the tutorial. To clear your portals, press the {KeyE} key or the right Shift key."
 		}
 	],
 	"labels": [

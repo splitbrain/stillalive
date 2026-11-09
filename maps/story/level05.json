@@ -2,7 +2,7 @@
 	"format": 1,
 	"title": "Special Delivery",
 	"bg": 4,
-	"text": "GPs carrying people, great feature. What if they could carry objects as well? (Future Science, one step closer to possimpible, where the possible meets the impossible.) With icy walls, a crate and pipes, you can activate that switch to get out of your prison. Make a few jumps at the end and you'll be even closer to me. Don't forget, the {KeyE} key clears your portals, and with them the pipes that go through them.",
+	"text": "GPs carrying people, great feature. What if they could carry objects as well? (Future Science, one step closer to possimpible, where the possible meets the impossible.) With icy walls, a crate and pipes, you can activate that switch to get out of your prison. Make a few jumps at the end and you'll be even closer to me. Don't forget, the {KeyE} key or the right Shift key clears your portals, and with them the pipes that go through them.",
 	"tiles": [
 		17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,46,46,46,46,46,46,46,46,46,46,46,46,46,46,46,46,
 		17,0,0,0,0,0,0,40,102,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,46,

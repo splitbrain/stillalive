@@ -24,7 +24,7 @@ import { game, input, ui } from './state.js';
 
 /**
  * The key bits for the movement keys, by the physical position of the key. On an AZERTY keyboard, KeyW is the Z key
- * and KeyA is the Q key.
+ * and KeyA is the Q key. The arrow keys and the right Shift key do the same as the keys W, A, S, D and E.
  *
  * @type {Object<string, number>}
  */
@@ -34,6 +34,11 @@ const KEY_BITS = {
 	KeyD: KEY_RIGHT,
 	KeyS: KEY_DOWN,
 	KeyE: KEY_CLEAR,
+	ArrowUp: KEY_JUMP,
+	ArrowLeft: KEY_LEFT,
+	ArrowRight: KEY_RIGHT,
+	ArrowDown: KEY_DOWN,
+	ShiftRight: KEY_CLEAR,
 };
 
 /** @type {number} All key bits of the mouse buttons. */
@@ -97,7 +102,7 @@ function onKeyDown(event) {
  */
 function onKeyUp(event) {
 	if (isForeignTarget(event)) return;
-	if (event.code in KEY_BITS && event.code !== 'KeyE') input.keys &= ~KEY_BITS[event.code];
+	if (event.code in KEY_BITS && KEY_BITS[event.code] !== KEY_CLEAR) input.keys &= ~KEY_BITS[event.code];
 
 	const key = event.key.toLowerCase();
 	if (event.ctrlKey && key === 'z') input.leftReleased = 1;

@@ -9,12 +9,12 @@
 	"events": [
 		{
 			"on": "start",
-			"text": "Welcome to the tutorial. First, move around the room with {KeyA} and {KeyD}."
+			"text": "Welcome to the tutorial. First, move around the room with {KeyA} and {KeyD} or with the left and right arrow keys."
 		},
 		{
 			"on": "playerX",
 			"x": 100,
-			"text": "You can't get past these obstacles unless you jump over them. Press {KeyW} to jump, and hold it to jump higher!",
+			"text": "You can't get past these obstacles unless you jump over them. Press {KeyW} or the up arrow key to jump, and hold it to jump higher!",
 			"unlock": "jump"
 		},
 		{

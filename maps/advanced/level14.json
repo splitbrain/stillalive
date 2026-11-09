@@ -2,7 +2,7 @@
 	"format": 1,
 	"title": "Sentry Duty",
 	"bg": 2,
-	"text": "So you finished the Classic Mode, tough guy? Do you have what it takes to finish the same rooms on a harder difficulty? Good luck!",
+	"text": "You remember the nasty boys? They remember you too. They have been practicing. Each bullet still lowers your health. That part I didn't change. I'm not a monster.",
 	"tiles": [
 		1,1,1,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,1,
 		1,1,1,4,0,0,0,103,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,1,

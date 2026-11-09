@@ -2,7 +2,7 @@
 	"format": 1,
 	"title": "Spin Cycle",
 	"bg": 3,
-	"text": "So you finished the Classic Mode, tough guy? Do you have what it takes to finish the same rooms on a harder difficulty? Good luck!",
+	"text": "Turn around and around and around... now with more walls that don't take portals. Try not to get dizzy. Actually, do get dizzy. It's more fun to watch.",
 	"tiles": [
 		17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,5,5,5,5,17,17,17,17,17,17,17,17,
 		18,0,0,0,0,0,0,0,0,0,102,0,23,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,

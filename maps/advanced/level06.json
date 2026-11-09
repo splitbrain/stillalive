@@ -2,7 +2,7 @@
 	"format": 1,
 	"title": "Speed Trap",
 	"bg": 5,
-	"text": "So you finished the Classic Mode, tough guy? Do you have what it takes to finish the same rooms on a harder difficulty? Good luck!",
+	"text": "\"Nothing special here,\" I said last time. I have fixed that. Please don't get too mad at the turrets. They're only doing their job.",
 	"tiles": [
 		1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,17,17,17,17,17,17,17,17,17,17,20,17,17,17,
 		1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,4,0,0,0,0,0,0,0,0,0,0,0,0,0,18,

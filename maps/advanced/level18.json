@@ -2,7 +2,7 @@
 	"format": 1,
 	"title": "Jump Street",
 	"bg": 6,
-	"text": "So you finished the Classic Mode, tough guy? Do you have what it takes to finish the same rooms on a harder difficulty? Good luck!",
+	"text": "More platforming for your health! I made the platforms a little slimmer. Like you, after all this exercise. Jump, jump and jump again.",
 	"tiles": [
 		6,22,22,12,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 		0,0,0,103,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,

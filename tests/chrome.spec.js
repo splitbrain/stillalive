@@ -42,13 +42,6 @@ const SELECT_PARTS = ['level-selection', /* 'best-times', */ 'game-stage'];
 const PLAY_PARTS = ['robot-head', 'game-hud', /* 'best-times', */ 'narrator-text', 'game-stage'];
 
 /**
- * The screen parts of a boss level. The robot is absent, because the boss is the robot.
- *
- * @type {string[]}
- */
-const BOSS_PARTS = PLAY_PARTS.filter((part) => part != 'robot-head');
-
-/**
  * The screen parts of the editor.
  *
  * @type {string[]}
@@ -308,7 +301,11 @@ test.describe('chrome', () => {
 		await expectScreen(page, `#/campaign/story/${last}`, SELECT_PARTS);
 
 		await page.locator('level-selection .play').click();
-		await expectScreen(page, `#/campaign/story/${last}/play`, BOSS_PARTS);
+		await expectScreen(page, `#/campaign/story/${last}/play`, PLAY_PARTS);
+		// the boss is the robot, so its window stays empty
+		await expect(page.locator('robot-head .window')).toBeVisible();
+		await expect(page.locator('robot-head .head')).toBeHidden();
+		await expect(page.locator('robot-head .eye')).toBeHidden();
 
 		// the restart skips the entrance of the boss and the wait of its speech, which holds the level end
 		await page.keyboard.press('Escape');

@@ -26,8 +26,8 @@
 		place-items: center;
 		container-type: size;
 
-		/* an absent robot keeps its place, so the parts after it do not move */
-		&[absent] {
+		/* an absent robot leaves the window empty */
+		&[absent] :is(.head, .eye) {
 			visibility: hidden;
 		}
 

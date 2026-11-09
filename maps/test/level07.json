@@ -20,8 +20,7 @@
 		},
 		{
 			"on": "bossDied",
-			"text": "I don't understand... all my calculations were perfect! You were supposed to die and... oh wait! I remember that movie now, the guy with a scar on his face... guess I was wrong after all..........",
-			"wait": "click"
+			"text": "I don't understand... all my calculations were perfect! You were supposed to die and... oh wait! I remember that movie now, the guy with a scar on his face... guess I was wrong after all.........."
 		}
 	],
 	"tiles": [

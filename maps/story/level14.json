@@ -20,8 +20,7 @@
 		},
 		{
 			"on": "bossDied",
-			"text": "I guess... I'll have to say hello my...self... Luckily I can't feel pain, 'cause I think this would hurt really bad........ Continue your trip....... and tell my cousin I forgot to buy some milk...........",
-			"wait": "click"
+			"text": "I guess... I'll have to say hello my...self... Luckily I can't feel pain, 'cause I think this would hurt really bad........ Continue your trip....... and tell my cousin I forgot to buy some milk..........."
 		}
 	],
 	"tiles": [

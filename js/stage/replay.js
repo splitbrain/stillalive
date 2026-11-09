@@ -11,7 +11,6 @@
  *   bitmask and mouse position. The mouse position is in playfield units.
  * - states: a list of [time, ...state] entries with the input state from captureInput(). The game processes input
  *   while the level time stands still, e.g. in a pause. The playback restores the state when the time continues.
- * - bossSpeech: the length of the speech after the boss died, in ticks, or -1
  */
 
 import { restoreInput } from './inputState.js';
@@ -49,7 +48,6 @@ export function encodeReplay(replay, campaign, level) {
 		ticks: replay.inputs.length,
 		inputs,
 		states,
-		bossSpeech: replay.bossSpeech,
 	};
 }
 
@@ -88,8 +86,7 @@ export function decodeReplay(data) {
 		!isIntegerTable(data.inputs, 4) ||
 		!data.inputs.every((entry) => entry[0] > 0) ||
 		data.inputs.reduce((sum, entry) => sum + entry[0], 0) !== data.ticks ||
-		!isIntegerTable(data.states, STATE_LENGTH + 1) ||
-		!Number.isInteger(data.bossSpeech)
+		!isIntegerTable(data.states, STATE_LENGTH + 1)
 	) {
 		throw new Error('The replay file is damaged.');
 	}
@@ -103,7 +100,6 @@ export function decodeReplay(data) {
 		}
 	}
 	for (const [time, ...state] of data.states) replay.states[time] = state;
-	replay.bossSpeech = data.bossSpeech;
 	return replay;
 }
 
@@ -124,8 +120,6 @@ export class Replay {
 		this.mouseY = new Array();
 		/** @type {Object<number, number[]>} The input state from captureInput() by level time. */
 		this.states = {};
-		/** @type {number} The length of the speech after the boss died, in ticks, or -1. */
-		this.bossSpeech = -1;
 	}
 }
 

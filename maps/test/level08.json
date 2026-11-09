@@ -20,8 +20,7 @@
 		},
 		{
 			"on": "bossDied",
-			"text": "........ Was I too kind to you? I don't think so... It seems that you were bound to get out of here from the beginning. Well, it was nice knowing you after all... So long, and thanks for all the cakes...",
-			"wait": "click"
+			"text": "........ Was I too kind to you? I don't think so... It seems that you were bound to get out of here from the beginning. Well, it was nice knowing you after all... So long, and thanks for all the cakes..."
 		}
 	],
 	"tiles": [

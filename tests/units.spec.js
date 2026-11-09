@@ -43,7 +43,6 @@ function validReplay() {
 			[3, 4, 30, 40],
 		],
 		states: [[7, 0, 0, 0, 0, 0, 0, 0, 0]],
-		bossSpeech: -1,
 	};
 }
 
@@ -78,7 +77,6 @@ test.describe('units', () => {
 		expect(result.mouseX).toEqual([10, 10, 30, 30, 30]);
 		expect(result.mouseY).toEqual([20, 20, 40, 40, 40]);
 		expect(result.states).toEqual({ 7: [0, 0, 0, 0, 0, 0, 0, 0] });
-		expect(result.bossSpeech).toBe(-1);
 	});
 
 	test('decodeReplay() rejects data that is not a replay', async () => {
@@ -97,7 +95,6 @@ test.describe('units', () => {
 			'not an integer': { inputs: [[5, 1, 10.5, 20]] },
 			'wrong state length': { states: [[7, 0, 0]] },
 			'no states': { states: undefined },
-			'no boss speech': { bossSpeech: undefined },
 		};
 		for (const [name, change] of Object.entries(cases)) {
 			const { error } = await call(page, '/js/stage/replay.js', 'decodeReplay', { ...validReplay(), ...change });

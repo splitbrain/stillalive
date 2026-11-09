@@ -310,7 +310,7 @@ test.describe('chrome', () => {
 		await page.locator('level-selection .play').click();
 		await expectScreen(page, `#/campaign/story/${last}/play`, BOSS_PARTS);
 
-		// the restart skips the entrance of the boss and the waits of its speeches, which hold the level end
+		// the restart skips the entrance of the boss and the wait of its speech, which holds the level end
 		await page.keyboard.press('Escape');
 		await page.locator('pause-menu .restart').click();
 		await expect.poll(() => stageValue(page, 'paused')).toBe(false);

@@ -8,9 +8,8 @@ import { Crate } from './entities/Crate.js';
 import { Plasma } from './entities/Plasma.js';
 import { Projectile } from './entities/Projectile.js';
 import { createCakeOrSmokeSparkles } from './entities/Sparkle.js';
-import { endWait, isWaiting, triggerEvents } from './events.js';
-import { unclick } from './inputState.js';
-import { game, input } from './state.js';
+import { isWaiting, triggerEvents } from './events.js';
+import { game } from './state.js';
 import { FIRST_OF_KIND, TileKind } from './tiles.js';
 import { getCos, getDistance, getSin, random } from './utils.js';
 
@@ -53,27 +52,13 @@ export function skipComingBoss() {
  * Run the boss for one tick: the entrance after the waits of the start events, the attacks of each boss, the damage
  * to the player and the end of the fight.
  *
- * After its death, the boss waits for a click that ends the wait of the death event. The click counts only after 60
- * ticks. A replay stores the time of this click and plays it back.
- *
  * @returns {void}
  */
 export function updateBoss() {
 	let d, vx1, vy1, i;
 	if (game.bossNum == 0) return;
 	if (game.bossIsComing) {
-		if (game.bossLife == 3) {
-			if (
-				game.player.fadeNextLevel == 0 &&
-				(game.replayMode ? game.rumbleTime >= game.replay.bossSpeech : input.mouseNewPress && game.rumbleTime > 60)
-			) {
-				if (!game.replayMode) game.replay.bossSpeech = game.rumbleTime;
-				game.bossIsComing = false;
-				shakeScreen();
-				endWait();
-				unclick();
-			}
-		} else if (!isWaiting()) {
+		if (!isWaiting()) {
 			playLoop(sfx_bossRumble);
 			playLoop(sfx_bossAlarm);
 			game.bossComingTime += 32;
@@ -257,23 +242,25 @@ export function updateBoss() {
 	}
 }
 
+/** @type {number} The x position in pixels where the boss is out of the playfield after its death. */
+const BOSS_GONE_X = 530;
+
 /**
- * Shake the screen and let the boss smoke after its death.
+ * Let the boss smoke and leave after its death. The screen shakes until the boss is gone.
  *
  * @returns {void}
  */
 export function updateBossRumble() {
-	if (game.bossLife != 3) return;
+	if (game.bossLife != 3 || game.bossX >= BOSS_GONE_X) return;
 	playLoop(sfx_bossRumble);
-	game.rumbleTime++;
-	if (!game.bossIsComing) shakeScreen();
-	else if (game.rumbleTime % 3 == 0) {
-		game.shakeX = random(-3, 3);
-		game.shakeY = random(-3, 3);
-	}
-	if (!game.bossIsComing && game.time % 10 == 0 && game.bossX < 530) {
+	shakeScreen();
+	if (game.time % 10 == 0) {
 		createCakeOrSmokeSparkles((game.bossX + 14) << 8, (game.bossY + 18) << 8, SparkleType.SMOKE, 3, 300);
 		game.bossX += 1;
+	}
+	if (game.bossX >= BOSS_GONE_X) {
+		game.shakeX = 0;
+		game.shakeY = 0;
 	}
 }
 
@@ -329,8 +316,6 @@ export function hitBoss(obj) {
 		} else {
 			game.projectiles = new Array();
 			game.plasmaBall = new Array();
-			game.bossIsComing = true;
-			game.rumbleTime = 0;
 			triggerEvents('bossDied');
 		}
 	}

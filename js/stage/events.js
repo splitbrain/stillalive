@@ -33,20 +33,9 @@ let triggers = new Set();
 let skipWaits = false;
 
 /**
- * Check if the boss ends the wait of an event. The boss ends the wait of its death speech by its own rules.
- *
- * @param {import('./mapFile.js').MapEvent} event The event.
- * @returns {boolean} True for the event of the death of the boss.
- */
-function isBossWait(event) {
-	return event.on == 'bossDied';
-}
-
-/**
  * Start the events of the level in game.events and fire the start events.
  *
- * In a replay and after a restart of the level, the waits end at once and their texts do not show. The wait of the
- * death of the boss is not skipped.
+ * In a replay and after a restart of the level, the waits end at once and their texts do not show.
  *
  * @param {boolean} [restart] True for a restart of the same level, for example after a death.
  * @returns {void}
@@ -99,7 +88,7 @@ export function endWait() {
  * @returns {void}
  */
 export function updateEvents() {
-	if (waiting !== null && !isBossWait(waiting) && game.player.fadeNextLevel == 0 && input.mouseNewPress) {
+	if (waiting !== null && game.player.fadeNextLevel == 0 && input.mouseNewPress) {
 		endWait();
 		unclick();
 	}
@@ -144,15 +133,15 @@ function hasHappened(event) {
 function fire(event) {
 	if (event.unlock) game.abilities[event.unlock] = true;
 	if (event.portals) event.portals.forEach((portal, p) => placePortal(p, portal));
-	if (event.wait && skipWaits && !isBossWait(event)) return;
+	if (event.wait && skipWaits) return;
 	if (event.text !== undefined) {
 		const text = event.text.replace(/\{(Key[WASDE])\}/g, (_, code) => keyLabels.get()[code]);
 		game.message = text ? { text, wait: Boolean(event.wait), portrait: game.bossNum } : null;
 	}
 	if (!event.wait) return;
 	waiting = event;
-	// the level time stops in this tick; the boss stops it after its death itself
-	if (!isBossWait(event) && game.player.fadeNextLevel == -1) game.player.fadeNextLevel = 0;
+	// the level time stops in this tick
+	if (game.player.fadeNextLevel == -1) game.player.fadeNextLevel = 0;
 }
 
 /**

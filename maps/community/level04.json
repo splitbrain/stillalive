@@ -1,8 +1,8 @@
 {
 	"format": 1,
-	"title": "Dual Screen",
+	"title": "One Crate, Two Jobs",
 	"bg": 3,
-	"text": "Tilt your head to the left... See? You're playing on a Nintendo DS! Get rid of these turrets with the crate, but keep it for the switch or you won't be able to get out.",
+	"text": "One crate, two jobs. Use it to get rid of these turrets, but keep it for the switch or you won't be able to get out.",
 	"tiles": [
 		1,5,5,5,5,5,5,5,5,5,5,5,5,5,1,1,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,1,
 		4,0,0,0,0,0,0,0,0,0,0,0,0,0,2,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,

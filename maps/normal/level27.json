@@ -2,7 +2,7 @@
 	"format": 1,
 	"title": "Speed Reading",
 	"bg": 4,
-	"text": "Stop wasting time reading me!! If you don't get out quickly, these turrets will kill you before you notice!",
+	"text": "Stop wasting time listening to me!! If you don't get out quickly, these turrets will kill you before you notice!",
 	"tiles": [
 		4,0,0,0,2,1,1,1,1,1,1,1,1,4,0,0,0,0,0,0,0,0,0,2,1,1,1,1,1,1,1,1,
 		4,0,104,0,2,1,1,1,1,1,1,1,1,4,0,0,0,0,0,0,0,0,0,2,1,1,1,1,1,1,1,1,

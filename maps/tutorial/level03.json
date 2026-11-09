@@ -8,27 +8,27 @@
 	"events": [
 		{
 			"on": "start",
-			"text": "Let's get familiar with portals now. Please wait 5 seconds while we gather the energy to activate them..."
+			"text": "Charging portals... 5"
 		},
 		{
 			"on": "time",
 			"ticks": 60,
-			"text": "Let's get familiar with portals now. Please wait 4 seconds while we gather the energy to activate them..."
+			"text": "Charging portals... 4"
 		},
 		{
 			"on": "time",
 			"ticks": 120,
-			"text": "Let's get familiar with portals now. Please wait 3 seconds while we gather the energy to activate them..."
+			"text": "Charging portals... 3"
 		},
 		{
 			"on": "time",
 			"ticks": 180,
-			"text": "Let's get familiar with portals now. Please wait 2 seconds while we gather the energy to activate them..."
+			"text": "Charging portals... 2"
 		},
 		{
 			"on": "time",
 			"ticks": 240,
-			"text": "Let's get familiar with portals now. Please wait 1 second while we gather the energy to activate them..."
+			"text": "Charging portals... 1"
 		},
 		{
 			"on": "time",

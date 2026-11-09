@@ -5,8 +5,7 @@
 	"events": [
 		{
 			"on": "start",
-			"text": "When you enter a portal, you keep your speed as you leave the other one. Use this speed to jump higher or further. Shoot portals where shown to finish this level. Don't forget to grab the cakes on your way. Click to continue...",
-			"wait": "click"
+			"text": "When you enter a portal, you keep your speed as you leave the other one. Use this speed to jump higher or further. Shoot portals where shown to finish this level. Don't forget to grab the cakes on your way."
 		}
 	],
 	"labels": [

@@ -4,7 +4,7 @@
 
 import { campaignPath, navigate, route } from '../../router.js';
 import { CampaignId, CAMPAIGN_FOLDERS, LEVELS_PER_CAMPAIGN } from '../../stage/constants.js';
-import { campaigns, campaignsReady, loadCampaigns, loadCreditsText } from '../campaigns.js';
+import { campaigns, campaignsReady, loadCampaigns } from '../campaigns.js';
 import { alertDialog } from '../dialog.js';
 import { setAttributes } from '../dom.js';
 import { ChromeElement, loadMarkup, Screen } from '../element.js';
@@ -70,7 +70,7 @@ const EDITOR_TEXT =
  * replay from the intermission panel opens the panel again with the same content on an empty stage, any other replay
  * goes to the selection of its level.
  *
- * The element starts the loading of the campaigns and the credits, and sets the sound of the stage from the storage.
+ * The element starts the loading of the campaigns, and sets the sound of the stage from the storage.
  * It stores each change of the sound after the game starts, from the buttons of the page or from the key of the stage.
  * When the URL contains "?unlock", the element stores all levels of all campaigns as finished when the campaigns are
  * loaded. This is for manual tests.
@@ -123,7 +123,6 @@ export class GameApp extends ChromeElement {
 		const stage = this.stage;
 		stage.setSound(loadSoundSetting());
 		loadCampaigns();
-		loadCreditsText();
 		if (new URLSearchParams(location.search).has('unlock')) campaignsReady.subscribe((ready) => this.#unlockAll(ready));
 		window.addEventListener('click', (event) => {
 			if (!this.#start() && event.target.closest(SOUND_BUTTONS)) stage.playClickSound();

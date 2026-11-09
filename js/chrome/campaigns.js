@@ -1,5 +1,5 @@
 /**
- * Loading of the campaigns, their level files and the credits.
+ * Loading of the campaigns and their level files.
  */
 
 import { CAMPAIGN_FOLDERS, CampaignId } from '../stage/constants.js';
@@ -24,8 +24,6 @@ const missingLevelFiles = [];
 export const campaignsLoading = new Value({ progress: 0, missing: [] });
 /** @type {Value} True when all campaign and level files are loaded. */
 export const campaignsReady = new Value(false);
-/** @type {Value} The lines of the credits, an empty list until the credits are loaded. */
-export const credits = new Value([]);
 
 /**
  * A campaign with its levels.
@@ -190,17 +188,6 @@ function loadJsonFile(url, callback, onError = () => {}) {
 			console.error(url, e);
 			onError();
 		});
-}
-
-/**
- * Start to load the lines of the credits.
- *
- * @returns {void}
- */
-export function loadCreditsText() {
-	loadJsonFile('credits.json', function (data) {
-		credits.set(data.lines);
-	});
 }
 
 /**

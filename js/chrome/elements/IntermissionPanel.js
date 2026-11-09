@@ -14,8 +14,8 @@ const TEMPLATE = await loadMarkup(import.meta.url);
  * and Continue links and the Watch Replay button. It shows on the play screen while it has the attribute open.
  *
  * The attribute time is the level time in ticks, message is the message under the time, exit, restart and next are the
- * paths of the Exit, Restart and Continue links. A link without its attribute is hidden. The Exit link replaces the
- * entry of the level in the history. The Watch Replay button dispatches the bubbling event replay-watch; the app
+ * paths of the Exit, Restart and Continue links. A link without its attribute is hidden. The Exit link goes up in
+ * the history to its path, and the Continue link replaces the entry of the level. The Watch Replay button dispatches the bubbling event replay-watch; the app
  * element plays the replay of the level that just ended.
  */
 export class IntermissionPanel extends ChromeScreen {

@@ -2,7 +2,7 @@
  * The element of the save and load screen of the editor.
  */
 
-import { navigate } from '../../router.js';
+import { up } from '../../router.js';
 import { alertDialog } from '../dialog.js';
 import { setAttributes } from '../dom.js';
 import { loadMarkup, Screen } from '../element.js';
@@ -18,15 +18,13 @@ const TEMPLATE = await loadMarkup(import.meta.url);
  * editor and the list of the slots. The stage shows the preview of the slot under the pointer, or of the editor map
  * when the pointer is on no stored slot.
  *
- * The attribute mode is empty for the editor, and save or load for the save or load screen. The app element sets it on
- * the editor routes and removes it on the other routes. The element shows on the save and load screen only, but the
- * empty mode tells it that the player came from the editor. The element gives the mode to the slot list.
+ * The attribute mode is save or load for the save or load screen. The app element sets it on the editor-file route and
+ * removes it on the other routes. The element gives the mode to the slot list.
  *
  * On the save screen, a click on an empty slot saves the editor map into the slot. A click on a stored slot saves only
  * after the player confirms that the stored map is overwritten. On the load screen, a click on a stored slot opens its
  * map in the editor. If the editor map is not empty, the player must first confirm that it is replaced. Then the
- * element goes back to the editor: back in the history if the player came from the editor, else to the editor route
- * in place of the current entry. So after a save or a load the history holds the editor route only once.
+ * element goes up to the editor.
  */
 export class EditorFiles extends SelectionScreen {
 	/** @type {HTMLTemplateElement|null} The markup of the save and load screen. */
@@ -34,9 +32,6 @@ export class EditorFiles extends SelectionScreen {
 
 	/** @type {string[]} The attributes that cause a new render when they change. */
 	static observedAttributes = ['mode'];
-
-	/** @type {boolean} True if the save or load screen was opened from the editor. */
-	#fromEditor = false;
 
 	/** @type {boolean} True after a save or a load, until the mode changes. Further slot clicks do nothing. */
 	#leaving = false;
@@ -52,15 +47,11 @@ export class EditorFiles extends SelectionScreen {
 	}
 
 	/**
-	 * Note if the save or load screen opens from the editor, allow the slot clicks again, and render the screen again.
+	 * Allow the slot clicks again, and render the screen again.
 	 *
-	 * @param {string} name The name of the attribute.
-	 * @param {string|null} oldValue The value before the change.
-	 * @param {string|null} newValue The value after the change.
 	 * @returns {void}
 	 */
-	attributeChangedCallback(name, oldValue, newValue) {
-		if (oldValue !== newValue) this.#fromEditor = oldValue === '';
+	attributeChangedCallback() {
 		this.#leaving = false;
 		super.attributeChangedCallback();
 	}
@@ -129,8 +120,7 @@ export class EditorFiles extends SelectionScreen {
 	 */
 	#backToEditor() {
 		this.#leaving = true;
-		if (this.#fromEditor) history.back();
-		else navigate('#/editor', true);
+		up('#/editor');
 	}
 
 	/**

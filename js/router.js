@@ -6,17 +6,24 @@
  * The hash #/ or an empty hash is the main route. The hash #/campaign/normal is the select route of the campaign
  * without a level, and #/campaign/normal/5 is the select route with level 5 selected. The hash
  * #/campaign/normal/5/play is the play route with mode play, and #/campaign/normal/5/replay is the play route with
- * mode replay, the playback of a replay. The hash #/editor is the editor route. The hashes #/editor/save and
- * #/editor/load are the editor-file route with mode save or load. The hash #/credits is the credits route.
+ * mode replay, the playback of a replay. The hash #/editor is the editor route, and #/editor/test is the editor route
+ * with mode test, the test run of the editor map. The hashes #/editor/save and #/editor/load are the editor-file route
+ * with mode save or load. The hash #/credits is the credits route.
  *
  * The campaign is the folder name of the campaign. The router checks only the form of the hash and replaces an unknown
  * hash with #/. It does not know the progress of the player: the app element replaces a locked level.
  *
+ * The history follows the tree of the screens. A step down to a child screen adds an entry, a step to the side
+ * replaces the entry, and a step up goes back in the history to the entry of the parent screen. Each entry that the
+ * router adds keeps the hashes of the entries below it in its state, so a step up knows how far to go back. If the
+ * parent screen is not below in the history, e.g. after a typed URL, the step up replaces the entry.
+ *
  * A navigation to the hash that the URL has already, by a link or by navigate(), sets the route again. The subscribers
  * then apply the same route again, e.g. to restart a level.
  *
- * A link with the attribute data-replace replaces the current entry of the history instead of adding a new entry, so
- * the back button does not go to the screen the link leaves. A click with a modifier key is left to the browser.
+ * The router handles the clicks on the links to a route. A link adds an entry. A link with the attribute data-replace
+ * replaces the entry, and a link with the attribute data-up goes up to its path. A click with a modifier key is left to
+ * the browser.
  */
 
 import { CAMPAIGN_FOLDERS } from './stage/constants.js';
@@ -29,15 +36,15 @@ import { Value } from './value.js';
  * @property {string} name The screen: main, select, play, editor, editor-file or credits.
  * @property {string|null} campaign The folder name of the campaign, or null if the route has no campaign.
  * @property {number} level The level number, starting at 1, or 0 if the route has no level.
- * @property {string|null} mode The mode: play or replay for the play route, save or load for the editor-file route,
- *     else null.
+ * @property {string|null} mode The mode: play or replay for the play route, test for the test run on the editor
+ *     route, save or load for the editor-file route, else null.
  */
 
 /** @type {RegExp} The pattern of the campaign routes: the campaign, the level and the play mode. */
 const CAMPAIGN_PATTERN = /^#\/campaign\/([a-z]+)(?:\/([1-9]\d*)(?:\/(play|replay))?)?$/;
 
-/** @type {RegExp} The pattern of the editor routes: the mode of the save and load screen. */
-const EDITOR_PATTERN = /^#\/editor(?:\/(save|load))?$/;
+/** @type {RegExp} The pattern of the editor routes: the mode of the test run or of the save and load screen. */
+const EDITOR_PATTERN = /^#\/editor(?:\/(save|load|test))?$/;
 
 /**
  * Create a route.
@@ -70,38 +77,69 @@ function parseHash(hash) {
 	}
 
 	const editor = EDITOR_PATTERN.exec(hash);
-	if (editor) return editor[1] ? createRoute('editor-file', null, 0, editor[1]) : createRoute('editor');
-
-	return null;
+	if (!editor) return null;
+	const mode = editor[1] ?? null;
+	return mode === 'save' || mode === 'load'
+		? createRoute('editor-file', null, 0, mode)
+		: createRoute('editor', null, 0, mode);
 }
 
 /**
- * Parse the hash of the URL. An unknown hash is replaced with #/ without a new entry in the history.
+ * Parse the hash of the URL. An unknown hash and the other forms of the main route are replaced with #/ without a new
+ * entry in the history.
  *
  * @returns {Route} The route.
  */
 function currentRoute() {
 	const parsed = parseHash(location.hash);
-	if (parsed) return parsed;
-	history.replaceState(null, '', '#/');
+	if (parsed && (parsed.name !== 'main' || location.hash === '#/')) return parsed;
+	history.replaceState(history.state, '', '#/');
 	return createRoute('main');
+}
+
+/**
+ * Get the hashes of the entries below the current entry of the history, as far as the router knows them.
+ *
+ * @returns {string[]} The hashes, the lowest first.
+ */
+function trail() {
+	return history.state?.trail ?? [];
 }
 
 /** @type {Value} The current route, a Route object. */
 export const route = new Value(currentRoute());
 
-window.addEventListener('hashchange', () => route.set(currentRoute()));
+/** @type {string} The hash of the route that the router set last. */
+let routeHash = location.hash;
+
+/**
+ * Set the route from the URL.
+ *
+ * @returns {void}
+ */
+function applyHash() {
+	const next = currentRoute();
+	routeHash = location.hash;
+	route.set(next);
+}
+
+if (!history.state?.trail) history.replaceState({ trail: [] }, '');
+
+// a step in the history and a typed hash change the URL; the second of the two events finds the same hash
+for (const type of ['popstate', 'hashchange']) {
+	window.addEventListener(type, () => {
+		if (location.hash !== routeHash) applyHash();
+	});
+}
 
 document.addEventListener('click', (event) => {
 	if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
 	const link = event.target.closest?.('a[href^="#/"]');
 	if (!link) return;
-	if (link.hasAttribute('data-replace')) {
-		event.preventDefault();
-		navigate(link.getAttribute('href'), true);
-	} else if (link.getAttribute('href') === location.hash) {
-		route.set(currentRoute());
-	}
+	event.preventDefault();
+	const path = link.getAttribute('href');
+	if (link.hasAttribute('data-up')) up(path);
+	else navigate(path, link.hasAttribute('data-replace'));
 });
 
 /**
@@ -120,7 +158,7 @@ export function campaignPath(campaign, level = 0, mode = null) {
 }
 
 /**
- * Go to a path. A path that the URL has already sets the route again.
+ * Go to a path. A path that the URL has already sets the route again and adds no entry.
  *
  * @param {string} path The path, e.g. "#/editor".
  * @param {boolean} [replace] True to replace the current entry of the history instead of adding a new entry.
@@ -128,11 +166,23 @@ export function campaignPath(campaign, level = 0, mode = null) {
  */
 export function navigate(path, replace = false) {
 	if (replace) {
-		history.replaceState(null, '', path);
-		route.set(currentRoute());
-	} else if (location.hash === path) {
-		route.set(currentRoute());
-	} else {
-		location.hash = path;
+		history.replaceState({ trail: trail() }, '', path);
+	} else if (location.hash !== path) {
+		history.pushState({ trail: [...trail(), location.hash] }, '', path);
 	}
+	applyHash();
+}
+
+/**
+ * Go up to the path of a parent screen: back in the history to the nearest entry below with this path, or else
+ * replace the current entry.
+ *
+ * @param {string} path The path, e.g. "#/".
+ * @returns {void}
+ */
+export function up(path) {
+	const below = trail();
+	const index = below.lastIndexOf(path);
+	if (location.hash === path || index < 0) navigate(path, true);
+	else history.go(index - below.length);
 }

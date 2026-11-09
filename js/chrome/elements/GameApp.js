@@ -2,7 +2,7 @@
  * The app element: it shows the screen of the route and drives the stage.
  */
 
-import { campaignPath, navigate, route } from '../../router.js';
+import { campaignPath, navigate, route, up } from '../../router.js';
 import { CampaignId, CAMPAIGN_FOLDERS, LEVELS_PER_CAMPAIGN } from '../../stage/constants.js';
 import { campaigns, campaignsReady } from '../campaigns.js';
 import { alertDialog } from '../dialog.js';
@@ -48,26 +48,29 @@ const EDITOR_TEXT =
  * the buttons of the VCR panel play the same sounds. The stage does not get the key that starts the game, so the key
  * does not move the player or command the stage. Then the element shows the screen
  * of the route and commands the stage. The editor route opens the editor map from before, so the map stays until the page reloads. The save and
- * load screen shows the preview of the editor map. The test run of the editor map shows the play screen. The element
- * replaces a route with a locked level by the selection of the campaign, because the router does not know the
- * progress of the player.
+ * load screen shows the preview of the editor map. The editor route with mode test runs the editor map and shows the
+ * play screen. When the test run ends on the stage, the element goes up to the editor; without an open editor, the
+ * route with mode test is replaced by the editor route. The element replaces a route with a locked level by the
+ * selection of the campaign, because the router does not know the progress of the player. When the player goes from a
+ * level to the selection of another level of the same campaign, e.g. back after Continue, the selection of the level
+ * that the player left replaces the route.
  *
  * The element sets the campaign and the level of the route as attributes of the level selection, and the campaign, the
  * level and the play mode as attributes of the best times panel. The panel gets a campaign only on the select and the
  * play routes. On the play route, it gives the restart path to the pause menu, and the path of the main menu as the
  * exit path to the pause menu and the intermission panel. It gives the robot head the eye of the part of the story and
  * marks it as absent in boss levels, because the boss is the robot. It sets the fixed text of the editor screens as the
- * text attribute of the narrator text. It sets the mode attribute of the save and load screen: empty on the editor
- * route, save or load on the editor-file route. A replay-import event from a page element plays the replay in its
+ * text attribute of the narrator text. It sets the mode attribute of the save and load screen on the editor-file
+ * route. A replay-import event from a page element plays the replay in its
  * detail.
  *
  * At the end of a level, the element stores the best time, the replay and the progress, and chooses the next route or
  * opens the intermission panel. A new route closes the panel. A replay-watch event from the panel plays the replay of
  * the level that ended. When the window loses the focus during a level, the element pauses the stage.
  *
- * The end of a replay, the Stop button of the VCR panel and the Escape key go back to where the replay started: a
- * replay from the intermission panel opens the panel again with the same content on an empty stage, any other replay
- * goes to the selection of its level.
+ * The end of a replay, the Stop button of the VCR panel and the Escape key go up to where the replay started. The
+ * browser back button goes there too. A replay from the intermission panel opens the panel again with the same content
+ * on an empty stage, any other replay goes to the selection of its level.
  *
  * The element sets the sound of the stage from the storage.
  * It stores each change of the sound after the game starts, from the buttons of the page or from the key of the stage.
@@ -105,9 +108,6 @@ export class GameApp extends ChromeElement {
 	/** @type {{path: string, intermission: object|null}|null} The return that watch() gives to the next replay route. */
 	#pendingReturn = null;
 
-	/** @type {object|null} The attributes of the intermission panel that the next play route opens, or null. */
-	#reopen = null;
-
 	/**
 	 * Set the sound from the storage and handle the clicks and key presses that start the game, the events of the stage,
 	 * the import of a replay, the Watch Replay button of the intermission and the Stop button of the VCR panel.
@@ -144,7 +144,8 @@ export class GameApp extends ChromeElement {
 	}
 
 	/**
-	 * Subscribe to the route, to the loading, to the mode and the pause of the stage and to the sound. The first call of the route
+	 * Subscribe to the route, to the loading, to the mode and the pause of the stage and to the sound. The end of the test
+	 * run on the stage goes up to the editor. The first call of the route
 	 * subscription shows the screen, so that only the loading screen shows at the end of the first connect.
 	 *
 	 * @returns {Array<function(): void>} The functions that remove the subscriptions.
@@ -154,7 +155,11 @@ export class GameApp extends ChromeElement {
 		return [
 			route.subscribe(() => this.#applyRoute()),
 			ready.subscribe(() => this.#applyRoute()),
-			stage.mode.subscribe(() => this.#showScreen()),
+			stage.mode.subscribe((mode) => {
+				const r = route.get();
+				if (mode != 'test' && r.name == 'editor' && r.mode == 'test') up('#/editor');
+				this.#showScreen();
+			}),
 			stage.paused.subscribe(() => this.#showScreen()),
 			stage.sound.subscribe((on) => {
 				if (this.#started) saveSoundSetting(on);
@@ -177,16 +182,14 @@ export class GameApp extends ChromeElement {
 	}
 
 	/**
-	 * End the replay and go back to where it started. Outside of a replay route, the method does nothing.
+	 * End the replay and go up to where it started. Outside of a replay route, the method does nothing.
 	 *
 	 * @returns {void}
 	 */
 	#leaveReplay() {
 		const r = route.get();
 		if (r.name != 'play' || r.mode != 'replay') return;
-		const back = this.#replayReturn ?? { path: campaignPath(r.campaign, r.level), intermission: null };
-		this.#reopen = back.intermission;
-		navigate(back.path, true);
+		up(this.#replayReturn?.path ?? campaignPath(r.campaign, r.level));
 	}
 
 	/**
@@ -280,7 +283,8 @@ export class GameApp extends ChromeElement {
 	 * Apply the route: command the stage and show the screen. A level that does not exist or that is locked goes to the
 	 * selection of its campaign. The playback of a replay needs only an existing level. The selection shows the preview
 	 * of the selected level, or of the highest unlocked level when no level is selected. A level that follows a play
-	 * route of the same level starts as a restart, which skips the waits at the level start.
+	 * route of the same level starts as a restart, which skips the waits at the level start. The play route where a
+	 * replay started opens the intermission panel of the replay again.
 	 *
 	 * @returns {void}
 	 */
@@ -299,11 +303,17 @@ export class GameApp extends ChromeElement {
 			}
 		}
 
-		const reopen = this.#reopen;
-		this.#reopen = null;
 		const previous = this.#applied;
+		const otherLevel = previous?.name == 'play' && previous.campaign === r.campaign && previous.level !== r.level;
+		if (r.name == 'select' && r.level > 0 && otherLevel) {
+			navigate(campaignPath(r.campaign, previous.level), true);
+			return;
+		}
 		const sameLevel = previous?.name == 'play' && previous.campaign === r.campaign && previous.level === r.level;
 		const again = sameLevel && previous.mode === r.mode;
+		const path = r.name == 'play' ? campaignPath(r.campaign, r.level, r.mode) : null;
+		const replayLeft = previous?.mode == 'replay' && !again;
+		const reopen = replayLeft && this.#replayReturn?.path === path ? this.#replayReturn.intermission : null;
 		this.#applied = r;
 		const level = r.level > 0 ? campaigns[index].levels[r.level - 1] : null;
 
@@ -317,9 +327,17 @@ export class GameApp extends ChromeElement {
 			this.#replayReturn = this.#pendingReturn;
 			this.#pendingReturn = null;
 			this.#playReplay(r, level, again);
+		} else if (r.name == 'editor' && r.mode == 'test') {
+			this.stage.test();
+			if (this.stage.mode.get() != 'test') {
+				navigate('#/editor', true);
+				return;
+			}
+		} else if (r.name == 'editor' && this.stage.mode.get() == 'test') {
+			this.stage.stopTest();
 		} else if (r.name == 'editor') {
 			this.stage.edit();
-			if (previous?.name != 'editor-file') this.stage.setBrush(1);
+			if (previous?.name != 'editor-file' && previous?.name != 'editor') this.stage.setBrush(1);
 		} else if (r.name == 'editor-file') {
 			this.stage.preview(this.stage.getMap());
 		} else {
@@ -345,10 +363,7 @@ export class GameApp extends ChromeElement {
 			absent: play && level.boss > 0 ? '' : null,
 		});
 		setAttributes(this.querySelector('narrator-text'), { text: r.name.startsWith('editor') ? EDITOR_TEXT : null });
-		let editorMode = null;
-		if (r.name == 'editor') editorMode = '';
-		else if (r.name == 'editor-file') editorMode = r.mode;
-		setAttributes(this.querySelector('editor-files'), { mode: editorMode });
+		setAttributes(this.querySelector('editor-files'), { mode: r.name == 'editor-file' ? r.mode : null });
 		this.#showScreen();
 	}
 
@@ -379,8 +394,8 @@ export class GameApp extends ChromeElement {
 	}
 
 	/**
-	 * Start the playback of a replay. If there is no replay or the replay is not valid, a message shows and the
-	 * selection of the level replaces the route.
+	 * Start the playback of a replay. If there is no replay or the replay is not valid, a message shows and the player
+	 * goes up to the selection of the level.
 	 *
 	 * @param {import('../../router.js').Route} r The replay route.
 	 * @param {import('../../stage/level.js').Level} level The level.
@@ -395,7 +410,7 @@ export class GameApp extends ChromeElement {
 			this.#replay = data;
 		} catch (error) {
 			alertDialog(error.message, 'Replay');
-			navigate(campaignPath(r.campaign, r.level), true);
+			up(campaignPath(r.campaign, r.level));
 		}
 	}
 
@@ -468,6 +483,6 @@ export class GameApp extends ChromeElement {
 			"The replay you're watching seems to be broken -_-;\n" + 'Sorry for the inconvenience.',
 			'An error occurred',
 		);
-		navigate(campaignPath(r.campaign, r.level), true);
+		up(campaignPath(r.campaign, r.level));
 	}
 }

@@ -64,7 +64,7 @@ const FILE_PARTS = ['editor-files', 'editor-palette', 'editor-buttons', 'narrato
  * @returns {Promise<void>}
  */
 async function expectScreen(page, hash, visible) {
-	await expect.poll(() => page.evaluate(() => location.hash)).toBe(hash);
+	await expectHash(page, hash);
 	for (const part of SCREEN_PARTS) {
 		if (visible.includes(part)) await expect(page.locator(part)).toBeVisible();
 		else await expect(page.locator(part)).toBeHidden();
@@ -80,6 +80,29 @@ async function expectScreen(page, hash, visible) {
  */
 function stageValue(page, name) {
 	return page.evaluate((name) => window.__test.stage[name].get(), name);
+}
+
+/**
+ * Check the hash of the URL.
+ *
+ * @param {import('@playwright/test').Page} page The page.
+ * @param {string} hash The expected hash, e.g. "#/editor".
+ * @returns {Promise<void>}
+ */
+async function expectHash(page, hash) {
+	await expect.poll(() => page.evaluate(() => location.hash)).toBe(hash);
+}
+
+/**
+ * Check the hashes of the history entries below the current entry, as the router keeps them in the state of the entry.
+ * An entry that the router did not add has none.
+ *
+ * @param {import('@playwright/test').Page} page The page.
+ * @param {string[]} trail The expected hashes, the lowest first.
+ * @returns {Promise<void>}
+ */
+async function expectTrail(page, trail) {
+	await expect.poll(() => page.evaluate(() => history.state?.trail ?? [])).toEqual(trail);
 }
 
 /**
@@ -134,17 +157,23 @@ test.describe('chrome', () => {
 		await page.locator('pause-menu .exit').click();
 		await expectScreen(page, '#/', ['main-menu']);
 
-		// the Exit link replaces the entry of the level, so the back button goes to the entry before the level
-		await page.goBack();
+		// the Exit link goes up to the entry of the main menu
+		await expectTrail(page, []);
+
+		await page.getByRole('link', { name: 'Classic Mode' }).click();
+		await page.locator('level-list').getByRole('link', { name: 'Level 1', exact: true }).click();
 		await expectScreen(page, '#/campaign/normal/1', SELECT_PARTS);
-		await expect.poll(() => stageValue(page, 'mode')).toBe('preview');
+		await expectTrail(page, ['#/', '#/campaign/normal']);
 
 		await page.locator('level-selection .back').click();
 		await expectScreen(page, '#/campaign/normal', SELECT_PARTS);
 		await expect(page.locator('level-list')).toBeVisible();
+		await expect.poll(() => stageValue(page, 'mode')).toBe('preview');
+		await expectTrail(page, ['#/']);
 
 		await page.locator('level-selection .back').click();
 		await expectScreen(page, '#/', ['main-menu']);
+		await expectTrail(page, []);
 
 		await page.getByRole('link', { name: 'Level Editor' }).click();
 		await expectScreen(page, '#/editor', EDITOR_PARTS);
@@ -182,8 +211,92 @@ test.describe('chrome', () => {
 		await expect(page.locator('slot-list')).toBeHidden();
 		await expect.poll(() => stageValue(page, 'mode')).toBe('edit');
 
+		await expectTrail(page, ['#/']);
+
 		await page.locator('editor-buttons').getByRole('button', { name: 'Exit' }).click();
 		await expectScreen(page, '#/', ['main-menu']);
+		await expectTrail(page, []);
+	});
+
+	test('keeps the history in the tree of the screens after a level', async ({ page }) => {
+		await page.addInitScript(() => localStorage.setItem('stillalive_progress', JSON.stringify({ normal: 2 })));
+		await startGame(page);
+		await setHash(page, '#/');
+		await page.getByRole('link', { name: 'Classic Mode' }).click();
+		await page.locator('level-list').getByRole('link', { name: 'Level 1', exact: true }).click();
+		await page.locator('level-selection .play').click();
+		await expectScreen(page, '#/campaign/normal/1/play', PLAY_PARTS);
+		await page.waitForFunction(() => window.__test.game.time > 0);
+		// a replay ends when its inputs end, so the level runs for 20 seconds to give the replay time for the checks
+		await page.evaluate(() => {
+			for (let tick = 0; tick < 1200; tick++) window.__test.tick();
+		});
+		await finishLevel(page);
+		await expect(page.locator('intermission-panel')).toBeVisible();
+
+		// the Stop button and the back button both end the replay and open the panel again
+		const below = ['#/', '#/campaign/normal', '#/campaign/normal/1'];
+		await page.locator('intermission-panel .replay').click();
+		await expectHash(page, '#/campaign/normal/1/replay');
+		await expect(page.locator('vcr-panel')).toBeVisible();
+		await expectTrail(page, [...below, '#/campaign/normal/1/play']);
+		await page.locator('vcr-panel .stop').click();
+		await expectHash(page, '#/campaign/normal/1/play');
+		await expect(page.locator('intermission-panel')).toBeVisible();
+		await expectTrail(page, below);
+
+		await page.locator('intermission-panel .replay').click();
+		await expectHash(page, '#/campaign/normal/1/replay');
+		await expect(page.locator('vcr-panel')).toBeVisible();
+		await page.goBack();
+		await expectHash(page, '#/campaign/normal/1/play');
+		await expect(page.locator('intermission-panel')).toBeVisible();
+		await expectTrail(page, below);
+
+		// Continue replaces the level, and the back button goes to the selection of the level that the player left
+		await page.locator('intermission-panel .next').click();
+		await expectScreen(page, '#/campaign/normal/2/play', PLAY_PARTS);
+		await expectTrail(page, below);
+		await page.goBack();
+		await expectScreen(page, '#/campaign/normal/2', SELECT_PARTS);
+		await expectTrail(page, ['#/', '#/campaign/normal']);
+	});
+
+	test('runs the test of the editor map on its own route', async ({ page }) => {
+		await startGame(page);
+		await setHash(page, '#/editor');
+		await expectScreen(page, '#/editor', EDITOR_PARTS);
+
+		const tryButton = page.locator('editor-buttons .test');
+		await tryButton.click();
+		await expectHash(page, '#/editor/test');
+		await expect.poll(() => stageValue(page, 'mode')).toBe('test');
+		await expectTrail(page, ['#/editor']);
+		await page.goBack();
+		await expectScreen(page, '#/editor', EDITOR_PARTS);
+		await expect.poll(() => stageValue(page, 'mode')).toBe('edit');
+
+		// the end of the test run on the stage goes up to the editor
+		await tryButton.click();
+		await expect.poll(() => stageValue(page, 'mode')).toBe('test');
+		await page.keyboard.press('Escape');
+		await expectScreen(page, '#/editor', EDITOR_PARTS);
+		await expect.poll(() => stageValue(page, 'mode')).toBe('edit');
+		await expectTrail(page, []);
+
+		await tryButton.click();
+		await expect.poll(() => stageValue(page, 'mode')).toBe('test');
+		await expect(tryButton).toHaveText('Stop');
+		await tryButton.click();
+		await expectScreen(page, '#/editor', EDITOR_PARTS);
+		await expect.poll(() => stageValue(page, 'mode')).toBe('edit');
+		await expectTrail(page, []);
+
+		// without an open editor, the editor route replaces the test run
+		await setHash(page, '#/');
+		await expectScreen(page, '#/', ['main-menu']);
+		await setHash(page, '#/editor/test');
+		await expectScreen(page, '#/editor', EDITOR_PARTS);
 	});
 
 	test('keeps one map in memory and saves, loads, undoes and redoes it', async ({ page }) => {
@@ -295,7 +408,10 @@ test.describe('chrome', () => {
 	test('shows the credits after the last story level', async ({ page }) => {
 		const last = CAMPAIGNS.find((campaign) => campaign.name == 'story').levels;
 		// the progress is read when the page loads: the last story level is unlocked and not finished
-		await page.addInitScript((last) => localStorage.setItem('stillalive_progress', JSON.stringify({ story: last })), last);
+		await page.addInitScript(
+			(last) => localStorage.setItem('stillalive_progress', JSON.stringify({ story: last })),
+			last,
+		);
 		await startGame(page);
 		await setHash(page, `#/campaign/story/${last}`);
 		await expectScreen(page, `#/campaign/story/${last}`, SELECT_PARTS);

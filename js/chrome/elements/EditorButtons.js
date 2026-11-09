@@ -2,7 +2,7 @@
  * The editor buttons element.
  */
 
-import { navigate, route } from '../../router.js';
+import { navigate, route, up } from '../../router.js';
 import { MAP_FORMAT, parseMap } from '../../stage/mapFile.js';
 import { alertDialog } from '../dialog.js';
 import { ChromeScreen, loadMarkup, Screen } from '../element.js';
@@ -14,11 +14,12 @@ const TEMPLATE = await loadMarkup(import.meta.url);
 
 /**
  * The custom element <editor-buttons>. It shows the row of the Try, Undo, Redo, Clear, Save, Load, Export, Import and
- * Exit buttons on the editor screen and during the test run of the map. The Undo and Redo buttons show arrows. The Try button starts the test run of the map.
+ * Exit buttons on the editor screen and during the test run of the map. The Undo and Redo buttons show arrows. The Try button goes to the test run of the map.
  * The Undo, Redo and Clear buttons change the map of the stage. The Export button downloads the map as a JSON file,
- * and the Import button replaces the map with a map file. A button with a data-href attribute goes to that route.
+ * and the Import button replaces the map with a map file. A button with a data-href attribute goes to that route, and a
+ * button with a data-up attribute goes up to that route.
  *
- * During the test run, the Try button is labeled Stop and ends the test run, and all other buttons are disabled. On
+ * During the test run, the Try button is labeled Stop and goes back to the editor, and all other buttons are disabled. On
  * the save and load screen and while the confirmation screen shows a question, all buttons are disabled.
  */
 export class EditorButtons extends ChromeScreen {
@@ -32,8 +33,8 @@ export class EditorButtons extends ChromeScreen {
 	 */
 	setUp() {
 		this.querySelector('.test').addEventListener('click', () => {
-			if (this.stage.mode.get() == 'test') this.stage.stopTest();
-			else this.stage.test();
+			if (this.stage.mode.get() == 'test') up('#/editor');
+			else navigate('#/editor/test');
 		});
 		this.querySelector('.undo').addEventListener('click', () => this.stage.undo());
 		this.querySelector('.redo').addEventListener('click', () => this.stage.redo());
@@ -44,6 +45,9 @@ export class EditorButtons extends ChromeScreen {
 		});
 		for (const button of this.querySelectorAll('[data-href]')) {
 			button.addEventListener('click', () => navigate(button.dataset.href));
+		}
+		for (const button of this.querySelectorAll('[data-up]')) {
+			button.addEventListener('click', () => up(button.dataset.up));
 		}
 	}
 

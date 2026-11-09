@@ -2,6 +2,7 @@
  * The loading screen element.
  */
 
+import { keyLabels } from '../../stage/keys.js';
 import { campaignsLoading, campaignsReady } from '../campaigns.js';
 import { ChromeScreen, loadMarkup, Screen } from '../element.js';
 
@@ -9,17 +10,17 @@ import { ChromeScreen, loadMarkup, Screen } from '../element.js';
 const TEMPLATE = await loadMarkup(import.meta.url);
 
 /**
- * The custom element <loading-screen>. It shows a title, the start button, the credits and the files that could not be
- * loaded. While the images, the sounds and the campaigns load, the start button is disabled and shows the total
- * progress. When everything is loaded, the title and the button tell that the game can start. The app element handles
- * the click or the key press that starts the game.
+ * The custom element <loading-screen>. It shows a title, the start button, the controls of the game and the files
+ * that could not be loaded. While the images, the sounds and the campaigns load, the start button is disabled and shows
+ * the total progress. When everything is loaded, the title and the button tell that the game can start. The app element
+ * handles the click or the key press that starts the game.
  */
 export class LoadingScreen extends ChromeScreen {
 	/** @type {HTMLTemplateElement|null} The markup of the loading screen. */
 	static template = TEMPLATE;
 
 	/**
-	 * Subscribe to the loading of the stage and the campaigns.
+	 * Subscribe to the loading of the stage and the campaigns, and to the key labels of the keyboard of the player.
 	 *
 	 * @returns {Array<function(): void>} The functions that remove the subscriptions.
 	 */
@@ -38,6 +39,9 @@ export class LoadingScreen extends ChromeScreen {
 			}),
 			stage.ready.subscribe(update),
 			campaignsReady.subscribe(update),
+			keyLabels.subscribe((labels) => {
+				for (const span of this.querySelectorAll('[data-key]')) span.textContent = labels[span.dataset.key];
+			}),
 		];
 	}
 

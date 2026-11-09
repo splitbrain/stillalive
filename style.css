@@ -143,13 +143,29 @@ game-app {
 			z-index: 1;
 		}
 
+		/* the tagline stands left of the character, in the chalk style of the logo */
+		> .tagline {
+			margin: 0 0 0 auto;
+			align-self: center;
+			font-family: mynerve;
+			font-size: calc(var(--grid-row-top) * 0.2);
+			line-height: 1.1;
+			text-align: right;
+			color: #e6f6fd;
+			text-wrap: balance;
+
+			/* a line break comes only between the sentences */
+			> span {
+				white-space: nowrap;
+			}
+		}
+
 		/* the character stands at the right end of the row and points to the left, at the same times as the logo */
 		> .mascot {
 			height: 100%;
-			margin-left: auto;
 		}
 
-		&:has(> robot-head:not([hidden]), > narrator-text:not([hidden])) > :is(.logo, .mascot) {
+		&:has(> robot-head:not([hidden]), > narrator-text:not([hidden])) > :is(.logo, .tagline, .mascot) {
 			display: none;
 		}
 	}

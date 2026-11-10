@@ -82,7 +82,7 @@ function onFocusLost() {
 }
 
 /**
- * Handle a key press.
+ * Handle a key press. While the stage shows, the arrow keys do not scroll the page.
  *
  * @param {KeyboardEvent} event The key event.
  * @returns {void}
@@ -90,6 +90,7 @@ function onFocusLost() {
 function onKeyDown(event) {
 	if (isForeignTarget(event)) return;
 	if (event.code in KEY_BITS) input.keys |= KEY_BITS[event.code];
+	if (event.code.startsWith('Arrow') && !stage.hidden) event.preventDefault();
 	const modified = event.ctrlKey || event.altKey || event.metaKey;
 	if ((event.key === 'm' || event.key === 'M') && !event.repeat && !modified) stage.setSound(!stage.sound.get());
 }

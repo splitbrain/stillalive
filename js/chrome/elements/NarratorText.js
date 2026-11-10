@@ -18,8 +18,8 @@ const TEST_TEXT = 'Press <Enter> or <Escape> to stop testing.';
  * The custom element <narrator-text>. It shows a text in a paragraph. The element types the text at 45 characters per
  * second, and starts again for each new text and for each new message of the stage, also when the message has the same
  * text. The typing stops while the stage is paused. In the playback of a replay, which can run faster than the
- * typing, each text shows in full at once. A text that is longer than the paragraph scrolls, and the typing keeps its
- * end in view.
+ * typing, each text shows in full at once. The Space key shows the rest of the text that the element types and does
+ * not scroll the page. A text that is longer than the paragraph scrolls, and the typing keeps its end in view.
  *
  * The text is the key hint during the test run of the editor map, else the attribute text, which the app element sets
  * on the screens with a fixed text, else the text of the message of the stage.
@@ -44,13 +44,17 @@ export class NarratorText extends ChromeScreen {
 	#timer = 0;
 
 	/**
-	 * Subscribe to the message, the pause and the mode of the stage, and stop the typing on disconnect.
+	 * Subscribe to the message, the pause and the mode of the stage and to the Space key, and stop the typing on
+	 * disconnect.
 	 *
 	 * @returns {Array<function(): void>} The functions that remove the subscriptions and the function that stops the
 	 *     typing.
 	 */
 	subscribe() {
+		const onKeyDown = (event) => this.#onKeyDown(event);
+		window.addEventListener('keydown', onKeyDown);
 		return [
+			() => window.removeEventListener('keydown', onKeyDown),
 			this.stage.message.subscribe(() => this.render()),
 			this.stage.paused.subscribe(() => this.render()),
 			this.stage.mode.subscribe(() => this.render()),
@@ -98,6 +102,25 @@ export class NarratorText extends ChromeScreen {
 		this.#show();
 		if (this.#text[this.#shown - 1] != ' ' && this.#shown % 2 == 0) this.stage.playTypeSound();
 		if (this.#shown >= this.#text.length) this.#stopTyping();
+	}
+
+	/**
+	 * Show the full text on a press of the Space key while the element types. The key then does not press the focused
+	 * button. While the element shows, the Space key does not scroll the page. A Space key in a text field or a dialog
+	 * does not change the text.
+	 *
+	 * @param {KeyboardEvent} event The keydown event.
+	 * @returns {void}
+	 */
+	#onKeyDown(event) {
+		if (event.code != 'Space' || this.hidden) return;
+		if (event.target instanceof Element && event.target.closest('input, textarea, select, dialog')) return;
+		if (this.#timer == 0 && event.target != document.body) return;
+		event.preventDefault();
+		if (this.#timer == 0) return;
+		this.#shown = this.#text.length;
+		this.#show();
+		this.#stopTyping();
 	}
 
 	/**

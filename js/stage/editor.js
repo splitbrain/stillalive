@@ -20,7 +20,7 @@ import { isInPortal } from './portals.js';
 import { game, input, stageEvents, ui } from './state.js';
 import { Tile, isGravPipeTile, isObjectTile } from './tiles.js';
 
-/** @type {number[][]} The map after each change, for undo and redo. */
+/** @type {{tiles: number[], properties: object}[]} The map after each change, for undo and redo. */
 let undoMap;
 /** @type {number} The index of the current map in undoMap. */
 let undoIndex;
@@ -28,6 +28,13 @@ let undoIndex;
 let oldMouseReleased = 0;
 /** @type {{tiles: number[], bg: number}} The editor map while the stage shows something else. */
 let storedMap = { tiles: new Array(MAP_SIZE).fill(0), bg: 0 };
+/**
+ * The properties of the editor map other than the format, the tiles and the background, e.g. the title and the
+ * events. The editor does not change them, and it replaces the object instead of changing it.
+ *
+ * @type {object}
+ */
+let properties = {};
 
 /**
  * Start the test run of the map.
@@ -116,11 +123,16 @@ function rebuildObjects() {
 /**
  * Open the editor on a new map, or on the editor map from before. A new map starts a new undo list.
  *
- * @param {{tiles: number[], bg: number}} [map] The new map, or nothing for the editor map from before.
+ * @param {object} [map] The new map in the map file format, or nothing for the editor map from before.
  * @returns {void}
  */
 export function openEditor(map) {
-	if (map) storedMap = { tiles: map.tiles.slice(), bg: map.bg };
+	if (map) {
+		const { tiles, bg, ...rest } = map;
+		delete rest.format;
+		storedMap = { tiles: tiles.slice(), bg };
+		properties = rest;
+	}
 	ui.mode = 'edit';
 	game.bossNum = 0;
 	game.shakeX = 0;
@@ -146,18 +158,18 @@ export function openEditor(map) {
  * @returns {void}
  */
 export function leaveEditor() {
-	storedMap = editorMap();
+	storedMap = { tiles: game.map.slice(), bg: game.background };
 }
 
 /**
  * Get the editor map.
  *
- * @returns {{tiles: number[], bg: number}} A copy of the tiles and the background of the editor map.
+ * @returns {object} The editor map in the map file format without the format, with a copy of the tiles.
  */
 export function editorMap() {
-	if (ui.mode == 'edit') return { tiles: game.map.slice(), bg: game.background };
-	if (ui.mode == 'test') return { tiles: game.oldMap.slice(), bg: game.background };
-	return { tiles: storedMap.tiles.slice(), bg: storedMap.bg };
+	if (ui.mode == 'edit') return { ...properties, bg: game.background, tiles: game.map.slice() };
+	if (ui.mode == 'test') return { ...properties, bg: game.background, tiles: game.oldMap.slice() };
+	return { ...properties, bg: storedMap.bg, tiles: storedMap.tiles.slice() };
 }
 
 /**
@@ -190,12 +202,13 @@ function updateEditor() {
 }
 
 /**
- * Remove all tiles and objects of the editor map.
+ * Remove all tiles, objects and other properties of the editor map.
  *
  * @returns {void}
  */
 export function clearEditorMap() {
 	game.map.fill(0);
+	properties = {};
 	addUndo();
 	mapChanged();
 }
@@ -219,7 +232,8 @@ export function setEditorBackground(n) {
 export function undoEditor() {
 	if (undoIndex <= 0) return;
 	undoIndex--;
-	game.map = undoMap[undoIndex].slice();
+	game.map = undoMap[undoIndex].tiles.slice();
+	properties = undoMap[undoIndex].properties;
 	mapChanged();
 }
 
@@ -231,7 +245,8 @@ export function undoEditor() {
 export function redoEditor() {
 	if (undoIndex + 1 >= undoMap.length) return;
 	undoIndex++;
-	game.map = undoMap[undoIndex].slice();
+	game.map = undoMap[undoIndex].tiles.slice();
+	properties = undoMap[undoIndex].properties;
 	mapChanged();
 }
 
@@ -449,8 +464,7 @@ function addUndo() {
 		undoIndex--;
 	}
 	undoIndex++;
-	undoMap[undoIndex] = new Array();
-	for (i = 0; i < MAP_SIZE; i++) undoMap[undoIndex].push(game.map[i]);
+	undoMap[undoIndex] = { tiles: game.map.slice(), properties };
 
 	if (undoIndex < undoMap.length - 1) {
 		const r = undoMap.length - 1 - undoIndex;

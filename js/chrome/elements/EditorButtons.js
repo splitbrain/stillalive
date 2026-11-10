@@ -76,13 +76,12 @@ export class EditorButtons extends ChromeScreen {
 	}
 
 	/**
-	 * Let the browser download the map of the stage as a JSON file.
+	 * Let the browser download the map of the stage as a map file.
 	 *
 	 * @returns {void}
 	 */
 	#export() {
-		const map = this.stage.getMap();
-		downloadJson({ format: MAP_FORMAT, tiles: map.tiles, bg: map.bg }, 'stillalive-map.json');
+		downloadJson({ format: MAP_FORMAT, ...this.stage.getMap() }, 'stillalive-map.json');
 	}
 
 	/**
@@ -96,9 +95,8 @@ export class EditorButtons extends ChromeScreen {
 		if (!(await confirmReplaceMap(this.stage))) return;
 		const data = await pickJsonFile();
 		if (data === null || this.stage.mode.get() != 'edit') return;
-		const map = parseMap(data);
-		if (map.boss > 0) throw new Error('The editor does not support boss levels.');
-		this.stage.edit(map);
+		if (parseMap(data).boss > 0) throw new Error('The editor does not support boss levels.');
+		this.stage.edit(data);
 	}
 
 	/**

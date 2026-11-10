@@ -100,8 +100,7 @@ export class EditorFiles extends SelectionScreen {
 		if (mode == 'load') {
 			this.stage.edit(editorMap(slot).get());
 		} else {
-			const map = this.stage.getMap();
-			if (!saveEditorMap(slot, map.tiles, map.bg)) {
+			if (!saveEditorMap(slot, this.stage.getMap())) {
 				alertDialog(
 					'The map could not be saved, because the browser blocks the storage or the storage is full. ' +
 						'Use Export to save the map as a file.',

@@ -6,11 +6,11 @@
  * - format: the version of the file format, always 1
  * - tiles: the 768 tile ids of the 32 x 24 tiles, row by row
  * - bg: the index of the background image
- * - title: optional, the name of the level in the level selection. The editor does not use the title.
+ * - title: optional, the name of the level in the level selection.
  * - boss: optional, the boss of the level from 1 to 4. Only a boss level can contain the tube. The editor does not
  *   support boss levels.
  * - text: optional, the message at the level start. It is the same as an event with the trigger "start" and this
- *   text, before the other events. The campaign levels use the same format. The editor does not use the text.
+ *   text, before the other events.
  * - abilities: optional, an object that disables abilities of the player at the level start. The key "jump" or
  *   "portals" with the value false disables the ability. All abilities are enabled by default.
  * - events: optional, a list of events. An event fires once. Each event is an object with these properties:

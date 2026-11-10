@@ -1,0 +1,93 @@
+/**
+ * Tests of the level editor with a map file that has properties beyond the tiles and the background: the import, the
+ * export, the save slots and the Clear button.
+ */
+
+import { readFileSync } from 'node:fs';
+import { test, expect } from '@playwright/test';
+import { startGame, waitForNarrator } from './adapter.js';
+
+/** @type {object} A map file with a title, abilities, events and labels. */
+const MAP = JSON.parse(readFileSync(new URL('../maps/tutorial/level04.json', import.meta.url)));
+
+/**
+ * Get a value of the stage.
+ *
+ * @param {import('@playwright/test').Page} page The Playwright page.
+ * @param {string} name The name of the Value property of the stage, e.g. "mode".
+ * @returns {Promise<*>} The current value.
+ */
+function stageValue(page, name) {
+	return page.evaluate((name) => window.__test.stage[name].get(), name);
+}
+
+/**
+ * Get the editor map of the stage in the map file format.
+ *
+ * @param {import('@playwright/test').Page} page The Playwright page.
+ * @returns {Promise<object>} The editor map with the format.
+ */
+function editorMap(page) {
+	return page.evaluate(() => ({ format: 1, ...window.__test.stage.getMap() }));
+}
+
+/**
+ * Click a button of the editor buttons after the narrator has typed its text, so that the button stays in place.
+ *
+ * @param {import('@playwright/test').Page} page The Playwright page.
+ * @param {string} name The label of the button, e.g. "Export".
+ * @returns {Promise<void>}
+ */
+async function clickButton(page, name) {
+	await waitForNarrator(page);
+	await page.locator('editor-buttons').getByRole('button', { name, exact: true }).click();
+}
+
+/**
+ * Start the game and open the editor on an imported map file.
+ *
+ * @param {import('@playwright/test').Page} page The Playwright page.
+ * @param {object} map The content of the map file.
+ * @returns {Promise<void>}
+ */
+async function openMap(page, map) {
+	await startGame(page);
+	await page.evaluate(() => (location.hash = '#/editor'));
+	await expect.poll(() => stageValue(page, 'mode')).toBe('edit');
+	const chooser = page.waitForEvent('filechooser');
+	await clickButton(page, 'Import');
+	const buffer = Buffer.from(JSON.stringify(map));
+	await (await chooser).setFiles({ name: 'map.json', mimeType: 'application/json', buffer });
+	await expect.poll(() => editorMap(page).then((m) => m.title)).toBe(map.title);
+}
+
+test.describe('editor', () => {
+	test('exports the properties of the imported map file unchanged', async ({ page }) => {
+		await openMap(page, MAP);
+		const download = page.waitForEvent('download');
+		await clickButton(page, 'Export');
+		const file = await (await download).path();
+		expect(JSON.parse(readFileSync(file, 'utf8'))).toEqual(MAP);
+	});
+
+	test('keeps the properties in a save slot', async ({ page }) => {
+		await openMap(page, MAP);
+		await clickButton(page, 'Save');
+		await page.locator('slot-list button[data-choice="1"]').click();
+		await expect.poll(() => page.evaluate(() => location.hash)).toBe('#/editor');
+
+		await clickButton(page, 'Clear');
+		await clickButton(page, 'Load');
+		await page.locator('slot-list button[data-choice="1"]').click();
+		await expect.poll(() => page.evaluate(() => location.hash)).toBe('#/editor');
+		expect(await editorMap(page)).toEqual(MAP);
+	});
+
+	test('removes the properties with Clear and brings them back with Undo', async ({ page }) => {
+		await openMap(page, MAP);
+		await clickButton(page, 'Clear');
+		expect(Object.keys(await page.evaluate(() => window.__test.stage.getMap())).sort()).toEqual(['bg', 'tiles']);
+		await clickButton(page, 'Undo');
+		expect(await editorMap(page)).toEqual(MAP);
+	});
+});

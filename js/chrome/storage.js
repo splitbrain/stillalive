@@ -224,8 +224,7 @@ export function loadBestReplay(campaign, level) {
  * Get the editor map of a slot.
  *
  * @param {number} slot The slot number, starting at 1.
- * @returns {Value} The editor map as {tiles: number[], bg: number} with the tile ids and the background index, or null
- *     if the slot is empty.
+ * @returns {Value} The editor map in the map file format without the format, or null if the slot is empty.
  */
 export function editorMap(slot) {
 	if (!editorMaps.has(slot)) editorMaps.set(slot, new Value(readJsonItem(EDITOR_MAP_PREFIX + slot)));
@@ -236,13 +235,12 @@ export function editorMap(slot) {
  * Store an editor map.
  *
  * @param {number} slot The slot number, starting at 1.
- * @param {number[]} tiles The 768 tile ids.
- * @param {number} bg The background index.
+ * @param {object} map The editor map in the map file format without the format.
  * @returns {boolean} True if the map is stored, false if the browser blocks the storage or the storage is full.
  */
-export function saveEditorMap(slot, tiles, bg) {
-	if (!writeItem(EDITOR_MAP_PREFIX + slot, JSON.stringify({ tiles, bg }))) return false;
-	editorMap(slot).set({ tiles, bg });
+export function saveEditorMap(slot, map) {
+	if (!writeItem(EDITOR_MAP_PREFIX + slot, JSON.stringify(map))) return false;
+	editorMap(slot).set(map);
 	return true;
 }
 

@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { MAP_SIZE } from '../js/stage/constants.js';
+import { MAP_SIZE, MAP_WIDTH } from '../js/stage/constants.js';
 import { openGame } from './adapter.js';
 
 /**
@@ -53,6 +53,34 @@ function validReplay() {
  */
 function validMap() {
 	return { format: 1, tiles: new Array(MAP_SIZE).fill(0), bg: 0 };
+}
+
+/**
+ * Create a valid map in the file format with a floor and a player start, so that the player can stand in the level.
+ *
+ * @returns {object} The map data.
+ */
+function floorMap() {
+	const tiles = validMap()
+		.tiles.fill(1, MAP_SIZE - MAP_WIDTH)
+		.with(MAP_SIZE - 2 * MAP_WIDTH + 2, 104);
+	return { ...validMap(), tiles };
+}
+
+/**
+ * Start a level from a map file, and run the game until the opening transition has ended.
+ *
+ * @param {import('@playwright/test').Page} page The Playwright page.
+ * @param {object} data The map file.
+ * @returns {Promise<void>}
+ */
+async function playMap(page, data) {
+	await page.evaluate(async (data) => {
+		const { parseMap } = await import('/js/stage/mapFile.js');
+		const t = window.__test;
+		t.stage.play({ ...parseMap(data), campaign: 'test', number: 1, fromBelow: false });
+		while (t.game.player.fadeNextLevel != -1) t.tick();
+	}, data);
 }
 
 test.describe('units', () => {
@@ -122,13 +150,13 @@ test.describe('units', () => {
 	test('parseMap() reads the abilities, the events and the labels', async () => {
 		const events = [
 			{ on: 'start', text: 'Hello', wait: 'click', unlock: 'jump' },
-			{ on: 'playerX', x: 100, text: '' },
+			{ on: 'playerX', x: 6, text: '' },
 			{
 				on: 'time',
 				ticks: 300,
 				portals: [
-					[144, 225, 'right'],
-					[188, 225, 'left'],
+					[9, 14, 'left'],
+					[11, 14, 'right'],
 				],
 			},
 			{ on: 'bossArrived', text: 'Here I am' },
@@ -199,6 +227,7 @@ test.describe('units', () => {
 			'trigger as list': { ...validMap(), events: [{ on: ['start'] }] },
 			'no trigger': { ...validMap(), events: [{ text: 'Hello' }] },
 			'player x missing': { ...validMap(), events: [{ on: 'playerX' }] },
+			'player column with decimals': { ...validMap(), events: [{ on: 'playerX', x: 6.5 }] },
 			'negative ticks': { ...validMap(), events: [{ on: 'time', ticks: -1 }] },
 			'event text as number': { ...validMap(), events: [{ on: 'start', text: 1 }] },
 			'unknown wait': { ...validMap(), events: [{ on: 'start', wait: 'key' }] },
@@ -268,5 +297,48 @@ test.describe('units', () => {
 		});
 		// one field from the gravitational pipe to the right portal, one field from the left portal back to the right portal
 		expect(fields).toBe(2);
+	});
+	test('an event places the portals on the sides of the wall tiles', async () => {
+		const portals = async (list) => {
+			await playMap(page, { ...floorMap(), events: [{ on: 'start', portals: list }] });
+			return page.evaluate(async () => {
+				const { Direction } = await import('/js/stage/constants.js');
+				const name = (direction) => Object.keys(Direction).find((key) => Direction[key] === direction);
+				return window.__test.game.portals.map((p) => [p.x >> 8, p.y >> 8, name(p.direction)]);
+			});
+		};
+		// a portal on a side wall has the direction of the portal shot that hits the wall
+		expect(
+			await portals([
+				[9, 14, 'left'],
+				[11, 14, 'right'],
+			]),
+		).toEqual([
+			[144, 224, 'RIGHT'],
+			[188, 224, 'LEFT'],
+		]);
+		expect(
+			await portals([
+				[3, 20, 'up'],
+				[5, 2, 'down'],
+			]),
+		).toEqual([
+			[48, 320, 'DOWN'],
+			[80, 44, 'UP'],
+		]);
+	});
+
+	test('a playerX event fires when the center of the player enters the column', async () => {
+		await playMap(page, { ...floorMap(), events: [{ on: 'playerX', x: 6, text: 'Column 6' }] });
+		const texts = await page.evaluate(() => {
+			const t = window.__test;
+			const textAt = (centerX) => {
+				t.game.player.x = (centerX - (t.game.player.pX >> 1)) << 8;
+				t.tick();
+				return t.game.message?.text ?? null;
+			};
+			return [textAt(95), textAt(96)];
+		});
+		expect(texts).toEqual([null, 'Column 6']);
 	});
 });

@@ -34,7 +34,7 @@
 			"on": "time",
 			"ticks": 300,
 			"text": "",
-			"portals": [[144, 225, "right"], [188, 225, "left"]]
+			"portals": [[9, 14, "left"], [11, 14, "right"]]
 		},
 		{
 			"on": "time",

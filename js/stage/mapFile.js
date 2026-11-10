@@ -16,21 +16,22 @@
  * - events: optional, a list of events. An event fires once. Each event is an object with these properties:
  *   - on: the trigger of the event:
  *     - "start": the level starts.
- *     - "playerX": the x position of the player in pixels becomes larger than the property x.
+ *     - "playerX": the center of the player enters the column in the property x or a column to the right of it.
  *     - "time": the level time reaches the number of ticks in the property ticks.
  *     - "bossArrived": the boss reached its place.
  *     - "bossDied": the life of the boss reached 0.
  *     - "exit": the player reached the exit. The closing transition of the level clears the message, so the text of
  *       an exit event shows only with the wait "click", which holds the transition until the click.
- *   - x: the x position in pixels for the trigger "playerX".
+ *   - x: the column for the trigger "playerX".
  *   - ticks: the level time in ticks for the trigger "time".
  *   - text: optional, the new message. An empty text removes the message. The text can contain {KeyW}, {KeyA},
  *     {KeyS}, {KeyD} and {KeyE}. They stand for the label of that key on the keyboard of the player.
  *   - wait: optional, "click" stops the level time until the player clicks. The click removes the message. The
  *     events after this event in the list fire only after the click.
  *   - unlock: optional, "jump" or "portals" enables the ability.
- *   - portals: optional, the two portals to place, as [[x, y, direction], [x, y, direction]] with the position in
- *     pixels and the direction "up", "down", "left" or "right".
+ *   - portals: optional, the two portals to place, as [[column, row, side], [column, row, side]]. The column and row
+ *     are the wall tile of the portal, and the side "up", "down", "left" or "right" is the side that the portal opens
+ *     to. The portal covers this tile and the tile below, or the tile to the right for the sides "up" and "down".
  * - labels: optional, a list of texts that show at positions of the playfield. Each label is an object with x and y,
  *   the tile that the text is centered on, and text. The tile position can be a half tile, for example 16.5 to center
  *   the text between two tiles. A line break in the text starts a new line.
@@ -59,8 +60,8 @@ const EVENT_TRIGGERS = {
 	exit: [],
 };
 
-/** @type {string[]} The directions of a portal that an event places. */
-const PORTAL_DIRECTIONS = ['up', 'down', 'left', 'right'];
+/** @type {string[]} The sides that a portal of an event opens to. */
+const PORTAL_SIDES = ['up', 'down', 'left', 'right'];
 
 /**
  * The data of a map file after the check.
@@ -80,12 +81,12 @@ const PORTAL_DIRECTIONS = ['up', 'down', 'left', 'right'];
  *
  * @typedef {object} MapEvent
  * @property {string} on The trigger: "start", "playerX", "time", "bossArrived", "bossDied" or "exit".
- * @property {number} [x] The x position in pixels for the trigger "playerX".
+ * @property {number} [x] The column for the trigger "playerX".
  * @property {number} [ticks] The level time in ticks for the trigger "time".
  * @property {string} [text] The new message.
  * @property {string} [wait] "click" to stop the level time until the player clicks.
  * @property {string} [unlock] The ability to enable, "jump" or "portals".
- * @property {Array<[number, number, string]>} [portals] The two portals to place, with position and direction.
+ * @property {Array<[number, number, string]>} [portals] The two portals to place, with column, row and side.
  */
 
 /**
@@ -138,7 +139,7 @@ function isValidAbilities(abilities) {
  * Check the portals that an event places.
  *
  * @param {*} portals The portals.
- * @returns {boolean} True for two portals, each with an integer x and y and a known direction.
+ * @returns {boolean} True for two portals, each with an integer column and row and a known side.
  */
 function isValidPortals(portals) {
 	return (
@@ -150,7 +151,7 @@ function isValidPortals(portals) {
 				portal.length === 3 &&
 				Number.isInteger(portal[0]) &&
 				Number.isInteger(portal[1]) &&
-				PORTAL_DIRECTIONS.includes(portal[2]),
+				PORTAL_SIDES.includes(portal[2]),
 		)
 	);
 }

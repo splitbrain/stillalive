@@ -13,13 +13,13 @@
 		},
 		{
 			"on": "playerX",
-			"x": 100,
+			"x": 6,
 			"text": "You can't get past these obstacles unless you jump over them. Press {KeyW} or the up arrow key to jump, and hold it to jump higher!",
 			"unlock": "jump"
 		},
 		{
 			"on": "playerX",
-			"x": 256,
+			"x": 16,
 			"text": "See the checkered flag on the right? Just touch it to finish the level."
 		}
 	],

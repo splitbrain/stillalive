@@ -12,12 +12,17 @@ import { keyLabels } from './keys.js';
 import { game, input } from './state.js';
 import { random } from './utils.js';
 
-/** @type {Object<string, number>} The portal directions of the level file and their Direction values. */
-const PORTAL_DIRECTIONS = {
-	up: Direction.UP,
-	down: Direction.DOWN,
-	left: Direction.LEFT,
-	right: Direction.RIGHT,
+/**
+ * The sides that a portal of the level file opens to, with the Direction of the portal and the pixel offset of the
+ * portal in its wall tile. The offsets are the same as for a shot portal.
+ *
+ * @type {Object<string, {direction: number, dx: number, dy: number}>}
+ */
+const PORTAL_SIDES = {
+	up: { direction: Direction.DOWN, dx: 0, dy: 0 },
+	down: { direction: Direction.UP, dx: 0, dy: 12 },
+	left: { direction: Direction.RIGHT, dx: 0, dy: 0 },
+	right: { direction: Direction.LEFT, dx: 12, dy: 0 },
 };
 
 /** @type {boolean[]} True for each event of the level that fired. */
@@ -119,7 +124,7 @@ function runEvents() {
  * @returns {boolean} True if the event can fire.
  */
 function hasHappened(event) {
-	if (event.on == 'playerX') return game.player.x >> 8 > event.x;
+	if (event.on == 'playerX') return game.player.midX() >> 4 >= event.x;
 	if (event.on == 'time') return game.time >= event.ticks;
 	return triggers.has(event.on);
 }
@@ -148,12 +153,14 @@ function fire(event) {
  * Place a portal on a wall with its glow sparkles.
  *
  * @param {number} p The index of the portal.
- * @param {[number, number, string]} portal The position in pixels and the direction of the portal.
+ * @param {[number, number, string]} portal The column and row of the wall tile, and the side that the portal opens to.
  * @returns {void}
  */
-function placePortal(p, [x, y, name]) {
+function placePortal(p, [column, row, side]) {
 	const portal = game.portals[p];
-	const direction = PORTAL_DIRECTIONS[name];
+	const { direction, dx, dy } = PORTAL_SIDES[side];
+	const x = column * 16 + dx;
+	const y = row * 16 + dy;
 	const onSideWall = direction == Direction.LEFT || direction == Direction.RIGHT;
 	Object.assign(portal, {
 		direction,

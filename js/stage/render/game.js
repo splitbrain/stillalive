@@ -195,7 +195,7 @@ function drawBody(x, y, frame, flipX) {
  *
  * @returns {void}
  */
-export function drawSparkles() {
+function drawSparkles() {
 	for (const s of game.sparkles) {
 		if (s.fading <= 0) continue;
 		const sc = s.fading / 255;
@@ -320,7 +320,7 @@ function hashText(text) {
  *
  * @returns {void}
  */
-export function drawAnimatedTiles() {
+function drawAnimatedTiles() {
 	for (const tile of game.animatedTiles) {
 		if (!tile.used) continue;
 		drawImage(tileset[tile.current], tile.x << 4, tile.y << 4, 16, 16);
@@ -345,7 +345,7 @@ function saveTileLayer() {
  *
  * @returns {void}
  */
-export function drawTileLayer() {
+function drawTileLayer() {
 	drawCopy(tileLayer, 0, 0);
 }
 
@@ -354,7 +354,7 @@ export function drawTileLayer() {
  *
  * @returns {void}
  */
-export function createBuff() {
+function createBuff() {
 	let i;
 	drawImage(bg[game.background], 0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 	for (i = 0; i < game.displayMap.length; i++) {
@@ -417,7 +417,7 @@ export function drawTurrets() {
  *
  * @returns {void}
  */
-export function drawPlasma() {
+function drawPlasma() {
 	for (const ball of game.plasmaBall) {
 		if (!ball.used) continue;
 		let vx = 0;
@@ -536,7 +536,7 @@ export function drawPlatforms() {
  *
  * @returns {void}
  */
-export function drawFrontTiles() {
+function drawFrontTiles() {
 	let tx, ty, t, p, i;
 	if (game.needRedrawTiles > 0) {
 		for (p = 0; p < game.portals.length; p++) {
@@ -595,7 +595,7 @@ function drawCamera() {
  *
  * @returns {void}
  */
-export function drawPortals() {
+function drawPortals() {
 	for (let pi = 0; pi < game.portals.length; pi++) {
 		const p = game.portals[pi];
 		if (!p.used) continue;

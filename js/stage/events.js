@@ -78,7 +78,7 @@ export function isWaiting() {
  *
  * @returns {void}
  */
-export function endWait() {
+function endWait() {
 	if (waiting === null) return;
 	waiting = null;
 	game.message = null;

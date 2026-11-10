@@ -41,7 +41,7 @@
 /* the page fills the window and sets the base look for all elements */
 body {
 	margin: 0;
-	background: url('decor/bg.svg') center top var(--color-page);
+	background: url('gfx/site/page.svg') center top var(--color-page);
 	color: var(--color-text);
 	font: var(--font-text);
 }
@@ -196,7 +196,7 @@ game-app {
 		z-index: -1;
 		width: calc(var(--deco-unit) * 246.5);
 		height: calc(var(--deco-unit) * 572);
-		background: url('images/dome-shelf.svg') center / 100% 100% no-repeat;
+		background: url('gfx/site/dome-shelf.svg') center / 100% 100% no-repeat;
 
 		&::before,
 		&::after {

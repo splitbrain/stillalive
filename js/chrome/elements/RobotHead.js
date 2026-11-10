@@ -58,7 +58,7 @@ export class RobotHead extends ChromeScreen {
 	 */
 	render() {
 		const eye = this.getAttribute('eye') ?? '1';
-		this.querySelector('.eye').style.backgroundImage = `url("sprites/robotEye${eye}.svg")`;
+		this.querySelector('.eye').style.backgroundImage = `url("gfx/sprites/robotEye${eye}.svg")`;
 	}
 
 	/**

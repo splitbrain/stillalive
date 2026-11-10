@@ -60,15 +60,15 @@ export let tileset;
  */
 export function loadGfx() {
 	let i, t, r;
-	body = loadImage('sprites/body.svg');
+	body = loadImage('gfx/sprites/body.svg');
 
-	head = loadImage('sprites/head.svg');
+	head = loadImage('gfx/sprites/head.svg');
 
-	crosshair = loadImage('sprites/crosshair.svg');
+	crosshair = loadImage('gfx/sprites/crosshair.svg');
 
-	bluePortal = loadImage('sprites/bluePortal.svg');
+	bluePortal = loadImage('gfx/sprites/bluePortal.svg');
 
-	redPortal = loadImage('sprites/redPortal.svg');
+	redPortal = loadImage('gfx/sprites/redPortal.svg');
 
 	linesHoriz = new Array();
 	linesVerti = new Array();
@@ -82,48 +82,48 @@ export function loadGfx() {
 
 	bg = new Array();
 	for (i = 1; i < 12; i++) {
-		const img = loadImage('bg/level' + i + '.svg');
+		const img = loadImage('gfx/backgrounds/level' + i + '.svg');
 		bg.push(img);
 	}
 
-	tube = loadImage('sprites/tube.svg');
+	tube = loadImage('gfx/sprites/tube.svg');
 
-	tube2 = loadImage('sprites/tube2.svg');
+	tube2 = loadImage('gfx/sprites/tube2.svg');
 
-	gravPipe = loadImage('sprites/gravpipe.svg');
+	gravPipe = loadImage('gfx/sprites/gravpipe.svg');
 
-	gravPipe2 = loadImage('sprites/gravpipe2.svg');
+	gravPipe2 = loadImage('gfx/sprites/gravpipe2.svg');
 
-	crateImage = loadImage('sprites/crate.svg');
+	crateImage = loadImage('gfx/sprites/crate.svg');
 
 	turretImages = new Array();
 	for (i = 0; i < 2; i++) {
-		t = loadImage('sprites/turret' + i + '.svg');
+		t = loadImage('gfx/sprites/turret' + i + '.svg');
 		turretImages.push(t);
 	}
 
-	sparkle = loadImage('sprites/sparkle.svg');
+	sparkle = loadImage('gfx/sprites/sparkle.svg');
 
-	cake = loadImage('sprites/cake.svg');
+	cake = loadImage('gfx/sprites/cake.svg');
 
-	portalGun = loadImage('sprites/portalGun.svg');
+	portalGun = loadImage('gfx/sprites/portalGun.svg');
 
-	cameraFollow = loadImage('sprites/cameraFollow.svg');
+	cameraFollow = loadImage('gfx/sprites/cameraFollow.svg');
 
 	robotEye = new Array();
 	for (let rob = 1; rob < 5; rob++) {
-		r = loadImage('sprites/robotEye' + rob + '.svg');
+		r = loadImage('gfx/sprites/robotEye' + rob + '.svg');
 		robotEye.push(r);
 	}
 
-	robotHead = loadImage('sprites/robotHead.svg');
+	robotHead = loadImage('gfx/sprites/robotHead.svg');
 
-	plasma = loadImage('sprites/plasma.svg');
+	plasma = loadImage('gfx/sprites/plasma.svg');
 
-	platform = loadImage('sprites/platform.svg');
+	platform = loadImage('gfx/sprites/platform.svg');
 
 	tileset = new Array();
 	for (i = 0; i < NUM_TILES; i++) {
-		tileset[i] = loadImage('tiles/tile_' + i + '.svg');
+		tileset[i] = loadImage('gfx/tiles/tile_' + i + '.svg');
 	}
 }

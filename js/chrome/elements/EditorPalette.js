@@ -121,7 +121,7 @@ function createButton(item) {
 		button.append(sprite);
 	} else {
 		const image = document.createElement('img');
-		image.src = `tiles/tile_${item.tile}.svg`;
+		image.src = `gfx/tiles/tile_${item.tile}.svg`;
 		image.alt = '';
 		button.append(image);
 	}

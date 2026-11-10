@@ -1,19 +1,19 @@
 <template>
 	<div class="plate">
 		<div class="front">
-			<img class="flap" src="images/vcr-parts.svg#flap" alt="" />
-			<img class="flap wide" src="images/vcr-parts.svg#flap-wide" alt="" />
+			<img class="flap" src="gfx/ui/vcr-parts.svg#flap" alt="" />
+			<img class="flap wide" src="gfx/ui/vcr-parts.svg#flap-wide" alt="" />
 			<div class="lamps">
 				<span class="lamp" data-speed="1">1x</span>
 				<span class="lamp" data-speed="2">2x</span>
 				<span class="lamp" data-speed="4">4x</span>
 			</div>
 			<div class="keys">
-				<button class="stop" title="Stop"><img src="images/vcr-parts.svg#stop" alt="Stop" /></button>
-				<button class="play" title="Play / Pause"><img src="images/vcr-parts.svg#play" alt="Play / Pause" /></button>
-				<button class="fast" title="Speed"><img src="images/vcr-parts.svg#fast" alt="Speed" /></button>
+				<button class="stop" title="Stop"><img src="gfx/ui/vcr-parts.svg#stop" alt="Stop" /></button>
+				<button class="play" title="Play / Pause"><img src="gfx/ui/vcr-parts.svg#play" alt="Play / Pause" /></button>
+				<button class="fast" title="Speed"><img src="gfx/ui/vcr-parts.svg#fast" alt="Speed" /></button>
 			</div>
-			<img class="grille" src="images/vcr-parts.svg#grille" alt="" />
+			<img class="grille" src="gfx/ui/vcr-parts.svg#grille" alt="" />
 		</div>
 	</div>
 </template>
@@ -48,13 +48,13 @@
 			inset: 0;
 			z-index: -1;
 			background:
-				url('images/screw.svg#b') left calc(var(--u) * 1.2) top calc(var(--u) * 5.8) / var(--vcr-screw) var(--vcr-screw)
+				url('gfx/ui/screw.svg#b') left calc(var(--u) * 1.2) top calc(var(--u) * 5.8) / var(--vcr-screw) var(--vcr-screw)
 					no-repeat,
-				url('images/screw.svg#d') right calc(var(--u) * 0.9) top calc(var(--u) * 1.2) / var(--vcr-screw)
+				url('gfx/ui/screw.svg#d') right calc(var(--u) * 0.9) top calc(var(--u) * 1.2) / var(--vcr-screw)
 					var(--vcr-screw) no-repeat,
-				url('images/screw.svg#a') right calc(var(--u) * 2.6) bottom calc(var(--u) * 5) / var(--vcr-screw)
+				url('gfx/ui/screw.svg#a') right calc(var(--u) * 2.6) bottom calc(var(--u) * 5) / var(--vcr-screw)
 					var(--vcr-screw) no-repeat,
-				url('images/screw.svg#c') left calc(var(--u) * 1.9) bottom calc(var(--u) * 1.3) / var(--vcr-screw)
+				url('gfx/ui/screw.svg#c') left calc(var(--u) * 1.9) bottom calc(var(--u) * 1.3) / var(--vcr-screw)
 					var(--vcr-screw) no-repeat,
 				var(--color-chrome);
 			clip-path: polygon(
@@ -91,13 +91,13 @@
 			inset: calc(var(--vcr-frame) + var(--u) * 2) calc(var(--vcr-frame) + var(--u) * 1.8);
 			container-type: size;
 			background:
-				url('images/screw.svg#a') left calc(var(--u) * 1.4) top calc(var(--u) * 4) / var(--vcr-plate-screw)
+				url('gfx/ui/screw.svg#a') left calc(var(--u) * 1.4) top calc(var(--u) * 4) / var(--vcr-plate-screw)
 					var(--vcr-plate-screw) no-repeat,
-				url('images/screw.svg#c') right calc(var(--u) * 1.4) top calc(var(--u) * 1.4) / var(--vcr-plate-screw)
+				url('gfx/ui/screw.svg#c') right calc(var(--u) * 1.4) top calc(var(--u) * 1.4) / var(--vcr-plate-screw)
 					var(--vcr-plate-screw) no-repeat,
-				url('images/screw.svg#b') right calc(var(--u) * 2.6) bottom calc(var(--u) * 3.6) / var(--vcr-plate-screw)
+				url('gfx/ui/screw.svg#b') right calc(var(--u) * 2.6) bottom calc(var(--u) * 3.6) / var(--vcr-plate-screw)
 					var(--vcr-plate-screw) no-repeat,
-				url('images/screw.svg#d') left calc(var(--u) * 2.2) bottom calc(var(--u) * 1.4) / var(--vcr-plate-screw)
+				url('gfx/ui/screw.svg#d') left calc(var(--u) * 2.2) bottom calc(var(--u) * 1.4) / var(--vcr-plate-screw)
 					var(--vcr-plate-screw) no-repeat,
 				linear-gradient(
 					-0.6deg,

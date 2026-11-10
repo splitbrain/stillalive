@@ -4,9 +4,9 @@
 		<div class="panel">
 			<div class="plate"></div>
 			<div class="keys">
-				<button data-bg="-1" title="Previous background"><img src="images/push-button.svg#prev" alt="" /></button>
-				<button data-bg="1" title="Next background"><img src="images/push-button.svg#next" alt="" /></button>
-				<img class="icon" src="images/tape-picture.svg" alt="" />
+				<button data-bg="-1" title="Previous background"><img src="gfx/ui/push-button.svg#prev" alt="" /></button>
+				<button data-bg="1" title="Next background"><img src="gfx/ui/push-button.svg#next" alt="" /></button>
+				<img class="icon" src="gfx/ui/tape-picture.svg" alt="" />
 			</div>
 		</div>
 	</div>
@@ -237,7 +237,7 @@
 		}
 
 		/* the image of a tile; the empty eraser tile shows as a dashed square */
-		img[src^='tiles/'] {
+		img[src^='gfx/tiles/'] {
 			display: block;
 			width: calc(var(--u) * 16);
 			aspect-ratio: 1;
@@ -259,26 +259,26 @@
 
 		.cake {
 			height: calc(var(--u) * 12);
-			background-image: url('sprites/cake.svg');
+			background-image: url('gfx/sprites/cake.svg');
 		}
 
 		.crate {
-			background-image: url('sprites/crate.svg');
+			background-image: url('gfx/sprites/crate.svg');
 		}
 
 		.turret-left,
 		.turret-right {
 			height: calc(var(--u) * 32);
-			background-image: url('sprites/turret0.svg');
+			background-image: url('gfx/sprites/turret0.svg');
 		}
 
 		.turret-right {
-			background-image: url('sprites/turret1.svg');
+			background-image: url('gfx/sprites/turret1.svg');
 		}
 
 		.platform {
 			width: calc(var(--u) * 48);
-			background-image: url('sprites/platform.svg');
+			background-image: url('gfx/sprites/platform.svg');
 		}
 
 		.arrow {
@@ -293,14 +293,14 @@
 		.player {
 			height: calc(var(--u) * 27);
 			background:
-				url('sprites/head.svg') no-repeat 0 0 / 100% calc(var(--u) * 14),
-				url('sprites/body.svg') no-repeat 0 0 / 500% auto;
+				url('gfx/sprites/head.svg') no-repeat 0 0 / 100% calc(var(--u) * 14),
+				url('gfx/sprites/body.svg') no-repeat 0 0 / 500% auto;
 		}
 
 		.gravpipe-right,
 		.gravpipe-left {
 			height: calc(var(--u) * 32);
-			background-image: url('sprites/gravpipe.svg');
+			background-image: url('gfx/sprites/gravpipe.svg');
 		}
 
 		.gravpipe-left {
@@ -310,7 +310,7 @@
 		.gravpipe-up,
 		.gravpipe-down {
 			width: calc(var(--u) * 32);
-			background-image: url('sprites/gravpipe2.svg');
+			background-image: url('gfx/sprites/gravpipe2.svg');
 			background-size: auto 100%;
 		}
 
@@ -336,13 +336,13 @@
 				inset: 0;
 				z-index: -3;
 				background:
-					url('images/screw.svg#a') left calc(var(--u) * 0.8) top calc(var(--u) * 1.6) / var(--screw) var(--screw)
+					url('gfx/ui/screw.svg#a') left calc(var(--u) * 0.8) top calc(var(--u) * 1.6) / var(--screw) var(--screw)
 						no-repeat,
-					url('images/screw.svg#b') right calc(var(--u) * 0.6) top calc(var(--u) * 0.6) / var(--screw) var(--screw)
+					url('gfx/ui/screw.svg#b') right calc(var(--u) * 0.6) top calc(var(--u) * 0.6) / var(--screw) var(--screw)
 						no-repeat,
-					url('images/screw.svg#c') right calc(var(--u) * 1.4) bottom calc(var(--u) * 1.2) / var(--screw) var(--screw)
+					url('gfx/ui/screw.svg#c') right calc(var(--u) * 1.4) bottom calc(var(--u) * 1.2) / var(--screw) var(--screw)
 						no-repeat,
-					url('images/screw.svg#d') left calc(var(--u) * 1) bottom calc(var(--u) * 0.6) / var(--screw) var(--screw)
+					url('gfx/ui/screw.svg#d') left calc(var(--u) * 1) bottom calc(var(--u) * 0.6) / var(--screw) var(--screw)
 						no-repeat,
 					var(--color-chrome);
 				clip-path: polygon(

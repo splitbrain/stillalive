@@ -153,7 +153,7 @@ test.describe('units', () => {
 			{ on: 'playerX', x: 6, text: '' },
 			{
 				on: 'time',
-				ticks: 300,
+				seconds: 2.5,
 				portals: [
 					[9, 14, 'left'],
 					[11, 14, 'right'],
@@ -228,7 +228,8 @@ test.describe('units', () => {
 			'no trigger': { ...validMap(), events: [{ text: 'Hello' }] },
 			'player x missing': { ...validMap(), events: [{ on: 'playerX' }] },
 			'player column with decimals': { ...validMap(), events: [{ on: 'playerX', x: 6.5 }] },
-			'negative ticks': { ...validMap(), events: [{ on: 'time', ticks: -1 }] },
+			'seconds as text': { ...validMap(), events: [{ on: 'time', seconds: '5' }] },
+			'negative seconds': { ...validMap(), events: [{ on: 'time', seconds: -1 }] },
 			'event text as number': { ...validMap(), events: [{ on: 'start', text: 1 }] },
 			'unknown wait': { ...validMap(), events: [{ on: 'start', wait: 'key' }] },
 			'unknown unlock': { ...validMap(), events: [{ on: 'start', unlock: 'fly' }] },
@@ -340,5 +341,16 @@ test.describe('units', () => {
 			return [textAt(95), textAt(96)];
 		});
 		expect(texts).toEqual([null, 'Column 6']);
+	});
+
+	test('a time event fires at the tick that is nearest to its seconds', async () => {
+		await playMap(page, { ...floorMap(), events: [{ on: 'time', seconds: 8.3, text: 'Now' }] });
+		const time = await page.evaluate(() => {
+			const t = window.__test;
+			while (!t.game.message && t.game.time < 600) t.tick();
+			return t.game.time;
+		});
+		// 8.3 * 60 is 498.00000000000006
+		expect(time).toBe(498);
 	});
 });

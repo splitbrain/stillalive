@@ -17,13 +17,13 @@
  *   - on: the trigger of the event:
  *     - "start": the level starts.
  *     - "playerX": the center of the player enters the column in the property x or a column to the right of it.
- *     - "time": the level time reaches the number of ticks in the property ticks.
+ *     - "time": the level time reaches the number of seconds in the property seconds.
  *     - "bossArrived": the boss reached its place.
  *     - "bossDied": the life of the boss reached 0.
  *     - "exit": the player reached the exit. The closing transition of the level clears the message, so the text of
  *       an exit event shows only with the wait "click", which holds the transition until the click.
  *   - x: the column for the trigger "playerX".
- *   - ticks: the level time in ticks for the trigger "time".
+ *   - seconds: the level time in seconds for the trigger "time". The seconds can have decimals.
  *   - text: optional, the new message. An empty text removes the message. The text can contain {KeyW}, {KeyA},
  *     {KeyS}, {KeyD} and {KeyE}. They stand for the label of that key on the keyboard of the player.
  *   - wait: optional, "click" stops the level time until the player clicks. The click removes the message. The
@@ -50,14 +50,18 @@ const BOSS_COUNT = 4;
 /** @type {string[]} The abilities of the player that a level can disable and an event can enable. */
 const ABILITIES = ['jump', 'portals'];
 
-/** @type {Object<string, string[]>} The triggers of the events, with the number properties that each trigger needs. */
+/**
+ * The triggers of the events, with the number properties that each trigger needs and the check of their type.
+ *
+ * @type {Object<string, Object<string, function(*): boolean>>}
+ */
 const EVENT_TRIGGERS = {
-	start: [],
-	playerX: ['x'],
-	time: ['ticks'],
-	bossArrived: [],
-	bossDied: [],
-	exit: [],
+	start: {},
+	playerX: { x: Number.isInteger },
+	time: { seconds: Number.isFinite },
+	bossArrived: {},
+	bossDied: {},
+	exit: {},
 };
 
 /** @type {string[]} The sides that a portal of an event opens to. */
@@ -82,7 +86,7 @@ const PORTAL_SIDES = ['up', 'down', 'left', 'right'];
  * @typedef {object} MapEvent
  * @property {string} on The trigger: "start", "playerX", "time", "bossArrived", "bossDied" or "exit".
  * @property {number} [x] The column for the trigger "playerX".
- * @property {number} [ticks] The level time in ticks for the trigger "time".
+ * @property {number} [seconds] The level time in seconds for the trigger "time".
  * @property {string} [text] The new message.
  * @property {string} [wait] "click" to stop the level time until the player clicks.
  * @property {string} [unlock] The ability to enable, "jump" or "portals".
@@ -167,7 +171,7 @@ function isValidEvent(event) {
 		isObject(event) &&
 		typeof event.on === 'string' &&
 		Object.hasOwn(EVENT_TRIGGERS, event.on) &&
-		EVENT_TRIGGERS[event.on].every((name) => Number.isInteger(event[name]) && event[name] >= 0) &&
+		Object.entries(EVENT_TRIGGERS[event.on]).every(([name, isType]) => isType(event[name]) && event[name] >= 0) &&
 		(event.text === undefined || typeof event.text === 'string') &&
 		(event.wait === undefined || event.wait === 'click') &&
 		(event.unlock === undefined || ABILITIES.includes(event.unlock)) &&

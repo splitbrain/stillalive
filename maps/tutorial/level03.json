@@ -12,33 +12,33 @@
 		},
 		{
 			"on": "time",
-			"ticks": 60,
+			"seconds": 1,
 			"text": "Charging portals... 4"
 		},
 		{
 			"on": "time",
-			"ticks": 120,
+			"seconds": 2,
 			"text": "Charging portals... 3"
 		},
 		{
 			"on": "time",
-			"ticks": 180,
+			"seconds": 3,
 			"text": "Charging portals... 2"
 		},
 		{
 			"on": "time",
-			"ticks": 240,
+			"seconds": 4,
 			"text": "Charging portals... 1"
 		},
 		{
 			"on": "time",
-			"ticks": 300,
+			"seconds": 5,
 			"text": "",
 			"portals": [[9, 14, "left"], [11, 14, "right"]]
 		},
 		{
 			"on": "time",
-			"ticks": 360,
+			"seconds": 6,
 			"text": "Fully loaded! Technology is beautiful. When you enter a portal, you come out of the other one. Enter the blue portal to pass through the wall."
 		}
 	],

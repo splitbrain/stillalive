@@ -125,7 +125,7 @@ function runEvents() {
  */
 function hasHappened(event) {
 	if (event.on == 'playerX') return game.player.midX() >> 4 >= event.x;
-	if (event.on == 'time') return game.time >= event.ticks;
+	if (event.on == 'time') return game.time >= Math.round(event.seconds * 60);
 	return triggers.has(event.on);
 }
 

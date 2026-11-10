@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+		<link rel="shortcut icon" href="favicon2.ico" />
+
+		<title>About - Still Alive</title>
+
+		<link rel="stylesheet" type="text/css" href="style.css" />
+	</head>
+	<body class="about">
+		<header>
+			<a href="index.html"><img class="logo" src="images/logo.svg" alt="Still Alive (revived)" /></a>
+		</header>
+		<main>
+			<h1>About</h1>
+			<p>Still Alive Revived is a modernized version of the original Still Alive game made by t4ils.</p>
+
+			<figure class="compare">
+				<figure>
+					<video src="images/about/level01-old-closeup.mp4" autoplay muted loop playsinline></video>
+					<figcaption>Original</figcaption>
+				</figure>
+				<figure>
+					<video src="images/about/level01-new-closeup.mp4" autoplay muted loop playsinline></video>
+					<figcaption>Revived</figcaption>
+				</figure>
+			</figure>
+			<p>
+				The game is available under the
+				<a href="https://www.gnu.org/licenses/agpl-3.0.html">GNU Affero General Public License</a> on
+				<a href="https://github.com/splitbrain/stillalive">GitHub</a>.
+			</p>
+
+			<h2>History</h2>
+			<p>
+				In 2007, Valve released <a href="https://store.steampowered.com/app/400/Portal/">Portal</a>. It was a huge
+				success (I'm making a note here). But I wouldn't play it until 2011, when Valve released
+				<a href="https://store.steampowered.com/app/620/Portal_2/">Portal 2</a>.
+			</p>
+			<p>
+				What I did
+				<a href="https://www.splitbrain.org/blog/2008-06/18-stillaliveds-portal_2d_for_nintendo_ds">play first</a> was a
+				little indie game for the Nintendo DS called <b>Still Alive</b>, a game inspired by a fan project named
+				<a href="https://armorgames.com/play/107/portal-the-flash-version">Portal: The Flash Version</a>. The idea was
+				simple: <b>what if Portal, but 2D?</b>
+			</p>
+			<p>
+				Since I hadn't played the original, Still Alive was the first time I was <em>thinking in portals</em>. And I
+				loved it.
+			</p>
+			<p>Now, nearly twenty years later, I remembered this game and wondered what had happened to it.</p>
+			<p>
+				The original website is long gone, but with a bit of Internet sleuthing, I learned that t4ils, the developer of
+				Still Alive, had not only made this version for the Nintendo DS, but had also ported it to the Wii. And, to my
+				surprise, he had also made a web-based version called Still Alive JS. He even made it open source!
+			</p>
+			<p>
+				Even though the website no longer exists, the Wayback Machine had
+				<a href="https://web.archive.org/web/20120403221402/http://stillalivejs.t4ils.com/">archived enough of it</a> to
+				recover the game's JavaScript source code. And that's how Still Alive Revived was born.
+			</p>
+
+			<h2>Technology</h2>
+			<p>
+				My goal with the revived version is to keep the gameplay and the graphical design of the original, but to bring
+				it into the modern age.
+			</p>
+			<p>
+				Just as t4ils' original game could be revived 15 years later, I wanted my version to be as independent as
+				possible from the whims of modern web technology. So I decided to use only browser technologies and not to rely
+				on any fancy build pipelines or libraries. As in t4ils' original game, a loader fetches all the necessary files
+				first. Only this time, it fetches ES modules, web components and SVGs instead of jQuery and PNGs.
+			</p>
+			<p>
+				The original game and physics engine is still in use. But instead of rendering all graphics and UI elements onto
+				a canvas, I moved the UI to HTML and CSS. This allows for a more flexible layout and makes it easier to adapt to
+				different screen sizes.
+			</p>
+			<p>
+				The original game sprites and graphics were designed with the DS in mind, so their resolution was very low and
+				not suitable for larger screens. For Revived, all graphics were redrawn as SVGs, with the original graphics as
+				reference. Where the original was too pixelated, I used the decorations of the accompanying website as the style
+				guide, for example when redoing the character sprite.
+			</p>
+
+			<p>
+				The old game used audio objects to play sound effects. This was a very limited approach, as each sound could
+				only play once at a time. With the modern Web Audio API, I was able to add many more sound effects that can play
+				and mix at the same time. As a result, the new game <em>sounds</em> more lively.
+			</p>
+			<p>
+				Still Alive Revived is a testament to what modern browser technology can do. But it's also a testament to what
+				agentic coding can achieve. I laid down the ground rules, made the architectural decisions, and reviewed and
+				directed the conversion, while Claude did all the grunt work. I would not have been able to tackle a project
+				like this in my spare time without the help of AI.
+			</p>
+		</main>
+	</body>
+</html>

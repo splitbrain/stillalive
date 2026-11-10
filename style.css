@@ -247,3 +247,58 @@ game-app {
 		}
 	}
 }
+
+/* the footer has the width of the app, with the links on the left and the credits on the right */
+footer {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-between;
+	gap: 1rem;
+	width: min(100vw - 2rem, 1400px);
+	margin: 1rem auto;
+
+	> :last-child {
+		text-align: right;
+	}
+}
+
+/*
+ * The about page has the logo at the top and a text column below it. The logo has the width of the app, the text
+ * column is narrower so that its lines stay readable.
+ */
+body.about {
+	> header {
+		width: min(100vw - 2rem, 1400px);
+		margin: 1rem auto 0;
+
+		.logo {
+			display: block;
+			width: min(100%, 26rem);
+		}
+	}
+
+	> main {
+		width: min(100vw - 2rem, 50rem);
+		margin: 0 auto;
+		font-size: 1.25rem;
+		line-height: 1.6;
+	}
+
+	/* the original and the revived version of a video or an image stand next to each other */
+	.compare {
+		display: flex;
+		gap: 1rem;
+		margin: 1.5rem 0;
+
+		> figure {
+			flex: 1;
+			margin: 0;
+			text-align: center;
+		}
+
+		:is(video, img) {
+			display: block;
+			width: 100%;
+		}
+	}
+}

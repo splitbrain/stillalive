@@ -3,20 +3,11 @@
  */
 
 import { MAP_HEIGHT, MAP_SIZE, MAP_WIDTH, MouseButton } from './constants.js';
-import { animateTiles } from './entities/AnimatedTile.js';
-import { openExit, updateCakes } from './entities/Cake.js';
-import { updateCrates } from './entities/Crate.js';
-import { rebuildGravPipeFields } from './entities/GravPipeField.js';
-import { updatePlasma } from './entities/Plasma.js';
-import { updatePlatforms } from './entities/Platform.js';
-import { Portal, updatePortals } from './entities/Portal.js';
-import { updateSparkles } from './entities/Sparkle.js';
-import { updateTurrets } from './entities/Turret.js';
+import { Portal } from './entities/Portal.js';
 import { bg } from './images.js';
 import { mouseOnPlayfield, unclick } from './inputState.js';
-import { isTileHere, isWallAt, loadEditorObjects, loadLevelEditor, manageDoors } from './level.js';
-import { atExit } from './physics.js';
-import { isInPortal } from './portals.js';
+import { isTileHere, isWallAt, loadEditorObjects, loadLevel } from './level.js';
+import { MAP_FORMAT, parseMap } from './mapFile.js';
 import { game, input, stageEvents, ui } from './state.js';
 import { Tile, isGravPipeTile, isObjectTile } from './tiles.js';
 
@@ -42,13 +33,11 @@ let properties = {};
  * @returns {void}
  */
 export function startPlayingLevel() {
-	let i;
+	const level = { ...parseMap({ format: MAP_FORMAT, ...editorMap() }), campaign: '', number: 0, fromBelow: false };
 	ui.mode = 'test';
-	game.oldMap = new Array();
-	for (i = 0; i < game.map.length; i++) game.oldMap.push(game.map[i]);
-	loadLevelEditor();
-	if (game.cakesLeft == 0) openExit();
-	game.player.fadeNextLevel = -1;
+	game.replayMode = false;
+	loadLevel(level);
+	unclick();
 }
 
 /**
@@ -66,38 +55,10 @@ export function stopPlayingLevel(report = true) {
 	ui.mode = 'edit';
 	game.map = new Array();
 	for (i = 0; i < game.oldMap.length; i++) game.map.push(game.oldMap[i]);
+	game.message = null;
 	ui.editor.redrawTiles = true;
 	rebuildObjects();
 	if (report) stageEvents.push({ type: 'died', detail: null });
-}
-
-/**
- * Run one tick of the test run. The test run ends when the player dies.
- *
- * @returns {void}
- */
-function updateTestLevel() {
-	game.needRedrawTiles = 0;
-	game.time++;
-	if (!game.player.dead && game.player.fadeNextLevel == -1) {
-		game.player.move();
-		if (game.needRedrawTiles == 0) game.needRedrawTiles = isInPortal(game.player);
-	}
-
-	manageDoors();
-
-	animateTiles();
-	game.player.flip = input.mouseX > (game.player.x >> 8) + (game.player.pX >> 1) ? 1 : -1;
-	rebuildGravPipeFields();
-	updateCakes();
-	updateTurrets();
-	updatePlasma();
-	updateSparkles();
-	updateCrates();
-	updatePlatforms();
-	updatePortals();
-
-	if (game.player.dead) stopPlayingLevel();
 }
 
 /**
@@ -173,18 +134,13 @@ export function editorMap() {
 }
 
 /**
- * Run one tick of the editor or of the test run. When the map of the editor changed, its objects are created again.
+ * Run one tick of the editor. When the map of the editor changed, its objects are created again.
  *
  * @returns {void}
  */
 export function updateLevelEditor() {
-	if (ui.mode == 'test') {
-		updateTestLevel();
-		if (atExit()) stopPlayingLevel();
-	} else {
-		updateEditor();
-	}
-	if (ui.mode == 'edit' && ui.editor.objectsChanged) rebuildObjects();
+	updateEditor();
+	if (ui.editor.objectsChanged) rebuildObjects();
 }
 
 /**

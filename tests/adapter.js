@@ -96,8 +96,7 @@ export async function startGame(page) {
 /**
  * Wait until the narrator text has typed its full text: the fixed text of the screen or the text of the message of
  * the stage. The click targets below the narrator text move while it types, so a click must wait for the end of the
- * text. The stage must not be paused and must not be in test mode, because the typing stops in a pause and the test
- * mode types a different text.
+ * text. The stage must not be paused, because the typing stops in a pause.
  *
  * @param {import('@playwright/test').Page} page The Playwright page.
  * @returns {Promise<void>}
@@ -105,7 +104,8 @@ export async function startGame(page) {
 export async function waitForNarrator(page) {
 	await page.waitForFunction(() => {
 		const narrator = document.querySelector('narrator-text');
-		const text = narrator.getAttribute('text') ?? window.__test.stage.message.get()?.text ?? '';
+		const testing = window.__test.stage.mode.get() == 'test';
+		const text = (testing ? null : narrator.getAttribute('text')) ?? window.__test.stage.message.get()?.text ?? '';
 		return narrator.querySelector('p').textContent === text;
 	});
 }

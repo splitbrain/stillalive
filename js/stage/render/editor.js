@@ -1,102 +1,25 @@
 /**
- * Drawing of the level editor: the map with its objects and the test run.
+ * Drawing of the level editor: the map with its objects.
  */
 
 import { copyCanvas, ctx, drawCopy, drawImage } from '../canvas.js';
 import { MAP_HEIGHT, MAP_WIDTH, NUM_TILES, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH } from '../constants.js';
-import {
-	bg,
-	cake,
-	crateImage,
-	crosshair,
-	platform,
-	portalGun,
-	tileset,
-	gravPipe,
-	gravPipe2,
-	turretImages,
-} from '../images.js';
+import { bg, cake, crateImage, platform, tileset, gravPipe, gravPipe2, turretImages } from '../images.js';
 import { mouseOnPlayfield } from '../inputState.js';
 import { isTileHere } from '../level.js';
 import { game, input, ui } from '../state.js';
 import { Tile, isObjectTile } from '../tiles.js';
-import { getAngle } from '../utils.js';
-import {
-	createBuff,
-	drawAnimatedTiles,
-	drawArrow,
-	drawCakes,
-	drawCrates,
-	drawFrontTiles,
-	drawPlasma,
-	drawPlatforms,
-	drawPlayer,
-	drawPortals,
-	drawSparkles,
-	drawTileLayer,
-	drawGravPipes,
-	drawTurrets,
-} from './game.js';
+import { drawArrow, drawCakes, drawCrates, drawPlatforms, drawPlayer, drawGravPipes, drawTurrets } from './game.js';
 
 /** @type {OffscreenCanvas|undefined} The copy of the background, the tiles and the objects of the editor map. */
 let tilesBuff;
-
-/**
- * Draw the editor or its test run.
- *
- * @returns {void}
- */
-export function drawLevelEditor() {
-	if (ui.mode == 'test') drawTestLevel();
-	else drawEditor();
-}
-
-/**
- * Draw one frame of the test run.
- *
- * @returns {void}
- */
-function drawTestLevel() {
-	if (game.tilesChanged) createBuff();
-	drawTileLayer();
-
-	drawAnimatedTiles();
-
-	const a = getAngle(
-		(game.player.x >> 8) + (game.player.pX >> 1),
-		(game.player.y >> 8) + (game.player.pY >> 1),
-		input.mouseX,
-		input.mouseY,
-	);
-	ctx.save();
-	ctx.translate((game.player.x >> 8) + (game.player.pX >> 1), (game.player.y >> 8) + (game.player.pY >> 1));
-	ctx.rotate(a);
-	drawImage(portalGun, -5, -5);
-	ctx.restore();
-
-	drawGravPipes();
-
-	drawPlayer(game.player.x >> 8, game.player.y >> 8, game.player.flip, game.player.animationFrame);
-
-	drawCakes();
-	drawTurrets();
-	drawPlasma();
-	drawSparkles();
-	drawCrates();
-	drawPlatforms();
-
-	drawFrontTiles();
-	drawPortals();
-
-	drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
-}
 
 /**
  * Draw the editor: the map and the cursor. The page draws the palettes, the buttons and the text.
  *
  * @returns {void}
  */
-function drawEditor() {
+export function drawEditor() {
 	drawTileMap();
 	drawTileCursor();
 	drawSpriteCursor();

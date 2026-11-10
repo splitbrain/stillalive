@@ -1,11 +1,11 @@
 /**
  * Tests of the level editor with a map file that has properties beyond the tiles and the background: the import, the
- * export, the save slots and the Clear button.
+ * export, the save slots, the Clear button and the test run.
  */
 
 import { readFileSync } from 'node:fs';
 import { test, expect } from '@playwright/test';
-import { startGame, waitForNarrator } from './adapter.js';
+import { finishLevel, startGame, waitForNarrator } from './adapter.js';
 
 /** @type {object} A map file with a title, abilities, events and labels. */
 const MAP = JSON.parse(readFileSync(new URL('../maps/tutorial/level04.json', import.meta.url)));
@@ -61,6 +61,21 @@ async function openMap(page, map) {
 	await expect.poll(() => editorMap(page).then((m) => m.title)).toBe(map.title);
 }
 
+/**
+ * Hold the left mouse button on the stage until the wait of an event ends. The stage reads the mouse button once per
+ * tick, so the button stays down until the stage has removed the message.
+ *
+ * @param {import('@playwright/test').Page} page The Playwright page.
+ * @returns {Promise<void>}
+ */
+async function clickThroughWait(page) {
+	const stage = await page.locator('game-stage').boundingBox();
+	await page.mouse.move(stage.x + stage.width / 2, stage.y + stage.height / 2);
+	await page.mouse.down();
+	await expect.poll(() => page.evaluate(() => window.__test.stage.message.get()?.wait ?? false)).toBe(false);
+	await page.mouse.up();
+}
+
 test.describe('editor', () => {
 	test('exports the properties of the imported map file unchanged', async ({ page }) => {
 		await openMap(page, MAP);
@@ -89,5 +104,44 @@ test.describe('editor', () => {
 		expect(Object.keys(await page.evaluate(() => window.__test.stage.getMap())).sort()).toEqual(['bg', 'tiles']);
 		await clickButton(page, 'Undo');
 		expect(await editorMap(page)).toEqual(MAP);
+	});
+
+	test('plays the map in the test run like a level', async ({ page }) => {
+		await openMap(page, { ...MAP, abilities: { jump: false, portals: false } });
+		await clickButton(page, 'Try');
+		await expect.poll(() => stageValue(page, 'mode')).toBe('test');
+		await expect.poll(() => stageValue(page, 'message')).toMatchObject({ text: /^Your portal gun/, wait: true });
+		await waitForNarrator(page);
+		expect(await page.evaluate(() => window.__test.game.labels)).toEqual(MAP.labels);
+
+		await clickThroughWait(page);
+		await expect.poll(() => stageValue(page, 'message')).toMatchObject({ text: /^Shoot a portal/ });
+		// the first event unlocks the portals
+		expect(await page.evaluate(() => window.__test.game.abilities)).toEqual({ jump: false, portals: true });
+
+		// the death of the player restarts the level and keeps the test run
+		await page.evaluate(() => {
+			window.__test.deadPlayer = window.__test.game.player;
+			window.__test.game.player.life = -100000;
+		});
+		await expect.poll(() => page.evaluate(() => window.__test.game.player !== window.__test.deadPlayer)).toBe(true);
+		expect(await stageValue(page, 'mode')).toBe('test');
+
+		await page.keyboard.press('Escape');
+		await expect.poll(() => stageValue(page, 'mode')).toBe('edit');
+		expect(await stageValue(page, 'message')).toBeNull();
+	});
+
+	test('goes back to the editor after the exit of the test run', async ({ page }) => {
+		await openMap(page, { ...MAP, events: [{ on: 'exit', text: 'Goodbye', wait: 'click' }] });
+		await clickButton(page, 'Try');
+		await expect.poll(() => stageValue(page, 'mode')).toBe('test');
+		await page.waitForFunction(() => window.__test.game.time > 0);
+		await finishLevel(page);
+		await expect.poll(() => stageValue(page, 'message')).toMatchObject({ text: 'Goodbye', wait: true });
+
+		await clickThroughWait(page);
+		await expect.poll(() => stageValue(page, 'mode')).toBe('edit');
+		expect(await page.evaluate(() => location.hash)).toBe('#/editor');
 	});
 });

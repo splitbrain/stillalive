@@ -5,7 +5,7 @@
 import { playSound, sfx_transition } from './audio.js';
 import { updateBoss, updateBossRumble } from './boss.js';
 import { Transition } from './constants.js';
-import { updateLevelEditor } from './editor.js';
+import { stopPlayingLevel, updateLevelEditor } from './editor.js';
 import { animateTiles } from './entities/AnimatedTile.js';
 import { updateCakes } from './entities/Cake.js';
 import { updateCrates } from './entities/Crate.js';
@@ -33,8 +33,8 @@ import { random } from './utils.js';
  */
 export function tick() {
 	manageKeys();
-	if (ui.mode == 'edit' || ui.mode == 'test') updateLevelEditor();
-	else if (ui.mode == 'play' && !ui.paused) updateLevel();
+	if (ui.mode == 'edit') updateLevelEditor();
+	else if ((ui.mode == 'play' || ui.mode == 'test') && !ui.paused) updateLevel();
 }
 
 /**
@@ -77,7 +77,8 @@ function updateLevel() {
 /**
  * Run the end of a level: the exit events, the closing transition, and the finished event of the stage when the
  * transition ends. An exit event that waits for a click holds the transition until the click. After the transition,
- * the level waits in the exit freeze until the next command of the stage.
+ * the level waits in the exit freeze until the next command of the stage. The test run of the editor goes back to the
+ * editor after the transition.
  *
  * @returns {void}
  */
@@ -90,6 +91,10 @@ function updateLevelEnd() {
 		game.player.fadeNextLevel -= 4;
 		if (game.player.fadeNextLevel <= 0) {
 			game.player.fadeNextLevel = 0;
+			if (ui.mode == 'test') {
+				stopPlayingLevel();
+				return;
+			}
 			const replay = encodeReplay(game.replay, game.level.campaign, game.level.number);
 			stageEvents.push({ type: 'finished', detail: { time: game.time, replay } });
 		}

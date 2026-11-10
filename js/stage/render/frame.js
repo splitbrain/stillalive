@@ -4,7 +4,7 @@
 
 import { beginFrame } from '../canvas.js';
 import { ui } from '../state.js';
-import { drawLevelEditor } from './editor.js';
+import { drawEditor } from './editor.js';
 import { drawLevel, drawPreviewMap } from './game.js';
 
 /**
@@ -15,7 +15,7 @@ import { drawLevel, drawPreviewMap } from './game.js';
 export function render() {
 	if (ui.mode == 'idle') return;
 	beginFrame();
-	if (ui.mode == 'edit' || ui.mode == 'test') drawLevelEditor();
-	else if (ui.mode == 'play') drawLevel();
+	if (ui.mode == 'edit') drawEditor();
+	else if (ui.mode == 'play' || ui.mode == 'test') drawLevel();
 	else if (ui.mode == 'preview') drawPreviewMap();
 }

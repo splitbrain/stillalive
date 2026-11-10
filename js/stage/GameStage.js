@@ -168,9 +168,9 @@ export class GameStage extends HTMLElement {
 	}
 
 	/**
-	 * Run the editor map as a level. The death of the player, the exit, and the Escape and Enter keys end the test run
-	 * and go back to the editor. stopTest() ends the test run and goes back to the editor, stop() ends the test run and
-	 * leaves the editor.
+	 * Run the editor map as a level. The level restarts when the player dies. The end of the exit transition, and the
+	 * Escape and Enter keys end the test run and go back to the editor. stopTest() ends the test run and goes back to
+	 * the editor, stop() ends the test run and leaves the editor.
 	 *
 	 * @returns {void}
 	 */

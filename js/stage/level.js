@@ -374,26 +374,6 @@ function resetLevelState() {
 }
 
 /**
- * Start the map of the level editor as a level for a test run. The map stays in game.map.
- *
- * @returns {void}
- */
-export function loadLevelEditor() {
-	game.displayMap = game.map.slice();
-	resetLevelState();
-	game.player = new Player();
-	parseObjects('play');
-	game.abilities = { jump: true, portals: true };
-	game.events = [];
-	game.labels = [];
-	startEvents();
-
-	game.camera = new Camera(game.player.x, game.player.y);
-	game.cakesLeft = game.cakes.length;
-	game.tilesChanged = true;
-}
-
-/**
  * Place the player below the bottom edge with a speed upward, so the player jumps into the level.
  *
  * @returns {void}

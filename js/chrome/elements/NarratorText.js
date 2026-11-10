@@ -11,9 +11,6 @@ const TEMPLATE = await loadMarkup(import.meta.url);
 /** @type {number} The time between two characters of the narrator text in milliseconds: 45 characters per second. */
 const TYPE_TIME = 1000 / 45;
 
-/** @type {string} The narrator text of the test run of the editor map. */
-const TEST_TEXT = 'Press <Enter> or <Escape> to stop testing.';
-
 /**
  * The custom element <narrator-text>. It shows a text in a paragraph. The element types the text at 45 characters per
  * second, and starts again for each new text and for each new message of the stage, also when the message has the same
@@ -70,7 +67,7 @@ export class NarratorText extends ChromeScreen {
 	 */
 	render() {
 		const testing = this.stage.mode.get() == 'test';
-		const source = testing ? TEST_TEXT : (this.getAttribute('text') ?? this.stage.message.get());
+		const source = (testing ? null : this.getAttribute('text')) ?? this.stage.message.get();
 		if (source !== this.#source) {
 			this.#source = source;
 			this.#text = typeof source == 'string' ? source : (source?.text ?? '');

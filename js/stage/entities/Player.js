@@ -154,7 +154,7 @@ export class Player {
 			}
 		} else if (this.dead) {
 			if (this.life >= 0) {
-				if (ui.mode == 'play') loadLevel(game.level, true);
+				if (ui.mode == 'play' || ui.mode == 'test') loadLevel(game.level, true);
 			}
 		}
 	}

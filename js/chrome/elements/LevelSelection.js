@@ -18,7 +18,8 @@ const TEMPLATE = await loadMarkup(import.meta.url);
  *
  * The attribute campaign is the folder name of the campaign, and the attribute level is the selected level number, or
  * 0 for none. Without a selected level, the element shows the level list. The stage then shows the preview of the
- * level under the pointer, or of the highest unlocked level when the pointer is on no unlocked level. With a selected
+ * level under the pointer, or of the highest unlocked level when the pointer is on no unlocked level. If there is no
+ * unlocked level, e.g. when all slots of the custom campaign are empty, the stage shows nothing. With a selected
  * level, the element shows the details of the level: its title, its number, its best time, the Play link and the
  * Replay link. The Replay link is disabled when the level has no best time. The back link goes up from the details to
  * the level list, and from the level list to the main menu.
@@ -53,7 +54,6 @@ export class LevelSelection extends SelectionScreen {
 		const list = this.querySelector('level-list');
 		list.hidden = level > 0;
 		list.setAttribute('campaign', folder);
-		list.setAttribute('unlocked', String(maxLevel[index].get()));
 		this.querySelector('.details').hidden = level == 0;
 		this.querySelector('.back').setAttribute('href', level > 0 ? campaignPath(folder) : '#/');
 		if (level > 0) this.#renderDetails(index, level);
@@ -84,13 +84,16 @@ export class LevelSelection extends SelectionScreen {
 	/**
 	 * Show the preview of a level on the stage. Only the level list changes the preview.
 	 *
-	 * @param {number} level The level number, or 0 for the highest unlocked level.
+	 * @param {number} level The level number, or 0 for the highest unlocked level. If that level is not there, the
+	 *     stage shows nothing.
 	 * @returns {void}
 	 */
 	previewChoice(level) {
 		if (Number(this.getAttribute('level') ?? 0) > 0) return;
 		const campaign = campaigns[CAMPAIGN_FOLDERS.indexOf(this.getAttribute('campaign'))];
-		this.stage.preview(campaign.levels[(level || campaign.unlocked) - 1]);
+		const shown = campaign.levels[(level || campaign.unlocked) - 1];
+		if (shown) this.stage.preview(shown);
+		else this.stage.stop();
 	}
 
 	/**

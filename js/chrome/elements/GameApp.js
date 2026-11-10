@@ -50,10 +50,10 @@ const EDITOR_TEXT =
  * of the route and commands the stage. The editor route opens the editor map from before, so the map stays until the page reloads. The save and
  * load screen shows the preview of the editor map. The editor route with mode test runs the editor map and shows the
  * play screen. When the test run ends on the stage, the element goes up to the editor; without an open editor, the
- * route with mode test is replaced by the editor route. The element replaces a route with a locked level by the
- * selection of the campaign, because the router does not know the progress of the player. When the player goes from a
- * level to the selection of another level of the same campaign, e.g. back after Continue, the selection of the level
- * that the player left replaces the route.
+ * route with mode test is replaced by the editor route. The element replaces a route with a locked level or an empty
+ * slot of the custom campaign by the selection of the campaign, because the router does not know the progress of the
+ * player and the editor maps. When the player goes from a level to the selection of another level of the same campaign,
+ * e.g. back after Continue, the selection of the level that the player left replaces the route.
  *
  * The element sets the campaign and the level of the route as attributes of the level selection, and the campaign, the
  * level and the play mode as attributes of the best times panel. The panel gets a campaign only on the select and the
@@ -65,8 +65,8 @@ const EDITOR_TEXT =
  * detail.
  *
  * At the end of a level, the element stores the best time, the replay and the progress, and chooses the next route or
- * opens the intermission panel. A new route closes the panel. A replay-watch event from the panel plays the replay of
- * the level that ended. When the window loses the focus during a level, the element pauses the stage.
+ * opens the intermission panel. The custom campaign has no progress, and its Continue link skips the empty slots. A new
+ * route closes the panel. A replay-watch event from the panel plays the replay of the level that ended. When the window loses the focus during a level, the element pauses the stage.
  *
  * The end of a replay, the Stop button of the VCR panel and the Escape key go up to where the replay started. The
  * browser back button goes there too. A replay from the intermission panel opens the panel again with the same content
@@ -269,21 +269,10 @@ export class GameApp extends ChromeElement {
 	}
 
 	/**
-	 * Check if a level can be played: the level exists, and the player has unlocked it.
-	 *
-	 * @param {number} index The campaign index.
-	 * @param {number} level The level number.
-	 * @returns {boolean} True for a level that can be played.
-	 */
-	#isOpen(index, level) {
-		return level <= campaigns[index].levels.length && level <= maxLevel[index].get();
-	}
-
-	/**
 	 * Apply the route: command the stage and show the screen. A level that does not exist or that is locked goes to the
 	 * selection of its campaign. The playback of a replay needs only an existing level. The selection shows the preview
-	 * of the selected level, or of the highest unlocked level when no level is selected. A level that follows a play
-	 * route of the same level starts as a restart, which skips the waits at the level start. The play route where a
+	 * of the selected level, or of the highest unlocked level when no level is selected, or nothing if there is none. A
+	 * level that follows a play route of the same level starts as a restart, which skips the waits at the level start. The play route where a
 	 * replay started opens the intermission panel of the replay again.
 	 *
 	 * @returns {void}
@@ -296,7 +285,8 @@ export class GameApp extends ChromeElement {
 		const r = route.get();
 		const index = this.#campaignIndex(r);
 		if (r.level > 0) {
-			const usable = r.mode == 'replay' ? r.level <= campaigns[index].levels.length : this.#isOpen(index, r.level);
+			const campaign = campaigns[index];
+			const usable = r.mode == 'replay' ? campaign.levels[r.level - 1] != null : campaign.isOpen(r.level);
 			if (!usable) {
 				navigate(campaignPath(r.campaign), true);
 				return;
@@ -318,7 +308,9 @@ export class GameApp extends ChromeElement {
 		const level = r.level > 0 ? campaigns[index].levels[r.level - 1] : null;
 
 		if (r.name == 'select') {
-			this.stage.preview(level ?? campaigns[index].levels[campaigns[index].unlocked - 1]);
+			const shown = level ?? campaigns[index].levels[campaigns[index].unlocked - 1];
+			if (shown) this.stage.preview(shown);
+			else this.stage.stop();
 		} else if (r.name == 'play' && r.mode == 'play' && reopen) {
 			this.stage.stop();
 		} else if (r.name == 'play' && r.mode == 'play') {
@@ -433,7 +425,8 @@ export class GameApp extends ChromeElement {
 	/**
 	 * Handle the end of a level: the best time, the progress and the next route. After the last story level, the
 	 * credits show the first time. Else the intermission panel shows the time, the message and the links of the
-	 * choice. The end of a replay goes back to where the replay started.
+	 * choice. The Continue link goes to the next level that can be played. The end of a replay goes back to where the
+	 * replay started.
 	 *
 	 * @param {{time: number, replay: object}} detail The detail of the finished event of the stage.
 	 * @returns {void}
@@ -447,11 +440,10 @@ export class GameApp extends ChromeElement {
 		}
 		const index = this.#campaignIndex(r);
 		const campaign = campaigns[index];
-		const isLastLevel = r.level == campaign.levels.length;
 		let message = '';
 		let credits = false;
 		if (r.mode == 'play') message = this.#checkBestTime(r, time, replay);
-		if (r.mode == 'play' && maxLevel[index].get() < r.level + 1) {
+		if (r.mode == 'play' && index != CampaignId.CUSTOM && maxLevel[index].get() < r.level + 1) {
 			credits = index == CampaignId.STORY && maxLevel[index].get() == LEVELS_PER_CAMPAIGN;
 			saveProgress(index, r.level + 1);
 		}
@@ -459,12 +451,13 @@ export class GameApp extends ChromeElement {
 		if (credits) {
 			navigate('#/credits', true);
 		} else {
+			const next = campaign.nextLevel(r.level);
 			this.#intermissionReplay = replay;
 			this.#intermission = {
 				time,
 				message,
-				next: !isLastLevel && this.#isOpen(index, r.level + 1) ? campaignPath(r.campaign, r.level + 1, 'play') : null,
-				restart: this.#isOpen(index, r.level) ? campaignPath(r.campaign, r.level, 'play') : null,
+				next: next > 0 ? campaignPath(r.campaign, next, 'play') : null,
+				restart: campaign.isOpen(r.level) ? campaignPath(r.campaign, r.level, 'play') : null,
 			};
 			setAttributes(this.querySelector('intermission-panel'), { ...this.#intermission, open: '' });
 			this.#showScreen();

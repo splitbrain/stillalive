@@ -368,6 +368,58 @@ test.describe('chrome', () => {
 		expect(await map()).toEqual({ tiles, bg: 2 });
 	});
 
+	test('plays the editor maps of the slots as the custom campaign', async ({ page }) => {
+		await page.addInitScript(() => {
+			if (sessionStorage.getItem('custom-setup')) return;
+			sessionStorage.setItem('custom-setup', '1');
+			const map = { tiles: new Array(768).fill(0), bg: 0 };
+			// a floor, the player start and the exit
+			for (let x = 0; x < 32; x++) map.tiles[23 * 32 + x] = 1;
+			map.tiles[21 * 32 + 2] = 104;
+			map.tiles[22 * 32 + 20] = 22;
+			localStorage.setItem('stillalive_editorMap1', JSON.stringify(map));
+			localStorage.setItem('stillalive_editorMap3', JSON.stringify(map));
+			localStorage.setItem('stillalive_bestTimes', JSON.stringify({ 'custom-3': 1 }));
+		});
+		await startGame(page);
+		await setHash(page, '#/');
+		await expect(page.locator('main-menu .custom')).toHaveText('My Levels 1/2');
+
+		// all levels are unlocked, and the empty slots are disabled
+		await page.getByRole('link', { name: 'My Levels' }).click();
+		await expectScreen(page, '#/campaign/custom', SELECT_PARTS);
+		const list = page.locator('level-list');
+		await expect(list.locator('a[href]')).toHaveText(['Level 1', 'Level 3']);
+
+		// Continue skips the empty slot, and the last stored slot has no Continue
+		await list.getByRole('link', { name: 'Level 1', exact: true }).click();
+		await page.locator('level-selection .play').click();
+		await expectScreen(page, '#/campaign/custom/1/play', PLAY_PARTS);
+		await page.waitForFunction(() => window.__test.game.time > 0);
+		await finishLevel(page);
+		await expect(page.locator('intermission-panel')).toBeVisible();
+		await page.locator('intermission-panel .next').click();
+		await expectScreen(page, '#/campaign/custom/3/play', PLAY_PARTS);
+		await page.waitForFunction(() => window.__test.game.time > 0);
+		await finishLevel(page);
+		await expect(page.locator('intermission-panel')).toBeVisible();
+		await expect(page.locator('intermission-panel .next')).toBeHidden();
+		await expect(page.locator('intermission-panel .message')).toHaveText('Best time: 00:00.017');
+
+		// a save into a slot deletes its best time
+		await setHash(page, '#/');
+		await expect(page.locator('main-menu .custom')).toHaveText('My Levels 2/2');
+		await setHash(page, '#/editor/save');
+		await page.locator('slot-list button').nth(2).click();
+		await page.locator('confirm-screen').getByRole('button', { name: 'Yes' }).click();
+		await expectScreen(page, '#/editor', EDITOR_PARTS);
+		await setHash(page, '#/');
+		await expect(page.locator('main-menu .custom')).toHaveText('My Levels 1/2');
+		expect(await page.evaluate(() => Object.keys(JSON.parse(localStorage.getItem('stillalive_bestTimes'))))).toEqual([
+			'custom-1',
+		]);
+	});
+
 	test('opens the tutorial with a button for each of its levels', async ({ page }) => {
 		await startGame(page);
 		await setHash(page, '#/');

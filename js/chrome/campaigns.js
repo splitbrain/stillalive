@@ -1,18 +1,21 @@
 /**
- * Loading of the campaigns and their level files.
+ * Loading of the campaigns and their level files, and the custom campaign of the editor maps.
  */
 
-import { CAMPAIGN_FOLDERS, CampaignId } from '../stage/constants.js';
-import { parseMap } from '../stage/mapFile.js';
+import { CAMPAIGN_FOLDERS, CampaignId, LEVELS_PER_CAMPAIGN } from '../stage/constants.js';
+import { MAP_FORMAT, parseMap } from '../stage/mapFile.js';
 import { Value } from '../value.js';
-import { maxLevel } from './storage.js';
+import { editorMap, getBestTime, maxLevel } from './storage.js';
 
 /** @type {Campaign[]} The loaded campaigns, by campaign id. */
 export let campaigns;
 /** @type {number} The number of loaded campaign and level files. */
 let levelsLoaded = 0;
-/** @type {number} The number of campaign and level files to load. The campaign files add their level files. */
-let levelsToLoad = CAMPAIGN_FOLDERS.length;
+/**
+ * @type {number} The number of campaign and level files to load: one campaign file for each campaign except the custom
+ *     campaign. The campaign files add their level files.
+ */
+let levelsToLoad = CAMPAIGN_FOLDERS.length - 1;
 /** @type {string[]} The URLs of the campaign and level files that could not be loaded. */
 const missingLevelFiles = [];
 /**
@@ -44,7 +47,10 @@ export class Campaign {
 		this.sort = 0;
 		/** @type {string} The folder of the campaign that the main menu shows this campaign under, or empty for none. */
 		this.parent = '';
-		/** @type {import('../stage/level.js').Level[]} The levels of the campaign. */
+		/**
+		 * @type {Array<import('../stage/level.js').Level|null>} The levels of the campaign, by level number minus one. A
+		 *     level that is not there is null.
+		 */
 		this.levels = [];
 	}
 
@@ -66,16 +72,97 @@ export class Campaign {
 	get unlocked() {
 		return Math.min(maxLevel[this.id].get(), this.levels.length);
 	}
+
+	/**
+	 * Check if a level can be played: the level is there, and the player has unlocked it.
+	 *
+	 * @param {number} level The level number.
+	 * @returns {boolean} True for a level that can be played.
+	 */
+	isOpen(level) {
+		return level <= this.unlocked && this.levels[level - 1] != null;
+	}
+
+	/**
+	 * Get the next level after a level that can be played.
+	 *
+	 * @param {number} level The level number.
+	 * @returns {number} The number of the next level, or 0 if there is none.
+	 */
+	nextLevel(level) {
+		for (let n = level + 1; n <= this.levels.length; n++) {
+			if (this.isOpen(n)) return n;
+		}
+		return 0;
+	}
 }
 
 /**
- * Create the campaigns and start to load their files.
+ * The custom campaign: its levels are the editor maps in the slots. The level number is the slot number, and an empty
+ * slot or a slot with a map that is not valid has no level. All levels are unlocked.
+ */
+export class CustomCampaign extends Campaign {
+	/**
+	 * Make the levels from the editor maps, and make them again when a slot changes.
+	 *
+	 * @param {number} id The campaign id, the index in the campaigns list.
+	 * @param {string} folder The name of the campaign in the routes and in the storage keys.
+	 */
+	constructor(id, folder) {
+		super(id, folder);
+		this.title = 'My Levels';
+		for (let slot = 1; slot <= LEVELS_PER_CAMPAIGN; slot++) {
+			editorMap(slot).subscribe((map) => (this.levels[slot - 1] = this.#createLevel(slot, map)));
+		}
+	}
+
+	/**
+	 * Make the level of a slot.
+	 *
+	 * @param {number} slot The slot number.
+	 * @param {object|null} map The editor map in the map file format without the format, or null for an empty slot.
+	 * @returns {import('../stage/level.js').Level|null} The level, or null if the slot is empty or the map is not valid.
+	 */
+	#createLevel(slot, map) {
+		if (map == null) return null;
+		try {
+			return { ...parseMap({ format: MAP_FORMAT, ...map }), campaign: this.folder, number: slot, fromBelow: false };
+		} catch {
+			return null;
+		}
+	}
+
+	/**
+	 * Get the number of levels that have a best time.
+	 *
+	 * @returns {number} The number of finished levels.
+	 */
+	get completed() {
+		return this.levels.filter((level) => level != null && getBestTime(this.folder, level.number) !== null).length;
+	}
+
+	/**
+	 * Get the highest level that the player can play.
+	 *
+	 * @returns {number} The level number, or 0 if all slots are empty.
+	 */
+	get unlocked() {
+		return this.levels.findLastIndex((level) => level != null) + 1;
+	}
+}
+
+/**
+ * Create the campaigns and start to load the files of all campaigns except the custom campaign.
  *
  * @returns {void}
  */
 export function loadCampaigns() {
-	campaigns = CAMPAIGN_FOLDERS.map((folder, id) => new Campaign(id, folder));
-	for (let c = 0; c < campaigns.length; c++) loadCampaignFiles(c);
+	campaigns = CAMPAIGN_FOLDERS.map((folder, id) =>
+		id == CampaignId.CUSTOM ? new CustomCampaign(id, folder) : new Campaign(id, folder),
+	);
+	for (let c = 0; c < campaigns.length; c++) {
+		if (c != CampaignId.CUSTOM) loadCampaignFiles(c);
+	}
 }
 
 /**

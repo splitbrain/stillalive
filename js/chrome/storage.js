@@ -9,7 +9,7 @@
  * page shows the sound setting through the stage, so the sound setting is only read and written.
  */
 
-import { CAMPAIGN_FOLDERS } from '../stage/constants.js';
+import { CAMPAIGN_FOLDERS, CampaignId } from '../stage/constants.js';
 import { Value } from '../value.js';
 
 /** @type {string} The localStorage key of the highest unlocked level of each campaign. */
@@ -232,7 +232,7 @@ export function editorMap(slot) {
 }
 
 /**
- * Store an editor map.
+ * Store an editor map, and delete the best time and the replay of the slot in the custom campaign.
  *
  * @param {number} slot The slot number, starting at 1.
  * @param {object} map The editor map in the map file format without the format.
@@ -240,8 +240,25 @@ export function editorMap(slot) {
  */
 export function saveEditorMap(slot, map) {
 	if (!writeItem(EDITOR_MAP_PREFIX + slot, JSON.stringify(map))) return false;
+	deleteBestTime(CAMPAIGN_FOLDERS[CampaignId.CUSTOM], slot);
 	editorMap(slot).set(map);
 	return true;
+}
+
+/**
+ * Delete the best time and the replay of a level. The time goes first, so each stored time keeps its replay.
+ *
+ * @param {string} campaign The folder name of the campaign.
+ * @param {number} level The level number, starting at 1.
+ * @returns {void}
+ */
+function deleteBestTime(campaign, level) {
+	const key = levelKey(campaign, level);
+	const times = { ...bestTimes.get() };
+	delete times[key];
+	writeItem(BEST_TIMES_KEY, JSON.stringify(times));
+	bestTimes.set(times);
+	replayRequest('readwrite', (store) => store.delete(key)).catch((e) => console.error(e));
 }
 
 /**

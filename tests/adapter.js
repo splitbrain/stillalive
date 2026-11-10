@@ -7,19 +7,23 @@
  */
 
 import { readFileSync } from 'node:fs';
-import { CAMPAIGN_FOLDERS } from '../js/stage/constants.js';
+import { CAMPAIGN_FOLDERS, CampaignId } from '../js/stage/constants.js';
 
 /**
  * The campaigns with their index in the campaigns array of the game and their number of levels from the campaign
- * file.
+ * file. The custom campaign has no campaign file, so it is not in the list.
  *
  * @type {{name: string, index: number, levels: number}[]}
  */
-export const CAMPAIGNS = CAMPAIGN_FOLDERS.map((name, index) => ({
-	name,
-	index,
-	levels: JSON.parse(readFileSync(new URL(`../maps/${name}/campaign.json`, import.meta.url))).levels.length,
-}));
+export const CAMPAIGNS = CAMPAIGN_FOLDERS.flatMap((name, index) =>
+	index == CampaignId.CUSTOM
+		? []
+		: {
+				name,
+				index,
+				levels: JSON.parse(readFileSync(new URL(`../maps/${name}/campaign.json`, import.meta.url))).levels.length,
+			},
+);
 
 /**
  * Number of ticks between two snapshots.

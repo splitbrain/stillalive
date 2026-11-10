@@ -74,10 +74,14 @@ export const CampaignId = {
 	COMMUNITY: 2,
 	STORY: 4,
 	TEST: 5,
+	CUSTOM: 6,
 };
 
-/** @type {string[]} The folder names of the campaigns in the maps folder, by campaign id. */
-export const CAMPAIGN_FOLDERS = ['normal', 'advanced', 'community', 'tutorial', 'story', 'test'];
+/**
+ * @type {string[]} The folder names of the campaigns in the maps folder, by campaign id. The custom campaign has no
+ *     folder: its levels are the editor maps in the slots.
+ */
+export const CAMPAIGN_FOLDERS = ['normal', 'advanced', 'community', 'tutorial', 'story', 'test', 'custom'];
 
 /** @type {Object<string, number>} The transition effects at the end and the start of a level, the value of ui.transition. */
 export const Transition = {

@@ -14,21 +14,36 @@ const TEMPLATE = await loadMarkup(import.meta.url);
 /**
  * The custom element <main-menu>. It shows the list of the campaigns with the number of finished levels and the link to
  * the editor. A campaign with a parent shows in a sub list below its parent, and the custom campaign shows in a sub
- * list below the editor. The test campaign shows only when the URL contains "?test".
+ * list below the editor. The test campaign shows only when the URL contains "?test". The sound button in the bottom left
+ * corner turns the sound on and off and shows the setting; the app element stores the change.
  */
 export class MainMenu extends ChromeScreen {
 	/** @type {HTMLTemplateElement|null} The markup of the main menu. */
 	static template = TEMPLATE;
 
 	/**
-	 * Subscribe to the loading of the campaigns, to the progress of all campaigns, to the best times and to the editor
-	 * maps of the slots.
+	 * Add the handler of the sound button.
+	 *
+	 * @returns {void}
+	 */
+	setUp() {
+		this.querySelector('.sound').addEventListener('click', () => this.stage.setSound(!this.stage.sound.get()));
+	}
+
+	/**
+	 * Subscribe to the loading of the campaigns, to the progress of all campaigns, to the best times, to the editor maps
+	 * of the slots and to the sound setting.
 	 *
 	 * @returns {Array<function(): void>} The functions that remove the subscriptions.
 	 */
 	subscribe() {
 		const slots = Array.from({ length: LEVELS_PER_CAMPAIGN }, (_, i) => editorMap(i + 1));
+		const icon = this.querySelector('.sound img');
 		return [
+			this.stage.sound.subscribe((on) => {
+				icon.src = on ? 'gfx/ui/sound-on.svg' : 'gfx/ui/sound-off.svg';
+				icon.alt = 'Sounds: ' + (on ? 'On' : 'Off');
+			}),
 			campaignsReady.subscribe(() => this.render()),
 			...maxLevel.map((value) => value.subscribe(() => this.render())),
 			bestTimes.subscribe(() => this.render()),

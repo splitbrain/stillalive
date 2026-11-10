@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+  <!-- the sound button while the sound is off: a speaker with an X -->
+  <defs>
+    <path id="shape" d="M3.3 8.3 6.9 8.4 11.3 4.3C12 3.6 13 3.9 13 4.9L13.2 19C13.2 20 12.2 20.4 11.5 19.7L6.9 15.6 3.4 15.8C2.8 15.8 2.4 15.4 2.4 14.8L2.3 9.3C2.3 8.7 2.7 8.3 3.3 8.3zM20.51 12L22.45 13.94A1.35 1.35 0 0 1 20.54 15.85L18.6 13.91L16.66 15.85A1.35 1.35 0 0 1 14.75 13.94L16.69 12L14.75 10.06A1.35 1.35 0 0 1 16.66 8.15L18.6 10.09L20.54 8.15A1.35 1.35 0 0 1 22.45 10.06z"/>
+    <clipPath id="inside">
+      <use href="#shape"/>
+    </clipPath>
+  </defs>
+  <use href="#shape" transform="translate(0.9 1.1)" fill="#1a1410" opacity="0.5"/>
+  <use href="#shape" fill="#fde900"/>
+  <path d="M0 13.6C8 12.8 15 12.6 24 13.2V24H0z" fill="#d9a400" clip-path="url(#inside)"/>
+  <use href="#shape" fill="none" stroke="#1a1410" stroke-width="0.7" stroke-linejoin="round"/>
+  <path d="M3.4 9.6 6.7 9.6M8.4 8.6 11.6 5.6M16.4 9.1 17.7 10.4" fill="none" stroke="#ffffff" stroke-width="0.8" stroke-linecap="round"/>
+</svg>

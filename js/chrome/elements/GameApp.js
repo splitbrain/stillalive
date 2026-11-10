@@ -21,10 +21,10 @@ import { toTime } from '../time.js';
 import { ready } from '../../loader.js';
 
 /**
- * @type {string} The selector of the buttons with a hover and a click sound: the menu buttons, the back links and the
- *     buttons of the VCR panel.
+ * @type {string} The selector of the buttons with a hover and a click sound: the menu buttons, the back links, the sound
+ *     button of the main menu and the buttons of the VCR panel.
  */
-const SOUND_BUTTONS = 'menu-button, .selection-screen a.back, vcr-panel button';
+const SOUND_BUTTONS = 'menu-button, .selection-screen a.back, main-menu .sound, vcr-panel button';
 
 /** @type {string[]} The screens that show the stage. */
 const STAGE_SCREENS = [Screen.SELECT, Screen.PLAY, Screen.EDITOR, Screen.EDITOR_FILE];

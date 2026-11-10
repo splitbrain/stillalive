@@ -6,15 +6,17 @@
 			<ul class="custom"></ul>
 		</li>
 	</ul>
+	<button class="sound"><img src="gfx/ui/sound-on.svg" alt="Sounds: On" /></button>
 </template>
 
 <style>
-	/* the menu is a centered column of buttons and sits vertically centered in the cell of the screen */
+	/* the menu covers the cell of the screen and shows a centered column of buttons */
 	main-menu {
 		display: flex;
+		position: relative;
 		flex-direction: column;
 		align-items: center;
-		align-self: center;
+		justify-content: center;
 		gap: 3.6cqw;
 
 		/* the campaigns are a column of buttons, the sub lists are indented; all sizes scale with the screen */
@@ -35,6 +37,29 @@
 		li > ul {
 			margin-top: -0.9cqw;
 			padding-left: 8cqw;
+		}
+
+		/* the sound button sits in the bottom left corner */
+		.sound {
+			position: absolute;
+			bottom: 3cqw;
+			left: 3cqw;
+			width: 6cqw;
+			padding: 0;
+			border: 0;
+			background: none;
+			cursor: pointer;
+			transition: scale 0.1s;
+
+			&:hover,
+			&:focus-visible {
+				scale: 0.9;
+			}
+
+			img {
+				display: block;
+				width: 100%;
+			}
 		}
 	}
 </style>

@@ -55,7 +55,7 @@ const STAGE_STYLE = `
 		width: min(100%, calc(100cqh * ${PLAYFIELD_WIDTH} / ${PLAYFIELD_HEIGHT}));
 		aspect-ratio: ${PLAYFIELD_WIDTH} / ${PLAYFIELD_HEIGHT};
 		background: black;
-		cursor: url('blank.png'), none;
+		cursor: none;
 		touch-action: none;
 	}
 `;

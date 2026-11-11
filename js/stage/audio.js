@@ -1,10 +1,14 @@
 /**
- * Sound effects with the Web Audio API.
+ * Sound effects and music with the Web Audio API.
  *
  * Each sound is decoded once into an audio buffer, so the same sound can play more than once at the same time. Each
  * sound has its own gain node for its volume. Browsers block sound until the player clicks or presses a key on the
  * page, so the module creates the audio context on the first click or key press. It handles them in the capture
  * phase, so that no other handler can stop them before. Until then, an offline audio context decodes the sounds.
+ *
+ * The music has its own gain node and its own setting, so the music and the sounds can be turned on and off
+ * separately. The level music is decoded into an audio buffer too, so that it loops without a gap and its speed can
+ * change. The menu music is long, so it streams from an audio element, where a small gap at the loop does not matter.
  */
 
 /** @type {OfflineAudioContext} The context that decodes the sounds before the audio context exists. */
@@ -275,6 +279,237 @@ function connectSound(sound) {
 	sound.gain.connect(master);
 }
 
+/** @type {string} The file of the music of the levels, a loop. */
+const LEVEL_MUSIC_FILE = 'music/level.ogg';
+
+/** @type {string} The file of the music of the menus and the other screens, a loop. */
+const MENU_MUSIC_FILE = 'music/menu.ogg';
+
+/** @type {number} The volume of the music, from 0 to 1, so that the sounds stay louder than the music. */
+const MUSIC_VOLUME = 0.35;
+
+/** @type {number} The share of the music volume that the menu music plays with, so that it is quieter. */
+const MENU_MUSIC_SHARE = 0.7;
+
+/** @type {number} The time of the fade when the music starts or stops, in seconds. */
+const MUSIC_FADE = 1;
+
+/** @type {number} The time of the glide to a new speed of the music, in seconds. */
+const MUSIC_GLIDE = 1.5;
+
+/** @type {number} The time of the fade to a new duck volume of the music, in seconds. */
+const MUSIC_DUCK_FADE = 0.5;
+
+/** @type {AudioBuffer|null} The decoded music of the levels, or null until it is loaded. */
+let levelBuffer = null;
+
+/**
+ * @type {{source: AudioBufferSourceNode, fade: GainNode}|null} The playback of the level music with the gain node of
+ *     its fade, or null while the level music does not play.
+ */
+let levelPlayback = null;
+
+/** @type {HTMLAudioElement} The audio element of the menu music. It has no source until the music loads. */
+const menuElement = new Audio();
+menuElement.loop = true;
+
+/** @type {GainNode|null} The gain node of the fade of the menu music, or null before the audio context exists. */
+let menuFade = null;
+
+/** @type {boolean} True while the menu music plays or fades in. */
+let menuPlaying = false;
+
+/** @type {number} The timer that pauses the menu music at the end of its fade. */
+let menuPauseTimer = 0;
+
+/** @type {boolean} True after the music started to load. */
+let musicRequested = false;
+
+/** @type {GainNode|null} The gain node of all music, or null before the audio context exists. */
+let musicGain = null;
+
+/** @type {boolean} True if the player wants to hear the music. */
+let musicEnabled = true;
+
+/** @type {string|null} The music that the game wants to play: "level", "menu", or null for none. */
+let musicTrack = null;
+
+/** @type {number} The playback rate of the level music: 1 for the normal speed and pitch, more for faster and higher. */
+let musicRate = 1;
+
+/** @type {number} The share of the music volume that plays, from 0 to 1. */
+let musicDuck = 1;
+
+/**
+ * Start to load the music, once. The level music is decoded, the menu music streams from its audio element.
+ *
+ * @returns {void}
+ */
+function loadMusic() {
+	if (musicRequested) return;
+	musicRequested = true;
+	menuElement.src = MENU_MUSIC_FILE;
+	fetch(LEVEL_MUSIC_FILE)
+		.then((response) => {
+			if (!response.ok) throw new Error(`${response.status}`);
+			return response.arrayBuffer();
+		})
+		.then((data) => decoder.decodeAudioData(data))
+		.then((buffer) => {
+			levelBuffer = buffer;
+			updateMusic();
+		})
+		.catch((error) => console.error('Could not load the level music', error));
+}
+
+/**
+ * Check if the music is on.
+ *
+ * @returns {boolean} True if the player wants to hear the music.
+ */
+export function isMusicOn() {
+	return musicEnabled;
+}
+
+/**
+ * Turn the music on or off. The music loads when it is on the first time.
+ *
+ * @param {boolean} on True to play the music that the game wants.
+ * @returns {void}
+ */
+export function setMusicOn(on) {
+	musicEnabled = on;
+	if (on) loadMusic();
+	updateMusic();
+}
+
+/**
+ * Choose the music to play. The music that stops fades out while the new music fades in. A new start plays the music
+ * from the beginning.
+ *
+ * @param {string|null} track "level" for the level music, "menu" for the menu music, or null for no music.
+ * @returns {void}
+ */
+export function setMusicPlaying(track) {
+	musicTrack = track;
+	updateMusic();
+}
+
+/**
+ * Set the speed and the volume of the music. The speed applies to the level music and glides to the new value, the
+ * volume fades to the new value.
+ *
+ * @param {number} rate The playback rate: 1 for the normal speed and pitch, more for faster and higher.
+ * @param {number} duck The share of the music volume that plays, from 0 to 1.
+ * @returns {void}
+ */
+export function setMusicMood(rate, duck) {
+	if (rate != musicRate) {
+		musicRate = rate;
+		if (levelPlayback) rampTo(levelPlayback.source.playbackRate, rate, MUSIC_GLIDE);
+	}
+	if (duck != musicDuck) {
+		musicDuck = duck;
+		if (musicGain) rampTo(musicGain.gain, MUSIC_VOLUME * duck, MUSIC_DUCK_FADE);
+	}
+}
+
+/**
+ * Start the music that should play and does not, and stop the music that plays and should not.
+ *
+ * @returns {void}
+ */
+function updateMusic() {
+	if (!context) return;
+	const track = musicEnabled ? musicTrack : null;
+	updateLevelMusic(track == 'level');
+	updateMenuMusic(track == 'menu');
+}
+
+/**
+ * Start or stop the level music. Each start makes a new playback of the decoded music.
+ *
+ * @param {boolean} play True if the level music should play.
+ * @returns {void}
+ */
+function updateLevelMusic(play) {
+	play = play && levelBuffer !== null;
+	if (play == (levelPlayback !== null)) return;
+	if (play) {
+		const source = context.createBufferSource();
+		source.buffer = levelBuffer;
+		source.loop = true;
+		// Chrome 152 does not go back to the start of a long buffer when the loop ends at the end of the buffer
+		source.loopEnd = (levelBuffer.length - 1) / levelBuffer.sampleRate;
+		source.playbackRate.value = musicRate;
+		const fade = context.createGain();
+		fade.gain.value = 0;
+		source.connect(fade);
+		fade.connect(musicGain);
+		source.start();
+		rampTo(fade.gain, 1, MUSIC_FADE);
+		levelPlayback = { source, fade };
+	} else {
+		rampTo(levelPlayback.fade.gain, 0, MUSIC_FADE);
+		levelPlayback.source.stop(context.currentTime + MUSIC_FADE);
+		levelPlayback = null;
+	}
+}
+
+/**
+ * Start or stop the menu music. The audio element pauses at the end of the fade out. A start during the fade out
+ * fades the music in again where it is.
+ *
+ * @param {boolean} play True if the menu music should play.
+ * @returns {void}
+ */
+function updateMenuMusic(play) {
+	if (play == menuPlaying) return;
+	menuPlaying = play;
+	clearTimeout(menuPauseTimer);
+	if (play) {
+		if (menuElement.paused) {
+			menuElement.currentTime = 0;
+			menuElement.play().catch((error) => console.error('Could not play the menu music', error));
+		}
+		rampTo(menuFade.gain, MENU_MUSIC_SHARE, MUSIC_FADE);
+	} else {
+		rampTo(menuFade.gain, 0, MUSIC_FADE);
+		menuPauseTimer = setTimeout(() => menuElement.pause(), MUSIC_FADE * 1000);
+	}
+}
+
+/**
+ * Create the gain nodes of the music and connect the audio element of the menu music.
+ *
+ * @returns {void}
+ */
+function connectMusic() {
+	musicGain = context.createGain();
+	musicGain.gain.value = MUSIC_VOLUME * musicDuck;
+	musicGain.connect(context.destination);
+	menuFade = context.createGain();
+	menuFade.gain.value = 0;
+	menuFade.connect(musicGain);
+	context.createMediaElementSource(menuElement).connect(menuFade);
+	updateMusic();
+}
+
+/**
+ * Change an audio parameter in a straight line from its current value to a new value.
+ *
+ * @param {AudioParam} param The audio parameter.
+ * @param {number} value The new value.
+ * @param {number} time The time of the change in seconds.
+ * @returns {void}
+ */
+function rampTo(param, value, time) {
+	const now = context.currentTime;
+	param.cancelScheduledValues(now);
+	param.setValueAtTime(param.value, now);
+	param.linearRampToValueAtTime(value, now + time);
+}
+
 /**
  * Create the audio context on the first click or key press of the player, and resume it if the browser suspended it.
  *
@@ -287,6 +522,7 @@ function resumeAudio() {
 		master.connect(context.destination);
 		updateMasterVolume();
 		sounds.forEach(connectSound);
+		connectMusic();
 	}
 	if (context.state === 'suspended') context.resume();
 }

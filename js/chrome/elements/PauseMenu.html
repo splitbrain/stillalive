@@ -3,6 +3,7 @@
 	<menu-button><a class="restart">Restart</a></menu-button>
 	<menu-button><a class="exit" data-up>Exit</a></menu-button>
 	<menu-button small><button class="sound">Sounds: On</button></menu-button>
+	<menu-button small><button class="music">Music: On</button></menu-button>
 </template>
 
 <style>
@@ -18,8 +19,8 @@
 		gap: 1.8cqw;
 		backdrop-filter: grayscale(1) brightness(0.6);
 
-		/* the sound button is set apart from the buttons that leave the pause */
-		> :last-child {
+		/* the sound and music buttons are set apart from the buttons that leave the pause */
+		> :has(.sound) {
 			margin-top: 1.8cqw;
 		}
 	}

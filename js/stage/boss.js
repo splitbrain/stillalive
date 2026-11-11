@@ -265,6 +265,19 @@ export function updateBossRumble() {
 }
 
 /**
+ * Get the phase of the boss fight.
+ *
+ * @returns {string|null} "coming" while the boss comes in, "fight" while it lives, "leaving" while it leaves after its
+ *     death, or null in a level without a boss, before the entrance and after the boss is gone.
+ */
+export function bossPhase() {
+	if (game.bossNum == 0) return null;
+	if (game.bossIsComing) return isWaiting() ? null : 'coming';
+	if (game.bossLife < 3) return 'fight';
+	return game.bossX < BOSS_GONE_X ? 'leaving' : null;
+}
+
+/**
  * Check if the player touches the boss.
  *
  * @returns {boolean} True if the player touches the boss.

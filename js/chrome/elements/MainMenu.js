@@ -15,34 +15,41 @@ const TEMPLATE = await loadMarkup(import.meta.url);
  * The custom element <main-menu>. It shows the list of the campaigns with the number of finished levels and the link to
  * the editor. A campaign with a parent shows in a sub list below its parent, and the custom campaign shows in a sub
  * list below the editor. The test campaign shows only when the URL contains "?test". The sound button in the bottom left
- * corner turns the sound on and off and shows the setting; the app element stores the change.
+ * corner turns the sound on and off, the music button in the bottom right corner the music; both show their setting and
+ * the app element stores the change.
  */
 export class MainMenu extends ChromeScreen {
 	/** @type {HTMLTemplateElement|null} The markup of the main menu. */
 	static template = TEMPLATE;
 
 	/**
-	 * Add the handler of the sound button.
+	 * Add the handlers of the sound and the music buttons.
 	 *
 	 * @returns {void}
 	 */
 	setUp() {
 		this.querySelector('.sound').addEventListener('click', () => this.stage.setSound(!this.stage.sound.get()));
+		this.querySelector('.music').addEventListener('click', () => this.stage.setMusic(!this.stage.music.get()));
 	}
 
 	/**
 	 * Subscribe to the loading of the campaigns, to the progress of all campaigns, to the best times, to the editor maps
-	 * of the slots and to the sound setting.
+	 * of the slots and to the sound and the music settings.
 	 *
 	 * @returns {Array<function(): void>} The functions that remove the subscriptions.
 	 */
 	subscribe() {
 		const slots = Array.from({ length: LEVELS_PER_CAMPAIGN }, (_, i) => editorMap(i + 1));
 		const icon = this.querySelector('.sound img');
+		const musicIcon = this.querySelector('.music img');
 		return [
 			this.stage.sound.subscribe((on) => {
 				icon.src = on ? 'gfx/ui/sound-on.svg' : 'gfx/ui/sound-off.svg';
 				icon.alt = 'Sounds: ' + (on ? 'On' : 'Off');
+			}),
+			this.stage.music.subscribe((on) => {
+				musicIcon.src = on ? 'gfx/ui/music-on.svg' : 'gfx/ui/music-off.svg';
+				musicIcon.alt = 'Music: ' + (on ? 'On' : 'Off');
 			}),
 			campaignsReady.subscribe(() => this.render()),
 			...maxLevel.map((value) => value.subscribe(() => this.render())),

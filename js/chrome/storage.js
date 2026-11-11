@@ -1,12 +1,12 @@
 /**
  * Storage of the player data in the browser.
  *
- * The progress, the best times, the editor maps and the sound setting are small, so they stay in localStorage and can
+ * The progress, the best times, the editor maps and the sound and music settings are small, so they stay in localStorage and can
  * be read at once. The replays can be large, so they go into IndexedDB. Some browsers block the storage, e.g. in a
  * private mode. The game then runs without stored data.
  *
  * The progress, the best times and the editor maps are Value instances, so that the page can show their changes. The
- * page shows the sound setting through the stage, so the sound setting is only read and written.
+ * page shows the sound and music settings through the stage, so these settings are only read and written.
  */
 
 import { CAMPAIGN_FOLDERS, CampaignId } from '../stage/constants.js';
@@ -20,6 +20,9 @@ const BEST_TIMES_KEY = 'stillalive_bestTimes';
 
 /** @type {string} The localStorage key of the sound setting. */
 const SOUND_SETTING_KEY = 'stillalive_sound';
+
+/** @type {string} The localStorage key of the music setting. */
+const MUSIC_SETTING_KEY = 'stillalive_music';
 
 /** @type {string} The prefix of the localStorage keys of the editor maps. The slot number follows the prefix. */
 const EDITOR_MAP_PREFIX = 'stillalive_editorMap';
@@ -291,4 +294,23 @@ export function loadSoundSetting() {
  */
 export function saveSoundSetting(enabled) {
 	writeItem(SOUND_SETTING_KEY, enabled ? 'on' : 'off');
+}
+
+/**
+ * Check if the player wants to hear the music.
+ *
+ * @returns {boolean} False if the player turned the music off, else true.
+ */
+export function loadMusicSetting() {
+	return readItem(MUSIC_SETTING_KEY) !== 'off';
+}
+
+/**
+ * Store the music setting.
+ *
+ * @param {boolean} enabled True if the player wants to hear the music.
+ * @returns {void}
+ */
+export function saveMusicSetting(enabled) {
+	writeItem(MUSIC_SETTING_KEY, enabled ? 'on' : 'off');
 }

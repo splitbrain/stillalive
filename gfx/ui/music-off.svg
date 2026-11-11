@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+  <!-- the music button while the music is off: two eighth notes with an X -->
+  <defs>
+    <path id="shape" d="M5.24 14.91L5.2 15.05L5.07 15.14L4.36 15.17L4 15.26L3.68 15.38L3.19 15.68L2.8 16.06L2.62 16.31L2.51 16.54L2.43 16.8L2.4 17.06L2.43 17.3L2.5 17.51L2.63 17.72L2.8 17.89L3.21 18.11L3.7 18.21L4.25 18.18L4.81 18.01L5.27 17.75L5.69 17.39L5.98 17.01L6.16 16.58L6.31 16.4L6.33 9.28L6.38 9.13L6.51 9.05L11.62 7.93L11.78 8.02L11.84 8.17L11.83 13.49L11.75 13.6L11.64 13.65L11.06 13.66L10.55 13.78L10.15 13.95L9.79 14.19L9.45 14.5L9.18 14.89L9.03 15.27L9 15.67L9.04 15.88L9.13 16.07L9.25 16.25L9.41 16.4L9.62 16.54L9.84 16.63L10.34 16.72L10.89 16.67L11.45 16.49L11.98 16.18L12.38 15.79L12.6 15.47L12.75 15.08L12.89 14.93L12.92 14.81L12.92 5.69L12.91 5.59L12.83 5.5L12.73 5.45L12.63 5.45L5.43 7.05L5.29 7.13L5.24 7.28zM20.51 12L22.45 13.94A1.35 1.35 0 0 1 20.54 15.85L18.6 13.91L16.66 15.85A1.35 1.35 0 0 1 14.75 13.94L16.69 12L14.75 10.06A1.35 1.35 0 0 1 16.66 8.15L18.6 10.09L20.54 8.15A1.35 1.35 0 0 1 22.45 10.06z"/>
+    <clipPath id="inside">
+      <use href="#shape"/>
+    </clipPath>
+  </defs>
+  <use href="#shape" transform="translate(0.9 1.1)" fill="#1a1410" opacity="0.5"/>
+  <use href="#shape" fill="#fde900"/>
+  <path d="M0 13.6C8 12.8 15 12.6 24 13.2V24H0z" fill="#d9a400" clip-path="url(#inside)"/>
+  <use href="#shape" fill="none" stroke="#1a1410" stroke-width="0.7" stroke-linejoin="round"/>
+  <path d="M6.06 7.9 8.98 7.26M16.4 9.1 17.7 10.4" fill="none" stroke="#ffffff" stroke-width="0.8" stroke-linecap="round"/>
+</svg>

@@ -526,7 +526,7 @@ test.describe('chrome', () => {
 			menu.remove();
 			return { before, connected, reconnected, toggled };
 		});
-		expect(counts).toEqual({ before: 0, connected: 4, reconnected: 4, toggled: true });
+		expect(counts).toEqual({ before: 0, connected: 5, reconnected: 5, toggled: true });
 	});
 
 	test('renders the attributes that are set before the first connect', async ({ page }) => {

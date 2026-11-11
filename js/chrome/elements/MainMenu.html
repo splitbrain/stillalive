@@ -7,6 +7,7 @@
 		</li>
 	</ul>
 	<button class="sound"><img src="gfx/ui/sound-on.svg" alt="Sounds: On" /></button>
+	<button class="music"><img src="gfx/ui/music-on.svg" alt="Music: On" /></button>
 </template>
 
 <style>
@@ -39,11 +40,11 @@
 			padding-left: 8cqw;
 		}
 
-		/* the sound button sits in the bottom left corner */
-		.sound {
+		/* the sound button sits in the bottom left corner, the music button in the bottom right corner */
+		.sound,
+		.music {
 			position: absolute;
 			bottom: 3cqw;
-			left: 3cqw;
 			width: 6cqw;
 			padding: 0;
 			border: 0;
@@ -60,6 +61,14 @@
 				display: block;
 				width: 100%;
 			}
+		}
+
+		.sound {
+			left: 3cqw;
+		}
+
+		.music {
+			right: 3cqw;
 		}
 	}
 </style>

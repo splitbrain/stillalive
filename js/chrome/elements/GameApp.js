@@ -11,9 +11,11 @@ import { ChromeElement, Screen } from '../element.js';
 import {
 	getBestTime,
 	loadBestReplay,
+	loadMusicSetting,
 	loadSoundSetting,
 	maxLevel,
 	saveBestTime,
+	saveMusicSetting,
 	saveProgress,
 	saveSoundSetting,
 } from '../storage.js';
@@ -22,9 +24,9 @@ import { ready } from '../../loader.js';
 
 /**
  * @type {string} The selector of the buttons with a hover and a click sound: the menu buttons, the back links, the sound
- *     button of the main menu and the buttons of the VCR panel.
+ *     and music buttons of the main menu and the buttons of the VCR panel.
  */
-const SOUND_BUTTONS = 'menu-button, .selection-screen a.back, main-menu .sound, vcr-panel button';
+const SOUND_BUTTONS = 'menu-button, .selection-screen a.back, main-menu .sound, main-menu .music, vcr-panel button';
 
 /** @type {string[]} The screens that show the stage. */
 const STAGE_SCREENS = [Screen.SELECT, Screen.PLAY, Screen.EDITOR, Screen.EDITOR_FILE];
@@ -72,8 +74,10 @@ const EDITOR_TEXT =
  * browser back button goes there too. A replay from the intermission panel opens the panel again with the same content
  * on an empty stage, any other replay goes to the selection of its level.
  *
- * The element sets the sound of the stage from the storage.
- * It stores each change of the sound after the game starts, from the buttons of the page or from the key of the stage.
+ * The element sets the sound and the music of the stage from the storage. It stores each change of the sound after the
+ * game starts, from the buttons of the page or from the key of the stage, and each change of the music. The level music
+ * plays in the levels of the play mode, also on the intermission panel, and continues from level to level. All other
+ * screens play the menu music.
  * When the URL contains "?unlock", the element stores all levels of all campaigns as finished when the campaigns are
  * loaded. This is for manual tests.
  */
@@ -109,7 +113,7 @@ export class GameApp extends ChromeElement {
 	#pendingReturn = null;
 
 	/**
-	 * Set the sound from the storage and handle the clicks and key presses that start the game, the events of the stage,
+	 * Set the sound and the music from the storage and handle the clicks and key presses that start the game, the events of the stage,
 	 * the import of a replay, the Watch Replay button of the intermission and the Stop button of the VCR panel.
 	 *
 	 * @returns {void}
@@ -117,6 +121,7 @@ export class GameApp extends ChromeElement {
 	setUp() {
 		const stage = this.stage;
 		stage.setSound(loadSoundSetting());
+		stage.setMusic(loadMusicSetting());
 		if (new URLSearchParams(location.search).has('unlock')) campaignsReady.subscribe((ready) => this.#unlockAll(ready));
 		window.addEventListener('click', (event) => {
 			if (!this.#start() && event.target.closest(SOUND_BUTTONS)) stage.playClickSound();
@@ -144,7 +149,7 @@ export class GameApp extends ChromeElement {
 	}
 
 	/**
-	 * Subscribe to the route, to the loading, to the mode and the pause of the stage and to the sound. The end of the test
+	 * Subscribe to the route, to the loading, to the mode and the pause of the stage and to the sound and the music. The end of the test
 	 * run on the stage goes up to the editor. The first call of the route
 	 * subscription shows the screen, so that only the loading screen shows at the end of the first connect.
 	 *
@@ -163,6 +168,9 @@ export class GameApp extends ChromeElement {
 			stage.paused.subscribe(() => this.#showScreen()),
 			stage.sound.subscribe((on) => {
 				if (this.#started) saveSoundSetting(on);
+			}),
+			stage.music.subscribe((on) => {
+				if (this.#started) saveMusicSetting(on);
 			}),
 		];
 	}
@@ -335,6 +343,7 @@ export class GameApp extends ChromeElement {
 		} else {
 			this.stage.stop();
 		}
+		this.stage.playMusic(r.name == 'play' && r.mode == 'play' ? 'level' : 'menu');
 		setAttributes(this.querySelector('level-selection'), { campaign: r.campaign, level: r.level });
 		// const panel = r.name == 'select' || r.name == 'play';
 		// setAttributes(this.querySelector('best-times'), {

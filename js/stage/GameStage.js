@@ -8,7 +8,19 @@
  * and its height; the stage fits the playfield into that box at its fixed aspect ratio, centered, and never cuts it.
  */
 
-import { playSound, randomRate, setSoundMuted, setSoundOn, sfx_click, sfx_hover, sfx_tick } from './audio.js';
+import {
+	playSound,
+	randomRate,
+	setMusicMood,
+	setMusicOn,
+	setMusicPlaying,
+	setSoundMuted,
+	setSoundOn,
+	sfx_click,
+	sfx_hover,
+	sfx_tick,
+} from './audio.js';
+import { bossPhase } from './boss.js';
 import { clearCanvas, ctx, setCanvas, watchCanvasSize } from './canvas.js';
 import { PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH } from './constants.js';
 import {
@@ -60,6 +72,12 @@ const STAGE_STYLE = `
 	}
 `;
 
+/** @type {number} The playback rate of the music during a boss fight, faster and higher. */
+const BOSS_MUSIC_RATE = 1.4;
+
+/** @type {number} The share of the music volume while the boss comes in and while it leaves after its death. */
+const BOSS_MUSIC_DUCK = 0.5;
+
 /**
  * The stage: it plays a level, shows the preview of a level or opens the editor on a map.
  */
@@ -88,6 +106,8 @@ export class GameStage extends HTMLElement {
 	fps = new Value(0);
 	/** @type {Value<boolean>} True if the stage plays the sounds. */
 	sound = new Value(true);
+	/** @type {Value<boolean>} True if the stage plays the music. */
+	music = new Value(true);
 
 	/** @type {boolean} True after the first connection, which starts the loop. */
 	#started = false;
@@ -315,6 +335,27 @@ export class GameStage extends HTMLElement {
 	}
 
 	/**
+	 * Turn the music on or off.
+	 *
+	 * @param {boolean} on True to play the music.
+	 * @returns {void}
+	 */
+	setMusic(on) {
+		setMusicOn(on);
+		this.music.set(on);
+	}
+
+	/**
+	 * Choose the music. The music plays on through all commands of the stage until other music is chosen.
+	 *
+	 * @param {string|null} track "level" for the level music, "menu" for the menu music, or null for no music.
+	 * @returns {void}
+	 */
+	playMusic(track) {
+		setMusicPlaying(track);
+	}
+
+	/**
 	 * Play the click sound of the menu buttons. At the start of the game, it also tells the player that the sound works.
 	 *
 	 * @returns {void}
@@ -373,7 +414,8 @@ export class GameStage extends HTMLElement {
 	}
 
 	/**
-	 * Write the state of the stage into the values and dispatch the events of the tick.
+	 * Write the state of the stage into the values and dispatch the events of the tick. Set the speed and the volume of
+	 * the music from the phase of the boss fight.
 	 *
 	 * @returns {void}
 	 */
@@ -391,6 +433,8 @@ export class GameStage extends HTMLElement {
 		this.speed.set(this.#speed);
 		this.brush.set(ui.editor.brush);
 		this.fps.set(getFps());
+		const phase = ui.mode == 'play' ? bossPhase() : null;
+		setMusicMood(phase == 'fight' ? BOSS_MUSIC_RATE : 1, phase == 'coming' || phase == 'leaving' ? BOSS_MUSIC_DUCK : 1);
 
 		const events = stageEvents.splice(0);
 		for (const { type, detail } of events) this.dispatchEvent(new CustomEvent(type, { detail }));

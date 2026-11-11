@@ -284,21 +284,22 @@ body.about {
 		line-height: 1.6;
 	}
 
-	/* the original and the revived version of a video or an image stand next to each other */
+	/* the captions of the original and the revived version stand below the halves of the video */
 	.compare {
-		display: flex;
-		gap: 1rem;
 		margin: 1.5rem 0;
 
-		> figure {
-			flex: 1;
-			margin: 0;
-			text-align: center;
-		}
-
-		:is(video, img) {
+		> video {
 			display: block;
 			width: 100%;
+		}
+
+		> figcaption {
+			display: flex;
+
+			> span {
+				flex: 1;
+				text-align: center;
+			}
 		}
 	}
 }

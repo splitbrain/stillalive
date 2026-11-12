@@ -38,7 +38,6 @@ import { drawBoss } from './boss.js';
 import { atExit } from '../physics.js';
 import { drawTransition } from './transitions.js';
 import { game, input, ui } from '../state.js';
-import { Tile } from '../tiles.js';
 import { degToRad, getAngle, radToDeg, random } from '../utils.js';
 
 /**
@@ -661,23 +660,8 @@ export function drawPlayer(x, y, flipX, frame = 0) {
  * @returns {void}
  */
 export function drawPreviewMap() {
-	let i, ti, ci, pi;
-	if (game.tilesChanged) {
-		drawImage(bg[game.background], 0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
-		for (i = 0; i < game.displayMap.length; i++) {
-			const y = i >> 5;
-			const x = i - (y << 5);
-			if (game.displayMap[i] < NUM_TILES && game.displayMap[i] > 0 && i < MAP_SIZE) {
-				const open = game.cakesLeft == 0 && game.displayMap[i] == Tile.EXIT_CLOSED;
-				const tile = open ? Tile.EXIT : game.displayMap[i];
-				drawImage(tileset[tile], x * 16, y * 16, 16, 16);
-			}
-		}
-		saveTileLayer();
-	}
+	if (game.tilesChanged) createBuff();
 	drawTileLayer();
-
-	game.player.flip = 1;
 
 	ctx.save();
 	ctx.translate((game.player.x >> 8) + (game.player.pX >> 1), (game.player.y >> 8) + (game.player.pY >> 1));
@@ -686,35 +670,10 @@ export function drawPreviewMap() {
 
 	drawPlayer(game.player.x >> 8, game.player.y >> 8, game.player.flip, game.player.animationFrame);
 
-	for (i = 0; i < game.cakes.length; i++) {
-		if (game.cakes[i].used) {
-			drawImage(cake, game.cakes[i].x >> 8, game.cakes[i].y >> 8, 16, 12);
-		}
-	}
-
-	for (ti = 0; ti < game.turrets.length; ti++) {
-		const side = game.turrets[ti].dir < 0 ? 0 : 1;
-		drawImage(
-			turretImages[side],
-			0,
-			game.turrets[ti].animFrame * 32,
-			16,
-			32,
-			game.turrets[ti].x >> 8,
-			game.turrets[ti].y >> 8,
-			16,
-			32,
-		);
-	}
-
-	for (ci = 0; ci < game.crates.length; ci++) {
-		drawImage(crateImage, game.crates[ci].x >> 8, game.crates[ci].y >> 8);
-	}
-
-	for (pi = 0; pi < game.platforms.length; pi++) {
-		drawImage(platform, game.platforms[pi].x >> 8, game.platforms[pi].y >> 8);
-	}
-
+	drawCakes();
+	drawTurrets();
+	drawCrates();
+	drawPlatforms();
 	drawGravPipes();
 
 	if (game.bossNum > 0) {
@@ -724,6 +683,4 @@ export function drawPreviewMap() {
 	}
 
 	drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
-	ctx.strokeStyle = 'rgb(0, 0, 0)';
-	ctx.lineWidth = 1;
 }

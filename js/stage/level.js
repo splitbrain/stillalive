@@ -410,7 +410,8 @@ export function loadLevel(level, restart = false) {
 }
 
 /**
- * Prepare a map for a preview. The objects stand at their start positions.
+ * Prepare a map for a preview. The objects stand at their start positions, and a map without cakes shows the open
+ * exit.
  *
  * @param {{tiles: number[], bg: number, boss?: number, fromBelow?: boolean}} level The level or the editor map.
  * @returns {void}
@@ -434,6 +435,7 @@ export function loadPreviewMap(level) {
 	if (game.bossNum > 0) setupBoss();
 
 	game.cakesLeft = game.cakes.length;
+	if (game.cakesLeft == 0) game.displayMap = game.displayMap.map((t) => (t == Tile.EXIT_CLOSED ? Tile.EXIT : t));
 	game.tilesChanged = true;
 
 	game.background = level.bg;

@@ -55,7 +55,6 @@ export function skipComingBoss() {
  * @returns {void}
  */
 export function updateBoss() {
-	let d, vx1, vy1, i;
 	if (game.bossNum == 0) return;
 	if (game.bossIsComing) {
 		if (!isWaiting()) {
@@ -92,62 +91,14 @@ export function updateBoss() {
 
 		if (game.bossLife < 3 && game.bossNum == 1) {
 			if (game.player.fadeNextLevel == -1 && game.time % (90 - 30 * game.bossLife) == 0) {
-				game.crates.push(new Crate((31 * 16) << 8, (6 * 16) << 8));
-				if (game.crates.length > 10) {
-					for (i = 0; i < 10; i++) {
-						if (!game.crates[i].carried && game.crates[i].noRemove == 0) {
-							game.crates.splice(i, 1);
-							break;
-						}
-					}
-				}
-
-				d = getDistance(
-					game.player.x >> 8,
-					game.player.y >> 8,
-					game.crates[game.crates.length - 1].x >> 8,
-					game.crates[game.crates.length - 1].y >> 8,
-				);
-				d = Math.trunc(d / 18);
-				if (d > 16) d = 16;
-				if (d < 3) d = 3;
-				game.crates[game.crates.length - 1].vx = -(d << 8);
+				throwCrate(6, 18);
 			}
 		} else if (game.bossLife < 3 && game.bossNum == 2) {
 			if (game.player.fadeNextLevel == -1 && game.time % (90 - 15 * game.bossLife) == 0) {
-				vx1 =
-					getCos(
-						(game.player.x >> 8) + (game.player.pX >> 1),
-						(game.player.y >> 8) + (game.player.pY >> 1),
-						435 + 8,
-						50 + 8,
-					) *
-					(1200 - game.player.vx);
-				vy1 =
-					getSin(
-						(game.player.x >> 8) + (game.player.pX >> 1),
-						(game.player.y >> 8) + (game.player.pY >> 1),
-						435 + 8,
-						50 + 8,
-					) * 1200;
-				game.projectiles.push(new Projectile(435 << 8, 50 << 8, Math.trunc(vx1), Math.trunc(vy1)));
+				shootWheel(435, 50, 1200, 1200 - game.player.vx);
 
 				if (game.bossLife == 2) {
-					const vx2 =
-						getCos(
-							(game.player.x >> 8) + (game.player.pX >> 1),
-							(game.player.y >> 8) + (game.player.pY >> 1),
-							16 + 8,
-							48 + 8,
-						) * 1200;
-					const vy2 =
-						getSin(
-							(game.player.x >> 8) + (game.player.pX >> 1),
-							(game.player.y >> 8) + (game.player.pY >> 1),
-							16 + 8,
-							48 + 8,
-						) * 1200;
-					game.projectiles.push(new Projectile(16 << 8, 48 << 8, Math.trunc(vx2), Math.trunc(vy2)));
+					shootWheel(16, 48, 1200);
 				}
 			}
 		} else if (game.bossLife < 3 && game.bossNum == 3) {
@@ -157,21 +108,7 @@ export function updateBoss() {
 				game.time % (90 - 30 * game.bossLife) == 0 &&
 				game.plasmaBall.length < limit
 			) {
-				vx1 =
-					getCos(
-						(game.player.x >> 8) + (game.player.pX >> 1),
-						(game.player.y >> 8) + (game.player.pY >> 1),
-						(game.plasmaX >> 8) + 8,
-						(game.plasmaY >> 8) + 8,
-					) * 800;
-				vy1 =
-					getSin(
-						(game.player.x >> 8) + (game.player.pX >> 1),
-						(game.player.y >> 8) + (game.player.pY >> 1),
-						(game.plasmaX >> 8) + 8,
-						(game.plasmaY >> 8) + 8,
-					) * 800;
-				game.plasmaBall.push(new Plasma(game.plasmaX, game.plasmaY, vx1, vy1));
+				shootPlasma(800);
 			}
 
 			if (game.player.fadeNextLevel == -1 && game.time % (90 - 30 * game.bossLife) == 0 && game.crates.length == 0) {
@@ -181,65 +118,82 @@ export function updateBoss() {
 			}
 		} else if (game.bossLife < 3 && game.bossNum == 4) {
 			if (game.player.fadeNextLevel == -1 && game.time % (90 - 20 * game.bossLife) == 0) {
-				game.crates.push(new Crate((31 * 16) << 8, (5 * 16) << 8));
-				if (game.crates.length > 10) {
-					for (i = 0; i < 10; i++) {
-						if (!game.crates[i].carried && game.crates[i].noRemove == 0) {
-							game.crates.splice(i, 1);
-							break;
-						}
-					}
-				}
-
-				d = getDistance(
-					game.player.x >> 8,
-					game.player.y >> 8,
-					game.crates[game.crates.length - 1].x >> 8,
-					game.crates[game.crates.length - 1].y >> 8,
-				);
-				d = Math.trunc(d / 20);
-				if (d > 16) d = 16;
-				if (d < 3) d = 3;
-				game.crates[game.crates.length - 1].vx = -(d << 8);
+				throwCrate(5, 20);
 			}
 
 			if (game.bossLife > 0 && game.player.fadeNextLevel == -1 && game.time % (180 - 20 * game.bossLife) == 0) {
-				vx1 =
-					getCos(
-						(game.player.x >> 8) + (game.player.pX >> 1),
-						(game.player.y >> 8) + (game.player.pY >> 1),
-						432 + 8,
-						32 + 8,
-					) * 600;
-				vy1 =
-					getSin(
-						(game.player.x >> 8) + (game.player.pX >> 1),
-						(game.player.y >> 8) + (game.player.pY >> 1),
-						432 + 8,
-						32 + 8,
-					) * 600;
-				game.projectiles.push(new Projectile(432 << 8, 32 << 8, Math.trunc(vx1), Math.trunc(vy1)));
+				shootWheel(432, 32, 600);
 			}
 
 			if (game.bossLife > 1 && game.player.fadeNextLevel == -1 && game.plasmaBall.length == 0) {
-				vx1 =
-					getCos(
-						(game.player.x >> 8) + (game.player.pX >> 1),
-						(game.player.y >> 8) + (game.player.pY >> 1),
-						(game.plasmaX >> 8) + 8,
-						(game.plasmaY >> 8) + 8,
-					) * 400;
-				vy1 =
-					getSin(
-						(game.player.x >> 8) + (game.player.pX >> 1),
-						(game.player.y >> 8) + (game.player.pY >> 1),
-						(game.plasmaX >> 8) + 8,
-						(game.plasmaY >> 8) + 8,
-					) * 400;
-				game.plasmaBall.push(new Plasma(game.plasmaX, game.plasmaY, vx1, vy1));
+				shootPlasma(400);
 			}
 		}
 	}
+}
+
+/**
+ * Get the direction from a point to the center of the player.
+ *
+ * @param {number} x The x coordinate of the point in pixels.
+ * @param {number} y The y coordinate of the point in pixels.
+ * @returns {number[]} The cosine and the sine of the direction.
+ */
+function aimAtPlayer(x, y) {
+	const px = game.player.midX();
+	const py = game.player.midY();
+	return [getCos(px, py, x, y), getSin(px, py, x, y)];
+}
+
+/**
+ * Shoot a razor wheel from a point towards the player.
+ *
+ * @param {number} x The x coordinate of the start in pixels.
+ * @param {number} y The y coordinate of the start in pixels.
+ * @param {number} speed The speed in 1/256 pixels per tick.
+ * @param {number} [speedX] The speed along x, if it differs from the speed.
+ * @returns {void}
+ */
+function shootWheel(x, y, speed, speedX = speed) {
+	const [dx, dy] = aimAtPlayer(x + 8, y + 8);
+	game.projectiles.push(new Projectile(x << 8, y << 8, Math.trunc(dx * speedX), Math.trunc(dy * speed)));
+}
+
+/**
+ * Shoot a plasma ball from the plasma start of the level towards the player.
+ *
+ * @param {number} speed The speed in 1/256 pixels per tick.
+ * @returns {void}
+ */
+function shootPlasma(speed) {
+	const [dx, dy] = aimAtPlayer((game.plasmaX >> 8) + 8, (game.plasmaY >> 8) + 8);
+	game.plasmaBall.push(new Plasma(game.plasmaX, game.plasmaY, dx * speed, dy * speed));
+}
+
+/**
+ * Throw a crate from the right edge towards the player. The speed grows with the distance to the player. When more
+ * than ten crates are in the level, the oldest crate that nobody carries goes away.
+ *
+ * @param {number} row The row of the start position.
+ * @param {number} divisor The pixels of distance per unit of speed.
+ * @returns {void}
+ */
+function throwCrate(row, divisor) {
+	const crate = new Crate((31 * 16) << 8, (row * 16) << 8);
+	game.crates.push(crate);
+	if (game.crates.length > 10) {
+		for (let i = 0; i < 10; i++) {
+			if (!game.crates[i].carried && game.crates[i].noRemove == 0) {
+				game.crates.splice(i, 1);
+				break;
+			}
+		}
+	}
+	let d = getDistance(game.player.x >> 8, game.player.y >> 8, crate.x >> 8, crate.y >> 8);
+	d = Math.trunc(d / divisor);
+	if (d > 16) d = 16;
+	if (d < 3) d = 3;
+	crate.vx = -(d << 8);
 }
 
 /** @type {number} The x position in pixels where the boss is out of the playfield after its death. */

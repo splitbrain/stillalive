@@ -81,12 +81,7 @@ function clearDoorBlockers() {
 	}
 
 	for (const ball of game.plasmaBall) {
-		if (touchesSwitchDoor(ball)) {
-			ball.vx = ball.origVx;
-			ball.vy = ball.origVy;
-			ball.x = ball.xOrig;
-			ball.y = ball.yOrig;
-		}
+		if (touchesSwitchDoor(ball)) ball.reset();
 	}
 }
 

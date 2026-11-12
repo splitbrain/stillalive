@@ -105,17 +105,11 @@ export class Plasma {
 		}
 
 		if (this.y >> 8 > PLAYFIELD_HEIGHT || this.y >> 8 <= -16 || this.x >> 8 > PLAYFIELD_WIDTH || this.x >> 8 < -16) {
-			this.x = this.xOrig;
-			this.y = this.yOrig;
-			this.vx = this.origVx;
-			this.vy = this.origVy;
+			this.reset();
 		} else {
 			const t = getTileSimple((this.x >> 8) + 8, (this.y >> 8) + 8);
 			if (isTileKind(t, TileKind.ACID, TileKind.ACIDPOOL)) {
-				this.x = this.xOrig;
-				this.y = this.yOrig;
-				this.vx = this.origVx;
-				this.vy = this.origVy;
+				this.reset();
 			}
 		}
 	}
@@ -125,7 +119,7 @@ export class Plasma {
 	 *
 	 * @returns {void}
 	 */
-	openSwitchDoors() {
+	openPlasmaDoors() {
 		let i;
 		playSound(sfx_plasmaField);
 		for (i = 0; i < game.animatedTiles.length; i++) {
@@ -133,6 +127,37 @@ export class Plasma {
 				game.animatedTiles[i].used = false;
 				game.map[game.animatedTiles[i].place] = 0;
 			}
+		}
+	}
+
+	/**
+	 * Put the ball back to its start position with its start speed.
+	 *
+	 * @returns {void}
+	 */
+	reset() {
+		this.x = this.xOrig;
+		this.y = this.yOrig;
+		this.vx = this.origVx;
+		this.vy = this.origVy;
+	}
+
+	/**
+	 * Fill a plasma slot: the slot becomes a wall. When no slot is left, the ball goes away and the plasma doors open,
+	 * else the ball returns to its start.
+	 *
+	 * @param {number} column The column of the slot.
+	 * @param {number} row The row of the slot.
+	 * @returns {void}
+	 */
+	#fillSlot(column, row) {
+		game.map[column + (row << 5)] = Tile.WALL;
+		game.displayMap[column + (row << 5)] = Tile.WALL;
+		game.tilesChanged = true;
+		if (this.hasSlot()) this.reset();
+		else {
+			this.used = false;
+			this.openPlasmaDoors();
 		}
 	}
 
@@ -172,21 +197,8 @@ export class Plasma {
 			y = this.y >> 8;
 			for (i = 2; i <= 14 && game.bossNum == 0; i++) {
 				if (getTileSimple(x, y + i) == Tile.PLASMA_SLOT) {
-					y += i;
-					x >>= 4;
-					y >>= 4;
-					game.map[x + (y << 5)] = Tile.WALL;
-					game.displayMap[x + (y << 5)] = Tile.WALL;
-					game.tilesChanged = true;
-					if (!this.hasSlot()) {
-						this.used = false;
-						this.openSwitchDoors();
-					} else {
-						this.x = this.xOrig;
-						this.y = this.yOrig;
-						this.vx = this.origVx;
-						this.vy = this.origVy;
-					}
+					this.#fillSlot(x >> 4, (y + i) >> 4);
+					break;
 				}
 			}
 		} else if (getCollision(this) == Direction.RIGHT) {
@@ -200,21 +212,8 @@ export class Plasma {
 			y = this.y >> 8;
 			for (i = 2; i <= 14 && game.bossNum == 0; i++) {
 				if (getTileSimple(x, y + i) == Tile.PLASMA_SLOT) {
-					y += i;
-					x >>= 4;
-					y >>= 4;
-					game.map[x + (y << 5)] = Tile.WALL;
-					game.displayMap[x + (y << 5)] = Tile.WALL;
-					game.tilesChanged = true;
-					if (!this.hasSlot()) {
-						this.used = false;
-						this.openSwitchDoors();
-					} else {
-						this.x = this.xOrig;
-						this.y = this.yOrig;
-						this.vx = this.origVx;
-						this.vy = this.origVy;
-					}
+					this.#fillSlot(x >> 4, (y + i) >> 4);
+					break;
 				}
 			}
 		} else if (getCollision(this) == Direction.UP) {
@@ -228,21 +227,8 @@ export class Plasma {
 			y = (this.y >> 8) - 1;
 			for (i = 4; i <= 12 && game.bossNum == 0; i++) {
 				if (getTileSimple(x + i, y) == Tile.PLASMA_SLOT) {
-					x += i;
-					x >>= 4;
-					y >>= 4;
-					game.map[x + (y << 5)] = Tile.WALL;
-					game.displayMap[x + (y << 5)] = Tile.WALL;
-					game.tilesChanged = true;
-					if (!this.hasSlot()) {
-						this.used = false;
-						this.openSwitchDoors();
-					} else {
-						this.x = this.xOrig;
-						this.y = this.yOrig;
-						this.vx = this.origVx;
-						this.vy = this.origVy;
-					}
+					this.#fillSlot((x + i) >> 4, y >> 4);
+					break;
 				}
 			}
 		} else if (getCollision(this) == Direction.DOWN) {
@@ -256,21 +242,8 @@ export class Plasma {
 			y = (this.y >> 8) + 16;
 			for (i = 4; i <= 12 && game.bossNum == 0; i++) {
 				if (getTileSimple(x + i, y) == Tile.PLASMA_SLOT) {
-					x += i;
-					x >>= 4;
-					y >>= 4;
-					game.map[x + (y << 5)] = Tile.WALL;
-					game.displayMap[x + (y << 5)] = Tile.WALL;
-					game.tilesChanged = true;
-					if (!this.hasSlot()) {
-						this.used = false;
-						this.openSwitchDoors();
-					} else {
-						this.x = this.xOrig;
-						this.y = this.yOrig;
-						this.vx = this.origVx;
-						this.vy = this.origVy;
-					}
+					this.#fillSlot((x + i) >> 4, y >> 4);
+					break;
 				}
 			}
 		}

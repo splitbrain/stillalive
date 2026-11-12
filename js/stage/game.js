@@ -4,7 +4,7 @@
 
 import { playSound, sfx_transition } from './audio.js';
 import { updateBoss, updateBossRumble } from './boss.js';
-import { Transition } from './constants.js';
+import { FADE_START, Transition } from './constants.js';
 import { stopPlayingLevel, updateLevelEditor } from './editor.js';
 import { animateTiles } from './entities/AnimatedTile.js';
 import { updateCakes } from './entities/Cake.js';
@@ -103,7 +103,7 @@ function updateLevelEnd() {
 		triggerEvents('exit');
 		updateEvents();
 		if (isWaiting()) return;
-		game.player.fadeNextLevel = 120;
+		game.player.fadeNextLevel = FADE_START;
 		ui.transition = random(Transition.TOP_LEFT, Transition.SQUARE + 1);
 		playSound(sfx_transition);
 		game.message = null;

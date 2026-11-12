@@ -74,7 +74,7 @@ export function loadGfx() {
 	linesVerti = new Array();
 	for (i = 0; i < 128; i++) {
 		do {
-			r = random(0, 129);
+			r = random(0, 128);
 		} while (linesHoriz.includes(r));
 		linesHoriz.push(r);
 		linesVerti.push(r);

@@ -14,7 +14,7 @@ import {
 	sfx_land,
 	sfx_step,
 } from '../audio.js';
-import { Direction, GRAVITY, MouseButton, PLAYFIELD_HEIGHT, SparkleType } from '../constants.js';
+import { Direction, FADE_START, GRAVITY, MouseButton, PLAYFIELD_HEIGHT, SparkleType } from '../constants.js';
 import { collectCakes } from './Cake.js';
 import { gravPipeFieldsAt } from './GravPipeField.js';
 import { plasmaTouching } from './Plasma.js';
@@ -96,10 +96,10 @@ export class Player {
 		/** @type {string} The entity type, used by the shared object functions. */
 		this.type = 'player';
 		/**
-		 * @type {number} -1 while the level runs. At the level start and the level end it counts down from 120 during
-		 * the transition. 0 while the level time stands still and in the exit freeze after the level end.
+		 * @type {number} -1 while the level runs. At the level start and the level end it counts down from FADE_START
+		 * during the transition. 0 while the level time stands still and in the exit freeze after the level end.
 		 */
-		this.fadeNextLevel = 120;
+		this.fadeNextLevel = FADE_START;
 		/** @type {boolean} True when the player pressed the clear key and the portals must go away in the next tick. */
 		this.askClear = false;
 	}

@@ -3,7 +3,7 @@
  */
 
 import { ctx } from '../canvas.js';
-import { PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, Transition } from '../constants.js';
+import { FADE_START, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, Transition } from '../constants.js';
 import { linesHoriz, linesVerti } from '../images.js';
 import { atExit } from '../physics.js';
 import { game, ui } from '../state.js';
@@ -37,7 +37,7 @@ export function drawTransition() {
 function drawTransitionIn() {
 	let lineCount, i;
 	ctx.fillStyle = 'rgb(0, 0, 0)';
-	const scale = 1 - game.player.fadeNextLevel / 120;
+	const scale = 1 - game.player.fadeNextLevel / FADE_START;
 	if (ui.transition == Transition.TOP_LEFT) {
 		ctx.fillRect(0, 0, Math.trunc(PLAYFIELD_WIDTH * scale), Math.trunc(PLAYFIELD_HEIGHT * scale));
 	} else if (ui.transition == Transition.LEFT_TO_RIGHT) {
@@ -45,22 +45,14 @@ function drawTransitionIn() {
 	} else if (ui.transition == Transition.TOP_TO_BOTTOM) {
 		ctx.fillRect(0, 0, PLAYFIELD_WIDTH, Math.trunc(PLAYFIELD_HEIGHT * scale));
 	} else if (ui.transition == Transition.HORIZONTAL_LINES) {
-		lineCount = 120 - game.player.fadeNextLevel;
-		if (lineCount < linesHoriz.length) {
-			for (i = 0; i < lineCount; i++) {
-				ctx.fillRect(0, linesHoriz[i] * 3, PLAYFIELD_WIDTH, 3);
-			}
-		} else {
-			ctx.fillRect(0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
+		lineCount = Math.round(scale * linesHoriz.length);
+		for (i = 0; i < lineCount; i++) {
+			ctx.fillRect(0, linesHoriz[i] * 3, PLAYFIELD_WIDTH, 3);
 		}
 	} else if (ui.transition == Transition.VERTICAL_LINES) {
-		lineCount = 120 - game.player.fadeNextLevel;
-		if (lineCount < linesVerti.length) {
-			for (i = 0; i < lineCount; i++) {
-				ctx.fillRect(linesVerti[i] * 4, 0, 6, PLAYFIELD_HEIGHT);
-			}
-		} else {
-			ctx.fillRect(0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
+		lineCount = Math.round(scale * linesVerti.length);
+		for (i = 0; i < lineCount; i++) {
+			ctx.fillRect(linesVerti[i] * 4, 0, 6, PLAYFIELD_HEIGHT);
 		}
 	} else if (ui.transition == Transition.SQUARE) {
 		const x = PLAYFIELD_WIDTH - Math.trunc(PLAYFIELD_WIDTH * scale);
@@ -78,7 +70,7 @@ function drawTransitionOut() {
 	let lineCount, i;
 	ctx.fillStyle = 'rgb(0, 0, 0)';
 	ctx.strokeStyle = 'rgb(0, 0, 0)';
-	const scale = game.player.fadeNextLevel / 120;
+	const scale = game.player.fadeNextLevel / FADE_START;
 	const x = PLAYFIELD_WIDTH - Math.trunc(PLAYFIELD_WIDTH * scale);
 	const y = PLAYFIELD_HEIGHT - Math.trunc(PLAYFIELD_HEIGHT * scale);
 
@@ -89,22 +81,14 @@ function drawTransitionOut() {
 	} else if (ui.transition == Transition.TOP_TO_BOTTOM) {
 		ctx.fillRect(0, y, PLAYFIELD_WIDTH, Math.trunc(PLAYFIELD_HEIGHT * scale));
 	} else if (ui.transition == Transition.HORIZONTAL_LINES) {
-		lineCount = game.player.fadeNextLevel;
-		if (lineCount < linesHoriz.length) {
-			for (i = 0; i < lineCount; i++) {
-				ctx.fillRect(0, linesHoriz[i] * 3, PLAYFIELD_WIDTH, 5);
-			}
-		} else {
-			ctx.fillRect(0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
+		lineCount = Math.round(scale * linesHoriz.length);
+		for (i = 0; i < lineCount; i++) {
+			ctx.fillRect(0, linesHoriz[i] * 3, PLAYFIELD_WIDTH, 5);
 		}
 	} else if (ui.transition == Transition.VERTICAL_LINES) {
-		lineCount = game.player.fadeNextLevel;
-		if (lineCount < linesVerti.length) {
-			for (i = 0; i < lineCount; i++) {
-				ctx.fillRect(linesVerti[i] * 4, 0, 6, PLAYFIELD_HEIGHT);
-			}
-		} else {
-			ctx.fillRect(0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
+		lineCount = Math.round(scale * linesVerti.length);
+		for (i = 0; i < lineCount; i++) {
+			ctx.fillRect(linesVerti[i] * 4, 0, 6, PLAYFIELD_HEIGHT);
 		}
 	} else if (ui.transition == Transition.SQUARE) {
 		ctx.strokeStyle = 'rgb(0, 0, 0)';

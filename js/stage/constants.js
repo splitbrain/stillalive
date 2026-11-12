@@ -83,6 +83,8 @@ export const CampaignId = {
  */
 export const CAMPAIGN_FOLDERS = ['normal', 'advanced', 'community', 'tutorial', 'story', 'test', 'custom'];
 
+/** @type {number} The start value of the fade of a level transition. The fade counts down to 0 by 4 per tick. */
+export const FADE_START = 120;
 /** @type {Object<string, number>} The transition effects at the end and the start of a level, the value of ui.transition. */
 export const Transition = {
 	TOP_LEFT: 1,

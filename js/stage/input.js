@@ -106,8 +106,8 @@ function onKeyUp(event) {
 	if (event.code in KEY_BITS && KEY_BITS[event.code] !== KEY_CLEAR) input.keys &= ~KEY_BITS[event.code];
 
 	const key = event.key.toLowerCase();
-	if (event.ctrlKey && key === 'z') input.leftReleased = 1;
-	if (event.ctrlKey && key === 'y') input.rightReleased = 1;
+	if (event.ctrlKey && key === 'z') input.undoPressed = 1;
+	if (event.ctrlKey && key === 'y') input.redoPressed = 1;
 
 	if (event.key === 'Escape') {
 		if (game.replayMode) stage.dispatchEvent(new Event('replaystop'));

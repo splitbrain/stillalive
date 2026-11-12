@@ -220,10 +220,10 @@ export function redoEditor() {
  * @returns {void}
  */
 function manageUndoRedo() {
-	if (input.leftReleased) undoEditor();
-	else if (input.rightReleased) redoEditor();
-	input.leftReleased = 0;
-	input.rightReleased = 0;
+	if (input.undoPressed) undoEditor();
+	else if (input.redoPressed) redoEditor();
+	input.undoPressed = 0;
+	input.redoPressed = 0;
 }
 
 /**

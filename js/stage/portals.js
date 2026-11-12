@@ -223,7 +223,7 @@ function setPortalDir(p, x, y) {
 }
 
 /** @type {number[]} The sides of the walls with portals, in the order of the portal checks. */
-const PORTAL_SIDES = [Direction.DOWN, Direction.UP, Direction.LEFT, Direction.RIGHT];
+const PORTAL_CHECK_SIDES = [Direction.DOWN, Direction.UP, Direction.LEFT, Direction.RIGHT];
 
 /**
  * Find the portal on one side that an object touches. The function does not change the object.
@@ -287,7 +287,7 @@ export function portalAt(obj, side) {
  * @returns {number} The portal index plus 1, or 0 if the object touches no portal.
  */
 export function isInPortal(obj) {
-	for (const side of PORTAL_SIDES) {
+	for (const side of PORTAL_CHECK_SIDES) {
 		const p = portalAt(obj, side);
 		if (p) return p;
 	}
@@ -324,7 +324,7 @@ export function passPortal(obj, side) {
  * @returns {number} The portal index plus 1, or 0 if the object touches no portal.
  */
 export function passPortals(obj) {
-	for (const side of PORTAL_SIDES) {
+	for (const side of PORTAL_CHECK_SIDES) {
 		const p = passPortal(obj, side);
 		if (p) return p;
 	}

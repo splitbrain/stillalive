@@ -293,7 +293,7 @@ export function updatePlasma() {
 		}
 		if (game.player.fadeNextLevel == -1) {
 			ball.move();
-			if (game.needRedrawTiles == 0) game.needRedrawTiles = isInPortal(ball);
+			if (game.objectInPortal == 0) game.objectInPortal = isInPortal(ball);
 			if (ball.needKill) {
 				game.plasmaBall.splice(pi, 1);
 				pi--;

@@ -48,10 +48,10 @@ function updateLevel() {
 		if (game.time == 0) unclick();
 		game.time++;
 	}
-	game.needRedrawTiles = 0;
+	game.objectInPortal = 0;
 	if (!game.player.dead && game.player.fadeNextLevel == -1) {
 		game.player.move();
-		if (game.needRedrawTiles == 0) game.needRedrawTiles = isInPortal(game.player);
+		if (game.objectInPortal == 0) game.objectInPortal = isInPortal(game.player);
 	}
 
 	manageDoors();

@@ -72,6 +72,7 @@ export const CampaignId = {
 	NORMAL: 0,
 	ADVANCED: 1,
 	COMMUNITY: 2,
+	TUTORIAL: 3,
 	STORY: 4,
 	TEST: 5,
 	CUSTOM: 6,

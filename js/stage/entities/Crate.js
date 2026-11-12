@@ -307,7 +307,7 @@ export function updateCrates() {
 				ci--;
 				continue;
 			}
-			if (game.needRedrawTiles == 0) game.needRedrawTiles = isInPortal(c);
+			if (game.objectInPortal == 0) game.objectInPortal = isInPortal(c);
 		}
 	}
 }

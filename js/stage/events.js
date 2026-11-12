@@ -17,7 +17,7 @@ import { game, input } from './state.js';
  *
  * @type {Object<string, {direction: number, dx: number, dy: number}>}
  */
-const PORTAL_SIDES = {
+const PORTAL_PLACEMENTS = {
 	up: { direction: Direction.DOWN, dx: 0, dy: 0 },
 	down: { direction: Direction.UP, dx: 0, dy: 12 },
 	left: { direction: Direction.RIGHT, dx: 0, dy: 0 },
@@ -157,7 +157,7 @@ function fire(event) {
  */
 function placePortal(p, [column, row, side]) {
 	const portal = game.portals[p];
-	const { direction, dx, dy } = PORTAL_SIDES[side];
+	const { direction, dx, dy } = PORTAL_PLACEMENTS[side];
 	const x = column * 16 + dx;
 	const y = row * 16 + dy;
 	const onSideWall = direction == Direction.LEFT || direction == Direction.RIGHT;

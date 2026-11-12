@@ -41,7 +41,11 @@ export const game = {
 	camera: undefined,
 	/** @type {boolean} True when the tiles changed, so the drawing must draw the tile layer again. */
 	tilesChanged: undefined,
-	needRedrawTiles: undefined,
+	/**
+	 * @type {number} The portal index plus 1 of a portal that an object is in during this tick, or 0. The drawing then
+	 *     draws the tiles around the portals over the objects.
+	 */
+	objectInPortal: undefined,
 	tubeX: undefined,
 	tubeY: undefined,
 	plasmaX: undefined,
@@ -99,8 +103,10 @@ export const input = {
 	mouseReleased: 0,
 	mouseButton: 0,
 	mouseNewPress: 0,
-	leftReleased: undefined,
-	rightReleased: undefined,
+	/** @type {number} 1 after the undo key was pressed, until the editor takes it. */
+	undoPressed: undefined,
+	/** @type {number} 1 after the redo key was pressed, until the editor takes it. */
+	redoPressed: undefined,
 	replayPauseInput: null,
 	lastTickInGame: false,
 };

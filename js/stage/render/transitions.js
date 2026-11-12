@@ -18,14 +18,14 @@ export function drawTransition() {
 	if (atExit()) {
 		// closing transition at the level end
 		if (game.player.fadeNextLevel > 0) {
-			drawTransitionIn();
+			drawClosingTransition();
 		} else {
 			ctx.fillStyle = 'rgb(0, 0, 0)';
 			ctx.fillRect(0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 		}
 	} else if (game.player.fadeNextLevel > 0) {
 		// opening transition at the level start
-		drawTransitionOut();
+		drawOpeningTransition();
 	}
 }
 
@@ -34,7 +34,7 @@ export function drawTransition() {
  *
  * @returns {void}
  */
-function drawTransitionIn() {
+function drawClosingTransition() {
 	let lineCount, i;
 	ctx.fillStyle = 'rgb(0, 0, 0)';
 	const scale = 1 - game.player.fadeNextLevel / FADE_START;
@@ -66,7 +66,7 @@ function drawTransitionIn() {
  *
  * @returns {void}
  */
-function drawTransitionOut() {
+function drawOpeningTransition() {
 	let lineCount, i;
 	ctx.fillStyle = 'rgb(0, 0, 0)';
 	ctx.strokeStyle = 'rgb(0, 0, 0)';

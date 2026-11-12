@@ -194,7 +194,7 @@ function crateOnSwitch() {
  */
 
 /** @type {Object<number, number>} The direction of each gravitational pipe tile. */
-const GRAVPIPE_DIRECTIONS = {
+export const GRAVPIPE_DIRECTIONS = {
 	[Tile.GRAVPIPE_RIGHT]: Direction.RIGHT,
 	[Tile.GRAVPIPE_LEFT]: Direction.LEFT,
 	[Tile.GRAVPIPE_UP]: Direction.UP,

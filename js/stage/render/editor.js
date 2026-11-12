@@ -3,13 +3,23 @@
  */
 
 import { copyCanvas, ctx, drawCopy, drawImage } from '../canvas.js';
-import { MAP_HEIGHT, MAP_WIDTH, NUM_TILES, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH } from '../constants.js';
-import { bg, cake, crateImage, platform, tileset, gravPipe, gravPipe2, turretImages } from '../images.js';
+import { MAP_HEIGHT, MAP_WIDTH, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH } from '../constants.js';
+import { bg, cake, crateImage, tileset, turretImages } from '../images.js';
 import { mouseOnPlayfield } from '../inputState.js';
-import { plasmaLaunch } from '../level.js';
+import { GRAVPIPE_DIRECTIONS, plasmaLaunch } from '../level.js';
 import { game, input, ui } from '../state.js';
-import { Tile, isObjectTile } from '../tiles.js';
-import { drawArrow, drawCakes, drawCrates, drawPlatforms, drawPlayer, drawGravPipes, drawTurrets } from './game.js';
+import { Tile, isGravPipeTile, isObjectTile } from '../tiles.js';
+import {
+	drawCakes,
+	drawCrates,
+	drawGravPipe,
+	drawGravPipes,
+	drawPlatform,
+	drawPlatforms,
+	drawPlayer,
+	drawTiles,
+	drawTurrets,
+} from './game.js';
 
 /** @type {OffscreenCanvas|undefined} The copy of the background, the tiles and the objects of the editor map. */
 let tilesBuff;
@@ -66,13 +76,7 @@ function drawTileMap() {
 			}
 		}
 
-		for (i = 0; i < game.map.length; i++) {
-			if (game.map[i] < NUM_TILES && game.map[i] > 0) {
-				y = i >> 5;
-				x = i - (y << 5);
-				drawImage(tileset[game.map[i]], x * 16, y * 16);
-			}
-		}
+		drawTiles(game.map);
 		drawSprites();
 		tilesBuff = copyCanvas(0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 		ui.editor.redrawTiles = false;
@@ -111,24 +115,8 @@ function drawSpriteCursor() {
 	else if (sprite == Tile.CRATE) drawImage(crateImage, x, y);
 	else if (sprite == Tile.TURRET_LEFT) drawImage(turretImages[0], 0, 0, 16, 32, x, y, 16, 32);
 	else if (sprite == Tile.TURRET_RIGHT) drawImage(turretImages[1], 0, 0, 16, 32, x, y, 16, 32);
-	else if (sprite == Tile.PLATFORM_RIGHT) {
-		drawImage(platform, x, y);
-		ctx.fillStyle = 'rgb(255, 0, 0)';
-		ctx.strokeStyle = 'rgb(255, 0, 0)';
-		drawArrow(x + 5, y + 8, x + 15, y + 8, 3, 1);
-	} else if (sprite == Tile.PLATFORM_LEFT) {
-		drawImage(platform, x, y);
-		ctx.fillStyle = 'rgb(255, 0, 0)';
-		ctx.strokeStyle = 'rgb(255, 0, 0)';
-		drawArrow(x + 5, y + 8, x + 15, y + 8, 3, -1);
-	} else if (sprite == Tile.PLAYER_START) drawPlayer(x, y, 0);
-	else if (sprite == Tile.GRAVPIPE_RIGHT) {
-		drawImage(gravPipe, 0, 0, 16, 32, x, y, 16, 32);
-	} else if (sprite == Tile.GRAVPIPE_LEFT) {
-		drawImage(gravPipe, 0, 32, 16, 32, x, y, 16, 32);
-	} else if (sprite == Tile.GRAVPIPE_UP) {
-		drawImage(gravPipe2, 0, 0, 32, 16, x, y, 32, 16);
-	} else if (sprite == Tile.GRAVPIPE_DOWN) {
-		drawImage(gravPipe2, 32, 0, 32, 16, x, y, 32, 16);
-	}
+	else if (sprite == Tile.PLATFORM_RIGHT) drawPlatform(x, y, 1);
+	else if (sprite == Tile.PLATFORM_LEFT) drawPlatform(x, y, -1);
+	else if (sprite == Tile.PLAYER_START) drawPlayer(x, y, 0);
+	else if (isGravPipeTile(sprite)) drawGravPipe(GRAVPIPE_DIRECTIONS[sprite], x, y);
 }

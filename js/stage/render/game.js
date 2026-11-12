@@ -6,7 +6,6 @@ import { copyCanvas, ctx, drawCopy, drawImage } from '../canvas.js';
 import {
 	Direction,
 	MAP_HEIGHT,
-	MAP_SIZE,
 	MAP_WIDTH,
 	NUM_TILES,
 	PLAYFIELD_HEIGHT,
@@ -237,14 +236,8 @@ export function drawLevel() {
 
 	if (game.bossNum > 0) {
 		drawBoss();
-		if (game.bossNum == 1 || game.bossNum == 3) drawImage(tube, game.tubeX >> 8, game.tubeY >> 8);
-		else if (game.bossNum == 2) {
-			drawProjectiles();
-			drawImage(tube2, game.tubeX >> 8, game.tubeY >> 8);
-		} else if (game.bossNum == 4) {
-			drawProjectiles();
-			drawImage(tube, game.tubeX >> 8, game.tubeY >> 8);
-		}
+		if (game.bossNum == 2 || game.bossNum == 4) drawProjectiles();
+		drawTube();
 	}
 
 	drawPlatforms();
@@ -375,16 +368,23 @@ function drawTileLayer() {
  * @returns {void}
  */
 function createBuff() {
-	let i;
 	drawImage(bg[game.background], 0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
-	for (i = 0; i < game.displayMap.length; i++) {
+	drawTiles(game.displayMap);
+	saveTileLayer();
+}
+
+/**
+ * Draw the tiles of a map.
+ *
+ * @param {number[]} map The map, a tile id for each position.
+ * @returns {void}
+ */
+export function drawTiles(map) {
+	for (let i = 0; i < map.length; i++) {
 		const y = i >> 5;
 		const x = i - (y << 5);
-		if (game.displayMap[i] < NUM_TILES && game.displayMap[i] > 0 && i < MAP_SIZE) {
-			drawImage(tileset[game.displayMap[i]], x * 16, y * 16, 16, 16);
-		}
+		if (map[i] > 0 && map[i] < NUM_TILES) drawImage(tileset[map[i]], x * 16, y * 16, 16, 16);
 	}
-	saveTileLayer();
 }
 
 /**
@@ -521,14 +521,31 @@ function drawGravPipeFields() {
  */
 export function drawGravPipes() {
 	drawGravPipeFields();
-	for (const t of game.gravPipes) {
-		const x = t.x >> 8;
-		const y = t.y >> 8;
-		if (t.dir == Direction.RIGHT) drawImage(gravPipe, 0, 0, 16, 32, x, y, 16, 32);
-		else if (t.dir == Direction.LEFT) drawImage(gravPipe, 0, 32, 16, 32, x, y, 16, 32);
-		else if (t.dir == Direction.UP) drawImage(gravPipe2, 0, 0, 32, 16, x, y, 32, 16);
-		else if (t.dir == Direction.DOWN) drawImage(gravPipe2, 32, 0, 32, 16, x, y, 32, 16);
-	}
+	for (const t of game.gravPipes) drawGravPipe(t.dir, t.x >> 8, t.y >> 8);
+}
+
+/**
+ * Draw a gravitational pipe.
+ *
+ * @param {number} dir The direction of the push, a value of Direction.
+ * @param {number} x The x coordinate in canvas pixels.
+ * @param {number} y The y coordinate in canvas pixels.
+ * @returns {void}
+ */
+export function drawGravPipe(dir, x, y) {
+	if (dir == Direction.RIGHT) drawImage(gravPipe, 0, 0, 16, 32, x, y, 16, 32);
+	else if (dir == Direction.LEFT) drawImage(gravPipe, 0, 32, 16, 32, x, y, 16, 32);
+	else if (dir == Direction.UP) drawImage(gravPipe2, 0, 0, 32, 16, x, y, 32, 16);
+	else if (dir == Direction.DOWN) drawImage(gravPipe2, 32, 0, 32, 16, x, y, 32, 16);
+}
+
+/**
+ * Draw the tube of the boss.
+ *
+ * @returns {void}
+ */
+function drawTube() {
+	drawImage(game.bossNum == 2 ? tube2 : tube, game.tubeX >> 8, game.tubeY >> 8);
 }
 
 /**
@@ -537,15 +554,23 @@ export function drawGravPipes() {
  * @returns {void}
  */
 export function drawPlatforms() {
-	for (const p of game.platforms) {
-		const x = p.x >> 8;
-		const y = p.y >> 8;
-		drawImage(platform, x, y);
-		if (ui.mode == 'edit') {
-			ctx.fillStyle = 'rgb(255, 0, 0)';
-			ctx.strokeStyle = 'rgb(255, 0, 0)';
-			drawArrow(x + 5, y + 8, x + 15, y + 8, 3, p.dir);
-		}
+	for (const p of game.platforms) drawPlatform(p.x >> 8, p.y >> 8, p.dir);
+}
+
+/**
+ * Draw a platform. In the editor, an arrow shows the direction.
+ *
+ * @param {number} x The x coordinate in canvas pixels.
+ * @param {number} y The y coordinate in canvas pixels.
+ * @param {number} dir The direction, -1 left or 1 right.
+ * @returns {void}
+ */
+export function drawPlatform(x, y, dir) {
+	drawImage(platform, x, y);
+	if (ui.mode == 'edit') {
+		ctx.fillStyle = 'rgb(255, 0, 0)';
+		ctx.strokeStyle = 'rgb(255, 0, 0)';
+		drawArrow(x + 5, y + 8, x + 15, y + 8, 3, dir);
 	}
 }
 
@@ -677,8 +702,7 @@ export function drawPreviewMap() {
 	drawGravPipes();
 
 	if (game.bossNum > 0) {
-		if (game.bossNum == 1 || game.bossNum == 3 || game.bossNum == 4) drawImage(tube, game.tubeX >> 8, game.tubeY >> 8);
-		else if (game.bossNum == 2) drawImage(tube2, game.tubeX >> 8, game.tubeY >> 8);
+		drawTube();
 		drawBoss();
 	}
 

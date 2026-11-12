@@ -147,7 +147,7 @@ export class Player {
 					s.vx = 0;
 					s.vy = random(-2 << 8, 0);
 					s.fading = 150;
-					s.color = 1;
+					s.color = 4;
 					s.portalNum = -1;
 					game.sparkles.push(s);
 				}
@@ -298,7 +298,7 @@ export class Player {
 				s.vx = 0;
 				s.vy = 0;
 				s.fading = 100;
-				s.color = 1;
+				s.color = 4;
 				s.portalNum = -1;
 				game.sparkles.push(s);
 			}

@@ -36,7 +36,7 @@ export let turretImages;
 export let plasma;
 /** @type {HTMLImageElement} The crate. */
 export let crateImage;
-/** @type {HTMLImageElement} The sparkle colors. */
+/** @type {HTMLImageElement} The sparkle shapes in rows: blue star, red star, cake crumb, smoke and blood. */
 export let sparkle;
 /** @type {HTMLImageElement} The blue portal frames. */
 export let bluePortal;

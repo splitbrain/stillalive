@@ -200,7 +200,7 @@ export class Turret {
 							s.vx = random(512, 1024) * this.dir;
 							s.vy = random(-3 << 8, 0);
 							s.fading = 50;
-							s.color = 1;
+							s.color = 4;
 							s.portalNum = -1;
 							game.sparkles.push(s);
 						}

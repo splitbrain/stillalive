@@ -180,7 +180,7 @@ export class Sparkle {
 		this.vy = 0;
 		/** @type {number} The sparkle type, a value of SparkleType. */
 		this.type = 0;
-		/** @type {number} The color index. */
+		/** @type {number} The row of the sparkle image: 0 blue star, 1 red star, 2 cake crumb, 3 smoke, 4 blood. */
 		this.color = 0;
 		/** @type {number} Ticks since the sparkle landed on the floor, or -1 while it flies. */
 		this.floorTime = -1;

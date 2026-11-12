@@ -10,7 +10,7 @@ import { onBelt, platformAt } from './entities/Platform.js';
 import { isInPortal, passPortal, portalAt } from './portals.js';
 import { game, input } from './state.js';
 import { FIRST_OF_KIND, inForceFieldRange, isCrateCode, isDeadlyTile, isTileKind, Tile, TileKind } from './tiles.js';
-import { getCos, getDistance, getSin } from './utils.js';
+import { getCos, getDistance, getSin, inScreen } from './utils.js';
 
 /**
  * Check what an object stands on.
@@ -40,8 +40,7 @@ export function touchingGround(obj) {
  * @returns {number} The id of the deadly tile at the point, or 0.
  */
 function pointOnDeadlyTile(x, y) {
-	if (x >= PLAYFIELD_WIDTH || y >= PLAYFIELD_HEIGHT || y < 0 || x < 0) return 0;
-	const tile = game.map[(y >> 4) * 32 + (x >> 4)];
+	const tile = getTileSimple(x, y);
 	return isDeadlyTile(tile) ? tile : 0;
 }
 
@@ -68,6 +67,37 @@ export function touchesDeadlyTile(obj) {
 }
 
 /**
+ * Check if objects pass a tile: the exit, the deadly tiles, the player start and the force fields are not solid.
+ *
+ * @param {number} tile The tile id, a crate code or a platform code.
+ * @returns {boolean} True if objects pass the tile.
+ */
+function isPassable(tile) {
+	return tile == Tile.EXIT || isDeadlyTile(tile) || tile == Tile.PLAYER_START || inForceFieldRange(tile);
+}
+
+/**
+ * Get the solid tile at a point, or the object at the point where the map is empty. Outside the playfield, nothing is
+ * there.
+ *
+ * @param {number} x The x coordinate in pixels.
+ * @param {number} y The y coordinate in pixels.
+ * @param {function(number, number): number} objectAt Gets the code of the object at a point, or 0 for none.
+ * @returns {number} The tile id or the object code, or Tile.EMPTY if nothing solid is there.
+ */
+function solidAt(x, y, objectAt) {
+	if (!inScreen(x, y)) return Tile.EMPTY;
+	const tile = game.map[(y >> 4) * 32 + (x >> 4)] || objectAt(x, y);
+	return isPassable(tile) ? Tile.EMPTY : tile;
+}
+
+/** @type {function(number, number): number} Gets the crate or else the platform at a point, or 0 for none. */
+const crateOrPlatformAt = (x, y) => crateAt(x, y) || platformAt(x, y);
+
+/** @type {function(number, number): number} Gets no object. */
+const nothingAt = () => 0;
+
+/**
  * Get the solid tile or platform at a point, without the crates.
  *
  * @param {number} x The x coordinate in pixels.
@@ -75,17 +105,7 @@ export function touchesDeadlyTile(obj) {
  * @returns {number} The tile id, a platform code, or Tile.EMPTY if nothing solid is there.
  */
 export function getTileWithoutCrates(x, y) {
-	if (x >= PLAYFIELD_WIDTH || y >= PLAYFIELD_HEIGHT || y < 0 || x < 0) return 0;
-	let tile = game.map[(y >> 4) * 32 + (x >> 4)];
-
-	if (!tile) {
-		tile = platformAt(x, y);
-	}
-
-	if (tile == Tile.EXIT || isDeadlyTile(tile) || tile == Tile.PLAYER_START || inForceFieldRange(tile))
-		tile = Tile.EMPTY;
-
-	return tile;
+	return solidAt(x, y, platformAt);
 }
 
 /**
@@ -96,13 +116,7 @@ export function getTileWithoutCrates(x, y) {
  * @returns {number} The tile id, or Tile.EMPTY if nothing solid is there.
  */
 export function getTileWithoutObjects(x, y) {
-	if (x >= PLAYFIELD_WIDTH || y >= PLAYFIELD_HEIGHT || y < 0 || x < 0) return 0;
-	let tile = game.map[(y >> 4) * 32 + (x >> 4)];
-
-	if (tile == Tile.EXIT || isDeadlyTile(tile) || tile == Tile.PLAYER_START || inForceFieldRange(tile))
-		tile = Tile.EMPTY;
-
-	return tile;
+	return solidAt(x, y, nothingAt);
 }
 
 /**
@@ -113,20 +127,7 @@ export function getTileWithoutObjects(x, y) {
  * @returns {number} The tile id, a crate code, a platform code, or Tile.EMPTY if nothing solid is there.
  */
 export function getTile(x, y) {
-	if (x >= PLAYFIELD_WIDTH || y >= PLAYFIELD_HEIGHT || y < 0 || x < 0) return 0;
-	let tile = game.map[(y >> 4) * 32 + (x >> 4)];
-
-	if (!tile) {
-		tile = crateAt(x, y);
-		if (!tile) {
-			tile = platformAt(x, y);
-		}
-	}
-
-	if (tile == Tile.EXIT || isDeadlyTile(tile) || tile == Tile.PLAYER_START || inForceFieldRange(tile))
-		tile = Tile.EMPTY;
-
-	return tile;
+	return solidAt(x, y, crateOrPlatformAt);
 }
 
 /**

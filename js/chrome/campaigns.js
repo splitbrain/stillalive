@@ -95,6 +95,16 @@ export class Campaign {
 		}
 		return 0;
 	}
+
+	/**
+	 * Get the level that the selection shows: the selected level, or else the highest unlocked level.
+	 *
+	 * @param {number} level The number of the selected level, or 0 for none.
+	 * @returns {import('../stage/level.js').Level|null} The level, or null if it is not there.
+	 */
+	shownLevel(level) {
+		return this.levels[(level || this.unlocked) - 1] ?? null;
+	}
 }
 
 /**
@@ -163,6 +173,16 @@ export function loadCampaigns() {
 	for (let c = 0; c < campaigns.length; c++) {
 		if (c != CampaignId.CUSTOM) loadCampaignFiles(c);
 	}
+}
+
+/**
+ * Get a campaign by its folder name.
+ *
+ * @param {string} folder The folder name of the campaign.
+ * @returns {Campaign|null} The campaign, or null if there is none or the campaigns are not loaded.
+ */
+export function campaignByFolder(folder) {
+	return campaigns?.[CAMPAIGN_FOLDERS.indexOf(folder)] ?? null;
 }
 
 /**

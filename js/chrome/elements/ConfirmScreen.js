@@ -13,6 +13,15 @@ const TEMPLATE = await loadMarkup(import.meta.url);
 export const confirmShown = new Value(false);
 
 /**
+ * Check if the controls of the editor are locked: while the save and load screen or a question shows.
+ *
+ * @returns {boolean} True while the controls are locked.
+ */
+export function isEditorLocked() {
+	return route.get().name == 'editor-file' || confirmShown.get();
+}
+
+/**
  * Ask the player a question on the confirmation screen.
  *
  * @param {string} message The question.

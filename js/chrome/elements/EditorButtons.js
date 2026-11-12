@@ -7,7 +7,7 @@ import { MAP_FORMAT, parseMap } from '../../stage/mapFile.js';
 import { alertDialog } from '../dialog.js';
 import { ChromeScreen, loadMarkup, Screen } from '../element.js';
 import { downloadJson, pickJsonFile } from '../files.js';
-import { confirmReplaceMap, confirmShown } from './ConfirmScreen.js';
+import { confirmReplaceMap, confirmShown, isEditorLocked } from './ConfirmScreen.js';
 
 /** @type {HTMLTemplateElement|null} The markup of the editor buttons. */
 const TEMPLATE = await loadMarkup(import.meta.url);
@@ -70,7 +70,7 @@ export class EditorButtons extends ChromeScreen {
 	#updateButtons() {
 		const test = this.querySelector('.test');
 		const testing = this.stage.mode.get() == 'test';
-		const locked = route.get().name == 'editor-file' || confirmShown.get();
+		const locked = isEditorLocked();
 		test.textContent = testing ? 'Stop' : 'Try';
 		for (const button of this.querySelectorAll('button')) button.disabled = locked || (testing && button != test);
 	}

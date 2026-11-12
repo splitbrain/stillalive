@@ -2,8 +2,8 @@
  * The pause menu element.
  */
 
-import { route } from '../../router.js';
-import { setLink } from '../dom.js';
+import { isReplayRoute } from '../../router.js';
+import { setLink, settingLabel } from '../dom.js';
 import { ChromeScreen, loadMarkup, Screen } from '../element.js';
 
 /** @type {HTMLTemplateElement|null} The markup of the pause menu. */
@@ -43,10 +43,10 @@ export class PauseMenu extends ChromeScreen {
 		const music = this.querySelector('.music');
 		return [
 			this.stage.sound.subscribe((on) => {
-				sound.textContent = 'Sounds: ' + (on ? 'On' : 'Off');
+				sound.textContent = settingLabel('Sounds', on);
 			}),
 			this.stage.music.subscribe((on) => {
-				music.textContent = 'Music: ' + (on ? 'On' : 'Off');
+				music.textContent = settingLabel('Music', on);
 			}),
 		];
 	}
@@ -68,6 +68,6 @@ export class PauseMenu extends ChromeScreen {
 	 * @returns {boolean} True on the play screen while the stage is paused, except on a replay route.
 	 */
 	shouldShow(screen) {
-		return screen === Screen.PLAY && this.stage.paused.get() && route.get().mode !== 'replay';
+		return screen === Screen.PLAY && this.stage.paused.get() && !isReplayRoute();
 	}
 }

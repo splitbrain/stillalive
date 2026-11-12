@@ -186,3 +186,12 @@ export function up(path) {
 	if (location.hash === path || index < 0) navigate(path, true);
 	else history.go(index - below.length);
 }
+
+/**
+ * Check if the route plays a replay.
+ *
+ * @returns {boolean} True on a replay route.
+ */
+export function isReplayRoute() {
+	return route.get().mode === 'replay';
+}

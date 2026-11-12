@@ -3,8 +3,8 @@
  */
 
 import { campaignPath, navigate, route, up } from '../../router.js';
-import { CampaignId, CAMPAIGN_FOLDERS, LEVELS_PER_CAMPAIGN } from '../../stage/constants.js';
-import { campaigns, campaignsReady } from '../campaigns.js';
+import { CampaignId, LEVELS_PER_CAMPAIGN } from '../../stage/constants.js';
+import { campaignByFolder, campaigns, campaignsReady } from '../campaigns.js';
 import { alertDialog } from '../dialog.js';
 import { setAttributes } from '../dom.js';
 import { ChromeElement, Screen } from '../element.js';
@@ -263,16 +263,6 @@ export class GameApp extends ChromeElement {
 	}
 
 	/**
-	 * Get the index of the campaign of a route.
-	 *
-	 * @param {import('../../router.js').Route} r The route.
-	 * @returns {number} The campaign index.
-	 */
-	#campaignIndex(r) {
-		return CAMPAIGN_FOLDERS.indexOf(r.campaign);
-	}
-
-	/**
 	 * Apply the route: command the stage and show the screen. A level that does not exist or that is locked goes to the
 	 * selection of its campaign. The playback of a replay needs only an existing level. The selection shows the preview
 	 * of the selected level, or of the highest unlocked level when no level is selected, or nothing if there is none. A
@@ -287,9 +277,8 @@ export class GameApp extends ChromeElement {
 			return;
 		}
 		const r = route.get();
-		const index = this.#campaignIndex(r);
+		const campaign = campaignByFolder(r.campaign);
 		if (r.level > 0) {
-			const campaign = campaigns[index];
 			const usable = r.mode == 'replay' ? campaign.levels[r.level - 1] != null : campaign.isOpen(r.level);
 			if (!usable) {
 				navigate(campaignPath(r.campaign), true);
@@ -309,10 +298,10 @@ export class GameApp extends ChromeElement {
 		const replayLeft = previous?.mode == 'replay' && !again;
 		const reopen = replayLeft && this.#replayReturn?.path === path ? this.#replayReturn.intermission : null;
 		this.#applied = r;
-		const level = r.level > 0 ? campaigns[index].levels[r.level - 1] : null;
+		const level = r.level > 0 ? campaign.levels[r.level - 1] : null;
 
 		if (r.name == 'select') {
-			const shown = level ?? campaigns[index].levels[campaigns[index].unlocked - 1];
+			const shown = campaign.shownLevel(r.level);
 			if (shown) this.stage.preview(shown);
 			else this.stage.stop();
 		} else if (r.name == 'play' && r.mode == 'play' && reopen) {
@@ -350,7 +339,7 @@ export class GameApp extends ChromeElement {
 		this.#intermission = r.name == 'play' ? reopen : null;
 		setAttributes(this.querySelector('intermission-panel'), { exit, ...reopen, open: reopen ? '' : null });
 		setAttributes(this.querySelector('robot-head'), {
-			eye: play && index == CampaignId.STORY ? Math.min(Math.floor((r.level - 1) / 7), 3) + 1 : null,
+			eye: play && campaign.id == CampaignId.STORY ? Math.min(Math.floor((r.level - 1) / 7), 3) + 1 : null,
 			absent: play && level.boss > 0 ? '' : null,
 		});
 		setAttributes(this.querySelector('narrator-text'), { text: r.name.startsWith('editor') ? EDITOR_TEXT : null });
@@ -443,14 +432,13 @@ export class GameApp extends ChromeElement {
 			this.#leaveReplay();
 			return;
 		}
-		const index = this.#campaignIndex(r);
-		const campaign = campaigns[index];
+		const campaign = campaignByFolder(r.campaign);
 		let message = '';
 		let credits = false;
 		if (r.mode == 'play') message = await this.#checkBestTime(r, time, replay);
-		if (r.mode == 'play' && index != CampaignId.CUSTOM && maxLevel[index].get() < r.level + 1) {
-			credits = index == CampaignId.STORY && maxLevel[index].get() == LEVELS_PER_CAMPAIGN;
-			saveProgress(index, r.level + 1);
+		if (r.mode == 'play' && campaign.id != CampaignId.CUSTOM && maxLevel[campaign.id].get() < r.level + 1) {
+			credits = campaign.id == CampaignId.STORY && maxLevel[campaign.id].get() == LEVELS_PER_CAMPAIGN;
+			saveProgress(campaign.id, r.level + 1);
 		}
 
 		if (credits) {

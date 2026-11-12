@@ -29,6 +29,17 @@ export function setLink(link, path) {
 }
 
 /**
+ * Get the label of a setting that is on or off.
+ *
+ * @param {string} name The name of the setting, e.g. "Sounds".
+ * @param {boolean} on True if the setting is on.
+ * @returns {string} The label, e.g. "Sounds: On".
+ */
+export function settingLabel(name, on) {
+	return name + ': ' + (on ? 'On' : 'Off');
+}
+
+/**
  * Dispatch a bubbling event from an element.
  *
  * @param {HTMLElement} element The element.

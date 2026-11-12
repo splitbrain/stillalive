@@ -5,6 +5,7 @@
 import { campaignPath } from '../../router.js';
 import { CampaignId, LEVELS_PER_CAMPAIGN } from '../../stage/constants.js';
 import { campaigns, campaignsReady, listCampaigns } from '../campaigns.js';
+import { settingLabel } from '../dom.js';
 import { ChromeScreen, loadMarkup, Screen } from '../element.js';
 import { bestTimes, editorMap, maxLevel } from '../storage.js';
 
@@ -45,11 +46,11 @@ export class MainMenu extends ChromeScreen {
 		return [
 			this.stage.sound.subscribe((on) => {
 				icon.src = on ? 'gfx/ui/sound-on.svg' : 'gfx/ui/sound-off.svg';
-				icon.alt = 'Sounds: ' + (on ? 'On' : 'Off');
+				icon.alt = settingLabel('Sounds', on);
 			}),
 			this.stage.music.subscribe((on) => {
 				musicIcon.src = on ? 'gfx/ui/music-on.svg' : 'gfx/ui/music-off.svg';
-				musicIcon.alt = 'Music: ' + (on ? 'On' : 'Off');
+				musicIcon.alt = settingLabel('Music', on);
 			}),
 			campaignsReady.subscribe(() => this.render()),
 			...maxLevel.map((value) => value.subscribe(() => this.render())),

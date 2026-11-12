@@ -2,7 +2,7 @@
  * The HUD element.
  */
 
-import { route } from '../../router.js';
+import { isReplayRoute } from '../../router.js';
 import { ChromeScreen, loadMarkup, Screen } from '../element.js';
 
 /** @type {HTMLTemplateElement|null} The markup of the HUD. */
@@ -59,6 +59,6 @@ export class GameHud extends ChromeScreen {
 	 * @returns {boolean} True on the play screen, except on a replay route.
 	 */
 	shouldShow(screen) {
-		return screen === Screen.PLAY && route.get().mode !== 'replay';
+		return screen === Screen.PLAY && !isReplayRoute();
 	}
 }

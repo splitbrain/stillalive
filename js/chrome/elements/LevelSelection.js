@@ -3,8 +3,7 @@
  */
 
 import { campaignPath } from '../../router.js';
-import { CAMPAIGN_FOLDERS } from '../../stage/constants.js';
-import { campaigns } from '../campaigns.js';
+import { campaignByFolder } from '../campaigns.js';
 import { loadMarkup, Screen } from '../element.js';
 import { bestTimes, getBestTime, maxLevel } from '../storage.js';
 import { toTime } from '../time.js';
@@ -48,27 +47,27 @@ export class LevelSelection extends SelectionScreen {
 	 */
 	render() {
 		const folder = this.getAttribute('campaign');
-		const index = CAMPAIGN_FOLDERS.indexOf(folder);
-		if (index < 0) return;
+		const campaign = campaignByFolder(folder);
+		if (!campaign) return;
 		const level = Number(this.getAttribute('level') ?? 0);
 		const list = this.querySelector('level-list');
 		list.hidden = level > 0;
 		list.setAttribute('campaign', folder);
 		this.querySelector('.details').hidden = level == 0;
 		this.querySelector('.back').setAttribute('href', level > 0 ? campaignPath(folder) : '#/');
-		if (level > 0) this.#renderDetails(index, level);
+		if (level > 0) this.#renderDetails(campaign, level);
 	}
 
 	/**
 	 * Fill the details of the selected level. A level without a title shows its number as the title.
 	 *
-	 * @param {number} index The campaign index.
+	 * @param {import('../campaigns.js').Campaign} campaign The campaign.
 	 * @param {number} level The level number.
 	 * @returns {void}
 	 */
-	#renderDetails(index, level) {
-		const folder = CAMPAIGN_FOLDERS[index];
-		const title = campaigns?.[index]?.levels[level - 1]?.title ?? '';
+	#renderDetails(campaign, level) {
+		const folder = campaign.folder;
+		const title = campaign.levels[level - 1]?.title ?? '';
 		const best = getBestTime(folder, level);
 		this.querySelector('.title').textContent = title || 'Level ' + level;
 		const number = this.querySelector('.number');
@@ -90,8 +89,7 @@ export class LevelSelection extends SelectionScreen {
 	 */
 	previewChoice(level) {
 		if (Number(this.getAttribute('level') ?? 0) > 0) return;
-		const campaign = campaigns[CAMPAIGN_FOLDERS.indexOf(this.getAttribute('campaign'))];
-		const shown = campaign.levels[(level || campaign.unlocked) - 1];
+		const shown = campaignByFolder(this.getAttribute('campaign')).shownLevel(level);
 		if (shown) this.stage.preview(shown);
 		else this.stage.stop();
 	}

@@ -3,7 +3,7 @@
  */
 
 import { campaignPath } from '../../router.js';
-import { campaigns } from '../campaigns.js';
+import { campaignByFolder } from '../campaigns.js';
 import { ChromeElement } from '../element.js';
 
 /**
@@ -23,7 +23,7 @@ export class LevelList extends ChromeElement {
 	 */
 	render() {
 		const folder = this.getAttribute('campaign');
-		const campaign = campaigns?.find((c) => c.folder === folder);
+		const campaign = campaignByFolder(folder);
 		const count = campaign?.levels.length ?? 0;
 		const buttons = [];
 		for (let n = 1; n <= count; n++) {

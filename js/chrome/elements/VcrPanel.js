@@ -2,7 +2,7 @@
  * The VCR panel element.
  */
 
-import { route } from '../../router.js';
+import { isReplayRoute } from '../../router.js';
 import { dispatch } from '../dom.js';
 import { ChromeScreen, loadMarkup, Screen } from '../element.js';
 
@@ -65,6 +65,6 @@ export class VcrPanel extends ChromeScreen {
 	 * @returns {boolean} True on the play screen of a replay route.
 	 */
 	shouldShow(screen) {
-		return screen === Screen.PLAY && route.get().mode === 'replay';
+		return screen === Screen.PLAY && isReplayRoute();
 	}
 }

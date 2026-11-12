@@ -5,7 +5,7 @@
 import { route } from '../../router.js';
 import { Tile } from '../../stage/tiles.js';
 import { ChromeScreen, loadMarkup, Screen } from '../element.js';
-import { confirmShown } from './ConfirmScreen.js';
+import { confirmShown, isEditorLocked } from './ConfirmScreen.js';
 
 /** @type {HTMLTemplateElement|null} The markup of the editor palette. */
 const TEMPLATE = await loadMarkup(import.meta.url);
@@ -182,7 +182,7 @@ export class EditorPalette extends ChromeScreen {
 	 */
 	subscribe() {
 		const lock = () => {
-			this.inert = route.get().name == 'editor-file' || confirmShown.get();
+			this.inert = isEditorLocked();
 		};
 		return [this.stage.brush.subscribe(() => this.render()), route.subscribe(lock), confirmShown.subscribe(lock)];
 	}

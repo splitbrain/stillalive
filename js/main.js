@@ -22,7 +22,6 @@ loadGame(
 			{ tag: 'main-menu', url: './chrome/elements/MainMenu.js', name: 'MainMenu' },
 			{ tag: 'credits-screen', url: './chrome/elements/CreditsScreen.js', name: 'CreditsScreen' },
 			{ tag: 'level-selection', url: './chrome/elements/LevelSelection.js', name: 'LevelSelection' },
-			{ tag: 'best-times', url: './chrome/elements/BestTimes.js', name: 'BestTimes' },
 			{ tag: 'robot-head', url: './chrome/elements/RobotHead.js', name: 'RobotHead' },
 			{ tag: 'narrator-text', url: './chrome/elements/NarratorText.js', name: 'NarratorText' },
 			{ tag: 'game-hud', url: './chrome/elements/GameHud.js', name: 'GameHud' },

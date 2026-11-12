@@ -57,14 +57,11 @@ const EDITOR_TEXT =
  * player and the editor maps. When the player goes from a level to the selection of another level of the same campaign,
  * e.g. back after Continue, the selection of the level that the player left replaces the route.
  *
- * The element sets the campaign and the level of the route as attributes of the level selection, and the campaign, the
- * level and the play mode as attributes of the best times panel. The panel gets a campaign only on the select and the
- * play routes. On the play route, it gives the restart path to the pause menu, and the path of the main menu as the
- * exit path to the pause menu and the intermission panel. It gives the robot head the eye of the part of the story and
- * marks it as absent in boss levels, because the boss is the robot. It sets the fixed text of the editor screens as the
- * text attribute of the narrator text. It sets the mode attribute of the save and load screen on the editor-file
- * route. A replay-import event from a page element plays the replay in its
- * detail.
+ * The element sets the campaign and the level of the route as attributes of the level selection. On the play route,
+ * it gives the restart path to the pause menu, and the path of the main menu as the exit path to the pause menu and
+ * the intermission panel. It gives the robot head the eye of the part of the story and marks it as absent in boss
+ * levels, because the boss is the robot. It sets the fixed text of the editor screens as the text attribute of the
+ * narrator text. It sets the mode attribute of the save and load screen on the editor-file route.
  *
  * At the end of a level, the element stores the best time, the replay and the progress, and chooses the next route or
  * opens the intermission panel. The custom campaign has no progress, and its Continue link skips the empty slots. A new
@@ -139,7 +136,6 @@ export class GameApp extends ChromeElement {
 		stage.addEventListener('brokenreplay', () => this.#onBrokenReplay());
 		stage.addEventListener('replaystop', () => this.#leaveReplay());
 		stage.addEventListener('focuslost', () => stage.pause());
-		this.addEventListener('replay-import', (event) => this.watch(event.detail.replay));
 		this.addEventListener('replay-stop', () => this.#leaveReplay());
 		this.addEventListener('replay-watch', () => {
 			const r = route.get();
@@ -345,12 +341,6 @@ export class GameApp extends ChromeElement {
 		}
 		this.stage.playMusic(r.name == 'play' && r.mode == 'play' ? 'level' : 'menu');
 		setAttributes(this.querySelector('level-selection'), { campaign: r.campaign, level: r.level });
-		// const panel = r.name == 'select' || r.name == 'play';
-		// setAttributes(this.querySelector('best-times'), {
-		// 	campaign: panel ? r.campaign : null,
-		// 	level: r.level,
-		// 	mode: r.name == 'play' ? r.mode : null,
-		// });
 		const play = r.name == 'play';
 		const exit = play ? '#/' : null;
 		setAttributes(this.querySelector('pause-menu'), {

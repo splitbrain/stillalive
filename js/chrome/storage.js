@@ -181,23 +181,6 @@ export function getBestTime(campaign, level) {
 }
 
 /**
- * Get the sum of all best times of a campaign.
- *
- * @param {string} campaign The folder name of the campaign.
- * @returns {{ticks: number, levels: number}} The sum of the best times in ticks and the number of finished levels.
- */
-export function getCampaignTotal(campaign) {
-	const total = { ticks: 0, levels: 0 };
-	for (const [key, ticks] of Object.entries(bestTimes.get())) {
-		if (key.startsWith(`${campaign}-`)) {
-			total.ticks += ticks;
-			total.levels++;
-		}
-	}
-	return total;
-}
-
-/**
  * Store a new best time and its replay. The time is only stored after the replay, so each stored time has a replay.
  *
  * @param {string} campaign The folder name of the campaign.

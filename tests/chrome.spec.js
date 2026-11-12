@@ -12,7 +12,6 @@ const SCREEN_PARTS = [
 	'loading-screen',
 	'main-menu',
 	'level-selection',
-	// 'best-times',
 	'narrator-text',
 	'game-stage',
 	'pause-menu',
@@ -32,14 +31,14 @@ const SCREEN_PARTS = [
  *
  * @type {string[]}
  */
-const SELECT_PARTS = ['level-selection', /* 'best-times', */ 'game-stage'];
+const SELECT_PARTS = ['level-selection', 'game-stage'];
 
 /**
  * The screen parts of a level.
  *
  * @type {string[]}
  */
-const PLAY_PARTS = ['robot-head', 'game-hud', /* 'best-times', */ 'narrator-text', 'game-stage'];
+const PLAY_PARTS = ['robot-head', 'game-hud', 'narrator-text', 'game-stage'];
 
 /**
  * The screen parts of the editor.
@@ -535,16 +534,14 @@ test.describe('chrome', () => {
 		const errors = [];
 		page.on('pageerror', (error) => errors.push(error.message));
 		const result = await page.evaluate(() => {
-			const panel = document.createElement('best-times');
-			panel.setAttribute('campaign', 'normal');
-			panel.setAttribute('level', '1');
+			const panel = document.createElement('intermission-panel');
+			panel.setAttribute('message', 'New best time!');
 			document.body.append(panel);
-			const open = panel.classList.contains('open');
-			const title = panel.querySelector('.title')?.textContent;
+			const message = panel.querySelector('.message')?.textContent;
 			panel.remove();
-			return { open, title };
+			return { message };
 		});
-		expect(result).toEqual({ open: true, title: 'Level 1' });
+		expect(result).toEqual({ message: 'New best time!' });
 		expect(errors).toEqual([]);
 	});
 });

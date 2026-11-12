@@ -4,7 +4,7 @@
 
 import { playSound, sfx_cancelPortals, sfx_enterPortal, sfx_noPortal, sfx_portal } from './audio.js';
 import { Direction, SparkleType } from './constants.js';
-import { Sparkle, removeSparkles } from './entities/Sparkle.js';
+import { Sparkle, createPortalGlow, removeSparkles } from './entities/Sparkle.js';
 import { getTile, getTilePortal, getTileSimple } from './physics.js';
 import { game, input } from './state.js';
 import { inForceFieldRange, isCrateCode, isPlatformCode, isTileKind, PLATFORM_CODE, Tile, TileKind } from './tiles.js';
@@ -126,7 +126,7 @@ export function launchPortal(p) {
  * @returns {number} 1 if the portal was placed, else 0.
  */
 function setPortalDir(p, x, y) {
-	let tile, x2, y2, s;
+	let tile, x2, y2;
 	const vx = game.portals[p].vx;
 	const vy = game.portals[p].vy;
 	let i;
@@ -171,26 +171,7 @@ function setPortalDir(p, x, y) {
 		game.portals[p].x = x << 8;
 		game.portals[p].used = true;
 
-		removeSparkles(p, SparkleType.PORTAL_GLOW);
-
-		for (i = 0; i < 13; i++) {
-			s = new Sparkle();
-			s.x = game.portals[p].x;
-			s.y = game.portals[p].y + ((i * 2) << 8);
-			s.xOrig = s.x;
-			s.yOrig = s.y;
-			s.portalNum = p;
-			s.type = SparkleType.PORTAL_GLOW;
-			if (game.portals[p].direction == Direction.RIGHT) {
-				s.vx = -random(128, 384);
-				s.xOrig -= 7 << 8;
-			} else s.vx = random(128, 384);
-			s.vy = 0;
-			s.fading = 200;
-			s.color = p;
-
-			game.sparkles.push(s);
-		}
+		createPortalGlow(p);
 
 		return 1;
 	} else {
@@ -233,27 +214,7 @@ function setPortalDir(p, x, y) {
 			game.portals[p].used = true;
 			game.portals[p].frame = 0;
 
-			removeSparkles(p, SparkleType.PORTAL_GLOW);
-
-			for (i = 0; i < 13; i++) {
-				s = new Sparkle();
-
-				s.x = game.portals[p].x + ((i * 2) << 8);
-				s.y = game.portals[p].y;
-				s.xOrig = s.x;
-				s.yOrig = s.y;
-				s.type = SparkleType.PORTAL_GLOW;
-				s.portalNum = p;
-				if (game.portals[p].direction == Direction.DOWN) {
-					s.vy = -random(128, 384);
-					s.yOrig -= 8 << 8;
-				} else s.vy = random(128, 384);
-				s.vx = 0;
-				s.fading = 200;
-				s.color = p;
-
-				game.sparkles.push(s);
-			}
+			createPortalGlow(p);
 
 			return 1;
 		}

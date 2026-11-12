@@ -2,7 +2,7 @@
  * The Sparkle object and its helper functions.
  */
 
-import { GRAVITY, SparkleType } from '../constants.js';
+import { Direction, GRAVITY, SparkleType } from '../constants.js';
 import { getTile } from '../physics.js';
 import { game } from '../state.js';
 import { random } from '../utils.js';
@@ -21,6 +21,42 @@ export function removeSparkles(p, type) {
 			game.sparkles.splice(i, 1);
 			i--;
 		}
+	}
+}
+
+/**
+ * Create the glow sparkles of a portal: 13 sparkles along the portal that drift out of the wall and restart at their
+ * origin. The sparkles of the earlier portal of the same color go away.
+ *
+ * @param {number} p The portal index, 0 for blue and 1 for red.
+ * @returns {void}
+ */
+export function createPortalGlow(p) {
+	const portal = game.portals[p];
+	const onSideWall = portal.direction == Direction.LEFT || portal.direction == Direction.RIGHT;
+	removeSparkles(p, SparkleType.PORTAL_GLOW);
+	for (let i = 0; i < 13; i++) {
+		const s = new Sparkle();
+		s.x = portal.x + (onSideWall ? 0 : (i * 2) << 8);
+		s.y = portal.y + (onSideWall ? (i * 2) << 8 : 0);
+		s.xOrig = s.x;
+		s.yOrig = s.y;
+		s.portalNum = p;
+		s.type = SparkleType.PORTAL_GLOW;
+		if (portal.direction == Direction.RIGHT) {
+			s.vx = -random(128, 384);
+			s.xOrig -= 7 << 8;
+		} else if (portal.direction == Direction.LEFT) {
+			s.vx = random(128, 384);
+		} else if (portal.direction == Direction.DOWN) {
+			s.vy = -random(128, 384);
+			s.yOrig -= 8 << 8;
+		} else {
+			s.vy = random(128, 384);
+		}
+		s.fading = 200;
+		s.color = p;
+		game.sparkles.push(s);
 	}
 }
 

@@ -5,12 +5,11 @@
  * kept in this module and not in the event objects.
  */
 
-import { Direction, SparkleType } from './constants.js';
-import { Sparkle, removeSparkles } from './entities/Sparkle.js';
+import { Direction } from './constants.js';
+import { createPortalGlow } from './entities/Sparkle.js';
 import { unclick } from './inputState.js';
 import { keyLabels } from './keys.js';
 import { game, input } from './state.js';
-import { random } from './utils.js';
 
 /**
  * The sides that a portal of the level file opens to, with the Direction of the portal and the pixel offset of the
@@ -173,30 +172,5 @@ function placePortal(p, [column, row, side]) {
 		y: y << 8,
 	});
 
-	removeSparkles(p, SparkleType.PORTAL_GLOW);
-	for (let i = 0; i < 13; i++) {
-		const s = new Sparkle();
-		s.x = portal.x + (onSideWall ? 0 : (i * 2) << 8);
-		s.y = portal.y + (onSideWall ? (i * 2) << 8 : 0);
-		s.xOrig = s.x;
-		s.yOrig = s.y;
-		s.portalNum = p;
-		s.type = SparkleType.PORTAL_GLOW;
-		s.vx = 0;
-		s.vy = 0;
-		if (direction == Direction.RIGHT) {
-			s.vx = -random(128, 384);
-			s.xOrig -= 7 << 8;
-		} else if (direction == Direction.LEFT) {
-			s.vx = random(128, 384);
-		} else if (direction == Direction.DOWN) {
-			s.vy = -random(128, 384);
-			s.yOrig -= 8 << 8;
-		} else {
-			s.vy = random(128, 384);
-		}
-		s.fading = 200;
-		s.color = p;
-		game.sparkles.push(s);
-	}
+	createPortalGlow(p);
 }

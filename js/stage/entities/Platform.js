@@ -111,10 +111,7 @@ export function platformAt(x, y) {
 	for (pi = 0; pi < game.platforms.length; pi++) {
 		const x2 = game.platforms[pi].x >> 8;
 		const y2 = game.platforms[pi].y >> 8;
-		if (x > x2 && x < x2 + 48 && y >= y2 && y < y2 + 15) {
-			const ret = pi;
-			return PLATFORM_CODE + ret;
-		}
+		if (x > x2 && x < x2 + 48 && y >= y2 && y < y2 + 15) return PLATFORM_CODE + pi;
 	}
 	return 0;
 }

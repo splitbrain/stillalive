@@ -204,16 +204,7 @@ export class Crate {
  * @returns {number} The crate code of the crate, or 0.
  */
 export function crateAt(x, y) {
-	let i;
-	for (i = 0; i < game.crates.length; i++) {
-		const x2 = game.crates[i].x >> 8;
-		const y2 = game.crates[i].y >> 8;
-		if (!game.crates[i].carried && !isInPortal(game.crates[i]) && x > x2 && x < x2 + 15 && y > y2 && y < y2 + 15) {
-			const ret = i;
-			return CRATE_CODE + ret;
-		}
-	}
-	return 0;
+	return findCrate(x, y, freeCrate);
 }
 
 /**
@@ -224,14 +215,29 @@ export function crateAt(x, y) {
  * @returns {number} The crate code of the crate, or 0.
  */
 export function anyCrateAt(x, y) {
-	let i;
-	for (i = 0; i < game.crates.length; i++) {
-		const x2 = game.crates[i].x >> 8;
-		const y2 = game.crates[i].y >> 8;
-		if (x > x2 && x < x2 + 15 && y > y2 && y < y2 + 15) {
-			const ret = i;
-			return CRATE_CODE + ret;
-		}
+	return findCrate(x, y, anyCrate);
+}
+
+/** @type {function(Crate): boolean} Tells if a crate is not carried and not in a portal. */
+const freeCrate = (crate) => !crate.carried && !isInPortal(crate);
+
+/** @type {function(Crate): boolean} Counts every crate. */
+const anyCrate = () => true;
+
+/**
+ * Find a crate at a point.
+ *
+ * @param {number} x The x coordinate in pixels.
+ * @param {number} y The y coordinate in pixels.
+ * @param {function(Crate): boolean} counts Tells if a crate counts.
+ * @returns {number} The crate code of the first crate that counts at the point, or 0.
+ */
+function findCrate(x, y, counts) {
+	for (let i = 0; i < game.crates.length; i++) {
+		const crate = game.crates[i];
+		const x2 = crate.x >> 8;
+		const y2 = crate.y >> 8;
+		if (counts(crate) && x > x2 && x < x2 + 15 && y > y2 && y < y2 + 15) return CRATE_CODE + i;
 	}
 	return 0;
 }

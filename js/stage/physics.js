@@ -300,19 +300,7 @@ export function moveObject(obj) {
 
 						let needReturn = false;
 
-						if (pointInObject(x, y + 1, ca)) {
-							if (ca.carried) game.player.vx = obj.vx;
-							else if (obj.carried) game.player.vx = ca.vx;
-							ca.vx = obj.vx;
-							obj.vx >>= 1;
-							needReturn = true;
-						} else if (pointInObject(x, y + 8, ca)) {
-							if (ca.carried) game.player.vx = obj.vx;
-							else if (obj.carried) game.player.vx = ca.vx;
-							ca.vx = obj.vx;
-							obj.vx >>= 1;
-							needReturn = true;
-						} else if (pointInObject(x, y + 13, ca)) {
+						if (pointInObject(x, y + 1, ca) || pointInObject(x, y + 8, ca) || pointInObject(x, y + 13, ca)) {
 							if (ca.carried) game.player.vx = obj.vx;
 							else if (obj.carried) game.player.vx = ca.vx;
 							ca.vx = obj.vx;

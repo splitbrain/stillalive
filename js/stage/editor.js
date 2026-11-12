@@ -48,9 +48,7 @@ export function startPlayingLevel() {
  */
 export function stopPlayingLevel(report = true) {
 	let i;
-	game.portals = new Array();
-	game.portals.push(new Portal());
-	game.portals.push(new Portal());
+	game.portals = [new Portal(), new Portal()];
 	unclick();
 	ui.mode = 'edit';
 	game.map = new Array();

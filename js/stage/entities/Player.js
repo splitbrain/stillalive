@@ -160,6 +160,31 @@ export class Player {
 	}
 
 	/**
+	 * Create the teleport sparkles around the player.
+	 *
+	 * @param {number} number The number of sparkles.
+	 * @param {number} fading The start value of the fade, which also sets the size.
+	 * @param {number} color The color index.
+	 * @returns {void}
+	 */
+	#teleportSparkles(number, fading, color) {
+		for (let n = 0; n < number; n++) {
+			const s = new Sparkle();
+			s.x = this.x + (this.pX << 7) + random(-8 << 8, 8 << 8);
+			s.y = this.y + (this.pY << 7) + random(-16 << 8, 16 << 8);
+			s.type = SparkleType.TELEPORT;
+			s.vx = random(32, 64);
+			s.vy = random(32, 64);
+			s.fading = fading;
+			s.color = color;
+			s.portalNum = -1;
+			if (random(0, 2) == 0) s.vx = -s.vx;
+			if (random(0, 2) == 0) s.vy = -s.vy;
+			game.sparkles.push(s);
+		}
+	}
+
+	/**
 	 * Move the player for one tick: sparkles after a teleport, life recovery, walking, jumping, gravity, platforms,
 	 * collisions, portals, cakes, carried objects and deadly tiles.
 	 *
@@ -167,41 +192,11 @@ export class Player {
 	 */
 	move() {
 		//particles around the character
-		let n, s, fi, i;
+		let s, fi, i;
 		if (this.teleportTime < 0) {
-			if (++this.teleportTime < 0 && this.teleportTime % 6 == 0) {
-				for (n = 0; n < 3; n++) {
-					s = new Sparkle();
-					s.x = this.x + (this.pX << 7) + random(-8 << 8, 8 << 8);
-					s.y = this.y + (this.pY << 7) + random(-16 << 8, 16 << 8);
-					s.type = SparkleType.TELEPORT;
-					s.vx = random(32, 64);
-					s.vy = random(32, 64);
-					s.fading = 200;
-					s.color = 0;
-					s.portalNum = -1;
-					if (random(0, 2) == 0) s.vx = -s.vx;
-					if (random(0, 2) == 0) s.vy = -s.vy;
-					game.sparkles.push(s);
-				}
-			}
+			if (++this.teleportTime < 0 && this.teleportTime % 6 == 0) this.#teleportSparkles(3, 200, 0);
 		} else if (this.teleportTime > 0) {
-			if (--this.teleportTime > 0 && this.teleportTime % 6 == 0) {
-				for (n = 0; n < 5; n++) {
-					s = new Sparkle();
-					s.x = this.x + (this.pX << 7) + random(-8 << 8, 8 << 8);
-					s.y = this.y + (this.pY << 7) + random(-16 << 8, 16 << 8);
-					s.type = SparkleType.TELEPORT;
-					s.vx = random(32, 64);
-					s.vy = random(32, 64);
-					s.fading = 255;
-					s.color = 1;
-					s.portalNum = -1;
-					if (random(0, 2) == 0) s.vx = -s.vx;
-					if (random(0, 2) == 0) s.vy = -s.vy;
-					game.sparkles.push(s);
-				}
-			}
+			if (--this.teleportTime > 0 && this.teleportTime % 6 == 0) this.#teleportSparkles(5, 255, 1);
 		}
 
 		if (this.askClear) {

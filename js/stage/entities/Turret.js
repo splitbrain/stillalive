@@ -71,6 +71,18 @@ export class Turret {
 	}
 
 	/**
+	 * Let the turret explode: it is dead, shows its broken frame, bangs and smokes.
+	 *
+	 * @returns {void}
+	 */
+	#explode() {
+		this.dead = true;
+		this.animFrame = 2;
+		playSound(sfx_explode);
+		createCakeOrSmokeSparkles(this.x, this.y, SparkleType.SMOKE, 4, 255);
+	}
+
+	/**
 	 * Move the turret for one tick: the rotation in the air, the destruction and the shot at the player. A hard
 	 * landing, a deadly tile, a moving crate, a plasma ball or a platform destroys the turret.
 	 *
@@ -95,11 +107,7 @@ export class Turret {
 				else if (touchesDeadlyTile(this) || movingCrateTouching(this) || plasmaTouching(this)) {
 					this.dead = true;
 				}
-				if (this.dead) {
-					this.animFrame = 2;
-					playSound(sfx_explode);
-					createCakeOrSmokeSparkles(this.x, this.y, SparkleType.SMOKE, 4, 255);
-				}
+				if (this.dead) this.#explode();
 			} else if (this.animFrame < 10) {
 				if (game.time % 4 == 0) this.animFrame++;
 			}
@@ -112,12 +120,7 @@ export class Turret {
 
 			const colLeft = leftCollision(this);
 			const colRight = rightCollision(this);
-			if (!this.dead && (isPlatformCode(colLeft) || isPlatformCode(colRight))) {
-				this.dead = true;
-				this.animFrame = 2;
-				playSound(sfx_explode);
-				createCakeOrSmokeSparkles(this.x, this.y, SparkleType.SMOKE, 4, 255);
-			}
+			if (!this.dead && (isPlatformCode(colLeft) || isPlatformCode(colRight))) this.#explode();
 		} else {
 			placeObject(this);
 		}

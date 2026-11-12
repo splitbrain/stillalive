@@ -51,67 +51,62 @@ export function manageDoors() {
  * @returns {void}
  */
 function clearDoorBlockers() {
-	let x, y, i, j;
-	for (i = 0; i < 2; i++) {
-		if (game.portals[i].used) {
-			x = game.portals[i].x >> 8;
-			y = game.portals[i].y >> 8;
-			if (game.portals[i].direction == Direction.UP) y += 6;
-			else if (game.portals[i].direction == Direction.LEFT) x += 6;
-			else if (game.portals[i].direction == Direction.RIGHT) x -= 2;
-			else if (game.portals[i].direction == Direction.DOWN) y -= 2;
-
-			if (game.portals[i].direction == Direction.LEFT || game.portals[i].direction == Direction.RIGHT) {
-				for (j = 0; j < 32; j++) {
-					if (getTileSimple(x, y + j) == FIRST_OF_KIND[TileKind.SWITCH_DOOR]) {
-						game.portals[i].used = false;
-						removeSparkles(i, SparkleType.PORTAL_GLOW);
-						j = 32;
-					}
-				}
-			} else {
-				for (j = 0; j < 32; j++) {
-					if (getTileSimple(x + j, y) == FIRST_OF_KIND[TileKind.SWITCH_DOOR]) {
-						game.portals[i].used = false;
-						removeSparkles(i, SparkleType.PORTAL_GLOW);
-						j = 32;
-					}
-				}
+	const door = FIRST_OF_KIND[TileKind.SWITCH_DOOR];
+	for (let i = 0; i < 2; i++) {
+		const portal = game.portals[i];
+		if (!portal.used) continue;
+		let x = portal.x >> 8;
+		let y = portal.y >> 8;
+		if (portal.direction == Direction.UP) y += 6;
+		else if (portal.direction == Direction.LEFT) x += 6;
+		else if (portal.direction == Direction.RIGHT) x -= 2;
+		else if (portal.direction == Direction.DOWN) y -= 2;
+		const onSideWall = portal.direction == Direction.LEFT || portal.direction == Direction.RIGHT;
+		for (let j = 0; j < 32; j++) {
+			if (getTileSimple(onSideWall ? x : x + j, onSideWall ? y + j : y) == door) {
+				portal.used = false;
+				removeSparkles(i, SparkleType.PORTAL_GLOW);
+				break;
 			}
 		}
 	}
 
-	for (i = 0; i < game.crates.length; i++) {
-		x = game.crates[i].x >> 8;
-		y = game.crates[i].y >> 8;
-		if (
-			getTileSimple(x, y) == FIRST_OF_KIND[TileKind.SWITCH_DOOR] ||
-			getTileSimple(x + 15, y) == FIRST_OF_KIND[TileKind.SWITCH_DOOR] ||
-			getTileSimple(x, y + 15) == FIRST_OF_KIND[TileKind.SWITCH_DOOR] ||
-			getTileSimple(x + 15, y + 15) == FIRST_OF_KIND[TileKind.SWITCH_DOOR]
-		) {
-			game.crates[i].x = game.crates[i].xOrig;
-			game.crates[i].y = game.crates[i].yOrig;
-			game.crates[i].vx = 0;
-			game.crates[i].vy = 0;
+	for (const crate of game.crates) {
+		if (touchesSwitchDoor(crate)) {
+			crate.x = crate.xOrig;
+			crate.y = crate.yOrig;
+			crate.vx = 0;
+			crate.vy = 0;
 		}
 	}
 
-	for (i = 0; i < game.plasmaBall.length; i++) {
-		x = game.plasmaBall[i].x >> 8;
-		y = game.plasmaBall[i].y >> 8;
-		if (
-			getTileSimple(x, y) == FIRST_OF_KIND[TileKind.SWITCH_DOOR] ||
-			getTileSimple(x + 15, y) == FIRST_OF_KIND[TileKind.SWITCH_DOOR] ||
-			getTileSimple(x, y + 15) == FIRST_OF_KIND[TileKind.SWITCH_DOOR] ||
-			getTileSimple(x + 15, y + 15) == FIRST_OF_KIND[TileKind.SWITCH_DOOR]
-		) {
-			game.plasmaBall[i].vx = game.plasmaBall[i].origVx;
-			game.plasmaBall[i].vy = game.plasmaBall[i].origVy;
-			game.plasmaBall[i].x = game.plasmaBall[i].xOrig;
-			game.plasmaBall[i].y = game.plasmaBall[i].yOrig;
+	for (const ball of game.plasmaBall) {
+		if (touchesSwitchDoor(ball)) {
+			ball.vx = ball.origVx;
+			ball.vy = ball.origVy;
+			ball.x = ball.xOrig;
+			ball.y = ball.yOrig;
 		}
 	}
+}
+
+/**
+ * Check if a 16 by 16 object touches a switch door with one of its corners.
+ *
+ * @param {object} obj The object with x and y in 1/256 pixels.
+ * @returns {boolean} True if a corner of the object is on a switch door tile.
+ */
+function touchesSwitchDoor(obj) {
+	const door = FIRST_OF_KIND[TileKind.SWITCH_DOOR];
+	const x = obj.x >> 8;
+	const y = obj.y >> 8;
+	const corners = [
+		[x, y],
+		[x + 15, y],
+		[x, y + 15],
+		[x + 15, y + 15],
+	];
+	return corners.some(([cx, cy]) => getTileSimple(cx, cy) == door);
 }
 
 /**
@@ -343,9 +338,7 @@ function parseObjects(mode, boss = 0) {
  * @returns {void}
  */
 function resetLevelState() {
-	game.portals = new Array();
-	game.portals.push(new Portal());
-	game.portals.push(new Portal());
+	game.portals = [new Portal(), new Portal()];
 	game.sparkles = new Array();
 	game.time = 0;
 	game.steps = 0;
@@ -419,9 +412,7 @@ export function loadLevel(level, restart = false) {
 export function loadPreviewMap(level) {
 	game.map = level.tiles.slice();
 	game.displayMap = game.map.slice();
-	game.portals = new Array();
-	game.portals.push(new Portal());
-	game.portals.push(new Portal());
+	game.portals = [new Portal(), new Portal()];
 	game.sparkles = new Array();
 	game.animatedTiles = new Array();
 	game.plasmaBall = new Array();

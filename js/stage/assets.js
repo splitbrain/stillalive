@@ -8,8 +8,8 @@
 /** @type {number} The number of requested images. */
 let requested = 0;
 
-/** @type {number} The number of loaded images. */
-let loadedCount = 0;
+/** @type {number} The number of loaded or failed images. */
+let done = 0;
 
 /** @type {string[]} The paths of the images that could not be loaded. */
 const missing = [];
@@ -29,10 +29,11 @@ export function loadImage(src) {
 	requested++;
 	img.decode().then(
 		() => {
-			loadedCount++;
+			done++;
 			onDone();
 		},
 		() => {
+			done++;
 			missing.push(src);
 			console.error(`Could not load the image ${src}`);
 			onDone();
@@ -54,19 +55,19 @@ export function onImageDone(callback) {
 /**
  * Get the loading progress of all requested images.
  *
- * @returns {number} The share of loaded images, from 0 to 1.
+ * @returns {number} The share of loaded or failed images, from 0 to 1.
  */
 export function imageProgress() {
-	return requested === 0 ? 0 : loadedCount / requested;
+	return requested === 0 ? 0 : done / requested;
 }
 
 /**
- * Check if all requested images are loaded.
+ * Check if all requested images are loaded or failed.
  *
- * @returns {boolean} True if all images are loaded.
+ * @returns {boolean} True if the game does not need to wait for images.
  */
 export function allImagesLoaded() {
-	return requested > 0 && loadedCount === requested;
+	return requested > 0 && done === requested;
 }
 
 /**

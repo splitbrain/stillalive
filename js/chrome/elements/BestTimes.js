@@ -6,6 +6,7 @@ import { campaignPath } from '../../router.js';
 import { decodeReplay } from '../../stage/replay.js';
 import { campaigns } from '../campaigns.js';
 import { alertDialog } from '../dialog.js';
+import { dispatch } from '../dom.js';
 import { ChromeScreen, loadMarkup, Screen } from '../element.js';
 import { downloadJson, pickJsonFile } from '../files.js';
 import { bestTimes, getBestTime, getCampaignTotal, loadBestReplay } from '../storage.js';
@@ -130,6 +131,6 @@ export class BestTimes extends ChromeScreen {
 		if (!campaign || data.level < 1 || data.level > campaign.levels.length) {
 			throw new Error('The replay is for an unknown level.');
 		}
-		this.dispatchEvent(new CustomEvent('replay-import', { bubbles: true, detail: { replay: data } }));
+		dispatch(this, 'replay-import', { replay: data });
 	}
 }

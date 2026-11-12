@@ -139,6 +139,7 @@ export function manageKeys() {
 
 	//check if a mouse button was just released
 	if (input.oldKeys & MOUSE_LEFT && !(input.keys & MOUSE_LEFT)) {
+		input.mouseButton = MouseButton.LEFT;
 		input.mouseReleased = 1;
 		input.mousePressed = 0;
 	} else if (input.oldKeys & MOUSE_RIGHT && !(input.keys & MOUSE_RIGHT)) {

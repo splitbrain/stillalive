@@ -363,15 +363,6 @@ function loadMusic() {
 }
 
 /**
- * Check if the music is on.
- *
- * @returns {boolean} True if the player wants to hear the music.
- */
-export function isMusicOn() {
-	return musicEnabled;
-}
-
-/**
  * Turn the music on or off. The music loads when it is on the first time.
  *
  * @param {boolean} on True to play the music that the game wants.

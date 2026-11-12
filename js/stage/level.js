@@ -23,15 +23,6 @@ import { game, input, ui } from './state.js';
 import { FIRST_OF_KIND, LAST_OF_KIND, Tile, TileKind, isTileKind } from './tiles.js';
 
 /**
- * Mark the tile layer as changed, so the next frame draws it again.
- *
- * @returns {void}
- */
-export function reloadTiles() {
-	game.tilesChanged = true;
-}
-
-/**
  * Open or close the switch doors when the player or a crate steps on or off a switch.
  *
  * @returns {void}
@@ -223,6 +214,30 @@ const ANIMATED_KINDS = [
 ];
 
 /**
+ * Get the launch of the plasma ball from a plasma start in game.map. Three sides of the start must be closed, and the
+ * ball flies out of the open side. Each tile that is not empty closes a side, and so does the edge of the map.
+ *
+ * @param {number} x The column of the plasma start.
+ * @param {number} y The row of the plasma start.
+ * @returns {{x: number, y: number, vx: number, vy: number}|null} The start position of the ball in 1/256 pixels and its
+ *     speed, or null if fewer than three sides are closed.
+ */
+export function plasmaLaunch(x, y) {
+	const closed = (cx, cy) =>
+		cx < 0 || cx >= MAP_WIDTH || cy < 0 || cy >= MAP_HEIGHT || game.map[cx + cy * MAP_WIDTH] != 0;
+	const up = closed(x, y - 1);
+	const down = closed(x, y + 1);
+	const left = closed(x - 1, y);
+	const right = closed(x + 1, y);
+
+	if (up && down && left) return { x: ((x + 1) * 16) << 8, y: (y * 16) << 8, vx: 424, vy: 0 };
+	if (up && down && right) return { x: ((x - 1) * 16) << 8, y: (y * 16) << 8, vx: -424, vy: 0 };
+	if (right && down && left) return { x: (x * 16) << 8, y: ((y - 1) * 16) << 8, vx: 0, vy: -424 };
+	if (left && right && up) return { x: (x * 16) << 8, y: ((y + 1) * 16) << 8, vx: 0, vy: 424 };
+	return null;
+}
+
+/**
  * Create the objects of the map in game.map at their start positions.
  *
  * The mode selects what the function does with the map:
@@ -241,7 +256,7 @@ const ANIMATED_KINDS = [
  * @returns {void}
  */
 function parseObjects(mode, boss = 0) {
-	let vx, vy, up, down, left, right, y2;
+	let vx;
 	const play = mode == 'play';
 	game.cakes = new Array();
 	game.turrets = new Array();
@@ -311,52 +326,19 @@ function parseObjects(mode, boss = 0) {
 			game.tubeY = (y * 16) << 8;
 			if (play) game.displayMap[i] = game.map[i] = 0;
 		} else if (tile == Tile.PLASMA_START && play) {
-			if (x + 1 < MAP_WIDTH) right = game.map[x + 1 + (y << 5)];
-			else right = 1;
-			if (x - 1 >= 0) left = game.map[x - 1 + (y << 5)];
-			else left = 1;
-			if (y + 1 < MAP_HEIGHT) down = game.map[x + ((y + 1) << 5)];
-			else down = 1;
-			if (y - 1 >= 0) up = game.map[x + ((y - 1) << 5)];
-			else up = 1;
-
-			let x2 = (y2 = 0);
-			let push = true;
-
-			if (up && down && left) {
-				vx = 424;
-				vy = 0;
-				x2 = ((x + 1) << 4) << 8;
-				y2 = (y << 4) << 8;
-			} else if (up && down && right) {
-				vx = -424;
-				vy = 0;
-				x2 = ((x - 1) << 4) << 8;
-				y2 = (y << 4) << 8;
-			} else if (right && down && left) {
-				vx = 0;
-				vy = -424;
-				x2 = (x << 4) << 8;
-				y2 = ((y - 1) << 4) << 8;
-			} else if (left && right && up) {
-				vx = 0;
-				vy = 424;
-				x2 = (x << 4) << 8;
-				y2 = ((y + 1) << 4) << 8;
-			} else push = false;
-
-			if (push && boss == 0) game.plasmaBall.push(new Plasma(x2, y2, vx, vy));
-			else if (push && (boss == 3 || boss == 4)) {
-				game.plasmaX = x2;
-				game.plasmaY = y2;
+			const launch = plasmaLaunch(x, y);
+			if (launch && boss == 0) game.plasmaBall.push(new Plasma(launch.x, launch.y, launch.vx, launch.vy));
+			else if (launch && (boss == 3 || boss == 4)) {
+				game.plasmaX = launch.x;
+				game.plasmaY = launch.y;
 			}
 		}
 	}
 }
 
 /**
- * Reset the level state that a level and the test run of the editor share: the portals, the sparkles, the counters
- * and the input.
+ * Reset the level state that a level and the test run of the editor share: the portals, the sparkles, the counters,
+ * the screen shake and the input.
  *
  * @returns {void}
  */
@@ -368,6 +350,8 @@ function resetLevelState() {
 	game.time = 0;
 	game.steps = 0;
 	game.portalShots = 0;
+	game.shakeX = 0;
+	game.shakeY = 0;
 	ui.paused = false;
 	input.keys = 0;
 	input.oldKeys = 0;

@@ -31,8 +31,8 @@ import { Value } from './value.js';
 /** @type {number} The number of element modules to load. */
 let modulesRequested = 0;
 
-/** @type {number} The number of element modules that are loaded and defined. */
-let modulesDefined = 0;
+/** @type {number} The number of element modules that are defined or failed. */
+let modulesDone = 0;
 
 /** @type {string[]} The tag names of the elements whose module could not be loaded. */
 const missingModules = [];
@@ -49,8 +49,8 @@ export const loading = new Value({
 });
 
 /**
- * @type {Value<boolean>} False until the code, the images and the campaigns are loaded, and the sounds too while the
- *     sound is on. The value stays true.
+ * @type {Value<boolean>} False until the code, the images and the campaigns are loaded or failed, and the sounds too
+ *     while the sound is on. The value stays true.
  */
 export const ready = new Value(false);
 
@@ -84,7 +84,8 @@ function importModule({ url }) {
 }
 
 /**
- * Define the elements whose module is loaded, and count the elements whose module cannot be loaded as missing.
+ * Define the elements whose module is loaded, and list the elements whose module cannot be loaded as missing. Both
+ * count as done.
  *
  * @param {ElementModule[]} elements The elements, in the order of their definition.
  * @param {Array<object|Error>} modules The modules of the elements, or the errors.
@@ -97,8 +98,8 @@ function defineElements(elements, modules) {
 			missingModules.push(tag);
 		} else {
 			customElements.define(tag, modules[i][name]);
-			modulesDefined++;
 		}
+		modulesDone++;
 		update();
 	});
 }
@@ -126,7 +127,7 @@ function startFiles() {
  * @returns {void}
  */
 export function checkReady() {
-	const code = modulesRequested > 0 && modulesDefined === modulesRequested;
+	const code = modulesRequested > 0 && modulesDone === modulesRequested;
 	if (code && allImagesLoaded() && (allSoundsLoaded() || !isSoundOn()) && campaignsReady.get()) ready.set(true);
 }
 
@@ -137,7 +138,7 @@ export function checkReady() {
  */
 function update() {
 	loading.set({
-		code: { progress: modulesRequested === 0 ? 0 : modulesDefined / modulesRequested, missing: missingModules.slice() },
+		code: { progress: modulesRequested === 0 ? 0 : modulesDone / modulesRequested, missing: missingModules.slice() },
 		images: { progress: imageProgress(), missing: missingImages().slice() },
 		sounds: { progress: soundProgress(), missing: missingSounds().slice() },
 	});

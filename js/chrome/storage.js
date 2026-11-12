@@ -157,14 +157,15 @@ function openDatabase() {
  *
  * @param {IDBTransactionMode} mode The transaction mode.
  * @param {function(IDBObjectStore): IDBRequest} action Creates the request.
- * @returns {Promise<*>} The result of the request.
+ * @returns {Promise<*>} The result of the request. Resolves when the transaction is complete.
  */
 async function replayRequest(mode, action) {
 	const db = await openDatabase();
 	return new Promise((resolve, reject) => {
-		const request = action(db.transaction(REPLAY_STORE, mode).objectStore(REPLAY_STORE));
-		request.onsuccess = () => resolve(request.result);
-		request.onerror = () => reject(request.error);
+		const tx = db.transaction(REPLAY_STORE, mode);
+		const request = action(tx.objectStore(REPLAY_STORE));
+		tx.oncomplete = () => resolve(request.result);
+		tx.onabort = () => reject(tx.error ?? request.error);
 	});
 }
 

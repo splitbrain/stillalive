@@ -20,12 +20,18 @@ import { getCos, getSin, inScreen, random } from './utils.js';
  * @returns {void}
  */
 export function launchPortal(p) {
-	let i, k;
+	let i;
 	game.player.portalCooldown = 0;
 	game.player.lastLaunched = p;
 
 	let x = game.player.x + ((game.player.pX >> 1) << 8);
 	let y = game.player.y + ((game.player.pY >> 1) << 8);
+
+	// A click on the start point gives no direction
+	if (input.mouseX == x >> 8 && input.mouseY == y >> 8) {
+		playSound(sfx_noPortal);
+		return;
+	}
 
 	game.portals[p].vx = getCos(input.mouseX, input.mouseY, x >> 8, y >> 8) * 256;
 	game.portals[p].vy = getSin(input.mouseX, input.mouseY, x >> 8, y >> 8) * 256;
@@ -66,20 +72,18 @@ export function launchPortal(p) {
 		}
 
 		if (i % 6 == 0 && now > 15) {
-			for (k = 0; k < 1; k++) {
-				const s = new Sparkle();
-				s.x = x + random(-5 << 8, 5 << 8) - (8 << 8);
-				s.y = y + random(-5 << 8, 5 << 8) - (8 << 8);
-				s.type = SparkleType.PORTAL_SHOT;
-				s.vx = random(96, 192);
-				s.vy = random(96, 192);
-				s.fading = 255;
-				s.color = p;
-				s.portalNum = -1;
-				if (random(0, 2) == 0) s.vx = -s.vx;
-				if (random(0, 2) == 0) s.vy = -s.vy;
-				game.sparkles.push(s);
-			}
+			const s = new Sparkle();
+			s.x = x + random(-5 << 8, 5 << 8) - (8 << 8);
+			s.y = y + random(-5 << 8, 5 << 8) - (8 << 8);
+			s.type = SparkleType.PORTAL_SHOT;
+			s.vx = random(96, 192);
+			s.vy = random(96, 192);
+			s.fading = 255;
+			s.color = p;
+			s.portalNum = -1;
+			if (random(0, 2) == 0) s.vx = -s.vx;
+			if (random(0, 2) == 0) s.vy = -s.vy;
+			game.sparkles.push(s);
 		}
 		i++;
 		if (inScreen(x >> 8, y >> 8)) {
@@ -511,14 +515,9 @@ function removePortals() {
  * @returns {boolean} True if the object touches a force field tile.
  */
 export function inForceField(obj) {
-	let i, j;
-	for (i = 0; i <= obj.pY - 1; i += 2) {
-		for (j = 0; j <= obj.pX - 1; j += 2) {
-			const t = getTileSimple((obj.x >> 8) + j, (obj.y >> 8) + j);
-			if (inForceFieldRange(t)) {
-				return true;
-			}
-		}
+	for (let j = 0; j <= obj.pX - 1; j += 2) {
+		const t = getTileSimple((obj.x >> 8) + j, (obj.y >> 8) + j);
+		if (inForceFieldRange(t)) return true;
 	}
 	return false;
 }

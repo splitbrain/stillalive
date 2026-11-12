@@ -3,6 +3,7 @@
  */
 
 import { route } from '../../router.js';
+import { dispatch } from '../dom.js';
 import { ChromeScreen, loadMarkup, Screen } from '../element.js';
 
 /** @type {HTMLTemplateElement|null} The markup of the VCR panel. */
@@ -31,7 +32,7 @@ export class VcrPanel extends ChromeScreen {
 	setUp() {
 		const stage = this.stage;
 		this.querySelector('.stop').addEventListener('click', () => {
-			this.dispatchEvent(new CustomEvent('replay-stop', { bubbles: true }));
+			dispatch(this, 'replay-stop');
 		});
 		this.querySelector('.play').addEventListener('click', () => {
 			if (stage.paused.get()) stage.resume();

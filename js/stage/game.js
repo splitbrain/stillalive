@@ -131,7 +131,7 @@ function updateObjects() {
 	updateSparkles();
 	updateCrates();
 
-	if (game.bossNum > 0) {
+	if (game.bossNum > 0 && game.player.fadeNextLevel == -1) {
 		if (game.bossNum == 2 || game.bossNum == 4) updateProjectiles();
 		updateBossRumble();
 	}
@@ -157,8 +157,6 @@ function updateObjects() {
  */
 export function startLevel(level, replay = null, restart = false) {
 	ui.mode = 'play';
-	game.shakeX = 0;
-	game.shakeY = 0;
 	game.replayMode = replay !== null;
 	if (replay) game.replay = replay;
 	loadLevel(level, restart);

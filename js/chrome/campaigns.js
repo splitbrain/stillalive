@@ -9,7 +9,7 @@ import { editorMap, getBestTime, maxLevel } from './storage.js';
 
 /** @type {Campaign[]} The loaded campaigns, by campaign id. */
 export let campaigns;
-/** @type {number} The number of loaded campaign and level files. */
+/** @type {number} The number of loaded or failed campaign and level files. */
 let levelsLoaded = 0;
 /**
  * @type {number} The number of campaign and level files to load: one campaign file for each campaign except the custom
@@ -25,7 +25,7 @@ const missingLevelFiles = [];
  * @type {Value}
  */
 export const campaignsLoading = new Value({ progress: 0, missing: [] });
-/** @type {Value} True when all campaign and level files are loaded. */
+/** @type {Value} True when all campaign and level files are loaded or failed. */
 export const campaignsReady = new Value(false);
 
 /**
@@ -101,7 +101,7 @@ export class Campaign {
  * The custom campaign: its levels are the editor maps in the slots. The level number is the slot number, and an empty
  * slot or a slot with a map that is not valid has no level. All levels are unlocked.
  */
-export class CustomCampaign extends Campaign {
+class CustomCampaign extends Campaign {
 	/**
 	 * Make the levels from the editor maps, and make them again when a slot changes.
 	 *
@@ -222,7 +222,7 @@ function loadLevelFile(camp, index, url) {
 }
 
 /**
- * Count a loaded campaign or level file.
+ * Count a loaded or failed campaign or level file.
  *
  * @returns {void}
  */
@@ -243,7 +243,7 @@ function updateLoading() {
 
 /**
  * Load a campaign or level file. A file that fails to load or that the callback rejects goes into the list of missing
- * level files.
+ * level files and counts as done.
  *
  * @param {string} url The URL of the file.
  * @param {function(*)} callback Gets the content of the file.
@@ -252,7 +252,7 @@ function updateLoading() {
 function loadLevelJsonFile(url, callback) {
 	loadJsonFile(url, callback, () => {
 		missingLevelFiles.push(url);
-		updateLoading();
+		fileLoaded();
 	});
 }
 
@@ -278,10 +278,10 @@ function loadJsonFile(url, callback, onError = () => {}) {
 }
 
 /**
- * Check if all campaign and level files are loaded.
+ * Check if all campaign and level files are loaded or failed.
  *
- * @returns {boolean} True when all files are loaded.
+ * @returns {boolean} True when the game does not need to wait for campaign files.
  */
-export function areCampaignsLoaded() {
+function areCampaignsLoaded() {
 	return levelsLoaded >= levelsToLoad;
 }

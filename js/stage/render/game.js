@@ -62,6 +62,12 @@ const LABEL_MAX_TILT = 3;
 /** @type {number} The largest distance in canvas pixels that the tilt moves the ends of a label up or down. */
 const LABEL_MAX_RISE = 1;
 
+/**
+ * @type {WeakMap<import('../mapFile.js').MapLabel, {lines: string[], metrics: TextMetrics[], tilt: number}>} The
+ *     layout of each label that was measured with the loaded label font.
+ */
+const labelLayouts = new WeakMap();
+
 // the canvas does not load a font by itself before the first label needs it
 document.fonts.load(LABEL_FONT);
 
@@ -284,11 +290,7 @@ function drawLabels() {
  * @returns {void}
  */
 function drawLabel(label) {
-	const lines = label.text.split('\n');
-	const metrics = lines.map((line) => ctx.measureText(line));
-	const width = Math.max(...metrics.map((m) => m.width));
-	const maxTilt = Math.min(degToRad(LABEL_MAX_TILT), Math.atan(LABEL_MAX_RISE / (width / 2)));
-	const tilt = ((hashText(label.text) / 0xffffffff) * 2 - 1) * maxTilt;
+	const { lines, metrics, tilt } = labelLayouts.get(label) ?? layoutLabel(label);
 
 	ctx.save();
 	ctx.translate(label.x * 16 + 8, label.y * 16 + 8);
@@ -298,6 +300,25 @@ function drawLabel(label) {
 		ctx.fillText(lines[i], 0, lineY + (m.actualBoundingBoxAscent - m.actualBoundingBoxDescent) / 2);
 	});
 	ctx.restore();
+}
+
+/**
+ * Measure the lines of a label and calculate its tilt. The layout is kept for the next frames once the label font is
+ * loaded, as the measurement is the same in each frame.
+ *
+ * @param {import('../mapFile.js').MapLabel} label The label.
+ * @returns {{lines: string[], metrics: TextMetrics[], tilt: number}} The lines, their metrics and the tilt in
+ *     radians.
+ */
+function layoutLabel(label) {
+	const lines = label.text.split('\n');
+	const metrics = lines.map((line) => ctx.measureText(line));
+	const width = Math.max(...metrics.map((m) => m.width));
+	const maxTilt = Math.min(degToRad(LABEL_MAX_TILT), Math.atan(LABEL_MAX_RISE / (width / 2)));
+	const tilt = ((hashText(label.text) / 0xffffffff) * 2 - 1) * maxTilt;
+	const layout = { lines, metrics, tilt };
+	if (document.fonts.check(LABEL_FONT)) labelLayouts.set(label, layout);
+	return layout;
 }
 
 /**
@@ -365,8 +386,6 @@ function createBuff() {
 		}
 	}
 	saveTileLayer();
-	ctx.fillStyle = 'rgb(0, 0, 0)';
-	ctx.fillRect(0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 }
 
 /**

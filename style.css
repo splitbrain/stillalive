@@ -11,21 +11,16 @@
 }
 
 /*
- * The key colors, fonts and sizes of the page; elements calculate their bevels from a base color and a bevel strength.
+ * The key colors, fonts and sizes of the page.
  */
 :root {
 	--color-page: #005674;
 	--color-screen: #00a49f;
-	--color-slot: #04abd4;
 	--color-chrome: #97cee9;
 	--color-text: #fff;
 	--color-accent: #fde900;
 	--color-selected: #3f3;
 	--color-danger: #f33;
-	--color-stage: #000;
-
-	--bevel-dark: 27%;
-	--bevel-light: 30%;
 
 	--font-text: 16px Arial, sans-serif;
 	--font-title: 24px yikes, sans-serif;

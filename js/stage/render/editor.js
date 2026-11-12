@@ -6,7 +6,7 @@ import { copyCanvas, ctx, drawCopy, drawImage } from '../canvas.js';
 import { MAP_HEIGHT, MAP_WIDTH, NUM_TILES, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH } from '../constants.js';
 import { bg, cake, crateImage, platform, tileset, gravPipe, gravPipe2, turretImages } from '../images.js';
 import { mouseOnPlayfield } from '../inputState.js';
-import { isTileHere } from '../level.js';
+import { plasmaLaunch } from '../level.js';
 import { game, input, ui } from '../state.js';
 import { Tile, isObjectTile } from '../tiles.js';
 import { drawArrow, drawCakes, drawCrates, drawPlatforms, drawPlayer, drawGravPipes, drawTurrets } from './game.js';
@@ -46,7 +46,7 @@ function drawSprites() {
  * @returns {void}
  */
 function drawTileMap() {
-	let y, x, up, down, left, right, i;
+	let y, x, i;
 	if (ui.editor.redrawTiles) {
 		drawImage(bg[game.background], 0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 		ctx.fillStyle = 'rgba(255, 0, 0, 0.7)';
@@ -55,12 +55,7 @@ function drawTileMap() {
 				y = i >> 5;
 				x = i - (y << 5);
 
-				up = isTileHere(x, y - 1);
-				down = isTileHere(x, y + 1);
-				left = isTileHere(x - 1, y);
-				right = isTileHere(x + 1, y);
-
-				if (up + down + left + right < 3) {
+				if (!plasmaLaunch(x, y)) {
 					if (y - 1 >= 0) ctx.fillRect(x * 16, (y - 1) * 16, 16, 16);
 					if (y + 1 < MAP_HEIGHT) ctx.fillRect(x * 16, (y + 1) * 16, 16, 16);
 					if (x - 1 >= 0) ctx.fillRect((x - 1) * 16, y * 16, 16, 16);

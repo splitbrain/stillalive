@@ -72,6 +72,16 @@ function mapChanged() {
 }
 
 /**
+ * Mark the map as changed if it differs from an earlier copy.
+ *
+ * @param {number[]} before The copy of the map before the edit.
+ * @returns {void}
+ */
+function mapChangedSince(before) {
+	if (game.map.some((tile, i) => tile != before[i])) mapChanged();
+}
+
+/**
  * Create the objects of the editor map again.
  *
  * @returns {void}
@@ -230,6 +240,7 @@ function updateDrawSprite() {
 		const x = (input.mouseX >> 4) << 4;
 		const y = (input.mouseY >> 4) << 4;
 		if (input.mousePressed) {
+			const before = game.map.slice();
 			const xt = x >> 4;
 			const yt = y >> 4;
 
@@ -251,7 +262,7 @@ function updateDrawSprite() {
 				eraseSprites(brush, xt, yt);
 			}
 			build();
-			mapChanged();
+			mapChangedSince(before);
 		} else if (input.mouseReleased) {
 			input.mouseReleased = 0;
 			addUndo();
@@ -376,6 +387,7 @@ function updateDrawTile() {
 		const x = (input.mouseX >> 4) << 4;
 		const y = (input.mouseY >> 4) << 4;
 		if (input.mousePressed) {
+			const before = game.map.slice();
 			const tile = (y >> 4) * 32 + (x >> 4);
 			if (input.mouseButton == MouseButton.LEFT) {
 				if (brush == Tile.PLASMA_START) {
@@ -388,7 +400,9 @@ function updateDrawTile() {
 				}
 				game.map[tile] = brush;
 			} else if (input.mouseButton == MouseButton.RIGHT) game.map[tile] = 0;
-			else if (input.mouseButton == MouseButton.MIDDLE) fill(brush, game.map[tile], x >> 4, y >> 4);
+			// a map has one plasma start, so it does not fill
+			else if (input.mouseButton == MouseButton.MIDDLE && brush != Tile.PLASMA_START)
+				fill(brush, game.map[tile], x >> 4, y >> 4);
 
 			const xt = x >> 4;
 			const yt = y >> 4;
@@ -400,7 +414,7 @@ function updateDrawTile() {
 			}
 
 			build();
-			mapChanged();
+			mapChangedSince(before);
 		} else if (input.mouseReleased) {
 			input.mouseReleased = 0;
 			addUndo();

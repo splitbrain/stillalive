@@ -23,7 +23,7 @@ export function drawTransition() {
 			ctx.fillStyle = 'rgb(0, 0, 0)';
 			ctx.fillRect(0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 		}
-	} else {
+	} else if (game.player.fadeNextLevel > 0) {
 		// opening transition at the level start
 		drawTransitionOut();
 	}

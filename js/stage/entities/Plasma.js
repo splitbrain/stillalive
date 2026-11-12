@@ -4,7 +4,6 @@
 
 import { playSound, setSoundVolume, sfx_bounce, sfx_plasmaField } from '../audio.js';
 import { Direction, MAP_SIZE, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH } from '../constants.js';
-import { reloadTiles } from '../level.js';
 import { getCollision, getTileSimple } from '../physics.js';
 import { isInPortal, passPortals } from '../portals.js';
 import { game } from '../state.js';
@@ -178,7 +177,7 @@ export class Plasma {
 					y >>= 4;
 					game.map[x + (y << 5)] = Tile.WALL;
 					game.displayMap[x + (y << 5)] = Tile.WALL;
-					reloadTiles();
+					game.tilesChanged = true;
 					if (!this.hasSlot()) {
 						this.used = false;
 						this.openSwitchDoors();
@@ -206,7 +205,7 @@ export class Plasma {
 					y >>= 4;
 					game.map[x + (y << 5)] = Tile.WALL;
 					game.displayMap[x + (y << 5)] = Tile.WALL;
-					reloadTiles();
+					game.tilesChanged = true;
 					if (!this.hasSlot()) {
 						this.used = false;
 						this.openSwitchDoors();
@@ -234,7 +233,7 @@ export class Plasma {
 					y >>= 4;
 					game.map[x + (y << 5)] = Tile.WALL;
 					game.displayMap[x + (y << 5)] = Tile.WALL;
-					reloadTiles();
+					game.tilesChanged = true;
 					if (!this.hasSlot()) {
 						this.used = false;
 						this.openSwitchDoors();
@@ -262,7 +261,7 @@ export class Plasma {
 					y >>= 4;
 					game.map[x + (y << 5)] = Tile.WALL;
 					game.displayMap[x + (y << 5)] = Tile.WALL;
-					reloadTiles();
+					game.tilesChanged = true;
 					if (!this.hasSlot()) {
 						this.used = false;
 						this.openSwitchDoors();

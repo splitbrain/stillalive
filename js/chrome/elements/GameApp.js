@@ -421,13 +421,19 @@ export class GameApp extends ChromeElement {
 	 * @param {import('../../router.js').Route} r The route of the level.
 	 * @param {number} time The level time in ticks.
 	 * @param {object} replay The replay in the file format.
-	 * @returns {string} The message for the intermission screen.
+	 * @returns {Promise<string>} The message for the intermission screen. Resolves when the new best time is stored.
+	 *     The message is empty if the time cannot be stored.
 	 */
-	#checkBestTime(r, time, replay) {
+	async #checkBestTime(r, time, replay) {
 		const best = getBestTime(r.campaign, r.level);
 		if (best != null && best <= time) return 'Best time: ' + toTime(best);
 
-		saveBestTime(r.campaign, r.level, time, replay).catch((e) => console.error(e));
+		try {
+			await saveBestTime(r.campaign, r.level, time, replay);
+		} catch (e) {
+			console.error(e);
+			return '';
+		}
 		return 'New best time!';
 	}
 
@@ -438,9 +444,9 @@ export class GameApp extends ChromeElement {
 	 * replay started.
 	 *
 	 * @param {{time: number, replay: object}} detail The detail of the finished event of the stage.
-	 * @returns {void}
+	 * @returns {Promise<void>} Resolves when the next screen shows.
 	 */
-	#onFinished({ time, replay }) {
+	async #onFinished({ time, replay }) {
 		const r = route.get();
 		if (!this.#started || r.name != 'play') return;
 		if (r.mode == 'replay') {
@@ -451,7 +457,7 @@ export class GameApp extends ChromeElement {
 		const campaign = campaigns[index];
 		let message = '';
 		let credits = false;
-		if (r.mode == 'play') message = this.#checkBestTime(r, time, replay);
+		if (r.mode == 'play') message = await this.#checkBestTime(r, time, replay);
 		if (r.mode == 'play' && index != CampaignId.CUSTOM && maxLevel[index].get() < r.level + 1) {
 			credits = index == CampaignId.STORY && maxLevel[index].get() == LEVELS_PER_CAMPAIGN;
 			saveProgress(index, r.level + 1);

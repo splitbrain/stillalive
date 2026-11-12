@@ -2,7 +2,7 @@
  * The intermission panel element.
  */
 
-import { setLink } from '../dom.js';
+import { dispatch, setLink } from '../dom.js';
 import { ChromeScreen, loadMarkup, Screen } from '../element.js';
 import { toTime } from '../time.js';
 
@@ -32,7 +32,7 @@ export class IntermissionPanel extends ChromeScreen {
 	 */
 	setUp() {
 		this.querySelector('.replay').addEventListener('click', () => {
-			this.dispatchEvent(new CustomEvent('replay-watch', { bubbles: true }));
+			dispatch(this, 'replay-watch');
 		});
 	}
 

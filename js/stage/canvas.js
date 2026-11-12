@@ -29,6 +29,24 @@ let wantedHeight;
 /** @type {WeakMap<HTMLImageElement, {scale: number, picture: OffscreenCanvas}>} The copies of the vector images at a scale. */
 const scaledImages = new WeakMap();
 
+/** @type {WeakMap<HTMLImageElement, boolean>} True for each image that is a vector image, from its file name. */
+const vectorImages = new WeakMap();
+
+/**
+ * Check if an image is a vector image. The result is kept, as the drawing asks for each image in each frame.
+ *
+ * @param {HTMLImageElement} image The image.
+ * @returns {boolean} True for a vector image.
+ */
+function isVectorImage(image) {
+	let vector = vectorImages.get(image);
+	if (vector === undefined) {
+		vector = image.src.endsWith('.svg');
+		vectorImages.set(image, vector);
+	}
+	return vector;
+}
+
 /**
  * Remember the size of the canvas on the page in device pixels. A hidden canvas has no size, so the buffer keeps its
  * size until the canvas shows again.
@@ -130,7 +148,7 @@ function scaledImage(image) {
  */
 export function drawImage(image, ...args) {
 	if (!image.complete || image.naturalWidth === 0) return;
-	if (!image.src.endsWith('.svg')) {
+	if (!isVectorImage(image)) {
 		ctx.drawImage(image, ...args);
 		return;
 	}

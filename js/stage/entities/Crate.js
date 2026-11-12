@@ -177,7 +177,7 @@ export class Crate {
 		} else {
 			this.shrink -= 4;
 			if (this.shrink == 0) {
-				if (game.bossNum == 1 || game.bossNum == 4) {
+				if (game.bossNum == 1 || game.bossNum == 3 || game.bossNum == 4) {
 					this.needKill = true;
 					return;
 				}

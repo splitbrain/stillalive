@@ -85,6 +85,7 @@ export class EditorFiles extends SelectionScreen {
 	 * @returns {Promise<void>}
 	 */
 	async #pickSlot(slot) {
+		if (this.#leaving) return;
 		const mode = this.getAttribute('mode');
 		const stored = editorMap(slot).get();
 		if (mode == 'load') {

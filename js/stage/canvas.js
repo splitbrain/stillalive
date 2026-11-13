@@ -6,7 +6,7 @@
  */
 
 import { PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH } from './constants.js';
-import { game } from './state.js';
+import { game, ui } from './state.js';
 
 /** @type {HTMLCanvasElement} The game canvas. */
 let canvas;
@@ -62,6 +62,16 @@ function onResize(entries) {
 }
 
 /**
+ * Make the copies of the tile layers from copyCanvas() again in the next frame.
+ *
+ * @returns {void}
+ */
+function redrawLayers() {
+	game.tilesChanged = true;
+	ui.editor.redrawTiles = true;
+}
+
+/**
  * Use a canvas for the drawing.
  *
  * @param {HTMLCanvasElement} element The canvas.
@@ -96,7 +106,7 @@ export function playfieldPoint(px, py) {
 
 /**
  * Prepare the canvas for a frame: apply a new size of the buffer and set the transformation to playfield units
- * with the screen shake.
+ * with the screen shake. After a new size, the copies of the tile layers are made again at the new scale.
  *
  * @returns {void}
  */
@@ -104,6 +114,7 @@ export function beginFrame() {
 	if (canvas.width !== wantedWidth || canvas.height !== wantedHeight) {
 		canvas.width = wantedWidth;
 		canvas.height = wantedHeight;
+		redrawLayers();
 	}
 	scale = Math.min(canvas.width / PLAYFIELD_WIDTH, canvas.height / PLAYFIELD_HEIGHT);
 	ctx.setTransform(scale, 0, 0, scale, game.shakeX * scale, game.shakeY * scale);
@@ -190,11 +201,10 @@ function snapSpan(start, size, factor, offset) {
  * @param {number} y The top edge of the part in playfield units.
  * @param {number} w The width of the part in playfield units.
  * @param {number} h The height of the part in playfield units.
- * @returns {OffscreenCanvas} The copy, with the scale in its scale property.
+ * @returns {OffscreenCanvas} The copy.
  */
 export function copyCanvas(x, y, w, h) {
 	const copy = new OffscreenCanvas(Math.round(w * scale), Math.round(h * scale));
-	copy.scale = scale;
 	copy
 		.getContext('2d')
 		.drawImage(
@@ -213,8 +223,7 @@ export function copyCanvas(x, y, w, h) {
 
 /**
  * Draw a copy from copyCanvas() onto the canvas. The copy replaces the pixels below it, and the current
- * transformation, transparency and composition do not apply. The position includes the screen shake. A copy from
- * another scale of the buffer is scaled to the current scale.
+ * transformation, transparency and composition do not apply. The position includes the screen shake.
  *
  * @param {OffscreenCanvas} copy The copy.
  * @param {number} x The left edge on the canvas in playfield units.
@@ -227,12 +236,10 @@ export function drawCopy(copy, x, y) {
 	ctx.beginPath();
 	const px = Math.round((x + game.shakeX) * scale);
 	const py = Math.round((y + game.shakeY) * scale);
-	const w = Math.round((copy.width * scale) / copy.scale);
-	const h = Math.round((copy.height * scale) / copy.scale);
-	ctx.rect(px, py, w, h);
+	ctx.rect(px, py, copy.width, copy.height);
 	ctx.clip();
 	ctx.globalAlpha = 1;
 	ctx.globalCompositeOperation = 'copy';
-	ctx.drawImage(copy, px, py, w, h);
+	ctx.drawImage(copy, px, py);
 	ctx.restore();
 }

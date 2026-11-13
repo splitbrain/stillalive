@@ -20,12 +20,9 @@
 
 <style>
 	/*
-	 * The VCR panel has the light frame with four screws, the dark blue bezel and the plate of the HUD, with the parts
-	 * of the front of a VCR on the plate. Its size comes from outside. The host is the size container, and the frame
-	 * scales with it in --vcr-unit, the same unit as in the HUD. The plate is the size container of the front, and all
-	 * parts of the front are sizes in --k, which fits the parts onto the plate. On a tall plate the parts are a column,
-	 * on a wide plate a row with the tape flap on its side. The grille shows only on a tall plate with room for it.
-	 * Each part is turned by its own small angle.
+	 * The VCR panel shows the parts of the front of a VCR on a plate, in the frame and the bezel of the HUD. The host
+	 * is the size container, and the frame scales with it in --vcr-unit, the same unit as in the HUD. The plate is the
+	 * size container of the front. All sizes of the front are in --k, which fits the parts onto the plate.
 	 */
 	vcr-panel {
 		--vcr-unit: calc(0.6cqmin + 0.2cqmax);
@@ -40,7 +37,7 @@
 		isolation: isolate;
 		container-type: size;
 
-		/* the light frame with a screw in each corner; the screws differ in angle and place */
+		/* the light frame with a screw in each corner, each screw at a different angle and place */
 		&::before {
 			--u: var(--vcr-unit);
 			content: '';
@@ -136,7 +133,7 @@
 			}
 		}
 
-		/* the lamps in a row, each a round bulb below its label; the lamp of the current speed glows */
+		/* the lamps in a row, each a round bulb below its label, and the lamp of the current speed glows */
 		.lamps {
 			display: flex;
 			gap: calc(var(--k) * 4);

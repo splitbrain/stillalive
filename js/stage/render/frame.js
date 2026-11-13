@@ -1,5 +1,5 @@
 /**
- * Drawing of a frame: the mode of the stage on the canvas.
+ * Drawing of a frame of the stage.
  */
 
 import { beginFrame } from '../canvas.js';
@@ -8,7 +8,7 @@ import { drawEditor } from './editor.js';
 import { drawLevel, drawPreviewMap } from './game.js';
 
 /**
- * Draw the canvas after the ticks of a frame. The idle stage draws nothing.
+ * Draw the canvas after the ticks of a frame.
  *
  * @returns {void}
  */

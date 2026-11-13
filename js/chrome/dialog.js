@@ -1,13 +1,10 @@
 /**
  * Modal message dialogs.
- *
- * The game does not run while a dialog is open. A dialog closes on the release of Enter or Escape, so the release does
- * not reach the game after the dialog is closed. The key must be pressed while the dialog is open: the release of the
- * key that opened the dialog does not close it.
  */
 
 /**
- * Show a message in a modal dialog with an OK button.
+ * Show a message in a modal dialog with an OK button. The release of Enter or Escape closes the dialog, and the
+ * release does not reach the game.
  *
  * @param {string} message The message. Line breaks start a new line.
  * @param {string} title The title of the dialog.

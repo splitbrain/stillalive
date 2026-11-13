@@ -59,8 +59,8 @@ const PAGE_ZONES = [
 ];
 
 /**
- * The zone of import-x/no-restricted-paths for the stage: no module in the stage folder imports from the page, also a
- * new module that is not in a layer yet.
+ * The zone of import-x/no-restricted-paths for the stage: a module in the stage folder must not import from the page.
+ * The zone also covers a module that is in no layer.
  *
  * @type {object[]}
  */
@@ -72,6 +72,7 @@ const STAGE_ZONES = [
 	},
 ];
 
+/** @type {object[]} The ESLint configuration of the game modules, the tests and the configuration files. */
 export default [
 	js.configs.recommended,
 	{

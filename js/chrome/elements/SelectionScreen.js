@@ -8,18 +8,13 @@ import { ChromeScreen, loadMarkup } from '../element.js';
 await loadMarkup(import.meta.url);
 
 /**
- * The base class of the selection screens: the level selection and the save and load screen of the editor. A selection
- * screen lies on top of a preview on the stage. It has a back link with the class back and a grid of menu buttons
- * with the class choices.
- *
- * On each connect, the element adds the class selection-screen to itself for the shared style. When the pointer moves
- * onto a usable choice, the element calls previewChoice() with the number in the data-choice attribute of the choice.
- * When the pointer leaves the grid, it calls previewChoice() with 0. A hidden screen does not change the preview,
- * because the pointer also leaves the grid when the screen hides.
+ * The base class of the selection screens. A selection screen lies on top of a preview on the stage. It has a back
+ * link with the class back and a grid of menu buttons with the class choices. Each choice has its number in the
+ * attribute data-choice.
  */
 export class SelectionScreen extends ChromeScreen {
 	/**
-	 * Add the class selection-screen, then connect as a screen part.
+	 * Add the class selection-screen for the shared style, then connect as a screen part.
 	 *
 	 * @returns {void}
 	 */
@@ -29,7 +24,9 @@ export class SelectionScreen extends ChromeScreen {
 	}
 
 	/**
-	 * Add the handlers that show the preview of the choice under the pointer.
+	 * Add the handlers that show the preview of the usable choice under the pointer. When the pointer leaves the grid,
+	 * the stage shows the preview without a choice. A hidden screen does not change the preview, because the pointer
+	 * also leaves the grid when the screen hides.
 	 *
 	 * @returns {void}
 	 */

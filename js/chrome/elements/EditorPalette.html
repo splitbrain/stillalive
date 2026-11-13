@@ -14,15 +14,9 @@
 
 <style>
 	/*
-	 * The palette is a parts tray and a small button panel. Its size comes from outside. The host is the size
-	 * container, and the body of the palette keeps a fixed aspect ratio and is centered in the host. All sizes are in
-	 * --u, the unit that scales the body to the host. On a tall host the tray is a column of bins and the panel is below
-	 * it; on a wide host the tray is a row of bins and the panel is right of it.
-	 *
-	 * The tray is one dark block with the bins cut into it. The element fills the tray with the bins and their rows of
-	 * items. Each bin is an uneven quadrangle with a dark top wall, a light bottom wall and a sunken floor. The items
-	 * lie in the bins at their natural sizes, each turned by a small angle. The panel has the frame, the bezel and the plate of the HUD, with two push buttons for the background and
-	 * a piece of tape with a sketch of a picture.
+	 * The palette is a parts tray and a small button panel. The host is a size container. The body of the palette keeps
+	 * a fixed aspect ratio and is centered in the host. All sizes are in --u, the unit that scales the body to the host.
+	 * On a tall host, the tray is a column of bins and the panel is below it.
 	 */
 	editor-palette {
 		--palette-bezel: color-mix(in srgb, color-mix(in srgb, var(--color-page) 60%, var(--color-chrome)), black 20%);
@@ -99,7 +93,7 @@
 			}
 		}
 
-		/* a bin: a column of rows, centered. The walls and the floor are crooked by --k1 to --k8, in units. */
+		/* --k1 to --k8 move the corners of the walls and the floor of a bin inward, in units */
 		.bin {
 			position: relative;
 			isolation: isolate;
@@ -236,13 +230,14 @@
 			}
 		}
 
-		/* the image of a tile; the empty eraser tile shows as a dashed square */
+		/* the image of a tile */
 		img[src^='gfx/tiles/'] {
 			display: block;
 			width: calc(var(--u) * 16);
 			aspect-ratio: 1;
 		}
 
+		/* the eraser shows as a dashed square */
 		[data-tile='0'] {
 			border: calc(var(--u) * 0.8) dashed rgb(255 255 255 / 0.6);
 			filter: none;
@@ -318,7 +313,7 @@
 			background-position: calc(var(--u) * -32) 0;
 		}
 
-		/* the panel: the frame with four screws, the bezel and the plate, as in the HUD */
+		/* the panel: the frame with four screws, the bezel and the plate */
 		.panel {
 			--frame: calc(var(--u) * 4);
 			--screw: calc(var(--u) * 3.4);

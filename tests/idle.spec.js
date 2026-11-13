@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { CAMPAIGNS, campaignLevels, hashString, openGame, runLevel } from './adapter.js';
 
 /**
- * Number of ticks for each idle test.
+ * Number of ticks for each level.
  *
  * @type {number}
  */

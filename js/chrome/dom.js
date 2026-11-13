@@ -1,5 +1,5 @@
 /**
- * Helpers for the elements of the page that set attributes and links and dispatch events.
+ * Helpers for the elements of the page.
  */
 
 /**

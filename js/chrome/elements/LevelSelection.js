@@ -16,12 +16,9 @@ const TEMPLATE = await loadMarkup(import.meta.url);
  * The custom element <level-selection>. It is the selection screen of a campaign, on top of the preview of a level.
  *
  * The attribute campaign is the folder name of the campaign, and the attribute level is the selected level number, or
- * 0 for none. Without a selected level, the element shows the level list. The stage then shows the preview of the
- * level under the pointer, or of the highest unlocked level when the pointer is on no unlocked level. If there is no
- * unlocked level, e.g. when all slots of the custom campaign are empty, the stage shows nothing. With a selected
- * level, the element shows the details of the level: its title, its number, its best time, the Play link and the
- * Replay link. The Replay link is disabled when the level has no best time. The back link goes up from the details to
- * the level list, and from the level list to the main menu.
+ * 0 for none. Without a selected level, the element shows the level list. With a selected level, the element shows
+ * the details of the level. The back link goes up from the details to the level list, and from the level list to the
+ * main menu.
  */
 export class LevelSelection extends SelectionScreen {
 	/** @type {HTMLTemplateElement|null} The markup of the level selection. */
@@ -59,7 +56,8 @@ export class LevelSelection extends SelectionScreen {
 	}
 
 	/**
-	 * Fill the details of the selected level. A level without a title shows its number as the title.
+	 * Fill the details of the selected level. A level without a title shows its number as the title. A level without a
+	 * best time has a disabled Replay link.
 	 *
 	 * @param {import('../campaigns.js').Campaign} campaign The campaign.
 	 * @param {number} level The level number.

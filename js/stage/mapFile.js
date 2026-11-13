@@ -7,8 +7,7 @@
  * - tiles: the 768 tile ids of the 32 x 24 tiles, row by row
  * - bg: the index of the background image
  * - title: optional, the name of the level in the level selection.
- * - boss: optional, the boss of the level from 1 to 4. Only a boss level can contain the tube. The editor does not
- *   support boss levels.
+ * - boss: optional, the boss of the level from 1 to 4. Only a boss level can contain the tube.
  * - text: optional, the message at the level start. It is the same as an event with the trigger "start" and this
  *   text, before the other events.
  * - abilities: optional, an object that disables abilities of the player at the level start. The key "jump" or
@@ -19,7 +18,7 @@
  *     - "playerX": the center of the player enters the column in the property x or a column to the right of it.
  *     - "time": the level time reaches the number of seconds in the property seconds.
  *     - "bossArrived": the boss reached its place.
- *     - "bossDied": the life of the boss reached 0.
+ *     - "bossDied": the boss died after its third hit.
  *     - "exit": the player reached the exit. The closing transition of the level clears the message, so the text of
  *       an exit event shows only with the wait "click", which holds the transition until the click.
  *   - x: the column for the trigger "playerX".

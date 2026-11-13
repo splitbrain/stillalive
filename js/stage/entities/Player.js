@@ -50,7 +50,7 @@ export class Player {
 		this.isLeft = 0;
 		/** @type {number} 1 while the player holds the right key. */
 		this.isRight = 0;
-		/** @type {number} The value of isJump before the last change of the jump key. */
+		/** @type {number} The value of isJump in the last tick. */
 		this.oldIsJump = 0;
 		/** @type {number} 1 while the player holds the jump key. */
 		this.isJump = 0;
@@ -73,13 +73,13 @@ export class Player {
 		/** @type {number} Ticks since the last portal shot, up to 25. A new shot is possible at 25. */
 		this.portalCooldown = 25;
 		/**
-		 * @type {number} Counts to 0 after a teleport, from 42 for the blue portal and from -42 for the red portal. The
-		 * sign selects the color of the sparkles.
+		 * @type {number} Counts to 0 after a teleport, from 42 after an entry into the blue portal and from -42 after an
+		 * entry into the red portal. The sign selects the color of the sparkles.
 		 */
 		this.teleportTime = 0;
 		/** @type {number} 1 while the player or a crate holds a switch and the switch doors are open. */
 		this.switchPressed = 0;
-		/** @type {number} Ticks until the next frame of the walk animation. */
+		/** @type {number} The countdown to the next frame of the walk animation. */
 		this.animationTime = 10;
 		/** @type {number} The frame of the walk animation: 0 is the standing frame, 1 to 4 are the walk cycle. */
 		this.animationFrame = 0;
@@ -87,7 +87,7 @@ export class Player {
 		this.onGround = false;
 		/** @type {boolean} True while the player touches acid. */
 		this.inAcid = false;
-		/** @type {number} The life in 1/256 points; 100 points is full life. */
+		/** @type {number} The life in 1/256 points. Full life is 100 points. */
 		this.life = 100 << 8;
 		/** @type {boolean} True while the player is dead and the screen fades to the restart. */
 		this.dead = false;
@@ -185,13 +185,11 @@ export class Player {
 	}
 
 	/**
-	 * Move the player for one tick: sparkles after a teleport, life recovery, walking, jumping, gravity, platforms,
-	 * collisions, portals, cakes, carried objects and deadly tiles.
+	 * Update the player for one tick from the input and the level objects.
 	 *
 	 * @returns {void}
 	 */
 	move() {
-		//particles around the character
 		let s, fi, i;
 		if (this.teleportTime < 0) {
 			if (++this.teleportTime < 0 && this.teleportTime % 6 == 0) this.#teleportSparkles(3, 200, 0);

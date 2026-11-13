@@ -84,7 +84,7 @@ export class Campaign {
 	}
 
 	/**
-	 * Get the next level after a level that can be played.
+	 * Get the next level that can be played after a level.
 	 *
 	 * @param {number} level The level number.
 	 * @returns {number} The number of the next level, or 0 if there is none.
@@ -262,11 +262,11 @@ function updateLoading() {
 }
 
 /**
- * Load a campaign or level file. A file that fails to load or that the callback rejects goes into the list of missing
- * level files and counts as done.
+ * Load a campaign or level file. A file that fails to load or whose callback throws an error goes into the list of
+ * missing level files and counts as done.
  *
  * @param {string} url The URL of the file.
- * @param {function(*)} callback Gets the content of the file.
+ * @param {function(*)} callback Called with the parsed content of the file.
  * @returns {void}
  */
 function loadLevelJsonFile(url, callback) {
@@ -280,7 +280,7 @@ function loadLevelJsonFile(url, callback) {
  * Load a JSON file.
  *
  * @param {string} url The URL of the file.
- * @param {function(*)} callback Gets the content of the file.
+ * @param {function(*)} callback Called with the parsed content of the file.
  * @param {function(): void} [onError] Called if the file fails to load or the callback throws an error.
  * @returns {void}
  */

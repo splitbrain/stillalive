@@ -13,12 +13,8 @@ const TEMPLATE = await loadMarkup(import.meta.url);
 const SPEEDS = [1, 2, 4];
 
 /**
- * The custom element <vcr-panel>. It is the front of a VCR that controls the playback of a replay, with a tape flap, a
- * lamp for each speed and the Stop, Play/Pause and Speed buttons. It shows on the play screen of a replay route.
- *
- * The lamp of the current speed is lit. The Play/Pause button pauses and continues the playback, and the Speed button
- * goes to the next speed, after the highest speed back to the normal speed. The Stop button dispatches the bubbling
- * event replay-stop; the app element ends the replay.
+ * The custom element <vcr-panel>. It is the front of a VCR that controls the playback of a replay. The Stop button
+ * dispatches the bubbling event replay-stop.
  */
 export class VcrPanel extends ChromeScreen {
 	/** @type {HTMLTemplateElement|null} The markup of the VCR panel. */
@@ -45,7 +41,7 @@ export class VcrPanel extends ChromeScreen {
 	}
 
 	/**
-	 * Subscribe to the speed of the stage.
+	 * Subscribe to the speed of the stage to light the lamp of the current speed.
 	 *
 	 * @returns {Array<function(): void>} The functions that remove the subscriptions.
 	 */

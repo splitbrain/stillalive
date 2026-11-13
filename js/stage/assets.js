@@ -1,8 +1,5 @@
 /**
- * Loading of the images.
- *
- * The module counts the loaded images, so the stage can report the progress, and it remembers the files that could
- * not be loaded.
+ * Loading of the images, with the progress and the list of the missing images.
  */
 
 /** @type {number} The number of requested images. */
@@ -21,7 +18,7 @@ let onDone = () => {};
  * Start to load an image.
  *
  * @param {string} src The path of the image.
- * @returns {HTMLImageElement} The image. The game can use it at once, it is empty until it is loaded.
+ * @returns {HTMLImageElement} The image. It is empty until it is loaded.
  */
 export function loadImage(src) {
 	const img = new Image();

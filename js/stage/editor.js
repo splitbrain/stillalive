@@ -1,5 +1,5 @@
 /**
- * The level editor: the map with its objects, the painting, undo and redo, and the test run of the map.
+ * The level editor and the test run of the editor map.
  */
 
 import { MAP_HEIGHT, MAP_SIZE, MAP_WIDTH, MouseButton } from './constants.js';
@@ -21,7 +21,7 @@ let oldMouseReleased = 0;
 let storedMap = { tiles: new Array(MAP_SIZE).fill(0), bg: 0 };
 /**
  * The properties of the editor map other than the format, the tiles and the background, e.g. the title and the
- * events. The editor does not change them, and it replaces the object instead of changing it.
+ * events. The editor replaces the object as a whole, so the undo list can share it.
  *
  * @type {object}
  */
@@ -133,7 +133,7 @@ export function leaveEditor() {
 /**
  * Get the editor map.
  *
- * @returns {object} The editor map in the map file format without the format, with a copy of the tiles.
+ * @returns {object} The editor map in the map file format without the format property, with a copy of the tiles.
  */
 export function editorMap() {
 	if (ui.mode == 'edit') return { ...properties, bg: game.background, tiles: game.map.slice() };
@@ -152,7 +152,7 @@ export function updateLevelEditor() {
 }
 
 /**
- * Take the edits of the map and the undo and redo keys.
+ * Apply the mouse edits and the undo and redo keys of one tick.
  *
  * @returns {void}
  */

@@ -13,11 +13,8 @@ import { bestTimes, editorMap, maxLevel } from '../storage.js';
 const TEMPLATE = await loadMarkup(import.meta.url);
 
 /**
- * The custom element <main-menu>. It shows the list of the campaigns with the number of finished levels and the link to
- * the editor. A campaign with a parent shows in a sub list below its parent, and the custom campaign shows in a sub
- * list below the editor. The test campaign shows only when the URL contains "?test". The sound button in the bottom left
- * corner turns the sound on and off, the music button in the bottom right corner the music; both show their setting and
- * the app element stores the change.
+ * The custom element <main-menu>. It shows the campaigns with the number of finished levels and the link to the
+ * editor. The sound and music buttons turn their setting on and off and show it. The app element stores the settings.
  */
 export class MainMenu extends ChromeScreen {
 	/** @type {HTMLTemplateElement|null} The markup of the main menu. */
@@ -60,7 +57,9 @@ export class MainMenu extends ChromeScreen {
 	}
 
 	/**
-	 * Build the list of the campaigns after all campaign files are loaded.
+	 * Build the list of the campaigns after all campaign files are loaded. A campaign with a parent shows in a sub list
+	 * below its parent, and the custom campaign shows in a sub list below the editor link. The test campaign shows only
+	 * when the URL has the parameter test.
 	 *
 	 * @returns {void}
 	 */

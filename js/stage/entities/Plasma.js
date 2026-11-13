@@ -11,8 +11,7 @@ import { Tile, TileKind, isTileKind } from '../tiles.js';
 import { getDistance, random } from '../utils.js';
 
 /**
- * A plasma ball. It moves in a straight line, bounces off walls, opens the plasma doors in its slot, and kills the
- * player and the turrets.
+ * A plasma ball. It bounces off walls and fills the plasma slots. It kills the player and the turrets.
  */
 export class Plasma {
 	/**
@@ -46,7 +45,7 @@ export class Plasma {
 		this.pY = 16;
 		/** @type {boolean} True while the ball exists. */
 		this.used = true;
-		/** @type {number} The pulse of the drawn size, from -2 to 2 pixels. */
+		/** @type {number} The offset of the drawn ball across its path, from -3 to 3 pixels. */
 		this.scale = 1;
 		/** @type {number} The direction of the pulse, 1 or -1. */
 		this.scaleDir = -1;
@@ -59,8 +58,8 @@ export class Plasma {
 	}
 
 	/**
-	 * Move the ball for one tick: the pulse, the position, the portals and the collisions. In the acid surface and
-	 * the acid pool, the ball returns to its start position.
+	 * Move the ball for one tick. The ball returns to its start when it leaves the playfield or touches acid. In the
+	 * boss levels 3 and 4, the ball follows the player.
 	 *
 	 * @returns {void}
 	 */
@@ -143,8 +142,8 @@ export class Plasma {
 	}
 
 	/**
-	 * Fill a plasma slot: the slot becomes a wall. When no slot is left, the ball goes away and the plasma doors open,
-	 * else the ball returns to its start.
+	 * Fill a plasma slot with a wall. When no slot is left, the ball goes away and the plasma doors open. Else the ball
+	 * returns to its start.
 	 *
 	 * @param {number} column The column of the slot.
 	 * @param {number} row The row of the slot.
@@ -175,8 +174,8 @@ export class Plasma {
 	}
 
 	/**
-	 * Bounce the ball off walls and open the plasma doors when the ball hits its slot. The bounce sound is louder near
-	 * the player.
+	 * Bounce the ball off walls and fill the plasma slot that the ball hits. The bounce sound is louder near the
+	 * player.
 	 *
 	 * @returns {void}
 	 */

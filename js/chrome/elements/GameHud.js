@@ -24,16 +24,14 @@ function lifeLevel(life) {
 }
 
 /**
- * The custom element <game-hud>. It shows the HUD values of the stage on the displays of a control panel: life, cakes,
- * steps, portals and the frame rate. The color of the life display shows the level of the life. It shows on the play
- * screen, but not in the playback of a replay.
+ * The custom element <game-hud>. It shows the HUD values of the stage on the displays of a control panel.
  */
 export class GameHud extends ChromeScreen {
 	/** @type {HTMLTemplateElement|null} The markup of the HUD. */
 	static template = TEMPLATE;
 
 	/**
-	 * Subscribe to the HUD values of the stage.
+	 * Subscribe to the HUD values of the stage, to show them and to color the life display by the level of the life.
 	 *
 	 * @returns {Array<function(): void>} The functions that remove the subscriptions.
 	 */

@@ -10,14 +10,13 @@
 <style>
 	/*
 	 * The robot head sits behind the glass of a small window in a light frame. The window has the aspect ratio of a
-	 * panel of 108 by 92 units. It is as large as the element allows and centered in it, and all sizes are relative to
-	 * its width. The window is the size container of the glass. The frame is drawn a little crooked: its outer edge and the dark blue bezel are uneven
-	 * quadrangles. The glass lies inside the bezel with round corners and shows the lab scene behind the robot. The glass
-	 * covers the whole panel, so the head and the eye use the coordinates of the panel, and the shape of the glass cuts
-	 * them off at the bezel.
+	 * panel of 108 by 92 units, and all sizes are in these units. The window is as large as the element allows and
+	 * centered in it. The outer edge of the frame and the dark blue bezel are uneven quadrangles. The glass covers the
+	 * whole panel, so the head and the eye use the coordinates of the panel. The shape of the glass cuts them off at the
+	 * bezel.
 	 *
-	 * The idle animation sets --head-x, --eye-x and --eye-y to -1, 0 or 1. The head moves 17 units to a side, the eye
-	 * moves 9 units to a side and 10 units up or down.
+	 * The idle animation sets --head-x, --eye-x and --eye-y to -1, 0 or 1. The head moves 17 units to a side. The eye
+	 * moves with the head, and also 9 units to a side and 10 units up or down.
 	 */
 	robot-head {
 		--robot-bezel: color-mix(in srgb, color-mix(in srgb, var(--color-page) 60%, var(--color-chrome)), black 20%);

@@ -1,5 +1,5 @@
 /**
- * The tick function: the modes of the stage, the level and the end of a level.
+ * The tick function of the stage.
  */
 
 import { playSound, sfx_transition } from './audio.js';
@@ -26,8 +26,7 @@ import { game, input, stageEvents, ui } from './state.js';
 import { random } from './utils.js';
 
 /**
- * Run one tick of the stage: process the input and run the logic of the mode. A preview and the idle stage do not
- * change.
+ * Run one tick of the stage in the current mode.
  *
  * @returns {void}
  */
@@ -38,8 +37,7 @@ export function tick() {
 }
 
 /**
- * Run one tick of a level: the level time, the player, the doors, the level end, the objects, the boss and the
- * events. The level time stands still while an event waits and while the boss comes in.
+ * Run one tick of a level. The level time stands still while an event waits and while the boss comes in.
  *
  * @returns {void}
  */
@@ -75,10 +73,10 @@ function updateLevel() {
 }
 
 /**
- * Run the end of a level: the exit events, the closing transition, and the finished event of the stage when the
- * transition ends. An exit event that waits for a click holds the transition until the click. After the transition,
- * the level waits in the exit freeze until the next command of the stage. The test run of the editor goes back to the
- * editor after the transition.
+ * Run the end of a level after the player reaches the exit.
+ *
+ * An exit event that waits for a click holds the closing transition until the click. After the transition, the stage
+ * reports the event "finished" and the level stays in the exit freeze. A test run goes back to the editor.
  *
  * @returns {void}
  */
@@ -113,9 +111,7 @@ function updateLevelEnd() {
 }
 
 /**
- * Update the objects of a level in the order of the game logic: the tiles, the player direction, the pipe fields,
- * the cakes, the turrets, the plasma balls, the sparkles, the crates, the boss projectiles, the platforms, the
- * portals, the camera and the death fade.
+ * Update the objects, the camera and the death fade of a level for one tick.
  *
  * @returns {void}
  */
@@ -151,8 +147,8 @@ function updateObjects() {
  *
  * @param {import('./level.js').Level} level The level.
  * @param {import('./replay.js').Replay|null} [replay] The replay to play, or null to let the player play.
- * @param {boolean} [restart] True for a restart of the same level: the waits of the events and the entrance of the
- *     boss are skipped.
+ * @param {boolean} [restart] True for a restart of the same level. A restart skips the waits of the events and the
+ *     entrance of the boss.
  * @returns {void}
  */
 export function startLevel(level, replay = null, restart = false) {

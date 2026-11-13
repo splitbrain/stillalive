@@ -33,7 +33,7 @@
 	box-sizing: border-box;
 }
 
-/* the page fills the window and sets the base look for all elements */
+/* the background, the text color and the font of the page */
 body {
 	margin: 0;
 	background: url('gfx/site/page.svg') center top var(--color-page);
@@ -54,17 +54,16 @@ a {
 	color: inherit;
 }
 
-/* the page shows and hides its parts per screen */
+/* the hidden attribute also hides an element that sets its own display */
 [hidden] {
 	display: none !important;
 }
 
 /*
  * The app is a grid that is centered horizontally in the window. Its first two rows and columns are a block of four
- * cells: a narrow corner and top row and a narrow side column around a large main cell. The width of this block
- * follows the window up to a maximum. The height follows the window too, but the main cell is never higher than the
- * aspect ratio of the playfield allows. The parts adjust to their cells. The other parts go in rows below it, each in
- * the full width. The block leaves room for the row of the editor buttons while they show.
+ * cells, with a narrow top row and a narrow side column around a large main cell. The size of the block follows the
+ * window up to a maximum width. The main cell is at most as high as the aspect ratio of the playfield allows. The other
+ * parts go in rows below the block, each in the full width.
  */
 game-app {
 	/* the top row is at least as high as the narrator text with four lines of text */
@@ -100,6 +99,7 @@ game-app {
 			/ var(--grid-col-side) var(--grid-col-main);
 	}
 
+	/* the block leaves room for the row of the editor buttons while they show */
 	&:has(> editor-buttons:not([hidden])) {
 		--grid-row-bottom: calc(var(--editor-buttons-height) + var(--grid-gap));
 	}
@@ -108,10 +108,7 @@ game-app {
 		grid-column: 1 / -1;
 	}
 
-	/*
-	 * The robot head and the narrator text share the first row and have its height. The robot head keeps its aspect
-	 * ratio, and the narrator text takes the rest of the width.
-	 */
+	/* the robot head and the narrator text share the first row and have its height */
 	> .top {
 		grid-row: corner;
 		grid-column: corner-start / top-end;
@@ -155,7 +152,7 @@ game-app {
 			}
 		}
 
-		/* the character stands at the right end of the row and points to the left, at the same times as the logo */
+		/* the character stands at the right end of the row */
 		> .mascot {
 			height: 100%;
 		}
@@ -176,10 +173,8 @@ game-app {
 	}
 
 	/*
-	 * The dome on the chain shelf decorates the side cell while the side cell is left of the CRT and the HUD, the VCR
-	 * panel and the editor palette are hidden. It fills the width of the cell, or its height when the cell is too
-	 * low. Its pipe continues up to the top of the page, with a cap at the top, and right into the main cell, where it
-	 * ends behind the left edge of the CRT. The decoration lies behind all other parts.
+	 * The dome on the chain shelf decorates the empty side cell. It fills the width of the cell, or its height when the
+	 * cell is too low. Its pipe goes up to a cap at the top of the page, and right to behind the left edge of the CRT.
 	 */
 	> .side-deco {
 		--deco-unit: min(var(--grid-col-side) / 246.5, var(--grid-row-main) / 572);
@@ -258,8 +253,8 @@ footer {
 }
 
 /*
- * The about page has the logo at the top and a text column below it. The logo has the width of the app, the text
- * column is narrower so that its lines stay readable.
+ * The about page has the logo at the top and a text column below it. The header has the width of the app. The text
+ * column is narrower, so that its lines stay readable.
  */
 body.about {
 	> header {

@@ -1,7 +1,10 @@
 /**
- * The GravPipe object and its helper functions.
+ * The GravPipe object.
  */
 
+/**
+ * A gravitational pipe that pushes objects in one direction.
+ */
 export class GravPipe {
 	/**
 	 * @param {number} x The x position in 1/256 pixels.

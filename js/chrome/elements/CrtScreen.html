@@ -1,12 +1,11 @@
 <template>
 	<style>
 		/*
-		 * The host is a size container, and the screen is as large as the host allows. It is centered vertically and lies
-		 * at the left edge, so free space is on the right. The frame adds 3.2% of the width on each side of the content, so
-		 * the screen is 100 units wide and 93.6 units divided by --crt-aspect plus 6.4 units high. The screen is the size
-		 * container of the frame and the content: all sizes come from its width in --crt-unit, so the screen scales as one
-		 * piece. The glass shape is a custom property on the host, so the content inherits it.
-		 * The corners of the glass cut at most 1.4% of the width and 1.9% of the height off the content.
+		 * The host is a size container. The screen is as large as the host allows, and it lies at the left edge of the
+		 * host, centered vertically. The screen is the container of the frame and the content, and all sizes are in
+		 * --crt-unit, one percent of its width. The frame adds 3.2 units on each side of the content, so the screen is 100
+		 * units wide and 93.6 units divided by --crt-aspect plus 6.4 units high. The content inherits the glass shape
+		 * from the host. The corners of the glass cut at most 1.4% of the width and 1.9% of the height off the content.
 		 */
 		:host {
 			--crt-unit: 1cqw;
@@ -34,9 +33,9 @@
 			}
 
 			/*
-			 * The machinery has the height of the screen. Its graphic is aligned to the right edge of the host, so it fills
-			 * the free space right of the screen. It starts where the crooked right edge of the frame starts, so it does not
-			 * show through the gaps at the other edges of the frame.
+			 * The machinery fills the free space right of the screen and has the height of the screen. Its graphic is
+			 * aligned to the right edge of the host. It starts at the left end of the crooked right edge of the frame, so it
+			 * stays out of the gaps at the other edges of the frame.
 			 */
 			.machine {
 				grid-area: 1 / 1;
@@ -47,10 +46,10 @@
 			}
 
 			/*
-			 * The frame is drawn a little crooked. Its outer edge is cut to an uneven quadrangle, where no two edges are
-			 * parallel. Four bands of the front face lie on top of the dark blue bezel, each at a slightly different angle,
-			 * so the bezel is uneven too. The edges of the bands blend over one pixel, because a hard stop of a gradient has
-			 * no antialiasing. The angles suit a frame that is not much wider than high.
+			 * The frame is a little crooked, and its outer edge is cut to an uneven quadrangle. Four bands of the front face
+			 * lie on top of the dark blue bezel, each at a different small angle, so the bezel is uneven too. The edges of
+			 * the bands blend over one pixel, because a hard stop of a gradient has no antialiasing. The angles suit a frame
+			 * that is a little wider than high.
 			 */
 			.frame {
 				position: relative;
@@ -82,8 +81,9 @@
 			}
 
 			/*
-			 * The glass lies inside the bezel. It looks turned a little clockwise: each corner moves in along one edge only,
-			 * and the edges bow out between the corners. It lies behind the content, and the effects lie on top of it.
+			 * The glass lies inside the bezel. It looks turned a little clockwise, because each corner moves in mostly along
+			 * one edge and the edges bow out between the corners. The glass lies behind the content, and the effects lie on
+			 * top of it.
 			 */
 			.glass,
 			.effects {

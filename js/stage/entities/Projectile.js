@@ -31,16 +31,16 @@ export class Projectile {
 		this.pX = 16;
 		/** @type {number} The height in pixels. */
 		this.pY = 16;
-		/** @type {boolean} True after the wheel hit something; it then fades out. */
+		/** @type {boolean} True after the wheel hit something. */
 		this.needKill = false;
-		/** @type {number} Ticks left of the fade out. */
+		/** @type {number} Ticks until the stopped wheel goes away. */
 		this.timer = 0;
 		/** @type {number} The tile id of the wheel frame to draw. */
 		this.img = 36;
 	}
 
 	/**
-	 * Move the wheel for one tick and start the fade out when it hits a wall, a platform or a crate.
+	 * Move the wheel for one tick and stop it when it hits a wall, a platform or a crate.
 	 *
 	 * @returns {void}
 	 */
@@ -77,7 +77,7 @@ export class Projectile {
  * Check if a wheel overlaps the player.
  *
  * @param {Projectile} obj The wheel.
- * @returns {number} 1 if the wheel overlaps the player, else 0.
+ * @returns {boolean} True if the wheel overlaps the player.
  */
 function projectileTouchesPlayer(obj) {
 	const posx = obj.x >> 8;
@@ -96,7 +96,7 @@ function projectileTouchesPlayer(obj) {
 }
 
 /**
- * Move the razor wheels of the boss, hurt the player on a hit and remove the faded wheels.
+ * Move the razor wheels of the boss, kill the player on a hit and remove the stopped wheels after their timer.
  *
  * @returns {void}
  */

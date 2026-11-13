@@ -25,7 +25,7 @@ const REPLAY_FORMAT = 2;
 /**
  * Convert a recorded replay into the file format.
  *
- * @param {{inputs: number[], mouseX: number[], mouseY: number[]}} replay The recorded replay of the game.
+ * @param {Replay} replay The recorded replay of the game.
  * @param {string} campaign The folder name of the campaign.
  * @param {number} level The level number, starting at 1.
  * @returns {object} The replay in the file format.

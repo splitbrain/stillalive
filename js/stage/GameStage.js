@@ -1,11 +1,8 @@
 /**
- * The stage element <game-stage>: the canvas, the game loop and the interface of the stage for the page.
+ * The stage element <game-stage>, which shows the game on a canvas.
  *
- * The page commands the stage with the methods, reads and observes its state with the Value properties, and gets the
- * events "finished", "died", "focuslost", "brokenreplay" and "replaystop".
- *
- * The canvas is in the shadow root of the element, with the styles of the stage. The page gives the element its width
- * and its height; the stage fits the playfield into that box at its fixed aspect ratio, centered, and never cuts it.
+ * The page controls the stage with its methods and reads the state from the Value properties. The stage dispatches
+ * the events "finished", "died", "focuslost", "brokenreplay" and "replaystop".
  */
 
 import {
@@ -49,9 +46,8 @@ import { Value } from '../value.js';
 const TIME_UPDATE_INTERVAL = 30;
 
 /**
- * The styles of the stage in its shadow root. The element is a grid that centers the canvas. A size container gives
- * the canvas the height of the element in cqh units, so the canvas takes the width of the element or the width that
- * fits the height, whichever is smaller, and keeps the aspect ratio of the playfield.
+ * The styles of the stage in its shadow root. The canvas is centered in the element and has the largest size that
+ * fits into the element at the aspect ratio of the playfield.
  *
  * @type {string}
  */
@@ -78,7 +74,7 @@ const BOSS_MUSIC_RATE = 1.4;
 const BOSS_MUSIC_DUCK = 0.5;
 
 /**
- * The stage: it plays a level, shows the preview of a level or opens the editor on a map.
+ * The game stage. It plays a level, shows the preview of a level or opens the editor on a map.
  */
 export class GameStage extends HTMLElement {
 	/** @type {Value<string>} What the stage shows: "idle", "play", "preview", "edit" or "test". */
@@ -115,7 +111,7 @@ export class GameStage extends HTMLElement {
 	#speed = 1;
 
 	/**
-	 * Create the shadow root with the styles and the canvas, and start the input and the game loop.
+	 * Set up the canvas, the input and the game loop when the element is first connected to the page.
 	 *
 	 * @returns {void}
 	 */
@@ -149,8 +145,8 @@ export class GameStage extends HTMLElement {
 	 * @param {import('./level.js').Level} level The level.
 	 * @param {object} [options] The options.
 	 * @param {object|null} [options.replay] A replay in the file format to play, or null to let the player play.
-	 * @param {boolean} [options.restart] True for a restart of the same level: the waits of the events and the entrance
-	 *     of the boss are skipped.
+	 * @param {boolean} [options.restart] True for a restart of the same level. The restart skips the waits of the events
+	 *     and the entrance of the boss.
 	 * @returns {void}
 	 * @throws {Error} If the replay is not valid.
 	 */
@@ -187,9 +183,8 @@ export class GameStage extends HTMLElement {
 	}
 
 	/**
-	 * Run the editor map as a level. The level restarts when the player dies. The end of the exit transition, and the
-	 * Escape and Enter keys end the test run and go back to the editor. stopTest() ends the test run and goes back to
-	 * the editor, stop() ends the test run and leaves the editor.
+	 * Run the editor map as a level. The level restarts when the player dies. The end of the exit transition and the
+	 * Escape and Enter keys end the test run and go back to the editor.
 	 *
 	 * @returns {void}
 	 */
@@ -240,8 +235,8 @@ export class GameStage extends HTMLElement {
 	}
 
 	/**
-	 * Set the speed of the playback of a replay. Only a speed of 1 plays the sounds of the game. Outside of a replay,
-	 * the method does nothing.
+	 * Set the speed of the playback of a replay. Only a speed of 1 plays the sounds of the game. The speed changes only
+	 * during a replay.
 	 *
 	 * @param {number} speed The number of ticks for each tick of real time: 1, 2 or 4.
 	 * @returns {void}
@@ -253,7 +248,7 @@ export class GameStage extends HTMLElement {
 	}
 
 	/**
-	 * Leave the level, the preview, the test run or the editor, so the canvas shows nothing.
+	 * Leave the level, the preview, the test run or the editor, and clear the canvas.
 	 *
 	 * @returns {void}
 	 */
@@ -288,7 +283,7 @@ export class GameStage extends HTMLElement {
 	/**
 	 * Get the editor map, also while the stage shows something else.
 	 *
-	 * @returns {object} The editor map in the map file format without the format, with a copy of the tiles.
+	 * @returns {object} The editor map in the map file format without the format property, with a copy of the tiles.
 	 */
 	getMap() {
 		return editorMap();
@@ -354,7 +349,8 @@ export class GameStage extends HTMLElement {
 	}
 
 	/**
-	 * Play the click sound of the menu buttons. At the start of the game, it also tells the player that the sound works.
+	 * Play the click sound of the menu buttons. At the start of the game, the click lets the player hear that the sound
+	 * works.
 	 *
 	 * @returns {void}
 	 */
@@ -381,8 +377,7 @@ export class GameStage extends HTMLElement {
 	}
 
 	/**
-	 * Leave the current mode before a new command: end the test run without an event, keep the editor map, and end
-	 * the pause and the playback of a replay with its speed.
+	 * Leave the current mode before a new command. A test run ends without the event "died".
 	 *
 	 * @returns {void}
 	 */
@@ -412,8 +407,8 @@ export class GameStage extends HTMLElement {
 	}
 
 	/**
-	 * Write the state of the stage into the values and dispatch the events of the tick. Set the speed and the volume of
-	 * the music from the phase of the boss fight.
+	 * Update the Value properties and dispatch the events of the tick. The speed and the volume of the music follow the
+	 * phase of the boss fight.
 	 *
 	 * @returns {void}
 	 */

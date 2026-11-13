@@ -2,9 +2,7 @@ import { expect, test } from '@playwright/test';
 import { CAMPAIGNS, finishLevel, startGame, waitForNarrator } from './adapter.js';
 
 /**
- * The elements of the page that show on some screens only. The app element asks each of its screen parts with
- * shouldShow() if it shows on the current screen, and hides the parts that do not show. The stage shows on the
- * select, play, editor and editor-file screens.
+ * The elements of the page that show on some screens only.
  *
  * @type {string[]}
  */
@@ -93,8 +91,8 @@ async function expectHash(page, hash) {
 }
 
 /**
- * Check the hashes of the history entries below the current entry, as the router keeps them in the state of the entry.
- * An entry that the router did not add has none.
+ * Check the hashes of the history entries below the current entry. The router stores them in the state of each entry
+ * that it adds.
  *
  * @param {import('@playwright/test').Page} page The page.
  * @param {string[]} trail The expected hashes, the lowest first.
@@ -179,7 +177,7 @@ test.describe('chrome', () => {
 		await expect(page.locator('editor-palette')).toBeVisible();
 		await expect.poll(() => stageValue(page, 'mode')).toBe('edit');
 
-		// the palette names the objects by their constants and sets the brush of the stage
+		// a palette button sets the brush of the stage to its tile
 		const cake = page.locator('editor-palette button[title="Cake"]');
 		await cake.click();
 		await expect.poll(() => stageValue(page, 'brush')).toBe(103);
@@ -349,7 +347,7 @@ test.describe('chrome', () => {
 		await confirm.getByRole('button', { name: 'Yes' }).click();
 		await expectScreen(page, '#/editor', EDITOR_PARTS);
 
-		// the question of the import disables the palette and the buttons until Escape answers it with No
+		// the import question disables the palette and the buttons until Escape selects No
 		await buttons.getByRole('button', { name: 'Import' }).click();
 		await expect(confirm).toBeVisible();
 		await expect(page.locator('editor-palette')).toHaveAttribute('inert');
@@ -458,7 +456,7 @@ test.describe('chrome', () => {
 
 	test('shows the credits after the last story level', async ({ page }) => {
 		const last = CAMPAIGNS.find((campaign) => campaign.name == 'story').levels;
-		// the progress is read when the page loads: the last story level is unlocked and not finished
+		// the game reads the progress when the page loads, and this progress unlocks the last story level
 		await page.addInitScript(
 			(last) => localStorage.setItem('stillalive_progress', JSON.stringify({ story: last })),
 			last,
@@ -517,7 +515,7 @@ test.describe('chrome', () => {
 			menu.remove();
 			document.body.append(menu);
 			const reconnected = count();
-			// one click handler after the second connect: a click changes the sound once
+			// after the second connect, the element has one click handler, so a click changes the sound once
 			const sound = stage.sound.get();
 			menu.querySelector('.sound').click();
 			const toggled = stage.sound.get() !== sound;

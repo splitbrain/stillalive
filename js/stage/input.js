@@ -1,10 +1,7 @@
 /**
  * Keyboard and pointer input.
  *
- * The handlers write the pressed keys and mouse buttons into the key bitmask of the game, the mouse position in
- * playfield units, and if the pointer is over the canvas. The game reads them once per tick. The keys that command
- * the stage call the stage element: Escape pauses a level, ends a test run and reports the stop of a replay with the
- * event "replaystop", Enter ends a test run, and M turns the sound on and off.
+ * The handlers write the keys and the mouse into the input state. The game reads the input state once per tick.
  */
 
 import { playfieldPoint } from './canvas.js';
@@ -23,8 +20,7 @@ import { atExit } from './physics.js';
 import { game, input, ui } from './state.js';
 
 /**
- * The key bits for the movement keys, by the physical position of the key. On an AZERTY keyboard, KeyW is the Z key
- * and KeyA is the Q key. The arrow keys and the right Shift key do the same as the keys W, A, S, D and E.
+ * The key bits for the movement keys, by the physical position of the key.
  *
  * @type {Object<string, number>}
  */
@@ -69,9 +65,9 @@ export function canPause() {
 }
 
 /**
- * Release all keys and mouse buttons when the game loses the focus, because the release events do not reach the
- * game, and report the lost focus in a running level with the event "focuslost". A replay continues, because it sets
- * the keys from the recording.
+ * Release all keys and mouse buttons when the game loses the focus. The release events of these keys do not reach
+ * the game. In a running level, the function reports the lost focus with the event "focuslost". A replay ignores the
+ * lost focus, because the replay sets the keys from the recording.
  *
  * @returns {void}
  */
@@ -122,8 +118,8 @@ function onKeyUp(event) {
 /**
  * Update the mouse buttons and the mouse position from a pointer event.
  *
- * Only pointer events report a second button that the player presses during a drag, so the handler reads all
- * buttons on each event.
+ * A second button that the player presses during a drag causes a pointermove event and no pointerdown event. Thus
+ * the handler reads all buttons on each event.
  *
  * @param {PointerEvent} event The pointer event.
  * @returns {void}

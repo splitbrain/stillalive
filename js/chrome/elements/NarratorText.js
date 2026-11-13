@@ -12,14 +12,13 @@ const TEMPLATE = await loadMarkup(import.meta.url);
 const TYPE_TIME = 1000 / 45;
 
 /**
- * The custom element <narrator-text>. It shows a text in a paragraph. The element types the text at 45 characters per
- * second, and starts again for each new text and for each new message of the stage, also when the message has the same
- * text. The typing stops while the stage is paused. In the playback of a replay, which can run faster than the
- * typing, each text shows in full at once. The Space key shows the rest of the text that the element types and does
- * not scroll the page. A text that is longer than the paragraph scrolls, and the typing keeps its end in view.
+ * The custom element <narrator-text>. It types a text one character after the other. The typing starts again for each
+ * new text and for each new message of the stage, also when the message has the same text. The typing stops while the
+ * stage is paused. On a replay route, each text shows in full at once, because the playback can run faster than the
+ * typing.
  *
- * The text is the key hint during the test run of the editor map, else the attribute text, which the app element sets
- * on the screens with a fixed text, else the text of the message of the stage.
+ * During the test run of the editor map, the text is the message of the stage. Else the text is the attribute text,
+ * and without the attribute the message of the stage.
  */
 export class NarratorText extends ChromeScreen {
 	/** @type {HTMLTemplateElement|null} The markup of the narrator text. */
@@ -89,8 +88,8 @@ export class NarratorText extends ChromeScreen {
 	}
 
 	/**
-	 * Type one more character, with a tick sound on every second character that is not a space, and stop the typing
-	 * at the end of the text.
+	 * Type one more character, and stop the typing at the end of the text. Every second character plays a tick sound,
+	 * except a space.
 	 *
 	 * @returns {void}
 	 */
@@ -104,7 +103,7 @@ export class NarratorText extends ChromeScreen {
 	/**
 	 * Show the full text on a press of the Space key while the element types. The key then does not press the focused
 	 * button. While the element shows, the Space key does not scroll the page. A Space key in a text field or a dialog
-	 * does not change the text.
+	 * keeps its normal effect.
 	 *
 	 * @param {KeyboardEvent} event The keydown event.
 	 * @returns {void}

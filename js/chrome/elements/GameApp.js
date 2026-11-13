@@ -22,10 +22,7 @@ import {
 import { toTime } from '../time.js';
 import { checkReady, ready } from '../../loader.js';
 
-/**
- * @type {string} The selector of the buttons with a hover and a click sound: the menu buttons, the back links, the sound
- *     and music buttons of the main menu and the buttons of the VCR panel.
- */
+/** @type {string} The selector of the buttons that play the hover sound and the click sound. */
 const SOUND_BUTTONS = 'menu-button, .selection-screen a.back, main-menu .sound, main-menu .music, vcr-panel button';
 
 /** @type {string[]} The screens that show the stage. */
@@ -36,47 +33,8 @@ const EDITOR_TEXT =
 	'Welcome to the Still Alive Level Editor! Here you can easily create your own maps. Select a tile or an object, then draw it with the left mouse button, remove it with the right mouse button, or fill an area with a tile with the middle mouse button. Then, try out your map. Have fun!';
 
 /**
- * The custom element <game-app>. It contains the parts of the screens and the stage in the page. The stage and the
- * parts that show in its place are inside the CRT screen; the other parts are around it.
- *
- * On each change of the screen, the element asks each screen part with shouldShow() if it shows on the current
- * screen, and sets the hidden attribute of the parts that do not show. It finds the screen parts at any depth by their
- * class chrome-screen. The parts are hidden until the element shows them, so a part does not show before its element is
- * defined. The stage shows on the select, play, editor and editor-file screens.
- *
- * The loading screen shows until the game is loaded and the player clicks or presses a key, whatever the route is. The
- * start plays a click sound, and after the start each click on a menu button plays it too. A menu button plays a hover
- * sound when the pointer moves onto it or the keyboard focus moves to it. The back links of the selection screens and
- * the buttons of the VCR panel play the same sounds. The stage does not get the key that starts the game, so the key
- * does not move the player or command the stage. Then the element shows the screen
- * of the route and commands the stage. The editor route opens the editor map from before, so the map stays until the page reloads. The save and
- * load screen shows the preview of the editor map. The editor route with mode test runs the editor map and shows the
- * play screen. When the test run ends on the stage, the element goes up to the editor; without an open editor, the
- * route with mode test is replaced by the editor route. The element replaces a route with a locked level or an empty
- * slot of the custom campaign by the selection of the campaign, because the router does not know the progress of the
- * player and the editor maps. When the player goes from a level to the selection of another level of the same campaign,
- * e.g. back after Continue, the selection of the level that the player left replaces the route.
- *
- * The element sets the campaign and the level of the route as attributes of the level selection. On the play route,
- * it gives the restart path to the pause menu, and the path of the main menu as the exit path to the pause menu and
- * the intermission panel. It gives the robot head the eye of the part of the story and marks it as absent in boss
- * levels, because the boss is the robot. It sets the fixed text of the editor screens as the text attribute of the
- * narrator text. It sets the mode attribute of the save and load screen on the editor-file route.
- *
- * At the end of a level, the element stores the best time, the replay and the progress, and chooses the next route or
- * opens the intermission panel. The custom campaign has no progress, and its Continue link skips the empty slots. A new
- * route closes the panel. A replay-watch event from the panel plays the replay of the level that ended. When the window loses the focus during a level, the element pauses the stage.
- *
- * The end of a replay, the Stop button of the VCR panel and the Escape key go up to where the replay started. The
- * browser back button goes there too. A replay from the intermission panel opens the panel again with the same content
- * on an empty stage, any other replay goes to the selection of its level.
- *
- * The element sets the sound and the music of the stage from the storage. It stores each change of the sound after the
- * game starts, from the buttons of the page or from the key of the stage, and each change of the music. The level music
- * plays in the levels of the play mode, also on the intermission panel, and continues from level to level. All other
- * screens play the menu music.
- * When the URL contains "?unlock", the element stores all levels of all campaigns as finished when the campaigns are
- * loaded. This is for manual tests.
+ * The custom element <game-app>. It shows the screen of the route, commands the stage and stores the results of the
+ * levels. It shows the loading screen until the game is loaded and the player clicks or presses a key.
  */
 export class GameApp extends ChromeElement {
 	/** @type {boolean} True after the click or the key press that starts the game. */
@@ -91,13 +49,13 @@ export class GameApp extends ChromeElement {
 	/** @type {object|null} The replay in the file format that the replay route plays, or null. */
 	#replay = null;
 
-	/** @type {object|null} The replay that watch() gives to the next replay route, or null. */
+	/** @type {object|null} The replay from watch() for the next replay route, or null. */
 	#pendingReplay = null;
 
-	/** @type {object|null} The replay of the level that ended, for the Watch Replay button of the intermission, or null. */
+	/** @type {object|null} The replay of the level that ended, for the Watch Replay button of the panel, or null. */
 	#intermissionReplay = null;
 
-	/** @type {object|null} The attributes of the open intermission panel without open, or null. */
+	/** @type {object|null} The attributes of the open intermission panel except the open attribute, or null. */
 	#intermission = null;
 
 	/**
@@ -106,12 +64,11 @@ export class GameApp extends ChromeElement {
 	 */
 	#replayReturn = null;
 
-	/** @type {{path: string, intermission: object|null}|null} The return that watch() gives to the next replay route. */
+	/** @type {{path: string, intermission: object|null}|null} The return from watch() for the next replay route. */
 	#pendingReturn = null;
 
 	/**
-	 * Set the sound and the music from the storage and handle the clicks and key presses that start the game, the events of the stage,
-	 * the import of a replay, the Watch Replay button of the intermission and the Stop button of the VCR panel.
+	 * Set the sound and the music from the storage, and add the event handlers of the page and the stage.
 	 *
 	 * @returns {void}
 	 */
@@ -188,7 +145,8 @@ export class GameApp extends ChromeElement {
 	}
 
 	/**
-	 * End the replay and go up to where it started. Outside of a replay route, the method does nothing.
+	 * End the replay on a replay route and go up to where the replay started. A replay from the intermission panel goes
+	 * back to the panel, and any other replay goes to the selection of its level.
 	 *
 	 * @returns {void}
 	 */
@@ -199,9 +157,10 @@ export class GameApp extends ChromeElement {
 	}
 
 	/**
-	 * Store all levels of all campaigns as finished, so that the player can play each level.
+	 * Store all levels of all campaigns as finished, so that the player can play each level. The URL parameter unlock
+	 * calls it, for manual tests.
 	 *
-	 * @param {boolean} ready True when all campaign and level files are loaded. Before that, the method does nothing.
+	 * @param {boolean} ready True when all campaign and level files are loaded.
 	 * @returns {void}
 	 */
 	#unlockAll(ready) {
@@ -265,11 +224,12 @@ export class GameApp extends ChromeElement {
 	}
 
 	/**
-	 * Apply the route: command the stage and show the screen. A level that does not exist or that is locked goes to the
-	 * selection of its campaign. The playback of a replay needs only an existing level. The selection shows the preview
-	 * of the selected level, or of the highest unlocked level when no level is selected, or nothing if there is none. A
-	 * level that follows a play route of the same level starts as a restart, which skips the waits at the level start. The play route where a
-	 * replay started opens the intermission panel of the replay again.
+	 * Apply the route to the stage and the parts, and show the screen.
+	 *
+	 * A route to a missing or locked level goes to the selection of its campaign. A replay route needs only an existing
+	 * level. A selection of another level of the campaign that was played last goes to the selection of the level that
+	 * the player left. A play route of the level that was played last starts as a restart. The play route where a replay
+	 * started opens the intermission panel of the replay again.
 	 *
 	 * @returns {void}
 	 */
@@ -342,7 +302,7 @@ export class GameApp extends ChromeElement {
 		setAttributes(this.querySelector('intermission-panel'), { exit, ...reopen, open: reopen ? '' : null });
 		setAttributes(this.querySelector('robot-head'), {
 			eye: play && campaign.id == CampaignId.STORY ? Math.min(Math.floor((r.level - 1) / 7), 3) + 1 : null,
-			absent: play && level.boss > 0 ? '' : null,
+			absent: play && level.boss > 0 ? '' : null, // the boss is the robot
 		});
 		setAttributes(this.querySelector('narrator-text'), { text: r.name.startsWith('editor') ? EDITOR_TEXT : null });
 		setAttributes(this.querySelector('editor-files'), { mode: r.name == 'editor-file' ? r.mode : null });
@@ -402,7 +362,7 @@ export class GameApp extends ChromeElement {
 	 * @param {import('../../router.js').Route} r The route of the level.
 	 * @param {number} time The level time in ticks.
 	 * @param {object} replay The replay in the file format.
-	 * @returns {Promise<string>} The message for the intermission screen. Resolves when the new best time is stored.
+	 * @returns {Promise<string>} The message for the intermission panel. Resolves when the new best time is stored.
 	 *     The message is empty if the time cannot be stored.
 	 */
 	async #checkBestTime(r, time, replay) {
@@ -421,8 +381,8 @@ export class GameApp extends ChromeElement {
 	/**
 	 * Handle the end of a level: the best time, the progress and the next route. After the last story level, the
 	 * credits show the first time. Else the intermission panel shows the time, the message and the links of the
-	 * choice. The Continue link goes to the next level that can be played. The end of a replay goes back to where the
-	 * replay started.
+	 * choice. The Continue link goes to the next level that can be played. The custom campaign has no progress. The end
+	 * of a replay goes back to where the replay started.
 	 *
 	 * @param {{time: number, replay: object}} detail The detail of the finished event of the stage.
 	 * @returns {Promise<void>} Resolves when the next screen shows.

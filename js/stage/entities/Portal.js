@@ -26,7 +26,10 @@ export class Portal {
 		this.scaleY = 1;
 		/** @type {boolean} True while the portal is placed on a wall. */
 		this.used = false;
-		/** @type {number} The side of the wall that the portal is on: Direction.UP, Direction.DOWN, Direction.LEFT or Direction.RIGHT. */
+		/**
+		 * @type {number} The side of the wall that the portal is on: Direction.UP, Direction.DOWN, Direction.LEFT or
+		 * Direction.RIGHT.
+		 */
 		this.direction = 0;
 		/** @type {number} The index of the platform that the portal is on, or -1. */
 		this.platformIndex = -1;

@@ -1,6 +1,5 @@
 /**
- * Tests of the level editor with a map file that has properties beyond the tiles and the background: the import, the
- * export, the save slots, the Clear button and the test run.
+ * Tests of the level editor with a map file that has properties beyond the tiles and the background.
  */
 
 import { readFileSync } from 'node:fs';
@@ -63,7 +62,7 @@ async function openMap(page, map) {
 
 /**
  * Hold the left mouse button on the stage until the wait of an event ends. The stage reads the mouse button once per
- * tick, so the button stays down until the stage has removed the message.
+ * tick, so the button stays down until the stage ends the wait.
  *
  * @param {import('@playwright/test').Page} page The Playwright page.
  * @returns {Promise<void>}

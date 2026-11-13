@@ -1,9 +1,9 @@
 /**
- * A reactive box with one value.
+ * A value with change notification.
  */
 
 /**
- * A value that tells its subscribers about each change.
+ * A value that calls its subscribers on each change.
  */
 export class Value {
 	/**
@@ -26,7 +26,7 @@ export class Value {
 	}
 
 	/**
-	 * Store a new value and tell the subscribers. A value that is the same as the current value does not notify.
+	 * Store a new value and call the subscribers. A value that is the same as the current value changes nothing.
 	 *
 	 * @param {*} value The new value.
 	 * @returns {void}

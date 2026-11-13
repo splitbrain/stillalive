@@ -11,15 +11,12 @@ await loadMarkup(import.meta.url);
 const SKEW_PROPERTIES = 8;
 
 /**
- * The custom element <menu-button>. It gives the look of a menu button to the link or the button inside it. The link
- * or the button keeps all its attributes and its behavior. The attribute small gives a smaller button. A link without a
- * target and a disabled button show as disabled.
- *
- * Each menu button gets a random crooked shape when it is built.
+ * The custom element <menu-button>. It gives the look of a menu button to the link or the button inside it. The
+ * attribute small gives a smaller button. A link without a target and a disabled button show as disabled.
  */
 export class MenuButton extends ChromeElement {
 	/**
-	 * Set the custom properties that move the corners of the button to random values from 0 to 1.
+	 * Give the button a random crooked shape.
 	 *
 	 * @returns {void}
 	 */

@@ -327,8 +327,7 @@ function parseObjects(mode, boss = 0) {
 }
 
 /**
- * Reset the level state that a level and the test run of the editor share: the portals, the sparkles, the counters,
- * the screen shake and the input.
+ * Reset the level state for a new level.
  *
  * @returns {void}
  */
@@ -357,10 +356,8 @@ function jumpInFromBelow() {
 }
 
 /**
- * Start a level.
- *
- * The function copies the map, creates the player, the objects and the animated tiles, resets the level time and starts
- * a new replay recording. A restart skips the waits of the events and the entrance of the boss.
+ * Start a level. Outside a replay, the function starts a new replay recording. A restart skips the waits of the events
+ * and the entrance of the boss.
  *
  * @param {Level} level The level.
  * @param {boolean} [restart] True for a restart of the same level, for example after a death.

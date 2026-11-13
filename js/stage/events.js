@@ -1,8 +1,7 @@
 /**
- * The events of a level: the triggers, the message, the wait for a click, the abilities and the placed portals.
+ * The events of a level.
  *
- * The events come from the level file. The events are shared with the campaign data, so the state of the events is
- * kept in this module and not in the event objects.
+ * The event objects of the level file are shared with the campaign data. This module keeps the state of the events.
  */
 
 import { Direction } from './constants.js';
@@ -33,7 +32,7 @@ let waiting = null;
 /** @type {Set<string>} The triggers without a condition that happened: start, bossArrived, bossDied and exit. */
 let triggers = new Set();
 
-/** @type {boolean} True if the waits end at once and their texts do not show: in a replay and after a restart. */
+/** @type {boolean} True if the waits end at once and their texts do not show. */
 let skipWaits = false;
 
 /**
@@ -84,10 +83,10 @@ function endWait() {
 }
 
 /**
- * Run the events for one tick of the level: end the wait after a click, then fire the events whose trigger happened.
+ * Run the events for one tick of the level. A click ends the current wait before the events fire.
  *
- * A click ends the wait only while the level time stands still, so not during the transition at the level start. At
- * the level end, the caller calls this function only until the closing transition starts.
+ * A click ends the wait only while the level time stands still. During the transition at the level start, a click
+ * has no effect.
  *
  * @returns {void}
  */
@@ -100,8 +99,8 @@ export function updateEvents() {
 }
 
 /**
- * Fire the events whose trigger happened, in the order of the list. An event that waits for a click stops the list
- * until the wait ends.
+ * Fire the events whose trigger happened, in the order of the list. An event with a wait stops the list until the
+ * event fires and its wait ends.
  *
  * @returns {void}
  */
@@ -144,7 +143,7 @@ function fire(event) {
 	}
 	if (!event.wait) return;
 	waiting = event;
-	// the level time stops in this tick
+	// stop the level time from the next tick on
 	if (game.player.fadeNextLevel == -1) game.player.fadeNextLevel = 0;
 }
 

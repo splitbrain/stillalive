@@ -9,14 +9,8 @@ const SHADOW_TEMPLATE = await loadMarkup(import.meta.url);
 
 /**
  * The custom element <crt-screen>. It shows its content behind the glass of an old CRT screen, in a crooked frame. The
- * frame, the glass and the effects on the glass are in the shadow root; the content stays in the light DOM, so the
- * styles of the page still apply to it.
- *
- * The page gives the element its size, and the screen is as large as this size allows. It is centered vertically and
- * lies at the left edge. The custom property --crt-aspect sets the aspect ratio of the content, and the page must set
- * it. The content is clipped to the shape of the glass, which the element also sets as the custom property
- * --crt-glass. Apart from its custom properties, the element sets no inherited properties, so the content inherits from
- * the page as before.
+ * content stays in the light DOM, so the styles of the page apply to it. The page sets the size of the element and
+ * the aspect ratio of the content in the custom property --crt-aspect.
  */
 export class CrtScreen extends ChromeElement {
 	/**

@@ -1,15 +1,11 @@
 /**
- * The game loop.
- *
- * The game logic runs in ticks of 1/60 second. The loop runs one tick for each 1/60 second of real time, so the game
- * speed does not depend on the refresh rate of the monitor. After the ticks of a frame, the loop draws the canvas
- * once. The game does not run while a dialog of the page is open.
+ * The game loop. The game logic runs in ticks of 1/60 second of real time.
  */
 
 /** @type {number} The length of a tick in milliseconds. */
 const TICK_LENGTH = 1000 / 60;
 
-/** @type {number} The maximum number of ticks in one frame. After a longer stop, the game does not catch up. */
+/** @type {number} The maximum number of ticks in one frame. After a longer stop, the game skips the lost time. */
 const MAX_TICKS_PER_FRAME = 5;
 
 /** @type {number} The time in milliseconds between two updates of the frame rate. */
@@ -50,7 +46,8 @@ function runTick() {
 }
 
 /**
- * Handle one animation frame of the browser.
+ * Run the ticks for the real time since the previous frame, then draw the canvas once. While a dialog of the page is
+ * open, the game stops.
  *
  * @param {DOMHighResTimeStamp} now The time of the frame.
  * @returns {void}

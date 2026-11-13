@@ -1,11 +1,8 @@
 import { defineConfig, devices } from '@playwright/test';
 
 /**
- * Playwright configuration for the regression tests.
- *
- * The reference snapshots are text files in tests/snapshots. The test web server is the same server as the one of
- * "npm start", so a running development server is used again. The tests use much CPU time, so more than two workers
- * make them slower on small machines.
+ * Playwright configuration for the regression tests. The tests use much CPU time, so more than two workers make them
+ * slower on small machines.
  */
 export default defineConfig({
 	testDir: './tests',

@@ -11,13 +11,11 @@ const TEMPLATE = await loadMarkup(import.meta.url);
 const ROBOT_STEP_TIME = 250;
 
 /**
- * The custom element <robot-head>. It shows the head image and the eye on the play screen, behind the glass of a
- * framed window with a lab scene in the background. The attribute eye is the number of the eye image, from 1 to 4. The
- * attribute absent hides the head and the eye, but the window with the lab scene stays.
+ * The custom element <robot-head>. It shows the head and the eye of the robot behind the glass of a framed window
+ * with a lab scene. The attribute eye is the number of the eye image, from 1 to 4. The attribute absent hides the head
+ * and the eye.
  *
- * An idle animation runs on a timer while the eye is visible: from time to time the eye looks to a side, up or
- * down, the head moves to a side, or the eye blinks. The element sets the custom properties --eye-x, --eye-y and
- * --head-x to -1, 0 or 1 and adds the class blink to the eye; the style moves the parts and runs the blink.
+ * While the eye is visible, an idle animation moves the eye and the head at random and makes the eye blink.
  */
 export class RobotHead extends ChromeScreen {
 	/** @type {HTMLTemplateElement|null} The markup of the robot head. */
@@ -62,8 +60,7 @@ export class RobotHead extends ChromeScreen {
 	}
 
 	/**
-	 * Run one step of the idle animation: start a move or a blink at random. Nothing happens while the eye is not
-	 * visible.
+	 * Run one step of the idle animation while the eye is visible. The step starts a move or a blink at random.
 	 *
 	 * @returns {void}
 	 */

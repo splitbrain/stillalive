@@ -1,8 +1,8 @@
 /**
- * Start code of the page: starts the loading of the game and defines the custom elements in the order of their need.
- * The page contains all elements from the start; an element shows when it is defined. The CRT screen and the loading
- * screen come first, so the player sees the progress early. The app element comes after the stage, because it commands
- * the stage, and the other elements come last. In a group, an element comes after the elements in its markup.
+ * Start code of the page. It loads the game and defines the custom elements in the order of their need. The page
+ * contains all elements from the start, and an element shows when it is defined. The CRT screen and the loading screen
+ * come first, so the player sees the progress early. The app element uses the stage, so it comes after the stage. In a
+ * group, an element comes after the elements in its markup.
  */
 
 import { loadGame } from './loader.js';

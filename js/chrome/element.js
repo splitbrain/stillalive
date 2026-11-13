@@ -1,5 +1,5 @@
 /**
- * The base of the chrome elements: the loader of their markup, the names of the screens and the base classes.
+ * The base of the chrome elements.
  */
 
 /**
@@ -41,11 +41,8 @@ export const Screen = Object.freeze({
 });
 
 /**
- * The base class of the chrome elements. On its first connect, the element clones the template of its class into
- * itself, in the light DOM, and then calls setUp() and render(). On every connect, it subscribes to the state and
- * starts timers with subscribe(), and on every disconnect it removes these subscriptions and stops these timers. A
- * change of an observed attribute calls render() after the
- * build only. A change before the build has no effect, because the first render() applies all attributes.
+ * The base class of the chrome elements. The markup of an element is a copy of the template of its class, in the light
+ * DOM.
  */
 export class ChromeElement extends HTMLElement {
 	/** @type {HTMLTemplateElement|null} The template of the component, from loadMarkup(), or null for no markup. */
@@ -58,7 +55,8 @@ export class ChromeElement extends HTMLElement {
 	#built = false;
 
 	/**
-	 * On the first connect, build the markup and call setUp() and render(). On every connect, call subscribe().
+	 * On the first connect, copy the template into the element and call setUp() and render(). On every connect, call
+	 * subscribe().
 	 *
 	 * @returns {void}
 	 */
@@ -84,7 +82,8 @@ export class ChromeElement extends HTMLElement {
 	}
 
 	/**
-	 * Render the element after a change of an observed attribute. Before the build, do nothing.
+	 * Render the element after a change of an observed attribute. Before the build, do nothing, because the first
+	 * render() applies all attributes.
 	 *
 	 * @returns {void}
 	 */
@@ -127,13 +126,13 @@ export class ChromeElement extends HTMLElement {
 }
 
 /**
- * The base class of the screen parts: the chrome elements that the app shows and hides per screen. On each connect, the
- * element adds the class chrome-screen to itself, so that the app finds it at any depth. A part inside a screen part is
- * a plain chrome element, because the screen part controls it.
+ * The base class of the screen parts: the chrome elements that the app shows and hides per screen. A part inside a
+ * screen part is a plain chrome element, because the screen part controls it.
  */
 export class ChromeScreen extends ChromeElement {
 	/**
-	 * Add the class chrome-screen, then build and subscribe as a chrome element.
+	 * Add the class chrome-screen, so that the app finds the element at any depth. Then build and subscribe as a chrome
+	 * element.
 	 *
 	 * @returns {void}
 	 */

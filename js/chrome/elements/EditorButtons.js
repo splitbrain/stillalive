@@ -13,14 +13,7 @@ import { confirmReplaceMap, confirmShown, isEditorLocked } from './ConfirmScreen
 const TEMPLATE = await loadMarkup(import.meta.url);
 
 /**
- * The custom element <editor-buttons>. It shows the row of the Try, Undo, Redo, Clear, Save, Load, Export, Import and
- * Exit buttons on the editor screen and during the test run of the map. The Undo and Redo buttons show arrows. The Try button goes to the test run of the map.
- * The Undo, Redo and Clear buttons change the map of the stage. The Export button downloads the map as a JSON file,
- * and the Import button replaces the map with a map file. A button with a data-href attribute goes to that route, and a
- * button with a data-up attribute goes up to that route.
- *
- * During the test run, the Try button is labeled Stop and goes back to the editor, and all other buttons are disabled. On
- * the save and load screen and while the confirmation screen shows a question, all buttons are disabled.
+ * The custom element <editor-buttons>. It shows the buttons that test, change, store and leave the editor map.
  */
 export class EditorButtons extends ChromeScreen {
 	/** @type {HTMLTemplateElement|null} The markup of the editor buttons. */
@@ -63,7 +56,8 @@ export class EditorButtons extends ChromeScreen {
 	}
 
 	/**
-	 * Label the Try button by the mode of the stage, and disable the buttons that do not apply.
+	 * Label the Try button Stop during the test run, and disable the other buttons. Disable all buttons while the editor
+	 * is locked.
 	 *
 	 * @returns {void}
 	 */
@@ -86,7 +80,7 @@ export class EditorButtons extends ChromeScreen {
 
 	/**
 	 * Let the player select a map file and open it in the editor. If the map of the stage is not empty, the player must
-	 * first confirm that it is replaced. Nothing happens if the editor is closed when the player has selected the file.
+	 * first confirm that it is replaced. The import stops if the editor is closed when the player has selected the file.
 	 *
 	 * @returns {Promise<void>}
 	 * @throws {Error} If the file is not a valid map or is a boss level.

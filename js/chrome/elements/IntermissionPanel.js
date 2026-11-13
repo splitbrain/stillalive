@@ -10,13 +10,12 @@ import { toTime } from '../time.js';
 const TEMPLATE = await loadMarkup(import.meta.url);
 
 /**
- * The custom element <intermission-panel>. It shows the choice after a level: the time, the message, the Exit, Restart
- * and Continue links and the Watch Replay button. It shows on the play screen while it has the attribute open.
+ * The custom element <intermission-panel>. It shows the time and the choices after a level. It shows on the play
+ * screen while it has the attribute open.
  *
- * The attribute time is the level time in ticks, message is the message under the time, exit, restart and next are the
- * paths of the Exit, Restart and Continue links. A link without its attribute is hidden. The Exit link goes up in
- * the history to its path, and the Continue link replaces the entry of the level. The Watch Replay button dispatches the bubbling event replay-watch; the app
- * element plays the replay of the level that just ended.
+ * The attribute time is the level time in ticks, and the attribute message is the text under the time. The attributes
+ * exit, restart and next are the paths of the Exit, Restart and Continue links. A link without its attribute is
+ * hidden. The Watch Replay button dispatches the bubbling event replay-watch.
  */
 export class IntermissionPanel extends ChromeScreen {
 	/** @type {HTMLTemplateElement|null} The markup of the intermission panel. */
@@ -37,7 +36,7 @@ export class IntermissionPanel extends ChromeScreen {
 	}
 
 	/**
-	 * Fill the time and the message, and set the links and the button from the attributes.
+	 * Fill the time and the message, and set the links from the attributes.
 	 *
 	 * @returns {void}
 	 */

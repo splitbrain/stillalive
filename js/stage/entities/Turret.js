@@ -60,9 +60,9 @@ export class Turret {
 		this.pX = 16;
 		/** @type {number} The height in pixels. */
 		this.pY = 32;
-		/** @type {number} The frame of the turret image; 1 is the shot flash. */
+		/** @type {number} The frame of the turret image. Frame 1 is the shot flash, frames 2 to 10 show the destruction. */
 		this.animFrame = 0;
-		/** @type {boolean} True after the turret passed a portal or a pipe field; a hard landing then destroys it. */
+		/** @type {boolean} True after a throw, a portal or a pipe field moved the turret. A hard landing then destroys it. */
 		this.canExplode = false;
 		/** @type {string} The entity type, used by the shared object functions. */
 		this.type = 'turret';
@@ -71,7 +71,7 @@ export class Turret {
 	}
 
 	/**
-	 * Let the turret explode: it is dead, shows its broken frame, bangs and smokes.
+	 * Destroy the turret with an explosion sound and smoke.
 	 *
 	 * @returns {void}
 	 */
@@ -83,8 +83,8 @@ export class Turret {
 	}
 
 	/**
-	 * Move the turret for one tick: the rotation in the air, the destruction and the shot at the player. A hard
-	 * landing, a deadly tile, a moving crate, a plasma ball or a platform destroys the turret.
+	 * Move the turret for one tick and shoot at the player. A hard landing, a deadly tile, a moving crate, a plasma ball
+	 * or a platform destroys the turret.
 	 *
 	 * @returns {void}
 	 */
@@ -228,6 +228,7 @@ export class Turret {
 function pointInPlayer(j, beamY) {
 	const x = game.player.x >> 8;
 	const y = game.player.y >> 8;
+	// the box is 4 px higher than the player. A fix would change the gameplay.
 	if (j >= x && j < x + 15 && beamY >= y && beamY < y + 31) return 1;
 	return 0;
 }

@@ -3,7 +3,7 @@ import { CAMPAIGNS, campaignLevels, hashString, openGame, runLevel } from './ada
 import { generateInputs } from './input-generator.js';
 
 /**
- * Number of ticks for each input test.
+ * Number of ticks for each level.
  *
  * @type {number}
  */

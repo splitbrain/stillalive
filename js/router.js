@@ -3,23 +3,9 @@
  *
  * The hash of the URL holds the navigation state: the screen, the campaign, the level and the sub screen of the editor.
  *
- * The hash #/ or an empty hash is the main route. The hash #/campaign/normal is the select route of the campaign
- * without a level, and #/campaign/normal/5 is the select route with level 5 selected. The hash
- * #/campaign/normal/5/play is the play route with mode play, and #/campaign/normal/5/replay is the play route with
- * mode replay, the playback of a replay. The hash #/editor is the editor route, and #/editor/test is the editor route
- * with mode test, the test run of the editor map. The hashes #/editor/save and #/editor/load are the editor-file route
- * with mode save or load. The hash #/credits is the credits route.
- *
- * The campaign is the folder name of the campaign. The router checks only the form of the hash and replaces an unknown
- * hash with #/. It does not know the progress of the player: the app element replaces a locked level.
- *
  * The history follows the tree of the screens. A step down to a child screen adds an entry, a step to the side
- * replaces the entry, and a step up goes back in the history to the entry of the parent screen. Each entry that the
- * router adds keeps the hashes of the entries below it in its state, so a step up knows how far to go back. If the
- * parent screen is not below in the history, e.g. after a typed URL, the step up replaces the entry.
- *
- * A navigation to the hash that the URL has already, by a link or by navigate(), sets the route again. The subscribers
- * then apply the same route again, e.g. to restart a level.
+ * replaces the entry, and a step up goes back in the history to the entry of the parent screen. If the parent screen is
+ * not below in the history, e.g. after a typed URL, the step up replaces the entry.
  *
  * The router handles the clicks on the links to a route. A link adds an entry. A link with the attribute data-replace
  * replaces the entry, and a link with the attribute data-up goes up to its path. A click with a modifier key is left to
@@ -60,7 +46,12 @@ function createRoute(name, campaign = null, level = 0, mode = null) {
 }
 
 /**
- * Parse a hash.
+ * Parse a hash. The campaign is the folder name of a known campaign, and the level can be any number from 1.
+ *
+ * The hash #/ or an empty hash is the main route, and #/credits is the credits route. The hash #/campaign/normal is the
+ * select route, and #/campaign/normal/5 selects level 5. The hashes #/campaign/normal/5/play and
+ * #/campaign/normal/5/replay are the play route with mode play or replay. The hash #/editor is the editor route, and
+ * #/editor/test adds mode test. The hashes #/editor/save and #/editor/load are the editor-file route.
  *
  * @param {string} hash The hash of the URL, with the leading "#", or an empty text.
  * @returns {Route|null} The route, or null for an unknown hash.
@@ -98,7 +89,7 @@ function currentRoute() {
 }
 
 /**
- * Get the hashes of the entries below the current entry of the history, as far as the router knows them.
+ * Get the hashes of the entries below the current entry of the history, from the state of the current entry.
  *
  * @returns {string[]} The hashes, the lowest first.
  */
@@ -125,7 +116,7 @@ function applyHash() {
 
 if (!history.state?.trail) history.replaceState({ trail: [] }, '');
 
-// a step in the history and a typed hash change the URL; the second of the two events finds the same hash
+// a step in the history and a typed hash can fire both events, and the second event finds the same hash
 for (const type of ['popstate', 'hashchange']) {
 	window.addEventListener(type, () => {
 		if (location.hash !== routeHash) applyHash();
@@ -158,7 +149,7 @@ export function campaignPath(campaign, level = 0, mode = null) {
 }
 
 /**
- * Go to a path. A path that the URL has already sets the route again and adds no entry.
+ * Go to a path. A path that the URL has already sets the route again and adds no entry, e.g. to restart a level.
  *
  * @param {string} path The path, e.g. "#/editor".
  * @param {boolean} [replace] True to replace the current entry of the history instead of adding a new entry.

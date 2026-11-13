@@ -25,7 +25,7 @@ import {
 let tilesBuff;
 
 /**
- * Draw the editor: the map and the cursor. The page draws the palettes, the buttons and the text.
+ * Draw the editor map and the cursor.
  *
  * @returns {void}
  */

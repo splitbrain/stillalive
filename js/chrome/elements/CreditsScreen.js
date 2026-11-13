@@ -9,12 +9,8 @@ import { ChromeScreen, loadMarkup, Screen } from '../element.js';
 const TEMPLATE = await loadMarkup(import.meta.url);
 
 /**
- * The custom element <credits-screen>. It shows the paragraphs of the credits in its scroll element. A CSS
- * animation scrolls them. The scroll element is in a link up to the main menu, so a click goes to the main menu. The
- * end of the animation goes up to the main menu too.
- *
- * The animation starts again each time the screen shows, because the hidden attribute removes the screen from the
- * layout and a CSS animation starts when its element comes back into the layout.
+ * The custom element <credits-screen>. It scrolls the credits over the screen. A click on the credits goes up to the
+ * main menu. The scroll starts again each time the screen shows.
  */
 export class CreditsScreen extends ChromeScreen {
 	/** @type {HTMLTemplateElement|null} The markup of the credits. */

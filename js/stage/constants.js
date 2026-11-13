@@ -1,7 +1,5 @@
 /**
- * Constants of the game: key bits, directions, tile animation types, mouse buttons, physics values, the map and
- * playfield sizes, the sparkle types and the transitions. Also the campaign ids, the campaign folders, the number of
- * levels and the tiles of the editor palette, which the page uses.
+ * Constants of the game and the page.
  */
 
 /** @type {number} Key bit for the jump key. */
@@ -32,7 +30,7 @@ export const Direction = {
 	RIGHT: 3,
 };
 
-/** @type {Object<string, number>} The mouse buttons, the value of input.mouseButton. */
+/** @type {Object<string, number>} The mouse buttons, as values of input.mouseButton. */
 export const MouseButton = {
 	LEFT: 0,
 	RIGHT: 1,
@@ -80,13 +78,13 @@ export const CampaignId = {
 
 /**
  * @type {string[]} The folder names of the campaigns in the maps folder, by campaign id. The custom campaign has no
- *     folder: its levels are the editor maps in the slots.
+ *     folder. Its levels are the editor maps in the slots.
  */
 export const CAMPAIGN_FOLDERS = ['normal', 'advanced', 'community', 'tutorial', 'story', 'test', 'custom'];
 
 /** @type {number} The start value of the fade of a level transition. The fade counts down to 0 by 4 per tick. */
 export const FADE_START = 120;
-/** @type {Object<string, number>} The transition effects at the end and the start of a level, the value of ui.transition. */
+/** @type {Object<string, number>} The transitions at the end and the start of a level, as values of ui.transition. */
 export const Transition = {
 	TOP_LEFT: 1,
 	LEFT_TO_RIGHT: 2,

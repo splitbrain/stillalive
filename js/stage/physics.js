@@ -15,7 +15,7 @@ import { getCos, getDistance, getSin, inScreen } from './utils.js';
 /**
  * Check what an object stands on.
  *
- * @param {object} obj The object with x, y, pX and pY.
+ * @param {object} obj The object with x, y, vy, pX and pY.
  * @returns {number} 0 if the object is in the air, 1 for normal ground, 2 for an icy wall, 3 for a conveyor belt to
  *     the right and 4 for a conveyor belt to the left.
  */
@@ -67,7 +67,8 @@ export function touchesDeadlyTile(obj) {
 }
 
 /**
- * Check if objects pass a tile: the exit, the deadly tiles, the player start and the force fields are not solid.
+ * Check if objects pass through a tile. The exit, the deadly tiles, the player start and the force fields are not
+ * solid.
  *
  * @param {number} tile The tile id, a crate code or a platform code.
  * @returns {boolean} True if objects pass the tile.
@@ -77,13 +78,13 @@ function isPassable(tile) {
 }
 
 /**
- * Get the solid tile at a point, or the object at the point where the map is empty. Outside the playfield, nothing is
- * there.
+ * Get the solid tile at a point, or the object at the point where the map is empty.
  *
  * @param {number} x The x coordinate in pixels.
  * @param {number} y The y coordinate in pixels.
  * @param {function(number, number): number} objectAt Gets the code of the object at a point, or 0 for none.
- * @returns {number} The tile id or the object code, or Tile.EMPTY if nothing solid is there.
+ * @returns {number} The tile id or the object code, or Tile.EMPTY if nothing solid is there or the point is outside
+ *     the playfield.
  */
 function solidAt(x, y, objectAt) {
 	if (!inScreen(x, y)) return Tile.EMPTY;
@@ -158,7 +159,8 @@ export function getTilePortal(x, y) {
 }
 
 /**
- * Throw a carried object from the center of the player towards the mouse.
+ * Hold a carried object in front of the player, in the direction of the mouse. The object also gets the speed for
+ * the throw.
  *
  * @param {object} obj The crate or turret.
  * @returns {void}
@@ -196,8 +198,7 @@ export function placeObject(obj) {
 }
 
 /**
- * Move a crate or turret for one tick: pipe fields, conveyor belts, gravity, friction, the push of the player and
- * other crates, and the collisions.
+ * Move a crate or turret for one tick.
  *
  * @param {object} obj The crate or turret.
  * @returns {void}
@@ -214,7 +215,7 @@ export function moveObject(obj) {
 			} else if (obj.y >> 8 < game.gravPipeFields[f].y + (16 - (obj.pY >> 1))) obj.y += 512;
 			else if ((obj.y >> 8) + obj.pY > game.gravPipeFields[f].y + 32 - (16 - (obj.pY >> 1))) obj.y -= 512;
 		} else if (game.gravPipeFields[f].vy != 0) {
-			// the height pY centers the object on the x axis; a fix would change the gameplay for the turrets
+			// the height pY centers the object on the x axis. A fix would change the gameplay for the turrets.
 			if (obj.x >> 8 < game.gravPipeFields[f].x + (16 - (obj.pY >> 1))) obj.x += 256;
 			else if ((obj.x >> 8) + obj.pX > game.gravPipeFields[f].x + 32 - (16 - (obj.pY >> 1))) obj.x -= 256;
 		}
@@ -289,7 +290,7 @@ export function moveObject(obj) {
 				for (c = 0; c < game.crates.length; c++) {
 					const ca = game.crates[c];
 					if (isInPortal(ca)) continue;
-					// a crate with the same x or the same y position is skipped; a fix would change the gameplay
+					// a crate with the same x or the same y position is skipped. A fix would change the gameplay.
 					if (obj.x != ca.x && obj.y != ca.y) {
 						const y = obj.y >> 8;
 						let x = obj.x >> 8;
@@ -424,7 +425,7 @@ export function grabObject() {
 }
 
 /**
- * Get the solid tile below an object.
+ * Get the solid tile in the bottom row of an object.
  *
  * @param {object} obj The object with x, y, pX and pY.
  * @returns {number} The tile id or code of the first solid point along the bottom edge, else 0.
@@ -444,7 +445,7 @@ export function downCollision(obj) {
 }
 
 /**
- * Get the solid tile above an object.
+ * Get the solid tile in the top row of an object.
  *
  * @param {object} obj The object with x, y, pX and pY.
  * @returns {number} The tile id or code of the first solid point along the top edge, else 0.
@@ -504,10 +505,11 @@ export function rightCollision(obj) {
 }
 
 /**
- * Find the side of an object that is deepest in a solid tile.
+ * Find the side of an object with the most points in solid tiles.
  *
  * @param {object} obj The object with x, y, pX and pY.
- * @returns {number} Direction.UP, Direction.DOWN, Direction.LEFT or Direction.RIGHT, or -1 if the object touches nothing.
+ * @returns {number} Direction.UP, Direction.DOWN, Direction.LEFT or Direction.RIGHT, or -1 if the object touches
+ *     nothing.
  */
 export function getCollision(obj) {
 	let i;
@@ -518,13 +520,11 @@ export function getCollision(obj) {
 	let max = 0;
 
 	for (i = x; i < x + obj.pX; i += 2) {
-		//top
 		if (getTile(i, y)) hit[0]++;
 	}
 	let maxVal = hit[0];
 
 	for (i = x + 1; i < x + obj.pX - 1; i += 2) {
-		//bottom
 		if (getTile(i, y + obj.pY - 1)) hit[1]++;
 	}
 	if (hit[1] > maxVal) {
@@ -533,7 +533,6 @@ export function getCollision(obj) {
 	}
 
 	for (i = y; i < y + obj.pY; i += 2) {
-		//left
 		if (getTile(x, i)) hit[2]++;
 	}
 	if (hit[2] > maxVal) {
@@ -542,7 +541,6 @@ export function getCollision(obj) {
 	}
 
 	for (i = y; i < y + obj.pY; i += 2) {
-		//right
 		if (getTile(x + obj.pX - 1, i)) hit[3]++;
 	}
 	if (hit[3] > maxVal) {
@@ -628,7 +626,7 @@ export function checkCollisions(obj) {
  */
 export function atExit() {
 	if (!isInPortal(game.player)) {
-		// only the diagonal line through the player is checked; a full check would change the gameplay
+		// only the diagonal line through the player is checked. A full check would change the gameplay.
 		for (let j = 2; j <= 14; j += 2) {
 			if (getTileSimple((game.player.x >> 8) + j, (game.player.y >> 8) + j) == Tile.EXIT) return 1;
 		}

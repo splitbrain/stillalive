@@ -5,8 +5,7 @@
 import { Value } from '../value.js';
 
 /**
- * The label of each control key, by key code, as an object. The defaults are the labels of a QWERTY keyboard. The
- * labels of the keyboard layout of the player set a new object.
+ * The label of each control key, by key code, as an object. The defaults are the labels of a QWERTY keyboard.
  *
  * @type {Value}
  */

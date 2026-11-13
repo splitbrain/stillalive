@@ -13,8 +13,8 @@ import { getCos, getSin, inScreen, random } from './utils.js';
 /**
  * Shoot a portal from the player towards the mouse.
  *
- * The shot follows a straight line, bounces off icy walls, and places the portal on the first wall or platform. The
- * portal lines of the shot stay for the drawing.
+ * The shot follows a straight line, bounces off icy walls, and places the portal on the first wall or platform.
+ * Sparkles show the path of the shot.
  *
  * @param {number} p The portal index, 0 for blue and 1 for red.
  * @returns {void}
@@ -294,8 +294,8 @@ export function isInPortal(obj) {
 }
 
 /**
- * Let an object pass a portal on one side while it moves: an object in the portal moves to the middle of the portal,
- * and it teleports to the other portal when it moves into the portal far enough.
+ * Move an object through a portal on one side. An object in the portal moves to the middle of the portal. The object
+ * teleports to the other portal when it moves into the portal far enough.
  *
  * @param {object} obj The object with x, y, vx, vy, pX, pY and type.
  * @param {number} side The side of the wall with the portal, a value of Direction.
@@ -317,7 +317,7 @@ export function passPortal(obj, side) {
 }
 
 /**
- * Let an object pass the portals on all sides while it moves, see passPortal().
+ * Move an object through a portal on any side.
  *
  * @param {object} obj The object with x, y, vx, vy, pX, pY and type.
  * @returns {number} The portal index plus 1, or 0 if the object touches no portal.

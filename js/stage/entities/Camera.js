@@ -1,11 +1,11 @@
 /**
- * The Camera object and its helper functions.
+ * The Camera object.
  */
 
 import { game } from '../state.js';
 
 /**
- * The security camera that follows the player with its look.
+ * The security camera that follows the player.
  */
 export class Camera {
 	/**

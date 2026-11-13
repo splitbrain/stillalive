@@ -1,17 +1,8 @@
 /**
  * Sound effects and music with the Web Audio API.
- *
- * Each sound is decoded once into an audio buffer, so the same sound can play more than once at the same time. Each
- * sound has its own gain node for its volume. Browsers block sound until the player clicks or presses a key on the
- * page, so the module creates the audio context on the first click or key press. It handles them in the capture
- * phase, so that no other handler can stop them before. Until then, an offline audio context decodes the sounds.
- *
- * The music has its own gain node and its own setting, so the music and the sounds can be turned on and off
- * separately. The level music is decoded into an audio buffer too, so that it loops without a gap and its speed can
- * change. The menu music is long, so it streams from an audio element, where a small gap at the loop does not matter.
  */
 
-/** @type {OfflineAudioContext} The context that decodes the sounds before the audio context exists. */
+/** @type {OfflineAudioContext} The context that decodes the sounds and the level music. */
 const decoder = new OfflineAudioContext(1, 1, 44100);
 
 /** @type {AudioContext|null} The audio context of the game, or null before the first click or key press. */
@@ -26,7 +17,7 @@ const sounds = [];
 /** @type {boolean} True if the player wants to hear the sounds. */
 let enabled = true;
 
-/** @type {boolean} True while no new sounds start, whatever the player wants. */
+/** @type {boolean} True while new sounds cannot start. The sound setting of the player stays the same. */
 let muted = false;
 
 /** @type {number} The number of requested sounds. */
@@ -46,6 +37,8 @@ let onDone = () => {};
  */
 class Sound {
 	/**
+	 * Create a sound that is not loaded yet.
+	 *
 	 * @param {string} name The file name of the sound without extension.
 	 */
 	constructor(name) {
@@ -103,8 +96,8 @@ function loadSound(name) {
  * Play a sound if the sound is on and new sounds can start.
  *
  * @param {Sound} sound The sound.
- * @param {number} rate The playback rate: 1 for the normal speed and pitch, less for slower and lower, more for faster
- *     and higher.
+ * @param {number} [rate] The playback rate. 1 is the normal speed and pitch, less is slower and lower, and more is
+ *     faster and higher.
  * @returns {void}
  */
 export function playSound(sound, rate = 1) {
@@ -128,13 +121,13 @@ export function playSoundIfFinished(sound) {
 	if (sound.playing === 0) playSound(sound);
 }
 
-/** @type {number} The time that a loop plays on after the last call of playLoop, in milliseconds. */
+/** @type {number} The time that a loop plays on after the last call of playLoop(), in milliseconds. */
 const LOOP_HOLD = 100;
 
 /**
- * Keep a sound playing as a loop. Call it in each tick while the loop should play: the loop starts on the first call
- * and stops a short time after the last call, so a pause or the end of the level also stops it. A sound with finishLoop
- * plays to its end before the loop stops.
+ * Keep a sound playing as a loop. The game calls this function in each tick while the loop plays. The loop stops a
+ * short time after the last call, e.g. at a pause or at the end of the level. A sound with finishLoop plays to its end
+ * before the loop stops.
  *
  * @param {Sound} sound The sound.
  * @returns {void}
@@ -152,7 +145,7 @@ export function playLoop(sound) {
 }
 
 /**
- * Stop the loops that playLoop did not keep alive.
+ * Stop the loops that had no call of playLoop() for the time LOOP_HOLD.
  *
  * @returns {void}
  */
@@ -288,7 +281,7 @@ const MENU_MUSIC_FILE = 'music/menu.ogg';
 /** @type {number} The volume of the music, from 0 to 1, so that the sounds stay louder than the music. */
 const MUSIC_VOLUME = 0.35;
 
-/** @type {number} The share of the music volume that the menu music plays with, so that it is quieter. */
+/** @type {number} The share of the music volume that the menu music plays with. */
 const MENU_MUSIC_SHARE = 0.7;
 
 /** @type {number} The time of the fade when the music starts or stops, in seconds. */
@@ -309,7 +302,7 @@ let levelBuffer = null;
  */
 let levelPlayback = null;
 
-/** @type {HTMLAudioElement} The audio element of the menu music. It has no source until the music loads. */
+/** @type {HTMLAudioElement} The audio element of the menu music. It has no source before the music loads. */
 const menuElement = new Audio();
 menuElement.loop = true;
 
@@ -331,17 +324,18 @@ let musicGain = null;
 /** @type {boolean} True if the player wants to hear the music. */
 let musicEnabled = true;
 
-/** @type {string|null} The music that the game wants to play: "level", "menu", or null for none. */
+/** @type {string|null} The chosen music. "level" is the level music, "menu" is the menu music, null is no music. */
 let musicTrack = null;
 
-/** @type {number} The playback rate of the level music: 1 for the normal speed and pitch, more for faster and higher. */
+/** @type {number} The playback rate of the level music. 1 is the normal speed and pitch, more is faster and higher. */
 let musicRate = 1;
 
 /** @type {number} The share of the music volume that plays, from 0 to 1. */
 let musicDuck = 1;
 
 /**
- * Start to load the music, once. The level music is decoded, the menu music streams from its audio element.
+ * Start to load the music, once. The level music is decoded, so that it loops without a gap and can change its speed.
+ * The menu music streams from its audio element.
  *
  * @returns {void}
  */
@@ -365,7 +359,7 @@ function loadMusic() {
 /**
  * Turn the music on or off. The music loads when it is on the first time.
  *
- * @param {boolean} on True to play the music that the game wants.
+ * @param {boolean} on True to play the chosen music.
  * @returns {void}
  */
 export function setMusicOn(on) {
@@ -387,8 +381,8 @@ export function setMusicPlaying(track) {
 }
 
 /**
- * Set the speed and the volume of the music. The speed applies to the level music and glides to the new value, the
- * volume fades to the new value.
+ * Set the speed and the volume of the music. The speed applies to the level music. Both values change gradually to
+ * the new value.
  *
  * @param {number} rate The playback rate: 1 for the normal speed and pitch, more for faster and higher.
  * @param {number} duck The share of the music volume that plays, from 0 to 1.
@@ -518,6 +512,7 @@ function resumeAudio() {
 	if (context.state === 'suspended') context.resume();
 }
 
+// The capture phase lets the handler run before other handlers can stop the event.
 window.addEventListener('pointerdown', resumeAudio, { capture: true });
 window.addEventListener('keydown', resumeAudio, { capture: true });
 

@@ -1,11 +1,8 @@
 /**
  * The canvas of the game.
  *
- * The canvas shows the playfield. The game draws in playfield units: a playfield of PLAYFIELD_WIDTH by
- * PLAYFIELD_HEIGHT units. The canvas buffer has the size of the canvas on the page in device pixels, so the picture
- * stays sharp at every size. A transformation at the start of each frame maps the playfield units to the buffer
- * pixels and adds the screen shake. Vector images are drawn from a copy at the scale of the buffer, so that each
- * vector image is rasterized only once per scale.
+ * The game draws in playfield units, and the playfield is PLAYFIELD_WIDTH by PLAYFIELD_HEIGHT units. The canvas
+ * buffer has the size of the canvas on the page in device pixels, so the picture stays sharp at every size.
  */
 
 import { PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH } from './constants.js';
@@ -26,14 +23,17 @@ let wantedWidth;
 /** @type {number} The wanted height of the buffer in device pixels, from the size of the canvas on the page. */
 let wantedHeight;
 
-/** @type {WeakMap<HTMLImageElement, {scale: number, picture: OffscreenCanvas}>} The copies of the vector images at a scale. */
+/**
+ * @type {WeakMap<HTMLImageElement, {scale: number, picture: OffscreenCanvas}>} The copies of the vector images at a
+ *     scale.
+ */
 const scaledImages = new WeakMap();
 
 /** @type {WeakMap<HTMLImageElement, boolean>} True for each image that is a vector image, from its file name. */
 const vectorImages = new WeakMap();
 
 /**
- * Check if an image is a vector image. The result is kept, as the drawing asks for each image in each frame.
+ * Check if an image is a vector image. The result is cached, because the drawing checks each image in each frame.
  *
  * @param {HTMLImageElement} image The image.
  * @returns {boolean} True for a vector image.
@@ -136,10 +136,9 @@ function scaledImage(image) {
 
 /**
  * Draw an image like ctx.drawImage(), with the same arguments after the image. The source rectangle and the size of
- * the image are in playfield units: the pixels of a raster image, or the viewBox of a vector image. The browser scales
- * a raster image directly. A vector image is drawn from its copy at the scale of the buffer. Without a rotation in
- * the current transformation, the edges of a vector image are on whole buffer pixels. An image that is not loaded is
- * not drawn.
+ * the image are in playfield units, which are the pixels of a raster image or the viewBox units of a vector image. A
+ * vector image is drawn from its copy at the scale of the buffer. If the transformation has no rotation, the edges of
+ * a vector image are on whole buffer pixels. An image that is not loaded is skipped.
  *
  * @param {HTMLImageElement} image The image.
  * @param {...number} args The destination position, or the destination rectangle, or the source rectangle followed
@@ -184,8 +183,8 @@ function snapSpan(start, size, factor, offset) {
 }
 
 /**
- * Copy a part of the canvas into a new offscreen canvas at the scale of the buffer. The part moves with the screen
- * shake. The copy remembers its scale.
+ * Copy a part of the canvas into a new offscreen canvas at the scale of the buffer. The position of the part includes
+ * the screen shake.
  *
  * @param {number} x The left edge of the part in playfield units.
  * @param {number} y The top edge of the part in playfield units.
@@ -213,8 +212,8 @@ export function copyCanvas(x, y, w, h) {
 }
 
 /**
- * Draw a copy from copyCanvas() onto the canvas. The copy replaces the pixels, as the current transformation,
- * transparency and composition of the canvas do not apply, but the copy moves with the screen shake. A copy from
+ * Draw a copy from copyCanvas() onto the canvas. The copy replaces the pixels below it, and the current
+ * transformation, transparency and composition do not apply. The position includes the screen shake. A copy from
  * another scale of the buffer is scaled to the current scale.
  *
  * @param {OffscreenCanvas} copy The copy.

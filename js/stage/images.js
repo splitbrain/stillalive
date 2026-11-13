@@ -20,7 +20,7 @@ export let robotHead;
 export let platform;
 /** @type {HTMLImageElement} The head of the player, facing right. */
 export let head;
-/** @type {HTMLImageElement} The body of the player, facing right: the standing frame and the 4 frames of the walk cycle. */
+/** @type {HTMLImageElement} The body of the player facing right, with the standing frame and 4 walk frames. */
 export let body;
 /** @type {HTMLImageElement} The gravitational pipes that push to the left and to the right. */
 export let gravPipe;

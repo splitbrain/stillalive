@@ -10,15 +10,15 @@ import { generateInputs } from './input-generator.js';
 const TICKS = 300;
 
 /**
- * Number of ticks of the transition at the start of a level. The level time does not run during the transition.
+ * Number of ticks of the transition at the start of a level. The level time starts after the transition.
  *
  * @type {number}
  */
 const INTRO_TICKS = 30;
 
 /**
- * The number of input sequences that a boss level tries. The random inputs often die in a boss level, so a boss level
- * tries more sequences until one run has no death.
+ * The maximum number of input sequences for a boss level. With random inputs, the player often dies in a boss level, so
+ * the test tries more sequences until one run has no death.
  *
  * @type {number}
  */
@@ -31,7 +31,6 @@ for (const campaign of CAMPAIGNS) {
 		// all boss levels, and the other levels with an odd number
 		const levels = campaignLevels(campaign).filter(({ level, boss }) => level % 2 === 1 || boss > 0);
 		for (const { level, id, boss } of levels) {
-			// a replay skips the boss intro, so the played run skips it too
 			const isBoss = boss > 0;
 			let played = null;
 			for (let attempt = 0; attempt < (isBoss ? BOSS_ATTEMPTS : 1) && played === null; attempt++) {
@@ -41,6 +40,7 @@ for (const campaign of CAMPAIGNS) {
 					ticks: TICKS,
 					seed: hashString(`replay ${id}`),
 					inputs: generateInputs(hashString(`replay inputs ${id}` + (attempt ? ` ${attempt}` : '')), TICKS),
+					// a replay skips the boss intro, so the played run skips it too
 					skipBossIntro: isBoss,
 				});
 

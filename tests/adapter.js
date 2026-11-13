@@ -1,9 +1,8 @@
 /**
  * Test adapter that reads and writes the game state in the browser.
  *
- * The stage element gives the tests access to itself and to its state and functions through window.__test when the URL
- * contains "?test". The campaigns come from the campaign module of the page. The functions in this file are the only
- * test code that knows this hook. The test files only use the exported functions.
+ * When the URL contains "?test", the stage element puts itself, the game state and some functions on window.__test.
+ * Only the functions in this file use window.__test.
  */
 
 import { readFileSync } from 'node:fs';
@@ -65,7 +64,7 @@ export function hashString(text) {
 }
 
 /**
- * Open the game and wait until the game is loaded: the code, the images, the sounds and the campaigns.
+ * Open the game in test mode and wait until the loader reports that the game is ready.
  *
  * The game loop and the timers of the page run at the real speed. runLevel() and runPortalScene() run all their ticks
  * in one call, so the game loop cannot run a tick between them.
@@ -75,7 +74,7 @@ export function hashString(text) {
  */
 export async function openGame(page) {
 	await page.goto('./?test');
-	// the wait needs a function that answers at once, so the state of the loading is imported before
+	// waitForFunction needs a synchronous function, so the ready value is imported first
 	await page.evaluate(async () => {
 		window.__loaded = (await import('/js/loader.js')).ready;
 	});
@@ -83,10 +82,7 @@ export async function openGame(page) {
 }
 
 /**
- * Open the game and start it as a player does: click the start button and wait until the main menu shows.
- *
- * The game loop and the timers of the page run at the real speed, so the stage, the narrator and the robot work as in
- * the game.
+ * Open the game and click the start button as a player does. Then wait until the main menu shows.
  *
  * @param {import('@playwright/test').Page} page The Playwright page.
  * @returns {Promise<void>}
@@ -98,9 +94,10 @@ export async function startGame(page) {
 }
 
 /**
- * Wait until the narrator text has typed its full text: the fixed text of the screen or the text of the message of
- * the stage. The click targets below the narrator text move while it types, so a click must wait for the end of the
- * text. The stage must not be paused, because the typing stops in a pause.
+ * Wait until the narrator text shows all of its text.
+ *
+ * The click targets below the narrator text move during the typing, so a click must wait for the end of the text. The
+ * stage must not be paused, because the typing stops in a pause.
  *
  * @param {import('@playwright/test').Page} page The Playwright page.
  * @returns {Promise<void>}
@@ -115,9 +112,10 @@ export async function waitForNarrator(page) {
 }
 
 /**
- * Finish the running level: open the exit and place the player on the first exit tile. The game loop then runs the
- * end of the level. A wait of an event or the entrance of a boss holds the level end, so the level must run without
- * them, e.g. after a restart.
+ * Finish the running level.
+ *
+ * The function opens the exit and puts the player on the first exit tile. The game loop then runs the end of the level.
+ * A wait of an event or the entrance of a boss stops the level end, so the level must run without them, e.g. after a restart.
  *
  * @param {import('@playwright/test').Page} page The Playwright page.
  * @returns {Promise<void>}
@@ -143,12 +141,10 @@ export async function finishLevel(page) {
 /**
  * Start a level and run the game for a number of ticks.
  *
- * The level starts in the same way as from the level selection, also in the tutorial: the stage shows the preview of
- * the level and then plays it. An event that waits for a click at the level start keeps waiting until the inputs click,
- * as in the game. Math.random() gets a pseudo-random generator with the given seed, so the visual effects that change
- * the game state give the same result in each run.
- * The run stops early in the tick in which the player reaches the exit. In this tick, the game sets the fade of the
- * same player object from -1 to 120. More levels can run in the same page.
+ * An event that waits for a click at the level start waits until the inputs click. Math.random() uses a pseudo-random
+ * generator with the given seed, so the visual effects that change the game state give the same result in each run.
+ * The run stops in the tick in which the player reaches the exit. In this tick, the game sets the fade of the same
+ * player object from -1 to FADE_START. More levels can run in the same page.
  *
  * @param {import('@playwright/test').Page} page The Playwright page.
  * @param {object} options The run options.
@@ -246,9 +242,8 @@ export async function recordedReplay(page) {
 /**
  * Run a scene with portals on an empty map with walls on all four borders.
  *
- * The scene plays the first level of the normal campaign, replaces its map, and lets the player shoot the two
- * portals from a position toward a target. Then it places the object of the scene and runs the game. Each tick adds
- * one line with the position and the speed of the object and of the player.
+ * The scene starts the first level of the normal campaign and replaces its map. The player shoots each portal from a
+ * position toward a target. Then the object of the scene goes on the map and the game runs.
  *
  * @param {import('@playwright/test').Page} page The Playwright page.
  * @param {object} scene The scene.
@@ -260,7 +255,8 @@ export async function recordedReplay(page) {
  * @param {number} scene.keys The key bitmask during the scene.
  * @param {number} scene.ticks The number of ticks to run.
  * @param {number} scene.seed The seed for Math.random().
- * @returns {Promise<string>} One line for each tick.
+ * @returns {Promise<string>} One JSON line with the portals, then one JSON line for each tick with the position and
+ *     the speed of the object and of the player.
  */
 export async function runPortalScene(page, scene) {
 	return page.evaluate(async (scene) => {

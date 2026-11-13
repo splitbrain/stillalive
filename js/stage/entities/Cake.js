@@ -10,7 +10,7 @@ import { Tile } from '../tiles.js';
 import { random } from '../utils.js';
 
 /**
- * Open the exit: the closed exit tiles become exit tiles.
+ * Open the exit.
  *
  * @returns {void}
  */

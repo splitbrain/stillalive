@@ -1,6 +1,5 @@
 /**
- * The loading of the game: the code of the custom elements, the images, the sounds and the campaigns. The page shows
- * the progress on the loading screen, and the game starts when everything is loaded.
+ * The loading of the game code and files, and the loading progress.
  */
 
 import { campaignsReady, loadCampaigns } from './chrome/campaigns.js';
@@ -50,16 +49,14 @@ export const loading = new Value({
 
 /**
  * @type {Value<boolean>} False until the code, the images and the campaigns are loaded or failed, and the sounds too
- *     while the sound is on. The value stays true.
+ *     while the sound is on. After that, the value stays true.
  */
 export const ready = new Value(false);
 
 /**
- * Load the game: the modules of the custom elements, the images, the sounds, the campaigns and the key labels of the
- * keyboard of the player. The first elements load alone and are defined at once, so that the player sees them early.
- * Then the other modules and the files start to load. The other elements are defined in the order of their groups:
- * the elements of a group are defined when all elements of the groups before are defined. An element whose module
- * cannot be loaded is not defined, and the elements of the later groups are defined anyway.
+ * Load the game code and files, and define the custom elements. The first elements are defined before the other
+ * modules and the files start to load, so that the player sees them early. The groups are defined in their order. An
+ * element whose module cannot be loaded stays undefined, and the later groups are defined anyway.
  *
  * @param {ElementModule[]} first The elements that show first.
  * @param {ElementModule[][]} groups The other elements, in groups.
@@ -105,8 +102,8 @@ function defineElements(elements, modules) {
 }
 
 /**
- * Start to load the images, the sounds, the campaigns and the key labels. The sound setting comes from the storage,
- * because the sounds are not needed while the sound is off.
+ * Start to load the images, the sounds, the campaigns and the key labels. The sound setting is read first, because
+ * the game waits for the sounds only while the sound is on.
  *
  * @returns {void}
  */

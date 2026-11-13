@@ -10,10 +10,10 @@ import { ChromeScreen, loadMarkup, Screen } from '../element.js';
 const TEMPLATE = await loadMarkup(import.meta.url);
 
 /**
- * The custom element <pause-menu>. It shows the Resume button, the Restart and Exit links and the sound and music buttons. It shows
- * on the play screen while the stage is paused, but not in the playback of a replay, which the VCR panel controls. The attribute restart is the path of the Restart link, the current
- * play route, and the attribute exit is the path of the Exit link. The Exit link goes up in the history to its path. The Resume button continues the level; the sound button turns the sound on and off, the music button the music,
- * and both show their setting. The app element stores the changes.
+ * The custom element <pause-menu>. It shows the choices of the pause of a level.
+ *
+ * The attribute restart is the path of the Restart link, and the attribute exit is the path of the Exit link. The
+ * sound and music buttons turn their setting on and off and show it. The app element stores the settings.
  */
 export class PauseMenu extends ChromeScreen {
 	/** @type {HTMLTemplateElement|null} The markup of the pause menu. */

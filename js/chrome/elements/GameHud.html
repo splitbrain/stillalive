@@ -41,13 +41,11 @@
 	}
 
 	/*
-	 * The HUD is a crooked control panel: a light frame with four screws, a dark blue bezel and a plate with more screws
-	 * and the displays. Its size comes from outside, the default is a wide panel. The host is the size
-	 * container, and all sizes scale with it. The frame, the bezel and the plate are uneven quadrangles. Their sizes and
-	 * offsets are in --hud-unit, which grows with both sides, so the panel looks the same when it is wide, square or tall.
+	 * The HUD is a crooked control panel, and its default shape is a wide panel. The host is a size container. All sizes
+	 * are in --hud-unit, which grows with both sides, so the panel looks the same when it is wide, square or tall.
 	 *
-	 * The displays go in rows of --hud-cols cells, and the number of columns follows the aspect ratio of the panel: one
-	 * row on a wide panel, one column on a tall panel. The font size is the largest one at which --hud-rows rows of the
+	 * The displays go in rows of --hud-cols cells. The number of columns follows the aspect ratio of the panel, from one
+	 * row on a wide panel to one column on a tall panel. The font size is the largest one at which --hud-rows rows of the
 	 * widest display fit on the plate.
 	 */
 	game-hud {

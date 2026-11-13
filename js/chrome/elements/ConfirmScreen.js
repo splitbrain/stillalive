@@ -13,7 +13,7 @@ const TEMPLATE = await loadMarkup(import.meta.url);
 export const confirmShown = new Value(false);
 
 /**
- * Check if the controls of the editor are locked: while the save and load screen or a question shows.
+ * Check if the controls of the editor are locked. They are locked while the save and load screen or a question shows.
  *
  * @returns {boolean} True while the controls are locked.
  */
@@ -45,11 +45,7 @@ export async function confirmReplaceMap(stage) {
 
 /**
  * The custom element <confirm-screen>. It shows a title, a question and the Yes and No buttons on top of the stage.
- *
- * The element is hidden until ask() shows it, and it hides again when the player answers. It is not a screen part,
- * because it does not belong to one screen: it shows on the screen that asks the question. A change of the route
- * and a new question answer the open question with No, and so does the release of the Escape key. The value
- * confirmShown tells if a question shows.
+ * It shows on the screen that asks the question, so it is a chrome element and not a screen part.
  */
 export class ConfirmScreen extends ChromeElement {
 	/** @type {HTMLTemplateElement|null} The markup of the confirmation screen. */
@@ -84,7 +80,7 @@ export class ConfirmScreen extends ChromeElement {
 	}
 
 	/**
-	 * Show a question.
+	 * Show a question. An open question gets the answer No.
 	 *
 	 * @param {string} message The question.
 	 * @param {string} title The title of the screen.

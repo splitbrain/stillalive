@@ -37,9 +37,9 @@ export class Crate {
 		this.pX = 16;
 		/** @type {number} The height in pixels. */
 		this.pY = 16;
-		/** @type {number} The x position of the start, where the crate returns when a door closes on it. */
+		/** @type {number} The x position of the start, where the crate returns after a reset. */
 		this.xOrig = x;
-		/** @type {number} The y position of the start, where the crate returns when a door closes on it. */
+		/** @type {number} The y position of the start, where the crate returns after a reset. */
 		this.yOrig = y;
 		/** @type {number} The rotation in degrees while the crate flies. */
 		this.angle = 0;
@@ -55,10 +55,7 @@ export class Crate {
 		this.carpet = 0;
 		/** @type {string} The entity type, used by the shared object functions. */
 		this.type = 'crate';
-		/**
-		 * @type {number} Ticks left of the shrink animation after a force field destroyed the crate, 0 for a normal
-		 * crate.
-		 */
+		/** @type {number} The countdown of the shrink animation after a force field destroyed the crate, or 0. */
 		this.shrink = 0;
 		/** @type {boolean} True when the crate must go away in the next tick. */
 		this.needKill = false;
@@ -87,8 +84,9 @@ export class Crate {
 	}
 
 	/**
-	 * Move the crate for one tick. The crate advances the boss blocks that it touches. It goes away outside the
-	 * playfield and on deadly tiles, and it shrinks in a force field.
+	 * Move the crate for one tick. The crate advances the boss blocks that it touches. Outside the playfield, on a
+	 * deadly tile or at a plasma ball, the crate returns to its start or goes away in a boss level. In a force field,
+	 * the crate shrinks.
 	 *
 	 * @returns {void}
 	 */
@@ -218,10 +216,10 @@ export function anyCrateAt(x, y) {
 	return findCrate(x, y, anyCrate);
 }
 
-/** @type {function(Crate): boolean} Tells if a crate is not carried and not in a portal. */
+/** @type {function(Crate): boolean} True for a crate that is not carried and not in a portal. */
 const freeCrate = (crate) => !crate.carried && !isInPortal(crate);
 
-/** @type {function(Crate): boolean} Counts every crate. */
+/** @type {function(Crate): boolean} True for every crate. */
 const anyCrate = () => true;
 
 /**
@@ -229,7 +227,7 @@ const anyCrate = () => true;
  *
  * @param {number} x The x coordinate in pixels.
  * @param {number} y The y coordinate in pixels.
- * @param {function(Crate): boolean} counts Tells if a crate counts.
+ * @param {function(Crate): boolean} counts The filter that selects the crates to find.
  * @returns {number} The crate code of the first crate that counts at the point, or 0.
  */
 function findCrate(x, y, counts) {
@@ -288,7 +286,7 @@ export function movingCrateTouching(obj) {
 }
 
 /**
- * Move the crates and remove the destroyed ones. A shrinking crate keeps half of its speed. The crates stand still
+ * Move the crates and remove the destroyed ones. A shrinking crate moves at half of its speed. The crates stand still
  * during the level transitions.
  *
  * @returns {void}

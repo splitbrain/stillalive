@@ -9,9 +9,8 @@
 
 <style>
 	/*
-	 * The confirmation screen covers the whole cell of the screen. It shows the stage behind it in black and white and
-	 * darker, and the title, the question and the buttons in a centered column on top. The other parts on the stage
-	 * hide while it shows. All sizes scale with the screen.
+	 * The confirmation screen covers the content of the CRT screen. It shows the stage behind it darker and in black
+	 * and white.
 	 */
 	confirm-screen {
 		display: flex;
@@ -48,6 +47,7 @@
 		}
 	}
 
+	/* while a question shows, the CRT screen shows only the stage and the question */
 	crt-screen:has(> confirm-screen:not([hidden])) > :not(game-stage, confirm-screen) {
 		visibility: hidden;
 	}

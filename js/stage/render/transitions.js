@@ -16,7 +16,6 @@ import { game, ui } from '../state.js';
  */
 export function drawTransition() {
 	if (atExit()) {
-		// closing transition at the level end
 		if (game.player.fadeNextLevel > 0) {
 			drawClosingTransition();
 		} else {
@@ -24,7 +23,6 @@ export function drawTransition() {
 			ctx.fillRect(0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 		}
 	} else if (game.player.fadeNextLevel > 0) {
-		// opening transition at the level start
 		drawOpeningTransition();
 	}
 }

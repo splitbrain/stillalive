@@ -1,8 +1,5 @@
 /**
- * The input state of the game: the mouse buttons, the replay input and the movement flags of the player.
- *
- * The event handlers in the input module write the keys and the mouse position. The functions of this module derive
- * the state that the game reads in each tick.
+ * The input state that the game derives from the keys and the mouse in each tick.
  */
 
 import {
@@ -70,6 +67,7 @@ export function captureInput() {
  * Restore an input state from captureInput().
  *
  * @param {number[]} state The input state.
+ * @returns {void}
  */
 export function restoreInput(state) {
 	input.oldKeys = state[0];
@@ -83,15 +81,12 @@ export function restoreInput(state) {
 }
 
 /**
- * Process the input of one tick.
- *
- * The function records or plays back the replay. It derives the mouse button state from the key bitmask of this tick
- * and the previous tick. It sets the movement flags of the player.
+ * Process the input of one tick. In a level, the function records the input for the replay or plays back the replay.
  *
  * @returns {void}
  */
 export function manageKeys() {
-	// The input still changes while the level time stands still. A replay restores the input state at the same time.
+	// Save the input state when the level time continues after a stop. A replay restores the state at this level time.
 	const inGame = game.player.fadeNextLevel == -1 && ui.mode == 'play' && !ui.paused;
 	if (inGame && !game.replayMode && !input.lastTickInGame) game.replay.states[game.time] = captureInput();
 	else if (inGame && game.replayMode && game.replay.states[game.time]) restoreInput(game.replay.states[game.time]);
@@ -184,10 +179,10 @@ export function manageKeys() {
 }
 
 /**
- * Check if the mouse is inside a rectangle of the canvas.
+ * Check if the mouse is inside a rectangle of the playfield.
  *
- * @param {number} x The left edge of the rectangle in canvas pixels.
- * @param {number} y The top edge of the rectangle in canvas pixels.
+ * @param {number} x The left edge of the rectangle in playfield units.
+ * @param {number} y The top edge of the rectangle in playfield units.
  * @param {number} w The width of the rectangle.
  * @param {number} h The height of the rectangle.
  * @returns {boolean} True if the mouse is inside.

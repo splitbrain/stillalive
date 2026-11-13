@@ -25,8 +25,7 @@ export function removeSparkles(p, type) {
 }
 
 /**
- * Create the glow sparkles of a portal: 13 sparkles along the portal that drift out of the wall and restart at their
- * origin. The sparkles of the earlier portal of the same color go away.
+ * Create the glow sparkles along a portal. The glow sparkles of the earlier portal with the same index go away.
  *
  * @param {number} p The portal index, 0 for blue and 1 for red.
  * @returns {void}
@@ -159,7 +158,7 @@ export function createCakeOrSmokeSparkles(x, y, type, number, size) {
 }
 
 /**
- * A particle for the visual effects: portal trails, teleports, deaths, cakes and smoke.
+ * A particle for a visual effect.
  */
 export class Sparkle {
 	/**
@@ -184,7 +183,7 @@ export class Sparkle {
 		this.color = 0;
 		/** @type {number} Ticks since the sparkle landed on the floor, or -1 while it flies. */
 		this.floorTime = -1;
-		/** @type {number} The remaining visibility, which also sets the size; the sparkle goes away at 0. */
+		/** @type {number} The remaining visibility, which also sets the size. */
 		this.fading = 0;
 		/** @type {number} The index of the portal of a portal glow sparkle, or -1. */
 		this.portalNum = -1;

@@ -31,10 +31,7 @@
 </template>
 
 <style>
-	/*
-	 * The loading screen is a centered column: the title, the start button, the controls and the files that could not
-	 * be loaded. All sizes scale with the CRT screen.
-	 */
+	/* the loading screen shows its content in a centered column; all sizes scale with the CRT screen */
 	loading-screen {
 		display: flex;
 		flex-direction: column;
@@ -51,7 +48,7 @@
 			text-shadow: 0.1em 0.1em 0 #000;
 		}
 
-		/* while the files load, the disabled start button is the progress bar: it fills from the left up to --progress */
+		/* while the files load, the disabled start button shows a progress bar that fills from the left up to --progress */
 		.start:disabled {
 			filter: none;
 			color: var(--color-text);
@@ -62,7 +59,7 @@
 			);
 		}
 
-		/* the controls: a heading, the keyboard and the mouse side by side with their captions, and a note below */
+		/* the controls with the keyboard and the mouse side by side, and the heading and the note across both columns */
 		> .devices {
 			display: grid;
 			grid-template-columns: auto auto;

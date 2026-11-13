@@ -2,8 +2,7 @@
  * The tile ids of the maps and the codes of the collision functions.
  *
  * A map is a list of 768 tile ids. The ids below 100 are tiles of the tile set, and tileset[id] is their image. The
- * ids from 100 to 111 mark objects in a level file; the level loader replaces them with entities. The collision
- * functions return a tile id, or a code for a platform or a crate.
+ * ids from 100 to 111 mark objects in a level file. The level loader replaces them with entities.
  */
 
 import { NUM_TILES } from './constants.js';

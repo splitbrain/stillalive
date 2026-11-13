@@ -23,10 +23,8 @@ function toTimeCode(time) {
 }
 
 /**
- * The custom element <vcr-display>. It lies on top of the stage in the playback of a replay and shows the text of a
- * VCR on the screen: the mode at the top left and the time code of the level time at the bottom right. The mode is
- * PLAY at the normal speed, the speed at a higher speed and PAUSE while the stage is paused. The mode element gets the
- * data-mode attribute play, fast or pause for its symbol.
+ * The custom element <vcr-display>. In the playback of a replay, it shows the mode of the playback and the time code
+ * of the level time on top of the stage, in the style of a VCR.
  */
 export class VcrDisplay extends ChromeScreen {
 	/** @type {HTMLTemplateElement|null} The markup of the VCR display. */

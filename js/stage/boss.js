@@ -1,5 +1,5 @@
 /**
- * The logic of the boss levels of the story campaign: the entrance, the attacks, the hits and the end of the fight.
+ * The boss of the boss levels.
  */
 
 import { playLoop, playSound, sfx_bossAlarm, sfx_bossHit, sfx_bossRumble } from './audio.js';
@@ -49,8 +49,8 @@ export function skipComingBoss() {
 }
 
 /**
- * Run the boss for one tick: the entrance after the waits of the start events, the attacks of each boss, the damage
- * to the player and the end of the fight.
+ * Update the boss for one tick. The boss comes in after the waits of the start events, attacks the player, and kills
+ * the player on contact.
  *
  * @returns {void}
  */
@@ -172,7 +172,7 @@ function shootPlasma(speed) {
 
 /**
  * Throw a crate from the right edge towards the player. The speed grows with the distance to the player. When more
- * than ten crates are in the level, the oldest crate that nobody carries goes away.
+ * than ten crates are in the level, the oldest crate that is not carried is removed.
  *
  * @param {number} row The row of the start position.
  * @param {number} divisor The pixels of distance per unit of speed.
@@ -248,9 +248,9 @@ function playerTouchesBoss() {
 }
 
 /**
- * Let an object hit the boss. The boss dies after three hits.
+ * Count a hit when a crate touches the boss. The boss dies after three hits.
  *
- * @param {object} obj The crate or turret.
+ * @param {object} obj The crate.
  * @returns {void}
  */
 export function hitBoss(obj) {
@@ -312,8 +312,10 @@ export function manageInTube(obj) {
 /**
  * Shake the playfield after the boss died.
  *
- * The shake only depends on the level time, so a replay gets the same shake as the play. The shake changes every
+ * The shake depends on the level time alone, so a replay shows the same shake as the play. The shake changes every
  * third tick.
+ *
+ * @returns {void}
  */
 function shakeScreen() {
 	const step = Math.floor(game.time / 3);

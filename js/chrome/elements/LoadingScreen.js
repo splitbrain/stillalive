@@ -11,10 +11,8 @@ import { ChromeScreen, loadMarkup, Screen } from '../element.js';
 const TEMPLATE = await loadMarkup(import.meta.url);
 
 /**
- * The custom element <loading-screen>. It shows a title, the start button, the controls of the game and the parts
- * and files that could not be loaded. While the code, the images, the sounds and the campaigns load, the start button
- * is disabled and shows the total progress. When everything is loaded, the title and the button tell that the game can start. The app element
- * handles the click or the key press that starts the game.
+ * The custom element <loading-screen>. It shows the progress of the loading, the controls of the game and the files
+ * that could not be loaded. The app element starts the game on a click or a key press.
  */
 export class LoadingScreen extends ChromeScreen {
 	/** @type {HTMLTemplateElement|null} The markup of the loading screen. */

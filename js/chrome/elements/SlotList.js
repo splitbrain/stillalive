@@ -10,9 +10,8 @@ import { editorMap } from '../storage.js';
 /**
  * The custom element <slot-list>. It shows a menu button for each slot of the editor maps.
  *
- * The attribute mode is save or load. A slot with a stored map is labeled with its number, an empty slot is labeled
- * Empty. The load screen disables the empty slots. Each button has the slot number in the
- * attribute data-choice. A click on a slot dispatches the bubbling event slot-select with the slot number as
+ * The attribute mode is save or load. In the load mode, the empty slots are disabled. Each button has the slot number
+ * in the attribute data-choice. A click on a slot dispatches the bubbling event slot-select with the slot number in
  * detail.slot.
  */
 export class SlotList extends ChromeElement {

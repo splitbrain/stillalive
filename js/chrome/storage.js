@@ -1,12 +1,8 @@
 /**
  * Storage of the player data in the browser.
  *
- * The progress, the best times, the editor maps and the sound and music settings are small, so they stay in localStorage and can
- * be read at once. The replays can be large, so they go into IndexedDB. Some browsers block the storage, e.g. in a
- * private mode. The game then runs without stored data.
- *
- * The progress, the best times and the editor maps are Value instances, so that the page can show their changes. The
- * page shows the sound and music settings through the stage, so these settings are only read and written.
+ * The replays can be large, so they go into IndexedDB. All other data goes into localStorage. Some browsers block the
+ * storage, e.g. in a private mode. The game then runs without stored data.
  */
 
 import { CAMPAIGN_FOLDERS, CampaignId } from '../stage/constants.js';
@@ -211,7 +207,8 @@ export function loadBestReplay(campaign, level) {
  * Get the editor map of a slot.
  *
  * @param {number} slot The slot number, starting at 1.
- * @returns {Value} The editor map in the map file format without the format, or null if the slot is empty.
+ * @returns {Value} The value with the editor map in the map file format without the format, or with null if the slot
+ *     is empty.
  */
 export function editorMap(slot) {
 	if (!editorMaps.has(slot)) editorMaps.set(slot, new Value(readJsonItem(EDITOR_MAP_PREFIX + slot)));

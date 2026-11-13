@@ -6,6 +6,9 @@ import { ORDERED, RANDOM } from '../constants.js';
 import { game } from '../state.js';
 import { random } from '../utils.js';
 
+/**
+ * A map tile that changes its frame at a fixed interval.
+ */
 export class AnimatedTile {
 	/**
 	 * @param {number} x The column of the tile in the map.
@@ -21,7 +24,7 @@ export class AnimatedTile {
 		this.x = x;
 		/** @type {number} The row of the tile in the map. */
 		this.y = y;
-		/** @type {boolean} True while the tile is drawn and solid; an open door is false. */
+		/** @type {boolean} True while the tile is drawn and solid. False for an open door. */
 		this.used = true;
 		/** @type {number} The current frame, as a tile id. */
 		this.current = min;

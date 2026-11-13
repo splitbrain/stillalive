@@ -1,5 +1,5 @@
 /**
- * Drawing of a level and of the preview of a map: tiles, objects, the player and the portals.
+ * Drawing of a level and of the preview of a map.
  */
 
 import { copyCanvas, ctx, drawCopy, drawImage } from '../canvas.js';
@@ -179,7 +179,7 @@ function mirrorAround(x) {
 }
 
 /**
- * Draw a frame of the body of the player. The body faces right; facing left mirrors it.
+ * Draw a frame of the body of the player. The image faces right. For the left direction, the image is mirrored.
  *
  * @param {number} x The x coordinate in canvas pixels.
  * @param {number} y The y coordinate in canvas pixels.
@@ -210,8 +210,7 @@ function drawSparkles() {
 }
 
 /**
- * Draw a level: the tiles, the player, the objects, the boss, the labels, the death fade, the transitions and the
- * crosshair.
+ * Draw a level.
  *
  * @returns {void}
  */
@@ -273,10 +272,9 @@ function drawLabels() {
 }
 
 /**
- * Draw a label centered on its tile, with a tilt that the text decides.
+ * Draw a label centered on its tile, with its tilt.
  *
- * Each line is centered on its letters, so a line without descenders does not look too high. The tilt of a wide label
- * is smaller, so its ends stay in the tile row.
+ * Each line is centered on its letters, so a line without descenders does not look too high.
  *
  * @param {import('../mapFile.js').MapLabel} label The label.
  * @returns {void}
@@ -296,7 +294,10 @@ function drawLabel(label) {
 
 /**
  * Measure the lines of a label and calculate its tilt. The layout is kept for the next frames once the label font is
- * loaded, as the measurement is the same in each frame.
+ * loaded.
+ *
+ * The hash of the text sets the tilt, so a label always has the same tilt. The tilt of a wide label is smaller, so its
+ * ends stay in the tile row.
  *
  * @param {import('../mapFile.js').MapLabel} label The label.
  * @returns {{lines: string[], metrics: TextMetrics[], tilt: number}} The lines, their metrics and the tilt in
@@ -363,7 +364,7 @@ function drawTileLayer() {
 }
 
 /**
- * Draw the background and the tile layer and keep a copy for the next ticks.
+ * Draw the background and the tile layer and keep a copy for the next frames.
  *
  * @returns {void}
  */
@@ -388,7 +389,7 @@ export function drawTiles(map) {
 }
 
 /**
- * Draw the cakes. During the level transitions, the cakes stand at their rest position.
+ * Draw the cakes. The cakes float only while the level time runs. Else they stand at their rest position.
  *
  * @returns {void}
  */
@@ -549,7 +550,7 @@ function drawTube() {
 }
 
 /**
- * Draw the platforms. In the editor, an arrow shows the direction.
+ * Draw the platforms.
  *
  * @returns {void}
  */
@@ -661,11 +662,12 @@ function drawPortals() {
 }
 
 /**
- * Draw the player figure with the head straight, e.g. in the editor. The figure faces right; facing left mirrors it.
+ * Draw the player figure with the head straight, e.g. in the editor. The figure faces right. For the left direction,
+ * the figure is mirrored.
  *
  * @param {number} x The x coordinate in canvas pixels.
  * @param {number} y The y coordinate in canvas pixels.
- * @param {number} flipX The direction, 1 right or -1 left.
+ * @param {number} flipX The direction, -1 for left, else right.
  * @param {number} [frame] The frame of the body: 0 for the standing figure, 1 to 4 for the walk cycle.
  * @returns {void}
  */
@@ -678,9 +680,7 @@ export function drawPlayer(x, y, flipX, frame = 0) {
 }
 
 /**
- * Draw the preview of a map with its objects. The first frame after a new map builds the tile layer and keeps a copy
- * of it. Each frame draws the copy and the objects on top. The cakes stand at their rest position, so each preview of
- * a map looks the same.
+ * Draw the preview of a map with its objects.
  *
  * @returns {void}
  */

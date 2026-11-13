@@ -16,13 +16,12 @@ const TEMPLATE = await loadMarkup(import.meta.url);
  * @typedef {object} PaletteItem
  * @property {number} tile The tile id or the object id, the brush that the item sets.
  * @property {string} title The tooltip of the item.
- * @property {string} [sprite] The class of the sprite of an object. A tile has no sprite and shows its tile image.
+ * @property {string} [sprite] The class of the sprite of an object, or nothing for a tile, which shows its tile image.
  * @property {string} [arrow] The arrow on a platform that shows its direction.
  */
 
 /**
- * The bins of the tray, grouped by function: level, walls, switch, plasma, hazards and movement. Each bin is a list of
- * rows, and the items of a row wrap when the bin is too narrow for them.
+ * The bins of the tray, grouped by function. Each bin is a list of rows of items.
  *
  * @type {PaletteItem[][][]}
  */
@@ -136,14 +135,7 @@ function createButton(item) {
 
 /**
  * The custom element <editor-palette>. It shows a parts tray with a button for each tile and each object of the
- * editor, grouped by function, and a panel with the buttons that change the background, on the editor screen and on
- * the save and load screen. On the save and load screen and while the confirmation screen shows a question, the
- * palette is inert and gray.
- *
- * A click on an item button, with the tile id or the object id in its data-tile attribute, makes its tile or object
- * the brush of the stage. The button of the brush has the class selected. A click on a background button changes the
- * background of the stage to the previous or the next one, by the step of the button, -1 or 1, in its data-bg
- * attribute.
+ * editor, and a panel with the buttons that change the background. A click on an item makes it the brush of the stage.
  */
 export class EditorPalette extends ChromeScreen {
 	/** @type {HTMLTemplateElement|null} The markup of the editor palette. */
@@ -176,7 +168,8 @@ export class EditorPalette extends ChromeScreen {
 	}
 
 	/**
-	 * Subscribe to the brush of the stage, and to the route and the confirmation screen to disable the palette.
+	 * Subscribe to the brush of the stage, and to the route and the confirmation screen to make the palette inert while
+	 * the editor is locked.
 	 *
 	 * @returns {Array<function(): void>} The functions that remove the subscriptions.
 	 */

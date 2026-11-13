@@ -4,7 +4,18 @@
 
 import { readFileSync } from 'node:fs';
 import { test, expect } from '@playwright/test';
-import { finishLevel, stageValue, startGame, waitForNarrator } from './adapter.js';
+import {
+	finishLevel,
+	isSameLevelRun,
+	levelAbilities,
+	levelLabels,
+	rememberLevelRun,
+	setPlayer,
+	stageValue,
+	startGame,
+	waitForLevelTime,
+	waitForNarrator,
+} from './adapter.js';
 
 /** @type {object} A map file with a title, abilities, events and labels. */
 const MAP = JSON.parse(readFileSync(new URL('../maps/tutorial/level04.json', import.meta.url)));
@@ -100,19 +111,17 @@ test.describe('editor', () => {
 		await expect.poll(() => stageValue(page, 'mode')).toBe('test');
 		await expect.poll(() => stageValue(page, 'message')).toMatchObject({ text: /^Your portal gun/, wait: true });
 		await waitForNarrator(page);
-		expect(await page.evaluate(() => window.__test.game.labels)).toEqual(MAP.labels);
+		expect(await levelLabels(page)).toEqual(MAP.labels);
 
 		await clickThroughWait(page);
 		await expect.poll(() => stageValue(page, 'message')).toMatchObject({ text: /^Shoot a portal/ });
 		// the first event unlocks the portals
-		expect(await page.evaluate(() => window.__test.game.abilities)).toEqual({ jump: false, portals: true });
+		expect(await levelAbilities(page)).toEqual({ jump: false, portals: true });
 
 		// the death of the player restarts the level and keeps the test run
-		await page.evaluate(() => {
-			window.__test.deadPlayer = window.__test.game.player;
-			window.__test.game.player.life = -100000;
-		});
-		await expect.poll(() => page.evaluate(() => window.__test.game.player !== window.__test.deadPlayer)).toBe(true);
+		await rememberLevelRun(page);
+		await setPlayer(page, { life: -100000 });
+		await expect.poll(() => isSameLevelRun(page)).toBe(false);
 		expect(await stageValue(page, 'mode')).toBe('test');
 
 		await page.keyboard.press('Escape');
@@ -124,7 +133,7 @@ test.describe('editor', () => {
 		await openMap(page, { ...MAP, events: [{ on: 'exit', text: 'Goodbye', wait: 'click' }] });
 		await clickButton(page, 'Try');
 		await expect.poll(() => stageValue(page, 'mode')).toBe('test');
-		await page.waitForFunction(() => window.__test.game.time > 0);
+		await waitForLevelTime(page);
 		await finishLevel(page);
 		await expect.poll(() => stageValue(page, 'message')).toMatchObject({ text: 'Goodbye', wait: true });
 

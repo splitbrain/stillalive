@@ -1,7 +1,15 @@
 import { expect, test } from '@playwright/test';
 import { MAP_HEIGHT, MAP_SIZE, MAP_WIDTH } from '../js/stage/constants.js';
 import { Tile } from '../js/stage/tiles.js';
-import { CAMPAIGNS, finishLevel, stageValue, startGame, waitForNarrator } from './adapter.js';
+import {
+	CAMPAIGNS,
+	finishLevel,
+	runTicks,
+	stageValue,
+	startGame,
+	waitForLevelTime,
+	waitForNarrator,
+} from './adapter.js';
 
 /**
  * The elements of the page that show on some screens only.
@@ -215,11 +223,9 @@ test.describe('chrome', () => {
 		await page.locator('level-list').getByRole('link', { name: 'Level 1', exact: true }).click();
 		await page.locator('level-selection .play').click();
 		await expectScreen(page, '#/campaign/normal/1/play', PLAY_PARTS);
-		await page.waitForFunction(() => window.__test.game.time > 0);
+		await waitForLevelTime(page);
 		// a replay ends when its inputs end, so the level runs for 20 seconds to give the replay time for the checks
-		await page.evaluate(() => {
-			for (let tick = 0; tick < 1200; tick++) window.__test.tick();
-		});
+		await runTicks(page, 1200);
 		await finishLevel(page);
 		await expect(page.locator('intermission-panel')).toBeVisible();
 
@@ -387,12 +393,12 @@ test.describe('chrome', () => {
 		await list.getByRole('link', { name: 'Level 1', exact: true }).click();
 		await page.locator('level-selection .play').click();
 		await expectScreen(page, '#/campaign/custom/1/play', PLAY_PARTS);
-		await page.waitForFunction(() => window.__test.game.time > 0);
+		await waitForLevelTime(page);
 		await finishLevel(page);
 		await expect(page.locator('intermission-panel')).toBeVisible();
 		await page.locator('intermission-panel .next').click();
 		await expectScreen(page, '#/campaign/custom/3/play', PLAY_PARTS);
-		await page.waitForFunction(() => window.__test.game.time > 0);
+		await waitForLevelTime(page);
 		await finishLevel(page);
 		await expect(page.locator('intermission-panel')).toBeVisible();
 		await expect(page.locator('intermission-panel .next')).toBeHidden();
@@ -424,7 +430,7 @@ test.describe('chrome', () => {
 		await page.addInitScript(() => localStorage.setItem('stillalive_progress', JSON.stringify({ tutorial: 8 })));
 		await startGame(page);
 		await setHash(page, '#/campaign/tutorial/8/play');
-		await page.waitForFunction(() => window.__test.game.time > 0);
+		await waitForLevelTime(page);
 		await finishLevel(page);
 		await expect.poll(() => stageValue(page, 'message')).toMatchObject({ text: /^Congratulations/, wait: true });
 		await expect(page.locator('narrator-text')).toBeVisible();

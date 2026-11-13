@@ -2,10 +2,11 @@
  * Test adapter that reads and writes the game state in the browser.
  *
  * When the URL contains "?test", the stage element puts itself, the game state and some functions on window.__test.
+ * The specs use only the functions of this module to read and write the internals of the stage.
  */
 
 import { readFileSync } from 'node:fs';
-import { CAMPAIGN_FOLDERS, CampaignId } from '../js/stage/constants.js';
+import { CAMPAIGN_FOLDERS, CampaignId, FADE_START } from '../js/stage/constants.js';
 
 /**
  * The campaigns with their index in the campaigns array of the game and their number of levels from the campaign
@@ -122,6 +123,222 @@ export async function waitForNarrator(page) {
 }
 
 /**
+ * Run ticks of the stage in one call, so that the game loop cannot run a tick between them.
+ *
+ * @param {import('@playwright/test').Page} page The Playwright page.
+ * @param {number} count The number of ticks.
+ * @returns {Promise<{text: string, wait: boolean}|null>} The message of the narrator after the last tick, or null
+ *     without a message.
+ */
+export function runTicks(page, count) {
+	return page.evaluate((count) => {
+		for (let tick = 0; tick < count; tick++) window.__test.tick();
+		return window.__test.game.message;
+	}, count);
+}
+
+/**
+ * Run ticks until the narrator has a message or the level time reaches a limit.
+ *
+ * @param {import('@playwright/test').Page} page The Playwright page.
+ * @param {number} maxTime The level time in ticks at which the run stops without a message.
+ * @returns {Promise<number>} The level time after the last tick.
+ */
+export function runTicksUntilMessage(page, maxTime) {
+	return page.evaluate((maxTime) => {
+		const t = window.__test;
+		while (!t.game.message && t.game.time < maxTime) t.tick();
+		return t.game.time;
+	}, maxTime);
+}
+
+/**
+ * Wait until the level time is above 0. The level time starts after the opening transition and the waits of the
+ * events at the level start.
+ *
+ * @param {import('@playwright/test').Page} page The Playwright page.
+ * @returns {Promise<void>}
+ */
+export async function waitForLevelTime(page) {
+	await page.waitForFunction(() => window.__test.game.time > 0);
+}
+
+/**
+ * Start a level from map data, and run ticks until the opening transition has ended.
+ *
+ * @param {import('@playwright/test').Page} page The Playwright page.
+ * @param {object} data The map in the map file format.
+ * @returns {Promise<void>}
+ */
+export async function playMap(page, data) {
+	await page.evaluate(async (data) => {
+		const { parseMap } = await import('/js/stage/mapFile.js');
+		const t = window.__test;
+		t.stage.play({ ...parseMap(data), campaign: 'test', number: 1, fromBelow: false });
+		while (t.game.player.fadeNextLevel != -1) t.tick();
+	}, data);
+}
+
+/**
+ * Decode a replay in the file format with the decoder of the stage.
+ *
+ * @param {import('@playwright/test').Page} page The Playwright page.
+ * @param {*} data The replay data. It must be serializable.
+ * @returns {Promise<{result?: object, error?: string}>} The decoded replay or the message of the thrown error.
+ */
+export function decodeReplay(page, data) {
+	return page.evaluate(async (data) => {
+		const { decodeReplay } = await import('/js/stage/replay.js');
+		try {
+			return { result: decodeReplay(data) };
+		} catch (e) {
+			return { error: e.message };
+		}
+	}, data);
+}
+
+/**
+ * Get the values of the player.
+ *
+ * @param {import('@playwright/test').Page} page The Playwright page.
+ * @returns {Promise<{x: number, y: number, vx: number, vy: number, life: number, dead: boolean, width: number}>} The
+ *     position and the speed in 1/256 pixels, the life, the death flag and the width in pixels.
+ */
+export function playerValues(page) {
+	return page.evaluate(() => {
+		const { x, y, vx, vy, life, dead, pX } = window.__test.game.player;
+		return { x, y, vx, vy, life, dead, width: pX };
+	});
+}
+
+/**
+ * Change values of the player.
+ *
+ * @param {import('@playwright/test').Page} page The Playwright page.
+ * @param {{x?: number, y?: number, vx?: number, vy?: number, life?: number}} values The new values. The position and
+ *     the speed are in 1/256 pixels.
+ * @returns {Promise<void>}
+ */
+export async function setPlayer(page, values) {
+	await page.evaluate((values) => {
+		Object.assign(window.__test.game.player, values);
+	}, values);
+}
+
+/**
+ * Remember the current level run, so that isSameLevelRun() can find the start of a new level run. Each level start
+ * and each restart create a new player object, so the player object identifies the level run.
+ *
+ * @param {import('@playwright/test').Page} page The Playwright page.
+ * @returns {Promise<void>}
+ */
+export async function rememberLevelRun(page) {
+	await page.evaluate(() => {
+		window.__rememberedLevelRun = window.__test.game.player;
+	});
+}
+
+/**
+ * Check if the level run is the same as at the last call of rememberLevelRun().
+ *
+ * @param {import('@playwright/test').Page} page The Playwright page.
+ * @returns {Promise<boolean>} False after a restart or after the start of a level.
+ */
+export function isSameLevelRun(page) {
+	return page.evaluate(() => window.__test.game.player === window.__rememberedLevelRun);
+}
+
+/**
+ * Get the labels of the level.
+ *
+ * @param {import('@playwright/test').Page} page The Playwright page.
+ * @returns {Promise<{x: number, y: number, text: string}[]>} The labels in the map file format.
+ */
+export function levelLabels(page) {
+	return page.evaluate(() => window.__test.game.labels);
+}
+
+/**
+ * Get the abilities of the player in the level.
+ *
+ * @param {import('@playwright/test').Page} page The Playwright page.
+ * @returns {Promise<{jump: boolean, portals: boolean}>} The abilities.
+ */
+export function levelAbilities(page) {
+	return page.evaluate(() => window.__test.game.abilities);
+}
+
+/**
+ * Replace the tiles of the map.
+ *
+ * @param {import('@playwright/test').Page} page The Playwright page.
+ * @param {number[]} tiles The tile ids, one for each map position.
+ * @returns {Promise<void>}
+ */
+export async function setMap(page, tiles) {
+	await page.evaluate((tiles) => {
+		const { game } = window.__test;
+		tiles.forEach((tile, i) => {
+			game.map[i] = tile;
+			game.displayMap[i] = tile;
+		});
+		game.tilesChanged = true;
+	}, tiles);
+}
+
+/**
+ * Get the two portals.
+ *
+ * @param {import('@playwright/test').Page} page The Playwright page.
+ * @returns {Promise<{x: number, y: number, used: boolean, direction: number}[]>} The portals. The position is in
+ *     1/256 pixels, and the direction is a value of Direction.
+ */
+export function levelPortals(page) {
+	return page.evaluate(() =>
+		window.__test.game.portals.map(({ x, y, used, direction }) => ({ x, y, used, direction })),
+	);
+}
+
+/**
+ * Place the two portals.
+ *
+ * @param {import('@playwright/test').Page} page The Playwright page.
+ * @param {{x: number, y: number, direction: number}[]} placed The position in 1/256 pixels and the direction of each
+ *     portal. The direction is a value of Direction.
+ * @returns {Promise<void>}
+ */
+export async function setPortals(page, placed) {
+	await page.evaluate((placed) => {
+		placed.forEach((values, i) => Object.assign(window.__test.game.portals[i], { used: true, ...values }));
+	}, placed);
+}
+
+/**
+ * Replace the gravitational pipes of the level.
+ *
+ * @param {import('@playwright/test').Page} page The Playwright page.
+ * @param {{x: number, y: number, direction: number}[]} pipes The position in 1/256 pixels and the direction of each pipe.
+ *     The direction is a value of Direction.
+ * @returns {Promise<void>}
+ */
+export async function setGravPipes(page, pipes) {
+	await page.evaluate(async (pipes) => {
+		const { GravPipe } = await import('/js/stage/entities/GravPipe.js');
+		window.__test.game.gravPipes = pipes.map(({ x, y, direction }) => new GravPipe(x, y, direction));
+	}, pipes);
+}
+
+/**
+ * Get the number of fields of the gravitational pipes. The tick builds the fields again from the pipes and the portals.
+ *
+ * @param {import('@playwright/test').Page} page The Playwright page.
+ * @returns {Promise<number>} The number of fields.
+ */
+export function gravPipeFieldCount(page) {
+	return page.evaluate(() => window.__test.game.gravPipeFields.length);
+}
+
+/**
  * Finish the running level.
  *
  * The function opens the exit and puts the player on the first exit tile. The game loop then runs the end of the level.
@@ -153,8 +370,8 @@ export async function finishLevel(page) {
  *
  * An event that waits for a click at the level start waits until the inputs click. Math.random() uses a pseudo-random
  * generator with the given seed, so the visual effects that change the game state give the same result in each run.
- * The run stops in the tick in which the player reaches the exit. In this tick, the game sets the fade of the same
- * player object from -1 to FADE_START. More levels can run in the same page.
+ * The run stops in the tick in which the player reaches the exit. In this tick, the phase of the same level changes
+ * from running to closing. More levels can run in the same page.
  *
  * @param {import('@playwright/test').Page} page The Playwright page.
  * @param {object} options The run options.
@@ -174,7 +391,7 @@ export async function runLevel(
 	{ campaign, level, ticks, seed, inputs = null, replay = null, skipBossIntro = false },
 ) {
 	return page.evaluate(
-		async ({ campaign, level, ticks, seed, inputs, replay: replayData, skipBossIntro, interval }) => {
+		async ({ campaign, level, ticks, seed, inputs, replay: replayData, skipBossIntro, interval, fadeStart }) => {
 			const { campaigns } = await import('/js/chrome/campaigns.js');
 			const t = window.__test;
 			const { game, input, stage } = t;
@@ -212,15 +429,35 @@ export async function runLevel(
 					map: game.map.flatMap((tile, i) => (tile === startMap[i] ? [] : [[i, tile]])),
 				});
 
+			/**
+			 * Read the level run and its phase. Each level start and each restart create a new player object, so the
+			 * player object identifies the level run.
+			 *
+			 * @returns {{run: object, running: boolean, closing: boolean}} The player object of the level run, and the
+			 *     flags for the running level and for the start of the closing transition.
+			 */
+			const levelPhase = () => ({
+				run: game.player,
+				running: game.player.fadeNextLevel === -1,
+				closing: game.player.fadeNextLevel === fadeStart,
+			});
+			/**
+			 * Check if a tick ended the level.
+			 *
+			 * @param {{run: object, running: boolean}} before The level phase before the tick.
+			 * @param {{run: object, closing: boolean}} after The level phase after the tick.
+			 * @returns {boolean} True if the phase changed from running to closing in the same level run.
+			 */
+			const levelEnded = (before, after) => after.run === before.run && before.running && after.closing;
+
 			const lines = [snapshot(0)];
 			for (let tick = 1; tick <= ticks; tick++) {
 				if (inputs) {
 					[input.keys, input.mouseX, input.mouseY] = inputs[tick - 1];
 				}
-				const player = game.player;
-				const fade = player.fadeNextLevel;
+				const before = levelPhase();
 				t.tick();
-				const finished = game.player === player && fade === -1 && player.fadeNextLevel === 120;
+				const finished = levelEnded(before, levelPhase());
 				if (tick % interval === 0 || finished) lines.push(snapshot(tick));
 				if (finished) {
 					lines.push('finished');
@@ -230,7 +467,7 @@ export async function runLevel(
 			game.replayMode = false;
 			return lines.join('\n') + '\n';
 		},
-		{ campaign, level, ticks, seed, inputs, replay, skipBossIntro, interval: SNAPSHOT_INTERVAL },
+		{ campaign, level, ticks, seed, inputs, replay, skipBossIntro, interval: SNAPSHOT_INTERVAL, fadeStart: FADE_START },
 	);
 }
 

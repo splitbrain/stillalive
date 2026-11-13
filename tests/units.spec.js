@@ -1,7 +1,20 @@
 import { test, expect } from '@playwright/test';
-import { MAP_SIZE, MAP_WIDTH } from '../js/stage/constants.js';
+import { Direction, MAP_SIZE, MAP_WIDTH } from '../js/stage/constants.js';
 import { Tile } from '../js/stage/tiles.js';
-import { openGame } from './adapter.js';
+import {
+	decodeReplay,
+	gravPipeFieldCount,
+	levelPortals,
+	openGame,
+	playerValues,
+	playMap,
+	runTicks,
+	runTicksUntilMessage,
+	setGravPipes,
+	setMap,
+	setPlayer,
+	setPortals,
+} from './adapter.js';
 
 /**
  * Call an exported function of a game module in the page of the game.
@@ -9,7 +22,7 @@ import { openGame } from './adapter.js';
  * The page imports the module, so the function uses the same module instance and state as the game.
  *
  * @param {import('@playwright/test').Page} page The Playwright page.
- * @param {string} module The path of the module, e.g. "/js/stage/replay.js".
+ * @param {string} module The path of the module, e.g. "/js/stage/mapFile.js".
  * @param {string} name The name of the exported function.
  * @param {...*} args The arguments for the function. They must be serializable.
  * @returns {Promise<{result?: *, error?: string}>} The return value or the message of the thrown error.
@@ -68,22 +81,6 @@ function floorMap() {
 	return { ...validMap(), tiles };
 }
 
-/**
- * Start a level from a map file, and run the game until the opening transition has ended.
- *
- * @param {import('@playwright/test').Page} page The Playwright page.
- * @param {object} data The map file.
- * @returns {Promise<void>}
- */
-async function playMap(page, data) {
-	await page.evaluate(async (data) => {
-		const { parseMap } = await import('/js/stage/mapFile.js');
-		const t = window.__test;
-		t.stage.play({ ...parseMap(data), campaign: 'test', number: 1, fromBelow: false });
-		while (t.game.player.fadeNextLevel != -1) t.tick();
-	}, data);
-}
-
 test.describe('units', () => {
 	test.describe.configure({ mode: 'serial' });
 
@@ -100,7 +97,7 @@ test.describe('units', () => {
 	});
 
 	test('decodeReplay() accepts a valid replay', async () => {
-		const { result, error } = await call(page, '/js/stage/replay.js', 'decodeReplay', validReplay());
+		const { result, error } = await decodeReplay(page, validReplay());
 		expect(error).toBeUndefined();
 		expect(result.inputs).toEqual([1, 1, 4, 4, 4]);
 		expect(result.mouseX).toEqual([10, 10, 30, 30, 30]);
@@ -111,7 +108,7 @@ test.describe('units', () => {
 	test('decodeReplay() rejects data that is not a replay', async () => {
 		const cases = [null, 'text', { ...validReplay(), format: 1 }, { ...validReplay(), campaign: 1 }];
 		for (const data of cases) {
-			const { error } = await call(page, '/js/stage/replay.js', 'decodeReplay', data);
+			const { error } = await decodeReplay(page, data);
 			expect(error, JSON.stringify(data)).toBe('This is not a Still Alive replay file.');
 		}
 	});
@@ -126,7 +123,7 @@ test.describe('units', () => {
 			'no states': { states: undefined },
 		};
 		for (const [name, change] of Object.entries(cases)) {
-			const { error } = await call(page, '/js/stage/replay.js', 'decodeReplay', { ...validReplay(), ...change });
+			const { error } = await decodeReplay(page, { ...validReplay(), ...change });
 			expect(error, name).toBe('The replay file is damaged.');
 		}
 	});
@@ -277,37 +274,32 @@ test.describe('units', () => {
 
 	test('a pipe field between two facing portals ends', async () => {
 		test.setTimeout(10000);
-		const fields = await page.evaluate(async () => {
-			const { CampaignId, Direction, MAP_SIZE, MAP_WIDTH } = await import('/js/stage/constants.js');
-			const { Tile } = await import('/js/stage/tiles.js');
+		await page.evaluate(async () => {
+			const { CampaignId } = await import('/js/stage/constants.js');
 			const { campaigns } = await import('/js/chrome/campaigns.js');
-			const t = window.__test;
-			t.stage.play(campaigns[CampaignId.STORY].levels[3]);
-			const g = t.game;
-			// an empty map with walls on the left and the right side
-			for (let i = 0; i < MAP_SIZE; i++) {
-				const x = i % MAP_WIDTH;
-				g.map[i] = x === 0 || x === MAP_WIDTH - 1 ? Tile.WALL : Tile.EMPTY;
-			}
-			g.gravPipes = [Object.assign(g.gravPipes[0], { x: 32 << 8, y: 160 << 8, dir: Direction.RIGHT })];
-			Object.assign(g.portals[0], { used: true, direction: Direction.RIGHT, x: 496 << 8, y: 160 << 8 });
-			Object.assign(g.portals[1], { used: true, direction: Direction.LEFT, x: 12 << 8, y: 160 << 8 });
-			g.player.x = 200 << 8;
-			g.player.y = 300 << 8;
-			t.tick();
-			return g.gravPipeFields.length;
+			window.__test.stage.play(campaigns[CampaignId.STORY].levels[3]);
 		});
+		// an empty map with walls on the left and the right side, and a floor that keeps the player alive
+		const tiles = Array.from({ length: MAP_SIZE }, (_, i) =>
+			i % MAP_WIDTH === 0 || i % MAP_WIDTH === MAP_WIDTH - 1 || i >= MAP_SIZE - MAP_WIDTH ? Tile.WALL : Tile.EMPTY,
+		);
+		await setMap(page, tiles);
+		await setGravPipes(page, [{ x: 32 << 8, y: 160 << 8, direction: Direction.RIGHT }]);
+		await setPortals(page, [
+			{ x: 496 << 8, y: 160 << 8, direction: Direction.RIGHT },
+			{ x: 12 << 8, y: 160 << 8, direction: Direction.LEFT },
+		]);
+		await setPlayer(page, { x: 200 << 8, y: 300 << 8 });
+		await runTicks(page, 1);
+		const fields = await gravPipeFieldCount(page);
 		// one field from the gravitational pipe to the right portal, one field from the left portal back to the right portal
 		expect(fields).toBe(2);
 	});
 	test('an event places the portals on the sides of the wall tiles', async () => {
 		const portals = async (list) => {
 			await playMap(page, { ...floorMap(), events: [{ on: 'start', portals: list }] });
-			return page.evaluate(async () => {
-				const { Direction } = await import('/js/stage/constants.js');
-				const name = (direction) => Object.keys(Direction).find((key) => Direction[key] === direction);
-				return window.__test.game.portals.map((p) => [p.x >> 8, p.y >> 8, name(p.direction)]);
-			});
+			const name = (direction) => Object.keys(Direction).find((key) => Direction[key] === direction);
+			return (await levelPortals(page)).map((p) => [p.x >> 8, p.y >> 8, name(p.direction)]);
 		};
 		// a portal on a side wall has the direction of the portal shot that hits the wall
 		expect(
@@ -332,25 +324,18 @@ test.describe('units', () => {
 
 	test('a playerX event fires when the center of the player enters the column', async () => {
 		await playMap(page, { ...floorMap(), events: [{ on: 'playerX', x: 6, text: 'Column 6' }] });
-		const texts = await page.evaluate(() => {
-			const t = window.__test;
-			const textAt = (centerX) => {
-				t.game.player.x = (centerX - (t.game.player.pX >> 1)) << 8;
-				t.tick();
-				return t.game.message?.text ?? null;
-			};
-			return [textAt(95), textAt(96)];
-		});
+		const textAt = async (centerX) => {
+			const { width } = await playerValues(page);
+			await setPlayer(page, { x: (centerX - (width >> 1)) << 8 });
+			return (await runTicks(page, 1))?.text ?? null;
+		};
+		const texts = [await textAt(95), await textAt(96)];
 		expect(texts).toEqual([null, 'Column 6']);
 	});
 
 	test('a time event fires at the tick that is nearest to its seconds', async () => {
 		await playMap(page, { ...floorMap(), events: [{ on: 'time', seconds: 8.3, text: 'Now' }] });
-		const time = await page.evaluate(() => {
-			const t = window.__test;
-			while (!t.game.message && t.game.time < 600) t.tick();
-			return t.game.time;
-		});
+		const time = await runTicksUntilMessage(page, 600);
 		// 8.3 * 60 is 498.00000000000006
 		expect(time).toBe(498);
 	});

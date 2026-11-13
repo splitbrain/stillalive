@@ -27,7 +27,7 @@ let wantedHeight;
  * @type {WeakMap<HTMLImageElement, {scale: number, picture: OffscreenCanvas}>} The copies of the vector images at a
  *     scale.
  */
-const scaledImages = new WeakMap();
+let scaledImages = new WeakMap();
 
 /** @type {WeakMap<HTMLImageElement, boolean>} True for each image that is a vector image, from its file name. */
 const vectorImages = new WeakMap();
@@ -72,6 +72,18 @@ function redrawLayers() {
 }
 
 /**
+ * Make all copies of images and layers again when the tab is visible again. The browser can drop the pixels of
+ * canvases while the tab is hidden, and the copies are then empty.
+ *
+ * @returns {void}
+ */
+function onVisibilityChange() {
+	if (document.visibilityState !== 'visible') return;
+	scaledImages = new WeakMap();
+	redrawLayers();
+}
+
+/**
  * Use a canvas for the drawing.
  *
  * @param {HTMLCanvasElement} element The canvas.
@@ -82,6 +94,7 @@ export function setCanvas(element) {
 	ctx = canvas.getContext('2d');
 	wantedWidth = canvas.width;
 	wantedHeight = canvas.height;
+	document.addEventListener('visibilitychange', onVisibilityChange);
 }
 
 /**

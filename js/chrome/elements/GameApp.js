@@ -20,7 +20,7 @@ import {
 	saveSoundSetting,
 } from '../storage.js';
 import { toTime } from '../time.js';
-import { ready } from '../../loader.js';
+import { checkReady, ready } from '../../loader.js';
 
 /**
  * @type {string} The selector of the buttons with a hover and a click sound: the menu buttons, the back links, the sound
@@ -145,9 +145,10 @@ export class GameApp extends ChromeElement {
 	}
 
 	/**
-	 * Subscribe to the route, to the loading, to the mode and the pause of the stage and to the sound and the music. The end of the test
-	 * run on the stage goes up to the editor. The first call of the route
-	 * subscription shows the screen, so that only the loading screen shows at the end of the first connect.
+	 * Subscribe to the route, to the loading, to the stage and to the settings. The end of the test run on the stage goes
+	 * up to the editor. The sound and music settings are stored after the game starts. A change of the sound setting
+	 * checks again if the game can start, because the game waits for the sounds only while the sound is on. The first
+	 * call of the route subscription shows the loading screen.
 	 *
 	 * @returns {Array<function(): void>} The functions that remove the subscriptions.
 	 */
@@ -163,6 +164,7 @@ export class GameApp extends ChromeElement {
 			}),
 			stage.paused.subscribe(() => this.#showScreen()),
 			stage.sound.subscribe((on) => {
+				checkReady();
 				if (this.#started) saveSoundSetting(on);
 			}),
 			stage.music.subscribe((on) => {

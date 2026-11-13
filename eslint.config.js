@@ -20,7 +20,7 @@ const LAYERS = [
 	},
 	{ name: 'drawing', files: ['./js/stage/render/*.js'] },
 	{ name: 'flow', files: ['./js/stage/{editor,game,GameStage,input}.js'] },
-	{ name: 'page', files: ['./js/[m]ain.js', './js/chrome/**/*.js', './js/[r]outer.js'] },
+	{ name: 'page', files: ['./js/[m]ain.js', './js/[l]oader.js', './js/chrome/**/*.js', './js/[r]outer.js'] },
 ];
 
 /** @type {object[]} The zones of import-x/no-restricted-paths: each layer must not import from a higher layer. */
@@ -31,9 +31,9 @@ const LAYER_ZONES = LAYERS.slice(0, -1).map((layer, i) => ({
 }));
 
 /**
- * The zones of import-x/no-restricted-paths for the page: it uses the stage through the element instance. It can
- * import only the modules of the stage with data and pure functions: the constants, the key labels, the check of the
- * map files, the decoding of the replays and the tile ids. The start code also imports the element class.
+ * The zones of import-x/no-restricted-paths for the page. The page uses the stage through the stage element. From the
+ * stage, the page can import only the modules with data and pure functions, and the start code only the element class.
+ * The loader also imports the modules that load the images and the sounds.
  *
  * @type {object[]}
  */
@@ -49,6 +49,12 @@ const PAGE_ZONES = [
 		from: './js/stage',
 		except: ['./GameStage.js'],
 		message: 'The start code only registers the stage element.',
+	},
+	{
+		target: './js/[l]oader.js',
+		from: './js/stage',
+		except: ['./assets.js', './audio.js', './images.js', './keys.js'],
+		message: 'The loader only loads the files of the stage.',
 	},
 ];
 

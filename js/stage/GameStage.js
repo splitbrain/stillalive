@@ -43,7 +43,6 @@ import { getFps, startLoop } from './loop.js';
 import { render } from './render/frame.js';
 import { decodeReplay, resumeReplay } from './replay.js';
 import { game, input, stageEvents, ui } from './state.js';
-import { checkReady } from '../loader.js';
 import { Value } from '../value.js';
 
 /** @type {number} The number of ticks between two updates of the level time. */
@@ -331,7 +330,6 @@ export class GameStage extends HTMLElement {
 	setSound(on) {
 		setSoundOn(on);
 		this.sound.set(on);
-		checkReady();
 	}
 
 	/**

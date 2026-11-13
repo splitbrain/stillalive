@@ -639,10 +639,15 @@ export function checkCollisions(obj) {
  * @returns {number} 1 if the player is on the open exit, else 0.
  */
 export function atExit() {
-	if (!isInPortal(game.player)) {
-		// only the diagonal line through the player is checked. A full check would change the gameplay.
-		for (let j = 2; j <= 14; j += 2) {
-			if (getTileSimple((game.player.x >> 8) + j, (game.player.y >> 8) + j) == Tile.EXIT) return 1;
+	const p = game.player;
+	if (!isInPortal(p)) {
+		const x = p.x >> 8;
+		const y = p.y >> 8;
+		// check each tile that the box of the player touches
+		for (let ty = y >> TILE_SIZE_BITS; ty <= (y + p.pY - 1) >> TILE_SIZE_BITS; ty++) {
+			for (let tx = x >> TILE_SIZE_BITS; tx <= (x + p.pX - 1) >> TILE_SIZE_BITS; tx++) {
+				if (getTileSimple(tx << TILE_SIZE_BITS, ty << TILE_SIZE_BITS) == Tile.EXIT) return 1;
+			}
 		}
 	}
 

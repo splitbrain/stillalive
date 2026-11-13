@@ -148,29 +148,32 @@ function openSwitchDoors() {
 }
 
 /**
- * Check if the player stands on a switch.
+ * Check if the player stands on a switch. The test points lie a few pixels inside the tile below the feet.
  *
  * @param {number} x The x coordinate of the player in pixels.
  * @param {number} y The y coordinate of the player in pixels.
  * @returns {number} 1 if a switch tile is below the player, else 0.
  */
 function playerOnSwitch(x, y) {
-	if (getTileSimple(x, y + 32) == Tile.SWITCH) return 1;
-	else if (getTileSimple(x + 15, y + 32) == Tile.SWITCH) return 1;
+	if (getTileSimple(x, y + game.player.pY + 5) == Tile.SWITCH) return 1;
+	else if (getTileSimple(x + 15, y + game.player.pY + 5) == Tile.SWITCH) return 1;
 	return 0;
 }
 
 /**
- * Check if a crate stands on a switch.
+ * Check if a crate stands on a switch. The test points lie a few pixels inside the tile below the crate.
  *
  * @returns {number} 1 if a switch tile is below a crate, else 0.
  */
 function crateOnSwitch() {
 	let i;
 	for (i = 0; i < game.crates.length; i++) {
-		if (getTileSimple(game.crates[i].x >> 8, (game.crates[i].y >> 8) + 19) == Tile.SWITCH) {
+		if (getTileSimple(game.crates[i].x >> 8, (game.crates[i].y >> 8) + game.crates[i].pY + 3) == Tile.SWITCH) {
 			return 1;
-		} else if (getTileSimple((game.crates[i].x >> 8) + TILE_SIZE - 1, (game.crates[i].y >> 8) + 19) == Tile.SWITCH) {
+		} else if (
+			getTileSimple((game.crates[i].x >> 8) + TILE_SIZE - 1, (game.crates[i].y >> 8) + game.crates[i].pY + 3) ==
+			Tile.SWITCH
+		) {
 			return 1;
 		}
 	}

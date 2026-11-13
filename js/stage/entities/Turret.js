@@ -142,7 +142,7 @@ export class Turret {
 			const y = (this.y >> 8) + 13;
 			const y2 = (game.player.y >> 8) + 16;
 
-			if (Math.abs(y - y2) > 32) testShoot = false;
+			if (Math.abs(y - y2) > this.pY) testShoot = false;
 		}
 
 		if (!this.dead && testShoot && !game.player.dead) {

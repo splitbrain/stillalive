@@ -442,56 +442,26 @@ function addUndo() {
 }
 
 /**
+ * @type {number[]} The wall tile id for each combination of neighbor walls, indexed by the flags up (8), down (4),
+ *     left (2) and right (1). A wall tile draws an edge on each side without a neighbor wall.
+ */
+const WALL_TILES = [16, 15, 14, 10, 13, 8, 9, 3, 12, 7, 6, 5, 11, 2, 4, 1];
+
+/**
  * Choose the wall tile of each wall from its neighbors.
  *
  * @returns {void}
  */
 function build() {
-	let up, down, left, right, i;
-	for (i = 0; i < MAP_SIZE; i++) {
-		if (isWallAt(i)) {
-			const y = i >> MAP_WIDTH_BITS;
-			const x = i - (y << MAP_WIDTH_BITS);
-
-			up = isTileHere(x, y - 1);
-			down = isTileHere(x, y + 1);
-			left = isTileHere(x - 1, y);
-			right = isTileHere(x + 1, y);
-
-			if (up && down && left && !right) {
-				game.map[x + y * MAP_WIDTH] = 4;
-			} else if (up && down && !left && right) {
-				game.map[x + y * MAP_WIDTH] = 2;
-			} else if (up && !down && right && left) {
-				game.map[x + y * MAP_WIDTH] = 5;
-			} else if (!up && down && right && left) {
-				game.map[x + y * MAP_WIDTH] = 3;
-			} else if (!up && down && right && !left) {
-				game.map[x + y * MAP_WIDTH] = 8;
-			} else if (!up && down && !right && left) {
-				game.map[x + y * MAP_WIDTH] = 9;
-			} else if (up && !down && !right && left) {
-				game.map[x + y * MAP_WIDTH] = 6;
-			} else if (up && !down && right && !left) {
-				game.map[x + y * MAP_WIDTH] = 7;
-			} else if (up && down && right && left) {
-				game.map[x + y * MAP_WIDTH] = 1;
-			} else if (up && down && !right && !left) {
-				game.map[x + y * MAP_WIDTH] = 11;
-			} else if (!up && !down && right && left) {
-				game.map[x + y * MAP_WIDTH] = 10;
-			} else if (up && !down && !right && !left) {
-				game.map[x + y * MAP_WIDTH] = 12;
-			} else if (!up && down && !right && !left) {
-				game.map[x + y * MAP_WIDTH] = 13;
-			} else if (!up && !down && !right && left) {
-				game.map[x + y * MAP_WIDTH] = 14;
-			} else if (!up && !down && right && !left) {
-				game.map[x + y * MAP_WIDTH] = 15;
-			} else if (!up && !down && !right && !left) {
-				game.map[x + y * MAP_WIDTH] = 16;
-			}
-		}
+	for (let i = 0; i < MAP_SIZE; i++) {
+		if (!isWallAt(i)) continue;
+		const y = i >> MAP_WIDTH_BITS;
+		const x = i - (y << MAP_WIDTH_BITS);
+		const up = isTileHere(x, y - 1);
+		const down = isTileHere(x, y + 1);
+		const left = isTileHere(x - 1, y);
+		const right = isTileHere(x + 1, y);
+		game.map[i] = WALL_TILES[(up << 3) | (down << 2) | (left << 1) | right];
 	}
 }
 

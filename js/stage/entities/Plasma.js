@@ -2,6 +2,7 @@
  * The Plasma object and its helper functions.
  */
 
+import { Body } from './Body.js';
 import { playSound, setSoundVolume, sfx_bounce, sfx_plasmaField } from '../audio.js';
 import {
 	Direction,
@@ -21,7 +22,7 @@ import { getDistance, random } from '../utils.js';
 /**
  * A plasma ball. It bounces off walls and fills the plasma slots. It kills the player and the turrets.
  */
-export class Plasma {
+export class Plasma extends Body {
 	/**
 	 * @param {number} x The x position in 1/256 pixels.
 	 * @param {number} y The y position in 1/256 pixels.
@@ -29,10 +30,7 @@ export class Plasma {
 	 * @param {number} vy The vertical speed in 1/256 pixels per tick.
 	 */
 	constructor(x, y, vx, vy) {
-		/** @type {number} The x position in 1/256 pixels. */
-		this.x = x;
-		/** @type {number} The y position in 1/256 pixels. */
-		this.y = y;
+		super(x, y, TILE_SIZE, TILE_SIZE);
 		/** @type {number} The x position of the start, where the ball returns after a reset. */
 		this.xOrig = x;
 		/** @type {number} The y position of the start, where the ball returns after a reset. */
@@ -47,10 +45,6 @@ export class Plasma {
 		this.origVy = vy;
 		/** @type {number} The speed limit in 1/256 pixels per tick. */
 		this.vMax = 424;
-		/** @type {number} The width in pixels. */
-		this.pX = TILE_SIZE;
-		/** @type {number} The height in pixels. */
-		this.pY = TILE_SIZE;
 		/** @type {boolean} True while the ball exists. */
 		this.used = true;
 		/** @type {number} The offset of the drawn ball across its path, from -3 to 3 pixels. */
@@ -63,6 +57,20 @@ export class Plasma {
 		this.animFrame = 0;
 		/** @type {boolean} True when the ball must go away in the next tick. */
 		this.needKill = false;
+	}
+
+	/**
+	 * Change the frame of the ball image to another random frame every 10 ticks.
+	 *
+	 * @returns {void}
+	 */
+	animate() {
+		if (game.time % 10 != 0) return;
+		let r;
+		do {
+			r = random(0, 3);
+		} while (this.animFrame == r);
+		this.animFrame = r;
 	}
 
 	/**
@@ -265,22 +273,13 @@ export class Plasma {
 /**
  * Check if a plasma ball overlaps an object.
  *
- * @param {object} obj The object with x, y, pX and pY.
+ * @param {import('./Body.js').Body} obj The object.
  * @returns {number} 1 if a ball overlaps the object, else 0.
  */
 export function plasmaTouching(obj) {
 	let i;
 	for (i = 0; i < game.plasmaBall.length; i++) {
-		if (game.plasmaBall[i].used) {
-			const posx = obj.x >> 8;
-			const posy = obj.y >> 8;
-			const px = obj.pX;
-			const py = obj.pY;
-
-			const x = game.plasmaBall[i].x >> 8;
-			const y = game.plasmaBall[i].y >> 8;
-			if (posx + px > x && x + TILE_SIZE > posx && posy + py > y && y + TILE_SIZE > posy) return 1;
-		}
+		if (game.plasmaBall[i].used && game.plasmaBall[i].overlaps(obj)) return 1;
 	}
 
 	return 0;
@@ -293,16 +292,10 @@ export function plasmaTouching(obj) {
  * @returns {void}
  */
 export function updatePlasma() {
-	let r;
 	for (let pi = 0; pi < game.plasmaBall.length; pi++) {
 		const ball = game.plasmaBall[pi];
 		if (!ball.used) continue;
-		if (game.time % 10 == 0) {
-			do {
-				r = random(0, 3);
-			} while (ball.animFrame == r);
-			ball.animFrame = r;
-		}
+		ball.animate();
 		if (game.player.fadeNextLevel == -1) {
 			ball.move();
 			if (game.objectInPortal == 0) game.objectInPortal = isInPortal(ball);

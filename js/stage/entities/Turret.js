@@ -2,6 +2,7 @@
  * The Turret object and its helper functions.
  */
 
+import { Body } from './Body.js';
 import { playSound, playSoundIfFinished, sfx_explode, sfx_pain, sfx_shoot } from '../audio.js';
 import { PLAYFIELD_WIDTH, SparkleType, TILE_SIZE } from '../constants.js';
 import { isInPortal } from '../portals.js';
@@ -29,17 +30,14 @@ const COOL_TIME = 3;
 /**
  * A turret. It shoots at the player in its line of sight, and the player can carry and throw it.
  */
-export class Turret {
+export class Turret extends Body {
 	/**
 	 * @param {number} x The x position in 1/256 pixels.
 	 * @param {number} y The y position in 1/256 pixels.
 	 * @param {number} dir The direction that the turret faces, -1 left or 1 right.
 	 */
 	constructor(x, y, dir) {
-		/** @type {number} The x position in 1/256 pixels. */
-		this.x = x;
-		/** @type {number} The y position in 1/256 pixels. */
-		this.y = y;
+		super(x, y, TILE_SIZE, 2 * TILE_SIZE);
 		/** @type {number} The horizontal speed in 1/256 pixels per tick. */
 		this.vx = 0;
 		/** @type {number} The vertical speed in 1/256 pixels per tick. */
@@ -56,10 +54,6 @@ export class Turret {
 		this.dead = false;
 		/** @type {boolean} True while the player carries the turret. */
 		this.carried = false;
-		/** @type {number} The width in pixels. */
-		this.pX = TILE_SIZE;
-		/** @type {number} The height in pixels. */
-		this.pY = 2 * TILE_SIZE;
 		/** @type {number} The frame of the turret image. Frame 1 is the shot flash, frames 2 to 10 show the destruction. */
 		this.animFrame = 0;
 		/** @type {boolean} True after a throw, a portal or a pipe field moved the turret. A hard landing then destroys it. */
@@ -165,9 +159,8 @@ export class Turret {
 							stop = 2;
 							break;
 						} else {
-							const t = pointInPlayer(j, beamY);
-							if (t) {
-								playerInSight = t;
+							if (game.player.contains(j, beamY)) {
+								playerInSight = 1;
 								break;
 							}
 						}
@@ -216,21 +209,6 @@ export class Turret {
 			}
 		}
 	}
-}
-
-/**
- * Check if a point of the laser line is inside the player.
- *
- * @param {number} j The x coordinate in pixels.
- * @param {number} beamY The y coordinate of the laser line in pixels.
- * @returns {number} 1 if the point is inside the player, else 0.
- */
-function pointInPlayer(j, beamY) {
-	const p = game.player;
-	const x = p.x >> 8;
-	const y = p.y >> 8;
-	if (j >= x && j < x + p.pX && beamY >= y && beamY < y + p.pY) return 1;
-	return 0;
 }
 
 /**

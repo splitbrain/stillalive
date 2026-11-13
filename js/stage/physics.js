@@ -309,11 +309,7 @@ export function moveObject(obj) {
 
 						let needReturn = false;
 
-						if (
-							pointInObject(x, y + 1, ca) ||
-							pointInObject(x, y + TILE_SIZE / 2, ca) ||
-							pointInObject(x, y + 13, ca)
-						) {
+						if (ca.contains(x, y + 1) || ca.contains(x, y + TILE_SIZE / 2) || ca.contains(x, y + 13)) {
 							if (ca.carried) game.player.vx = obj.vx;
 							else if (obj.carried) game.player.vx = ca.vx;
 							ca.vx = obj.vx;
@@ -357,21 +353,6 @@ export function carriesObject() {
 }
 
 /**
- * Check if a point is inside an object.
- *
- * @param {number} x The x coordinate in pixels.
- * @param {number} y The y coordinate in pixels.
- * @param {object} obj The object with x, y, pX and pY.
- * @returns {number} 1 if the point is inside, else 0.
- */
-function pointInObject(x, y, obj) {
-	const x2 = obj.x >> 8;
-	const y2 = obj.y >> 8;
-	if (x >= x2 && x < x2 + obj.pX && y >= y2 && y < y2 + obj.pY) return 1;
-	else return 0;
-}
-
-/**
  * Pick up a crate or turret under the mouse while the left button is pressed, and throw the carried object when the
  * button is released.
  *
@@ -382,12 +363,12 @@ export function grabObject() {
 	let ok = 0;
 	if (!carriesObject()) {
 		if (input.mousePressed && input.mouseButton == MouseButton.LEFT) {
-			const x2 = (game.player.x >> 8) + (game.player.pX >> 1);
-			const y2 = (game.player.y >> 8) + (game.player.pY >> 1);
+			const x2 = game.player.midX();
+			const y2 = game.player.midY();
 			for (i = 0; i < game.crates.length; i++) {
-				x1 = (game.crates[i].x >> 8) + (game.crates[i].pX >> 1);
-				y1 = (game.crates[i].y >> 8) + (game.crates[i].pY >> 1);
-				if (getDistance(x1, y1, x2, y2) < 2 * TILE_SIZE && pointInObject(input.mouseX, input.mouseY, game.crates[i])) {
+				x1 = game.crates[i].midX();
+				y1 = game.crates[i].midY();
+				if (getDistance(x1, y1, x2, y2) < 2 * TILE_SIZE && game.crates[i].contains(input.mouseX, input.mouseY)) {
 					game.crates[i].carried = true;
 					playSound(sfx_pickUp);
 					ok = 1;
@@ -396,12 +377,12 @@ export function grabObject() {
 			}
 			if (!ok) {
 				for (i = 0; i < game.turrets.length; i++) {
-					x1 = (game.turrets[i].x >> 8) + (game.turrets[i].pX >> 1);
-					y1 = (game.turrets[i].y >> 8) + (game.turrets[i].pY >> 1);
+					x1 = game.turrets[i].midX();
+					y1 = game.turrets[i].midY();
 					if (
 						!game.turrets[i].dead &&
 						getDistance(x1, y1, x2, y2) < 2 * TILE_SIZE &&
-						pointInObject(input.mouseX, input.mouseY, game.turrets[i])
+						game.turrets[i].contains(input.mouseX, input.mouseY)
 					) {
 						game.turrets[i].carried = true;
 						playSound(sfx_pickUp);

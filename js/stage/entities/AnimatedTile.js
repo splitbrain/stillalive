@@ -39,6 +39,25 @@ export class AnimatedTile {
 		/** @type {number} The number of ticks between two frames. */
 		this.speed = speed;
 	}
+
+	/**
+	 * Advance to the next frame when the interval of the tile is over.
+	 *
+	 * @returns {void}
+	 */
+	animate() {
+		if (!this.used || game.time % this.speed != 0) return;
+		if (this.type == RANDOM) {
+			let r;
+			do {
+				r = random(this.min, this.max + 1);
+			} while (r == this.current);
+			this.current = r;
+		} else if (this.type == ORDERED) {
+			if (this.current == this.max) this.current = this.min;
+			else this.current++;
+		}
+	}
 }
 
 /**
@@ -47,17 +66,5 @@ export class AnimatedTile {
  * @returns {void}
  */
 export function animateTiles() {
-	let r;
-	for (const tile of game.animatedTiles) {
-		if (!tile.used || game.time % tile.speed != 0) continue;
-		if (tile.type == RANDOM) {
-			do {
-				r = random(tile.min, tile.max + 1);
-			} while (r == tile.current);
-			tile.current = r;
-		} else if (tile.type == ORDERED) {
-			if (tile.current == tile.max) tile.current = tile.min;
-			else tile.current++;
-		}
-	}
+	for (const tile of game.animatedTiles) tile.animate();
 }

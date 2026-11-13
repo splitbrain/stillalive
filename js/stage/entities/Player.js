@@ -15,6 +15,7 @@ import {
 	sfx_step,
 } from '../audio.js';
 import { Direction, FADE_START, GRAVITY, MouseButton, PLAYFIELD_HEIGHT, SparkleType, TILE_SIZE } from '../constants.js';
+import { Body } from './Body.js';
 import { collectCakes } from './Cake.js';
 import { gravPipeFieldsAt } from './GravPipeField.js';
 import { plasmaTouching } from './Plasma.js';
@@ -41,11 +42,12 @@ import { random } from '../utils.js';
 /**
  * The player.
  */
-export class Player {
+export class Player extends Body {
 	/**
 	 * Create the player at the origin with full life.
 	 */
 	constructor() {
+		super(0, 0, 15, 27);
 		/** @type {number} 1 while the player holds the left key. */
 		this.isLeft = 0;
 		/** @type {number} 1 while the player holds the right key. */
@@ -56,18 +58,10 @@ export class Player {
 		this.isJump = 0;
 		/** @type {number} 1 while the player holds the down key. */
 		this.isDown = 0;
-		/** @type {number} The x position in 1/256 pixels. */
-		this.x = 0;
-		/** @type {number} The y position in 1/256 pixels. */
-		this.y = 0;
 		/** @type {number} The horizontal speed in 1/256 pixels per tick. */
 		this.vx = 0;
 		/** @type {number} The vertical speed in 1/256 pixels per tick. */
 		this.vy = 0;
-		/** @type {number} The width in pixels. */
-		this.pX = 15;
-		/** @type {number} The height in pixels. */
-		this.pY = 27;
 		/** @type {number} 1 when the player faces right, -1 when the player faces left. */
 		this.flip = 1;
 		/** @type {number} Ticks since the last portal shot, up to 25. A new shot is possible at 25. */
@@ -102,24 +96,6 @@ export class Player {
 		this.fadeNextLevel = FADE_START;
 		/** @type {boolean} True when the player pressed the clear key and the portals must go away in the next tick. */
 		this.askClear = false;
-	}
-
-	/**
-	 * Get the horizontal center of the player.
-	 *
-	 * @returns {number} The x coordinate of the center in pixels.
-	 */
-	midX() {
-		return (this.x >> 8) + (this.pX >> 1);
-	}
-
-	/**
-	 * Get the vertical center of the player.
-	 *
-	 * @returns {number} The y coordinate of the center in pixels.
-	 */
-	midY() {
-		return (this.y >> 8) + (this.pY >> 1);
 	}
 
 	/**

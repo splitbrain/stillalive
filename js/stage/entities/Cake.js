@@ -3,6 +3,7 @@
  */
 
 import { playSound, sfx_exit, sfx_grabCake } from '../audio.js';
+import { Body } from './Body.js';
 import { MAP_SIZE, SparkleType, TILE_SIZE } from '../constants.js';
 import { createCakeOrSmokeSparkles } from './Sparkle.js';
 import { game } from '../state.js';
@@ -31,13 +32,12 @@ export function openExit() {
  * @returns {void}
  */
 export function collectCakes() {
-	let i;
-	for (i = 0; i < game.cakes.length; i++) {
-		if (game.cakes[i].used) {
-			if (playerTouchesCake(i)) {
-				game.cakes[i].used = false;
+	for (const cake of game.cakes) {
+		if (cake.used) {
+			if (game.player.overlaps(cake)) {
+				cake.used = false;
 				game.cakesLeft--;
-				createCakeOrSmokeSparkles(game.cakes[i].x, game.cakes[i].y, SparkleType.CAKE, 2, 180);
+				createCakeOrSmokeSparkles(cake.x, cake.y, SparkleType.CAKE, 2, 180);
 				playSound(sfx_grabCake);
 				if (game.cakesLeft == 0) {
 					openExit();
@@ -49,47 +49,32 @@ export function collectCakes() {
 }
 
 /**
- * Check if the player overlaps a cake.
- *
- * @param {number} i The index of the cake.
- * @returns {number} 1 if the player overlaps the cake, else 0.
- */
-function playerTouchesCake(i) {
-	let hit = 0;
-
-	const posx = game.player.x >> 8;
-	const posy = game.player.y >> 8;
-	const pX = game.player.pX;
-	const pY = game.player.pY;
-	const x = game.cakes[i].x >> 8;
-	const y = game.cakes[i].y >> 8;
-
-	if (posx + pX > x && x + TILE_SIZE > posx && posy + pY > y && y + TILE_SIZE > posy) {
-		hit = 1;
-	}
-
-	return hit;
-}
-
-/**
  * A cake that the player collects. The cake floats up and down.
  */
-export class Cake {
+export class Cake extends Body {
 	/**
 	 * @param {number} x The x position in 1/256 pixels.
 	 * @param {number} y The y position in 1/256 pixels.
 	 */
 	constructor(x, y) {
-		/** @type {number} The x position in 1/256 pixels. */
-		this.x = x;
-		/** @type {number} The y position in 1/256 pixels. */
-		this.y = y;
+		super(x, y, TILE_SIZE, TILE_SIZE);
 		/** @type {number} The direction of the float, 1 down or -1 up. */
 		this.mDir = random(0, 2) == 0 ? -1 : 1;
 		/** @type {number} The vertical offset of the float in 1/256 pixels. */
 		this.vy = random(-3 << 8, 3 << 8);
 		/** @type {boolean} True until the player collects the cake. */
 		this.used = true;
+	}
+
+	/**
+	 * Move the cake up or down for one tick and turn it around at the ends of the float.
+	 *
+	 * @returns {void}
+	 */
+	move() {
+		this.vy += 32 * this.mDir;
+		if (this.vy < -3 << 8) this.mDir = -this.mDir;
+		else if (this.vy > 3 << 8) this.mDir = -this.mDir;
 	}
 }
 
@@ -101,9 +86,6 @@ export class Cake {
 export function updateCakes() {
 	if (game.player.fadeNextLevel != -1) return;
 	for (const c of game.cakes) {
-		if (!c.used) continue;
-		c.vy += 32 * c.mDir;
-		if (c.vy < -3 << 8) c.mDir = -c.mDir;
-		else if (c.vy > 3 << 8) c.mDir = -c.mDir;
+		if (c.used) c.move();
 	}
 }

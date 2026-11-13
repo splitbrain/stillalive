@@ -2,6 +2,7 @@
  * The Crate object and its helper functions.
  */
 
+import { Body } from './Body.js';
 import { playSound, sfx_crateLand, sfx_dissolve, sfx_wallBreak, sfx_wallCrack } from '../audio.js';
 import { hitBoss, manageInTube } from '../boss.js';
 import { PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, TILE_SIZE } from '../constants.js';
@@ -23,20 +24,13 @@ import { CRATE_CODE, isTileKind, LAST_OF_KIND, PLATFORM_CODE, Tile, TileKind } f
 /**
  * A crate. The player can carry and throw it, and it can press switches and stop turret shots.
  */
-export class Crate {
+export class Crate extends Body {
 	/**
 	 * @param {number} x The x position in 1/256 pixels.
 	 * @param {number} y The y position in 1/256 pixels.
 	 */
 	constructor(x, y) {
-		/** @type {number} The x position in 1/256 pixels. */
-		this.x = x;
-		/** @type {number} The y position in 1/256 pixels. */
-		this.y = y;
-		/** @type {number} The width in pixels. */
-		this.pX = TILE_SIZE;
-		/** @type {number} The height in pixels. */
-		this.pY = TILE_SIZE;
+		super(x, y, TILE_SIZE, TILE_SIZE);
 		/** @type {number} The x position of the start, where the crate returns after a reset. */
 		this.xOrig = x;
 		/** @type {number} The y position of the start, where the crate returns after a reset. */
@@ -63,24 +57,6 @@ export class Crate {
 		this.invincibility = 0;
 		/** @type {number} Ticks after a throw in which the crate stays when the boss has too many crates. */
 		this.noRemove = 0;
-	}
-
-	/**
-	 * Get the horizontal center of the crate.
-	 *
-	 * @returns {number} The x coordinate of the center in pixels.
-	 */
-	midX() {
-		return (this.x >> 8) + (this.pX >> 1);
-	}
-
-	/**
-	 * Get the vertical center of the crate.
-	 *
-	 * @returns {number} The y coordinate of the center in pixels.
-	 */
-	midY() {
-		return (this.y >> 8) + (this.pY >> 1);
 	}
 
 	/**
@@ -265,22 +241,13 @@ export function crateLandsOnPlayer(obj) {
 /**
  * Find a moving crate that overlaps an object.
  *
- * @param {object} obj The object with x, y, pX and pY.
+ * @param {import('./Body.js').Body} obj The object.
  * @returns {number} The crate index plus 1, or 0 if no moving crate overlaps the object.
  */
 export function movingCrateTouching(obj) {
-	let i;
-	const posx = obj.x >> 8;
-	const posy = obj.y >> 8;
-	const px = obj.pX;
-	const py = obj.pY;
-
-	for (i = 0; i < game.crates.length; i++) {
-		if (!game.crates[i].carried && (game.crates[i].vx != 0 || game.crates[i].vy != 0) && !isInPortal(game.crates[i])) {
-			const x = game.crates[i].x >> 8;
-			const y = game.crates[i].y >> 8;
-			if (posx + px > x && x + TILE_SIZE > posx && posy + py > y && y + TILE_SIZE > posy) return i + 1;
-		}
+	for (let i = 0; i < game.crates.length; i++) {
+		const crate = game.crates[i];
+		if (!crate.carried && (crate.vx != 0 || crate.vy != 0) && !isInPortal(crate) && crate.overlaps(obj)) return i + 1;
 	}
 	return 0;
 }

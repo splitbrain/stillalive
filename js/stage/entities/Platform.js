@@ -2,6 +2,7 @@
  * The Platform object and its helper functions.
  */
 
+import { Body } from './Body.js';
 import { PLAYFIELD_WIDTH, TILE_SIZE } from '../constants.js';
 import { crateAt } from './Crate.js';
 import { leftCollision, rightCollision, touchingGround } from '../physics.js';
@@ -11,7 +12,7 @@ import { CRATE_CODE, PLATFORM_CODE } from '../tiles.js';
 /**
  * A moving platform. It turns around at walls and at the edges of the playfield.
  */
-export class Platform {
+export class Platform extends Body {
 	/**
 	 * @param {number} x The x position in 1/256 pixels.
 	 * @param {number} y The y position in 1/256 pixels.
@@ -19,14 +20,7 @@ export class Platform {
 	 * @param {number} vy The vertical speed in 1/256 pixels per tick.
 	 */
 	constructor(x, y, vx, vy) {
-		/** @type {number} The x position in 1/256 pixels. */
-		this.x = x;
-		/** @type {number} The y position in 1/256 pixels. */
-		this.y = y;
-		/** @type {number} The width in pixels. */
-		this.pX = 3 * TILE_SIZE;
-		/** @type {number} The height in pixels. */
-		this.pY = TILE_SIZE;
+		super(x, y, 3 * TILE_SIZE, TILE_SIZE);
 		/** @type {number} The horizontal speed in 1/256 pixels per tick. */
 		this.vx = vx;
 		/** @type {number} The vertical speed in 1/256 pixels per tick. */
@@ -57,9 +51,21 @@ export class Platform {
 }
 
 /**
+ * Find a thing below the feet of an object, first below the left edge, then below the right edge.
+ *
+ * @param {Body} obj The object.
+ * @param {function(number, number): number} find The search at a point in pixels, for example crateAt() or platformAt().
+ * @returns {number} The first result that is not 0, or 0.
+ */
+function findBelow(obj, find) {
+	const y = (obj.y >> 8) + obj.pY;
+	return find(obj.x >> 8, y) || find((obj.x >> 8) + obj.pX - 1, y);
+}
+
+/**
  * Get the conveyor belt that moves an object, directly or through the crate that the object stands on.
  *
- * @param {object} obj The object with x, y, pX and pY.
+ * @param {Body} obj The object.
  * @returns {number} 3 for a belt to the right, 4 for a belt to the left, else 0.
  */
 export function onBelt(obj) {
@@ -67,8 +73,7 @@ export function onBelt(obj) {
 	if (ground == 3 || ground == 4) {
 		return ground;
 	} else {
-		let ci = crateAt(obj.x >> 8, (obj.y >> 8) + obj.pY);
-		if (!ci) ci = crateAt((obj.x >> 8) + obj.pX - 1, (obj.y >> 8) + obj.pY);
+		let ci = findBelow(obj, crateAt);
 		if (ci) {
 			ci -= CRATE_CODE;
 			if (game.crates[ci].carpet > 0) return game.crates[ci].carpet;
@@ -81,15 +86,13 @@ export function onBelt(obj) {
 /**
  * Get the platform that carries an object, directly or through the crate that the object stands on.
  *
- * @param {object} obj The object with x, y, pX and pY.
+ * @param {Body} obj The object.
  * @returns {number} The platform code, or 0.
  */
 export function onPlatform(obj) {
-	let platformCode = platformAt(obj.x >> 8, (obj.y >> 8) + obj.pY);
-	if (!platformCode) platformCode = platformAt((obj.x >> 8) + obj.pX - 1, (obj.y >> 8) + obj.pY);
+	let platformCode = findBelow(obj, platformAt);
 	if (!platformCode) {
-		let ci = crateAt(obj.x >> 8, (obj.y >> 8) + obj.pY);
-		if (!ci) ci = crateAt((obj.x >> 8) + obj.pX - 1, (obj.y >> 8) + obj.pY);
+		let ci = findBelow(obj, crateAt);
 		if (ci) {
 			ci -= CRATE_CODE;
 			if (game.crates[ci].platformIndex > -1) platformCode = PLATFORM_CODE + game.crates[ci].platformIndex;

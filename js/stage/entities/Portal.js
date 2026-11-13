@@ -38,6 +38,16 @@ export class Portal {
 	}
 
 	/**
+	 * Advance the opening animation of the portal: first the width grows, then the height.
+	 *
+	 * @returns {void}
+	 */
+	animate() {
+		if (this.scaleX < 1) this.scaleX += 0.1;
+		else if (this.scaleY < 1) this.scaleY += 0.1;
+	}
+
+	/**
 	 * Move the portal with its platform.
 	 *
 	 * @returns {void}
@@ -57,8 +67,7 @@ export class Portal {
 export function updatePortals() {
 	for (const p of game.portals) {
 		if (!p.used) continue;
-		if (p.scaleX < 1) p.scaleX += 0.1;
-		else if (p.scaleY < 1) p.scaleY += 0.1;
+		p.animate();
 		p.move();
 	}
 }

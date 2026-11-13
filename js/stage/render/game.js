@@ -117,14 +117,9 @@ function triangle(x1, y1, x2, y2, x3, y3) {
  */
 function drawPortalGun() {
 	if (game.abilities.portals) {
-		const a = getAngle(
-			(game.player.x >> 8) + (game.player.pX >> 1),
-			(game.player.y >> 8) + (game.player.pY >> 1),
-			input.mouseX,
-			input.mouseY,
-		);
+		const a = getAngle(game.player.midX(), game.player.midY(), input.mouseX, input.mouseY);
 		ctx.save();
-		ctx.translate((game.player.x >> 8) + (game.player.pX >> 1), (game.player.y >> 8) + (game.player.pY >> 1));
+		ctx.translate(game.player.midX(), game.player.midY());
 		ctx.rotate(a);
 		drawImage(portalGun, -5, -5);
 		ctx.restore();
@@ -138,12 +133,7 @@ function drawPortalGun() {
  * @returns {void}
  */
 function drawRotatedHead(flipDx) {
-	let a = getAngle(
-		(game.player.x >> 8) + (game.player.pX >> 1),
-		(game.player.y >> 8) + (game.player.pY >> 1),
-		input.mouseX,
-		input.mouseY,
-	);
+	let a = getAngle(game.player.midX(), game.player.midY(), input.mouseX, input.mouseY);
 	ctx.save();
 	// facing left, the head image is mirrored around the pivot, so the pivot sits at the mirrored x of the neck
 	const [pivotX, pivotY] = HEAD_PIVOT;
@@ -416,7 +406,7 @@ export function drawTurrets() {
 		const x = t.x >> 8;
 		const y = t.y >> 8;
 		ctx.save();
-		ctx.translate(x + (t.pX >> 1), y + (t.pY >> 1));
+		ctx.translate(t.midX(), t.midY());
 		ctx.rotate(degToRad(t.angle));
 		drawImage(
 			turretImages[side],
@@ -431,7 +421,7 @@ export function drawTurrets() {
 		);
 		ctx.restore();
 		const dx = t.dir < 0 ? 0 : t.pX;
-		const playerY = (game.player.y >> 8) + (game.player.pY >> 1);
+		const playerY = game.player.midY();
 		if (t.animFrame == 1 && !t.dead) {
 			ctx.strokeStyle = 'rgb(255, 255, 0)';
 			ctx.lineWidth = 3;
@@ -499,7 +489,7 @@ export function drawCrates() {
 	for (const c of game.crates) {
 		const sc = c.shrink > 0 ? c.shrink / 60 : 1;
 		ctx.save();
-		ctx.translate((c.x >> 8) + (c.pX >> 1), (c.y >> 8) + (c.pY >> 1));
+		ctx.translate(c.midX(), c.midY());
 		ctx.rotate(degToRad(c.angle));
 		drawImage(crateImage, 0, 0, TILE_SIZE, TILE_SIZE, -(c.pX >> 1), -(c.pY >> 1), TILE_SIZE * sc, TILE_SIZE * sc);
 		ctx.restore();
@@ -648,7 +638,7 @@ function drawFrontTiles() {
  */
 function drawCamera() {
 	const a = getAngle(
-		(game.player.x >> 8) + (game.player.pX >> 1),
+		game.player.midX(),
 		(game.player.y >> 8) + 8,
 		(game.camera.x >> 8) + TILE_SIZE / 2,
 		(game.camera.y >> 8) + TILE_SIZE / 2,
@@ -715,7 +705,7 @@ export function drawPreviewMap() {
 	drawTileLayer();
 
 	ctx.save();
-	ctx.translate((game.player.x >> 8) + (game.player.pX >> 1), (game.player.y >> 8) + (game.player.pY >> 1));
+	ctx.translate(game.player.midX(), game.player.midY());
 	drawImage(portalGun, -5, -5);
 	ctx.restore();
 

@@ -40,16 +40,11 @@ class GravPipeField {
 /**
  * Find the pipe fields that an object overlaps.
  *
- * @param {object} obj The object with x, y, pX and pY.
+ * @param {import('./Body.js').Body} obj The object.
  * @returns {number[]} The indexes of the fields in game.gravPipeFields.
  */
 export function gravPipeFieldsAt(obj) {
 	let i;
-	const posx = obj.x >> 8;
-	const posy = obj.y >> 8;
-	const pX = obj.pX;
-	const pY = obj.pY;
-
 	const fields = new Array();
 
 	for (i = 0; i < game.gravPipeFields.length; i++) {
@@ -66,7 +61,7 @@ export function gravPipeFieldsAt(obj) {
 			y -= h;
 		}
 
-		if (posx + pX > x && x + w > posx && posy + pY > y && y + h > posy) {
+		if (obj.overlapsBox(x, y, w, h)) {
 			fields.push(i);
 		}
 	}

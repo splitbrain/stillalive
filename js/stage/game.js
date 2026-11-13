@@ -118,7 +118,7 @@ function updateLevelEnd() {
 function updateObjects() {
 	animateTiles();
 
-	game.player.flip = input.mouseX > (game.player.x >> 8) + (game.player.pX >> 1) ? 1 : -1;
+	game.player.flip = input.mouseX > game.player.midX() ? 1 : -1;
 
 	rebuildGravPipeFields();
 	updateCakes();

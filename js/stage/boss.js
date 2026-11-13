@@ -245,7 +245,7 @@ export function bossPhase() {
  */
 function playerTouchesBoss() {
 	const x = (game.player.x >> 8) + game.player.pX;
-	const y = (game.player.y >> 8) + (game.player.pY >> 1);
+	const y = game.player.midY();
 	const x2 = game.bossX + 15;
 	const y2 = game.bossY;
 
@@ -257,19 +257,12 @@ function playerTouchesBoss() {
 /**
  * Count a hit when a crate touches the boss. The boss dies after three hits.
  *
- * @param {object} obj The crate.
+ * @param {Crate} obj The crate.
  * @returns {void}
  */
 export function hitBoss(obj) {
 	let i;
-	const posx = obj.x >> 8;
-	const posy = obj.y >> 8;
-	const pX = obj.pX;
-	const pY = obj.pY;
-	const x = game.bossX + 16;
-	const y = game.bossY;
-
-	if (game.bossLife < 3 && posx + pX > x && x + 74 > posx && posy + pY > y && y + 58 > posy) {
+	if (game.bossLife < 3 && obj.overlapsBox(game.bossX + 16, game.bossY, 74, 58)) {
 		if (game.bossNum == 1 || game.bossNum == 3 || game.bossNum == 4) obj.needKill = true;
 		else if (game.bossNum == 2) {
 			obj.x = (5 * TILE_SIZE) << 8;
@@ -298,20 +291,13 @@ export function hitBoss(obj) {
 /**
  * Shrink a crate that enters the tube of the boss.
  *
- * @param {object} obj The crate.
+ * @param {Crate} obj The crate.
  * @returns {void}
  */
 export function manageInTube(obj) {
 	if (obj.vx < 0) return;
 
-	const posx = obj.x >> 8;
-	const posy = obj.y >> 8;
-	const pX = obj.pX;
-	const pY = obj.pY;
-	const x = game.tubeX >> 8;
-	const y = game.tubeY >> 8;
-
-	if (posx + pX > x && x + 4 * TILE_SIZE > posx && posy + pY > y && y + 3 * TILE_SIZE > posy) {
+	if (obj.overlapsBox(game.tubeX >> 8, game.tubeY >> 8, 4 * TILE_SIZE, 3 * TILE_SIZE)) {
 		obj.shrink = 60;
 	}
 }

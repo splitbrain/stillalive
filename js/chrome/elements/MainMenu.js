@@ -58,8 +58,8 @@ export class MainMenu extends ChromeScreen {
 
 	/**
 	 * Build the list of the campaigns after all campaign files are loaded. A campaign with a parent shows in a sub list
-	 * below its parent, and the custom campaign shows in a sub list below the editor link. The test campaign shows only
-	 * when the URL has the parameter test.
+	 * below its parent, and the custom campaign shows in a sub list below the editor link when a slot has a level. The
+	 * test campaign shows only when the URL has the parameter test.
 	 *
 	 * @returns {void}
 	 */
@@ -82,7 +82,8 @@ export class MainMenu extends ChromeScreen {
 			}
 		}
 		this.querySelector('.campaigns').replaceChildren(...top);
-		this.querySelector('.custom').replaceChildren(this.#createItem(campaigns[CampaignId.CUSTOM], true));
+		const custom = campaigns[CampaignId.CUSTOM];
+		this.querySelector('.custom').replaceChildren(...(custom.unlocked ? [this.#createItem(custom, true)] : []));
 	}
 
 	/**

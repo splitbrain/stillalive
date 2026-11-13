@@ -109,6 +109,7 @@ test.describe('chrome', () => {
 		await startGame(page);
 		await setHash(page, '#/');
 		await expectScreen(page, '#/', ['main-menu']);
+		await expect(page.locator('main-menu .custom')).toBeHidden();
 
 		await page.getByRole('link', { name: 'Classic Mode' }).click();
 		await expectScreen(page, '#/campaign/normal', SELECT_PARTS);

@@ -61,8 +61,8 @@ export const game = {
 	/** @type {import('./entities/Camera.js').Camera} The security camera. */
 	camera: undefined,
 	/**
-	 * @type {number} The portal index plus 1 of a portal that an object is in during this tick, or 0. The drawing then
-	 *     draws the tiles around the portals over the objects.
+	 * @type {import('./entities/Portal.js').Portal|null} The portal that an object is in during this tick, or null. The
+	 *     drawing then draws the tiles around the portals over the objects.
 	 */
 	objectInPortal: undefined,
 	/** @type {number} The x position of the tube in 1/256 pixels, or -1 for a level without a tube. */

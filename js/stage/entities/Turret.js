@@ -218,6 +218,6 @@ export function updateTurrets() {
 	if (game.player.fadeNextLevel != -1) return;
 	for (const t of game.turrets) {
 		t.move();
-		if (game.objectInPortal == 0) game.objectInPortal = isInPortal(t);
+		if (!game.objectInPortal) game.objectInPortal = isInPortal(t);
 	}
 }

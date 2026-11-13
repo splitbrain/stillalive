@@ -635,7 +635,7 @@ export function drawPlatform(x, y, dir) {
  */
 function drawFrontTiles() {
 	let tx, ty, t, p, i;
-	if (game.objectInPortal > 0) {
+	if (game.objectInPortal) {
 		for (p = 0; p < game.portals.length; p++) {
 			if (!game.portals[p].platform) {
 				const x = game.portals[p].x >> 8;

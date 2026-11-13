@@ -288,7 +288,7 @@ export function updatePlasma() {
 		ball.animate();
 		if (game.player.fadeNextLevel == -1) {
 			ball.move();
-			if (game.objectInPortal == 0) game.objectInPortal = isInPortal(ball);
+			if (!game.objectInPortal) game.objectInPortal = isInPortal(ball);
 			if (ball.needKill) {
 				game.plasmaBall.splice(pi, 1);
 				pi--;

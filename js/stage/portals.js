@@ -273,25 +273,26 @@ function findPortal(obj, side) {
  *
  * @param {import('./entities/Body.js').Body} obj The object. It must also have the speeds vx and vy and the entity type.
  * @param {number} side The side of the wall with the portal, a value of Direction.
- * @returns {number} The portal index plus 1, or 0 if the object touches no portal on this side.
+ * @returns {import('./entities/Portal.js').Portal|null} The portal, or null if the object touches no portal on this
+ *     side.
  */
 export function portalAt(obj, side) {
 	const found = findPortal(obj, side);
-	return found ? found.index + 1 : 0;
+	return found ? game.portals[found.index] : null;
 }
 
 /**
  * Check if an object touches a portal. The function does not change the object.
  *
  * @param {import('./entities/Body.js').Body} obj The object. It must also have the speeds vx and vy and the entity type.
- * @returns {number} The portal index plus 1, or 0 if the object touches no portal.
+ * @returns {import('./entities/Portal.js').Portal|null} The portal, or null if the object touches no portal.
  */
 export function isInPortal(obj) {
 	for (const side of PORTAL_CHECK_SIDES) {
 		const p = portalAt(obj, side);
 		if (p) return p;
 	}
-	return 0;
+	return null;
 }
 
 /**
@@ -300,11 +301,12 @@ export function isInPortal(obj) {
  *
  * @param {import('./entities/Body.js').Body} obj The object. It must also have the speeds vx and vy and the entity type.
  * @param {number} side The side of the wall with the portal, a value of Direction.
- * @returns {number} The portal index plus 1, or 0 if the object touches no portal on this side.
+ * @returns {import('./entities/Portal.js').Portal|null} The portal, or null if the object touches no portal on this
+ *     side.
  */
 export function passPortal(obj, side) {
 	const found = findPortal(obj, side);
-	if (!found) return 0;
+	if (!found) return null;
 	const portal = game.portals[found.index];
 	if (side == Direction.LEFT || side == Direction.RIGHT) {
 		const gap = (2 * TILE_SIZE - obj.pY) >> 1;
@@ -314,21 +316,21 @@ export function passPortal(obj, side) {
 		obj.x = ((portal.x >> 8) + TILE_SIZE / 2) << 8;
 	}
 	if (found.deep) teleport(found.index, obj);
-	return found.index + 1;
+	return portal;
 }
 
 /**
  * Move an object through a portal on any side.
  *
  * @param {import('./entities/Body.js').Body} obj The object. It must also have the speeds vx and vy and the entity type.
- * @returns {number} The portal index plus 1, or 0 if the object touches no portal.
+ * @returns {import('./entities/Portal.js').Portal|null} The portal, or null if the object touches no portal.
  */
 export function passPortals(obj) {
 	for (const side of PORTAL_CHECK_SIDES) {
 		const p = passPortal(obj, side);
 		if (p) return p;
 	}
-	return 0;
+	return null;
 }
 
 /**
@@ -510,7 +512,7 @@ export function clearPortals() {
  *
  * @param {number} x The x coordinate in pixels.
  * @param {number} y The y coordinate in pixels.
- * @returns {number} 1 for the blue portal, 0 for the red portal, or -1 if no portal is there.
+ * @returns {import('./entities/Portal.js').Portal|null} The portal, or null if no portal is there.
  */
 export function pointInPortal(x, y) {
 	let i;
@@ -520,13 +522,23 @@ export function pointInPortal(x, y) {
 
 		if (game.portals[i].direction == Direction.LEFT || game.portals[i].direction == Direction.RIGHT) {
 			if (x >= xp && x <= xp + 3 && y >= yp && y <= yp + 2 * TILE_SIZE) {
-				return 1 - i;
+				return game.portals[i];
 			}
 		} else if (game.portals[i].direction == Direction.UP || game.portals[i].direction == Direction.DOWN) {
 			if (x >= xp && x <= xp + 2 * TILE_SIZE && y >= yp && y <= yp + 3) {
-				return 1 - i;
+				return game.portals[i];
 			}
 		}
 	}
-	return -1;
+	return null;
+}
+
+/**
+ * Get the other portal of the pair.
+ *
+ * @param {import('./entities/Portal.js').Portal} portal One of the two portals.
+ * @returns {import('./entities/Portal.js').Portal} The other portal.
+ */
+export function otherPortal(portal) {
+	return portal == game.portals[0] ? game.portals[1] : game.portals[0];
 }

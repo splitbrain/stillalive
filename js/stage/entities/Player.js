@@ -186,43 +186,41 @@ export class Player extends Body {
 			playLoop(sfx_float);
 		}
 		for (i = 0; i < fields.length; i++) {
-			const f = fields[i];
+			const field = fields[i];
 			if (fields.length == 1) {
-				if (game.gravPipeFields[f].vx != 0) {
+				if (field.vx != 0) {
 					if (portalAt(this, Direction.UP) || portalAt(this, Direction.DOWN)) {
-						if (game.player.y >> 8 < game.gravPipeFields[f].y) game.player.y += 768;
-						else if ((game.player.y >> 8) + game.player.pY > game.gravPipeFields[f].y + 2 * TILE_SIZE)
-							game.player.y -= 768;
-					} else if (game.player.y >> 8 < game.gravPipeFields[f].y) game.player.y += 512;
-					else if ((game.player.y >> 8) + game.player.pY > game.gravPipeFields[f].y + 2 * TILE_SIZE)
-						game.player.y -= 512;
-				} else if (game.gravPipeFields[f].vy != 0) {
+						if (game.player.y >> 8 < field.y) game.player.y += 768;
+						else if ((game.player.y >> 8) + game.player.pY > field.y + 2 * TILE_SIZE) game.player.y -= 768;
+					} else if (game.player.y >> 8 < field.y) game.player.y += 512;
+					else if ((game.player.y >> 8) + game.player.pY > field.y + 2 * TILE_SIZE) game.player.y -= 512;
+				} else if (field.vy != 0) {
 					// the height pY centers the player on the x axis, in the same way as moveObject()
-					if (game.player.x >> 8 < game.gravPipeFields[f].x + (TILE_SIZE - (game.player.pY >> 1))) game.player.x += 256;
+					if (game.player.x >> 8 < field.x + (TILE_SIZE - (game.player.pY >> 1))) game.player.x += 256;
 					else if (
 						(game.player.x >> 8) + game.player.pX >
-						game.gravPipeFields[f].x + 2 * TILE_SIZE - (TILE_SIZE - (game.player.pY >> 1))
+						field.x + 2 * TILE_SIZE - (TILE_SIZE - (game.player.pY >> 1))
 					)
 						game.player.x -= 256;
 				}
 			}
 
-			game.player.vx += game.gravPipeFields[f].vx * 384;
-			game.player.vy += game.gravPipeFields[f].vy * 384;
+			game.player.vx += field.vx * 384;
+			game.player.vy += field.vy * 384;
 
-			if (game.gravPipeFields[f].vx != 0) {
+			if (field.vx != 0) {
 				if (this.isJump) {
 					game.player.y -= 3 << 8;
 					fi = gravPipeFieldsAt(this);
 					if (fi.length == 0) {
 						game.player.vy = -800;
-						game.player.vx = game.gravPipeFields[f].vx << 9;
+						game.player.vx = field.vx << 9;
 					}
 				}
 				if (this.isDown) game.player.y += 3 << 8;
 			}
 
-			if (game.gravPipeFields[f].vy != 0) {
+			if (field.vy != 0) {
 				if (this.isLeft) {
 					game.player.x -= 3 << 8;
 					fi = gravPipeFieldsAt(this);

@@ -242,14 +242,14 @@ export function crateLandsOnPlayer(obj) {
  * Find a moving crate that overlaps an object.
  *
  * @param {import('./Body.js').Body} obj The object.
- * @returns {number} The crate index plus 1, or 0 if no moving crate overlaps the object.
+ * @returns {Crate|null} The crate, or null if no moving crate overlaps the object.
  */
 export function movingCrateTouching(obj) {
 	for (let i = 0; i < game.crates.length; i++) {
 		const crate = game.crates[i];
-		if (!crate.carried && (crate.vx != 0 || crate.vy != 0) && !isInPortal(crate) && crate.overlaps(obj)) return i + 1;
+		if (!crate.carried && (crate.vx != 0 || crate.vy != 0) && !isInPortal(crate) && crate.overlaps(obj)) return crate;
 	}
-	return 0;
+	return null;
 }
 
 /**
@@ -272,7 +272,7 @@ export function updateCrates() {
 				ci--;
 				continue;
 			}
-			if (game.objectInPortal == 0) game.objectInPortal = isInPortal(c);
+			if (!game.objectInPortal) game.objectInPortal = isInPortal(c);
 		}
 	}
 }

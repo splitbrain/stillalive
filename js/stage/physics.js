@@ -224,22 +224,20 @@ export function moveObject(obj) {
 	let col, i, c;
 	const fields = gravPipeFieldsAt(obj);
 	for (i = 0; i < fields.length; i++) {
-		const f = fields[i];
-		if (game.gravPipeFields[f].vx != 0) {
+		const field = fields[i];
+		if (field.vx != 0) {
 			if (portalAt(obj, Direction.UP) || portalAt(obj, Direction.DOWN)) {
-				if (obj.y >> 8 < game.gravPipeFields[f].y) obj.y += 768;
-				else if ((obj.y >> 8) + obj.pY > game.gravPipeFields[f].y + 2 * TILE_SIZE) obj.y -= 768;
-			} else if (obj.y >> 8 < game.gravPipeFields[f].y + (TILE_SIZE - (obj.pY >> 1))) obj.y += 512;
-			else if ((obj.y >> 8) + obj.pY > game.gravPipeFields[f].y + 2 * TILE_SIZE - (TILE_SIZE - (obj.pY >> 1)))
-				obj.y -= 512;
-		} else if (game.gravPipeFields[f].vy != 0) {
-			if (obj.x >> 8 < game.gravPipeFields[f].x + (TILE_SIZE - (obj.pX >> 1))) obj.x += 256;
-			else if ((obj.x >> 8) + obj.pX > game.gravPipeFields[f].x + 2 * TILE_SIZE - (TILE_SIZE - (obj.pX >> 1)))
-				obj.x -= 256;
+				if (obj.y >> 8 < field.y) obj.y += 768;
+				else if ((obj.y >> 8) + obj.pY > field.y + 2 * TILE_SIZE) obj.y -= 768;
+			} else if (obj.y >> 8 < field.y + (TILE_SIZE - (obj.pY >> 1))) obj.y += 512;
+			else if ((obj.y >> 8) + obj.pY > field.y + 2 * TILE_SIZE - (TILE_SIZE - (obj.pY >> 1))) obj.y -= 512;
+		} else if (field.vy != 0) {
+			if (obj.x >> 8 < field.x + (TILE_SIZE - (obj.pX >> 1))) obj.x += 256;
+			else if ((obj.x >> 8) + obj.pX > field.x + 2 * TILE_SIZE - (TILE_SIZE - (obj.pX >> 1))) obj.x -= 256;
 		}
 
-		obj.vx = game.gravPipeFields[f].vx * 384;
-		obj.vy = game.gravPipeFields[f].vy * 384;
+		obj.vx = field.vx * 384;
+		obj.vy = field.vy * 384;
 
 		if (obj.type == 'turret' && !obj.canExplode) {
 			obj.canExplode = true;

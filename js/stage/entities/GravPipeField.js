@@ -4,7 +4,7 @@
 
 import { Direction, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, TILE_SIZE, TILE_SIZE_BITS } from '../constants.js';
 import { getTileWithoutCrates, getTileWithoutObjects } from '../physics.js';
-import { pointInPortal } from '../portals.js';
+import { otherPortal, pointInPortal } from '../portals.js';
 import { game } from '../state.js';
 import { Tile } from '../tiles.js';
 
@@ -41,7 +41,7 @@ class GravPipeField {
  * Find the pipe fields that an object overlaps.
  *
  * @param {import('./Body.js').Body} obj The object.
- * @returns {number[]} The indexes of the fields in game.gravPipeFields.
+ * @returns {GravPipeField[]} The fields.
  */
 export function gravPipeFieldsAt(obj) {
 	let i;
@@ -62,7 +62,7 @@ export function gravPipeFieldsAt(obj) {
 		}
 
 		if (obj.overlapsBox(x, y, w, h)) {
-			fields.push(i);
+			fields.push(game.gravPipeFields[i]);
 		}
 	}
 
@@ -137,33 +137,33 @@ function traceGravPipeField(sx, sy, vx, vy) {
 					p1 = pointInPortal(x + 4, y + dy);
 					p2 = pointInPortal(x + 2 * TILE_SIZE - 4, y + dy);
 				}
-				if (p1 == p2 && p1 > -1 && !exits.includes(p1)) {
-					const p = p1;
-					exits.push(p);
-					if (game.portals[p].direction == Direction.RIGHT) {
-						sx = game.portals[p].x >> 8;
-						sy = game.portals[p].y >> 8;
+				const exit = p1 && p1 == p2 ? otherPortal(p1) : null;
+				if (exit && !exits.includes(exit)) {
+					exits.push(exit);
+					if (exit.direction == Direction.RIGHT) {
+						sx = exit.x >> 8;
+						sy = exit.y >> 8;
 						vx = -1;
 						vy = 0;
 						y = sy;
 						x = sx;
-					} else if (game.portals[p].direction == Direction.LEFT) {
-						sx = (game.portals[p].x >> 8) + 3;
-						sy = game.portals[p].y >> 8;
+					} else if (exit.direction == Direction.LEFT) {
+						sx = (exit.x >> 8) + 3;
+						sy = exit.y >> 8;
 						vx = 1;
 						vy = 0;
 						y = sy;
 						x = sx;
-					} else if (game.portals[p].direction == Direction.UP) {
-						sx = game.portals[p].x >> 8;
-						sy = game.portals[p].y >> 8;
+					} else if (exit.direction == Direction.UP) {
+						sx = exit.x >> 8;
+						sy = exit.y >> 8;
 						vx = 0;
 						vy = 1;
 						y = sy + 3;
 						x = sx;
-					} else if (game.portals[p].direction == Direction.DOWN) {
-						sx = game.portals[p].x >> 8;
-						sy = game.portals[p].y >> 8;
+					} else if (exit.direction == Direction.DOWN) {
+						sx = exit.x >> 8;
+						sy = exit.y >> 8;
 						vx = 0;
 						vy = -1;
 						y = sy;

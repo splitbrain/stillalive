@@ -300,8 +300,7 @@ export function moveObject(obj) {
 				for (c = 0; c < game.crates.length; c++) {
 					const ca = game.crates[c];
 					if (isInPortal(ca)) continue;
-					// a crate with the same x or the same y position is skipped. A fix would change the gameplay.
-					if (obj.x != ca.x && obj.y != ca.y) {
+					if (obj.x != ca.x || obj.y != ca.y) {
 						const y = obj.y >> 8;
 						let x = obj.x >> 8;
 

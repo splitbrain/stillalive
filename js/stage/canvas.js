@@ -6,7 +6,6 @@
  */
 
 import { PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH } from './constants.js';
-import { game, ui } from './state.js';
 
 /** @type {HTMLCanvasElement} The game canvas. */
 let canvas;
@@ -16,6 +15,18 @@ export let ctx;
 
 /** @type {number} The number of buffer pixels per playfield unit. */
 let scale = 1;
+
+/** @type {number} The x shift of the current frame in playfield units, from beginFrame(). */
+let shakeX = 0;
+
+/** @type {number} The y shift of the current frame in playfield units, from beginFrame(). */
+let shakeY = 0;
+
+/**
+ * @type {number} The generation of the buffer. It increases when the buffer gets a new size and when the tab is
+ *     visible again, because the pixels of the copies from copyCanvas() are then wrong or lost.
+ */
+let generation = 0;
 
 /** @type {number} The wanted width of the buffer in device pixels, from the size of the canvas on the page. */
 let wantedWidth;
@@ -62,25 +73,24 @@ function onResize(entries) {
 }
 
 /**
- * Make the copies of the tile layers from copyCanvas() again in the next frame.
- *
- * @returns {void}
- */
-function redrawLayers() {
-	game.tilesChanged = true;
-	ui.editor.redrawTiles = true;
-}
-
-/**
- * Make all copies of images and layers again when the tab is visible again. The browser can drop the pixels of
- * canvases while the tab is hidden, and the copies are then empty.
+ * Drop the copies of the vector images and start a new generation of the buffer when the tab is visible again. The
+ * browser can drop the pixels of canvases while the tab is hidden, and the copies are then empty.
  *
  * @returns {void}
  */
 function onVisibilityChange() {
 	if (document.visibilityState !== 'visible') return;
 	scaledImages = new WeakMap();
-	redrawLayers();
+	generation++;
+}
+
+/**
+ * Get the generation of the buffer. A copy from copyCanvas() of an older generation must be made again.
+ *
+ * @returns {number} The generation.
+ */
+export function canvasGeneration() {
+	return generation;
 }
 
 /**
@@ -119,18 +129,22 @@ export function playfieldPoint(px, py) {
 
 /**
  * Prepare the canvas for a frame: apply a new size of the buffer and set the transformation to playfield units
- * with the screen shake. After a new size, the copies of the tile layers are made again at the new scale.
+ * with the screen shake. A new size starts a new generation of the buffer.
  *
+ * @param {number} x The x shift of the frame in playfield units.
+ * @param {number} y The y shift of the frame in playfield units.
  * @returns {void}
  */
-export function beginFrame() {
+export function beginFrame(x, y) {
 	if (canvas.width !== wantedWidth || canvas.height !== wantedHeight) {
 		canvas.width = wantedWidth;
 		canvas.height = wantedHeight;
-		redrawLayers();
+		generation++;
 	}
+	shakeX = x;
+	shakeY = y;
 	scale = Math.min(canvas.width / PLAYFIELD_WIDTH, canvas.height / PLAYFIELD_HEIGHT);
-	ctx.setTransform(scale, 0, 0, scale, game.shakeX * scale, game.shakeY * scale);
+	ctx.setTransform(scale, 0, 0, scale, shakeX * scale, shakeY * scale);
 }
 
 /**
@@ -222,8 +236,8 @@ export function copyCanvas(x, y, w, h) {
 		.getContext('2d')
 		.drawImage(
 			canvas,
-			Math.round((x + game.shakeX) * scale),
-			Math.round((y + game.shakeY) * scale),
+			Math.round((x + shakeX) * scale),
+			Math.round((y + shakeY) * scale),
 			copy.width,
 			copy.height,
 			0,
@@ -247,8 +261,8 @@ export function drawCopy(copy, x, y) {
 	ctx.save();
 	ctx.setTransform(1, 0, 0, 1, 0, 0);
 	ctx.beginPath();
-	const px = Math.round((x + game.shakeX) * scale);
-	const py = Math.round((y + game.shakeY) * scale);
+	const px = Math.round((x + shakeX) * scale);
+	const py = Math.round((y + shakeY) * scale);
 	ctx.rect(px, py, copy.width, copy.height);
 	ctx.clip();
 	ctx.globalAlpha = 1;

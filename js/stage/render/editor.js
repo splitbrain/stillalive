@@ -19,10 +19,15 @@ import {
 	drawPlayer,
 	drawTiles,
 	drawTurrets,
+	isSameSource,
+	layerSource,
 } from './game.js';
 
 /** @type {OffscreenCanvas|undefined} The copy of the background, the tiles and the objects of the editor map. */
 let tilesBuff;
+
+/** @type {import('./game.js').LayerSource|null} The source of tilesBuff, or null before the first copy. */
+let tilesBuffSource = null;
 
 /**
  * Draw the editor map and the cursor.
@@ -51,13 +56,14 @@ function drawSprites() {
 
 /**
  * Draw the tile layer of the editor with the plasma start markers and the objects, and keep a copy for the next
- * frames.
+ * frames. The objects of the editor come from the map, so the copy stays valid while the map does not change.
  *
  * @returns {void}
  */
 function drawTileMap() {
 	let y, x, i;
-	if (ui.editor.redrawTiles) {
+	const source = layerSource();
+	if (!isSameSource(tilesBuffSource, source)) {
 		drawImage(bg[game.background], 0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 		ctx.fillStyle = 'rgba(255, 0, 0, 0.7)';
 		for (i = 0; i < game.map.tiles.length; i++) {
@@ -79,7 +85,7 @@ function drawTileMap() {
 		drawTiles(game.map);
 		drawSprites();
 		tilesBuff = copyCanvas(0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
-		ui.editor.redrawTiles = false;
+		tilesBuffSource = source;
 	} else {
 		drawCopy(tilesBuff, 0, 0);
 	}

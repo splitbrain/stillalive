@@ -309,7 +309,6 @@ export class Boss {
 						game.map.set(i, FIRST_OF_KIND[TileKind.BOSS_BLOCK]);
 					}
 				}
-				game.tilesChanged = true;
 			} else {
 				game.projectiles = new Array();
 				game.plasmaBall = new Array();

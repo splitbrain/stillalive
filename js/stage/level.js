@@ -393,7 +393,6 @@ export function loadLevel(level, restart = false) {
 
 	game.camera = new Camera(game.player.x, game.player.y);
 	game.cakesLeft = game.cakes.length;
-	game.tilesChanged = true;
 	if (game.cakesLeft == 0) openExit();
 
 	game.background = level.bg;
@@ -433,7 +432,6 @@ export function loadPreviewMap(level) {
 			if (game.map.display[i] == Tile.EXIT_CLOSED) game.map.setDisplay(i, Tile.EXIT);
 		}
 	}
-	game.tilesChanged = true;
 
 	game.background = level.bg;
 }

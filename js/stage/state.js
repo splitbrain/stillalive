@@ -60,8 +60,6 @@ export const game = {
 	plasmaBall: undefined,
 	/** @type {import('./entities/Camera.js').Camera} The security camera. */
 	camera: undefined,
-	/** @type {boolean} True when the tiles changed, so the drawing must draw the tile layer again. */
-	tilesChanged: undefined,
 	/**
 	 * @type {number} The portal index plus 1 of a portal that an object is in during this tick, or 0. The drawing then
 	 *     draws the tiles around the portals over the objects.
@@ -99,8 +97,6 @@ export const ui = {
 	editor: {
 		/** @type {number} The tile id or the object id that the editor paints. */
 		brush: 1,
-		/** @type {boolean} True when the drawing must draw the tile layer of the editor again. */
-		redrawTiles: true,
 		/** @type {boolean} True when the objects of the editor map must be created again. */
 		objectsChanged: false,
 	},

@@ -53,18 +53,16 @@ export function stopPlayingLevel(report = true) {
 	ui.mode = 'edit';
 	game.map = new TileMap(game.oldMap);
 	game.message = null;
-	ui.editor.redrawTiles = true;
 	rebuildObjects();
 	if (report) stageEvents.push({ type: 'died', detail: null });
 }
 
 /**
- * Mark the map as changed, so the update creates the objects again and the drawing draws the tile layer again.
+ * Mark the map as changed, so the update creates the objects again.
  *
  * @returns {void}
  */
 function mapChanged() {
-	ui.editor.redrawTiles = true;
 	ui.editor.objectsChanged = true;
 }
 
@@ -119,7 +117,6 @@ export function openEditor(map) {
 
 	unclick();
 	game.sparkles = new Array();
-	ui.editor.redrawTiles = true;
 	rebuildObjects();
 }
 

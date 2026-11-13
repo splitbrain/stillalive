@@ -2,7 +2,7 @@
  * Drawing of a level and of the preview of a map.
  */
 
-import { copyCanvas, ctx, drawCopy, drawImage } from '../canvas.js';
+import { canvasGeneration, copyCanvas, ctx, drawCopy, drawImage } from '../canvas.js';
 import {
 	Direction,
 	MAP_HEIGHT,
@@ -207,7 +207,7 @@ function drawSparkles() {
  * @returns {void}
  */
 export function drawLevel() {
-	if (game.tilesChanged) createBuff();
+	if (!isSameSource(tileLayerSource, layerSource())) createBuff();
 	drawTileLayer();
 	drawAnimatedTiles();
 
@@ -333,8 +333,47 @@ function drawAnimatedTiles() {
 	}
 }
 
+/**
+ * The map, the version of the map, the background and the canvas generation that a cached layer shows.
+ *
+ * @typedef {object} LayerSource
+ * @property {import('../TileMap.js').TileMap} map The map.
+ * @property {number} version The version of the map.
+ * @property {number} background The index of the background image.
+ * @property {number} generation The generation of the canvas buffer.
+ */
+
+/**
+ * Get the source of a cached layer for the current map, background and canvas buffer.
+ *
+ * @returns {LayerSource} The source.
+ */
+export function layerSource() {
+	return { map: game.map, version: game.map.version, background: game.background, generation: canvasGeneration() };
+}
+
+/**
+ * Check if two layer sources are the same, so a cached layer of one source can show the other.
+ *
+ * @param {LayerSource|null} a The first source, or null for no cached layer.
+ * @param {LayerSource} b The second source.
+ * @returns {boolean} True if the sources are the same.
+ */
+export function isSameSource(a, b) {
+	return (
+		a != null &&
+		a.map === b.map &&
+		a.version == b.version &&
+		a.background == b.background &&
+		a.generation == b.generation
+	);
+}
+
 /** @type {OffscreenCanvas|null} The copy of the background and the tile layer from saveTileLayer(). */
 let tileLayer = null;
+
+/** @type {LayerSource|null} The source of tileLayer, or null before the first copy. */
+let tileLayerSource = null;
 
 /**
  * Keep a copy of the background and the tile layer, which are drawn in the playfield.
@@ -343,7 +382,7 @@ let tileLayer = null;
  */
 function saveTileLayer() {
 	tileLayer = copyCanvas(0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
-	game.tilesChanged = false;
+	tileLayerSource = layerSource();
 }
 
 /**
@@ -699,7 +738,7 @@ export function drawPlayer(x, y, flipX, frame = 0) {
  * @returns {void}
  */
 export function drawPreviewMap() {
-	if (game.tilesChanged) createBuff();
+	if (!isSameSource(tileLayerSource, layerSource())) createBuff();
 	drawTileLayer();
 
 	ctx.save();

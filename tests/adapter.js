@@ -279,7 +279,6 @@ export async function setMap(page, tiles) {
 	await page.evaluate((tiles) => {
 		const { game } = window.__test;
 		game.map.replace(tiles);
-		game.tilesChanged = true;
 	}, tiles);
 }
 
@@ -540,7 +539,6 @@ export async function runPortalScene(page, scene) {
 			'animatedTiles',
 		])
 			game[list] = [];
-		game.tilesChanged = true;
 		input.keys = 0;
 		for (let i = 0; i < 40; i++) t.tick();
 

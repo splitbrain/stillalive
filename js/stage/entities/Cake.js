@@ -20,7 +20,6 @@ export function openExit() {
 	for (i = 0; i < MAP_SIZE; i++) {
 		if (game.map.tiles[i] == Tile.EXIT_CLOSED) game.map.set(i, Tile.EXIT);
 	}
-	game.tilesChanged = true;
 }
 
 /**

@@ -164,7 +164,6 @@ export class Plasma extends Body {
 	 */
 	#fillSlot(column, row) {
 		game.map.set(game.map.index(column, row), Tile.WALL);
-		game.tilesChanged = true;
 		if (this.hasSlot()) this.reset();
 		else {
 			this.used = false;

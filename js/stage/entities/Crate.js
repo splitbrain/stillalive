@@ -87,7 +87,6 @@ export class Crate extends Body {
 								else game.map.set(i, Tile.EMPTY);
 							}
 						}
-						game.tilesChanged = true;
 						game.boss.useUpCrate(this);
 						return;
 					}

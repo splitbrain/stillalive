@@ -77,20 +77,8 @@ export const game = {
 	plasmaX: undefined,
 	/** @type {number} The y start position of the plasma shots of the boss in 1/256 pixels. */
 	plasmaY: undefined,
-	/** @type {number} The x position of the boss in pixels. */
-	bossX: undefined,
-	/** @type {number} The y position of the boss in pixels. */
-	bossY: undefined,
-	/** @type {number} The boss of the level, or 0 for a level without a boss. */
-	bossNum: 0,
-	/** @type {number} The number of hits that the boss took, from 0 to 3. */
-	bossLife: undefined,
-	/** @type {boolean} True while the boss comes in. */
-	bossIsComing: undefined,
-	/** @type {number} The distance that the boss moved while it comes in, in 1/256 pixels. */
-	bossComingTime: undefined,
-	/** @type {number} The number of ticks since the boss started to come in. */
-	rumbleTime: undefined,
+	/** @type {import('./entities/Boss.js').Boss|null} The boss of the level, or null for a level without a boss. */
+	boss: null,
 	/**
 	 * @type {{text: string, wait: boolean, portrait: number}|null} The message of the events of the level, or null.
 	 *     The property wait is true while the message waits for a click. The portrait is 0 for the robot or the number

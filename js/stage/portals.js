@@ -308,7 +308,7 @@ export function passPortal(obj, side) {
 	if (side == Direction.LEFT || side == Direction.RIGHT) {
 		const gap = (2 * TILE_SIZE - obj.pY) >> 1;
 		obj.y = ((portal.y >> 8) + gap) << 8;
-		if (game.bossNum == 0 || obj.type != 'plasma') obj.vy = 0;
+		if (!game.boss || obj.type != 'plasma') obj.vy = 0;
 	} else {
 		obj.x = ((portal.x >> 8) + TILE_SIZE / 2) << 8;
 	}
@@ -364,7 +364,7 @@ function teleport(p, obj) {
 		obj.y = game.portals[1 - p].y - ((obj.pY >> 1) << 8);
 	}
 
-	if (game.bossNum == 0 || obj.type != 'plasma') {
+	if (!game.boss || obj.type != 'plasma') {
 		if (entry == Direction.DOWN && exit == Direction.DOWN) {
 			obj.vy = -obj.vy;
 			if (obj.vy > -1100) obj.vy = -1100;
@@ -401,7 +401,7 @@ function teleport(p, obj) {
 		} else if (entry == Direction.UP && exit == Direction.DOWN) {
 			obj.vy = -1000;
 		}
-	} else if ((game.bossNum == 3 || game.bossNum == 4) && obj.type == 'plasma') {
+	} else if (game.boss?.shootsPlasma() && obj.type == 'plasma') {
 		if ((entry == Direction.DOWN && exit == Direction.DOWN) || (entry == Direction.UP && exit == Direction.UP)) {
 			obj.vy = -obj.vy;
 		} else if (

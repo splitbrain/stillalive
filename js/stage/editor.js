@@ -103,7 +103,7 @@ export function openEditor(map) {
 		properties = rest;
 	}
 	ui.mode = 'edit';
-	game.bossNum = 0;
+	game.boss = null;
 	game.shakeX = 0;
 	game.shakeY = 0;
 	game.map = storedMap.tiles.slice();

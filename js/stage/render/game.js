@@ -226,9 +226,9 @@ export function drawLevel() {
 	drawSparkles();
 	drawCrates();
 
-	if (game.bossNum > 0) {
+	if (game.boss) {
 		drawBoss();
-		if (game.bossNum == 2 || game.bossNum == 4) drawProjectiles();
+		if (game.boss.shootsWheels()) drawProjectiles();
 		drawTube();
 	}
 
@@ -562,7 +562,7 @@ export function drawGravPipe(dir, x, y) {
  * @returns {void}
  */
 function drawTube() {
-	drawImage(game.bossNum == 2 ? tube2 : tube, game.tubeX >> 8, game.tubeY >> 8);
+	drawImage(game.boss.number == 2 ? tube2 : tube, game.tubeX >> 8, game.tubeY >> 8);
 }
 
 /**
@@ -717,7 +717,7 @@ export function drawPreviewMap() {
 	drawPlatforms();
 	drawGravPipes();
 
-	if (game.bossNum > 0) {
+	if (game.boss) {
 		drawTube();
 		drawBoss();
 	}

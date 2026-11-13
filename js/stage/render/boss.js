@@ -12,6 +12,7 @@ import { game } from '../state.js';
  * @returns {void}
  */
 export function drawBoss() {
-	drawImage(robotHead, game.bossX, game.bossY, 74, 58);
-	drawImage(robotEye[game.bossNum - 1], 0, 19 * game.bossLife, 19, 19, game.bossX + 15, game.bossY + 22, 19, 19);
+	const boss = game.boss;
+	drawImage(robotHead, boss.x, boss.y, 74, 58);
+	drawImage(robotEye[boss.number - 1], 0, 19 * boss.hits, 19, 19, boss.x + 15, boss.y + 22, 19, 19);
 }

@@ -3,7 +3,6 @@
  */
 
 import { playSound, sfx_field } from './audio.js';
-import { setupBoss, skipComingBoss } from './boss.js';
 import {
 	Direction,
 	MAP_HEIGHT,
@@ -16,6 +15,7 @@ import {
 	TILE_SIZE,
 } from './constants.js';
 import { AnimatedTile } from './entities/AnimatedTile.js';
+import { Boss } from './entities/Boss.js';
 import { Cake, openExit } from './entities/Cake.js';
 import { Camera } from './entities/Camera.js';
 import { Crate } from './entities/Crate.js';
@@ -350,6 +350,7 @@ function parseObjects(mode, boss = 0) {
 function resetLevelState() {
 	game.portals = [new Portal(), new Portal()];
 	game.sparkles = new Array();
+	game.projectiles = new Array();
 	game.time = 0;
 	game.steps = 0;
 	game.portalShots = 0;
@@ -391,8 +392,8 @@ export function loadLevel(level, restart = false) {
 	game.player = new Player();
 	if (level.fromBelow) jumpInFromBelow();
 
-	game.bossNum = level.boss;
-	parseObjects('play', game.bossNum);
+	game.boss = level.boss ? new Boss(level.boss) : null;
+	parseObjects('play', level.boss);
 
 	game.camera = new Camera(game.player.x, game.player.y);
 	game.cakesLeft = game.cakes.length;
@@ -404,10 +405,7 @@ export function loadLevel(level, restart = false) {
 	game.events = level.events;
 	game.labels = level.labels;
 	startEvents(restart);
-	if (game.bossNum > 0) {
-		setupBoss();
-		if (restart) skipComingBoss();
-	}
+	if (game.boss && (restart || game.replayMode)) game.boss.skipEntry();
 }
 
 /**
@@ -424,14 +422,15 @@ export function loadPreviewMap(level) {
 	game.sparkles = new Array();
 	game.animatedTiles = new Array();
 	game.plasmaBall = new Array();
+	game.projectiles = new Array();
 
 	game.player = new Player();
 	parseObjects('preview');
 
 	if (level.fromBelow) jumpInFromBelow();
 
-	game.bossNum = level.boss ?? 0;
-	if (game.bossNum > 0) setupBoss();
+	game.boss = level.boss ? new Boss(level.boss) : null;
+	if (game.boss && game.replayMode) game.boss.skipEntry();
 
 	game.cakesLeft = game.cakes.length;
 	if (game.cakesLeft == 0) game.displayMap = game.displayMap.map((t) => (t == Tile.EXIT_CLOSED ? Tile.EXIT : t));

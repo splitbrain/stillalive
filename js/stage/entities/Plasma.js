@@ -93,7 +93,7 @@ export class Plasma extends Body {
 
 		if (!passPortals(this)) {
 			this.checkCollision();
-			if (game.bossNum == 3 || game.bossNum == 4) {
+			if (game.boss?.shootsPlasma()) {
 				if (this.x < game.player.x) this.vx += 4;
 				else if (this.x > game.player.x) this.vx -= 4;
 				if (this.y < game.player.y) this.vy += 4;
@@ -110,7 +110,7 @@ export class Plasma extends Body {
 			}
 		}
 
-		if (game.bossNum == 0) {
+		if (!game.boss) {
 			if (vx && this.vy) this.vx = 0;
 			else if (vy && this.vx) this.vy = 0;
 			if (this.vx > this.vMax) this.vx = this.vMax;
@@ -215,7 +215,7 @@ export class Plasma extends Body {
 
 			x = (this.x >> 8) - 1;
 			y = this.y >> 8;
-			for (i = 2; i <= 14 && game.bossNum == 0; i++) {
+			for (i = 2; i <= 14 && !game.boss; i++) {
 				if (getTileSimple(x, y + i) == Tile.PLASMA_SLOT) {
 					this.#fillSlot(x >> TILE_SIZE_BITS, (y + i) >> TILE_SIZE_BITS);
 					break;
@@ -230,7 +230,7 @@ export class Plasma extends Body {
 
 			x = (this.x >> 8) + TILE_SIZE;
 			y = this.y >> 8;
-			for (i = 2; i <= 14 && game.bossNum == 0; i++) {
+			for (i = 2; i <= 14 && !game.boss; i++) {
 				if (getTileSimple(x, y + i) == Tile.PLASMA_SLOT) {
 					this.#fillSlot(x >> TILE_SIZE_BITS, (y + i) >> TILE_SIZE_BITS);
 					break;
@@ -245,7 +245,7 @@ export class Plasma extends Body {
 
 			x = this.x >> 8;
 			y = (this.y >> 8) - 1;
-			for (i = 4; i <= 12 && game.bossNum == 0; i++) {
+			for (i = 4; i <= 12 && !game.boss; i++) {
 				if (getTileSimple(x + i, y) == Tile.PLASMA_SLOT) {
 					this.#fillSlot((x + i) >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS);
 					break;
@@ -260,7 +260,7 @@ export class Plasma extends Body {
 
 			x = this.x >> 8;
 			y = (this.y >> 8) + TILE_SIZE;
-			for (i = 4; i <= 12 && game.bossNum == 0; i++) {
+			for (i = 4; i <= 12 && !game.boss; i++) {
 				if (getTileSimple(x + i, y) == Tile.PLASMA_SLOT) {
 					this.#fillSlot((x + i) >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS);
 					break;

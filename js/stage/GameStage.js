@@ -17,7 +17,6 @@ import {
 	sfx_hover,
 	sfx_tick,
 } from './audio.js';
-import { bossPhase } from './boss.js';
 import { clearCanvas, ctx, setCanvas, watchCanvasSize } from './canvas.js';
 import { PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH } from './constants.js';
 import {
@@ -426,7 +425,7 @@ export class GameStage extends HTMLElement {
 		this.speed.set(this.#speed);
 		this.brush.set(ui.editor.brush);
 		this.fps.set(getFps());
-		const phase = ui.mode == 'play' ? bossPhase() : null;
+		const phase = ui.mode == 'play' ? (game.boss?.phase() ?? null) : null;
 		setMusicMood(phase == 'fight' ? BOSS_MUSIC_RATE : 1, phase == 'coming' || phase == 'leaving' ? BOSS_MUSIC_DUCK : 1);
 
 		const events = stageEvents.splice(0);

@@ -4,7 +4,6 @@
 
 import { Body } from './Body.js';
 import { playSound, sfx_crateLand, sfx_dissolve, sfx_wallBreak, sfx_wallCrack } from '../audio.js';
-import { hitBoss, manageInTube } from '../boss.js';
 import { PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, TILE_SIZE } from '../constants.js';
 import { plasmaTouching } from './Plasma.js';
 import { onPlatform } from './Platform.js';
@@ -77,8 +76,8 @@ export class Crate extends Body {
 				moveObject(this);
 				if (falling && this.vy == 0 && touchingGround(this)) playSound(sfx_crateLand);
 
-				if (game.bossNum > 0) {
-					if (game.bossNum == 1 || game.bossNum == 4) manageInTube(this);
+				if (game.boss) {
+					if (game.boss.throwsCrates()) this.#shrinkInTube();
 
 					const t = getTileSimple((this.x >> 8) + this.pX + 1, this.y >> 8);
 					if (isTileKind(t, TileKind.BOSS_BLOCK)) {
@@ -95,8 +94,8 @@ export class Crate extends Body {
 							}
 						}
 						game.tilesChanged = true;
-						if (game.bossNum == 1 || game.bossNum == 3 || game.bossNum == 4) this.needKill = true;
-						else if (game.bossNum == 2) {
+						if (game.boss.makesCrates()) this.needKill = true;
+						else if (game.boss.number == 2) {
 							this.x = (5 * TILE_SIZE) << 8;
 							this.y = -TILE_SIZE << 8;
 							this.vx = 0;
@@ -105,7 +104,7 @@ export class Crate extends Body {
 						return;
 					}
 
-					hitBoss(this);
+					game.boss.hit(this);
 				}
 
 				let pi = onPlatform(this);
@@ -154,13 +153,26 @@ export class Crate extends Body {
 	}
 
 	/**
+	 * Shrink the crate when it enters the tube of the boss level.
+	 *
+	 * @returns {void}
+	 */
+	#shrinkInTube() {
+		if (this.vx < 0) return;
+
+		if (this.overlapsBox(game.tubeX >> 8, game.tubeY >> 8, 4 * TILE_SIZE, 3 * TILE_SIZE)) {
+			this.shrink = 60;
+		}
+	}
+
+	/**
 	 * Let the crate go away in the boss levels 1, 3 and 4. In the other levels, put the crate back to its start
 	 * without speed.
 	 *
 	 * @returns {boolean} True if the crate goes away.
 	 */
 	#destroyOrReset() {
-		if (game.bossNum == 1 || game.bossNum == 3 || game.bossNum == 4) {
+		if (game.boss?.makesCrates()) {
 			this.needKill = true;
 			return true;
 		}

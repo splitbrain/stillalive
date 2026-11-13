@@ -139,7 +139,7 @@ function fire(event) {
 	if (event.wait && skipWaits) return;
 	if (event.text !== undefined) {
 		const text = event.text.replace(/\{(Key[WASDE])\}/g, (_, code) => keyLabels.get()[code]);
-		game.message = text ? { text, wait: Boolean(event.wait), portrait: game.bossNum } : null;
+		game.message = text ? { text, wait: Boolean(event.wait), portrait: game.boss?.number ?? 0 } : null;
 	}
 	if (!event.wait) return;
 	waiting = event;

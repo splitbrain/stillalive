@@ -3,7 +3,6 @@
  */
 
 import { playSound, sfx_transition } from './audio.js';
-import { updateBoss, updateBossRumble } from './boss.js';
 import { FADE_START, Transition } from './constants.js';
 import { stopPlayingLevel, updateLevelEditor } from './editor.js';
 import { animateTiles } from './entities/AnimatedTile.js';
@@ -64,11 +63,11 @@ function updateLevel() {
 		}
 	}
 
-	if ((isWaiting() || (game.bossNum > 0 && game.bossIsComing)) && game.player.fadeNextLevel == -1) {
+	if ((isWaiting() || game.boss?.entering) && game.player.fadeNextLevel == -1) {
 		game.player.fadeNextLevel = 0;
 	}
 	updateObjects();
-	updateBoss();
+	game.boss?.update();
 	if (!atExit()) updateEvents();
 }
 
@@ -81,7 +80,7 @@ function updateLevel() {
  * @returns {void}
  */
 function updateLevelEnd() {
-	game.bossNum = 0;
+	game.boss = null;
 	game.shakeX = 0;
 	game.shakeY = 0;
 
@@ -127,9 +126,9 @@ function updateObjects() {
 	updateSparkles();
 	updateCrates();
 
-	if (game.bossNum > 0 && game.player.fadeNextLevel == -1) {
-		if (game.bossNum == 2 || game.bossNum == 4) updateProjectiles();
-		updateBossRumble();
+	if (game.boss && game.player.fadeNextLevel == -1) {
+		if (game.boss.shootsWheels()) updateProjectiles();
+		game.boss.updateRumble();
 	}
 
 	updatePlatforms();

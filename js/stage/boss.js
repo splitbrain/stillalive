@@ -13,20 +13,27 @@ import { game } from './state.js';
 import { FIRST_OF_KIND, TileKind } from './tiles.js';
 import { getCos, getDistance, getSin, random } from './utils.js';
 
+/** @type {number} The x position of the boss in pixels while it fights. */
+const BOSS_X = 449;
+/** @type {number} The y position of the boss in pixels. */
+const BOSS_Y = 150;
+/** @type {number} The distance in pixels that the boss moves to the left while it comes in. */
+const BOSS_ENTRY_DISTANCE = 50;
+
 /**
  * Put the boss in its start state. In a boss level, the boss comes in after the waits of the start events.
  *
  * @returns {void}
  */
 export function setupBoss() {
-	game.bossX = 449;
-	game.bossY = 150;
+	game.bossX = BOSS_X;
+	game.bossY = BOSS_Y;
 	game.bossLife = 0;
 	game.projectiles = new Array();
 	if (game.bossNum != 0) {
 		game.bossIsComing = true;
 		game.bossComingTime = 0;
-		game.bossX = 449 + 50 - (game.bossComingTime >> 8);
+		game.bossX = BOSS_X + BOSS_ENTRY_DISTANCE;
 		game.rumbleTime = 0;
 	} else skipComingBoss();
 
@@ -42,7 +49,7 @@ export function skipComingBoss() {
 	if (game.bossNum != 0) {
 		game.bossIsComing = false;
 		game.bossComingTime = 0;
-		game.bossX = 449;
+		game.bossX = BOSS_X;
 		game.rumbleTime = 0;
 		triggerEvents('bossArrived');
 	}
@@ -62,8 +69,8 @@ export function updateBoss() {
 			playLoop(sfx_bossAlarm);
 			game.bossComingTime += 32;
 			game.rumbleTime++;
-			game.bossX = 449 + 50 - (game.bossComingTime >> 8);
-			if (game.bossX == 449) {
+			game.bossX = BOSS_X + BOSS_ENTRY_DISTANCE - (game.bossComingTime >> 8);
+			if (game.bossX == BOSS_X) {
 				game.bossIsComing = false;
 				game.shakeX = 0;
 				game.shakeY = 0;

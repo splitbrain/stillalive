@@ -225,9 +225,8 @@ export function moveObject(obj) {
 			else if ((obj.y >> 8) + obj.pY > game.gravPipeFields[f].y + 2 * TILE_SIZE - (TILE_SIZE - (obj.pY >> 1)))
 				obj.y -= 512;
 		} else if (game.gravPipeFields[f].vy != 0) {
-			// the height pY centers the object on the x axis. A fix would change the gameplay for the turrets.
-			if (obj.x >> 8 < game.gravPipeFields[f].x + (TILE_SIZE - (obj.pY >> 1))) obj.x += 256;
-			else if ((obj.x >> 8) + obj.pX > game.gravPipeFields[f].x + 2 * TILE_SIZE - (TILE_SIZE - (obj.pY >> 1)))
+			if (obj.x >> 8 < game.gravPipeFields[f].x + (TILE_SIZE - (obj.pX >> 1))) obj.x += 256;
+			else if ((obj.x >> 8) + obj.pX > game.gravPipeFields[f].x + 2 * TILE_SIZE - (TILE_SIZE - (obj.pX >> 1)))
 				obj.x -= 256;
 		}
 

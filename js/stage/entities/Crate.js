@@ -94,13 +94,7 @@ export class Crate extends Body {
 							}
 						}
 						game.tilesChanged = true;
-						if (game.boss.makesCrates()) this.needKill = true;
-						else if (game.boss.number == 2) {
-							this.x = (5 * TILE_SIZE) << 8;
-							this.y = -TILE_SIZE << 8;
-							this.vx = 0;
-							this.vy = 0;
-						}
+						game.boss.useUpCrate(this);
 						return;
 					}
 

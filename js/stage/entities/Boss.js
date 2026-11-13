@@ -300,13 +300,7 @@ export class Boss {
 	hit(crate) {
 		let i;
 		if (this.hits < 3 && crate.overlapsBox(this.x + 16, this.y, 74, 58)) {
-			if (this.makesCrates()) crate.needKill = true;
-			else if (this.number == 2) {
-				crate.x = (5 * TILE_SIZE) << 8;
-				crate.y = -TILE_SIZE << 8;
-				crate.vx = 0;
-				crate.vy = 0;
-			}
+			this.useUpCrate(crate);
 			this.hits++;
 			playSound(sfx_bossHit);
 			if (this.hits < 3) {
@@ -322,6 +316,24 @@ export class Boss {
 				game.plasmaBall = new Array();
 				triggerEvents('bossDied');
 			}
+		}
+	}
+
+	/**
+	 * Take away a crate that hit the boss or a boss block. A boss that makes new crates removes it. Boss 2 makes no
+	 * crates, so its crate drops from the top again.
+	 *
+	 * @param {Crate} crate The crate.
+	 * @returns {void}
+	 */
+	useUpCrate(crate) {
+		if (this.makesCrates()) {
+			crate.needKill = true;
+		} else {
+			crate.x = (5 * TILE_SIZE) << 8;
+			crate.y = -TILE_SIZE << 8;
+			crate.vx = 0;
+			crate.vy = 0;
 		}
 	}
 

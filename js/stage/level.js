@@ -151,32 +151,32 @@ function openSwitchDoors() {
  *
  * @param {number} x The x coordinate of the player in pixels.
  * @param {number} y The y coordinate of the player in pixels.
- * @returns {number} 1 if a switch tile is below the player, else 0.
+ * @returns {boolean} True if a switch tile is below the player.
  */
 function playerOnSwitch(x, y) {
-	if (game.map.atPixel(x, y + game.player.pY + 5) == Tile.SWITCH) return 1;
-	else if (game.map.atPixel(x + 15, y + game.player.pY + 5) == Tile.SWITCH) return 1;
-	return 0;
+	if (game.map.atPixel(x, y + game.player.pY + 5) == Tile.SWITCH) return true;
+	else if (game.map.atPixel(x + 15, y + game.player.pY + 5) == Tile.SWITCH) return true;
+	return false;
 }
 
 /**
  * Check if a crate stands on a switch. The test points lie a few pixels inside the tile below the crate.
  *
- * @returns {number} 1 if a switch tile is below a crate, else 0.
+ * @returns {boolean} True if a switch tile is below a crate.
  */
 function crateOnSwitch() {
 	let i;
 	for (i = 0; i < game.crates.length; i++) {
 		if (game.map.atPixel(game.crates[i].x >> 8, (game.crates[i].y >> 8) + game.crates[i].pY + 3) == Tile.SWITCH) {
-			return 1;
+			return true;
 		} else if (
 			game.map.atPixel((game.crates[i].x >> 8) + TILE_SIZE - 1, (game.crates[i].y >> 8) + game.crates[i].pY + 3) ==
 			Tile.SWITCH
 		) {
-			return 1;
+			return true;
 		}
 	}
-	return 0;
+	return false;
 }
 
 /**

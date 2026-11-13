@@ -264,15 +264,15 @@ export class Plasma extends Body {
  * Check if a plasma ball overlaps an object.
  *
  * @param {import('./Body.js').Body} obj The object.
- * @returns {number} 1 if a ball overlaps the object, else 0.
+ * @returns {boolean} True if a ball overlaps the object.
  */
 export function plasmaTouching(obj) {
 	let i;
 	for (i = 0; i < game.plasmaBall.length; i++) {
-		if (game.plasmaBall[i].used && game.plasmaBall[i].overlaps(obj)) return 1;
+		if (game.plasmaBall[i].used && game.plasmaBall[i].overlaps(obj)) return true;
 	}
 
-	return 0;
+	return false;
 }
 
 /**

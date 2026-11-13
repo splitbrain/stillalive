@@ -343,7 +343,7 @@ export class Player extends Body {
 		const platform = onPlatform(this);
 		if (platform) this.x += platform.vx;
 
-		let col = 1;
+		let col = true;
 		while (col && !isInPortal(this)) {
 			col = checkCollisions(this);
 		}

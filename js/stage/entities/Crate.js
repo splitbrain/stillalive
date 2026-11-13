@@ -220,7 +220,7 @@ function findCrate(x, y, counts) {
  * Check if a falling crate lands on the head of the player.
  *
  * @param {Body} obj The moving object.
- * @returns {number} 1 if the object is a crate that falls onto the player, else 0.
+ * @returns {boolean} True if the object is a crate that falls onto the player.
  */
 export function crateLandsOnPlayer(obj) {
 	if (obj.type == 'crate' && obj.vy > 0 && !isInPortal(obj)) {
@@ -229,13 +229,13 @@ export function crateLandsOnPlayer(obj) {
 		const x2 = game.player.x >> 8;
 		const y2 = game.player.y >> 8;
 
-		if (x >= x2 && x < x2 + 16 && y >= y2 && y < y2 + 4) return 1;
+		if (x >= x2 && x < x2 + 16 && y >= y2 && y < y2 + 4) return true;
 		else {
 			x += 9;
-			if (x >= x2 && x < x2 + 16 && y >= y2 && y < y2 + 4) return 1;
+			if (x >= x2 && x < x2 + 16 && y >= y2 && y < y2 + 4) return true;
 		}
 	}
-	return 0;
+	return false;
 }
 
 /**

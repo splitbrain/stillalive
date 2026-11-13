@@ -324,7 +324,7 @@ export function moveObject(obj) {
 						}
 
 						if (needReturn) {
-							col = 1;
+							col = true;
 							while (col && !isInPortal(obj)) {
 								col = checkCollisions(obj);
 							}
@@ -336,7 +336,7 @@ export function moveObject(obj) {
 		}
 	}
 
-	col = 1;
+	col = true;
 	while (col && !isInPortal(obj)) {
 		col = checkCollisions(obj);
 	}
@@ -345,17 +345,17 @@ export function moveObject(obj) {
 /**
  * Check if the player carries an object.
  *
- * @returns {number} 1 if the player carries a crate or a turret, else 0.
+ * @returns {boolean} True if the player carries a crate or a turret.
  */
 export function carriesObject() {
 	let i;
 	for (i = 0; i < game.crates.length; i++) {
-		if (game.crates[i].carried) return 1;
+		if (game.crates[i].carried) return true;
 	}
 	for (i = 0; i < game.turrets.length; i++) {
-		if (game.turrets[i].carried) return 1;
+		if (game.turrets[i].carried) return true;
 	}
-	return 0;
+	return false;
 }
 
 /**
@@ -556,13 +556,14 @@ export function getCollision(obj) {
  * Push an object out of the solid tiles and stop its speed in that direction.
  *
  * @param {import('./entities/Body.js').Body} obj The object. It must also have the speeds vx and vy.
- * @returns {number} 1 if a collision was resolved, 0 if there was none or the object is stuck between two sides.
+ * @returns {boolean} True if a collision was resolved, false if there was none or the object is stuck between two
+ *     sides.
  */
 export function checkCollisions(obj) {
-	let coll = 0;
+	let coll = false;
 
 	if (getCollision(obj) == Direction.UP) {
-		coll = 1;
+		coll = true;
 		if (obj.vy < 0) {
 			obj.vx >>= 1;
 			obj.vy = 0;
@@ -570,33 +571,33 @@ export function checkCollisions(obj) {
 		do {
 			obj.y += 256;
 			if (getCollision(obj) == Direction.DOWN) {
-				coll = 0;
+				coll = false;
 				break;
 			}
 		} while (getCollision(obj) == Direction.UP);
 	}
 
 	if (!coll && getCollision(obj) == Direction.DOWN) {
-		coll = 1;
+		coll = true;
 		if (obj.vy > 0) {
 			obj.vy = 0;
 		}
 		do {
 			obj.y -= 256;
 			if (getCollision(obj) == Direction.UP) {
-				coll = 0;
+				coll = false;
 				break;
 			}
 		} while (getCollision(obj) == Direction.DOWN);
 	}
 
 	if (!coll && getCollision(obj) == Direction.LEFT) {
-		coll = 1;
+		coll = true;
 		if (obj.vx < 0) obj.vx = 0;
 		do {
 			obj.x += 256;
 			if (getCollision(obj) == Direction.RIGHT) {
-				coll = 0;
+				coll = false;
 				obj.vy = 0;
 				break;
 			}
@@ -604,12 +605,12 @@ export function checkCollisions(obj) {
 	}
 
 	if (!coll && getCollision(obj) == Direction.RIGHT) {
-		coll = 1;
+		coll = true;
 		if (obj.vx > 0) obj.vx = 0;
 		do {
 			obj.x -= 256;
 			if (getCollision(obj) == Direction.LEFT) {
-				coll = 0;
+				coll = false;
 				obj.vy = 0;
 				break;
 			}
@@ -622,7 +623,7 @@ export function checkCollisions(obj) {
 /**
  * Check if the player touches the exit.
  *
- * @returns {number} 1 if the player is on the open exit, else 0.
+ * @returns {boolean} True if the player is on the open exit.
  */
 export function atExit() {
 	const p = game.player;
@@ -632,10 +633,10 @@ export function atExit() {
 		// check each tile that the box of the player touches
 		for (let ty = y >> TILE_SIZE_BITS; ty <= (y + p.pY - 1) >> TILE_SIZE_BITS; ty++) {
 			for (let tx = x >> TILE_SIZE_BITS; tx <= (x + p.pX - 1) >> TILE_SIZE_BITS; tx++) {
-				if (game.map.atPixel(tx << TILE_SIZE_BITS, ty << TILE_SIZE_BITS) == Tile.EXIT) return 1;
+				if (game.map.atPixel(tx << TILE_SIZE_BITS, ty << TILE_SIZE_BITS) == Tile.EXIT) return true;
 			}
 		}
 	}
 
-	return 0;
+	return false;
 }

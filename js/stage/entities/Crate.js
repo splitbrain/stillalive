@@ -135,14 +135,7 @@ export class Crate extends Body {
 					touchesDeadlyTile(this) ||
 					plasmaTouching(this)
 				) {
-					if (game.bossNum == 1 || game.bossNum == 3 || game.bossNum == 4) {
-						this.needKill = true;
-						return;
-					}
-					this.x = this.xOrig;
-					this.y = this.yOrig;
-					this.vx = 0;
-					this.vy = 0;
+					if (this.#destroyOrReset()) return;
 				}
 			} else {
 				if (this.carpet > 0) this.carpet = 0;
@@ -150,16 +143,7 @@ export class Crate extends Body {
 			}
 		} else {
 			this.shrink -= 4;
-			if (this.shrink == 0) {
-				if (game.bossNum == 1 || game.bossNum == 3 || game.bossNum == 4) {
-					this.needKill = true;
-					return;
-				}
-				this.x = this.xOrig;
-				this.y = this.yOrig;
-				this.vx = 0;
-				this.vy = 0;
-			}
+			if (this.shrink == 0 && this.#destroyOrReset()) return;
 		}
 
 		if (this.shrink == 0 && inForceField(this)) {
@@ -167,6 +151,24 @@ export class Crate extends Body {
 			this.shrink = 60;
 			playSound(sfx_dissolve);
 		}
+	}
+
+	/**
+	 * Let the crate go away in the boss levels 1, 3 and 4. In the other levels, put the crate back to its start
+	 * without speed.
+	 *
+	 * @returns {boolean} True if the crate goes away.
+	 */
+	#destroyOrReset() {
+		if (game.bossNum == 1 || game.bossNum == 3 || game.bossNum == 4) {
+			this.needKill = true;
+			return true;
+		}
+		this.x = this.xOrig;
+		this.y = this.yOrig;
+		this.vx = 0;
+		this.vy = 0;
+		return false;
 	}
 }
 
@@ -219,7 +221,7 @@ function findCrate(x, y, counts) {
 /**
  * Check if a falling crate lands on the head of the player.
  *
- * @param {object} obj The moving object.
+ * @param {Body} obj The moving object.
  * @returns {number} 1 if the object is a crate that falls onto the player, else 0.
  */
 export function crateLandsOnPlayer(obj) {

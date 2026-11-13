@@ -24,7 +24,7 @@ import { getCos, getDistance, getSin, inScreen } from './utils.js';
 /**
  * Check what an object stands on.
  *
- * @param {object} obj The object with x, y, vy, pX and pY.
+ * @param {import('./entities/Body.js').Body} obj The object. It must also have the vertical speed vy.
  * @returns {number} 0 if the object is in the air, 1 for normal ground, 2 for an icy wall, 3 for a conveyor belt to
  *     the right and 4 for a conveyor belt to the left.
  */
@@ -56,7 +56,7 @@ function pointOnDeadlyTile(x, y) {
 /**
  * Check if an object touches a deadly tile at one of its six test points.
  *
- * @param {object} obj The object with x, y, pX and pY.
+ * @param {import('./entities/Body.js').Body} obj The object.
  * @returns {number} The id of the deadly tile that the object touches, or 0.
  */
 export function touchesDeadlyTile(obj) {
@@ -171,7 +171,7 @@ export function getTilePortal(x, y) {
  * Hold a carried object in front of the player, in the direction of the mouse. The object also gets the speed for
  * the throw.
  *
- * @param {object} obj The crate or turret.
+ * @param {import('./entities/Body.js').Body} obj The crate or turret.
  * @returns {void}
  */
 export function placeObject(obj) {
@@ -209,7 +209,7 @@ export function placeObject(obj) {
 /**
  * Move a crate or turret for one tick.
  *
- * @param {object} obj The crate or turret.
+ * @param {import('./entities/Body.js').Body} obj The crate or turret.
  * @returns {void}
  */
 export function moveObject(obj) {
@@ -421,7 +421,7 @@ export function grabObject() {
 /**
  * Get the solid tile in the bottom row of an object.
  *
- * @param {object} obj The object with x, y, pX and pY.
+ * @param {import('./entities/Body.js').Body} obj The object.
  * @returns {number} The tile id or code of the first solid point along the bottom edge, else 0.
  */
 export function downCollision(obj) {
@@ -441,7 +441,7 @@ export function downCollision(obj) {
 /**
  * Get the solid tile in the top row of an object.
  *
- * @param {object} obj The object with x, y, pX and pY.
+ * @param {import('./entities/Body.js').Body} obj The object.
  * @returns {number} The tile id or code of the first solid point along the top edge, else 0.
  */
 export function upCollision(obj) {
@@ -461,7 +461,7 @@ export function upCollision(obj) {
 /**
  * Get the solid tile left of an object.
  *
- * @param {object} obj The object with x, y, pX and pY.
+ * @param {import('./entities/Body.js').Body} obj The object.
  * @returns {number} The tile id or code of the first solid point along the left edge, else 0.
  */
 export function leftCollision(obj) {
@@ -481,7 +481,7 @@ export function leftCollision(obj) {
 /**
  * Get the solid tile right of an object.
  *
- * @param {object} obj The object with x, y, pX and pY.
+ * @param {import('./entities/Body.js').Body} obj The object.
  * @returns {number} The tile id or code of the first solid point along the right edge, else 0.
  */
 export function rightCollision(obj) {
@@ -501,7 +501,7 @@ export function rightCollision(obj) {
 /**
  * Find the side of an object with the most points in solid tiles.
  *
- * @param {object} obj The object with x, y, pX and pY.
+ * @param {import('./entities/Body.js').Body} obj The object.
  * @returns {number} Direction.UP, Direction.DOWN, Direction.LEFT or Direction.RIGHT, or -1 if the object touches
  *     nothing.
  */
@@ -549,7 +549,7 @@ export function getCollision(obj) {
 /**
  * Push an object out of the solid tiles and stop its speed in that direction.
  *
- * @param {object} obj The object with x, y, vx, vy, pX and pY.
+ * @param {import('./entities/Body.js').Body} obj The object. It must also have the speeds vx and vy.
  * @returns {number} 1 if a collision was resolved, 0 if there was none or the object is stuck between two sides.
  */
 export function checkCollisions(obj) {

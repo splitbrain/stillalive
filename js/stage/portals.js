@@ -71,15 +71,15 @@ export function launchPortal(p) {
 		}
 
 		if (i % 6 == 0 && now > 15) {
-			const s = new Sparkle();
-			s.x = x + random(-5 << 8, 5 << 8) - (8 << 8);
-			s.y = y + random(-5 << 8, 5 << 8) - (8 << 8);
-			s.type = SparkleType.PORTAL_SHOT;
-			s.vx = random(96, 192);
-			s.vy = random(96, 192);
-			s.fading = 255;
-			s.color = p;
-			s.portalNum = -1;
+			const s = new Sparkle(
+				SparkleType.PORTAL_SHOT,
+				x + random(-5 << 8, 5 << 8) - (8 << 8),
+				y + random(-5 << 8, 5 << 8) - (8 << 8),
+				random(96, 192),
+				random(96, 192),
+				255,
+				p,
+			);
 			if (random(0, 2) == 0) s.vx = -s.vx;
 			if (random(0, 2) == 0) s.vy = -s.vy;
 			game.sparkles.push(s);
@@ -227,7 +227,7 @@ const PORTAL_CHECK_SIDES = [Direction.DOWN, Direction.UP, Direction.LEFT, Direct
 /**
  * Find the portal on one side that an object touches. The function does not change the object.
  *
- * @param {object} obj The object with x, y, vx, vy, pX, pY and type.
+ * @param {import('./entities/Body.js').Body} obj The object. It must also have the speeds vx and vy and the entity type.
  * @param {number} side The side of the wall with the portal: Direction.LEFT, Direction.RIGHT, Direction.DOWN for a
  *     floor or Direction.UP for a ceiling.
  * @returns {{index: number, deep: boolean}|null} The index of the portal, and true in deep if the object moves into
@@ -270,7 +270,7 @@ function findPortal(obj, side) {
 /**
  * Check if an object touches a portal on one side. The function does not change the object.
  *
- * @param {object} obj The object with x, y, vx, vy, pX, pY and type.
+ * @param {import('./entities/Body.js').Body} obj The object. It must also have the speeds vx and vy and the entity type.
  * @param {number} side The side of the wall with the portal, a value of Direction.
  * @returns {number} The portal index plus 1, or 0 if the object touches no portal on this side.
  */
@@ -282,7 +282,7 @@ export function portalAt(obj, side) {
 /**
  * Check if an object touches a portal. The function does not change the object.
  *
- * @param {object} obj The object with x, y, vx, vy, pX, pY and type.
+ * @param {import('./entities/Body.js').Body} obj The object. It must also have the speeds vx and vy and the entity type.
  * @returns {number} The portal index plus 1, or 0 if the object touches no portal.
  */
 export function isInPortal(obj) {
@@ -297,7 +297,7 @@ export function isInPortal(obj) {
  * Move an object through a portal on one side. An object in the portal moves to the middle of the portal. The object
  * teleports to the other portal when it moves into the portal far enough.
  *
- * @param {object} obj The object with x, y, vx, vy, pX, pY and type.
+ * @param {import('./entities/Body.js').Body} obj The object. It must also have the speeds vx and vy and the entity type.
  * @param {number} side The side of the wall with the portal, a value of Direction.
  * @returns {number} The portal index plus 1, or 0 if the object touches no portal on this side.
  */
@@ -319,7 +319,7 @@ export function passPortal(obj, side) {
 /**
  * Move an object through a portal on any side.
  *
- * @param {object} obj The object with x, y, vx, vy, pX, pY and type.
+ * @param {import('./entities/Body.js').Body} obj The object. It must also have the speeds vx and vy and the entity type.
  * @returns {number} The portal index plus 1, or 0 if the object touches no portal.
  */
 export function passPortals(obj) {
@@ -334,7 +334,7 @@ export function passPortals(obj) {
  * Move an object from one portal to the other and turn its speed to the direction of the exit portal.
  *
  * @param {number} p The index of the portal that the object enters.
- * @param {object} obj The object.
+ * @param {import('./entities/Body.js').Body} obj The object.
  * @returns {void}
  */
 function teleport(p, obj) {
@@ -467,7 +467,7 @@ function removePortals() {
 /**
  * Check if a force field tile is on the diagonal line through an object.
  *
- * @param {object} obj The object with x, y, pX and pY.
+ * @param {import('./entities/Body.js').Body} obj The object.
  * @returns {boolean} True if the object touches a force field tile.
  */
 export function inForceField(obj) {

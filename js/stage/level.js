@@ -98,7 +98,7 @@ function clearDoorBlockers() {
 /**
  * Check if a 16 by 16 object touches a switch door with one of its corners.
  *
- * @param {object} obj The object with x and y in 1/256 pixels.
+ * @param {import('./entities/Body.js').Body} obj The object.
  * @returns {boolean} True if a corner of the object is on a switch door tile.
  */
 function touchesSwitchDoor(obj) {

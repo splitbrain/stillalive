@@ -36,13 +36,12 @@ export function createPortalGlow(p) {
 	const onSideWall = portal.direction == Direction.LEFT || portal.direction == Direction.RIGHT;
 	removeSparkles(p, SparkleType.PORTAL_GLOW);
 	for (let i = 0; i < 13; i++) {
-		const s = new Sparkle();
-		s.x = portal.x + (onSideWall ? 0 : (i * 2) << 8);
-		s.y = portal.y + (onSideWall ? (i * 2) << 8 : 0);
-		s.xOrig = s.x;
-		s.yOrig = s.y;
+		const x = portal.x + (onSideWall ? 0 : (i * 2) << 8);
+		const y = portal.y + (onSideWall ? (i * 2) << 8 : 0);
+		const s = new Sparkle(SparkleType.PORTAL_GLOW, x, y, 0, 0, 200, p);
+		s.xOrig = x;
+		s.yOrig = y;
 		s.portalNum = p;
-		s.type = SparkleType.PORTAL_GLOW;
 		if (portal.direction == Direction.RIGHT) {
 			s.vx = -random(128, 384);
 			s.xOrig -= 7 << 8;
@@ -54,8 +53,6 @@ export function createPortalGlow(p) {
 		} else {
 			s.vy = random(128, 384);
 		}
-		s.fading = 200;
-		s.color = p;
 		game.sparkles.push(s);
 	}
 }
@@ -76,7 +73,7 @@ export function updateSparkles() {
 }
 
 /**
- * Create sparkles around a point, e.g. for a collected cake or for smoke.
+ * Create sparkles around a point, for example for a collected cake or for smoke.
  *
  * @param {number} x The x position in 1/256 pixels.
  * @param {number} y The y position in 1/256 pixels.
@@ -86,19 +83,19 @@ export function updateSparkles() {
  * @returns {void}
  */
 export function createCakeOrSmokeSparkles(x, y, type, number, size) {
-	let k;
-	for (k = 0; k < number; k++) {
-		const s = new Sparkle();
-		s.x = x + random(-8 << 8, 8 << 8);
-		s.y = y + random(-8 << 8, 8 << 8);
-		s.type = type;
-		s.vx = random(-192, 192);
-		s.vy = random(-192, -96);
-		s.fading = size;
-		if (type == SparkleType.CAKE) s.color = 2;
-		else if (type == SparkleType.SMOKE) s.color = 3;
-		s.portalNum = -1;
-		game.sparkles.push(s);
+	const color = type == SparkleType.CAKE ? 2 : 3;
+	for (let k = 0; k < number; k++) {
+		game.sparkles.push(
+			new Sparkle(
+				type,
+				x + random(-8 << 8, 8 << 8),
+				y + random(-8 << 8, 8 << 8),
+				random(-192, 192),
+				random(-192, -96),
+				size,
+				color,
+			),
+		);
 	}
 }
 
@@ -107,29 +104,35 @@ export function createCakeOrSmokeSparkles(x, y, type, number, size) {
  */
 export class Sparkle {
 	/**
-	 * Create a sparkle at the origin.
+	 * @param {number} type The sparkle type, a value of SparkleType.
+	 * @param {number} x The x position in 1/256 pixels.
+	 * @param {number} y The y position in 1/256 pixels.
+	 * @param {number} vx The horizontal speed in 1/256 pixels per tick.
+	 * @param {number} vy The vertical speed in 1/256 pixels per tick.
+	 * @param {number} fading The start value of the fade, which also sets the size.
+	 * @param {number} color The row of the sparkle image: 0 blue star, 1 red star, 2 cake crumb, 3 smoke, 4 blood.
 	 */
-	constructor() {
+	constructor(type, x, y, vx, vy, fading, color) {
 		/** @type {number} The x position in 1/256 pixels. */
-		this.x = 0;
+		this.x = x;
 		/** @type {number} The y position in 1/256 pixels. */
-		this.y = 0;
+		this.y = y;
 		/** @type {number} The x position where a portal glow sparkle starts and restarts, in 1/256 pixels. */
 		this.xOrig = 0;
 		/** @type {number} The y position where a portal glow sparkle starts and restarts, in 1/256 pixels. */
 		this.yOrig = 0;
 		/** @type {number} The horizontal speed in 1/256 pixels per tick. */
-		this.vx = 0;
+		this.vx = vx;
 		/** @type {number} The vertical speed in 1/256 pixels per tick. */
-		this.vy = 0;
+		this.vy = vy;
 		/** @type {number} The sparkle type, a value of SparkleType. */
-		this.type = 0;
+		this.type = type;
 		/** @type {number} The row of the sparkle image: 0 blue star, 1 red star, 2 cake crumb, 3 smoke, 4 blood. */
-		this.color = 0;
+		this.color = color;
 		/** @type {number} Ticks since the sparkle landed on the floor, or -1 while it flies. */
 		this.floorTime = -1;
 		/** @type {number} The remaining visibility, which also sets the size. */
-		this.fading = 0;
+		this.fading = fading;
 		/** @type {number} The index of the portal of a portal glow sparkle, or -1. */
 		this.portalNum = -1;
 	}

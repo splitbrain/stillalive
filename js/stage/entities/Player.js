@@ -116,16 +116,17 @@ export class Player extends Body {
 			playSound(this.inAcid ? sfx_acid : sfx_die);
 			if (game.player.y >> 8 < PLAYFIELD_HEIGHT) {
 				for (let i = 0; i < 20; i++) {
-					const s = new Sparkle();
-					s.x = game.player.x + (this.pX << 7) + random(-14 << 8, 8 << 8);
-					s.y = game.player.y + (this.pY << 6);
-					s.type = SparkleType.DEATH;
-					s.vx = 0;
-					s.vy = random(-2 << 8, 0);
-					s.fading = 150;
-					s.color = 4;
-					s.portalNum = -1;
-					game.sparkles.push(s);
+					game.sparkles.push(
+						new Sparkle(
+							SparkleType.DEATH,
+							game.player.x + (this.pX << 7) + random(-14 << 8, 8 << 8),
+							game.player.y + (this.pY << 6),
+							0,
+							random(-2 << 8, 0),
+							150,
+							4,
+						),
+					);
 				}
 			}
 		} else if (this.dead) {
@@ -145,15 +146,15 @@ export class Player extends Body {
 	 */
 	#teleportSparkles(number, fading, color) {
 		for (let n = 0; n < number; n++) {
-			const s = new Sparkle();
-			s.x = this.x + (this.pX << 7) + random(-8 << 8, 8 << 8);
-			s.y = this.y + (this.pY << 7) + random(-16 << 8, 16 << 8);
-			s.type = SparkleType.TELEPORT;
-			s.vx = random(32, 64);
-			s.vy = random(32, 64);
-			s.fading = fading;
-			s.color = color;
-			s.portalNum = -1;
+			const s = new Sparkle(
+				SparkleType.TELEPORT,
+				this.x + (this.pX << 7) + random(-8 << 8, 8 << 8),
+				this.y + (this.pY << 7) + random(-16 << 8, 16 << 8),
+				random(32, 64),
+				random(32, 64),
+				fading,
+				color,
+			);
 			if (random(0, 2) == 0) s.vx = -s.vx;
 			if (random(0, 2) == 0) s.vy = -s.vy;
 			game.sparkles.push(s);
@@ -166,7 +167,7 @@ export class Player extends Body {
 	 * @returns {void}
 	 */
 	move() {
-		let s, fi, i;
+		let fi, i;
 		if (this.teleportTime < 0) {
 			if (++this.teleportTime < 0 && this.teleportTime % 6 == 0) this.#teleportSparkles(3, 200, 0);
 		} else if (this.teleportTime > 0) {
@@ -270,16 +271,17 @@ export class Player extends Body {
 			const r = game.time % h;
 
 			for (i = 0; r == 0 && i < 3; i++) {
-				s = new Sparkle();
-				s.x = game.player.x + (this.pX << 5) + random(-5 << 8, 5 << 8);
-				s.y = game.player.y + (this.pY << 6) + random(-5 << 8, 5 << 8);
-				s.type = SparkleType.LOW_LIFE;
-				s.vx = 0;
-				s.vy = 0;
-				s.fading = 100;
-				s.color = 4;
-				s.portalNum = -1;
-				game.sparkles.push(s);
+				game.sparkles.push(
+					new Sparkle(
+						SparkleType.LOW_LIFE,
+						game.player.x + (this.pX << 5) + random(-5 << 8, 5 << 8),
+						game.player.y + (this.pY << 6) + random(-5 << 8, 5 << 8),
+						0,
+						0,
+						100,
+						4,
+					),
+				);
 			}
 		}
 

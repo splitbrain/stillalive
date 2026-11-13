@@ -186,16 +186,17 @@ export class Turret extends Body {
 						playSoundIfFinished(sfx_pain);
 
 						for (let i = 0; i < 5; i++) {
-							const s = new Sparkle();
-							s.x = game.player.x + (this.pX << 7) + random(-8 << 8, 8 << 8);
-							s.y = game.player.y + (this.pY << 6);
-							s.type = SparkleType.SHOT_HIT;
-							s.vx = random(512, 1024) * this.dir;
-							s.vy = random(-3 << 8, 0);
-							s.fading = 50;
-							s.color = 4;
-							s.portalNum = -1;
-							game.sparkles.push(s);
+							game.sparkles.push(
+								new Sparkle(
+									SparkleType.SHOT_HIT,
+									game.player.x + (this.pX << 7) + random(-8 << 8, 8 << 8),
+									game.player.y + (this.pY << 6),
+									random(512, 1024) * this.dir,
+									random(-3 << 8, 0),
+									50,
+									4,
+								),
+							);
 						}
 					}
 				} else {

@@ -51,7 +51,7 @@ export class ConfirmScreen extends ChromeElement {
 	/** @type {HTMLTemplateElement|null} The markup of the confirmation screen. */
 	static template = TEMPLATE;
 
-	/** @type {function(boolean): void|null} The function that answers the open question, or null for none. */
+	/** @type {(function(boolean): void)|null} The function that answers the open question, or null for none. */
 	#answer = null;
 
 	/**

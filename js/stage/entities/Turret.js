@@ -226,10 +226,10 @@ export class Turret {
  * @returns {number} 1 if the point is inside the player, else 0.
  */
 function pointInPlayer(j, beamY) {
-	const x = game.player.x >> 8;
-	const y = game.player.y >> 8;
-	// the box is 4 px higher than the player. A fix would change the gameplay.
-	if (j >= x && j < x + 15 && beamY >= y && beamY < y + 31) return 1;
+	const p = game.player;
+	const x = p.x >> 8;
+	const y = p.y >> 8;
+	if (j >= x && j < x + p.pX && beamY >= y && beamY < y + p.pY) return 1;
 	return 0;
 }
 

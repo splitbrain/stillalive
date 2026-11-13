@@ -2,7 +2,7 @@
  * The level editor and the test run of the editor map.
  */
 
-import { MAP_HEIGHT, MAP_SIZE, MAP_WIDTH, MouseButton } from './constants.js';
+import { MAP_HEIGHT, MAP_SIZE, MAP_WIDTH, MAP_WIDTH_BITS, MouseButton, TILE_SIZE_BITS } from './constants.js';
 import { Portal } from './entities/Portal.js';
 import { bg } from './images.js';
 import { mouseOnPlayfield, unclick } from './inputState.js';
@@ -18,7 +18,7 @@ let undoIndex;
 /** @type {number} The mouse release state of the previous tick. */
 let oldMouseReleased = 0;
 /** @type {{tiles: number[], bg: number}} The editor map while the stage shows something else. */
-let storedMap = { tiles: new Array(MAP_SIZE).fill(0), bg: 0 };
+let storedMap = { tiles: new Array(MAP_SIZE).fill(Tile.EMPTY), bg: 0 };
 /**
  * The properties of the editor map other than the format, the tiles and the background, e.g. the title and the
  * events. The editor replaces the object as a whole, so the undo list can share it.
@@ -171,7 +171,7 @@ function updateEditor() {
  * @returns {void}
  */
 export function clearEditorMap() {
-	game.map.fill(0);
+	game.map.fill(Tile.EMPTY);
 	properties = {};
 	addUndo();
 	mapChanged();
@@ -235,14 +235,14 @@ function updateDrawSprite() {
 	const brush = ui.editor.brush;
 	let i;
 	if (mouseOnPlayfield() && isObjectTile(brush)) {
-		const x = (input.mouseX >> 4) << 4;
-		const y = (input.mouseY >> 4) << 4;
+		const x = (input.mouseX >> TILE_SIZE_BITS) << TILE_SIZE_BITS;
+		const y = (input.mouseY >> TILE_SIZE_BITS) << TILE_SIZE_BITS;
 		if (input.mousePressed) {
 			const before = game.map.slice();
-			const xt = x >> 4;
-			const yt = y >> 4;
+			const xt = x >> TILE_SIZE_BITS;
+			const yt = y >> TILE_SIZE_BITS;
 
-			const tile = (y >> 4) * 32 + (x >> 4);
+			const tile = (y >> TILE_SIZE_BITS) * MAP_WIDTH + (x >> TILE_SIZE_BITS);
 			if (input.mouseButton == MouseButton.LEFT) {
 				if (brush == Tile.PLAYER_START) {
 					for (i = 0; i < game.map.length; i++) {
@@ -256,7 +256,7 @@ function updateDrawSprite() {
 					game.map[tile] = brush;
 				}
 			} else if (input.mouseButton == MouseButton.RIGHT) {
-				game.map[tile] = 0;
+				game.map[tile] = Tile.EMPTY;
 				eraseSprites(brush, xt, yt);
 			}
 			build();
@@ -330,11 +330,11 @@ function eraseSprites(til, xt, yt) {
 		for (h = 1; h < 3; h++) {
 			if (h == 2 && til >= Tile.GRAVPIPE_UP) continue;
 			if (xt + h < MAP_WIDTH) {
-				game.map[yt * 32 + xt + h] = 0;
+				game.map[yt * MAP_WIDTH + xt + h] = Tile.EMPTY;
 				if (yt - 1 >= 0) {
-					t = game.map[(yt - 1) * 32 + xt + h];
+					t = game.map[(yt - 1) * MAP_WIDTH + xt + h];
 					if (t == Tile.PLAYER_START || t == Tile.TURRET_LEFT || t == Tile.TURRET_RIGHT || isGravPipeTile(t))
-						game.map[(yt - 1) * 32 + xt + h] = 0;
+						game.map[(yt - 1) * MAP_WIDTH + xt + h] = Tile.EMPTY;
 				}
 			}
 		}
@@ -348,27 +348,28 @@ function eraseSprites(til, xt, yt) {
 	) {
 		// objects taller than one tile
 		if (yt + 1 < MAP_HEIGHT) {
-			game.map[(yt + 1) * 32 + xt] = 0;
+			game.map[(yt + 1) * MAP_WIDTH + xt] = Tile.EMPTY;
 			for (h = 1; h < 3; h++) {
 				if (xt - h >= 0) {
-					t = game.map[(yt + 1) * 32 + xt - h];
+					t = game.map[(yt + 1) * MAP_WIDTH + xt - h];
 					if (t == Tile.PLATFORM_RIGHT || t == Tile.PLATFORM_LEFT || t == Tile.GRAVPIPE_UP || t == Tile.GRAVPIPE_DOWN)
-						game.map[(yt + 1) * 32 + xt - h] = 0;
+						game.map[(yt + 1) * MAP_WIDTH + xt - h] = Tile.EMPTY;
 				}
 			}
 		}
 	}
 
 	if (yt - 1 >= 0) {
-		t = game.map[(yt - 1) * 32 + xt];
+		t = game.map[(yt - 1) * MAP_WIDTH + xt];
 		if (t == Tile.PLAYER_START || t == Tile.TURRET_LEFT || t == Tile.TURRET_RIGHT || isGravPipeTile(t))
-			game.map[(yt - 1) * 32 + xt] = 0;
+			game.map[(yt - 1) * MAP_WIDTH + xt] = Tile.EMPTY;
 	}
 	for (h = 1; h < 3; h++) {
 		if (xt - h >= 0) {
-			t = game.map[yt * 32 + xt - h];
-			if (t == Tile.PLATFORM_RIGHT || t == Tile.PLATFORM_LEFT) game.map[yt * 32 + xt - h] = 0;
-			else if ((t == Tile.GRAVPIPE_UP || t == Tile.GRAVPIPE_DOWN) && h < 2) game.map[yt * 32 + xt - h] = 0;
+			t = game.map[yt * MAP_WIDTH + xt - h];
+			if (t == Tile.PLATFORM_RIGHT || t == Tile.PLATFORM_LEFT) game.map[yt * MAP_WIDTH + xt - h] = Tile.EMPTY;
+			else if ((t == Tile.GRAVPIPE_UP || t == Tile.GRAVPIPE_DOWN) && h < 2)
+				game.map[yt * MAP_WIDTH + xt - h] = Tile.EMPTY;
 		}
 	}
 }
@@ -382,33 +383,33 @@ function updateDrawTile() {
 	const brush = ui.editor.brush;
 	let i;
 	if (mouseOnPlayfield() && !isObjectTile(brush)) {
-		const x = (input.mouseX >> 4) << 4;
-		const y = (input.mouseY >> 4) << 4;
+		const x = (input.mouseX >> TILE_SIZE_BITS) << TILE_SIZE_BITS;
+		const y = (input.mouseY >> TILE_SIZE_BITS) << TILE_SIZE_BITS;
 		if (input.mousePressed) {
 			const before = game.map.slice();
-			const tile = (y >> 4) * 32 + (x >> 4);
+			const tile = (y >> TILE_SIZE_BITS) * MAP_WIDTH + (x >> TILE_SIZE_BITS);
 			if (input.mouseButton == MouseButton.LEFT) {
 				if (brush == Tile.PLASMA_START) {
 					for (i = 0; i < game.map.length; i++) {
 						if (game.map[i] == Tile.PLASMA_START) {
-							game.map[i] = 0;
+							game.map[i] = Tile.EMPTY;
 							break;
 						}
 					}
 				}
 				game.map[tile] = brush;
-			} else if (input.mouseButton == MouseButton.RIGHT) game.map[tile] = 0;
+			} else if (input.mouseButton == MouseButton.RIGHT) game.map[tile] = Tile.EMPTY;
 			// a map has one plasma start, so it does not fill
 			else if (input.mouseButton == MouseButton.MIDDLE && brush != Tile.PLASMA_START)
-				fill(brush, game.map[tile], x >> 4, y >> 4);
+				fill(brush, game.map[tile], x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS);
 
-			const xt = x >> 4;
-			const yt = y >> 4;
+			const xt = x >> TILE_SIZE_BITS;
+			const yt = y >> TILE_SIZE_BITS;
 
 			if (yt - 1 >= 0) {
-				const t = game.map[(yt - 1) * 32 + xt];
+				const t = game.map[(yt - 1) * MAP_WIDTH + xt];
 				if (t == Tile.PLAYER_START || t == Tile.TURRET_LEFT || t == Tile.TURRET_RIGHT || isGravPipeTile(t))
-					game.map[(yt - 1) * 32 + xt] = 0;
+					game.map[(yt - 1) * MAP_WIDTH + xt] = Tile.EMPTY;
 			}
 
 			build();
@@ -449,8 +450,8 @@ function build() {
 	let up, down, left, right, i;
 	for (i = 0; i < MAP_SIZE; i++) {
 		if (isWallAt(i)) {
-			const y = i >> 5;
-			const x = i - (y << 5);
+			const y = i >> MAP_WIDTH_BITS;
+			const x = i - (y << MAP_WIDTH_BITS);
 
 			up = isTileHere(x, y - 1);
 			down = isTileHere(x, y + 1);
@@ -458,37 +459,37 @@ function build() {
 			right = isTileHere(x + 1, y);
 
 			if (up && down && left && !right) {
-				game.map[x + y * 32] = 4;
+				game.map[x + y * MAP_WIDTH] = 4;
 			} else if (up && down && !left && right) {
-				game.map[x + y * 32] = 2;
+				game.map[x + y * MAP_WIDTH] = 2;
 			} else if (up && !down && right && left) {
-				game.map[x + y * 32] = 5;
+				game.map[x + y * MAP_WIDTH] = 5;
 			} else if (!up && down && right && left) {
-				game.map[x + y * 32] = 3;
+				game.map[x + y * MAP_WIDTH] = 3;
 			} else if (!up && down && right && !left) {
-				game.map[x + y * 32] = 8;
+				game.map[x + y * MAP_WIDTH] = 8;
 			} else if (!up && down && !right && left) {
-				game.map[x + y * 32] = 9;
+				game.map[x + y * MAP_WIDTH] = 9;
 			} else if (up && !down && !right && left) {
-				game.map[x + y * 32] = 6;
+				game.map[x + y * MAP_WIDTH] = 6;
 			} else if (up && !down && right && !left) {
-				game.map[x + y * 32] = 7;
+				game.map[x + y * MAP_WIDTH] = 7;
 			} else if (up && down && right && left) {
-				game.map[x + y * 32] = 1;
+				game.map[x + y * MAP_WIDTH] = 1;
 			} else if (up && down && !right && !left) {
-				game.map[x + y * 32] = 11;
+				game.map[x + y * MAP_WIDTH] = 11;
 			} else if (!up && !down && right && left) {
-				game.map[x + y * 32] = 10;
+				game.map[x + y * MAP_WIDTH] = 10;
 			} else if (up && !down && !right && !left) {
-				game.map[x + y * 32] = 12;
+				game.map[x + y * MAP_WIDTH] = 12;
 			} else if (!up && down && !right && !left) {
-				game.map[x + y * 32] = 13;
+				game.map[x + y * MAP_WIDTH] = 13;
 			} else if (!up && !down && !right && left) {
-				game.map[x + y * 32] = 14;
+				game.map[x + y * MAP_WIDTH] = 14;
 			} else if (!up && !down && right && !left) {
-				game.map[x + y * 32] = 15;
+				game.map[x + y * MAP_WIDTH] = 15;
 			} else if (!up && !down && !right && !left) {
-				game.map[x + y * 32] = 16;
+				game.map[x + y * MAP_WIDTH] = 16;
 			}
 		}
 	}
@@ -512,40 +513,40 @@ function fill(tile, toFill, x, y) {
 
 	let current = 0;
 	let count = 1;
-	tmpMap[current] = x + (y << 5);
+	tmpMap[current] = x + (y << MAP_WIDTH_BITS);
 
 	while (current < MAP_SIZE && tmpMap[current] != -1) {
 		const t = tmpMap[current];
-		y = t >> 5;
-		x = t - (y << 5);
-		game.map[x + (y << 5)] = tile;
-		if (x < 31 && game.map[x + 1 + (y << 5)] == toFill) {
+		y = t >> MAP_WIDTH_BITS;
+		x = t - (y << MAP_WIDTH_BITS);
+		game.map[x + (y << MAP_WIDTH_BITS)] = tile;
+		if (x < MAP_WIDTH - 1 && game.map[x + 1 + (y << MAP_WIDTH_BITS)] == toFill) {
 			j = true;
 			for (k = 0; k < count; k++) {
-				if (tmpMap[k] == x + 1 + (y << 5)) j = false;
+				if (tmpMap[k] == x + 1 + (y << MAP_WIDTH_BITS)) j = false;
 			}
-			if (j) tmpMap[count++] = x + 1 + (y << 5);
+			if (j) tmpMap[count++] = x + 1 + (y << MAP_WIDTH_BITS);
 		}
-		if (x > 0 && game.map[x - 1 + (y << 5)] == toFill) {
+		if (x > 0 && game.map[x - 1 + (y << MAP_WIDTH_BITS)] == toFill) {
 			j = true;
 			for (k = 0; k < count; k++) {
-				if (tmpMap[k] == x - 1 + (y << 5)) j = false;
+				if (tmpMap[k] == x - 1 + (y << MAP_WIDTH_BITS)) j = false;
 			}
-			if (j) tmpMap[count++] = x - 1 + (y << 5);
+			if (j) tmpMap[count++] = x - 1 + (y << MAP_WIDTH_BITS);
 		}
-		if (y < 23 && game.map[x + ((y + 1) << 5)] == toFill) {
+		if (y < MAP_HEIGHT - 1 && game.map[x + ((y + 1) << MAP_WIDTH_BITS)] == toFill) {
 			j = true;
 			for (k = 0; k < count; k++) {
-				if (tmpMap[k] == x + ((y + 1) << 5)) j = false;
+				if (tmpMap[k] == x + ((y + 1) << MAP_WIDTH_BITS)) j = false;
 			}
-			if (j) tmpMap[count++] = x + ((y + 1) << 5);
+			if (j) tmpMap[count++] = x + ((y + 1) << MAP_WIDTH_BITS);
 		}
-		if (y > 0 && game.map[x + ((y - 1) << 5)] == toFill) {
+		if (y > 0 && game.map[x + ((y - 1) << MAP_WIDTH_BITS)] == toFill) {
 			j = true;
 			for (k = 0; k < count; k++) {
-				if (tmpMap[k] == x + ((y - 1) << 5)) j = false;
+				if (tmpMap[k] == x + ((y - 1) << MAP_WIDTH_BITS)) j = false;
 			}
-			if (j) tmpMap[count++] = x + ((y - 1) << 5);
+			if (j) tmpMap[count++] = x + ((y - 1) << MAP_WIDTH_BITS);
 		}
 		current++;
 	}

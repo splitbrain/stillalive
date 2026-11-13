@@ -2,6 +2,8 @@
  * The GravPipe object.
  */
 
+import { TILE_SIZE } from '../constants.js';
+
 /**
  * A gravitational pipe that pushes objects in one direction.
  */
@@ -19,8 +21,8 @@ export class GravPipe {
 		/** @type {number} The direction of the push: Direction.UP, Direction.DOWN, Direction.LEFT or Direction.RIGHT. */
 		this.dir = dir;
 		/** @type {number} The width in pixels. */
-		this.pX = 16;
+		this.pX = TILE_SIZE;
 		/** @type {number} The height in pixels. */
-		this.pY = 32;
+		this.pY = 2 * TILE_SIZE;
 	}
 }

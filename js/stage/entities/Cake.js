@@ -3,7 +3,7 @@
  */
 
 import { playSound, sfx_exit, sfx_grabCake } from '../audio.js';
-import { MAP_SIZE, SparkleType } from '../constants.js';
+import { MAP_SIZE, SparkleType, TILE_SIZE } from '../constants.js';
 import { createCakeOrSmokeSparkles } from './Sparkle.js';
 import { game } from '../state.js';
 import { Tile } from '../tiles.js';
@@ -64,7 +64,7 @@ function playerTouchesCake(i) {
 	const x = game.cakes[i].x >> 8;
 	const y = game.cakes[i].y >> 8;
 
-	if (posx + pX > x && x + 16 > posx && posy + pY > y && y + 16 > posy) {
+	if (posx + pX > x && x + TILE_SIZE > posx && posy + pY > y && y + TILE_SIZE > posy) {
 		hit = 1;
 	}
 

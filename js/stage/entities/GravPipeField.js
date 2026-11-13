@@ -2,7 +2,7 @@
  * The GravPipeField object and its helper functions.
  */
 
-import { Direction, NUM_TILES, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH } from '../constants.js';
+import { Direction, NUM_TILES, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, TILE_SIZE, TILE_SIZE_BITS } from '../constants.js';
 import { getTileWithoutCrates, getTileWithoutObjects } from '../physics.js';
 import { pointInPortal } from '../portals.js';
 import { game } from '../state.js';
@@ -110,25 +110,25 @@ function traceGravPipeField(sx, sy, vx, vy) {
 	let y = sy;
 	let x = sx;
 
-	x += vx * 16;
-	y += vy * 16;
+	x += vx * TILE_SIZE;
+	y += vy * TILE_SIZE;
 
 	while (x >= 0 && x < PLAYFIELD_WIDTH && y >= 0 && y < PLAYFIELD_HEIGHT) {
 		if (vx != 0) {
 			tile = getTileWithoutObjects(x, y);
-			if (tile == Tile.EMPTY) tile = getTileWithoutObjects(x, y + 8);
-			if (tile == Tile.EMPTY) tile = getTileWithoutObjects(x, y + 16);
-			if (tile == Tile.EMPTY) tile = getTileWithoutObjects(x, y + 31);
+			if (tile == Tile.EMPTY) tile = getTileWithoutObjects(x, y + TILE_SIZE / 2);
+			if (tile == Tile.EMPTY) tile = getTileWithoutObjects(x, y + TILE_SIZE);
+			if (tile == Tile.EMPTY) tile = getTileWithoutObjects(x, y + 2 * TILE_SIZE - 1);
 		} else if (vy != 0) {
 			tile = getTileWithoutCrates(x, y);
-			if (tile == Tile.EMPTY) tile = getTileWithoutCrates(x + 8, y);
-			if (tile == Tile.EMPTY) tile = getTileWithoutCrates(x + 16, y);
-			if (tile == Tile.EMPTY) tile = getTileWithoutCrates(x + 31, y);
+			if (tile == Tile.EMPTY) tile = getTileWithoutCrates(x + TILE_SIZE / 2, y);
+			if (tile == Tile.EMPTY) tile = getTileWithoutCrates(x + TILE_SIZE, y);
+			if (tile == Tile.EMPTY) tile = getTileWithoutCrates(x + 2 * TILE_SIZE - 1, y);
 		}
 
 		if (tile != Tile.EMPTY && (tile < NUM_TILES || tile == Tile.GRAVPIPE_BLOCK || tile >= PLATFORM_CODE)) {
-			x = (x >> 4) << 4;
-			y = (y >> 4) << 4;
+			x = (x >> TILE_SIZE_BITS) << TILE_SIZE_BITS;
+			y = (y >> TILE_SIZE_BITS) << TILE_SIZE_BITS;
 
 			addField(sx, sy, x, y, vx, vy);
 			if (vx < 0) x += 13;
@@ -136,11 +136,11 @@ function traceGravPipeField(sx, sy, vx, vy) {
 			if (game.portals && game.portals[0].used && game.portals[1].used) {
 				if (vx != 0) {
 					p1 = pointInPortal(x, y + 4);
-					p2 = pointInPortal(x, y + 28);
+					p2 = pointInPortal(x, y + 2 * TILE_SIZE - 4);
 				} else if (vy != 0) {
 					const dy = vy < 0 ? 14 : 0;
 					p1 = pointInPortal(x + 4, y + dy);
-					p2 = pointInPortal(x + 28, y + dy);
+					p2 = pointInPortal(x + 2 * TILE_SIZE - 4, y + dy);
 				}
 				if (p1 == p2 && p1 > -1 && !exits.includes(p1)) {
 					const p = p1;
@@ -181,8 +181,8 @@ function traceGravPipeField(sx, sy, vx, vy) {
 				return;
 			}
 		}
-		x += vx * 16;
-		y += vy * 16;
+		x += vx * TILE_SIZE;
+		y += vy * TILE_SIZE;
 	}
 	addField(sx, sy, x, y, vx, vy);
 }
@@ -199,8 +199,8 @@ function traceGravPipeField(sx, sy, vx, vy) {
  * @returns {void}
  */
 function addField(sx, sy, nx, ny, vx, vy) {
-	if (vx < 0) game.gravPipeFields.push(new GravPipeField(sx, sy, -(sx - nx - 16), 32, -1, 0));
-	else if (vx > 0) game.gravPipeFields.push(new GravPipeField(sx, sy, nx - sx, 32, 1, 0));
-	else if (vy < 0) game.gravPipeFields.push(new GravPipeField(sx, sy, 32, -(sy - ny - 16), 0, -1));
-	else if (vy > 0) game.gravPipeFields.push(new GravPipeField(sx, sy, 32, ny - sy, 0, 1));
+	if (vx < 0) game.gravPipeFields.push(new GravPipeField(sx, sy, -(sx - nx - TILE_SIZE), 2 * TILE_SIZE, -1, 0));
+	else if (vx > 0) game.gravPipeFields.push(new GravPipeField(sx, sy, nx - sx, 2 * TILE_SIZE, 1, 0));
+	else if (vy < 0) game.gravPipeFields.push(new GravPipeField(sx, sy, 2 * TILE_SIZE, -(sy - ny - TILE_SIZE), 0, -1));
+	else if (vy > 0) game.gravPipeFields.push(new GravPipeField(sx, sy, 2 * TILE_SIZE, ny - sy, 0, 1));
 }

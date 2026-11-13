@@ -4,7 +4,7 @@
  * The event objects of the level file are shared with the campaign data. This module keeps the state of the events.
  */
 
-import { Direction } from './constants.js';
+import { Direction, TILE_SIZE, TILE_SIZE_BITS } from './constants.js';
 import { createPortalGlow } from './entities/Sparkle.js';
 import { unclick } from './inputState.js';
 import { keyLabels } from './keys.js';
@@ -122,7 +122,7 @@ function runEvents() {
  * @returns {boolean} True if the event can fire.
  */
 function hasHappened(event) {
-	if (event.on == 'playerX') return game.player.midX() >> 4 >= event.x;
+	if (event.on == 'playerX') return game.player.midX() >> TILE_SIZE_BITS >= event.x;
 	if (event.on == 'time') return game.time >= Math.round(event.seconds * 60);
 	return triggers.has(event.on);
 }
@@ -157,8 +157,8 @@ function fire(event) {
 function placePortal(p, [column, row, side]) {
 	const portal = game.portals[p];
 	const { direction, dx, dy } = PORTAL_PLACEMENTS[side];
-	const x = column * 16 + dx;
-	const y = row * 16 + dy;
+	const x = column * TILE_SIZE + dx;
+	const y = row * TILE_SIZE + dy;
 	const onSideWall = direction == Direction.LEFT || direction == Direction.RIGHT;
 	Object.assign(portal, {
 		direction,

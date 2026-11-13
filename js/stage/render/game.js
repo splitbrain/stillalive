@@ -7,10 +7,13 @@ import {
 	Direction,
 	MAP_HEIGHT,
 	MAP_WIDTH,
+	MAP_WIDTH_BITS,
 	NUM_TILES,
 	PLAYFIELD_HEIGHT,
 	PLAYFIELD_WIDTH,
 	SparkleType,
+	TILE_SIZE,
+	TILE_SIZE_BITS,
 } from '../constants.js';
 import {
 	bg,
@@ -189,8 +192,8 @@ function mirrorAround(x) {
  */
 function drawBody(x, y, frame, flipX) {
 	ctx.save();
-	if (flipX < 0) mirrorAround(x + 8);
-	drawImage(body, frame * 16, 0, 16, 27, x, y, 16, 27);
+	if (flipX < 0) mirrorAround(x + TILE_SIZE / 2);
+	drawImage(body, frame * TILE_SIZE, 0, TILE_SIZE, 27, x, y, TILE_SIZE, 27);
 	ctx.restore();
 }
 
@@ -283,7 +286,7 @@ function drawLabel(label) {
 	const { lines, metrics, tilt } = labelLayouts.get(label) ?? layoutLabel(label);
 
 	ctx.save();
-	ctx.translate(label.x * 16 + 8, label.y * 16 + 8);
+	ctx.translate(label.x * TILE_SIZE + TILE_SIZE / 2, label.y * TILE_SIZE + TILE_SIZE / 2);
 	ctx.rotate(tilt);
 	metrics.forEach((m, i) => {
 		const lineY = (i - (lines.length - 1) / 2) * LABEL_LINE_HEIGHT;
@@ -337,7 +340,7 @@ function hashText(text) {
 function drawAnimatedTiles() {
 	for (const tile of game.animatedTiles) {
 		if (!tile.used) continue;
-		drawImage(tileset[tile.current], tile.x << 4, tile.y << 4, 16, 16);
+		drawImage(tileset[tile.current], tile.x << TILE_SIZE_BITS, tile.y << TILE_SIZE_BITS, TILE_SIZE, TILE_SIZE);
 	}
 }
 
@@ -382,9 +385,10 @@ function createBuff() {
  */
 export function drawTiles(map) {
 	for (let i = 0; i < map.length; i++) {
-		const y = i >> 5;
-		const x = i - (y << 5);
-		if (map[i] > 0 && map[i] < NUM_TILES) drawImage(tileset[map[i]], x * 16, y * 16, 16, 16);
+		const y = i >> MAP_WIDTH_BITS;
+		const x = i - (y << MAP_WIDTH_BITS);
+		if (map[i] > 0 && map[i] < NUM_TILES)
+			drawImage(tileset[map[i]], x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
 	}
 }
 
@@ -397,7 +401,7 @@ export function drawCakes() {
 	for (const c of game.cakes) {
 		if (!c.used) continue;
 		const float = game.player.fadeNextLevel == -1 ? c.vy : 0;
-		drawImage(cake, c.x >> 8, (c.y + float) >> 8, 16, 12);
+		drawImage(cake, c.x >> 8, (c.y + float) >> 8, TILE_SIZE, 12);
 	}
 }
 
@@ -414,7 +418,17 @@ export function drawTurrets() {
 		ctx.save();
 		ctx.translate(x + (t.pX >> 1), y + (t.pY >> 1));
 		ctx.rotate(degToRad(t.angle));
-		drawImage(turretImages[side], 0, t.animFrame * 32, 16, 32, -(t.pX >> 1), -(t.pY >> 1), 16, 32);
+		drawImage(
+			turretImages[side],
+			0,
+			t.animFrame * 2 * TILE_SIZE,
+			TILE_SIZE,
+			2 * TILE_SIZE,
+			-(t.pX >> 1),
+			-(t.pY >> 1),
+			TILE_SIZE,
+			2 * TILE_SIZE,
+		);
 		ctx.restore();
 		const dx = t.dir < 0 ? 0 : t.pX;
 		const playerY = (game.player.y >> 8) + (game.player.pY >> 1);
@@ -443,7 +457,17 @@ function drawPlasma() {
 		let vy = 0;
 		if (ball.vx != 0) vy = ball.scale;
 		else if (ball.vy != 0) vx = ball.scale;
-		drawImage(plasma, 0, ball.animFrame * 16, 16, 16, (ball.x >> 8) + vx, (ball.y >> 8) + vy, 16, 16);
+		drawImage(
+			plasma,
+			0,
+			ball.animFrame * TILE_SIZE,
+			TILE_SIZE,
+			TILE_SIZE,
+			(ball.x >> 8) + vx,
+			(ball.y >> 8) + vy,
+			TILE_SIZE,
+			TILE_SIZE,
+		);
 	}
 }
 
@@ -457,12 +481,12 @@ function drawProjectiles() {
 		const image = tileset[p.img];
 		if (!p.needKill) {
 			ctx.globalAlpha = 0.5;
-			drawImage(image, (p.x - p.vx * 4) >> 8, (p.y - p.vy * 4) >> 8, 16, 16);
+			drawImage(image, (p.x - p.vx * 4) >> 8, (p.y - p.vy * 4) >> 8, TILE_SIZE, TILE_SIZE);
 			ctx.globalAlpha = 0.75;
-			drawImage(image, (p.x - p.vx * 2) >> 8, (p.y - p.vy * 2) >> 8, 16, 16);
+			drawImage(image, (p.x - p.vx * 2) >> 8, (p.y - p.vy * 2) >> 8, TILE_SIZE, TILE_SIZE);
 			ctx.globalAlpha = 1;
 		}
-		drawImage(image, p.x >> 8, p.y >> 8, 16, 16);
+		drawImage(image, p.x >> 8, p.y >> 8, TILE_SIZE, TILE_SIZE);
 	}
 }
 
@@ -477,7 +501,7 @@ export function drawCrates() {
 		ctx.save();
 		ctx.translate((c.x >> 8) + (c.pX >> 1), (c.y >> 8) + (c.pY >> 1));
 		ctx.rotate(degToRad(c.angle));
-		drawImage(crateImage, 0, 0, 16, 16, -(c.pX >> 1), -(c.pY >> 1), 16 * sc, 16 * sc);
+		drawImage(crateImage, 0, 0, TILE_SIZE, TILE_SIZE, -(c.pX >> 1), -(c.pY >> 1), TILE_SIZE * sc, TILE_SIZE * sc);
 		ctx.restore();
 	}
 }
@@ -534,10 +558,12 @@ export function drawGravPipes() {
  * @returns {void}
  */
 export function drawGravPipe(dir, x, y) {
-	if (dir == Direction.RIGHT) drawImage(gravPipe, 0, 0, 16, 32, x, y, 16, 32);
-	else if (dir == Direction.LEFT) drawImage(gravPipe, 0, 32, 16, 32, x, y, 16, 32);
-	else if (dir == Direction.UP) drawImage(gravPipe2, 0, 0, 32, 16, x, y, 32, 16);
-	else if (dir == Direction.DOWN) drawImage(gravPipe2, 32, 0, 32, 16, x, y, 32, 16);
+	if (dir == Direction.RIGHT) drawImage(gravPipe, 0, 0, TILE_SIZE, 2 * TILE_SIZE, x, y, TILE_SIZE, 2 * TILE_SIZE);
+	else if (dir == Direction.LEFT)
+		drawImage(gravPipe, 0, 2 * TILE_SIZE, TILE_SIZE, 2 * TILE_SIZE, x, y, TILE_SIZE, 2 * TILE_SIZE);
+	else if (dir == Direction.UP) drawImage(gravPipe2, 0, 0, 2 * TILE_SIZE, TILE_SIZE, x, y, 2 * TILE_SIZE, TILE_SIZE);
+	else if (dir == Direction.DOWN)
+		drawImage(gravPipe2, 2 * TILE_SIZE, 0, 2 * TILE_SIZE, TILE_SIZE, x, y, 2 * TILE_SIZE, TILE_SIZE);
 }
 
 /**
@@ -571,7 +597,7 @@ export function drawPlatform(x, y, dir) {
 	if (ui.mode == 'edit') {
 		ctx.fillStyle = 'rgb(255, 0, 0)';
 		ctx.strokeStyle = 'rgb(255, 0, 0)';
-		drawArrow(x + 5, y + 8, x + 15, y + 8, 3, dir);
+		drawArrow(x + 5, y + TILE_SIZE / 2, x + 15, y + TILE_SIZE / 2, 3, dir);
 	}
 }
 
@@ -588,24 +614,24 @@ function drawFrontTiles() {
 				const x = game.portals[p].x >> 8;
 				const y = game.portals[p].y >> 8;
 				if (game.portals[p].direction == Direction.UP || game.portals[p].direction == Direction.DOWN) {
-					tx = x >> 4;
-					ty = y >> 4;
+					tx = x >> TILE_SIZE_BITS;
+					ty = y >> TILE_SIZE_BITS;
 					for (i = 0; i < 4; i++) {
 						if (tx + i < MAP_WIDTH && tx + i >= 0) {
-							t = tx + i + (ty << 5);
+							t = tx + i + (ty << MAP_WIDTH_BITS);
 							if (tileset[game.displayMap[t]]) {
-								drawImage(tileset[game.displayMap[t]], (tx + i) * 16, ty * 16, 16, 16);
+								drawImage(tileset[game.displayMap[t]], (tx + i) * TILE_SIZE, ty * TILE_SIZE, TILE_SIZE, TILE_SIZE);
 							}
 						}
 					}
 				} else if (game.portals[p].direction == Direction.LEFT || game.portals[p].direction == Direction.RIGHT) {
-					tx = x >> 4;
-					ty = y >> 4;
+					tx = x >> TILE_SIZE_BITS;
+					ty = y >> TILE_SIZE_BITS;
 					for (i = 0; i < 4; i++) {
 						if (ty + i < MAP_HEIGHT && ty + i >= 0) {
-							t = tx + ((ty + i) << 5);
+							t = tx + ((ty + i) << MAP_WIDTH_BITS);
 							if (game.displayMap[t] < tileset.length) {
-								drawImage(tileset[game.displayMap[t]], tx * 16, (ty + i) * 16, 16, 16);
+								drawImage(tileset[game.displayMap[t]], tx * TILE_SIZE, (ty + i) * TILE_SIZE, TILE_SIZE, TILE_SIZE);
 							}
 						}
 					}
@@ -624,11 +650,11 @@ function drawCamera() {
 	const a = getAngle(
 		(game.player.x >> 8) + (game.player.pX >> 1),
 		(game.player.y >> 8) + 8,
-		(game.camera.x >> 8) + 8,
-		(game.camera.y >> 8) + 8,
+		(game.camera.x >> 8) + TILE_SIZE / 2,
+		(game.camera.y >> 8) + TILE_SIZE / 2,
 	);
 	ctx.save();
-	ctx.translate((game.camera.x >> 8) + 8, (game.camera.y >> 8) + 8);
+	ctx.translate((game.camera.x >> 8) + TILE_SIZE / 2, (game.camera.y >> 8) + TILE_SIZE / 2);
 	ctx.rotate(a);
 	drawImage(cameraFollow, 0, 0);
 	ctx.restore();
@@ -645,18 +671,18 @@ function drawPortals() {
 		if (!p.used) continue;
 		let dx = 0;
 		let dy = 0;
-		if (p.direction == Direction.LEFT || p.direction == Direction.RIGHT) dy = 16 - p.scaleY * 16;
-		else if (p.direction == Direction.UP || p.direction == Direction.DOWN) dx = 16 - p.scaleX * 16;
+		if (p.direction == Direction.LEFT || p.direction == Direction.RIGHT) dy = TILE_SIZE - p.scaleY * TILE_SIZE;
+		else if (p.direction == Direction.UP || p.direction == Direction.DOWN) dx = TILE_SIZE - p.scaleX * TILE_SIZE;
 		drawImage(
 			pi == 0 ? bluePortal : redPortal,
 			0,
-			32 * p.frame,
-			32,
-			32,
+			2 * TILE_SIZE * p.frame,
+			2 * TILE_SIZE,
+			2 * TILE_SIZE,
 			(p.x >> 8) + dx,
 			(p.y >> 8) + dy,
-			32 * p.scaleX,
-			32 * p.scaleY,
+			2 * TILE_SIZE * p.scaleX,
+			2 * TILE_SIZE * p.scaleY,
 		);
 	}
 }
@@ -673,7 +699,7 @@ function drawPortals() {
  */
 export function drawPlayer(x, y, flipX, frame = 0) {
 	ctx.save();
-	if (flipX < 0) mirrorAround(x + 8);
+	if (flipX < 0) mirrorAround(x + TILE_SIZE / 2);
 	drawImage(head, x, y + HEAD_BOB[frame], 16, 14);
 	ctx.restore();
 	drawBody(x, y, frame, flipX);

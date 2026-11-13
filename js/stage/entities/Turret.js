@@ -3,7 +3,7 @@
  */
 
 import { playSound, playSoundIfFinished, sfx_explode, sfx_pain, sfx_shoot } from '../audio.js';
-import { PLAYFIELD_WIDTH, SparkleType } from '../constants.js';
+import { PLAYFIELD_WIDTH, SparkleType, TILE_SIZE } from '../constants.js';
 import { isInPortal } from '../portals.js';
 import { anyCrateAt, movingCrateTouching } from './Crate.js';
 import { gravPipeFieldsAt } from './GravPipeField.js';
@@ -57,9 +57,9 @@ export class Turret {
 		/** @type {boolean} True while the player carries the turret. */
 		this.carried = false;
 		/** @type {number} The width in pixels. */
-		this.pX = 16;
+		this.pX = TILE_SIZE;
 		/** @type {number} The height in pixels. */
-		this.pY = 32;
+		this.pY = 2 * TILE_SIZE;
 		/** @type {number} The frame of the turret image. Frame 1 is the shot flash, frames 2 to 10 show the destruction. */
 		this.animFrame = 0;
 		/** @type {boolean} True after a throw, a portal or a pipe field moved the turret. A hard landing then destroys it. */
@@ -149,7 +149,7 @@ export class Turret {
 			this.coolTime--;
 			if (this.coolTime < 0) this.coolTime = 0;
 			if (this.coolTime == 0) {
-				if (this.dir == 1) j = (this.x >> 8) + 16;
+				if (this.dir == 1) j = (this.x >> 8) + TILE_SIZE;
 				else j = this.x >> 8;
 				const beamY = (this.y >> 8) + 12;
 				let playerInSight = 0;

@@ -3,7 +3,7 @@
  */
 
 import { playSound, sfx_cancelPortals, sfx_enterPortal, sfx_noPortal, sfx_portal } from './audio.js';
-import { Direction, SparkleType } from './constants.js';
+import { Direction, SparkleType, TILE_SIZE } from './constants.js';
 import { Sparkle, createPortalGlow, removeSparkles } from './entities/Sparkle.js';
 import { getTile, getTilePortal, getTileSimple } from './physics.js';
 import { game, input } from './state.js';
@@ -141,7 +141,7 @@ function setPortalDir(p, x, y) {
 	}
 	if (wallCount == 28) {
 		wallCount = 0;
-		for (i = x - 16; i < x + 16; i++) {
+		for (i = x - TILE_SIZE; i < x + TILE_SIZE; i++) {
 			//make sure that nothing touches horizontally
 			if (getTile(i, y - 14) != Tile.EMPTY && !isCrateCode(getTile(i, y - 14))) wallCount++;
 			if (getTile(i, y + 13) != Tile.EMPTY && !isCrateCode(getTile(i, y + 13))) wallCount++;
@@ -153,13 +153,13 @@ function setPortalDir(p, x, y) {
 			x -= 3;
 			game.portals[p].direction = Direction.LEFT;
 		} else game.portals[p].direction = Direction.RIGHT;
-		y -= 16;
+		y -= TILE_SIZE;
 
 		x2 = game.portals[1 - p].x >> 8;
 		y2 = game.portals[1 - p].y >> 8;
 		if (x == x2) {
 			// the other portal is on the same wall and overlaps
-			if (y2 - y > -32 && y2 - y < 32 && game.portals[1 - p].used) {
+			if (y2 - y > -2 * TILE_SIZE && y2 - y < 2 * TILE_SIZE && game.portals[1 - p].used) {
 				game.portals[p].direction = oldDir;
 				return 0;
 			}
@@ -184,7 +184,7 @@ function setPortalDir(p, x, y) {
 		}
 		if (wallCount == 28) {
 			wallCount = 0;
-			for (i = y - 16; i < y + 16; i++) {
+			for (i = y - TILE_SIZE; i < y + TILE_SIZE; i++) {
 				//make sure that nothing touches vertically
 				if (getTile(x - 14, i) != Tile.EMPTY && !isCrateCode(getTile(x - 14, i))) wallCount++;
 				if (getTile(x + 13, i) != Tile.EMPTY && !isCrateCode(getTile(x + 13, i))) wallCount++;
@@ -196,13 +196,13 @@ function setPortalDir(p, x, y) {
 				y -= 3;
 				game.portals[p].direction = Direction.UP;
 			} else game.portals[p].direction = Direction.DOWN;
-			x -= 16;
+			x -= TILE_SIZE;
 
 			x2 = game.portals[1 - p].x >> 8;
 			y2 = game.portals[1 - p].y >> 8;
 			if (y == y2) {
 				// the other portal is on the same wall and overlaps
-				if (x2 - x > -32 && x2 - x < 32 && game.portals[1 - p].used) {
+				if (x2 - x > -2 * TILE_SIZE && x2 - x < 2 * TILE_SIZE && game.portals[1 - p].used) {
 					game.portals[p].direction = oldDir;
 					return 0;
 				}
@@ -247,20 +247,20 @@ function findPortal(obj, side) {
 		if (side == Direction.LEFT) {
 			const tx = px + 3;
 			const edge = x - 1;
-			if (y >= py - 6 && y + obj.pY <= py + 38 && edge < tx && tx - edge <= 20)
+			if (y >= py - 6 && y + obj.pY <= py + 2 * TILE_SIZE + 6 && edge < tx && tx - edge <= 20)
 				return { index: j, deep: tx - edge >= obj.pX >> 1 && obj.vx < 0 };
 		} else if (side == Direction.RIGHT) {
 			const edge = x + obj.pX;
-			if (y >= py - 6 && y + obj.pY <= py + 38 && edge > px && edge - px <= 20)
+			if (y >= py - 6 && y + obj.pY <= py + 2 * TILE_SIZE + 6 && edge > px && edge - px <= 20)
 				return { index: j, deep: edge - px >= obj.pX >> 1 && obj.vx > 0 };
 		} else if (side == Direction.DOWN) {
 			const edge = y + obj.pY;
-			if (x >= px - 4 && x + obj.pX < px + 36 && edge >= py && edge - py <= 20)
+			if (x >= px - 4 && x + obj.pX < px + 2 * TILE_SIZE + 4 && edge >= py && edge - py <= 20)
 				return { index: j, deep: edge - py >= 16 && obj.vy > 0 };
 		} else if (side == Direction.UP) {
 			const ty = py + 4;
 			const edge = y - 1;
-			if (x >= px - 4 && x + obj.pX < px + 36 && edge < ty && ty - edge <= 20)
+			if (x >= px - 4 && x + obj.pX < px + 2 * TILE_SIZE + 4 && edge < ty && ty - edge <= 20)
 				return { index: j, deep: ty - edge >= 16 && obj.vy < 0 };
 		}
 	}
@@ -306,11 +306,11 @@ export function passPortal(obj, side) {
 	if (!found) return 0;
 	const portal = game.portals[found.index];
 	if (side == Direction.LEFT || side == Direction.RIGHT) {
-		const gap = (32 - obj.pY) >> 1;
+		const gap = (2 * TILE_SIZE - obj.pY) >> 1;
 		obj.y = ((portal.y >> 8) + gap) << 8;
 		if (game.bossNum == 0 || obj.type != 'plasma') obj.vy = 0;
 	} else {
-		obj.x = ((portal.x >> 8) + 8) << 8;
+		obj.x = ((portal.x >> 8) + TILE_SIZE / 2) << 8;
 	}
 	if (found.deep) teleport(found.index, obj);
 	return found.index + 1;
@@ -353,14 +353,14 @@ function teleport(p, obj) {
 	}
 
 	if (exit == Direction.RIGHT || exit == Direction.LEFT) {
-		gap = (32 - obj.pY) >> 1;
+		gap = (2 * TILE_SIZE - obj.pY) >> 1;
 		obj.x = game.portals[1 - p].x - ((obj.pX >> 1) << 8);
 		obj.y = game.portals[1 - p].y + (gap << 8);
 	} else if (exit == Direction.UP) {
-		obj.x = game.portals[1 - p].x + (8 << 8);
+		obj.x = game.portals[1 - p].x + ((TILE_SIZE / 2) << 8);
 		obj.y = game.portals[1 - p].y - ((obj.pY >> 1) << 8) + (4 << 8);
 	} else if (exit == Direction.DOWN) {
-		obj.x = game.portals[1 - p].x + (8 << 8);
+		obj.x = game.portals[1 - p].x + ((TILE_SIZE / 2) << 8);
 		obj.y = game.portals[1 - p].y - ((obj.pY >> 1) << 8);
 	}
 
@@ -518,11 +518,11 @@ export function pointInPortal(x, y) {
 		const yp = game.portals[i].y >> 8;
 
 		if (game.portals[i].direction == Direction.LEFT || game.portals[i].direction == Direction.RIGHT) {
-			if (x >= xp && x <= xp + 3 && y >= yp && y <= yp + 32) {
+			if (x >= xp && x <= xp + 3 && y >= yp && y <= yp + 2 * TILE_SIZE) {
 				return 1 - i;
 			}
 		} else if (game.portals[i].direction == Direction.UP || game.portals[i].direction == Direction.DOWN) {
-			if (x >= xp && x <= xp + 32 && y >= yp && y <= yp + 3) {
+			if (x >= xp && x <= xp + 2 * TILE_SIZE && y >= yp && y <= yp + 3) {
 				return 1 - i;
 			}
 		}

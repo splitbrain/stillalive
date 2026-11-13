@@ -3,7 +3,16 @@
  */
 
 import { playSound, sfx_pickUp, sfx_throwObject } from './audio.js';
-import { Direction, GRAVITY, MouseButton, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH } from './constants.js';
+import {
+	Direction,
+	GRAVITY,
+	MAP_WIDTH,
+	MouseButton,
+	PLAYFIELD_HEIGHT,
+	PLAYFIELD_WIDTH,
+	TILE_SIZE,
+	TILE_SIZE_BITS,
+} from './constants.js';
 import { crateAt, crateLandsOnPlayer, movingCrateTouching } from './entities/Crate.js';
 import { gravPipeFieldsAt } from './entities/GravPipeField.js';
 import { onBelt, platformAt } from './entities/Platform.js';
@@ -88,7 +97,7 @@ function isPassable(tile) {
  */
 function solidAt(x, y, objectAt) {
 	if (!inScreen(x, y)) return Tile.EMPTY;
-	const tile = game.map[(y >> 4) * 32 + (x >> 4)] || objectAt(x, y);
+	const tile = game.map[(y >> TILE_SIZE_BITS) * MAP_WIDTH + (x >> TILE_SIZE_BITS)] || objectAt(x, y);
 	return isPassable(tile) ? Tile.EMPTY : tile;
 }
 
@@ -141,7 +150,7 @@ export function getTile(x, y) {
  */
 export function getTilePortal(x, y) {
 	if (x >= PLAYFIELD_WIDTH || y >= PLAYFIELD_HEIGHT || y < 0 || x < 0) return 0;
-	let tile = game.map[(y >> 4) * 32 + (x >> 4)];
+	let tile = game.map[(y >> TILE_SIZE_BITS) * MAP_WIDTH + (x >> TILE_SIZE_BITS)];
 	if (
 		tile == Tile.EXIT ||
 		tile == FIRST_OF_KIND[TileKind.WHEEL] ||
@@ -176,8 +185,8 @@ export function placeObject(obj) {
 	const cos = getCos(input.mouseX, input.mouseY, x >> 8, y >> 8);
 	const sin = getSin(input.mouseX, input.mouseY, x >> 8, y >> 8);
 
-	obj.vx = cos * (16 << 8);
-	obj.vy = sin * (16 << 8);
+	obj.vx = cos * (TILE_SIZE << 8);
+	obj.vy = sin * (TILE_SIZE << 8);
 
 	for (step = 0; step < 2; step++) {
 		obj.x += obj.vx >> 1;
@@ -211,13 +220,15 @@ export function moveObject(obj) {
 		if (game.gravPipeFields[f].vx != 0) {
 			if (portalAt(obj, Direction.UP) || portalAt(obj, Direction.DOWN)) {
 				if (obj.y >> 8 < game.gravPipeFields[f].y) obj.y += 768;
-				else if ((obj.y >> 8) + obj.pY > game.gravPipeFields[f].y + 32) obj.y -= 768;
-			} else if (obj.y >> 8 < game.gravPipeFields[f].y + (16 - (obj.pY >> 1))) obj.y += 512;
-			else if ((obj.y >> 8) + obj.pY > game.gravPipeFields[f].y + 32 - (16 - (obj.pY >> 1))) obj.y -= 512;
+				else if ((obj.y >> 8) + obj.pY > game.gravPipeFields[f].y + 2 * TILE_SIZE) obj.y -= 768;
+			} else if (obj.y >> 8 < game.gravPipeFields[f].y + (TILE_SIZE - (obj.pY >> 1))) obj.y += 512;
+			else if ((obj.y >> 8) + obj.pY > game.gravPipeFields[f].y + 2 * TILE_SIZE - (TILE_SIZE - (obj.pY >> 1)))
+				obj.y -= 512;
 		} else if (game.gravPipeFields[f].vy != 0) {
 			// the height pY centers the object on the x axis. A fix would change the gameplay for the turrets.
-			if (obj.x >> 8 < game.gravPipeFields[f].x + (16 - (obj.pY >> 1))) obj.x += 256;
-			else if ((obj.x >> 8) + obj.pX > game.gravPipeFields[f].x + 32 - (16 - (obj.pY >> 1))) obj.x -= 256;
+			if (obj.x >> 8 < game.gravPipeFields[f].x + (TILE_SIZE - (obj.pY >> 1))) obj.x += 256;
+			else if ((obj.x >> 8) + obj.pX > game.gravPipeFields[f].x + 2 * TILE_SIZE - (TILE_SIZE - (obj.pY >> 1)))
+				obj.x -= 256;
 		}
 
 		obj.vx = game.gravPipeFields[f].vx * 384;
@@ -295,12 +306,16 @@ export function moveObject(obj) {
 						const y = obj.y >> 8;
 						let x = obj.x >> 8;
 
-						if (obj.vx > 0) x += 16;
+						if (obj.vx > 0) x += TILE_SIZE;
 						else if (obj.vx < 0) x -= 1;
 
 						let needReturn = false;
 
-						if (pointInObject(x, y + 1, ca) || pointInObject(x, y + 8, ca) || pointInObject(x, y + 13, ca)) {
+						if (
+							pointInObject(x, y + 1, ca) ||
+							pointInObject(x, y + TILE_SIZE / 2, ca) ||
+							pointInObject(x, y + 13, ca)
+						) {
 							if (ca.carried) game.player.vx = obj.vx;
 							else if (obj.carried) game.player.vx = ca.vx;
 							ca.vx = obj.vx;
@@ -374,7 +389,7 @@ export function grabObject() {
 			for (i = 0; i < game.crates.length; i++) {
 				x1 = (game.crates[i].x >> 8) + (game.crates[i].pX >> 1);
 				y1 = (game.crates[i].y >> 8) + (game.crates[i].pY >> 1);
-				if (getDistance(x1, y1, x2, y2) < 32 && pointInObject(input.mouseX, input.mouseY, game.crates[i])) {
+				if (getDistance(x1, y1, x2, y2) < 2 * TILE_SIZE && pointInObject(input.mouseX, input.mouseY, game.crates[i])) {
 					game.crates[i].carried = true;
 					playSound(sfx_pickUp);
 					ok = 1;
@@ -387,7 +402,7 @@ export function grabObject() {
 					y1 = (game.turrets[i].y >> 8) + (game.turrets[i].pY >> 1);
 					if (
 						!game.turrets[i].dead &&
-						getDistance(x1, y1, x2, y2) < 32 &&
+						getDistance(x1, y1, x2, y2) < 2 * TILE_SIZE &&
 						pointInObject(input.mouseX, input.mouseY, game.turrets[i])
 					) {
 						game.turrets[i].carried = true;
@@ -644,7 +659,7 @@ export function atExit() {
  */
 export function getTileSimple(x, y) {
 	if (x >= PLAYFIELD_WIDTH || y >= PLAYFIELD_HEIGHT || y < 0 || x < 0) return 0;
-	const tile = game.map[(y >> 4) * 32 + (x >> 4)];
+	const tile = game.map[(y >> TILE_SIZE_BITS) * MAP_WIDTH + (x >> TILE_SIZE_BITS)];
 
 	return tile;
 }

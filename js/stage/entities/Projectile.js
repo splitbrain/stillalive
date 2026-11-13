@@ -3,6 +3,7 @@
  */
 
 import { playSound, sfx_bladeStick } from '../audio.js';
+import { TILE_SIZE } from '../constants.js';
 import { anyCrateAt } from './Crate.js';
 import { getTile } from '../physics.js';
 import { game } from '../state.js';
@@ -28,15 +29,15 @@ export class Projectile {
 		/** @type {number} The vertical speed in 1/256 pixels per tick. */
 		this.vy = vy;
 		/** @type {number} The width in pixels. */
-		this.pX = 16;
+		this.pX = TILE_SIZE;
 		/** @type {number} The height in pixels. */
-		this.pY = 16;
+		this.pY = TILE_SIZE;
 		/** @type {boolean} True after the wheel hit something. */
 		this.needKill = false;
 		/** @type {number} Ticks until the stopped wheel goes away. */
 		this.timer = 0;
 		/** @type {number} The tile id of the wheel frame to draw. */
-		this.img = 36;
+		this.img = FIRST_OF_KIND[TileKind.WHEEL];
 	}
 
 	/**
@@ -53,7 +54,7 @@ export class Projectile {
 				if (++this.img > LAST_OF_KIND[TileKind.WHEEL]) this.img = FIRST_OF_KIND[TileKind.WHEEL];
 			}
 
-			const t = getTile((this.x >> 8) + 8, (this.y >> 8) + 8);
+			const t = getTile((this.x >> 8) + TILE_SIZE / 2, (this.y >> 8) + TILE_SIZE / 2);
 
 			if (t) {
 				this.needKill = true;
@@ -63,9 +64,9 @@ export class Projectile {
 				} else playSound(sfx_bladeStick);
 			} else {
 				if (anyCrateAt(this.x >> 8, this.y >> 8)) this.needKill = true;
-				else if (anyCrateAt((this.x >> 8) + 16, this.y >> 8)) this.needKill = true;
-				else if (anyCrateAt(this.x >> 8, (this.y >> 8) + 16)) this.needKill = true;
-				else if (anyCrateAt((this.x >> 8) + 16, (this.y >> 8) + 16)) this.needKill = true;
+				else if (anyCrateAt((this.x >> 8) + TILE_SIZE, this.y >> 8)) this.needKill = true;
+				else if (anyCrateAt(this.x >> 8, (this.y >> 8) + TILE_SIZE)) this.needKill = true;
+				else if (anyCrateAt((this.x >> 8) + TILE_SIZE, (this.y >> 8) + TILE_SIZE)) this.needKill = true;
 			}
 		} else {
 			if (--this.timer < 0) this.timer = 0;

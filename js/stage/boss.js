@@ -3,7 +3,7 @@
  */
 
 import { playLoop, playSound, sfx_bossAlarm, sfx_bossHit, sfx_bossRumble } from './audio.js';
-import { SparkleType } from './constants.js';
+import { MAP_WIDTH, SparkleType, TILE_SIZE } from './constants.js';
 import { Crate } from './entities/Crate.js';
 import { Plasma } from './entities/Plasma.js';
 import { Projectile } from './entities/Projectile.js';
@@ -98,7 +98,7 @@ export function updateBoss() {
 				shootWheel(435, 50, 1200, 1200 - game.player.vx);
 
 				if (game.bossLife == 2) {
-					shootWheel(16, 48, 1200);
+					shootWheel(TILE_SIZE, 3 * TILE_SIZE, 1200);
 				}
 			}
 		} else if (game.bossLife < 3 && game.bossNum == 3) {
@@ -112,7 +112,7 @@ export function updateBoss() {
 			}
 
 			if (game.player.fadeNextLevel == -1 && game.time % (90 - 30 * game.bossLife) == 0 && game.crates.length == 0) {
-				game.crates.push(new Crate((31 * 16) << 8, (18 * 16) << 8));
+				game.crates.push(new Crate(((MAP_WIDTH - 1) * TILE_SIZE) << 8, (18 * TILE_SIZE) << 8));
 				game.crates[game.crates.length - 1].vx = -(12 << 8);
 				game.crates[game.crates.length - 1].vy = -(2 << 8);
 			}
@@ -122,7 +122,7 @@ export function updateBoss() {
 			}
 
 			if (game.bossLife > 0 && game.player.fadeNextLevel == -1 && game.time % (180 - 20 * game.bossLife) == 0) {
-				shootWheel(432, 32, 600);
+				shootWheel(27 * TILE_SIZE, 2 * TILE_SIZE, 600);
 			}
 
 			if (game.bossLife > 1 && game.player.fadeNextLevel == -1 && game.plasmaBall.length == 0) {
@@ -155,7 +155,7 @@ function aimAtPlayer(x, y) {
  * @returns {void}
  */
 function shootWheel(x, y, speed, speedX = speed) {
-	const [dx, dy] = aimAtPlayer(x + 8, y + 8);
+	const [dx, dy] = aimAtPlayer(x + TILE_SIZE / 2, y + TILE_SIZE / 2);
 	game.projectiles.push(new Projectile(x << 8, y << 8, Math.trunc(dx * speedX), Math.trunc(dy * speed)));
 }
 
@@ -166,7 +166,7 @@ function shootWheel(x, y, speed, speedX = speed) {
  * @returns {void}
  */
 function shootPlasma(speed) {
-	const [dx, dy] = aimAtPlayer((game.plasmaX >> 8) + 8, (game.plasmaY >> 8) + 8);
+	const [dx, dy] = aimAtPlayer((game.plasmaX >> 8) + TILE_SIZE / 2, (game.plasmaY >> 8) + TILE_SIZE / 2);
 	game.plasmaBall.push(new Plasma(game.plasmaX, game.plasmaY, dx * speed, dy * speed));
 }
 
@@ -179,7 +179,7 @@ function shootPlasma(speed) {
  * @returns {void}
  */
 function throwCrate(row, divisor) {
-	const crate = new Crate((31 * 16) << 8, (row * 16) << 8);
+	const crate = new Crate(((MAP_WIDTH - 1) * TILE_SIZE) << 8, (row * TILE_SIZE) << 8);
 	game.crates.push(crate);
 	if (game.crates.length > 10) {
 		for (let i = 0; i < 10; i++) {
@@ -265,8 +265,8 @@ export function hitBoss(obj) {
 	if (game.bossLife < 3 && posx + pX > x && x + 74 > posx && posy + pY > y && y + 58 > posy) {
 		if (game.bossNum == 1 || game.bossNum == 3 || game.bossNum == 4) obj.needKill = true;
 		else if (game.bossNum == 2) {
-			obj.x = 80 << 8;
-			obj.y = -16 << 8;
+			obj.x = (5 * TILE_SIZE) << 8;
+			obj.y = -TILE_SIZE << 8;
 			obj.vx = 0;
 			obj.vy = 0;
 		}
@@ -304,7 +304,7 @@ export function manageInTube(obj) {
 	const x = game.tubeX >> 8;
 	const y = game.tubeY >> 8;
 
-	if (posx + pX > x && x + 64 > posx && posy + pY > y && y + 48 > posy) {
+	if (posx + pX > x && x + 4 * TILE_SIZE > posx && posy + pY > y && y + 3 * TILE_SIZE > posy) {
 		obj.shrink = 60;
 	}
 }

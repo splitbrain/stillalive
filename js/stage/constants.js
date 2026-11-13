@@ -42,16 +42,22 @@ export const GRAVITY = 60;
 /** @type {number} The number of tiles in the tile set. */
 export const NUM_TILES = 61;
 
+/** @type {number} The size of a tile in pixels as a power of two, for shifts between pixels and tiles. */
+export const TILE_SIZE_BITS = 4;
+/** @type {number} The width and the height of a tile in pixels. */
+export const TILE_SIZE = 1 << TILE_SIZE_BITS;
+/** @type {number} The width of a map as a power of two, for shifts between map rows and map indexes. */
+export const MAP_WIDTH_BITS = 5;
 /** @type {number} The width of a map in tiles. */
-export const MAP_WIDTH = 32;
+export const MAP_WIDTH = 1 << MAP_WIDTH_BITS;
 /** @type {number} The height of a map in tiles. */
 export const MAP_HEIGHT = 24;
 /** @type {number} The number of tiles of a map. */
 export const MAP_SIZE = MAP_WIDTH * MAP_HEIGHT;
 /** @type {number} The width of the playfield in pixels. */
-export const PLAYFIELD_WIDTH = MAP_WIDTH * 16;
+export const PLAYFIELD_WIDTH = MAP_WIDTH * TILE_SIZE;
 /** @type {number} The height of the playfield in pixels. */
-export const PLAYFIELD_HEIGHT = MAP_HEIGHT * 16;
+export const PLAYFIELD_HEIGHT = MAP_HEIGHT * TILE_SIZE;
 
 /** @type {Object<string, number>} The types of the sparkles, which select their movement, their fade and their size. */
 export const SparkleType = {

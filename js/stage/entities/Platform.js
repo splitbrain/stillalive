@@ -2,7 +2,7 @@
  * The Platform object and its helper functions.
  */
 
-import { PLAYFIELD_WIDTH } from '../constants.js';
+import { PLAYFIELD_WIDTH, TILE_SIZE } from '../constants.js';
 import { crateAt } from './Crate.js';
 import { leftCollision, rightCollision, touchingGround } from '../physics.js';
 import { game } from '../state.js';
@@ -24,9 +24,9 @@ export class Platform {
 		/** @type {number} The y position in 1/256 pixels. */
 		this.y = y;
 		/** @type {number} The width in pixels. */
-		this.pX = 48;
+		this.pX = 3 * TILE_SIZE;
 		/** @type {number} The height in pixels. */
-		this.pY = 16;
+		this.pY = TILE_SIZE;
 		/** @type {number} The horizontal speed in 1/256 pixels per tick. */
 		this.vx = vx;
 		/** @type {number} The vertical speed in 1/256 pixels per tick. */
@@ -47,7 +47,7 @@ export class Platform {
 		const x = this.x >> 8;
 		if (
 			x < 0 ||
-			x > PLAYFIELD_WIDTH - 48 ||
+			x > PLAYFIELD_WIDTH - 3 * TILE_SIZE ||
 			(this.vx > 0 && rightCollision(this)) ||
 			(this.vx < 0 && leftCollision(this))
 		) {
@@ -111,7 +111,7 @@ export function platformAt(x, y) {
 	for (pi = 0; pi < game.platforms.length; pi++) {
 		const x2 = game.platforms[pi].x >> 8;
 		const y2 = game.platforms[pi].y >> 8;
-		if (x > x2 && x < x2 + 48 && y >= y2 && y < y2 + 15) return PLATFORM_CODE + pi;
+		if (x > x2 && x < x2 + 3 * TILE_SIZE && y >= y2 && y < y2 + TILE_SIZE - 1) return PLATFORM_CODE + pi;
 	}
 	return 0;
 }

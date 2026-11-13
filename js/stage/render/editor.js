@@ -3,7 +3,15 @@
  */
 
 import { copyCanvas, ctx, drawCopy, drawImage } from '../canvas.js';
-import { MAP_HEIGHT, MAP_WIDTH, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH } from '../constants.js';
+import {
+	MAP_HEIGHT,
+	MAP_WIDTH,
+	MAP_WIDTH_BITS,
+	PLAYFIELD_HEIGHT,
+	PLAYFIELD_WIDTH,
+	TILE_SIZE,
+	TILE_SIZE_BITS,
+} from '../constants.js';
 import { bg, cake, crateImage, tileset, turretImages } from '../images.js';
 import { mouseOnPlayfield } from '../inputState.js';
 import { GRAVPIPE_DIRECTIONS, plasmaLaunch } from '../level.js';
@@ -62,14 +70,14 @@ function drawTileMap() {
 		ctx.fillStyle = 'rgba(255, 0, 0, 0.7)';
 		for (i = 0; i < game.map.length; i++) {
 			if (game.map[i] == Tile.PLASMA_START) {
-				y = i >> 5;
-				x = i - (y << 5);
+				y = i >> MAP_WIDTH_BITS;
+				x = i - (y << MAP_WIDTH_BITS);
 
 				if (!plasmaLaunch(x, y)) {
-					if (y - 1 >= 0) ctx.fillRect(x * 16, (y - 1) * 16, 16, 16);
-					if (y + 1 < MAP_HEIGHT) ctx.fillRect(x * 16, (y + 1) * 16, 16, 16);
-					if (x - 1 >= 0) ctx.fillRect((x - 1) * 16, y * 16, 16, 16);
-					if (x + 1 < MAP_WIDTH) ctx.fillRect((x + 1) * 16, y * 16, 16, 16);
+					if (y - 1 >= 0) ctx.fillRect(x * TILE_SIZE, (y - 1) * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+					if (y + 1 < MAP_HEIGHT) ctx.fillRect(x * TILE_SIZE, (y + 1) * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+					if (x - 1 >= 0) ctx.fillRect((x - 1) * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+					if (x + 1 < MAP_WIDTH) ctx.fillRect((x + 1) * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
 				}
 
 				break;
@@ -93,12 +101,12 @@ function drawTileMap() {
 function drawTileCursor() {
 	const brush = ui.editor.brush;
 	if (!input.mouseOver || !mouseOnPlayfield() || isObjectTile(brush)) return;
-	const x = (input.mouseX >> 4) << 4;
-	const y = (input.mouseY >> 4) << 4;
+	const x = (input.mouseX >> TILE_SIZE_BITS) << TILE_SIZE_BITS;
+	const y = (input.mouseY >> TILE_SIZE_BITS) << TILE_SIZE_BITS;
 	drawImage(tileset[brush], x, y);
 	ctx.strokeStyle = 'rgb(255, 0, 0)';
 	ctx.lineWidth = 1;
-	ctx.strokeRect(x, y, 16, 16);
+	ctx.strokeRect(x, y, TILE_SIZE, TILE_SIZE);
 }
 
 /**
@@ -109,12 +117,14 @@ function drawTileCursor() {
 function drawSpriteCursor() {
 	const sprite = ui.editor.brush;
 	if (!input.mouseOver || !mouseOnPlayfield() || !isObjectTile(sprite)) return;
-	const x = (input.mouseX >> 4) << 4;
-	const y = (input.mouseY >> 4) << 4;
+	const x = (input.mouseX >> TILE_SIZE_BITS) << TILE_SIZE_BITS;
+	const y = (input.mouseY >> TILE_SIZE_BITS) << TILE_SIZE_BITS;
 	if (sprite == Tile.CAKE) drawImage(cake, x, y);
 	else if (sprite == Tile.CRATE) drawImage(crateImage, x, y);
-	else if (sprite == Tile.TURRET_LEFT) drawImage(turretImages[0], 0, 0, 16, 32, x, y, 16, 32);
-	else if (sprite == Tile.TURRET_RIGHT) drawImage(turretImages[1], 0, 0, 16, 32, x, y, 16, 32);
+	else if (sprite == Tile.TURRET_LEFT)
+		drawImage(turretImages[0], 0, 0, TILE_SIZE, 2 * TILE_SIZE, x, y, TILE_SIZE, 2 * TILE_SIZE);
+	else if (sprite == Tile.TURRET_RIGHT)
+		drawImage(turretImages[1], 0, 0, TILE_SIZE, 2 * TILE_SIZE, x, y, TILE_SIZE, 2 * TILE_SIZE);
 	else if (sprite == Tile.PLATFORM_RIGHT) drawPlatform(x, y, 1);
 	else if (sprite == Tile.PLATFORM_LEFT) drawPlatform(x, y, -1);
 	else if (sprite == Tile.PLAYER_START) drawPlayer(x, y, 0);

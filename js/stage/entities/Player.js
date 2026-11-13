@@ -14,7 +14,7 @@ import {
 	sfx_land,
 	sfx_step,
 } from '../audio.js';
-import { Direction, FADE_START, GRAVITY, MouseButton, PLAYFIELD_HEIGHT, SparkleType } from '../constants.js';
+import { Direction, FADE_START, GRAVITY, MouseButton, PLAYFIELD_HEIGHT, SparkleType, TILE_SIZE } from '../constants.js';
 import { collectCakes } from './Cake.js';
 import { gravPipeFieldsAt } from './GravPipeField.js';
 import { plasmaTouching } from './Plasma.js';
@@ -214,13 +214,18 @@ export class Player {
 				if (game.gravPipeFields[f].vx != 0) {
 					if (portalAt(this, Direction.UP) || portalAt(this, Direction.DOWN)) {
 						if (game.player.y >> 8 < game.gravPipeFields[f].y) game.player.y += 768;
-						else if ((game.player.y >> 8) + game.player.pY > game.gravPipeFields[f].y + 32) game.player.y -= 768;
+						else if ((game.player.y >> 8) + game.player.pY > game.gravPipeFields[f].y + 2 * TILE_SIZE)
+							game.player.y -= 768;
 					} else if (game.player.y >> 8 < game.gravPipeFields[f].y) game.player.y += 512;
-					else if ((game.player.y >> 8) + game.player.pY > game.gravPipeFields[f].y + 32) game.player.y -= 512;
+					else if ((game.player.y >> 8) + game.player.pY > game.gravPipeFields[f].y + 2 * TILE_SIZE)
+						game.player.y -= 512;
 				} else if (game.gravPipeFields[f].vy != 0) {
 					// the height pY centers the player on the x axis, in the same way as moveObject()
-					if (game.player.x >> 8 < game.gravPipeFields[f].x + (16 - (game.player.pY >> 1))) game.player.x += 256;
-					else if ((game.player.x >> 8) + game.player.pX > game.gravPipeFields[f].x + 32 - (16 - (game.player.pY >> 1)))
+					if (game.player.x >> 8 < game.gravPipeFields[f].x + (TILE_SIZE - (game.player.pY >> 1))) game.player.x += 256;
+					else if (
+						(game.player.x >> 8) + game.player.pX >
+						game.gravPipeFields[f].x + 2 * TILE_SIZE - (TILE_SIZE - (game.player.pY >> 1))
+					)
 						game.player.x -= 256;
 				}
 			}

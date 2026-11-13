@@ -4,7 +4,7 @@
 
 import { playSound, sfx_crateLand, sfx_dissolve, sfx_wallBreak, sfx_wallCrack } from '../audio.js';
 import { hitBoss, manageInTube } from '../boss.js';
-import { PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH } from '../constants.js';
+import { PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, TILE_SIZE } from '../constants.js';
 import { plasmaTouching } from './Plasma.js';
 import { onPlatform } from './Platform.js';
 import {
@@ -18,7 +18,7 @@ import {
 } from '../physics.js';
 import { inForceField, isInPortal } from '../portals.js';
 import { game } from '../state.js';
-import { CRATE_CODE, isTileKind, LAST_OF_KIND, PLATFORM_CODE, TileKind } from '../tiles.js';
+import { CRATE_CODE, isTileKind, LAST_OF_KIND, PLATFORM_CODE, Tile, TileKind } from '../tiles.js';
 
 /**
  * A crate. The player can carry and throw it, and it can press switches and stop turret shots.
@@ -34,9 +34,9 @@ export class Crate {
 		/** @type {number} The y position in 1/256 pixels. */
 		this.y = y;
 		/** @type {number} The width in pixels. */
-		this.pX = 16;
+		this.pX = TILE_SIZE;
 		/** @type {number} The height in pixels. */
-		this.pY = 16;
+		this.pY = TILE_SIZE;
 		/** @type {number} The x position of the start, where the crate returns after a reset. */
 		this.xOrig = x;
 		/** @type {number} The y position of the start, where the crate returns after a reset. */
@@ -113,16 +113,16 @@ export class Crate {
 									game.map[i]++;
 									game.displayMap[i]++;
 								} else {
-									game.map[i] = 0;
-									game.displayMap[i] = 0;
+									game.map[i] = Tile.EMPTY;
+									game.displayMap[i] = Tile.EMPTY;
 								}
 							}
 						}
 						game.tilesChanged = true;
 						if (game.bossNum == 1 || game.bossNum == 3 || game.bossNum == 4) this.needKill = true;
 						else if (game.bossNum == 2) {
-							this.x = 80 << 8;
-							this.y = -16 << 8;
+							this.x = (5 * TILE_SIZE) << 8;
+							this.y = -TILE_SIZE << 8;
 							this.vx = 0;
 							this.vy = 0;
 						}
@@ -152,9 +152,9 @@ export class Crate {
 				const x = this.x >> 8;
 				const y = this.y >> 8;
 				if (
-					x < -16 ||
+					x < -TILE_SIZE ||
 					x > PLAYFIELD_WIDTH ||
-					y < -16 ||
+					y < -TILE_SIZE ||
 					y > PLAYFIELD_HEIGHT ||
 					touchesDeadlyTile(this) ||
 					plasmaTouching(this)
@@ -235,7 +235,7 @@ function findCrate(x, y, counts) {
 		const crate = game.crates[i];
 		const x2 = crate.x >> 8;
 		const y2 = crate.y >> 8;
-		if (counts(crate) && x > x2 && x < x2 + 15 && y > y2 && y < y2 + 15) return CRATE_CODE + i;
+		if (counts(crate) && x > x2 && x < x2 + TILE_SIZE - 1 && y > y2 && y < y2 + TILE_SIZE - 1) return CRATE_CODE + i;
 	}
 	return 0;
 }
@@ -279,7 +279,7 @@ export function movingCrateTouching(obj) {
 		if (!game.crates[i].carried && (game.crates[i].vx != 0 || game.crates[i].vy != 0) && !isInPortal(game.crates[i])) {
 			const x = game.crates[i].x >> 8;
 			const y = game.crates[i].y >> 8;
-			if (posx + px > x && x + 16 > posx && posy + py > y && y + 16 > posy) return i + 1;
+			if (posx + px > x && x + TILE_SIZE > posx && posy + py > y && y + TILE_SIZE > posy) return i + 1;
 		}
 	}
 	return 0;

@@ -3,7 +3,15 @@
  */
 
 import { playSound, setSoundVolume, sfx_bounce, sfx_plasmaField } from '../audio.js';
-import { Direction, MAP_SIZE, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH } from '../constants.js';
+import {
+	Direction,
+	MAP_SIZE,
+	MAP_WIDTH_BITS,
+	PLAYFIELD_HEIGHT,
+	PLAYFIELD_WIDTH,
+	TILE_SIZE,
+	TILE_SIZE_BITS,
+} from '../constants.js';
 import { getCollision, getTileSimple } from '../physics.js';
 import { isInPortal, passPortals } from '../portals.js';
 import { game } from '../state.js';
@@ -40,9 +48,9 @@ export class Plasma {
 		/** @type {number} The speed limit in 1/256 pixels per tick. */
 		this.vMax = 424;
 		/** @type {number} The width in pixels. */
-		this.pX = 16;
+		this.pX = TILE_SIZE;
 		/** @type {number} The height in pixels. */
-		this.pY = 16;
+		this.pY = TILE_SIZE;
 		/** @type {boolean} True while the ball exists. */
 		this.used = true;
 		/** @type {number} The offset of the drawn ball across its path, from -3 to 3 pixels. */
@@ -103,10 +111,15 @@ export class Plasma {
 			else if (this.vy < -this.vMax) this.vy = -this.vMax;
 		}
 
-		if (this.y >> 8 > PLAYFIELD_HEIGHT || this.y >> 8 <= -16 || this.x >> 8 > PLAYFIELD_WIDTH || this.x >> 8 < -16) {
+		if (
+			this.y >> 8 > PLAYFIELD_HEIGHT ||
+			this.y >> 8 <= -TILE_SIZE ||
+			this.x >> 8 > PLAYFIELD_WIDTH ||
+			this.x >> 8 < -TILE_SIZE
+		) {
 			this.reset();
 		} else {
-			const t = getTileSimple((this.x >> 8) + 8, (this.y >> 8) + 8);
+			const t = getTileSimple((this.x >> 8) + TILE_SIZE / 2, (this.y >> 8) + TILE_SIZE / 2);
 			if (isTileKind(t, TileKind.ACID, TileKind.ACIDPOOL)) {
 				this.reset();
 			}
@@ -124,7 +137,7 @@ export class Plasma {
 		for (i = 0; i < game.animatedTiles.length; i++) {
 			if (isTileKind(game.animatedTiles[i].current, TileKind.PLASMA_DOOR)) {
 				game.animatedTiles[i].used = false;
-				game.map[game.animatedTiles[i].place] = 0;
+				game.map[game.animatedTiles[i].place] = Tile.EMPTY;
 			}
 		}
 	}
@@ -150,8 +163,8 @@ export class Plasma {
 	 * @returns {void}
 	 */
 	#fillSlot(column, row) {
-		game.map[column + (row << 5)] = Tile.WALL;
-		game.displayMap[column + (row << 5)] = Tile.WALL;
+		game.map[column + (row << MAP_WIDTH_BITS)] = Tile.WALL;
+		game.displayMap[column + (row << MAP_WIDTH_BITS)] = Tile.WALL;
 		game.tilesChanged = true;
 		if (this.hasSlot()) this.reset();
 		else {
@@ -182,8 +195,8 @@ export class Plasma {
 	checkCollision() {
 		let x, y, i;
 		let dist = getDistance(this.x >> 8, this.y >> 8, game.player.x >> 8, game.player.y >> 8);
-		if (dist > 384) dist = 384;
-		setSoundVolume(sfx_bounce, 1 - dist / 384);
+		if (dist > PLAYFIELD_HEIGHT) dist = PLAYFIELD_HEIGHT;
+		setSoundVolume(sfx_bounce, 1 - dist / PLAYFIELD_HEIGHT);
 
 		if (getCollision(this) == Direction.LEFT) {
 			playSound(sfx_bounce);
@@ -196,7 +209,7 @@ export class Plasma {
 			y = this.y >> 8;
 			for (i = 2; i <= 14 && game.bossNum == 0; i++) {
 				if (getTileSimple(x, y + i) == Tile.PLASMA_SLOT) {
-					this.#fillSlot(x >> 4, (y + i) >> 4);
+					this.#fillSlot(x >> TILE_SIZE_BITS, (y + i) >> TILE_SIZE_BITS);
 					break;
 				}
 			}
@@ -207,11 +220,11 @@ export class Plasma {
 			} while (getCollision(this) == Direction.RIGHT);
 			this.vx = -this.vx;
 
-			x = (this.x >> 8) + 16;
+			x = (this.x >> 8) + TILE_SIZE;
 			y = this.y >> 8;
 			for (i = 2; i <= 14 && game.bossNum == 0; i++) {
 				if (getTileSimple(x, y + i) == Tile.PLASMA_SLOT) {
-					this.#fillSlot(x >> 4, (y + i) >> 4);
+					this.#fillSlot(x >> TILE_SIZE_BITS, (y + i) >> TILE_SIZE_BITS);
 					break;
 				}
 			}
@@ -226,7 +239,7 @@ export class Plasma {
 			y = (this.y >> 8) - 1;
 			for (i = 4; i <= 12 && game.bossNum == 0; i++) {
 				if (getTileSimple(x + i, y) == Tile.PLASMA_SLOT) {
-					this.#fillSlot((x + i) >> 4, y >> 4);
+					this.#fillSlot((x + i) >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS);
 					break;
 				}
 			}
@@ -238,10 +251,10 @@ export class Plasma {
 			this.vy = -this.vy;
 
 			x = this.x >> 8;
-			y = (this.y >> 8) + 16;
+			y = (this.y >> 8) + TILE_SIZE;
 			for (i = 4; i <= 12 && game.bossNum == 0; i++) {
 				if (getTileSimple(x + i, y) == Tile.PLASMA_SLOT) {
-					this.#fillSlot((x + i) >> 4, y >> 4);
+					this.#fillSlot((x + i) >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS);
 					break;
 				}
 			}
@@ -266,7 +279,7 @@ export function plasmaTouching(obj) {
 
 			const x = game.plasmaBall[i].x >> 8;
 			const y = game.plasmaBall[i].y >> 8;
-			if (posx + px > x && x + 16 > posx && posy + py > y && y + 16 > posy) return 1;
+			if (posx + px > x && x + TILE_SIZE > posx && posy + py > y && y + TILE_SIZE > posy) return 1;
 		}
 	}
 

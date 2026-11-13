@@ -67,17 +67,18 @@ function mapChanged() {
 }
 
 /**
- * Show the edited logic tiles in the display layer, and mark the map as changed if it differs from an earlier copy.
+ * Show the edited logic tiles in the display layer, and mark the map as changed if a tile changed. Before the edit,
+ * the two layers are equal, so the version increases only for a tile with a new id.
  *
- * @param {number[]} before The copy of the logic tiles before the edit.
+ * @param {number} version The version of the map before the edit.
  * @returns {void}
  */
-function mapChangedSince(before) {
+function mapChangedSince(version) {
 	const map = game.map;
 	for (let i = 0; i < map.tiles.length; i++) {
 		if (map.display[i] != map.tiles[i]) map.setDisplay(i, map.tiles[i]);
 	}
-	if (map.tiles.some((tile, i) => tile != before[i])) mapChanged();
+	if (map.version != version) mapChanged();
 }
 
 /**
@@ -238,7 +239,7 @@ function updateDrawSprite() {
 		const x = (input.mouseX >> TILE_SIZE_BITS) << TILE_SIZE_BITS;
 		const y = (input.mouseY >> TILE_SIZE_BITS) << TILE_SIZE_BITS;
 		if (input.mousePressed) {
-			const before = map.tiles.slice();
+			const version = map.version;
 			const xt = x >> TILE_SIZE_BITS;
 			const yt = y >> TILE_SIZE_BITS;
 
@@ -260,7 +261,7 @@ function updateDrawSprite() {
 				eraseSprites(brush, xt, yt);
 			}
 			build();
-			mapChangedSince(before);
+			mapChangedSince(version);
 		} else if (input.mouseReleased) {
 			input.mouseReleased = 0;
 			addUndo();
@@ -388,7 +389,7 @@ function updateDrawTile() {
 		const x = (input.mouseX >> TILE_SIZE_BITS) << TILE_SIZE_BITS;
 		const y = (input.mouseY >> TILE_SIZE_BITS) << TILE_SIZE_BITS;
 		if (input.mousePressed) {
-			const before = map.tiles.slice();
+			const version = map.version;
 			const tile = map.index(x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS);
 			if (input.mouseButton == MouseButton.LEFT) {
 				if (brush == Tile.PLASMA_START) {
@@ -415,7 +416,7 @@ function updateDrawTile() {
 			}
 
 			build();
-			mapChangedSince(before);
+			mapChangedSince(version);
 		} else if (input.mouseReleased) {
 			input.mouseReleased = 0;
 			addUndo();

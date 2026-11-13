@@ -8,7 +8,6 @@ import { PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, TILE_SIZE } from '../constants.js';
 import { plasmaTouching } from './Plasma.js';
 import { onPlatform } from './Platform.js';
 import {
-	getTileSimple,
 	leftCollision,
 	moveObject,
 	placeObject,
@@ -79,18 +78,13 @@ export class Crate extends Body {
 				if (game.boss) {
 					if (game.boss.throwsCrates()) this.#shrinkInTube();
 
-					const t = getTileSimple((this.x >> 8) + this.pX + 1, this.y >> 8);
+					const t = game.map.atPixel((this.x >> 8) + this.pX + 1, this.y >> 8);
 					if (isTileKind(t, TileKind.BOSS_BLOCK)) {
 						playSound(t < LAST_OF_KIND[TileKind.BOSS_BLOCK] ? sfx_wallCrack : sfx_wallBreak);
-						for (i = 0; i < game.map.length; i++) {
-							if (game.map[i] == t) {
-								if (t < LAST_OF_KIND[TileKind.BOSS_BLOCK]) {
-									game.map[i]++;
-									game.displayMap[i]++;
-								} else {
-									game.map[i] = Tile.EMPTY;
-									game.displayMap[i] = Tile.EMPTY;
-								}
+						for (i = 0; i < game.map.tiles.length; i++) {
+							if (game.map.tiles[i] == t) {
+								if (t < LAST_OF_KIND[TileKind.BOSS_BLOCK]) game.map.set(i, t + 1);
+								else game.map.set(i, Tile.EMPTY);
 							}
 						}
 						game.tilesChanged = true;

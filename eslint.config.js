@@ -12,7 +12,10 @@ import globals from 'globals';
 const LAYERS = [
 	{
 		name: 'base',
-		files: ['./js/value.js', './js/stage/{assets,audio,canvas,constants,images,keys,loop,state,tiles,utils}.js'],
+		files: [
+			'./js/value.js',
+			'./js/stage/{assets,audio,canvas,constants,images,keys,loop,state,TileMap,tiles,utils}.js',
+		],
 	},
 	{
 		name: 'logic',

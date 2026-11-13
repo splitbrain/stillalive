@@ -4,16 +4,8 @@
 
 import { Body } from './Body.js';
 import { playSound, setSoundVolume, sfx_bounce, sfx_plasmaField } from '../audio.js';
-import {
-	Direction,
-	MAP_SIZE,
-	MAP_WIDTH_BITS,
-	PLAYFIELD_HEIGHT,
-	PLAYFIELD_WIDTH,
-	TILE_SIZE,
-	TILE_SIZE_BITS,
-} from '../constants.js';
-import { getCollision, getTileSimple } from '../physics.js';
+import { Direction, MAP_SIZE, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, TILE_SIZE, TILE_SIZE_BITS } from '../constants.js';
+import { getCollision } from '../physics.js';
 import { isInPortal, passPortals } from '../portals.js';
 import { game } from '../state.js';
 import { Tile, TileKind, isTileKind } from '../tiles.js';
@@ -127,7 +119,7 @@ export class Plasma extends Body {
 		) {
 			this.reset();
 		} else {
-			const t = getTileSimple((this.x >> 8) + TILE_SIZE / 2, (this.y >> 8) + TILE_SIZE / 2);
+			const t = game.map.atPixel((this.x >> 8) + TILE_SIZE / 2, (this.y >> 8) + TILE_SIZE / 2);
 			if (isTileKind(t, TileKind.ACID, TileKind.ACIDPOOL)) {
 				this.reset();
 			}
@@ -145,7 +137,7 @@ export class Plasma extends Body {
 		for (i = 0; i < game.animatedTiles.length; i++) {
 			if (isTileKind(game.animatedTiles[i].current, TileKind.PLASMA_DOOR)) {
 				game.animatedTiles[i].used = false;
-				game.map[game.animatedTiles[i].place] = Tile.EMPTY;
+				game.map.setTile(game.animatedTiles[i].place, Tile.EMPTY);
 			}
 		}
 	}
@@ -171,8 +163,7 @@ export class Plasma extends Body {
 	 * @returns {void}
 	 */
 	#fillSlot(column, row) {
-		game.map[column + (row << MAP_WIDTH_BITS)] = Tile.WALL;
-		game.displayMap[column + (row << MAP_WIDTH_BITS)] = Tile.WALL;
+		game.map.set(game.map.index(column, row), Tile.WALL);
 		game.tilesChanged = true;
 		if (this.hasSlot()) this.reset();
 		else {
@@ -189,7 +180,7 @@ export class Plasma extends Body {
 	hasSlot() {
 		let i;
 		for (i = 0; i < MAP_SIZE; i++) {
-			if (game.map[i] == Tile.PLASMA_SLOT) return 1;
+			if (game.map.tiles[i] == Tile.PLASMA_SLOT) return 1;
 		}
 		return 0;
 	}
@@ -216,7 +207,7 @@ export class Plasma extends Body {
 			x = (this.x >> 8) - 1;
 			y = this.y >> 8;
 			for (i = 2; i <= 14 && !game.boss; i++) {
-				if (getTileSimple(x, y + i) == Tile.PLASMA_SLOT) {
+				if (game.map.atPixel(x, y + i) == Tile.PLASMA_SLOT) {
 					this.#fillSlot(x >> TILE_SIZE_BITS, (y + i) >> TILE_SIZE_BITS);
 					break;
 				}
@@ -231,7 +222,7 @@ export class Plasma extends Body {
 			x = (this.x >> 8) + TILE_SIZE;
 			y = this.y >> 8;
 			for (i = 2; i <= 14 && !game.boss; i++) {
-				if (getTileSimple(x, y + i) == Tile.PLASMA_SLOT) {
+				if (game.map.atPixel(x, y + i) == Tile.PLASMA_SLOT) {
 					this.#fillSlot(x >> TILE_SIZE_BITS, (y + i) >> TILE_SIZE_BITS);
 					break;
 				}
@@ -246,7 +237,7 @@ export class Plasma extends Body {
 			x = this.x >> 8;
 			y = (this.y >> 8) - 1;
 			for (i = 4; i <= 12 && !game.boss; i++) {
-				if (getTileSimple(x + i, y) == Tile.PLASMA_SLOT) {
+				if (game.map.atPixel(x + i, y) == Tile.PLASMA_SLOT) {
 					this.#fillSlot((x + i) >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS);
 					break;
 				}
@@ -261,7 +252,7 @@ export class Plasma extends Body {
 			x = this.x >> 8;
 			y = (this.y >> 8) + TILE_SIZE;
 			for (i = 4; i <= 12 && !game.boss; i++) {
-				if (getTileSimple(x + i, y) == Tile.PLASMA_SLOT) {
+				if (game.map.atPixel(x + i, y) == Tile.PLASMA_SLOT) {
 					this.#fillSlot((x + i) >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS);
 					break;
 				}

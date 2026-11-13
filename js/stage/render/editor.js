@@ -3,15 +3,7 @@
  */
 
 import { copyCanvas, ctx, drawCopy, drawImage } from '../canvas.js';
-import {
-	MAP_HEIGHT,
-	MAP_WIDTH,
-	MAP_WIDTH_BITS,
-	PLAYFIELD_HEIGHT,
-	PLAYFIELD_WIDTH,
-	TILE_SIZE,
-	TILE_SIZE_BITS,
-} from '../constants.js';
+import { MAP_HEIGHT, MAP_WIDTH, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, TILE_SIZE, TILE_SIZE_BITS } from '../constants.js';
 import { bg, cake, crateImage, tileset, turretImages } from '../images.js';
 import { mouseOnPlayfield } from '../inputState.js';
 import { GRAVPIPE_DIRECTIONS, plasmaLaunch } from '../level.js';
@@ -68,10 +60,10 @@ function drawTileMap() {
 	if (ui.editor.redrawTiles) {
 		drawImage(bg[game.background], 0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 		ctx.fillStyle = 'rgba(255, 0, 0, 0.7)';
-		for (i = 0; i < game.map.length; i++) {
-			if (game.map[i] == Tile.PLASMA_START) {
-				y = i >> MAP_WIDTH_BITS;
-				x = i - (y << MAP_WIDTH_BITS);
+		for (i = 0; i < game.map.tiles.length; i++) {
+			if (game.map.tiles[i] == Tile.PLASMA_START) {
+				x = game.map.column(i);
+				y = game.map.row(i);
 
 				if (!plasmaLaunch(x, y)) {
 					if (y - 1 >= 0) ctx.fillRect(x * TILE_SIZE, (y - 1) * TILE_SIZE, TILE_SIZE, TILE_SIZE);

@@ -278,10 +278,7 @@ export function levelAbilities(page) {
 export async function setMap(page, tiles) {
 	await page.evaluate((tiles) => {
 		const { game } = window.__test;
-		tiles.forEach((tile, i) => {
-			game.map[i] = tile;
-			game.displayMap[i] = tile;
-		});
+		game.map.replace(tiles);
 		game.tilesChanged = true;
 	}, tiles);
 }
@@ -352,14 +349,13 @@ export async function finishLevel(page) {
 	await page.evaluate(async () => {
 		const { openExit } = await import('/js/stage/entities/Cake.js');
 		const { Tile } = await import('/js/stage/tiles.js');
-		const { MAP_WIDTH } = await import('/js/stage/constants.js');
 		const { game } = window.__test;
 		openExit();
 		// a tile is 16 pixels, and the player position is in 1/256 pixels
-		const exit = game.map.indexOf(Tile.EXIT);
+		const exit = game.map.tiles.indexOf(Tile.EXIT);
 		if (exit < 0) throw new Error('The level has no exit tile.');
-		game.player.x = (exit % MAP_WIDTH) << 12;
-		game.player.y = Math.floor(exit / MAP_WIDTH) << 12;
+		game.player.x = game.map.column(exit) << 12;
+		game.player.y = game.map.row(exit) << 12;
 		game.player.vx = 0;
 		game.player.vy = 0;
 	});
@@ -410,7 +406,7 @@ export async function runLevel(
 			// the level selection shows the preview before the level
 			stage.preview(levelData);
 			stage.play(levelData, { replay: replayData, restart: skipBossIntro });
-			const startMap = game.map.slice();
+			const startMap = game.map.tiles.slice();
 
 			const pick = (obj, fields) => fields.map((field) => obj[field]);
 			// the snapshots store the flags of the player, the crates, the turrets and the plasma balls as 0 and 1
@@ -426,7 +422,7 @@ export async function runLevel(
 					platforms: game.platforms.map((p) => pick(p, ['x', 'y', 'vx'])),
 					portals: game.portals.map((p) => pick(p, ['x', 'y', 'used', 'direction'])),
 					cakesLeft: game.cakesLeft,
-					map: game.map.flatMap((tile, i) => (tile === startMap[i] ? [] : [[i, tile]])),
+					map: game.map.tiles.flatMap((tile, i) => (tile === startMap[i] ? [] : [[i, tile]])),
 				});
 
 			/**
@@ -526,12 +522,13 @@ export async function runPortalScene(page, scene) {
 		};
 
 		stage.play(campaigns[0].levels[0]);
-		for (let i = 0; i < game.map.length; i++) {
-			const x = i % MAP_WIDTH;
-			const y = Math.floor(i / MAP_WIDTH);
-			game.map[i] = x === 0 || y === 0 || x === MAP_WIDTH - 1 || y === MAP_HEIGHT - 1 ? Tile.WALL : Tile.EMPTY;
-		}
-		game.displayMap = game.map.slice();
+		game.map.replace(
+			game.map.tiles.map((tile, i) => {
+				const x = game.map.column(i);
+				const y = game.map.row(i);
+				return x === 0 || y === 0 || x === MAP_WIDTH - 1 || y === MAP_HEIGHT - 1 ? Tile.WALL : Tile.EMPTY;
+			}),
+		);
 		for (const list of [
 			'cakes',
 			'crates',

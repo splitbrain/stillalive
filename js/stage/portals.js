@@ -5,7 +5,7 @@
 import { playSound, sfx_cancelPortals, sfx_enterPortal, sfx_noPortal, sfx_portal } from './audio.js';
 import { Direction, SparkleType, TILE_SIZE } from './constants.js';
 import { Sparkle, createPortalGlow, removeSparkles } from './entities/Sparkle.js';
-import { getTile, getTilePortal, getTileSimple } from './physics.js';
+import { getTile, getTilePortal } from './physics.js';
 import { game, input } from './state.js';
 import { inForceFieldRange, isCrateCode, isPlatformCode, isTileKind, PLATFORM_CODE, Tile, TileKind } from './tiles.js';
 import { getCos, getSin, inScreen, random } from './utils.js';
@@ -472,7 +472,7 @@ function removePortals() {
  */
 export function inForceField(obj) {
 	for (let j = 0; j <= obj.pX - 1; j += 2) {
-		const t = getTileSimple((obj.x >> 8) + j, (obj.y >> 8) + j);
+		const t = game.map.atPixel((obj.x >> 8) + j, (obj.y >> 8) + j);
 		if (inForceFieldRange(t)) return true;
 	}
 	return false;

@@ -7,7 +7,6 @@ import {
 	Direction,
 	MAP_HEIGHT,
 	MAP_WIDTH,
-	MAP_WIDTH_BITS,
 	NUM_TILES,
 	PLAYFIELD_HEIGHT,
 	PLAYFIELD_WIDTH,
@@ -363,22 +362,21 @@ function drawTileLayer() {
  */
 function createBuff() {
 	drawImage(bg[game.background], 0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
-	drawTiles(game.displayMap);
+	drawTiles(game.map);
 	saveTileLayer();
 }
 
 /**
- * Draw the tiles of a map.
+ * Draw the display layer of a map.
  *
- * @param {number[]} map The map, a tile id for each position.
+ * @param {import('../TileMap.js').TileMap} map The map.
  * @returns {void}
  */
 export function drawTiles(map) {
-	for (let i = 0; i < map.length; i++) {
-		const y = i >> MAP_WIDTH_BITS;
-		const x = i - (y << MAP_WIDTH_BITS);
-		if (map[i] > 0 && map[i] < NUM_TILES)
-			drawImage(tileset[map[i]], x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+	const tiles = map.display;
+	for (let i = 0; i < tiles.length; i++) {
+		if (tiles[i] > 0 && tiles[i] < NUM_TILES)
+			drawImage(tileset[tiles[i]], map.column(i) * TILE_SIZE, map.row(i) * TILE_SIZE, TILE_SIZE, TILE_SIZE);
 	}
 }
 
@@ -608,9 +606,9 @@ function drawFrontTiles() {
 					ty = y >> TILE_SIZE_BITS;
 					for (i = 0; i < 4; i++) {
 						if (tx + i < MAP_WIDTH && tx + i >= 0) {
-							t = tx + i + (ty << MAP_WIDTH_BITS);
-							if (tileset[game.displayMap[t]]) {
-								drawImage(tileset[game.displayMap[t]], (tx + i) * TILE_SIZE, ty * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+							t = game.map.index(tx + i, ty);
+							if (tileset[game.map.display[t]]) {
+								drawImage(tileset[game.map.display[t]], (tx + i) * TILE_SIZE, ty * TILE_SIZE, TILE_SIZE, TILE_SIZE);
 							}
 						}
 					}
@@ -619,9 +617,9 @@ function drawFrontTiles() {
 					ty = y >> TILE_SIZE_BITS;
 					for (i = 0; i < 4; i++) {
 						if (ty + i < MAP_HEIGHT && ty + i >= 0) {
-							t = tx + ((ty + i) << MAP_WIDTH_BITS);
-							if (game.displayMap[t] < tileset.length) {
-								drawImage(tileset[game.displayMap[t]], tx * TILE_SIZE, (ty + i) * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+							t = game.map.index(tx, ty + i);
+							if (game.map.display[t] < tileset.length) {
+								drawImage(tileset[game.map.display[t]], tx * TILE_SIZE, (ty + i) * TILE_SIZE, TILE_SIZE, TILE_SIZE);
 							}
 						}
 					}

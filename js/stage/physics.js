@@ -6,7 +6,6 @@ import { playSound, sfx_pickUp, sfx_throwObject } from './audio.js';
 import {
 	Direction,
 	GRAVITY,
-	MAP_WIDTH,
 	MouseButton,
 	PLAYFIELD_HEIGHT,
 	PLAYFIELD_WIDTH,
@@ -49,7 +48,7 @@ export function touchingGround(obj) {
  * @returns {number} The id of the deadly tile at the point, or 0.
  */
 function pointOnDeadlyTile(x, y) {
-	const tile = getTileSimple(x, y);
+	const tile = game.map.atPixel(x, y);
 	return isDeadlyTile(tile) ? tile : 0;
 }
 
@@ -97,7 +96,8 @@ function isPassable(tile) {
  */
 function solidAt(x, y, objectAt) {
 	if (!inScreen(x, y)) return Tile.EMPTY;
-	const tile = game.map[(y >> TILE_SIZE_BITS) * MAP_WIDTH + (x >> TILE_SIZE_BITS)] || objectAt(x, y);
+	const map = game.map;
+	const tile = map.tiles[map.index(x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS)] || objectAt(x, y);
 	return isPassable(tile) ? Tile.EMPTY : tile;
 }
 
@@ -150,7 +150,8 @@ export function getTile(x, y) {
  */
 export function getTilePortal(x, y) {
 	if (x >= PLAYFIELD_WIDTH || y >= PLAYFIELD_HEIGHT || y < 0 || x < 0) return 0;
-	let tile = game.map[(y >> TILE_SIZE_BITS) * MAP_WIDTH + (x >> TILE_SIZE_BITS)];
+	const map = game.map;
+	let tile = map.tiles[map.index(x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS)];
 	if (
 		tile == Tile.EXIT ||
 		tile == FIRST_OF_KIND[TileKind.WHEEL] ||
@@ -626,24 +627,10 @@ export function atExit() {
 		// check each tile that the box of the player touches
 		for (let ty = y >> TILE_SIZE_BITS; ty <= (y + p.pY - 1) >> TILE_SIZE_BITS; ty++) {
 			for (let tx = x >> TILE_SIZE_BITS; tx <= (x + p.pX - 1) >> TILE_SIZE_BITS; tx++) {
-				if (getTileSimple(tx << TILE_SIZE_BITS, ty << TILE_SIZE_BITS) == Tile.EXIT) return 1;
+				if (game.map.atPixel(tx << TILE_SIZE_BITS, ty << TILE_SIZE_BITS) == Tile.EXIT) return 1;
 			}
 		}
 	}
 
 	return 0;
-}
-
-/**
- * Get the tile id of the map at a point.
- *
- * @param {number} x The x coordinate in pixels.
- * @param {number} y The y coordinate in pixels.
- * @returns {number} The tile id, or 0 outside the playfield.
- */
-export function getTileSimple(x, y) {
-	if (x >= PLAYFIELD_WIDTH || y >= PLAYFIELD_HEIGHT || y < 0 || x < 0) return 0;
-	const tile = game.map[(y >> TILE_SIZE_BITS) * MAP_WIDTH + (x >> TILE_SIZE_BITS)];
-
-	return tile;
 }

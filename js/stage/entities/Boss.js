@@ -306,8 +306,7 @@ export class Boss {
 			if (this.hits < 3) {
 				for (i = 0; i < game.oldMap.length; i++) {
 					if (game.oldMap[i] == FIRST_OF_KIND[TileKind.BOSS_BLOCK]) {
-						game.map[i] = FIRST_OF_KIND[TileKind.BOSS_BLOCK];
-						game.displayMap[i] = FIRST_OF_KIND[TileKind.BOSS_BLOCK];
+						game.map.set(i, FIRST_OF_KIND[TileKind.BOSS_BLOCK]);
 					}
 				}
 				game.tilesChanged = true;

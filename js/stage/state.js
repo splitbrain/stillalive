@@ -48,10 +48,8 @@ export const game = {
 	animatedTiles: undefined,
 	/** @type {import('./entities/Projectile.js').Projectile[]} The projectiles of the boss. */
 	projectiles: undefined,
-	/** @type {number[]} The tile ids that the game logic uses. */
+	/** @type {import('./TileMap.js').TileMap} The tiles of the map. */
 	map: undefined,
-	/** @type {number[]} The tile ids that the drawing shows. */
-	displayMap: undefined,
 	/** @type {number[]} The tile ids of the level at the level start. */
 	oldMap: undefined,
 	/** @type {import('./entities/Player.js').Player} The player. */

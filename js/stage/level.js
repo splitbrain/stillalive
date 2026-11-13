@@ -7,7 +7,6 @@ import {
 	Direction,
 	MAP_HEIGHT,
 	MAP_WIDTH,
-	MAP_WIDTH_BITS,
 	ORDERED,
 	PLAYFIELD_HEIGHT,
 	RANDOM,
@@ -27,9 +26,9 @@ import { removeSparkles } from './entities/Sparkle.js';
 import { GravPipe } from './entities/GravPipe.js';
 import { Turret } from './entities/Turret.js';
 import { startEvents } from './events.js';
-import { getTileSimple } from './physics.js';
 import { Replay } from './replay.js';
 import { game, input, ui } from './state.js';
+import { TileMap } from './TileMap.js';
 import { FIRST_OF_KIND, LAST_OF_KIND, Tile, TileKind, isTileKind } from './tiles.js';
 
 /**
@@ -73,7 +72,7 @@ function clearDoorBlockers() {
 		else if (portal.direction == Direction.DOWN) y -= 2;
 		const onSideWall = portal.direction == Direction.LEFT || portal.direction == Direction.RIGHT;
 		for (let j = 0; j < 2 * TILE_SIZE; j++) {
-			if (getTileSimple(onSideWall ? x : x + j, onSideWall ? y + j : y) == door) {
+			if (game.map.atPixel(onSideWall ? x : x + j, onSideWall ? y + j : y) == door) {
 				portal.used = false;
 				removeSparkles(i, SparkleType.PORTAL_GLOW);
 				break;
@@ -111,7 +110,7 @@ function touchesSwitchDoor(obj) {
 		[x, y + TILE_SIZE - 1],
 		[x + TILE_SIZE - 1, y + TILE_SIZE - 1],
 	];
-	return corners.some(([cx, cy]) => getTileSimple(cx, cy) == door);
+	return corners.some(([cx, cy]) => game.map.atPixel(cx, cy) == door);
 }
 
 /**
@@ -125,7 +124,7 @@ function closeSwitchDoors() {
 	for (i = 0; i < game.animatedTiles.length; i++) {
 		if (isTileKind(game.animatedTiles[i].current, TileKind.SWITCH_DOOR)) {
 			game.animatedTiles[i].used = true;
-			game.map[game.animatedTiles[i].place] = game.animatedTiles[i].min;
+			game.map.setTile(game.animatedTiles[i].place, game.animatedTiles[i].min);
 		}
 	}
 	clearDoorBlockers();
@@ -142,7 +141,7 @@ function openSwitchDoors() {
 	for (i = 0; i < game.animatedTiles.length; i++) {
 		if (isTileKind(game.animatedTiles[i].current, TileKind.SWITCH_DOOR)) {
 			game.animatedTiles[i].used = false;
-			game.map[game.animatedTiles[i].place] = Tile.EMPTY;
+			game.map.setTile(game.animatedTiles[i].place, Tile.EMPTY);
 		}
 	}
 }
@@ -155,8 +154,8 @@ function openSwitchDoors() {
  * @returns {number} 1 if a switch tile is below the player, else 0.
  */
 function playerOnSwitch(x, y) {
-	if (getTileSimple(x, y + game.player.pY + 5) == Tile.SWITCH) return 1;
-	else if (getTileSimple(x + 15, y + game.player.pY + 5) == Tile.SWITCH) return 1;
+	if (game.map.atPixel(x, y + game.player.pY + 5) == Tile.SWITCH) return 1;
+	else if (game.map.atPixel(x + 15, y + game.player.pY + 5) == Tile.SWITCH) return 1;
 	return 0;
 }
 
@@ -168,10 +167,10 @@ function playerOnSwitch(x, y) {
 function crateOnSwitch() {
 	let i;
 	for (i = 0; i < game.crates.length; i++) {
-		if (getTileSimple(game.crates[i].x >> 8, (game.crates[i].y >> 8) + game.crates[i].pY + 3) == Tile.SWITCH) {
+		if (game.map.atPixel(game.crates[i].x >> 8, (game.crates[i].y >> 8) + game.crates[i].pY + 3) == Tile.SWITCH) {
 			return 1;
 		} else if (
-			getTileSimple((game.crates[i].x >> 8) + TILE_SIZE - 1, (game.crates[i].y >> 8) + game.crates[i].pY + 3) ==
+			game.map.atPixel((game.crates[i].x >> 8) + TILE_SIZE - 1, (game.crates[i].y >> 8) + game.crates[i].pY + 3) ==
 			Tile.SWITCH
 		) {
 			return 1;
@@ -227,7 +226,7 @@ const ANIMATED_KINDS = [
  */
 export function plasmaLaunch(x, y) {
 	const closed = (cx, cy) =>
-		cx < 0 || cx >= MAP_WIDTH || cy < 0 || cy >= MAP_HEIGHT || game.map[cx + cy * MAP_WIDTH] != Tile.EMPTY;
+		cx < 0 || cx >= MAP_WIDTH || cy < 0 || cy >= MAP_HEIGHT || game.map.tiles[game.map.index(cx, cy)] != Tile.EMPTY;
 	const up = closed(x, y - 1);
 	const down = closed(x, y + 1);
 	const left = closed(x - 1, y);
@@ -248,9 +247,9 @@ export function plasmaLaunch(x, y) {
  * - "play" for a level and for the test run of the editor: the object tiles leave the map, the gravitational pipes
  *   block their tiles, the exits close, and the animated tiles and the plasma balls start. In the levels of boss 3 and
  *   boss 4, the plasma start tile is the start point of the plasma shots of the boss.
- * - "preview" for the preview of a level or of an editor map: the map stays the same, and only game.displayMap shows
- *   the closed exits.
- * - "editor" for the objects in the editor: the map and game.displayMap stay the same.
+ * - "preview" for the preview of a level or of an editor map: the logic layer stays the same, and only the display
+ *   layer shows the closed exits.
+ * - "editor" for the objects in the editor: both layers stay the same.
  *
  * The function sets the position of game.player when the map has a player start tile.
  *
@@ -273,10 +272,11 @@ function parseObjects(mode, boss = 0) {
 	}
 	if (mode != 'editor') game.tubeX = game.tubeY = -1;
 
-	for (let i = 0; i < game.map.length; i++) {
-		const y = i >> MAP_WIDTH_BITS;
-		const x = i - (y << MAP_WIDTH_BITS);
-		const tile = game.map[i];
+	const map = game.map;
+	for (let i = 0; i < map.tiles.length; i++) {
+		const x = map.column(i);
+		const y = map.row(i);
+		const tile = map.tiles[i];
 		const animated = play ? ANIMATED_KINDS.find((a) => isTileKind(tile, a.kind)) : undefined;
 
 		if (tile in GRAVPIPE_DIRECTIONS) {
@@ -284,20 +284,17 @@ function parseObjects(mode, boss = 0) {
 			game.gravPipes.push(new GravPipe((x * TILE_SIZE) << 8, (y * TILE_SIZE) << 8, dir));
 			if (play) {
 				// a gravitational pipe covers two tiles
-				const next =
-					dir == Direction.RIGHT || dir == Direction.LEFT
-						? x + ((y + 1) << MAP_WIDTH_BITS)
-						: x + 1 + (y << MAP_WIDTH_BITS);
-				game.map[i] = Tile.GRAVPIPE_BLOCK;
-				game.map[next] = Tile.GRAVPIPE_BLOCK;
-				game.displayMap[i] = Tile.EMPTY;
-				game.displayMap[next] = Tile.EMPTY;
+				const next = dir == Direction.RIGHT || dir == Direction.LEFT ? map.index(x, y + 1) : map.index(x + 1, y);
+				map.setTile(i, Tile.GRAVPIPE_BLOCK);
+				map.setTile(next, Tile.GRAVPIPE_BLOCK);
+				map.setDisplay(i, Tile.EMPTY);
+				map.setDisplay(next, Tile.EMPTY);
 			}
 		} else if (tile == Tile.EXIT) {
-			if (play) game.map[i] = Tile.EXIT_CLOSED;
-			if (mode != 'editor') game.displayMap[i] = Tile.EXIT_CLOSED;
+			if (play) map.setTile(i, Tile.EXIT_CLOSED);
+			if (mode != 'editor') map.setDisplay(i, Tile.EXIT_CLOSED);
 		} else if (animated) {
-			game.displayMap[i] = Tile.EMPTY;
+			map.setDisplay(i, Tile.EMPTY);
 			game.animatedTiles.push(
 				new AnimatedTile(
 					x,
@@ -311,26 +308,26 @@ function parseObjects(mode, boss = 0) {
 			);
 		} else if (tile == Tile.CAKE) {
 			game.cakes.push(new Cake((x * TILE_SIZE) << 8, (y * TILE_SIZE) << 8));
-			if (play) game.map[i] = Tile.EMPTY;
+			if (play) map.setTile(i, Tile.EMPTY);
 		} else if (tile == Tile.TURRET_LEFT || tile == Tile.TURRET_RIGHT) {
-			if (play) game.displayMap[i] = game.map[i] = Tile.EMPTY;
+			if (play) map.set(i, Tile.EMPTY);
 			game.turrets.push(new Turret((x * TILE_SIZE) << 8, (y * TILE_SIZE) << 8, tile == Tile.TURRET_LEFT ? -1 : 1));
 		} else if (tile == Tile.CRATE) {
-			if (play) game.displayMap[i] = game.map[i] = Tile.EMPTY;
+			if (play) map.set(i, Tile.EMPTY);
 			game.crates.push(new Crate((x * TILE_SIZE) << 8, (y * TILE_SIZE) << 8));
 		} else if (tile == Tile.PLAYER_START) {
 			game.player.x = (x * TILE_SIZE) << 8;
 			game.player.y = (y * TILE_SIZE) << 8;
-			if (play) game.map[i] = Tile.EMPTY;
+			if (play) map.setTile(i, Tile.EMPTY);
 		} else if (tile == Tile.PLATFORM_RIGHT || tile == Tile.PLATFORM_LEFT) {
 			vx = tile == Tile.PLATFORM_RIGHT ? 256 : -256;
 			game.platforms.push(new Platform((x * TILE_SIZE) << 8, (y * TILE_SIZE) << 8, vx, 0));
-			if (play) game.map[i] = Tile.EMPTY;
+			if (play) map.setTile(i, Tile.EMPTY);
 		} else if (tile == Tile.TUBE) {
 			if (mode == 'editor') continue;
 			game.tubeX = (x * TILE_SIZE) << 8;
 			game.tubeY = (y * TILE_SIZE) << 8;
-			if (play) game.displayMap[i] = game.map[i] = Tile.EMPTY;
+			if (play) map.set(i, Tile.EMPTY);
 		} else if (tile == Tile.PLASMA_START && play) {
 			const launch = plasmaLaunch(x, y);
 			if (launch && boss == 0) game.plasmaBall.push(new Plasma(launch.x, launch.y, launch.vx, launch.vy));
@@ -382,9 +379,8 @@ function jumpInFromBelow() {
  */
 export function loadLevel(level, restart = false) {
 	game.level = level;
-	game.map = level.tiles.slice();
-	game.oldMap = game.map.slice();
-	game.displayMap = game.map.slice();
+	game.map = new TileMap(level.tiles);
+	game.oldMap = level.tiles.slice();
 
 	resetLevelState();
 	if (!game.replayMode) game.replay = new Replay();
@@ -416,8 +412,7 @@ export function loadLevel(level, restart = false) {
  * @returns {void}
  */
 export function loadPreviewMap(level) {
-	game.map = level.tiles.slice();
-	game.displayMap = game.map.slice();
+	game.map = new TileMap(level.tiles);
 	game.portals = [new Portal(), new Portal()];
 	game.sparkles = new Array();
 	game.animatedTiles = new Array();
@@ -433,7 +428,11 @@ export function loadPreviewMap(level) {
 	if (game.boss && game.replayMode) game.boss.skipEntry();
 
 	game.cakesLeft = game.cakes.length;
-	if (game.cakesLeft == 0) game.displayMap = game.displayMap.map((t) => (t == Tile.EXIT_CLOSED ? Tile.EXIT : t));
+	if (game.cakesLeft == 0) {
+		for (let i = 0; i < game.map.display.length; i++) {
+			if (game.map.display[i] == Tile.EXIT_CLOSED) game.map.setDisplay(i, Tile.EXIT);
+		}
+	}
 	game.tilesChanged = true;
 
 	game.background = level.bg;
@@ -455,22 +454,24 @@ export function loadEditorObjects() {
 /**
  * Check if a map position holds a wall.
  *
+ * @param {TileMap} map The map. The function reads the logic layer.
  * @param {number} index The index in the map.
  * @returns {boolean} True for a wall tile.
  */
-export function isWallAt(index) {
-	return isTileKind(game.map[index], TileKind.WALL);
+export function isWallAt(map, index) {
+	return isTileKind(map.tiles[index], TileKind.WALL);
 }
 
 /**
  * Check if a map position is solid for the edges of the walls. Positions outside the map count as solid.
  *
+ * @param {TileMap} map The map. The function reads the logic layer.
  * @param {number} x The column.
  * @param {number} y The row.
  * @returns {number} 1 for a wall, a decor tile or a conveyor belt, else 0.
  */
-export function isTileHere(x, y) {
+export function isTileHere(map, x, y) {
 	if (x < 0 || x > MAP_WIDTH - 1 || y < 0 || y > MAP_HEIGHT - 1) return 1;
-	if (isTileKind(game.map[x + y * MAP_WIDTH], TileKind.BELT_RIGHT, TileKind.BELT_LEFT)) return 1;
-	return isTileKind(game.map[x + y * MAP_WIDTH], TileKind.WALL, TileKind.DECOR) ? 1 : 0;
+	if (isTileKind(map.tiles[map.index(x, y)], TileKind.BELT_RIGHT, TileKind.BELT_LEFT)) return 1;
+	return isTileKind(map.tiles[map.index(x, y)], TileKind.WALL, TileKind.DECOR) ? 1 : 0;
 }

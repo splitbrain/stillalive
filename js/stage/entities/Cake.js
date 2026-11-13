@@ -18,10 +18,7 @@ import { random } from '../utils.js';
 export function openExit() {
 	let i;
 	for (i = 0; i < MAP_SIZE; i++) {
-		if (game.map[i] == Tile.EXIT_CLOSED) {
-			game.map[i] = Tile.EXIT;
-			game.displayMap[i] = Tile.EXIT;
-		}
+		if (game.map.tiles[i] == Tile.EXIT_CLOSED) game.map.set(i, Tile.EXIT);
 	}
 	game.tilesChanged = true;
 }

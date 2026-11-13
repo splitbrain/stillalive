@@ -8,7 +8,7 @@ import { TILE_SIZE } from '../constants.js';
 import { anyCrateAt } from './Crate.js';
 import { getTile } from '../physics.js';
 import { game } from '../state.js';
-import { FIRST_OF_KIND, LAST_OF_KIND, PLATFORM_CODE, TileKind } from '../tiles.js';
+import { FIRST_OF_KIND, LAST_OF_KIND, TileKind } from '../tiles.js';
 
 /**
  * A razor wheel that the boss throws.
@@ -53,7 +53,7 @@ export class Projectile extends Body {
 			if (t) {
 				this.needKill = true;
 				this.timer = 180;
-				if (t >= PLATFORM_CODE) {
+				if (t instanceof Body) {
 					this.timer = 0;
 				} else playSound(sfx_bladeStick);
 			} else {

@@ -4,10 +4,12 @@
 
 import { playSound, sfx_cancelPortals, sfx_enterPortal, sfx_noPortal, sfx_portal } from './audio.js';
 import { Direction, SparkleType, TILE_SIZE } from './constants.js';
+import { Crate } from './entities/Crate.js';
+import { Platform } from './entities/Platform.js';
 import { Sparkle, createPortalGlow, removeSparkles } from './entities/Sparkle.js';
 import { getTile, getTilePortal } from './physics.js';
 import { game, input } from './state.js';
-import { inForceFieldRange, isCrateCode, isPlatformCode, isTileKind, PLATFORM_CODE, Tile, TileKind } from './tiles.js';
+import { inForceFieldRange, isTileKind, Tile, TileKind } from './tiles.js';
 import { getCos, getSin, inScreen, random } from './utils.js';
 
 /**
@@ -93,19 +95,18 @@ export function launchPortal(p) {
 		}
 	} while (tile == Tile.EMPTY && inScreenOK && bounces < 5);
 
-	if (isTileKind(tile, TileKind.WALL) || isPlatformCode(tile)) {
+	if (isTileKind(tile, TileKind.WALL) || tile instanceof Platform) {
 		const ok = setPortalDir(p, x >> 8, y >> 8);
 		if (ok) {
 			if (game.portals[p].direction == Direction.RIGHT || game.portals[p].direction == Direction.LEFT) {
 				game.portals[p].scaleX = 1;
 				game.portals[p].scaleY = 0;
-				game.portals[p].platformIndex = -1;
+				game.portals[p].platform = null;
 			} else {
 				game.portals[p].scaleX = 0;
 				game.portals[p].scaleY = 1;
-				const platformCode = getTilePortal(x >> 8, y >> 8);
-				if (isPlatformCode(platformCode)) game.portals[p].platformIndex = platformCode - PLATFORM_CODE;
-				else game.portals[p].platformIndex = -1;
+				const hit = getTilePortal(x >> 8, y >> 8);
+				game.portals[p].platform = hit instanceof Platform ? hit : null;
 			}
 			const r = random(0, 2);
 			playSound(sfx_portal[r]);
@@ -136,15 +137,15 @@ function setPortalDir(p, x, y) {
 	for (i = y - 14; i < y + 14; i++) {
 		tile = getTilePortal(x, i);
 		if (tile != Tile.EMPTY) {
-			if (isTileKind(tile, TileKind.WALL) || isPlatformCode(tile)) wallCount++;
+			if (isTileKind(tile, TileKind.WALL) || tile instanceof Platform) wallCount++;
 		}
 	}
 	if (wallCount == 28) {
 		wallCount = 0;
 		for (i = x - TILE_SIZE; i < x + TILE_SIZE; i++) {
 			//make sure that nothing touches horizontally
-			if (getTile(i, y - 14) != Tile.EMPTY && !isCrateCode(getTile(i, y - 14))) wallCount++;
-			if (getTile(i, y + 13) != Tile.EMPTY && !isCrateCode(getTile(i, y + 13))) wallCount++;
+			if (getTile(i, y - 14) != Tile.EMPTY && !(getTile(i, y - 14) instanceof Crate)) wallCount++;
+			if (getTile(i, y + 13) != Tile.EMPTY && !(getTile(i, y + 13) instanceof Crate)) wallCount++;
 		}
 		if (wallCount > 36) return 0;
 
@@ -179,15 +180,15 @@ function setPortalDir(p, x, y) {
 		for (i = x - 14; i < x + 14; i++) {
 			tile = getTilePortal(i, y);
 			if (tile != Tile.EMPTY) {
-				if (isTileKind(tile, TileKind.WALL) || isPlatformCode(tile)) wallCount++;
+				if (isTileKind(tile, TileKind.WALL) || tile instanceof Platform) wallCount++;
 			}
 		}
 		if (wallCount == 28) {
 			wallCount = 0;
 			for (i = y - TILE_SIZE; i < y + TILE_SIZE; i++) {
 				//make sure that nothing touches vertically
-				if (getTile(x - 14, i) != Tile.EMPTY && !isCrateCode(getTile(x - 14, i))) wallCount++;
-				if (getTile(x + 13, i) != Tile.EMPTY && !isCrateCode(getTile(x + 13, i))) wallCount++;
+				if (getTile(x - 14, i) != Tile.EMPTY && !(getTile(x - 14, i) instanceof Crate)) wallCount++;
+				if (getTile(x + 13, i) != Tile.EMPTY && !(getTile(x + 13, i) instanceof Crate)) wallCount++;
 			}
 			if (wallCount > 36) return 0;
 

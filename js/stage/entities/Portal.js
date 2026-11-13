@@ -31,8 +31,8 @@ export class Portal {
 		 * Direction.RIGHT.
 		 */
 		this.direction = 0;
-		/** @type {number} The index of the platform that the portal is on, or -1. */
-		this.platformIndex = -1;
+		/** @type {import('./Platform.js').Platform|null} The platform that the portal is on, or null. */
+		this.platform = null;
 		/** @type {number} The frame of the portal animation. */
 		this.frame = 0;
 	}
@@ -53,8 +53,8 @@ export class Portal {
 	 * @returns {void}
 	 */
 	move() {
-		if (this.used && this.platformIndex > -1) {
-			this.x += game.platforms[this.platformIndex].vx;
+		if (this.used && this.platform) {
+			this.x += this.platform.vx;
 		}
 	}
 }

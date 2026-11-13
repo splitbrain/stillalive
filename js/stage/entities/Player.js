@@ -19,7 +19,7 @@ import { Body } from './Body.js';
 import { collectCakes } from './Cake.js';
 import { gravPipeFieldsAt } from './GravPipeField.js';
 import { plasmaTouching } from './Plasma.js';
-import { onBelt, onPlatform } from './Platform.js';
+import { onBelt, onPlatform, Platform } from './Platform.js';
 import { Sparkle } from './Sparkle.js';
 import { reportBrokenReplay } from '../inputState.js';
 import { loadLevel } from '../level.js';
@@ -36,7 +36,7 @@ import {
 } from '../physics.js';
 import { clearPortals, clearPortalsAtForceField, isInPortal, launchPortal, passPortal, portalAt } from '../portals.js';
 import { game, input, ui } from '../state.js';
-import { isPlatformCode, isTileKind, PLATFORM_CODE, TileKind } from '../tiles.js';
+import { isTileKind, TileKind } from '../tiles.js';
 import { random } from '../utils.js';
 
 /**
@@ -342,11 +342,8 @@ export class Player extends Body {
 			if (!passPortal(this, Direction.LEFT) && !passPortal(this, Direction.RIGHT)) this.y += this.vy >> 3;
 		}
 
-		let platformCode = onPlatform(this);
-		if (platformCode) {
-			platformCode -= PLATFORM_CODE;
-			this.x += game.platforms[platformCode].vx;
-		}
+		const platform = onPlatform(this);
+		if (platform) this.x += platform.vx;
 
 		let col = 1;
 		while (col && !isInPortal(this)) {
@@ -376,7 +373,7 @@ export class Player extends Body {
 		const colLeft = leftCollision(this);
 		const colRight = rightCollision(this);
 		if (colLeft && colRight && !isInPortal(this)) {
-			if (isPlatformCode(colLeft) || isPlatformCode(colRight)) {
+			if (colLeft instanceof Platform || colRight instanceof Platform) {
 				this.life = 0;
 			}
 		}

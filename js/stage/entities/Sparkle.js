@@ -183,9 +183,9 @@ export class Sparkle {
 			} else if (this.vy != 0) {
 				d = Math.abs(this.yOrig - this.y) >> 8;
 				this.fading = 200 - 5 * d;
-				const pi = game.portals[this.portalNum].platformIndex;
-				if (pi >= 0) {
-					this.x += game.platforms[pi].vx;
+				const platform = game.portals[this.portalNum].platform;
+				if (platform) {
+					this.x += platform.vx;
 					this.xOrig = this.x;
 				}
 			}

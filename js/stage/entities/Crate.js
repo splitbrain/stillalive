@@ -17,7 +17,7 @@ import {
 } from '../physics.js';
 import { inForceField, isInPortal } from '../portals.js';
 import { game } from '../state.js';
-import { CRATE_CODE, isTileKind, LAST_OF_KIND, PLATFORM_CODE, Tile, TileKind } from '../tiles.js';
+import { isTileKind, LAST_OF_KIND, Tile, TileKind } from '../tiles.js';
 
 /**
  * A crate. The player can carry and throw it, and it can press switches and stop turret shots.
@@ -41,8 +41,8 @@ export class Crate extends Body {
 		this.vy = 0;
 		/** @type {boolean} True while the player carries the crate. */
 		this.carried = false;
-		/** @type {number} The index of the platform that the crate stands on, or -1. */
-		this.platformIndex = -1;
+		/** @type {import('./Platform.js').Platform|null} The platform that the crate stands on, or null. */
+		this.platform = null;
 		/** @type {number} The conveyor belt that the crate stands on: 3 to the right, 4 to the left, 0 for none. */
 		this.carpet = 0;
 		/** @type {string} The entity type, used by the shared object functions. */
@@ -94,14 +94,13 @@ export class Crate extends Body {
 					game.boss.hit(this);
 				}
 
-				let pi = onPlatform(this);
-				if (pi) {
-					pi -= PLATFORM_CODE;
-					this.x += game.platforms[pi].vx;
-					this.platformIndex = pi;
-					if (game.platforms[pi].vx < 0 && leftCollision(this)) this.x -= game.platforms[pi].vx;
-					else if (game.platforms[pi].vx > 0 && rightCollision(this)) this.x -= game.platforms[pi].vx;
-				} else this.platformIndex = -1;
+				const platform = onPlatform(this);
+				if (platform) {
+					this.x += platform.vx;
+					this.platform = platform;
+					if (platform.vx < 0 && leftCollision(this)) this.x -= platform.vx;
+					else if (platform.vx > 0 && rightCollision(this)) this.x -= platform.vx;
+				} else this.platform = null;
 
 				if (!touchingGround(this)) this.angle += (this.vx >> 8) << 1;
 				else this.angle = 0;
@@ -176,7 +175,7 @@ export class Crate extends Body {
  *
  * @param {number} x The x coordinate in pixels.
  * @param {number} y The y coordinate in pixels.
- * @returns {number} The crate code of the crate, or 0.
+ * @returns {Crate|null} The crate, or null.
  */
 export function crateAt(x, y) {
 	return findCrate(x, y, freeCrate);
@@ -187,7 +186,7 @@ export function crateAt(x, y) {
  *
  * @param {number} x The x coordinate in pixels.
  * @param {number} y The y coordinate in pixels.
- * @returns {number} The crate code of the crate, or 0.
+ * @returns {Crate|null} The crate, or null.
  */
 export function anyCrateAt(x, y) {
 	return findCrate(x, y, anyCrate);
@@ -205,16 +204,16 @@ const anyCrate = () => true;
  * @param {number} x The x coordinate in pixels.
  * @param {number} y The y coordinate in pixels.
  * @param {function(Crate): boolean} counts The filter that selects the crates to find.
- * @returns {number} The crate code of the first crate that counts at the point, or 0.
+ * @returns {Crate|null} The first crate that counts at the point, or null.
  */
 function findCrate(x, y, counts) {
 	for (let i = 0; i < game.crates.length; i++) {
 		const crate = game.crates[i];
 		const x2 = crate.x >> 8;
 		const y2 = crate.y >> 8;
-		if (counts(crate) && x > x2 && x < x2 + TILE_SIZE - 1 && y > y2 && y < y2 + TILE_SIZE - 1) return CRATE_CODE + i;
+		if (counts(crate) && x > x2 && x < x2 + TILE_SIZE - 1 && y > y2 && y < y2 + TILE_SIZE - 1) return crate;
 	}
-	return 0;
+	return null;
 }
 
 /**

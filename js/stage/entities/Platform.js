@@ -7,7 +7,6 @@ import { PLAYFIELD_WIDTH, TILE_SIZE } from '../constants.js';
 import { crateAt } from './Crate.js';
 import { leftCollision, rightCollision, touchingGround } from '../physics.js';
 import { game } from '../state.js';
-import { CRATE_CODE, PLATFORM_CODE } from '../tiles.js';
 
 /**
  * A moving platform. It turns around at walls and at the edges of the playfield.
@@ -54,8 +53,9 @@ export class Platform extends Body {
  * Find a thing below the feet of an object, first below the left edge, then below the right edge.
  *
  * @param {Body} obj The object.
- * @param {function(number, number): number} find The search at a point in pixels, for example crateAt() or platformAt().
- * @returns {number} The first result that is not 0, or 0.
+ * @param {function(number, number): (Body|null)} find The search at a point in pixels, for example crateAt() or
+ *     platformAt().
+ * @returns {Body|null} The first object that the search finds, or null.
  */
 function findBelow(obj, find) {
 	const y = (obj.y >> 8) + obj.pY;
@@ -73,11 +73,8 @@ export function onBelt(obj) {
 	if (ground == 3 || ground == 4) {
 		return ground;
 	} else {
-		let ci = findBelow(obj, crateAt);
-		if (ci) {
-			ci -= CRATE_CODE;
-			if (game.crates[ci].carpet > 0) return game.crates[ci].carpet;
-		}
+		const crate = findBelow(obj, crateAt);
+		if (crate && crate.carpet > 0) return crate.carpet;
 	}
 
 	return 0;
@@ -87,19 +84,12 @@ export function onBelt(obj) {
  * Get the platform that carries an object, directly or through the crate that the object stands on.
  *
  * @param {Body} obj The object.
- * @returns {number} The platform code, or 0.
+ * @returns {Platform|null} The platform, or null.
  */
 export function onPlatform(obj) {
-	let platformCode = findBelow(obj, platformAt);
-	if (!platformCode) {
-		let ci = findBelow(obj, crateAt);
-		if (ci) {
-			ci -= CRATE_CODE;
-			if (game.crates[ci].platformIndex > -1) platformCode = PLATFORM_CODE + game.crates[ci].platformIndex;
-		}
-	}
-
-	return platformCode;
+	const platform = findBelow(obj, platformAt);
+	if (platform) return platform;
+	return findBelow(obj, crateAt)?.platform ?? null;
 }
 
 /**
@@ -107,16 +97,16 @@ export function onPlatform(obj) {
  *
  * @param {number} x The x coordinate in pixels.
  * @param {number} y The y coordinate in pixels.
- * @returns {number} The platform code of the platform, or 0.
+ * @returns {Platform|null} The platform, or null.
  */
 export function platformAt(x, y) {
 	let pi;
 	for (pi = 0; pi < game.platforms.length; pi++) {
 		const x2 = game.platforms[pi].x >> 8;
 		const y2 = game.platforms[pi].y >> 8;
-		if (x > x2 && x < x2 + 3 * TILE_SIZE && y >= y2 && y < y2 + TILE_SIZE - 1) return PLATFORM_CODE + pi;
+		if (x > x2 && x < x2 + 3 * TILE_SIZE && y >= y2 && y < y2 + TILE_SIZE - 1) return game.platforms[pi];
 	}
-	return 0;
+	return null;
 }
 
 /**

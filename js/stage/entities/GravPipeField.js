@@ -2,11 +2,11 @@
  * The GravPipeField object and its helper functions.
  */
 
-import { Direction, NUM_TILES, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, TILE_SIZE, TILE_SIZE_BITS } from '../constants.js';
+import { Direction, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, TILE_SIZE, TILE_SIZE_BITS } from '../constants.js';
 import { getTileWithoutCrates, getTileWithoutObjects } from '../physics.js';
 import { pointInPortal } from '../portals.js';
 import { game } from '../state.js';
-import { PLATFORM_CODE, Tile } from '../tiles.js';
+import { Tile } from '../tiles.js';
 
 /**
  * The area in front of a gravitational pipe that moves objects. rebuildGravPipeFields() builds the fields again in
@@ -121,7 +121,7 @@ function traceGravPipeField(sx, sy, vx, vy) {
 			if (tile == Tile.EMPTY) tile = getTileWithoutCrates(x + 2 * TILE_SIZE - 1, y);
 		}
 
-		if (tile != Tile.EMPTY && (tile < NUM_TILES || tile == Tile.GRAVPIPE_BLOCK || tile >= PLATFORM_CODE)) {
+		if (tile != Tile.EMPTY) {
 			x = (x >> TILE_SIZE_BITS) << TILE_SIZE_BITS;
 			y = (y >> TILE_SIZE_BITS) << TILE_SIZE_BITS;
 

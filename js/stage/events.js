@@ -163,7 +163,7 @@ function placePortal(p, [column, row, side]) {
 	Object.assign(portal, {
 		direction,
 		frame: onSideWall ? 1 : 0,
-		platformIndex: -1,
+		platform: null,
 		scaleX: 1,
 		scaleY: 1,
 		used: true,

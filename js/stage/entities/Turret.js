@@ -9,7 +9,7 @@ import { isInPortal } from '../portals.js';
 import { anyCrateAt, movingCrateTouching } from './Crate.js';
 import { gravPipeFieldsAt } from './GravPipeField.js';
 import { plasmaTouching } from './Plasma.js';
-import { onPlatform } from './Platform.js';
+import { onPlatform, Platform } from './Platform.js';
 import { Sparkle, createCakeOrSmokeSparkles } from './Sparkle.js';
 import {
 	getTile,
@@ -21,7 +21,7 @@ import {
 	touchingGround,
 } from '../physics.js';
 import { game } from '../state.js';
-import { isPlatformCode, PLATFORM_CODE, Tile } from '../tiles.js';
+import { Tile } from '../tiles.js';
 import { random } from '../utils.js';
 
 /** @type {number} The number of ticks between two shots. */
@@ -106,15 +106,12 @@ export class Turret extends Body {
 				if (game.time % 4 == 0) this.animFrame++;
 			}
 
-			let pi = onPlatform(this);
-			if (pi) {
-				pi -= PLATFORM_CODE;
-				this.x += game.platforms[pi].vx;
-			}
+			const platform = onPlatform(this);
+			if (platform) this.x += platform.vx;
 
 			const colLeft = leftCollision(this);
 			const colRight = rightCollision(this);
-			if (!this.dead && (isPlatformCode(colLeft) || isPlatformCode(colRight))) this.#explode();
+			if (!this.dead && (colLeft instanceof Platform || colRight instanceof Platform)) this.#explode();
 		} else {
 			placeObject(this);
 		}

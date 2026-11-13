@@ -1,5 +1,5 @@
 /**
- * The tile ids of the maps and the codes of the collision functions.
+ * The tile ids of the maps and the checks of their kinds.
  *
  * A map is a list of 768 tile ids. The ids below 100 are tiles of the tile set, and tileset[id] is their image. The
  * ids from 100 to 111 mark objects in a level file. The level loader replaces them with entities.
@@ -110,18 +110,13 @@ export const FIRST_OF_KIND = Object.fromEntries(TILE_RANGES.map(([first, , kind]
 /** @type {Object<string, number>} The last id of each kind, e.g. the last frame of an animated door. */
 export const LAST_OF_KIND = Object.fromEntries(TILE_RANGES.map(([, last, kind]) => [kind, last]));
 
-/** @type {number} The collision functions return this code plus the platform index for a platform. */
-export const PLATFORM_CODE = 200;
-
-/** @type {number} The collision functions return this code plus the crate index for a crate. */
-export const CRATE_CODE = 300;
-
 /**
- * Check if a tile has one of the given kinds.
+ * Check if a tile has one of the given kinds. An object, e.g. the crate or the platform of a collision result, is not
+ * a tile and has no kind.
  *
- * @param {number} id The tile id.
+ * @param {number|object} id The tile id, or an object.
  * @param {...string} kinds The kinds to check.
- * @returns {boolean} True if the tile has one of the kinds.
+ * @returns {boolean} True if the tile has one of the kinds, false for an object.
  */
 export function isTileKind(id, ...kinds) {
 	return kinds.includes(KIND_OF[id]);
@@ -168,24 +163,4 @@ export function isObjectTile(id) {
  */
 export function isGravPipeTile(id) {
 	return id >= Tile.GRAVPIPE_RIGHT && id <= Tile.GRAVPIPE_DOWN;
-}
-
-/**
- * Check if a collision result is a platform code.
- *
- * @param {number} code The result of a collision function.
- * @returns {boolean} True for a platform code.
- */
-export function isPlatformCode(code) {
-	return code >= PLATFORM_CODE && code < CRATE_CODE;
-}
-
-/**
- * Check if a collision result is a crate code.
- *
- * @param {number} code The result of a collision function.
- * @returns {boolean} True for a crate code.
- */
-export function isCrateCode(code) {
-	return code >= CRATE_CODE;
 }

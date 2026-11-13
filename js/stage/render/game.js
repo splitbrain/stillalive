@@ -637,7 +637,7 @@ function drawFrontTiles() {
 	let tx, ty, t, p, i;
 	if (game.objectInPortal > 0) {
 		for (p = 0; p < game.portals.length; p++) {
-			if (game.portals[p].platformIndex == -1) {
+			if (!game.portals[p].platform) {
 				const x = game.portals[p].x >> 8;
 				const y = game.portals[p].y >> 8;
 				if (game.portals[p].direction == Direction.UP || game.portals[p].direction == Direction.DOWN) {

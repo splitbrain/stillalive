@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test';
-import { CAMPAIGNS, finishLevel, startGame, waitForNarrator } from './adapter.js';
+import { MAP_HEIGHT, MAP_SIZE, MAP_WIDTH } from '../js/stage/constants.js';
+import { Tile } from '../js/stage/tiles.js';
+import { CAMPAIGNS, finishLevel, stageValue, startGame, waitForNarrator } from './adapter.js';
 
 /**
  * The elements of the page that show on some screens only.
@@ -66,17 +68,6 @@ async function expectScreen(page, hash, visible) {
 		if (visible.includes(part)) await expect(page.locator(part)).toBeVisible();
 		else await expect(page.locator(part)).toBeHidden();
 	}
-}
-
-/**
- * Get a value of the stage.
- *
- * @param {import('@playwright/test').Page} page The Playwright page.
- * @param {string} name The name of the value, e.g. "mode".
- * @returns {Promise<*>} The current content of the value.
- */
-function stageValue(page, name) {
-	return page.evaluate((name) => window.__test.stage[name].get(), name);
 }
 
 /**
@@ -180,7 +171,7 @@ test.describe('chrome', () => {
 		// a palette button sets the brush of the stage to its tile
 		const cake = page.locator('editor-palette button[title="Cake"]');
 		await cake.click();
-		await expect.poll(() => stageValue(page, 'brush')).toBe(103);
+		await expect.poll(() => stageValue(page, 'brush')).toBe(Tile.CAKE);
 		await expect(cake).toHaveClass(/selected/);
 		const tile = page.locator('editor-palette button[data-tile]').first();
 		await tile.click();
@@ -301,7 +292,7 @@ test.describe('chrome', () => {
 		await setHash(page, '#/editor');
 		await expectScreen(page, '#/editor', EDITOR_PARTS);
 		await waitForNarrator(page);
-		const tiles = new Array(768).fill(0);
+		const tiles = new Array(MAP_SIZE).fill(Tile.EMPTY);
 		tiles[100] = 16;
 		await page.evaluate((tiles) => window.__test.stage.edit({ tiles, bg: 2 }), tiles);
 		const map = () => page.evaluate(() => window.__test.stage.getMap());
@@ -318,11 +309,11 @@ test.describe('chrome', () => {
 		await expect(slot).toHaveText('Slot 1');
 
 		await buttons.getByRole('button', { name: 'Clear' }).click();
-		await expect.poll(async () => (await map()).tiles[100]).toBe(0);
+		await expect.poll(async () => (await map()).tiles[100]).toBe(Tile.EMPTY);
 		await buttons.getByRole('button', { name: 'Undo' }).click();
 		await expect.poll(async () => (await map()).tiles[100]).toBe(16);
 		await buttons.getByRole('button', { name: 'Redo' }).click();
-		await expect.poll(async () => (await map()).tiles[100]).toBe(0);
+		await expect.poll(async () => (await map()).tiles[100]).toBe(Tile.EMPTY);
 
 		// an empty map loads at once
 		await buttons.getByRole('button', { name: 'Load' }).click();
@@ -366,18 +357,21 @@ test.describe('chrome', () => {
 	});
 
 	test('plays the editor maps of the slots as the custom campaign', async ({ page }) => {
-		await page.addInitScript(() => {
-			if (sessionStorage.getItem('custom-setup')) return;
-			sessionStorage.setItem('custom-setup', '1');
-			const map = { tiles: new Array(768).fill(0), bg: 0 };
-			// a floor, the player start and the exit
-			for (let x = 0; x < 32; x++) map.tiles[23 * 32 + x] = 1;
-			map.tiles[21 * 32 + 2] = 104;
-			map.tiles[22 * 32 + 20] = 22;
-			localStorage.setItem('stillalive_editorMap1', JSON.stringify(map));
-			localStorage.setItem('stillalive_editorMap3', JSON.stringify(map));
-			localStorage.setItem('stillalive_bestTimes', JSON.stringify({ 'custom-3': 1 }));
-		});
+		await page.addInitScript(
+			({ MAP_HEIGHT, MAP_SIZE, MAP_WIDTH, Tile }) => {
+				if (sessionStorage.getItem('custom-setup')) return;
+				sessionStorage.setItem('custom-setup', '1');
+				const map = { tiles: new Array(MAP_SIZE).fill(Tile.EMPTY), bg: 0 };
+				// a floor, the player start and the exit
+				for (let x = 0; x < MAP_WIDTH; x++) map.tiles[(MAP_HEIGHT - 1) * MAP_WIDTH + x] = Tile.WALL;
+				map.tiles[(MAP_HEIGHT - 3) * MAP_WIDTH + 2] = Tile.PLAYER_START;
+				map.tiles[(MAP_HEIGHT - 2) * MAP_WIDTH + 20] = Tile.EXIT;
+				localStorage.setItem('stillalive_editorMap1', JSON.stringify(map));
+				localStorage.setItem('stillalive_editorMap3', JSON.stringify(map));
+				localStorage.setItem('stillalive_bestTimes', JSON.stringify({ 'custom-3': 1 }));
+			},
+			{ MAP_HEIGHT, MAP_SIZE, MAP_WIDTH, Tile },
+		);
 		await startGame(page);
 		await setHash(page, '#/');
 		await expect(page.locator('main-menu .custom')).toHaveText('My Levels 1/2');

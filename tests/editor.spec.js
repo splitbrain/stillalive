@@ -4,21 +4,10 @@
 
 import { readFileSync } from 'node:fs';
 import { test, expect } from '@playwright/test';
-import { finishLevel, startGame, waitForNarrator } from './adapter.js';
+import { finishLevel, stageValue, startGame, waitForNarrator } from './adapter.js';
 
 /** @type {object} A map file with a title, abilities, events and labels. */
 const MAP = JSON.parse(readFileSync(new URL('../maps/tutorial/level04.json', import.meta.url)));
-
-/**
- * Get a value of the stage.
- *
- * @param {import('@playwright/test').Page} page The Playwright page.
- * @param {string} name The name of the Value property of the stage, e.g. "mode".
- * @returns {Promise<*>} The current value.
- */
-function stageValue(page, name) {
-	return page.evaluate((name) => window.__test.stage[name].get(), name);
-}
 
 /**
  * Get the editor map of the stage in the map file format.

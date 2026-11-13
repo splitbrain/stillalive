@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { MAP_SIZE, MAP_WIDTH } from '../js/stage/constants.js';
+import { Tile } from '../js/stage/tiles.js';
 import { openGame } from './adapter.js';
 
 /**
@@ -52,7 +53,7 @@ function validReplay() {
  * @returns {object} The map data.
  */
 function validMap() {
-	return { format: 1, tiles: new Array(MAP_SIZE).fill(0), bg: 0 };
+	return { format: 1, tiles: new Array(MAP_SIZE).fill(Tile.EMPTY), bg: 0 };
 }
 
 /**
@@ -62,8 +63,8 @@ function validMap() {
  */
 function floorMap() {
 	const tiles = validMap()
-		.tiles.fill(1, MAP_SIZE - MAP_WIDTH)
-		.with(MAP_SIZE - 2 * MAP_WIDTH + 2, 104);
+		.tiles.fill(Tile.WALL, MAP_SIZE - MAP_WIDTH)
+		.with(MAP_SIZE - 2 * MAP_WIDTH + 2, Tile.PLAYER_START);
 	return { ...validMap(), tiles };
 }
 
@@ -132,8 +133,8 @@ test.describe('units', () => {
 
 	test('parseMap() accepts a valid map', async () => {
 		const data = validMap();
-		data.tiles[0] = 22;
-		data.tiles[1] = 110;
+		data.tiles[0] = Tile.EXIT;
+		data.tiles[1] = Tile.GRAVPIPE_DOWN;
 		const { result, error } = await call(page, '/js/stage/mapFile.js', 'parseMap', data);
 		expect(error).toBeUndefined();
 		expect(result).toEqual({
@@ -192,7 +193,7 @@ test.describe('units', () => {
 	test('parseMap() reads the boss and accepts the tube only in a boss level', async () => {
 		const data = validMap();
 		expect((await call(page, '/js/stage/mapFile.js', 'parseMap', data)).result.boss).toBe(0);
-		data.tiles[1] = 111;
+		data.tiles[1] = Tile.TUBE;
 		const boss = await call(page, '/js/stage/mapFile.js', 'parseMap', { ...data, boss: 4 });
 		expect(boss.error).toBeUndefined();
 		expect(boss.result.boss).toBe(4);
@@ -205,7 +206,7 @@ test.describe('units', () => {
 		const cases = {
 			'no data': null,
 			'wrong format': { ...validMap(), format: 2 },
-			'too few tiles': { ...validMap(), tiles: new Array(MAP_SIZE - 1).fill(0) },
+			'too few tiles': { ...validMap(), tiles: new Array(MAP_SIZE - 1).fill(Tile.EMPTY) },
 			'no tiles': { ...validMap(), tiles: undefined },
 			'negative tile id': { ...validMap(), tiles: tiles(5, -1) },
 			'unknown tile id': { ...validMap(), tiles: tiles(5, 99) },

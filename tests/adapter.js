@@ -2,7 +2,6 @@
  * Test adapter that reads and writes the game state in the browser.
  *
  * When the URL contains "?test", the stage element puts itself, the game state and some functions on window.__test.
- * Only the functions in this file use window.__test.
  */
 
 import { readFileSync } from 'node:fs';
@@ -79,6 +78,17 @@ export async function openGame(page) {
 		window.__loaded = (await import('/js/loader.js')).ready;
 	});
 	await page.waitForFunction(() => window.__loaded.get(), null, { polling: 50 });
+}
+
+/**
+ * Get a value of the stage.
+ *
+ * @param {import('@playwright/test').Page} page The Playwright page.
+ * @param {string} name The name of the Value property of the stage, e.g. "mode".
+ * @returns {Promise<*>} The current value.
+ */
+export function stageValue(page, name) {
+	return page.evaluate((name) => window.__test.stage[name].get(), name);
 }
 
 /**
@@ -268,6 +278,7 @@ export async function runPortalScene(page, scene) {
 		const { Turret } = await import('/js/stage/entities/Turret.js');
 		const { Plasma } = await import('/js/stage/entities/Plasma.js');
 		const { MAP_HEIGHT, MAP_WIDTH } = await import('/js/stage/constants.js');
+		const { Tile } = await import('/js/stage/tiles.js');
 		let state = scene.seed >>> 0;
 		Math.random = () => {
 			state = (state + 0x6d2b79f5) >>> 0;
@@ -281,7 +292,7 @@ export async function runPortalScene(page, scene) {
 		for (let i = 0; i < game.map.length; i++) {
 			const x = i % MAP_WIDTH;
 			const y = Math.floor(i / MAP_WIDTH);
-			game.map[i] = x === 0 || y === 0 || x === MAP_WIDTH - 1 || y === MAP_HEIGHT - 1 ? 1 : 0;
+			game.map[i] = x === 0 || y === 0 || x === MAP_WIDTH - 1 || y === MAP_HEIGHT - 1 ? Tile.WALL : Tile.EMPTY;
 		}
 		game.displayMap = game.map.slice();
 		for (const list of [

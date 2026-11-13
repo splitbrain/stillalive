@@ -22,7 +22,6 @@ import { getCos, getSin, inScreen, random } from './utils.js';
 export function launchPortal(p) {
 	let i;
 	game.player.portalCooldown = 0;
-	game.player.lastLaunched = p;
 
 	let x = game.player.x + ((game.player.pX >> 1) << 8);
 	let y = game.player.y + ((game.player.pY >> 1) << 8);
@@ -353,11 +352,7 @@ function teleport(p, obj) {
 		game.player.teleportTime = p == 0 ? 42 : -42;
 	}
 
-	if (exit == Direction.RIGHT) {
-		gap = (32 - obj.pY) >> 1;
-		obj.x = game.portals[1 - p].x - ((obj.pX >> 1) << 8);
-		obj.y = game.portals[1 - p].y + (gap << 8);
-	} else if (exit == Direction.LEFT) {
+	if (exit == Direction.RIGHT || exit == Direction.LEFT) {
 		gap = (32 - obj.pY) >> 1;
 		obj.x = game.portals[1 - p].x - ((obj.pX >> 1) << 8);
 		obj.y = game.portals[1 - p].y + (gap << 8);

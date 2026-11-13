@@ -9,7 +9,7 @@ import { gravPipeFieldsAt } from './entities/GravPipeField.js';
 import { onBelt, platformAt } from './entities/Platform.js';
 import { isInPortal, passPortal, portalAt } from './portals.js';
 import { game, input } from './state.js';
-import { FIRST_OF_KIND, inForceFieldRange, isCrateCode, isDeadlyTile, isTileKind, Tile, TileKind } from './tiles.js';
+import { FIRST_OF_KIND, inForceFieldRange, isDeadlyTile, isTileKind, Tile, TileKind } from './tiles.js';
 import { getCos, getDistance, getSin, inScreen } from './utils.js';
 
 /**
@@ -146,8 +146,7 @@ export function getTilePortal(x, y) {
 		tile == FIRST_OF_KIND[TileKind.WHEEL] ||
 		isTileKind(tile, TileKind.ENERGYWALL) ||
 		tile == Tile.CAKE ||
-		tile == Tile.PLAYER_START ||
-		isCrateCode(tile)
+		tile == Tile.PLAYER_START
 	)
 		tile = Tile.EMPTY;
 

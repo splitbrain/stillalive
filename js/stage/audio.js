@@ -2,8 +2,8 @@
  * Sound effects and music with the Web Audio API.
  */
 
-/** @type {OfflineAudioContext} The context that decodes the sounds and the level music. */
-const decoder = new OfflineAudioContext(1, 1, 44100);
+/** @type {OfflineAudioContext|null} The context that decodes the sounds and the music, or null before it is needed. */
+let decoder = null;
 
 /** @type {AudioContext|null} The audio context of the game, or null before the first click or key press. */
 let context = null;
@@ -62,6 +62,17 @@ class Sound {
 }
 
 /**
+ * Decode the data of a sound file.
+ *
+ * @param {ArrayBuffer} data The content of the file.
+ * @returns {Promise<AudioBuffer>} The decoded sound.
+ */
+function decode(data) {
+	decoder ??= new OfflineAudioContext(1, 1, 44100);
+	return decoder.decodeAudioData(data);
+}
+
+/**
  * Start to load a sound.
  *
  * @param {string} name The file name of the sound in the sounds folder, without extension.
@@ -77,7 +88,7 @@ function loadSound(name) {
 			if (!response.ok) throw new Error(`${response.status}`);
 			return response.arrayBuffer();
 		})
-		.then((data) => decoder.decodeAudioData(data))
+		.then(decode)
 		.then((buffer) => {
 			sound.buffer = buffer;
 		})
@@ -158,8 +169,6 @@ function stopOldLoops() {
 		}
 	}
 }
-
-setInterval(stopOldLoops, LOOP_HOLD / 2);
 
 /**
  * Get a random playback rate near the normal speed, so that a repeated sound does not sound the same each time.
@@ -302,9 +311,8 @@ let levelBuffer = null;
  */
 let levelPlayback = null;
 
-/** @type {HTMLAudioElement} The audio element of the menu music. It has no source before the music loads. */
-const menuElement = new Audio();
-menuElement.loop = true;
+/** @type {HTMLAudioElement|null} The audio element of the menu music, or null before the first use. */
+let menuElement = null;
 
 /** @type {GainNode|null} The gain node of the fade of the menu music, or null before the audio context exists. */
 let menuFade = null;
@@ -314,6 +322,19 @@ let menuPlaying = false;
 
 /** @type {number} The timer that pauses the menu music at the end of its fade. */
 let menuPauseTimer = 0;
+
+/**
+ * Get the audio element of the menu music, and create it on the first call. It has no source before the music loads.
+ *
+ * @returns {HTMLAudioElement} The audio element.
+ */
+function menuMusic() {
+	if (!menuElement) {
+		menuElement = new Audio();
+		menuElement.loop = true;
+	}
+	return menuElement;
+}
 
 /** @type {boolean} True after the music started to load. */
 let musicRequested = false;
@@ -342,13 +363,13 @@ let musicDuck = 1;
 function loadMusic() {
 	if (musicRequested) return;
 	musicRequested = true;
-	menuElement.src = MENU_MUSIC_FILE;
+	menuMusic().src = MENU_MUSIC_FILE;
 	fetch(LEVEL_MUSIC_FILE)
 		.then((response) => {
 			if (!response.ok) throw new Error(`${response.status}`);
 			return response.arrayBuffer();
 		})
-		.then((data) => decoder.decodeAudioData(data))
+		.then(decode)
 		.then((buffer) => {
 			levelBuffer = buffer;
 			updateMusic();
@@ -452,15 +473,16 @@ function updateMenuMusic(play) {
 	if (play === menuPlaying) return;
 	menuPlaying = play;
 	clearTimeout(menuPauseTimer);
+	const element = menuMusic();
 	if (play) {
-		if (menuElement.paused) {
-			menuElement.currentTime = 0;
-			menuElement.play().catch((error) => console.error('Could not play the menu music', error));
+		if (element.paused) {
+			element.currentTime = 0;
+			element.play().catch((error) => console.error('Could not play the menu music', error));
 		}
 		rampTo(menuFade.gain, MENU_MUSIC_SHARE, MUSIC_FADE);
 	} else {
 		rampTo(menuFade.gain, 0, MUSIC_FADE);
-		menuPauseTimer = window.setTimeout(() => menuElement.pause(), MUSIC_FADE * 1000);
+		menuPauseTimer = window.setTimeout(() => element.pause(), MUSIC_FADE * 1000);
 	}
 }
 
@@ -476,7 +498,7 @@ function connectMusic() {
 	menuFade = context.createGain();
 	menuFade.gain.value = 0;
 	menuFade.connect(musicGain);
-	context.createMediaElementSource(menuElement).connect(menuFade);
+	context.createMediaElementSource(menuMusic()).connect(menuFade);
 	updateMusic();
 }
 
@@ -508,13 +530,21 @@ function resumeAudio() {
 		updateMasterVolume();
 		sounds.forEach(connectSound);
 		connectMusic();
+		setInterval(stopOldLoops, LOOP_HOLD / 2);
 	}
 	if (context.state === 'suspended') context.resume();
 }
 
-// The capture phase lets the handler run before other handlers can stop the event.
-window.addEventListener('pointerdown', resumeAudio, { capture: true });
-window.addEventListener('keydown', resumeAudio, { capture: true });
+/**
+ * Start to wait for the first click or key press of the player, which creates the audio context.
+ *
+ * @returns {void}
+ */
+export function watchAudioUnlock() {
+	// the capture phase lets the handler run before other handlers can stop the event
+	window.addEventListener('pointerdown', resumeAudio, { capture: true });
+	window.addEventListener('keydown', resumeAudio, { capture: true });
+}
 
 /** @type {Sound} An object enters a portal. */
 export let sfx_enterPortal;

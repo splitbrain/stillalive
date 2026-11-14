@@ -13,6 +13,7 @@ import {
 	onSoundDone,
 	setSoundOn,
 	soundProgress,
+	watchAudioUnlock,
 } from './stage/audio.js';
 import { loadGfx } from './stage/images.js';
 import { loadKeyLabels } from './stage/keys.js';
@@ -102,13 +103,14 @@ function defineElements(elements, modules) {
 }
 
 /**
- * Start to load the images, the sounds, the campaigns and the key labels. The sound setting is read first, because
- * the game waits for the sounds only while the sound is on.
+ * Start to load the images, the sounds, the campaigns and the key labels, and start to wait for the first input that
+ * unlocks the audio. The sound setting is read first, because the game waits for the sounds only while the sound is on.
  *
  * @returns {void}
  */
 function startFiles() {
 	setSoundOn(loadSoundSetting());
+	watchAudioUnlock();
 	onImageDone(update);
 	onSoundDone(update);
 	campaignsReady.subscribe(checkReady);

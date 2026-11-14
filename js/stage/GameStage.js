@@ -195,7 +195,7 @@ export class GameStage extends HTMLElement {
 	 */
 	test() {
 		if (ui.mode != 'edit') return;
-		this.#world = this.#editor.startTest(this.#world, this.#transition);
+		this.#world = this.#editor.startTest(this.#transition);
 		this.#publish();
 	}
 
@@ -280,7 +280,7 @@ export class GameStage extends HTMLElement {
 	 * @returns {void}
 	 */
 	setBackground(n) {
-		if (ui.mode == 'edit') this.#editor.setBackground(this.#world, n);
+		if (ui.mode == 'edit') this.#editor.setBackground(n);
 	}
 
 	/**
@@ -289,7 +289,7 @@ export class GameStage extends HTMLElement {
 	 * @returns {object} The editor map in the map file format without the format property, with a copy of the tiles.
 	 */
 	getMap() {
-		return this.#editor.getMap(this.#world);
+		return this.#editor.getMap();
 	}
 
 	/**
@@ -298,7 +298,7 @@ export class GameStage extends HTMLElement {
 	 * @returns {void}
 	 */
 	clearMap() {
-		if (ui.mode == 'edit') this.#editor.clear(this.#world);
+		if (ui.mode == 'edit') this.#editor.clear();
 	}
 
 	/**
@@ -307,7 +307,7 @@ export class GameStage extends HTMLElement {
 	 * @returns {void}
 	 */
 	undo() {
-		if (ui.mode == 'edit') this.#editor.undo(this.#world);
+		if (ui.mode == 'edit') this.#editor.undo();
 	}
 
 	/**
@@ -316,7 +316,7 @@ export class GameStage extends HTMLElement {
 	 * @returns {void}
 	 */
 	redo() {
-		if (ui.mode == 'edit') this.#editor.redo(this.#world);
+		if (ui.mode == 'edit') this.#editor.redo();
 	}
 
 	/**
@@ -406,7 +406,6 @@ export class GameStage extends HTMLElement {
 	 */
 	#leave() {
 		if (ui.mode == 'test') this.#world = this.#editor.stopTest(false);
-		if (ui.mode == 'edit') this.#editor.leave(this.#world);
 		ui.paused = false;
 		this.#source = null;
 		this.#updateMouseLock();
@@ -441,7 +440,7 @@ export class GameStage extends HTMLElement {
 		world.applyInput(input);
 		input.endTick();
 		if (ui.mode == 'edit') {
-			this.#editor.update(world);
+			this.#editor.update();
 			return;
 		}
 		if ((ui.mode != 'play' && ui.mode != 'test') || ui.paused) return;

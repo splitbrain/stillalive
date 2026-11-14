@@ -17,7 +17,7 @@ import { drawLevel, drawPreviewMap } from './game.js';
 export function render(world, editor) {
 	if (ui.mode == 'idle') return;
 	beginFrame(world.shakeX, world.shakeY);
-	if (ui.mode == 'edit') drawEditor(world, editor);
+	if (ui.mode == 'edit') drawEditor(editor);
 	else if (ui.mode == 'play' || ui.mode == 'test') drawLevel(world);
 	else if (ui.mode == 'preview') drawPreviewMap(world);
 }

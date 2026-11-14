@@ -210,7 +210,7 @@ function drawSparkles(world) {
  * @returns {void}
  */
 export function drawLevel(world) {
-	if (!isSameSource(tileLayerSource, layerSource(world))) createBuff(world);
+	if (!isSameSource(tileLayerSource, layerSource(world.map, world.background))) createBuff(world);
 	drawTileLayer();
 	drawAnimatedTiles(world);
 
@@ -349,13 +349,14 @@ function drawAnimatedTiles(world) {
  */
 
 /**
- * Get the source of a cached layer for the map and the background of a World and the current canvas buffer.
+ * Get the source of a cached layer for a map, a background and the current canvas buffer.
  *
- * @param {import('../World.js').World} world The World.
+ * @param {import('../TileMap.js').TileMap} map The map.
+ * @param {number} background The index of the background image.
  * @returns {LayerSource} The source.
  */
-export function layerSource(world) {
-	return { map: world.map, version: world.map.version, background: world.background, generation: canvasGeneration() };
+export function layerSource(map, background) {
+	return { map, version: map.version, background, generation: canvasGeneration() };
 }
 
 /**
@@ -389,7 +390,7 @@ let tileLayerSource = null;
  */
 function saveTileLayer(world) {
 	tileLayer = copyCanvas(0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
-	tileLayerSource = layerSource(world);
+	tileLayerSource = layerSource(world.map, world.background);
 }
 
 /**
@@ -762,7 +763,7 @@ export function drawPlayer(x, y, flipX, frame = 0) {
  * @returns {void}
  */
 export function drawPreviewMap(world) {
-	if (!isSameSource(tileLayerSource, layerSource(world))) createBuff(world);
+	if (!isSameSource(tileLayerSource, layerSource(world.map, world.background))) createBuff(world);
 	drawTileLayer();
 
 	ctx.save();

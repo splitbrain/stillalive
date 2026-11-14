@@ -31,12 +31,11 @@ let tilesBuffSource = null;
 /**
  * Draw the editor map and the cursor.
  *
- * @param {import('../World.js').World} world The World.
  * @param {import('../Editor.js').Editor} editor The editor.
  * @returns {void}
  */
-export function drawEditor(world, editor) {
-	drawTileMap(world);
+export function drawEditor(editor) {
+	drawTileMap(editor);
 	drawTileCursor(editor.brush);
 	drawSpriteCursor(editor.brush);
 }
@@ -60,21 +59,22 @@ function drawSprites(world) {
  * Draw the tile layer of the editor with the plasma start markers and the objects, and keep a copy for the next
  * frames. The objects of the editor come from the map, so the copy stays valid while the map does not change.
  *
- * @param {import('../World.js').World} world The World.
+ * @param {import('../Editor.js').Editor} editor The editor.
  * @returns {void}
  */
-function drawTileMap(world) {
+function drawTileMap(editor) {
 	let y, x, i;
-	const source = layerSource(world);
+	const map = editor.map;
+	const source = layerSource(map, editor.background);
 	if (!isSameSource(tilesBuffSource, source)) {
-		drawImage(bg[world.background], 0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
+		drawImage(bg[editor.background], 0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 		ctx.fillStyle = 'rgba(255, 0, 0, 0.7)';
-		for (i = 0; i < world.map.tiles.length; i++) {
-			if (world.map.tiles[i] == Tile.PLASMA_START) {
-				x = world.map.column(i);
-				y = world.map.row(i);
+		for (i = 0; i < map.tiles.length; i++) {
+			if (map.tiles[i] == Tile.PLASMA_START) {
+				x = map.column(i);
+				y = map.row(i);
 
-				if (!plasmaLaunch(world.map, x, y)) {
+				if (!plasmaLaunch(map, x, y)) {
 					if (y - 1 >= 0) ctx.fillRect(x * TILE_SIZE, (y - 1) * TILE_SIZE, TILE_SIZE, TILE_SIZE);
 					if (y + 1 < MAP_HEIGHT) ctx.fillRect(x * TILE_SIZE, (y + 1) * TILE_SIZE, TILE_SIZE, TILE_SIZE);
 					if (x - 1 >= 0) ctx.fillRect((x - 1) * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
@@ -85,8 +85,8 @@ function drawTileMap(world) {
 			}
 		}
 
-		drawTiles(world.map);
-		drawSprites(world);
+		drawTiles(map);
+		drawSprites(editor.world);
 		tilesBuff = copyCanvas(0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 		tilesBuffSource = source;
 	} else {

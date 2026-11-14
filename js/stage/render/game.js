@@ -37,7 +37,7 @@ import {
 } from '../images.js';
 import { drawBoss } from './boss.js';
 import { drawTransition } from './transitions.js';
-import { game, input, ui } from '../state.js';
+import { input, ui } from '../state.js';
 import { degToRad, getAngle, radToDeg, random } from '../utils.js';
 
 /**
@@ -111,13 +111,14 @@ function triangle(x1, y1, x2, y2, x3, y3) {
 /**
  * Draw the portal gun of the player, turned towards the mouse.
  *
+ * @param {import('../World.js').World} world The World.
  * @returns {void}
  */
-function drawPortalGun() {
-	if (game.abilities.portals) {
-		const a = getAngle(game.player.midX(), game.player.midY(), input.mouseX, input.mouseY);
+function drawPortalGun(world) {
+	if (world.abilities.portals) {
+		const a = getAngle(world.player.midX(), world.player.midY(), input.mouseX, input.mouseY);
 		ctx.save();
-		ctx.translate(game.player.midX(), game.player.midY());
+		ctx.translate(world.player.midX(), world.player.midY());
 		ctx.rotate(a);
 		drawImage(portalGun, -5, -5);
 		ctx.restore();
@@ -127,17 +128,18 @@ function drawPortalGun() {
 /**
  * Draw the head of the player, turned towards the mouse.
  *
+ * @param {import('../World.js').World} world The World.
  * @param {number} flipDx 1 when the player faces left, else 0.
  * @returns {void}
  */
-function drawRotatedHead(flipDx) {
-	let a = getAngle(game.player.midX(), game.player.midY(), input.mouseX, input.mouseY);
+function drawRotatedHead(world, flipDx) {
+	let a = getAngle(world.player.midX(), world.player.midY(), input.mouseX, input.mouseY);
 	ctx.save();
 	// facing left, the head image is mirrored around the pivot, so the pivot sits at the mirrored x of the neck
 	const [pivotX, pivotY] = HEAD_PIVOT;
 	ctx.translate(
-		(game.player.x >> 8) + (flipDx ? 16 - pivotX : pivotX),
-		(game.player.y >> 8) + pivotY + HEAD_BOB[game.player.animationFrame],
+		(world.player.x >> 8) + (flipDx ? 16 - pivotX : pivotX),
+		(world.player.y >> 8) + pivotY + HEAD_BOB[world.player.animationFrame],
 	);
 	let ad = radToDeg(a);
 
@@ -188,10 +190,11 @@ function drawBody(x, y, frame, flipX) {
 /**
  * Draw the sparkles. The size follows the fade.
  *
+ * @param {import('../World.js').World} world The World.
  * @returns {void}
  */
-function drawSparkles() {
-	for (const s of game.sparkles) {
+function drawSparkles(world) {
+	for (const s of world.sparkles) {
 		if (s.fading <= 0) continue;
 		const sc = s.fading / 255;
 		let dt = 9 - sc * 9;
@@ -203,46 +206,47 @@ function drawSparkles() {
 /**
  * Draw a level.
  *
+ * @param {import('../World.js').World} world The World.
  * @returns {void}
  */
-export function drawLevel() {
-	if (!isSameSource(tileLayerSource, layerSource())) createBuff();
+export function drawLevel(world) {
+	if (!isSameSource(tileLayerSource, layerSource(world))) createBuff(world);
 	drawTileLayer();
-	drawAnimatedTiles();
+	drawAnimatedTiles(world);
 
-	drawGravPipes();
+	drawGravPipes(world);
 
-	const flipDx = game.player.flip < 0 ? 1 : 0;
-	if (!flipDx) drawPortalGun();
-	drawRotatedHead(flipDx);
-	drawBody(game.player.x >> 8, game.player.y >> 8, game.player.animationFrame, game.player.flip);
-	if (flipDx) drawPortalGun();
+	const flipDx = world.player.flip < 0 ? 1 : 0;
+	if (!flipDx) drawPortalGun(world);
+	drawRotatedHead(world, flipDx);
+	drawBody(world.player.x >> 8, world.player.y >> 8, world.player.animationFrame, world.player.flip);
+	if (flipDx) drawPortalGun(world);
 
-	drawCakes();
-	drawTurrets();
-	drawPlasma();
-	drawSparkles();
-	drawCrates();
+	drawCakes(world);
+	drawTurrets(world);
+	drawPlasma(world);
+	drawSparkles(world);
+	drawCrates(world);
 
-	if (game.boss) {
-		drawBoss();
-		if (game.boss.shootsWheels()) drawProjectiles();
-		drawTube();
+	if (world.boss) {
+		drawBoss(world);
+		if (world.boss.shootsWheels()) drawProjectiles(world);
+		drawTube(world);
 	}
 
-	drawPlatforms();
-	drawFrontTiles();
-	drawPortals();
-	drawCamera();
-	drawLabels();
+	drawPlatforms(world);
+	drawFrontTiles(world);
+	drawPortals(world);
+	drawCamera(world);
+	drawLabels(world);
 
-	if (game.player.dead) {
-		const a = -(game.player.life / 256);
+	if (world.player.dead) {
+		const a = -(world.player.life / 256);
 		ctx.fillStyle = 'rgba(0, 0, 0,' + (1 - a) + ')';
 		ctx.fillRect(0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 	}
 
-	drawTransition();
+	drawTransition(world);
 
 	drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
 }
@@ -250,15 +254,16 @@ export function drawLevel() {
 /**
  * Draw the labels of the level at their positions in the playfield.
  *
+ * @param {import('../World.js').World} world The World.
  * @returns {void}
  */
-function drawLabels() {
-	if (!game.isRunning() && !game.isHalted()) return;
+function drawLabels(world) {
+	if (!world.isRunning() && !world.isHalted()) return;
 	ctx.save();
 	ctx.font = LABEL_FONT;
 	ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
 	ctx.textAlign = 'center';
-	for (const label of game.labels) drawLabel(label);
+	for (const label of world.labels) drawLabel(label);
 	ctx.restore();
 }
 
@@ -323,10 +328,11 @@ function hashText(text) {
 /**
  * Draw the current frames of the animated tiles.
  *
+ * @param {import('../World.js').World} world The World.
  * @returns {void}
  */
-function drawAnimatedTiles() {
-	for (const tile of game.animatedTiles) {
+function drawAnimatedTiles(world) {
+	for (const tile of world.animatedTiles) {
 		if (!tile.used) continue;
 		drawImage(tileset[tile.current], tile.x << TILE_SIZE_BITS, tile.y << TILE_SIZE_BITS, TILE_SIZE, TILE_SIZE);
 	}
@@ -343,12 +349,13 @@ function drawAnimatedTiles() {
  */
 
 /**
- * Get the source of a cached layer for the current map, background and canvas buffer.
+ * Get the source of a cached layer for the map and the background of a World and the current canvas buffer.
  *
+ * @param {import('../World.js').World} world The World.
  * @returns {LayerSource} The source.
  */
-export function layerSource() {
-	return { map: game.map, version: game.map.version, background: game.background, generation: canvasGeneration() };
+export function layerSource(world) {
+	return { map: world.map, version: world.map.version, background: world.background, generation: canvasGeneration() };
 }
 
 /**
@@ -377,11 +384,12 @@ let tileLayerSource = null;
 /**
  * Keep a copy of the background and the tile layer, which are drawn in the playfield.
  *
+ * @param {import('../World.js').World} world The World.
  * @returns {void}
  */
-function saveTileLayer() {
+function saveTileLayer(world) {
 	tileLayer = copyCanvas(0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
-	tileLayerSource = layerSource();
+	tileLayerSource = layerSource(world);
 }
 
 /**
@@ -396,12 +404,13 @@ function drawTileLayer() {
 /**
  * Draw the background and the tile layer and keep a copy for the next frames.
  *
+ * @param {import('../World.js').World} world The World.
  * @returns {void}
  */
-function createBuff() {
-	drawImage(bg[game.background], 0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
-	drawTiles(game.map);
-	saveTileLayer();
+function createBuff(world) {
+	drawImage(bg[world.background], 0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
+	drawTiles(world.map);
+	saveTileLayer(world);
 }
 
 /**
@@ -421,12 +430,13 @@ export function drawTiles(map) {
 /**
  * Draw the cakes. The cakes float only while the level time runs. Else they stand at their rest position.
  *
+ * @param {import('../World.js').World} world The World.
  * @returns {void}
  */
-export function drawCakes() {
-	for (const c of game.cakes) {
+export function drawCakes(world) {
+	for (const c of world.cakes) {
 		if (!c.used) continue;
-		const float = game.isRunning() ? c.vy : 0;
+		const float = world.isRunning() ? c.vy : 0;
 		drawImage(cake, c.x >> 8, (c.y + float) >> 8, TILE_SIZE, 12);
 	}
 }
@@ -434,10 +444,11 @@ export function drawCakes() {
 /**
  * Draw the turrets with their laser sights.
  *
+ * @param {import('../World.js').World} world The World.
  * @returns {void}
  */
-export function drawTurrets() {
-	for (const t of game.turrets) {
+export function drawTurrets(world) {
+	for (const t of world.turrets) {
 		const side = t.dir < 0 ? 0 : 1;
 		const x = t.x >> 8;
 		const y = t.y >> 8;
@@ -457,12 +468,12 @@ export function drawTurrets() {
 		);
 		ctx.restore();
 		const dx = t.dir < 0 ? 0 : t.pX;
-		const playerY = game.player.midY();
+		const playerY = world.player.midY();
 		if (t.animFrame == 1 && !t.dead) {
 			ctx.strokeStyle = 'rgb(255, 255, 0)';
 			ctx.lineWidth = 3;
 			const dy = random(-16, 16);
-			line(x + dx, y + 13, game.player.x >> 8, playerY + dy);
+			line(x + dx, y + 13, world.player.x >> 8, playerY + dy);
 		} else if (t.rotation < 10 && !t.dead) {
 			ctx.strokeStyle = 'rgb(255, 0, 0)';
 			ctx.lineWidth = 1;
@@ -474,10 +485,11 @@ export function drawTurrets() {
 /**
  * Draw the plasma balls with their pulse.
  *
+ * @param {import('../World.js').World} world The World.
  * @returns {void}
  */
-function drawPlasma() {
-	for (const ball of game.plasmaBall) {
+function drawPlasma(world) {
+	for (const ball of world.plasmaBall) {
 		if (!ball.used) continue;
 		let vx = 0;
 		let vy = 0;
@@ -500,10 +512,11 @@ function drawPlasma() {
 /**
  * Draw the razor wheels of the boss with their motion trail.
  *
+ * @param {import('../World.js').World} world The World.
  * @returns {void}
  */
-function drawProjectiles() {
-	for (const p of game.projectiles) {
+function drawProjectiles(world) {
+	for (const p of world.projectiles) {
 		const image = tileset[p.img];
 		if (!p.needKill) {
 			ctx.globalAlpha = 0.5;
@@ -519,10 +532,11 @@ function drawProjectiles() {
 /**
  * Draw the crates. A destroyed crate shrinks.
  *
+ * @param {import('../World.js').World} world The World.
  * @returns {void}
  */
-export function drawCrates() {
-	for (const c of game.crates) {
+export function drawCrates(world) {
+	for (const c of world.crates) {
 		const sc = c.shrink > 0 ? c.shrink / 60 : 1;
 		ctx.save();
 		ctx.translate(c.midX(), c.midY());
@@ -554,12 +568,13 @@ export function drawArrow(x1, y1, x2, y2, lineWidth, dir) {
 /**
  * Draw the pipe fields as half transparent areas.
  *
+ * @param {import('../World.js').World} world The World.
  * @returns {void}
  */
-function drawGravPipeFields() {
+function drawGravPipeFields(world) {
 	ctx.fillStyle = 'rgb(151, 206, 233)';
 	ctx.globalAlpha = 0.5;
-	for (const field of game.gravPipeFields) {
+	for (const field of world.gravPipeFields) {
 		ctx.fillRect(field.x, field.y, field.w, field.h);
 	}
 	ctx.globalAlpha = 1;
@@ -568,11 +583,12 @@ function drawGravPipeFields() {
 /**
  * Draw the pipe fields and the gravitational pipes.
  *
+ * @param {import('../World.js').World} world The World.
  * @returns {void}
  */
-export function drawGravPipes() {
-	drawGravPipeFields();
-	for (const t of game.gravPipes) drawGravPipe(t.dir, t.x >> 8, t.y >> 8);
+export function drawGravPipes(world) {
+	drawGravPipeFields(world);
+	for (const t of world.gravPipes) drawGravPipe(t.dir, t.x >> 8, t.y >> 8);
 }
 
 /**
@@ -595,19 +611,21 @@ export function drawGravPipe(dir, x, y) {
 /**
  * Draw the tube of the boss.
  *
+ * @param {import('../World.js').World} world The World.
  * @returns {void}
  */
-function drawTube() {
-	drawImage(game.boss.number == 2 ? tube2 : tube, game.tubeX >> 8, game.tubeY >> 8);
+function drawTube(world) {
+	drawImage(world.boss.number == 2 ? tube2 : tube, world.tubeX >> 8, world.tubeY >> 8);
 }
 
 /**
  * Draw the platforms.
  *
+ * @param {import('../World.js').World} world The World.
  * @returns {void}
  */
-export function drawPlatforms() {
-	for (const p of game.platforms) drawPlatform(p.x >> 8, p.y >> 8, p.dir);
+export function drawPlatforms(world) {
+	for (const p of world.platforms) drawPlatform(p.x >> 8, p.y >> 8, p.dir);
 }
 
 /**
@@ -630,37 +648,38 @@ export function drawPlatform(x, y, dir) {
 /**
  * Draw the tiles around the portals over the objects that are half in a portal.
  *
+ * @param {import('../World.js').World} world The World.
  * @returns {void}
  */
-function drawFrontTiles() {
+function drawFrontTiles(world) {
 	let tx, ty, t, p, i;
-	if (game.objectInPortal) {
-		for (p = 0; p < game.portals.list.length; p++) {
-			if (!game.portals.list[p].platform) {
-				const x = game.portals.list[p].x >> 8;
-				const y = game.portals.list[p].y >> 8;
-				if (game.portals.list[p].direction == Direction.UP || game.portals.list[p].direction == Direction.DOWN) {
+	if (world.objectInPortal) {
+		for (p = 0; p < world.portals.list.length; p++) {
+			if (!world.portals.list[p].platform) {
+				const x = world.portals.list[p].x >> 8;
+				const y = world.portals.list[p].y >> 8;
+				if (world.portals.list[p].direction == Direction.UP || world.portals.list[p].direction == Direction.DOWN) {
 					tx = x >> TILE_SIZE_BITS;
 					ty = y >> TILE_SIZE_BITS;
 					for (i = 0; i < 4; i++) {
 						if (tx + i < MAP_WIDTH && tx + i >= 0) {
-							t = game.map.index(tx + i, ty);
-							if (tileset[game.map.display[t]]) {
-								drawImage(tileset[game.map.display[t]], (tx + i) * TILE_SIZE, ty * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+							t = world.map.index(tx + i, ty);
+							if (tileset[world.map.display[t]]) {
+								drawImage(tileset[world.map.display[t]], (tx + i) * TILE_SIZE, ty * TILE_SIZE, TILE_SIZE, TILE_SIZE);
 							}
 						}
 					}
 				} else if (
-					game.portals.list[p].direction == Direction.LEFT ||
-					game.portals.list[p].direction == Direction.RIGHT
+					world.portals.list[p].direction == Direction.LEFT ||
+					world.portals.list[p].direction == Direction.RIGHT
 				) {
 					tx = x >> TILE_SIZE_BITS;
 					ty = y >> TILE_SIZE_BITS;
 					for (i = 0; i < 4; i++) {
 						if (ty + i < MAP_HEIGHT && ty + i >= 0) {
-							t = game.map.index(tx, ty + i);
-							if (game.map.display[t] < tileset.length) {
-								drawImage(tileset[game.map.display[t]], tx * TILE_SIZE, (ty + i) * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+							t = world.map.index(tx, ty + i);
+							if (world.map.display[t] < tileset.length) {
+								drawImage(tileset[world.map.display[t]], tx * TILE_SIZE, (ty + i) * TILE_SIZE, TILE_SIZE, TILE_SIZE);
 							}
 						}
 					}
@@ -673,17 +692,18 @@ function drawFrontTiles() {
 /**
  * Draw the security camera turned towards the player.
  *
+ * @param {import('../World.js').World} world The World.
  * @returns {void}
  */
-function drawCamera() {
+function drawCamera(world) {
 	const a = getAngle(
-		game.player.midX(),
-		(game.player.y >> 8) + 8,
-		(game.camera.x >> 8) + TILE_SIZE / 2,
-		(game.camera.y >> 8) + TILE_SIZE / 2,
+		world.player.midX(),
+		(world.player.y >> 8) + 8,
+		(world.camera.x >> 8) + TILE_SIZE / 2,
+		(world.camera.y >> 8) + TILE_SIZE / 2,
 	);
 	ctx.save();
-	ctx.translate((game.camera.x >> 8) + TILE_SIZE / 2, (game.camera.y >> 8) + TILE_SIZE / 2);
+	ctx.translate((world.camera.x >> 8) + TILE_SIZE / 2, (world.camera.y >> 8) + TILE_SIZE / 2);
 	ctx.rotate(a);
 	drawImage(cameraFollow, 0, 0);
 	ctx.restore();
@@ -692,11 +712,12 @@ function drawCamera() {
 /**
  * Draw the portals with their opening animation.
  *
+ * @param {import('../World.js').World} world The World.
  * @returns {void}
  */
-function drawPortals() {
-	for (let pi = 0; pi < game.portals.list.length; pi++) {
-		const p = game.portals.list[pi];
+function drawPortals(world) {
+	for (let pi = 0; pi < world.portals.list.length; pi++) {
+		const p = world.portals.list[pi];
 		if (!p.used) continue;
 		let dx = 0;
 		let dy = 0;
@@ -737,28 +758,29 @@ export function drawPlayer(x, y, flipX, frame = 0) {
 /**
  * Draw the preview of a map with its objects.
  *
+ * @param {import('../World.js').World} world The World.
  * @returns {void}
  */
-export function drawPreviewMap() {
-	if (!isSameSource(tileLayerSource, layerSource())) createBuff();
+export function drawPreviewMap(world) {
+	if (!isSameSource(tileLayerSource, layerSource(world))) createBuff(world);
 	drawTileLayer();
 
 	ctx.save();
-	ctx.translate(game.player.midX(), game.player.midY());
+	ctx.translate(world.player.midX(), world.player.midY());
 	drawImage(portalGun, -5, -5);
 	ctx.restore();
 
-	drawPlayer(game.player.x >> 8, game.player.y >> 8, game.player.flip, game.player.animationFrame);
+	drawPlayer(world.player.x >> 8, world.player.y >> 8, world.player.flip, world.player.animationFrame);
 
-	drawCakes();
-	drawTurrets();
-	drawCrates();
-	drawPlatforms();
-	drawGravPipes();
+	drawCakes(world);
+	drawTurrets(world);
+	drawCrates(world);
+	drawPlatforms(world);
+	drawGravPipes(world);
 
-	if (game.boss) {
-		drawTube();
-		drawBoss();
+	if (world.boss) {
+		drawTube(world);
+		drawBoss(world);
 	}
 
 	drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);

@@ -7,7 +7,7 @@ import { MAP_HEIGHT, MAP_WIDTH, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, TILE_SIZE, TI
 import { bg, cake, crateImage, tileset, turretImages } from '../images.js';
 import { mouseOnPlayfield } from '../inputState.js';
 import { GRAVPIPE_DIRECTIONS, plasmaLaunch } from '../level.js';
-import { game, input } from '../state.js';
+import { input } from '../state.js';
 import { Tile, isGravPipeTile, isObjectTile } from '../tiles.js';
 import {
 	drawCakes,
@@ -32,11 +32,12 @@ let tilesBuffSource = null;
 /**
  * Draw the editor map and the cursor.
  *
+ * @param {import('../World.js').World} world The World.
  * @param {import('../Editor.js').Editor} editor The editor.
  * @returns {void}
  */
-export function drawEditor(editor) {
-	drawTileMap();
+export function drawEditor(world, editor) {
+	drawTileMap(world);
 	drawTileCursor(editor.brush);
 	drawSpriteCursor(editor.brush);
 }
@@ -44,35 +45,37 @@ export function drawEditor(editor) {
 /**
  * Draw the objects of the map in the editor.
  *
+ * @param {import('../World.js').World} world The World.
  * @returns {void}
  */
-function drawSprites() {
-	drawCakes();
-	drawTurrets();
-	drawCrates();
-	drawPlatforms();
-	drawGravPipes();
-	drawPlayer(game.player.x >> 8, game.player.y >> 8, 0);
+function drawSprites(world) {
+	drawCakes(world);
+	drawTurrets(world);
+	drawCrates(world);
+	drawPlatforms(world);
+	drawGravPipes(world);
+	drawPlayer(world.player.x >> 8, world.player.y >> 8, 0);
 }
 
 /**
  * Draw the tile layer of the editor with the plasma start markers and the objects, and keep a copy for the next
  * frames. The objects of the editor come from the map, so the copy stays valid while the map does not change.
  *
+ * @param {import('../World.js').World} world The World.
  * @returns {void}
  */
-function drawTileMap() {
+function drawTileMap(world) {
 	let y, x, i;
-	const source = layerSource();
+	const source = layerSource(world);
 	if (!isSameSource(tilesBuffSource, source)) {
-		drawImage(bg[game.background], 0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
+		drawImage(bg[world.background], 0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 		ctx.fillStyle = 'rgba(255, 0, 0, 0.7)';
-		for (i = 0; i < game.map.tiles.length; i++) {
-			if (game.map.tiles[i] == Tile.PLASMA_START) {
-				x = game.map.column(i);
-				y = game.map.row(i);
+		for (i = 0; i < world.map.tiles.length; i++) {
+			if (world.map.tiles[i] == Tile.PLASMA_START) {
+				x = world.map.column(i);
+				y = world.map.row(i);
 
-				if (!plasmaLaunch(game.map, x, y)) {
+				if (!plasmaLaunch(world.map, x, y)) {
 					if (y - 1 >= 0) ctx.fillRect(x * TILE_SIZE, (y - 1) * TILE_SIZE, TILE_SIZE, TILE_SIZE);
 					if (y + 1 < MAP_HEIGHT) ctx.fillRect(x * TILE_SIZE, (y + 1) * TILE_SIZE, TILE_SIZE, TILE_SIZE);
 					if (x - 1 >= 0) ctx.fillRect((x - 1) * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
@@ -83,8 +86,8 @@ function drawTileMap() {
 			}
 		}
 
-		drawTiles(game.map);
-		drawSprites();
+		drawTiles(world.map);
+		drawSprites(world);
 		tilesBuff = copyCanvas(0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 		tilesBuffSource = source;
 	} else {

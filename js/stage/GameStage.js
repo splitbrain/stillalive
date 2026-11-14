@@ -141,7 +141,7 @@ export class GameStage extends HTMLElement {
 
 		startLoop(
 			() => this.#step(),
-			() => render(this.#editor),
+			() => render(this.#world, this.#editor),
 		);
 		this.#addTestHook();
 	}
@@ -534,7 +534,7 @@ export class GameStage extends HTMLElement {
 			endReplay: () => (this.#replayMode = false),
 			input,
 			tick: () => this.#step(),
-			render: () => render(this.#editor),
+			render: () => render(this.#world, this.#editor),
 		};
 	}
 }

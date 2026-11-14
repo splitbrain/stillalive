@@ -5,20 +5,20 @@
 import { ctx } from '../canvas.js';
 import { FADE_START, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, Transition } from '../constants.js';
 import { linesHoriz, linesVerti } from '../images.js';
-import { game } from '../state.js';
 
 /**
  * Draw the transition of the level phase with the progress of the fade. While an exit event waits and in the exit
  * freeze after the level end, the playfield is black.
  *
+ * @param {import('../World.js').World} world The World.
  * @returns {void}
  */
-export function drawTransition() {
-	if (game.isOpening()) {
-		drawOpeningTransition();
-	} else if (game.isClosing()) {
-		drawClosingTransition();
-	} else if (game.isExitWait() || game.isEnded()) {
+export function drawTransition(world) {
+	if (world.isOpening()) {
+		drawOpeningTransition(world);
+	} else if (world.isClosing()) {
+		drawClosingTransition(world);
+	} else if (world.isExitWait() || world.isEnded()) {
 		ctx.fillStyle = 'rgb(0, 0, 0)';
 		ctx.fillRect(0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 	}
@@ -27,29 +27,30 @@ export function drawTransition() {
 /**
  * Draw the closing transition of the current effect.
  *
+ * @param {import('../World.js').World} world The World.
  * @returns {void}
  */
-function drawClosingTransition() {
+function drawClosingTransition(world) {
 	let lineCount, i;
 	ctx.fillStyle = 'rgb(0, 0, 0)';
-	const scale = 1 - game.fade / FADE_START;
-	if (game.transition == Transition.TOP_LEFT) {
+	const scale = 1 - world.fade / FADE_START;
+	if (world.transition == Transition.TOP_LEFT) {
 		ctx.fillRect(0, 0, Math.trunc(PLAYFIELD_WIDTH * scale), Math.trunc(PLAYFIELD_HEIGHT * scale));
-	} else if (game.transition == Transition.LEFT_TO_RIGHT) {
+	} else if (world.transition == Transition.LEFT_TO_RIGHT) {
 		ctx.fillRect(0, 0, Math.trunc(PLAYFIELD_WIDTH * scale), PLAYFIELD_HEIGHT);
-	} else if (game.transition == Transition.TOP_TO_BOTTOM) {
+	} else if (world.transition == Transition.TOP_TO_BOTTOM) {
 		ctx.fillRect(0, 0, PLAYFIELD_WIDTH, Math.trunc(PLAYFIELD_HEIGHT * scale));
-	} else if (game.transition == Transition.HORIZONTAL_LINES) {
+	} else if (world.transition == Transition.HORIZONTAL_LINES) {
 		lineCount = Math.round(scale * linesHoriz.length);
 		for (i = 0; i < lineCount; i++) {
 			ctx.fillRect(0, linesHoriz[i] * 3, PLAYFIELD_WIDTH, 3);
 		}
-	} else if (game.transition == Transition.VERTICAL_LINES) {
+	} else if (world.transition == Transition.VERTICAL_LINES) {
 		lineCount = Math.round(scale * linesVerti.length);
 		for (i = 0; i < lineCount; i++) {
 			ctx.fillRect(linesVerti[i] * 4, 0, 6, PLAYFIELD_HEIGHT);
 		}
-	} else if (game.transition == Transition.SQUARE) {
+	} else if (world.transition == Transition.SQUARE) {
 		const x = PLAYFIELD_WIDTH - Math.trunc(PLAYFIELD_WIDTH * scale);
 		const y = PLAYFIELD_HEIGHT - Math.trunc(PLAYFIELD_HEIGHT * scale);
 		ctx.fillRect(x >> 1, y >> 1, Math.trunc(PLAYFIELD_WIDTH * scale), Math.trunc(PLAYFIELD_HEIGHT * scale));
@@ -59,33 +60,34 @@ function drawClosingTransition() {
 /**
  * Draw the opening transition of the current effect.
  *
+ * @param {import('../World.js').World} world The World.
  * @returns {void}
  */
-function drawOpeningTransition() {
+function drawOpeningTransition(world) {
 	let lineCount, i;
 	ctx.fillStyle = 'rgb(0, 0, 0)';
 	ctx.strokeStyle = 'rgb(0, 0, 0)';
-	const scale = game.fade / FADE_START;
+	const scale = world.fade / FADE_START;
 	const x = PLAYFIELD_WIDTH - Math.trunc(PLAYFIELD_WIDTH * scale);
 	const y = PLAYFIELD_HEIGHT - Math.trunc(PLAYFIELD_HEIGHT * scale);
 
-	if (game.transition == Transition.TOP_LEFT) {
+	if (world.transition == Transition.TOP_LEFT) {
 		ctx.fillRect(x, y, Math.trunc(PLAYFIELD_WIDTH * scale), Math.trunc(PLAYFIELD_HEIGHT * scale));
-	} else if (game.transition == Transition.LEFT_TO_RIGHT) {
+	} else if (world.transition == Transition.LEFT_TO_RIGHT) {
 		ctx.fillRect(x, 0, Math.trunc(PLAYFIELD_WIDTH * scale), PLAYFIELD_HEIGHT);
-	} else if (game.transition == Transition.TOP_TO_BOTTOM) {
+	} else if (world.transition == Transition.TOP_TO_BOTTOM) {
 		ctx.fillRect(0, y, PLAYFIELD_WIDTH, Math.trunc(PLAYFIELD_HEIGHT * scale));
-	} else if (game.transition == Transition.HORIZONTAL_LINES) {
+	} else if (world.transition == Transition.HORIZONTAL_LINES) {
 		lineCount = Math.round(scale * linesHoriz.length);
 		for (i = 0; i < lineCount; i++) {
 			ctx.fillRect(0, linesHoriz[i] * 3, PLAYFIELD_WIDTH, 5);
 		}
-	} else if (game.transition == Transition.VERTICAL_LINES) {
+	} else if (world.transition == Transition.VERTICAL_LINES) {
 		lineCount = Math.round(scale * linesVerti.length);
 		for (i = 0; i < lineCount; i++) {
 			ctx.fillRect(linesVerti[i] * 4, 0, 6, PLAYFIELD_HEIGHT);
 		}
-	} else if (game.transition == Transition.SQUARE) {
+	} else if (world.transition == Transition.SQUARE) {
 		ctx.strokeStyle = 'rgb(0, 0, 0)';
 		ctx.lineWidth = PLAYFIELD_HEIGHT * scale;
 		ctx.strokeRect(0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);

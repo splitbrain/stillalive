@@ -196,22 +196,16 @@ export function runWorld(page, data, { ticks, keys = 0 }) {
 		async ({ data, ticks, keys }) => {
 			const { parseMap } = await import('/js/stage/mapFile.js');
 			const { World } = await import('/js/stage/World.js');
+			const { InputState } = await import('/js/stage/InputState.js');
 			const world = World.forLevel({ ...parseMap(data), campaign: 'test', number: 1, fromBelow: false });
-			const input = {
-				keys,
-				oldKeys: 0,
-				mouseX: 0,
-				mouseY: 0,
-				mousePressed: 0,
-				mouseReleased: 0,
-				mouseButton: 0,
-				mouseNewPress: 0,
-			};
+			const input = new InputState();
+			input.keys = keys;
 			const state = () => ({ time: world.time, x: world.player.x, y: world.player.y });
 			const states = [state()];
 			for (let tick = 0; tick < ticks; tick++) {
+				input.update();
 				world.applyInput(input);
-				input.oldKeys = input.keys;
+				input.endTick();
 				world.tick(input);
 				states.push(state());
 			}

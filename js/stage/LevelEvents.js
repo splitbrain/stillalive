@@ -4,7 +4,6 @@
 
 import { Direction, LevelPhase, TILE_SIZE, TILE_SIZE_BITS } from './constants.js';
 import { createPortalGlow } from './entities/Sparkle.js';
-import { unclick } from './inputState.js';
 import { keyLabels } from './keys.js';
 
 /**
@@ -96,7 +95,7 @@ export class LevelEvents {
 		const input = this.#world.input;
 		if (this.#waiting !== null && (this.#world.isHalted() || this.#world.isExitWait()) && input.mouseNewPress) {
 			this.#endWait();
-			unclick(input);
+			input.unclick();
 		}
 		this.#run();
 	}

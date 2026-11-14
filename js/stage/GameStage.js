@@ -21,10 +21,9 @@ import { clearCanvas, ctx, setCanvas, watchCanvasSize } from './canvas.js';
 import { PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, Transition } from './constants.js';
 import { Editor } from './Editor.js';
 import { canPause, setupInput } from './input.js';
-import { captureInput, manageKeys, resumeReplay, unclick } from './inputState.js';
 import { getFps, startLoop } from './loop.js';
 import { render } from './render/frame.js';
-import { Replay, decodeReplay, encodeReplay } from './replay.js';
+import { Recorder, ReplayPlayer, decodeReplay, encodeReplay } from './replay.js';
 import { input, stageEvents, ui } from './state.js';
 import { World } from './World.js';
 import { Value } from '../value.js';
@@ -102,11 +101,8 @@ export class GameStage extends HTMLElement {
 	/** @type {World|null} The World that the stage shows, or null before the first connection. */
 	#world = null;
 
-	/** @type {Replay} The recording of the level, or the replay that plays. */
-	#replay = new Replay();
-
-	/** @type {boolean} True while a replay plays. */
-	#replayMode = false;
+	/** @type {Recorder|ReplayPlayer|null} The input source of the level in the mode "play", else null. */
+	#source = null;
 
 	/** @type {number} The effect of the opening transition of the next level, a value of Transition. */
 	#transition = Transition.HORIZONTAL_LINES;
@@ -133,7 +129,7 @@ export class GameStage extends HTMLElement {
 		watchCanvasSize();
 		setupInput(canvas, this, {
 			world: () => this.#world,
-			replaying: () => this.#replayMode,
+			replaying: () => this.#replaying,
 			stopTest: () => this.#endTest(),
 		});
 
@@ -162,7 +158,7 @@ export class GameStage extends HTMLElement {
 		this.#leave();
 		ui.mode = 'play';
 		this.#startLevel(level, restart, recorded);
-		unclick(input);
+		input.unclick();
 		this.#publish();
 	}
 
@@ -222,11 +218,7 @@ export class GameStage extends HTMLElement {
 	pause() {
 		if (!canPause(this.#world) || ui.paused) return;
 		ui.paused = true;
-		if (this.#replayMode) {
-			input.replayPauseInput = captureInput(this.#world);
-			unclick(input);
-			input.keys = 0;
-		}
+		if (this.#replaying) this.#source.pause(this.#world, input);
 		this.#publish();
 	}
 
@@ -238,8 +230,8 @@ export class GameStage extends HTMLElement {
 	resume() {
 		if (!ui.paused) return;
 		ui.paused = false;
-		unclick(input);
-		if (this.#replayMode) resumeReplay(this.#world, this.#replay);
+		input.unclick();
+		if (this.#replaying) this.#source.resume(this.#world, input);
 		this.#publish();
 	}
 
@@ -251,7 +243,7 @@ export class GameStage extends HTMLElement {
 	 * @returns {void}
 	 */
 	setSpeed(speed) {
-		if (!this.#replayMode) return;
+		if (!this.#replaying) return;
 		this.#speed = speed;
 		this.#publish();
 	}
@@ -395,9 +387,10 @@ export class GameStage extends HTMLElement {
 	 * @returns {void}
 	 */
 	#startLevel(level, restart, replay) {
-		this.#replayMode = replay !== null;
-		this.#replay = replay ?? new Replay();
-		this.#world = World.forLevel(level, { restart, replay: this.#replayMode, transition: this.#transition });
+		// a test run does not record
+		if (ui.mode == 'test') this.#source = null;
+		else this.#source = replay === null ? new Recorder() : new ReplayPlayer(replay);
+		this.#world = World.forLevel(level, { restart, replay: replay !== null, transition: this.#transition });
 		ui.paused = false;
 		input.keys = 0;
 		input.oldKeys = 0;
@@ -412,7 +405,7 @@ export class GameStage extends HTMLElement {
 		if (ui.mode == 'test') this.#world = this.#editor.stopTest(false);
 		if (ui.mode == 'edit') this.#editor.leave(this.#world);
 		ui.paused = false;
-		this.#replayMode = false;
+		this.#source = null;
 		this.#speed = 1;
 		this.#world.events = null;
 		this.#world.shakeX = 0;
@@ -439,16 +432,21 @@ export class GameStage extends HTMLElement {
 	 */
 	#tick() {
 		const world = this.#world;
-		if (manageKeys(world, this.#replay, this.#replayMode)) this.#stopBrokenReplay();
+		this.#source?.run(world, input, ui.paused);
+		input.update();
+		world.applyInput(input);
+		input.endTick();
 		if (ui.mode == 'edit') {
 			this.#editor.update(world);
 			return;
 		}
 		if ((ui.mode != 'play' && ui.mode != 'test') || ui.paused) return;
 
-		world.tick(input);
-		this.#transition = world.transition;
-		if (!world.replaying) this.#replayMode = false;
+		if (world.outcome != 'brokenReplay') {
+			world.tick(input);
+			this.#transition = world.transition;
+			if (world.closingStarted()) this.#endPlayback();
+		}
 		if (world.outcome == 'died') {
 			this.#startLevel(world.level, true, null);
 		} else if (world.outcome == 'brokenReplay') {
@@ -456,9 +454,27 @@ export class GameStage extends HTMLElement {
 		} else if (world.outcome == 'finished' && ui.mode == 'test') {
 			this.#endTest();
 		} else if (world.outcome == 'finished') {
-			const replay = encodeReplay(this.#replay, world.level.campaign, world.level.number);
+			const replay = encodeReplay(this.#source.replay, world.level.campaign, world.level.number);
 			stageEvents.push({ type: 'finished', detail: { time: world.time, replay } });
 		}
+	}
+
+	/**
+	 * Check if a replay plays.
+	 *
+	 * @returns {boolean} True from the start of a replay until the start of its closing transition or a stop.
+	 */
+	get #replaying() {
+		return this.#source instanceof ReplayPlayer && this.#source.playing;
+	}
+
+	/**
+	 * End the playback of a replay. The level continues without the input of the replay.
+	 *
+	 * @returns {void}
+	 */
+	#endPlayback() {
+		if (this.#replaying) this.#source.stop();
 	}
 
 	/**
@@ -477,7 +493,7 @@ export class GameStage extends HTMLElement {
 	 * @returns {void}
 	 */
 	#stopBrokenReplay() {
-		this.#replayMode = false;
+		this.#endPlayback();
 		ui.mode = 'idle';
 		stageEvents.push({ type: 'brokenreplay', detail: null });
 	}
@@ -519,8 +535,8 @@ export class GameStage extends HTMLElement {
 		window.__test = {
 			stage: this,
 			world: () => this.#world,
-			replay: () => this.#replay,
-			endReplay: () => (this.#replayMode = false),
+			replay: () => this.#source?.replay,
+			endReplay: () => this.#endPlayback(),
 			input,
 			tick: () => this.#step(),
 			render: () => render(this.#world, this.#editor),

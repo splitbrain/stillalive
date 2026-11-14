@@ -6,7 +6,6 @@ import { playSound, sfx_exit, sfx_field, sfx_grabCake, sfx_transition } from './
 import {
 	Direction,
 	FADE_START,
-	KEY_CLEAR,
 	KEY_DOWN,
 	KEY_JUMP,
 	KEY_LEFT,
@@ -35,7 +34,6 @@ import { Player } from './entities/Player.js';
 import { PortalPair } from './entities/PortalPair.js';
 import { createCakeOrSmokeSparkles, removeSparkles } from './entities/Sparkle.js';
 import { Turret } from './entities/Turret.js';
-import { unclick } from './inputState.js';
 import { GRAVPIPE_DIRECTIONS, plasmaLaunch } from './level.js';
 import { LevelEvents } from './LevelEvents.js';
 import { TileMap } from './TileMap.js';
@@ -79,8 +77,8 @@ export class World {
 	map;
 	/** @type {import('./level.js').Level|null} The level that runs, or null for a preview or an editor map. */
 	level = null;
-	/** @type {boolean} True while a replay plays the level. The start of the closing transition ends the replay. */
-	replaying = false;
+	/** @type {boolean} True if a replay plays the level. */
+	#replaying = false;
 	/** @type {import('./entities/Cake.js').Cake[]} The cakes. */
 	cakes = [];
 	/** @type {import('./entities/Crate.js').Crate[]} The crates. */
@@ -152,10 +150,11 @@ export class World {
 	transition = Transition.HORIZONTAL_LINES;
 	/**
 	 * @type {string|null} The result of the last tick: "finished" when the closing transition ended, "died" when the
-	 *     death fade ended, "brokenReplay" when the player died in a replay, else null.
+	 *     death fade ended, "brokenReplay" when the player died in a replay or when the replay has fewer inputs than
+	 *     the level needs, else null.
 	 */
 	outcome = null;
-	/** @type {object|null} The keys and the mouse of the current tick, or null before the first tick. */
+	/** @type {import('./InputState.js').InputState|null} The keys and the mouse of the tick, or null before a tick. */
 	input = null;
 
 	/**
@@ -167,6 +166,15 @@ export class World {
 		this.map = map;
 		this.player = new Player(this);
 		this.resetPhase();
+	}
+
+	/**
+	 * Check if a replay plays the level.
+	 *
+	 * @returns {boolean} True if the World plays a replay.
+	 */
+	get replaying() {
+		return this.#replaying;
 	}
 
 	/**
@@ -184,7 +192,7 @@ export class World {
 	static forLevel(level, { restart = false, replay = false, transition = Transition.HORIZONTAL_LINES } = {}) {
 		const world = new World(new TileMap(level.tiles));
 		world.level = level;
-		world.replaying = replay;
+		world.#replaying = replay;
 		world.transition = transition;
 		if (level.fromBelow) world.#jumpInFromBelow();
 		world.boss = level.boss ? new Boss(world, level.boss) : null;
@@ -253,27 +261,24 @@ export class World {
 	 * Set the control flags of the player from the keys of the tick. The player jumps only with the jump ability and
 	 * outside a portal.
 	 *
-	 * @param {object} input The keys of the tick and of the previous tick.
+	 * @param {import('./InputState.js').InputState} input The keys of the tick and of the previous tick.
 	 * @returns {void}
 	 */
 	applyInput(input) {
 		const player = this.player;
-		if (input.keys & KEY_CLEAR && !(input.oldKeys & KEY_CLEAR)) player.askClear = true;
+		if (input.clearPressed) player.askClear = true;
 
-		if (input.keys & KEY_LEFT) player.isLeft = 1;
-		if (!(input.keys & KEY_LEFT)) player.isLeft = 0;
-		if (input.keys & KEY_RIGHT) player.isRight = 1;
-		if (!(input.keys & KEY_RIGHT)) player.isRight = 0;
-		if (input.keys & KEY_DOWN) player.isDown = 1;
-		if (!(input.keys & KEY_DOWN)) player.isDown = 0;
+		player.left = (input.keys & KEY_LEFT) != 0;
+		player.right = (input.keys & KEY_RIGHT) != 0;
+		player.down = (input.keys & KEY_DOWN) != 0;
 
 		if (input.keys & KEY_JUMP && this.abilities.jump && !this.portals.isInPortal(player)) {
-			if (!(input.oldKeys & KEY_JUMP)) player.oldIsJump = player.isJump;
-			player.isJump = 1;
+			if (!(input.oldKeys & KEY_JUMP)) player.oldJump = player.jump;
+			player.jump = true;
 		}
 		if (!(input.keys & KEY_JUMP)) {
-			if (input.oldKeys & KEY_JUMP) player.oldIsJump = player.isJump;
-			player.isJump = 0;
+			if (input.oldKeys & KEY_JUMP) player.oldJump = player.jump;
+			player.jump = false;
 		}
 	}
 
@@ -281,14 +286,14 @@ export class World {
 	 * Run one tick of the level. The level time stands still while an event waits and while the boss comes in. The
 	 * outcome tells the caller what happened in the tick.
 	 *
-	 * @param {object} input The keys and the mouse of the tick.
+	 * @param {import('./InputState.js').InputState} input The keys and the mouse of the tick.
 	 * @returns {void}
 	 */
 	tick(input) {
 		this.input = input;
 		this.outcome = null;
 		if (this.isRunning()) {
-			if (this.time == 0) unclick(input);
+			if (this.time == 0) input.unclick();
 			this.time++;
 		}
 		this.objectInPortal = null;
@@ -350,8 +355,7 @@ export class World {
 			this.transition = random(Transition.TOP_LEFT, Transition.SQUARE + 1);
 			playSound(sfx_transition);
 			this.events.message = null;
-			unclick(this.input);
-			this.replaying = false;
+			this.input.unclick();
 		}
 	}
 
@@ -1080,6 +1084,15 @@ export class World {
 	 */
 	isClosing() {
 		return this.phase == LevelPhase.CLOSING;
+	}
+
+	/**
+	 * Check if the closing transition started in the last tick.
+	 *
+	 * @returns {boolean} True in the tick in which the closing transition started.
+	 */
+	closingStarted() {
+		return this.isClosing() && this.fade == FADE_START;
 	}
 
 	/**

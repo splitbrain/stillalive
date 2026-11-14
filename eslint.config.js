@@ -14,15 +14,12 @@ const LAYERS = [
 		name: 'base',
 		files: [
 			'./js/value.js',
-			'./js/stage/{assets,audio,canvas,constants,images,keys,loop,state,TileMap,tiles,utils}.js',
+			'./js/stage/{assets,audio,canvas,constants,images,InputState,keys,loop,state,TileMap,tiles,utils}.js',
 		],
 	},
 	{
 		name: 'logic',
-		files: [
-			'./js/stage/entities/*.js',
-			'./js/stage/{inputState,level,LevelEvents,mapEdit,mapFile,replay,UndoList,World}.js',
-		],
+		files: ['./js/stage/entities/*.js', './js/stage/{level,LevelEvents,mapEdit,mapFile,replay,UndoList,World}.js'],
 	},
 	{ name: 'drawing', files: ['./js/stage/render/*.js'] },
 	{ name: 'flow', files: ['./js/stage/{Editor,GameStage,input}.js'] },

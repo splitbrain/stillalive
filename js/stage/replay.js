@@ -1,5 +1,6 @@
 /**
- * Conversion of replays to and from the replay file format.
+ * The replays: the conversion to and from the replay file format, and the input sources of a level, the Recorder and
+ * the ReplayPlayer.
  *
  * A replay file is JSON with these properties:
  *
@@ -9,11 +10,11 @@
  * - ticks: the number of recorded ticks
  * - inputs: a list of [count, keys, mouseX, mouseY] entries. Each entry stands for count ticks with the same key
  *   bitmask and mouse position. The mouse position is in playfield units.
- * - states: a list of [time, ...state] entries with the input state from captureInput(). The game processes input
- *   while the level time stands still, e.g. in a pause. The playback restores the state when the time continues.
+ * - states: a list of [time, ...state] entries with the replay state from InputState.capture(). The game processes
+ *   input while the level time stands still, e.g. in a pause. The playback restores the state when the time continues.
  */
 
-/** @type {number} The length of an input state from captureInput(). */
+/** @type {number} The length of a replay state from InputState.capture(). */
 const STATE_LENGTH = 8;
 
 /** @type {number} The version of the replay file format. */
@@ -115,7 +116,120 @@ export class Replay {
 		this.mouseX = new Array();
 		/** @type {number[]} The mouse y position of each tick. */
 		this.mouseY = new Array();
-		/** @type {Object<number, number[]>} The input state from captureInput() by level time. */
+		/** @type {Object<number, number[]>} The replay states from InputState.capture() by level time. */
 		this.states = {};
+	}
+}
+
+/**
+ * The input source of a level that the player plays. It records the keys and the mouse position of each running tick,
+ * and the replay state when the level time continues after a stop.
+ */
+export class Recorder {
+	/** @type {Replay} The recording of the level. */
+	replay = new Replay();
+	/** @type {boolean} True if the level ran without a pause in the previous tick. */
+	lastTickInGame = false;
+
+	/**
+	 * Record the input of one tick. The recording continues in a pause.
+	 *
+	 * @param {import('./World.js').World} world The World of the level.
+	 * @param {import('./InputState.js').InputState} input The keys and the mouse.
+	 * @param {boolean} paused True while the level time stands still for a pause.
+	 * @returns {void}
+	 */
+	run(world, input, paused) {
+		const inGame = world.isRunning() && !paused;
+		if (inGame && !this.lastTickInGame) this.replay.states[world.time] = input.capture(world.player);
+		this.lastTickInGame = inGame;
+
+		if (world.isRunning()) {
+			input.mouseX = Math.round(input.mouseX);
+			input.mouseY = Math.round(input.mouseY);
+			this.replay.inputs[world.time] = input.keys;
+			this.replay.mouseX[world.time] = input.mouseX;
+			this.replay.mouseY[world.time] = input.mouseY;
+		}
+	}
+}
+
+/**
+ * The input source of a replay that plays. It sets the keys and the mouse position of each running tick from the
+ * recording, and it restores the replay states.
+ */
+export class ReplayPlayer {
+	/** @type {boolean} True until the playback ends. */
+	playing = true;
+	/** @type {number[]|null} The replay state at the start of the last pause, or null. */
+	#pauseState = null;
+
+	/**
+	 * Create the playback of a replay.
+	 *
+	 * @param {Replay} replay The replay to play.
+	 */
+	constructor(replay) {
+		/** @type {Replay} The replay that plays. */
+		this.replay = replay;
+	}
+
+	/**
+	 * Set the input of one tick from the replay. A replay with fewer inputs than the level needs sets the outcome
+	 * "brokenReplay".
+	 *
+	 * @param {import('./World.js').World} world The World of the level.
+	 * @param {import('./InputState.js').InputState} input The keys and the mouse.
+	 * @param {boolean} paused True while the level time stands still for a pause.
+	 * @returns {void}
+	 */
+	run(world, input, paused) {
+		if (!this.playing || !world.isRunning() || paused) return;
+		const state = this.replay.states[world.time];
+		if (state) input.restore(world.player, state);
+
+		if (world.time < this.replay.inputs.length) {
+			input.keys = this.replay.inputs[world.time];
+			input.mouseX = this.replay.mouseX[world.time];
+			input.mouseY = this.replay.mouseY[world.time];
+		} else {
+			world.outcome = 'brokenReplay';
+		}
+	}
+
+	/**
+	 * Keep the replay state for the resume, and release the keys and the mouse buttons for the pause.
+	 *
+	 * @param {import('./World.js').World} world The World of the level.
+	 * @param {import('./InputState.js').InputState} input The keys and the mouse.
+	 * @returns {void}
+	 */
+	pause(world, input) {
+		this.#pauseState = input.capture(world.player);
+		input.unclick();
+		input.keys = 0;
+	}
+
+	/**
+	 * Restore the replay state of the pause and set the input of the current tick from the replay.
+	 *
+	 * @param {import('./World.js').World} world The World of the level.
+	 * @param {import('./InputState.js').InputState} input The keys and the mouse.
+	 * @returns {void}
+	 */
+	resume(world, input) {
+		input.restore(world.player, this.#pauseState);
+		input.keys = this.replay.inputs[world.time];
+		input.mouseX = this.replay.mouseX[world.time];
+		input.mouseY = this.replay.mouseY[world.time];
+	}
+
+	/**
+	 * End the playback. The ended playback sets no input.
+	 *
+	 * @returns {void}
+	 */
+	stop() {
+		this.playing = false;
 	}
 }

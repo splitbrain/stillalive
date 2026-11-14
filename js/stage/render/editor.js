@@ -5,7 +5,6 @@
 import { copyCanvas, ctx, drawCopy, drawImage } from '../canvas.js';
 import { MAP_HEIGHT, MAP_WIDTH, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, TILE_SIZE, TILE_SIZE_BITS } from '../constants.js';
 import { bg, cake, crateImage, tileset, turretImages } from '../images.js';
-import { mouseOnPlayfield } from '../inputState.js';
 import { GRAVPIPE_DIRECTIONS, plasmaLaunch } from '../level.js';
 import { input } from '../state.js';
 import { Tile, isGravPipeTile, isObjectTile } from '../tiles.js';
@@ -102,7 +101,7 @@ function drawTileMap(world) {
  * @returns {void}
  */
 function drawTileCursor(brush) {
-	if (!input.mouseOver || !mouseOnPlayfield() || isObjectTile(brush)) return;
+	if (!input.mouseOver || !input.mouseOnPlayfield() || isObjectTile(brush)) return;
 	const x = (input.mouseX >> TILE_SIZE_BITS) << TILE_SIZE_BITS;
 	const y = (input.mouseY >> TILE_SIZE_BITS) << TILE_SIZE_BITS;
 	drawImage(tileset[brush], x, y);
@@ -118,7 +117,7 @@ function drawTileCursor(brush) {
  * @returns {void}
  */
 function drawSpriteCursor(sprite) {
-	if (!input.mouseOver || !mouseOnPlayfield() || !isObjectTile(sprite)) return;
+	if (!input.mouseOver || !input.mouseOnPlayfield() || !isObjectTile(sprite)) return;
 	const x = (input.mouseX >> TILE_SIZE_BITS) << TILE_SIZE_BITS;
 	const y = (input.mouseY >> TILE_SIZE_BITS) << TILE_SIZE_BITS;
 	if (sprite == Tile.CAKE) drawImage(cake, x, y);

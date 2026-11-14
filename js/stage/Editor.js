@@ -4,7 +4,6 @@
 
 import { MAP_SIZE, MouseButton, TILE_SIZE_BITS } from './constants.js';
 import { bg } from './images.js';
-import { mouseOnPlayfield, unclick } from './inputState.js';
 import { allowTile, build, eraseSprites, fill } from './mapEdit.js';
 import { MAP_FORMAT, parseMap } from './mapFile.js';
 import { input, stageEvents, ui } from './state.js';
@@ -59,7 +58,7 @@ export class Editor {
 		ui.paused = false;
 		input.keys = 0;
 		input.oldKeys = 0;
-		unclick(input);
+		input.unclick();
 		return test;
 	}
 
@@ -95,7 +94,7 @@ export class Editor {
 			this.#addUndo(world);
 		}
 
-		unclick(input);
+		input.unclick();
 		this.#objectsChanged = false;
 		return world;
 	}
@@ -252,8 +251,8 @@ export class Editor {
 	#manageUndoRedo(world) {
 		if (input.undoPressed) this.undo(world);
 		else if (input.redoPressed) this.redo(world);
-		input.undoPressed = 0;
-		input.redoPressed = 0;
+		input.undoPressed = false;
+		input.redoPressed = false;
 	}
 
 	/**
@@ -266,7 +265,7 @@ export class Editor {
 		const brush = this.brush;
 		const map = world.map;
 		let i;
-		if (mouseOnPlayfield() && isObjectTile(brush)) {
+		if (input.mouseOnPlayfield() && isObjectTile(brush)) {
 			const x = (input.mouseX >> TILE_SIZE_BITS) << TILE_SIZE_BITS;
 			const y = (input.mouseY >> TILE_SIZE_BITS) << TILE_SIZE_BITS;
 			if (input.mousePressed) {
@@ -311,7 +310,7 @@ export class Editor {
 		const brush = this.brush;
 		const map = world.map;
 		let i;
-		if (mouseOnPlayfield() && !isObjectTile(brush)) {
+		if (input.mouseOnPlayfield() && !isObjectTile(brush)) {
 			const x = (input.mouseX >> TILE_SIZE_BITS) << TILE_SIZE_BITS;
 			const y = (input.mouseY >> TILE_SIZE_BITS) << TILE_SIZE_BITS;
 			if (input.mousePressed) {

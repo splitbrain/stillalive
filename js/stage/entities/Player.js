@@ -34,16 +34,16 @@ export class Player extends Body {
 	 */
 	constructor(world) {
 		super(world, 0, 0, 15, 27);
-		/** @type {number} 1 while the player holds the left key. */
-		this.isLeft = 0;
-		/** @type {number} 1 while the player holds the right key. */
-		this.isRight = 0;
-		/** @type {number} The value of isJump in the last tick. */
-		this.oldIsJump = 0;
-		/** @type {number} 1 while the player holds the jump key. */
-		this.isJump = 0;
-		/** @type {number} 1 while the player holds the down key. */
-		this.isDown = 0;
+		/** @type {boolean} True while the player holds the left key. */
+		this.left = false;
+		/** @type {boolean} True while the player holds the right key. */
+		this.right = false;
+		/** @type {boolean} The value of jump in the last tick. */
+		this.oldJump = false;
+		/** @type {boolean} True while the player holds the jump key. */
+		this.jump = false;
+		/** @type {boolean} True while the player holds the down key. */
+		this.down = false;
 		/** @type {number} The horizontal speed in 1/256 pixels per tick. */
 		this.vx = 0;
 		/** @type {number} The vertical speed in 1/256 pixels per tick. */
@@ -238,7 +238,7 @@ export class Player extends Body {
 			this.vy += field.vy * 384;
 
 			if (field.vx != 0) {
-				if (this.isJump) {
+				if (this.jump) {
 					this.y -= 3 << 8;
 					fi = this.world.gravPipeFieldsAt(this);
 					if (fi.length == 0) {
@@ -246,18 +246,18 @@ export class Player extends Body {
 						this.vx = field.vx << 9;
 					}
 				}
-				if (this.isDown) this.y += 3 << 8;
+				if (this.down) this.y += 3 << 8;
 			}
 
 			if (field.vy != 0) {
-				if (this.isLeft) {
+				if (this.left) {
 					this.x -= 3 << 8;
 					fi = this.world.gravPipeFieldsAt(this);
 					if (fi.length == 0) {
 						this.vx = -384;
 					}
 				}
-				if (this.isRight) {
+				if (this.right) {
 					this.x += 3 << 8;
 					fi = this.world.gravPipeFieldsAt(this);
 					if (fi.length == 0) {
@@ -277,7 +277,7 @@ export class Player extends Body {
 		if (this.animationTime <= 0) {
 			this.animationTime = 10;
 			if (++this.animationFrame == 5) this.animationFrame = 1;
-			if (ground && this.isLeft != this.isRight && this.animationFrame % 2 == 1) {
+			if (ground && this.left != this.right && this.animationFrame % 2 == 1) {
 				const steps = ground == 2 ? sfx_iceStep : sfx_step;
 				playSound(steps[random(0, steps.length)], randomRate(0.08));
 			}
@@ -313,13 +313,13 @@ export class Player extends Body {
 			}
 		}
 
-		let dir = (this.isRight - this.isLeft) * 128;
+		let dir = (this.right ? 128 : 0) - (this.left ? 128 : 0);
 
 		//jump handling
-		if (this.isJump && ground && !portals.portalAt(this, Direction.DOWN) && fields.length == 0) {
+		if (this.jump && ground && !portals.portalAt(this, Direction.DOWN) && fields.length == 0) {
 			this.vy = -1300;
 			playSound(sfx_jump);
-		} else if (!this.isJump && this.oldIsJump && this.vy < -200) {
+		} else if (!this.jump && this.oldJump && this.vy < -200) {
 			this.vy = -200;
 		}
 
@@ -435,7 +435,7 @@ export class Player extends Body {
 		}
 
 		if (this.y > (PLAYFIELD_HEIGHT + 40) << 8) this.life = 0;
-		this.oldIsJump = this.isJump;
+		this.oldJump = this.jump;
 		this.checkDeath();
 	}
 }

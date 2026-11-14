@@ -115,6 +115,10 @@ test('the plasma door opens when the last plasma slot is filled', (context) => {
 	}
 	assert.equal(slots(), 1);
 	assert.equal(world.map.tiles[door], Tile.PLASMA_DOOR);
+	// the ball of the filled slot goes back to its start and flies again
+	const [first] = world.plasmaBall;
+	assert.ok(first.used);
+	assert.deepEqual([first.x, first.y], [first.startX, first.startY]);
 
 	while (slots() === 1 && ticks < 300) {
 		runTicks(world, 1);

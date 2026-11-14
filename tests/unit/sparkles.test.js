@@ -9,6 +9,20 @@ import { at, floorTiles, runTicks, seedRandom, startWorld } from './helpers.js';
 const FADING = 200;
 
 /**
+ * Create a sparkle 68 pixels above the floor and add it to the World.
+ *
+ * @param {import('../../js/stage/World.js').World} world The World.
+ * @param {number} type The sparkle type, a value of SparkleType.
+ * @param {number} [vx] The horizontal speed in 1/256 pixels per tick.
+ * @returns {Sparkle} The sparkle.
+ */
+function addSparkle(world, type, vx = 0) {
+	const sparkle = new Sparkle(world, type, 100 << 8, 300 << 8, vx, 0, FADING, 0);
+	world.sparkles.push(sparkle);
+	return sparkle;
+}
+
+/**
  * Follow a sparkle that starts without speed 68 pixels above the floor, until it goes away.
  *
  * @param {number} type The sparkle type, a value of SparkleType.
@@ -18,8 +32,7 @@ const FADING = 200;
  */
 function followSparkle(type, tiles = floorTiles()) {
 	const world = startWorld(tiles);
-	const sparkle = new Sparkle(world, type, 100 << 8, 300 << 8, 0, 0, FADING, 0);
-	world.sparkles.push(sparkle);
+	const sparkle = addSparkle(world, type);
 	const fading = [];
 	let landed = -1;
 	while (world.sparkles.includes(sparkle) && fading.length < 1000) {
@@ -79,11 +92,10 @@ test('a death sparkle falls slower and goes away on the floor', (context) => {
 test('a portal glow sparkle fades with its distance from the portal and starts again', (context) => {
 	context.after(seedRandom(1));
 	const world = startWorld(floorTiles());
-	const sparkle = new Sparkle(world, SparkleType.PORTAL_GLOW, 100 << 8, 300 << 8, 1 << 8, 0, FADING, 0);
+	const sparkle = addSparkle(world, SparkleType.PORTAL_GLOW, 1 << 8);
 	sparkle.startX = sparkle.x;
 	sparkle.startY = sparkle.y;
 	sparkle.portalIndex = 0;
-	world.sparkles.push(sparkle);
 	runTicks(world, 39);
 	assert.equal(sparkle.fading, FADING - 5 * 39);
 	assert.equal(sparkle.x, (100 + 39) << 8);

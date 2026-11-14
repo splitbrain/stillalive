@@ -20,13 +20,13 @@ import {
 import { clearCanvas, ctx, setCanvas, watchCanvasSize } from './canvas.js';
 import { PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, Transition } from './constants.js';
 import { Editor } from './Editor.js';
+import { InputState } from './InputState.js';
 import { setupInput } from './input.js';
 import { getFps, startLoop } from './loop.js';
 import { Renderer } from './render/Renderer.js';
 import { PlaySession } from './PlaySession.js';
 import { PreviewSession } from './PreviewSession.js';
 import { decodeReplay } from './replay.js';
-import { input } from './state.js';
 import { Value } from '../value.js';
 
 /** @type {number} The number of ticks between two updates of the level time. */
@@ -94,8 +94,10 @@ export class GameStage extends HTMLElement {
 	message = new Value(null);
 	/** @type {Value<number>} The speed of the playback of a replay: 1, 2 or 4 ticks per tick of real time. */
 	speed = new Value(1);
+	/** @type {InputState} The keys and the mouse, and the changes of each tick. */
+	#input = new InputState();
 	/** @type {Editor} The level editor. It keeps the editor map while the stage shows something else. */
-	#editor = new Editor(input);
+	#editor = new Editor(this.#input);
 	/** @type {Value<number>} The tile id or the object id that the editor paints. */
 	brush = new Value(this.#editor.brush);
 	/** @type {Value<number>} The measured number of frames per second. */
@@ -115,7 +117,7 @@ export class GameStage extends HTMLElement {
 	#session = null;
 
 	/** @type {Renderer} The drawing of the stage. */
-	#renderer = new Renderer(input);
+	#renderer = new Renderer(this.#input);
 
 	/** @type {number} The effect of the opening transition of the next level, a value of Transition. */
 	#transition = Transition.HORIZONTAL_LINES;
@@ -143,7 +145,7 @@ export class GameStage extends HTMLElement {
 		ctx.font = 'bold 10px Arial';
 
 		watchCanvasSize();
-		setupInput(canvas, this, {
+		setupInput(canvas, this, this.#input, {
 			escape: () => this.#onEscape(),
 			enter: () => this.#onEnter(),
 			focusLost: () => this.#onFocusLost(),
@@ -171,7 +173,7 @@ export class GameStage extends HTMLElement {
 		const recorded = replay === null ? null : decodeReplay(replay);
 		this.#leave();
 		this.#session = new PlaySession(level, {
-			input,
+			input: this.#input,
 			report: (type, detail) => this.#onSessionEvent(type, detail),
 			transition: this.#transition,
 			replay: recorded,
@@ -188,7 +190,7 @@ export class GameStage extends HTMLElement {
 	 */
 	preview(level) {
 		this.#leave();
-		this.#session = new PreviewSession(level, input);
+		this.#session = new PreviewSession(level, this.#input);
 		this.#publish();
 	}
 
@@ -214,7 +216,7 @@ export class GameStage extends HTMLElement {
 	test() {
 		if (this.#session !== this.#editor) return;
 		this.#session = new PlaySession(this.#editor.testLevel(), {
-			input,
+			input: this.#input,
 			report: (type, detail) => this.#onSessionEvent(type, detail),
 			transition: this.#transition,
 			testRun: true,
@@ -440,8 +442,8 @@ export class GameStage extends HTMLElement {
 		if (this.#session) {
 			this.#session.tick();
 		} else {
-			input.update();
-			input.endTick();
+			this.#input.update();
+			this.#input.endTick();
 		}
 		if (play) this.#transition = play.transition;
 	}
@@ -497,7 +499,7 @@ export class GameStage extends HTMLElement {
 	 */
 	#onFocusLost() {
 		if (this.#play) this.#play.onFocusLost();
-		else input.keys = 0;
+		else this.#input.keys = 0;
 	}
 
 	/**
@@ -543,7 +545,7 @@ export class GameStage extends HTMLElement {
 			world: () => this.#session?.world ?? null,
 			replay: () => this.#play?.source?.replay,
 			endReplay: () => this.#play?.endPlayback(),
-			input,
+			input: this.#input,
 			tick: () => this.#step(),
 			render: () => this.#renderer.render(this.#session),
 		};

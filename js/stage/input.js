@@ -1,8 +1,8 @@
 /**
  * Keyboard and pointer input.
  *
- * The handlers write the keys and the mouse into the input state. The game reads the input state once per tick. The
- * Escape key, the Enter key and the lost focus call the stage element, which decides what they do.
+ * The handlers write the keys and the mouse into the input state of the stage. The game reads the input state once
+ * per tick. The Escape key, the Enter key and the lost focus call the stage element, which decides what they do.
  */
 
 import { playfieldPoint } from './canvas.js';
@@ -16,7 +16,6 @@ import {
 	MOUSE_MIDDLE,
 	MOUSE_RIGHT,
 } from './constants.js';
-import { input } from './state.js';
 
 /**
  * The key bits for the movement keys, by the physical position of the key.
@@ -60,19 +59,15 @@ function isForeignTarget(event) {
  * @property {() => void} focusLost Handle the loss of the focus.
  */
 
-/** @type {import('./GameStage.js').GameStage} The stage element that the keys command. */
-let stage;
-
-/** @type {StageCommands} The methods of the stage element for the keys and the focus. */
-let commands;
-
 /**
  * Handle a key press. While the stage shows, the arrow keys do not scroll the page.
  *
  * @param {KeyboardEvent} event The key event.
+ * @param {import('./InputState.js').InputState} input The input state that the handler writes.
+ * @param {import('./GameStage.js').GameStage} stage The stage element.
  * @returns {void}
  */
-function onKeyDown(event) {
+function onKeyDown(event, input, stage) {
 	if (isForeignTarget(event)) return;
 	if (event.code in KEY_BITS) input.keys |= KEY_BITS[event.code];
 	if (event.code.startsWith('Arrow') && !stage.hidden) event.preventDefault();
@@ -84,9 +79,11 @@ function onKeyDown(event) {
  * Handle a key release.
  *
  * @param {KeyboardEvent} event The key event.
+ * @param {import('./InputState.js').InputState} input The input state that the handler writes.
+ * @param {StageCommands} commands The methods of the stage element for the keys and the focus.
  * @returns {void}
  */
-function onKeyUp(event) {
+function onKeyUp(event, input, commands) {
 	if (isForeignTarget(event)) return;
 	if (event.code in KEY_BITS && KEY_BITS[event.code] !== KEY_CLEAR) input.keys &= ~KEY_BITS[event.code];
 
@@ -105,9 +102,10 @@ function onKeyUp(event) {
  * the handler reads all buttons on each event.
  *
  * @param {PointerEvent} event The pointer event.
+ * @param {import('./InputState.js').InputState} input The input state that the handler writes.
  * @returns {void}
  */
-function onPointer(event) {
+function onPointer(event, input) {
 	const canvas = event.currentTarget;
 	if (event.type === 'pointerdown') {
 		canvas.setPointerCapture(event.pointerId);
@@ -133,22 +131,21 @@ function onPointer(event) {
  * Add the input handlers.
  *
  * @param {HTMLCanvasElement} canvas The canvas that takes the pointer input.
- * @param {import('./GameStage.js').GameStage} element The stage element that the keys command.
- * @param {StageCommands} stageCommands The methods of the stage element for the keys and the focus.
+ * @param {import('./GameStage.js').GameStage} stage The stage element that the keys command.
+ * @param {import('./InputState.js').InputState} input The input state that the handlers write.
+ * @param {StageCommands} commands The methods of the stage element for the keys and the focus.
  * @returns {void}
  */
-export function setupInput(canvas, element, stageCommands) {
-	stage = element;
-	commands = stageCommands;
-	window.addEventListener('keydown', onKeyDown);
-	window.addEventListener('keyup', onKeyUp);
+export function setupInput(canvas, stage, input, commands) {
+	window.addEventListener('keydown', (event) => onKeyDown(event, input, stage));
+	window.addEventListener('keyup', (event) => onKeyUp(event, input, commands));
 	window.addEventListener('blur', () => commands.focusLost());
 	document.addEventListener('visibilitychange', () => {
 		if (document.hidden) commands.focusLost();
 	});
 
 	for (const type of ['pointerdown', 'pointermove', 'pointerup', 'pointercancel']) {
-		canvas.addEventListener(type, onPointer);
+		canvas.addEventListener(type, (event) => onPointer(event, input));
 	}
 	canvas.addEventListener('pointerenter', () => (input.mouseOver = true));
 	canvas.addEventListener('pointerleave', () => (input.mouseOver = false));

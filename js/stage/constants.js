@@ -104,7 +104,7 @@ export const LevelPhase = {
 	CLOSING: 4,
 	ENDED: 5,
 };
-/** @type {Object<string, number>} The transitions at the end and the start of a level, as values of ui.transition. */
+/** @type {Object<string, number>} The effects of the transitions at the end and the start of a level. */
 export const Transition = {
 	TOP_LEFT: 1,
 	LEFT_TO_RIGHT: 2,

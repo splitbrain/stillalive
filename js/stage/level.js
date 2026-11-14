@@ -34,14 +34,19 @@ export const GRAVPIPE_DIRECTIONS = {
 const PLASMA_SPEED = 424;
 
 /**
+ * The start of a plasma ball: the position in 1/256 pixels and the speed in 1/256 pixels per tick.
+ *
+ * @typedef {{x: number, y: number, vx: number, vy: number}} PlasmaLaunch
+ */
+
+/**
  * Get the launch of the plasma ball from a plasma start in a map. Three sides of the start must be closed, and the
  * ball flies out of the open side. Each tile that is not empty closes a side, and so does the edge of the map.
  *
  * @param {import('./TileMap.js').TileMap} map The map.
  * @param {number} x The column of the plasma start.
  * @param {number} y The row of the plasma start.
- * @returns {{x: number, y: number, vx: number, vy: number}|null} The start position of the ball in 1/256 pixels and its
- *     speed, or null if fewer than three sides are closed.
+ * @returns {PlasmaLaunch|null} The start of the ball, or null if fewer than three sides are closed.
  */
 export function plasmaLaunch(map, x, y) {
 	const closed = (cx, cy) =>

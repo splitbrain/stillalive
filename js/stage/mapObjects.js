@@ -43,8 +43,8 @@ const ANIMATED_KINDS = [
  * @property {AnimatedTile[]} animatedTiles The animated tiles. Only a level start creates them.
  * @property {Position|null} playerStart The position of the last player start tile, or null for a map without it.
  * @property {Position|null} tube The position of the last tube tile, or null for a map without it or for the editor.
- * @property {{x: number, y: number, vx: number, vy: number}[]} plasmaLaunches The start positions and the speeds of the
- *     plasma balls, one for each plasma start tile with a valid launch. Only a level start gives launches.
+ * @property {import('./level.js').PlasmaLaunch[]} plasmaLaunches The starts of the plasma balls, one for each plasma
+ *     start tile with a valid launch. Only a level start gives launches.
  */
 
 /**

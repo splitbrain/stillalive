@@ -1,11 +1,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { FADE_START, KEY_RIGHT } from '../../js/stage/constants.js';
+import { FADE_START, FADE_STEP, KEY_RIGHT } from '../../js/stage/constants.js';
 import { Tile } from '../../js/stage/tiles.js';
 import { at, floorTiles, runTicks, runUntilRunning, seedRandom, startWorld } from './helpers.js';
 
 /** @type {number} The ticks of the opening and of the closing transition, which take 4 points of the fade per tick. */
-const TRANSITION_TICKS = FADE_START / 4;
+const TRANSITION_TICKS = FADE_START / FADE_STEP;
 
 test('a World from a map runs ticks without the stage element', (context) => {
 	context.after(seedRandom(1));
@@ -27,7 +27,7 @@ test('a World from a map runs ticks without the stage element', (context) => {
 	assert.ok(running.every((entry) => entry.y === last.y));
 });
 
-test('the opening transition ends after FADE_START / 4 ticks', (context) => {
+test('the opening transition ends after FADE_START / FADE_STEP ticks', (context) => {
 	context.after(seedRandom(1));
 	const world = startWorld(floorTiles());
 	assert.ok(world.phase.isOpening());

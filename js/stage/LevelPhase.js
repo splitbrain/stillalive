@@ -2,10 +2,7 @@
  * The LevelPhase object.
  */
 
-import { FADE_START, Transition } from './constants.js';
-
-/** @type {number} The part of the fade that the opening and the closing transition take per tick. */
-const FADE_STEP = 4;
+import { FADE_START, FADE_STEP, Transition } from './constants.js';
 
 /**
  * The phase of a level with the progress and the effect of its transitions. OPENING is the opening transition. In
@@ -27,8 +24,8 @@ export class LevelPhase {
 	/** @type {number} The exit freeze after the closing transition. */
 	static ENDED = 5;
 
-	/** @type {number} The phase, a value of the static constants of LevelPhase. */
-	phase = LevelPhase.OPENING;
+	/** @type {number} The current phase, a value of the static constants of LevelPhase. */
+	current = LevelPhase.OPENING;
 	/** @type {number} The progress of the opening and the closing transition, from FADE_START down to 0. */
 	fade = FADE_START;
 	/** @type {number} The effect of the opening and the closing transition, a value of Transition. */
@@ -40,7 +37,7 @@ export class LevelPhase {
 	 * @returns {void}
 	 */
 	reset() {
-		this.phase = LevelPhase.OPENING;
+		this.current = LevelPhase.OPENING;
 		this.fade = FADE_START;
 	}
 
@@ -50,7 +47,7 @@ export class LevelPhase {
 	 * @returns {boolean} True during the opening transition.
 	 */
 	isOpening() {
-		return this.phase === LevelPhase.OPENING;
+		return this.current === LevelPhase.OPENING;
 	}
 
 	/**
@@ -59,7 +56,7 @@ export class LevelPhase {
 	 * @returns {boolean} True while the level runs.
 	 */
 	isRunning() {
-		return this.phase === LevelPhase.RUNNING;
+		return this.current === LevelPhase.RUNNING;
 	}
 
 	/**
@@ -68,7 +65,7 @@ export class LevelPhase {
 	 * @returns {boolean} True while the level is halted.
 	 */
 	isHalted() {
-		return this.phase === LevelPhase.HALTED;
+		return this.current === LevelPhase.HALTED;
 	}
 
 	/**
@@ -77,7 +74,7 @@ export class LevelPhase {
 	 * @returns {boolean} True while the exit event waits.
 	 */
 	isExitWait() {
-		return this.phase === LevelPhase.EXIT_WAIT;
+		return this.current === LevelPhase.EXIT_WAIT;
 	}
 
 	/**
@@ -86,7 +83,7 @@ export class LevelPhase {
 	 * @returns {boolean} True during the closing transition.
 	 */
 	isClosing() {
-		return this.phase === LevelPhase.CLOSING;
+		return this.current === LevelPhase.CLOSING;
 	}
 
 	/**
@@ -95,7 +92,7 @@ export class LevelPhase {
 	 * @returns {boolean} True in the exit freeze.
 	 */
 	isEnded() {
-		return this.phase === LevelPhase.ENDED;
+		return this.current === LevelPhase.ENDED;
 	}
 
 	/**
@@ -123,7 +120,7 @@ export class LevelPhase {
 	 */
 	advanceOpening() {
 		this.fade -= FADE_STEP;
-		if (this.fade <= 0) this.phase = LevelPhase.RUNNING;
+		if (this.fade <= 0) this.current = LevelPhase.RUNNING;
 	}
 
 	/**
@@ -132,7 +129,7 @@ export class LevelPhase {
 	 * @returns {void}
 	 */
 	halt() {
-		this.phase = LevelPhase.HALTED;
+		this.current = LevelPhase.HALTED;
 	}
 
 	/**
@@ -141,7 +138,7 @@ export class LevelPhase {
 	 * @returns {void}
 	 */
 	run() {
-		this.phase = LevelPhase.RUNNING;
+		this.current = LevelPhase.RUNNING;
 	}
 
 	/**
@@ -150,7 +147,7 @@ export class LevelPhase {
 	 * @returns {void}
 	 */
 	waitAtExit() {
-		this.phase = LevelPhase.EXIT_WAIT;
+		this.current = LevelPhase.EXIT_WAIT;
 	}
 
 	/**
@@ -159,7 +156,7 @@ export class LevelPhase {
 	 * @returns {void}
 	 */
 	continueAsClosing() {
-		this.phase = LevelPhase.CLOSING;
+		this.current = LevelPhase.CLOSING;
 	}
 
 	/**
@@ -170,7 +167,7 @@ export class LevelPhase {
 	 * @returns {void}
 	 */
 	startClosing(transition) {
-		this.phase = LevelPhase.CLOSING;
+		this.current = LevelPhase.CLOSING;
 		this.fade = FADE_START;
 		this.transition = transition;
 	}
@@ -184,7 +181,7 @@ export class LevelPhase {
 		this.fade -= FADE_STEP;
 		if (this.fade > 0) return false;
 		this.fade = 0;
-		this.phase = LevelPhase.ENDED;
+		this.current = LevelPhase.ENDED;
 		return true;
 	}
 }

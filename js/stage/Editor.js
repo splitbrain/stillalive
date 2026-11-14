@@ -7,14 +7,15 @@ import { bg } from './images.js';
 import { mouseOnPlayfield, unclick } from './inputState.js';
 import { allowTile, build, eraseSprites, fill } from './mapEdit.js';
 import { MAP_FORMAT, parseMap } from './mapFile.js';
-import { game, input, stageEvents, ui } from './state.js';
+import { input, stageEvents, ui } from './state.js';
 import { TileMap } from './TileMap.js';
 import { Tile, isGravPipeTile, isObjectTile } from './tiles.js';
 import { UndoList } from './UndoList.js';
 import { World } from './World.js';
 
 /**
- * The level editor. It edits the map in game.map and keeps the editor map while the stage shows something else.
+ * The level editor. It edits the map of the World that it gets and keeps the editor map while the stage shows something
+ * else.
  */
 export class Editor {
 	/** @type {number} The tile id or the object id that the editor paints. */
@@ -41,19 +42,25 @@ export class Editor {
 	/**
 	 * Start the test run of the map, with the pause and the keys released.
 	 *
+	 * @param {World} world The World of the editor map.
 	 * @param {number} transition The effect of the opening transition, a value of Transition.
 	 * @returns {World} The World of the test run.
 	 */
-	startTest(transition) {
-		const level = { ...parseMap({ format: MAP_FORMAT, ...this.getMap() }), campaign: '', number: 0, fromBelow: false };
-		this.leave();
+	startTest(world, transition) {
+		const level = {
+			...parseMap({ format: MAP_FORMAT, ...this.getMap(world) }),
+			campaign: '',
+			number: 0,
+			fromBelow: false,
+		};
+		this.leave(world);
 		ui.mode = 'test';
-		const world = World.forLevel(level, { transition });
+		const test = World.forLevel(level, { transition });
 		ui.paused = false;
 		input.keys = 0;
 		input.oldKeys = 0;
 		unclick(input);
-		return world;
+		return test;
 	}
 
 	/**
@@ -96,88 +103,96 @@ export class Editor {
 	/**
 	 * Keep the editor map while the stage shows something else.
 	 *
+	 * @param {World} world The World of the editor map.
 	 * @returns {void}
 	 */
-	leave() {
-		this.#storedMap = { tiles: game.map.tiles.slice(), bg: game.background };
+	leave(world) {
+		this.#storedMap = { tiles: world.map.tiles.slice(), bg: world.background };
 	}
 
 	/**
 	 * Get the editor map.
 	 *
+	 * @param {World} world The World that the stage shows.
 	 * @returns {object} The editor map in the map file format without the format property, with a copy of the tiles.
 	 */
-	getMap() {
-		if (ui.mode == 'edit') return { ...this.#properties, bg: game.background, tiles: game.map.tiles.slice() };
+	getMap(world) {
+		if (ui.mode == 'edit') return { ...this.#properties, bg: world.background, tiles: world.map.tiles.slice() };
 		return { ...this.#properties, bg: this.#storedMap.bg, tiles: this.#storedMap.tiles.slice() };
 	}
 
 	/**
 	 * Run one tick of the editor. When the map of the editor changed, its objects are created again.
 	 *
+	 * @param {World} world The World of the editor map.
 	 * @returns {void}
 	 */
-	update() {
-		this.#updateDrawTile();
-		this.#updateDrawSprite();
-		this.#manageUndoRedo();
+	update(world) {
+		this.#updateDrawTile(world);
+		this.#updateDrawSprite(world);
+		this.#manageUndoRedo(world);
 
 		if (this.#oldMouseReleased == 1 && input.mouseReleased == 1) input.mouseReleased = 0;
 		this.#oldMouseReleased = input.mouseReleased;
 
-		if (this.#objectsChanged) this.#rebuildObjects();
+		if (this.#objectsChanged) this.#rebuildObjects(world);
 	}
 
 	/**
 	 * Remove all tiles, objects and other properties of the editor map.
 	 *
+	 * @param {World} world The World of the editor map.
 	 * @returns {void}
 	 */
-	clear() {
-		game.map.replace(new Array(MAP_SIZE).fill(Tile.EMPTY));
+	clear(world) {
+		world.map.replace(new Array(MAP_SIZE).fill(Tile.EMPTY));
 		this.#properties = {};
-		this.#addUndo();
+		this.#addUndo(world);
 		this.#mapChanged();
 	}
 
 	/**
 	 * Set the background of the editor map. A number outside the range of the backgrounds wraps around.
 	 *
+	 * @param {World} world The World of the editor map.
 	 * @param {number} n The background index.
 	 * @returns {void}
 	 */
-	setBackground(n) {
-		game.background = ((n % bg.length) + bg.length) % bg.length;
+	setBackground(world, n) {
+		world.background = ((n % bg.length) + bg.length) % bg.length;
 		this.#mapChanged();
 	}
 
 	/**
 	 * Go back to the map before the last change.
 	 *
+	 * @param {World} world The World of the editor map.
 	 * @returns {void}
 	 */
-	undo() {
-		this.#restore(this.#undoList.undo());
+	undo(world) {
+		this.#restore(world, this.#undoList.undo());
 	}
 
 	/**
 	 * Go forward to the map of the next change after an undo.
 	 *
+	 * @param {World} world The World of the editor map.
 	 * @returns {void}
 	 */
-	redo() {
-		this.#restore(this.#undoList.redo());
+	redo(world) {
+		this.#restore(world, this.#undoList.redo());
 	}
 
 	/**
 	 * Put a map of the undo list into the editor.
 	 *
+	 * @param {World} world The World of the editor map.
 	 * @param {import('./UndoList.js').UndoEntry|null} entry The map, or null for no change.
 	 * @returns {void}
 	 */
-	#restore(entry) {
+	#restore(world, entry) {
 		if (!entry) return;
-		game.map.replace(entry.tiles);
+		world.map.replace(entry.tiles);
 		this.#properties = entry.properties;
 		this.#mapChanged();
 	}
@@ -195,11 +210,12 @@ export class Editor {
 	 * Show the edited logic tiles in the display layer, and mark the map as changed if a tile changed. Before the edit,
 	 * the two layers are equal, so the version increases only for a tile with a new id.
 	 *
+	 * @param {World} world The World of the editor map.
 	 * @param {number} version The version of the map before the edit.
 	 * @returns {void}
 	 */
-	#mapChangedSince(version) {
-		const map = game.map;
+	#mapChangedSince(world, version) {
+		const map = world.map;
 		for (let i = 0; i < map.tiles.length; i++) {
 			if (map.display[i] != map.tiles[i]) map.setDisplay(i, map.tiles[i]);
 		}
@@ -209,31 +225,33 @@ export class Editor {
 	/**
 	 * Create the objects of the editor map again.
 	 *
+	 * @param {World} world The World of the editor map.
 	 * @returns {void}
 	 */
-	#rebuildObjects() {
-		game.createEditorObjects();
+	#rebuildObjects(world) {
+		world.createEditorObjects();
 		this.#objectsChanged = false;
 	}
 
 	/**
 	 * Add the current map to the undo list.
 	 *
-	 * @param {World} [world] The World of the editor map.
+	 * @param {World} world The World of the editor map.
 	 * @returns {void}
 	 */
-	#addUndo(world = game) {
+	#addUndo(world) {
 		this.#undoList.add({ tiles: world.map.tiles.slice(), properties: this.#properties });
 	}
 
 	/**
 	 * Undo or redo a change when the player released the undo or redo keys.
 	 *
+	 * @param {World} world The World of the editor map.
 	 * @returns {void}
 	 */
-	#manageUndoRedo() {
-		if (input.undoPressed) this.undo();
-		else if (input.redoPressed) this.redo();
+	#manageUndoRedo(world) {
+		if (input.undoPressed) this.undo(world);
+		else if (input.redoPressed) this.redo(world);
 		input.undoPressed = 0;
 		input.redoPressed = 0;
 	}
@@ -241,11 +259,12 @@ export class Editor {
 	/**
 	 * Place or remove an object at the mouse while a button is pressed.
 	 *
+	 * @param {World} world The World of the editor map.
 	 * @returns {void}
 	 */
-	#updateDrawSprite() {
+	#updateDrawSprite(world) {
 		const brush = this.brush;
-		const map = game.map;
+		const map = world.map;
 		let i;
 		if (mouseOnPlayfield() && isObjectTile(brush)) {
 			const x = (input.mouseX >> TILE_SIZE_BITS) << TILE_SIZE_BITS;
@@ -273,10 +292,10 @@ export class Editor {
 					eraseSprites(map, brush, xt, yt);
 				}
 				build(map);
-				this.#mapChangedSince(version);
+				this.#mapChangedSince(world, version);
 			} else if (input.mouseReleased) {
 				input.mouseReleased = 0;
-				this.#addUndo();
+				this.#addUndo(world);
 				this.#mapChanged();
 			}
 		}
@@ -285,11 +304,12 @@ export class Editor {
 	/**
 	 * Draw, remove or fill tiles at the mouse while a button is pressed.
 	 *
+	 * @param {World} world The World of the editor map.
 	 * @returns {void}
 	 */
-	#updateDrawTile() {
+	#updateDrawTile(world) {
 		const brush = this.brush;
-		const map = game.map;
+		const map = world.map;
 		let i;
 		if (mouseOnPlayfield() && !isObjectTile(brush)) {
 			const x = (input.mouseX >> TILE_SIZE_BITS) << TILE_SIZE_BITS;
@@ -322,10 +342,10 @@ export class Editor {
 				}
 
 				build(map);
-				this.#mapChangedSince(version);
+				this.#mapChangedSince(world, version);
 			} else if (input.mouseReleased) {
 				input.mouseReleased = 0;
-				this.#addUndo();
+				this.#addUndo(world);
 			}
 		}
 	}

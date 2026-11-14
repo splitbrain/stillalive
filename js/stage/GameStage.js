@@ -199,7 +199,7 @@ export class GameStage extends HTMLElement {
 	 */
 	test() {
 		if (ui.mode != 'edit') return;
-		this.#setWorld(this.#editor.startTest(this.#transition));
+		this.#setWorld(this.#editor.startTest(this.#world, this.#transition));
 		this.#publish();
 	}
 
@@ -286,7 +286,7 @@ export class GameStage extends HTMLElement {
 	 * @returns {void}
 	 */
 	setBackground(n) {
-		if (ui.mode == 'edit') this.#editor.setBackground(n);
+		if (ui.mode == 'edit') this.#editor.setBackground(this.#world, n);
 	}
 
 	/**
@@ -295,7 +295,7 @@ export class GameStage extends HTMLElement {
 	 * @returns {object} The editor map in the map file format without the format property, with a copy of the tiles.
 	 */
 	getMap() {
-		return this.#editor.getMap();
+		return this.#editor.getMap(this.#world);
 	}
 
 	/**
@@ -304,7 +304,7 @@ export class GameStage extends HTMLElement {
 	 * @returns {void}
 	 */
 	clearMap() {
-		if (ui.mode == 'edit') this.#editor.clear();
+		if (ui.mode == 'edit') this.#editor.clear(this.#world);
 	}
 
 	/**
@@ -313,7 +313,7 @@ export class GameStage extends HTMLElement {
 	 * @returns {void}
 	 */
 	undo() {
-		if (ui.mode == 'edit') this.#editor.undo();
+		if (ui.mode == 'edit') this.#editor.undo(this.#world);
 	}
 
 	/**
@@ -322,7 +322,7 @@ export class GameStage extends HTMLElement {
 	 * @returns {void}
 	 */
 	redo() {
-		if (ui.mode == 'edit') this.#editor.redo();
+		if (ui.mode == 'edit') this.#editor.redo(this.#world);
 	}
 
 	/**
@@ -421,7 +421,7 @@ export class GameStage extends HTMLElement {
 	 */
 	#leave() {
 		if (ui.mode == 'test') this.#setWorld(this.#editor.stopTest(false));
-		if (ui.mode == 'edit') this.#editor.leave();
+		if (ui.mode == 'edit') this.#editor.leave(this.#world);
 		ui.paused = false;
 		this.#replayMode = false;
 		this.#speed = 1;
@@ -452,7 +452,7 @@ export class GameStage extends HTMLElement {
 		const world = this.#world;
 		if (manageKeys(world, this.#replay, this.#replayMode)) this.#stopBrokenReplay();
 		if (ui.mode == 'edit') {
-			this.#editor.update();
+			this.#editor.update(world);
 			return;
 		}
 		if ((ui.mode != 'play' && ui.mode != 'test') || ui.paused) return;

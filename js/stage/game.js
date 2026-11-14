@@ -158,8 +158,6 @@ function updateObjects() {
  */
 export function startLevel(level, replay = null, restart = false) {
 	ui.mode = 'play';
-	game.replayMode = replay !== null;
-	if (replay) game.replay = replay;
-	loadLevel(level, restart);
+	loadLevel(level, restart, replay);
 	unclick();
 }

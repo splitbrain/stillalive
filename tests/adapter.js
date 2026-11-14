@@ -389,7 +389,7 @@ export async function runLevel(
 		async ({ campaign, level, ticks, seed, inputs, replay: replayData, skipBossIntro, interval }) => {
 			const { campaigns } = await import('/js/chrome/campaigns.js');
 			const t = window.__test;
-			const { game, input, stage } = t;
+			const { input, stage } = t;
 			const levelData = campaigns[campaign].levels[level - 1];
 			let state = seed >>> 0;
 			Math.random = () => {
@@ -400,17 +400,18 @@ export async function runLevel(
 				return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
 			};
 
-			game.shakeX = 0;
-			game.shakeY = 0;
+			t.game.shakeX = 0;
+			t.game.shakeY = 0;
 			// the level selection shows the preview before the level
 			stage.preview(levelData);
 			stage.play(levelData, { replay: replayData, restart: skipBossIntro });
-			const startMap = game.map.tiles.slice();
+			const startMap = t.game.map.tiles.slice();
 
 			const pick = (obj, fields) => fields.map((field) => obj[field]);
 			// the snapshots store the flags of the player, the crates, the turrets and the plasma balls as 0 and 1
 			const pickNumbers = (obj, fields) => pick(obj, fields).map((v) => (typeof v === 'boolean' ? Number(v) : v));
-			const snapshot = (tick) =>
+			// a restart creates a new World, so the snapshot reads the current one
+			const snapshot = (tick, game = t.game) =>
 				JSON.stringify({
 					tick,
 					time: game.time,
@@ -432,9 +433,9 @@ export async function runLevel(
 			 *     flags for the running level and for the closing transition.
 			 */
 			const levelPhase = () => ({
-				run: game.player,
-				running: game.isRunning(),
-				closing: game.isClosing(),
+				run: t.game.player,
+				running: t.game.isRunning(),
+				closing: t.game.isClosing(),
 			});
 			/**
 			 * Check if a tick ended the level.
@@ -459,7 +460,7 @@ export async function runLevel(
 					break;
 				}
 			}
-			game.replayMode = false;
+			t.game.replayMode = false;
 			return lines.join('\n') + '\n';
 		},
 		{ campaign, level, ticks, seed, inputs, replay, skipBossIntro, interval: SNAPSHOT_INTERVAL },
@@ -503,7 +504,7 @@ export async function recordedReplay(page) {
 export async function runPortalScene(page, scene) {
 	return page.evaluate(async (scene) => {
 		const t = window.__test;
-		const { game, input, stage } = t;
+		const { input, stage } = t;
 		const { campaigns } = await import('/js/chrome/campaigns.js');
 		const { launchPortal } = await import('/js/stage/portals.js');
 		const { Crate } = await import('/js/stage/entities/Crate.js');
@@ -521,6 +522,7 @@ export async function runPortalScene(page, scene) {
 		};
 
 		stage.play(campaigns[0].levels[0]);
+		const game = t.game;
 		game.map.replace(
 			game.map.tiles.map((tile, i) => {
 				const x = game.map.column(i);
@@ -562,7 +564,7 @@ export async function runPortalScene(page, scene) {
 			input.keys = scene.keys;
 			t.tick();
 			const pick = (e) => (e ? [e.x, e.y, e.vx, e.vy] : null);
-			lines.push(JSON.stringify([tick, pick(obj), pick(game.player)]));
+			lines.push(JSON.stringify([tick, pick(obj), pick(t.game.player)]));
 		}
 		return lines.join('\n') + '\n';
 	}, scene);

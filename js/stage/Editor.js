@@ -6,13 +6,14 @@ import { MAP_SIZE, MouseButton, TILE_SIZE_BITS } from './constants.js';
 import { Portal } from './entities/Portal.js';
 import { bg } from './images.js';
 import { mouseOnPlayfield, unclick } from './inputState.js';
-import { loadEditorObjects, loadLevel } from './level.js';
+import { loadLevel } from './level.js';
 import { allowTile, build, eraseSprites, fill } from './mapEdit.js';
 import { MAP_FORMAT, parseMap } from './mapFile.js';
-import { game, input, stageEvents, ui } from './state.js';
+import { game, input, setGame, stageEvents, ui } from './state.js';
 import { TileMap } from './TileMap.js';
 import { Tile, isGravPipeTile, isObjectTile } from './tiles.js';
 import { UndoList } from './UndoList.js';
+import { World } from './World.js';
 
 /**
  * The level editor. It edits the map in game.map and keeps the editor map while the stage shows something else.
@@ -47,7 +48,6 @@ export class Editor {
 	startTest() {
 		const level = { ...parseMap({ format: MAP_FORMAT, ...this.getMap() }), campaign: '', number: 0, fromBelow: false };
 		ui.mode = 'test';
-		game.replayMode = false;
 		loadLevel(level);
 		unclick();
 	}
@@ -82,10 +82,7 @@ export class Editor {
 			this.#properties = rest;
 		}
 		ui.mode = 'edit';
-		game.boss = null;
-		game.shakeX = 0;
-		game.shakeY = 0;
-		game.map = new TileMap(this.#storedMap.tiles);
+		setGame(World.forEditor(new TileMap(this.#storedMap.tiles)));
 		game.background = this.#storedMap.bg;
 		if (map || !this.#undoList) {
 			this.#undoList = new UndoList();
@@ -93,8 +90,7 @@ export class Editor {
 		}
 
 		unclick();
-		game.sparkles = new Array();
-		this.#rebuildObjects();
+		this.#objectsChanged = false;
 	}
 
 	/**
@@ -217,7 +213,7 @@ export class Editor {
 	 * @returns {void}
 	 */
 	#rebuildObjects() {
-		loadEditorObjects();
+		game.createEditorObjects();
 		this.#objectsChanged = false;
 	}
 

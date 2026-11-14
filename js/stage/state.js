@@ -2,161 +2,20 @@
  * The shared state of the stage.
  */
 
-import { FADE_START, LevelPhase, Transition } from './constants.js';
+import { Transition } from './constants.js';
 
-/** @type {object} The state of the current level. */
-export const game = {
-	/** @type {import('./replay.js').Replay} The recording of the current level, or the replay that plays. */
-	replay: undefined,
-	/** @type {boolean} True while a replay plays. */
-	replayMode: false,
-	/** @type {number} The number of cakes that the player has not eaten yet. */
-	cakesLeft: undefined,
-	/** @type {number} The walked distance of the player for the step counter. */
-	steps: undefined,
-	/** @type {number} The number of portals that the player shot. */
-	portalShots: undefined,
-	/** @type {number} The index of the background image. */
-	background: undefined,
-	/** @type {{jump: boolean, portals: boolean}} The abilities of the player at the start of the level. */
-	abilities: undefined,
-	/** @type {import('./LevelEvents.js').LevelEvents|null} The events of the level that runs or that ran last, or null after the stage leaves a mode. */
-	events: null,
-	/** @type {import('./mapFile.js').MapLabel[]} The texts at positions of the playfield. */
-	labels: undefined,
-	/** @type {number} The x shift of the drawing in playfield units: the screen shake of the boss levels, else 0. */
-	shakeX: 0,
-	/** @type {number} The y shift of the drawing in playfield units: the screen shake of the boss levels, else 0. */
-	shakeY: 0,
-	/** @type {number} The level time in ticks. */
-	time: undefined,
-	/** @type {import('./entities/Cake.js').Cake[]} The cakes. */
-	cakes: undefined,
-	/** @type {import('./entities/Crate.js').Crate[]} The crates. */
-	crates: undefined,
-	/** @type {import('./entities/GravPipe.js').GravPipe[]} The gravitational pipes. */
-	gravPipes: undefined,
-	/** @type {object[]} The fields of the gravitational pipes. */
-	gravPipeFields: undefined,
-	/** @type {import('./entities/Platform.js').Platform[]} The moving platforms. */
-	platforms: undefined,
-	/** @type {import('./entities/Turret.js').Turret[]} The turrets. */
-	turrets: undefined,
-	/** @type {import('./entities/Sparkle.js').Sparkle[]} The sparkles. */
-	sparkles: undefined,
-	/** @type {import('./entities/AnimatedTile.js').AnimatedTile[]} The animated tiles. */
-	animatedTiles: undefined,
-	/** @type {import('./entities/Projectile.js').Projectile[]} The projectiles of the boss. */
-	projectiles: undefined,
-	/** @type {import('./TileMap.js').TileMap} The tiles of the map. */
-	map: undefined,
-	/** @type {number[]} The tile ids of the level at the level start. */
-	oldMap: undefined,
-	/** @type {import('./entities/Player.js').Player} The player. */
-	player: undefined,
-	/** @type {import('./entities/Portal.js').Portal[]} The two portals. */
-	portals: undefined,
-	/** @type {import('./entities/Plasma.js').Plasma[]} The plasma balls. */
-	plasmaBall: undefined,
-	/** @type {import('./entities/Camera.js').Camera} The security camera. */
-	camera: undefined,
-	/**
-	 * @type {import('./entities/Portal.js').Portal|null} The portal that an object is in during this tick, or null. The
-	 *     drawing then draws the tiles around the portals over the objects.
-	 */
-	objectInPortal: undefined,
-	/** @type {number} The x position of the tube in 1/256 pixels, or -1 for a level without a tube. */
-	tubeX: undefined,
-	/** @type {number} The y position of the tube in 1/256 pixels, or -1 for a level without a tube. */
-	tubeY: undefined,
-	/** @type {number} The x start position of the plasma shots of the boss in 1/256 pixels. */
-	plasmaX: undefined,
-	/** @type {number} The y start position of the plasma shots of the boss in 1/256 pixels. */
-	plasmaY: undefined,
-	/** @type {import('./entities/Boss.js').Boss|null} The boss of the level, or null for a level without a boss. */
-	boss: null,
-	/** @type {import('./level.js').Level} The level that runs. */
-	level: undefined,
-	/** @type {number} The phase of the level, a value of LevelPhase. */
-	phase: undefined,
-	/** @type {number} The progress of the opening and the closing transition, from FADE_START down to 0. */
-	fade: undefined,
-	/** @type {number} 1 while the player or a crate holds a switch and the switch doors are open. */
-	switchPressed: undefined,
+/** @type {import('./World.js').World} The World of the level, the preview or the editor map that the stage shows. */
+export let game = null;
 
-	/**
-	 * Set the phase of a new level, a preview or the editor map: the start of the opening transition.
-	 *
-	 * @returns {void}
-	 */
-	resetPhase() {
-		this.phase = LevelPhase.OPENING;
-		this.fade = FADE_START;
-	},
-
-	/**
-	 * Check if the level runs. The level time counts and the objects move.
-	 *
-	 * @returns {boolean} True while the level runs.
-	 */
-	isRunning() {
-		return this.phase == LevelPhase.RUNNING;
-	},
-
-	/**
-	 * Check if the level time stands still while an event waits for a click or the boss comes in.
-	 *
-	 * @returns {boolean} True while the level is halted.
-	 */
-	isHalted() {
-		return this.phase == LevelPhase.HALTED;
-	},
-
-	/**
-	 * Check if the opening transition of the level runs.
-	 *
-	 * @returns {boolean} True during the opening transition.
-	 */
-	isOpening() {
-		return this.phase == LevelPhase.OPENING;
-	},
-
-	/**
-	 * Check if the player is on the exit and an exit event waits for a click.
-	 *
-	 * @returns {boolean} True while the exit event waits.
-	 */
-	isExitWait() {
-		return this.phase == LevelPhase.EXIT_WAIT;
-	},
-
-	/**
-	 * Check if the closing transition of the level runs.
-	 *
-	 * @returns {boolean} True during the closing transition.
-	 */
-	isClosing() {
-		return this.phase == LevelPhase.CLOSING;
-	},
-
-	/**
-	 * Check if the level is in the exit freeze after the closing transition.
-	 *
-	 * @returns {boolean} True in the exit freeze.
-	 */
-	isEnded() {
-		return this.phase == LevelPhase.ENDED;
-	},
-
-	/**
-	 * Check if the player reached the exit and the level end runs.
-	 *
-	 * @returns {boolean} True in the phases EXIT_WAIT, CLOSING and ENDED.
-	 */
-	reachedExit() {
-		return this.isExitWait() || this.isClosing() || this.isEnded();
-	},
-};
+/**
+ * Set the World that the stage shows.
+ *
+ * @param {import('./World.js').World} world The World.
+ * @returns {void}
+ */
+export function setGame(world) {
+	game = world;
+}
 
 /** @type {object} The state of the stage. */
 export const ui = {

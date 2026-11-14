@@ -20,7 +20,6 @@ import {
 import { clearCanvas, ctx, setCanvas, watchCanvasSize } from './canvas.js';
 import { PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH } from './constants.js';
 import { Editor } from './Editor.js';
-import { Player } from './entities/Player.js';
 import { startLevel, tick } from './game.js';
 import { canPause, setupInput } from './input.js';
 import { captureInput, unclick } from './inputState.js';
@@ -28,7 +27,8 @@ import { loadLevel, loadPreviewMap } from './level.js';
 import { getFps, startLoop } from './loop.js';
 import { render } from './render/frame.js';
 import { decodeReplay, resumeReplay } from './replay.js';
-import { game, input, stageEvents, ui } from './state.js';
+import { game, input, setGame, stageEvents, ui } from './state.js';
+import { World } from './World.js';
 import { Value } from '../value.js';
 
 /** @type {number} The number of ticks between two updates of the level time. */
@@ -123,9 +123,7 @@ export class GameStage extends HTMLElement {
 		watchCanvasSize();
 		setupInput(canvas, this, this.#editor);
 
-		game.player = new Player(); // the input reads the player before the first level starts
-		game.resetPhase();
-		game.time = 0;
+		setGame(new World()); // the input reads the player before the first level starts
 
 		startLoop(
 			() => this.#step(),
@@ -437,7 +435,9 @@ export class GameStage extends HTMLElement {
 		if (!new URLSearchParams(location.search).has('test')) return;
 		window.__test = {
 			stage: this,
-			game,
+			get game() {
+				return game;
+			},
 			input,
 			tick: () => this.#step(),
 			render: () => render(this.#editor),

@@ -72,7 +72,7 @@ function drawTileMap() {
 				x = game.map.column(i);
 				y = game.map.row(i);
 
-				if (!plasmaLaunch(x, y)) {
+				if (!plasmaLaunch(game.map, x, y)) {
 					if (y - 1 >= 0) ctx.fillRect(x * TILE_SIZE, (y - 1) * TILE_SIZE, TILE_SIZE, TILE_SIZE);
 					if (y + 1 < MAP_HEIGHT) ctx.fillRect(x * TILE_SIZE, (y + 1) * TILE_SIZE, TILE_SIZE, TILE_SIZE);
 					if (x - 1 >= 0) ctx.fillRect((x - 1) * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);

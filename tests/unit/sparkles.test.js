@@ -18,7 +18,7 @@ const FADING = 200;
  */
 function addSparkle(world, type, vx = 0) {
 	const sparkle = new Sparkle(world, type, 100 << 8, 300 << 8, vx, 0, FADING, 0);
-	world.sparkles.push(sparkle);
+	world.addSparkle(sparkle);
 	return sparkle;
 }
 

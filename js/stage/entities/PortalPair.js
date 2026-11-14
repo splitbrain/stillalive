@@ -7,7 +7,7 @@ import { Direction, SparkleType, TILE_SIZE } from '../constants.js';
 import { Crate } from './Crate.js';
 import { Platform } from './Platform.js';
 import { Portal } from './Portal.js';
-import { Sparkle, createPortalGlow, removeSparkles } from './Sparkle.js';
+import { Sparkle } from './Sparkle.js';
 import { isTileKind, Tile, TileKind } from '../tiles.js';
 import { getCos, getSin, inScreen, random, toPixels, toSubpixels } from '../utils.js';
 
@@ -60,7 +60,7 @@ export class PortalPair {
 		portal.vx = getCos(targetX, targetY, startX, startY) * 256;
 		portal.vy = getSin(targetX, targetY, startX, startY) * 256;
 
-		removeSparkles(this.world, index, SparkleType.PORTAL_SHOT);
+		this.world.removeSparkles(SparkleType.PORTAL_SHOT, index);
 
 		let steps = 0;
 		let bounces = 0;
@@ -101,7 +101,7 @@ export class PortalPair {
 				);
 				if (random(0, 2) === 0) sparkle.vx = -sparkle.vx;
 				if (random(0, 2) === 0) sparkle.vy = -sparkle.vy;
-				this.world.sparkles.push(sparkle);
+				this.world.addSparkle(sparkle);
 			}
 			// a shot above the playfield continues if it flies down
 			inScreenOK = inScreen(pixelX, pixelY) || (pixelY < 0 && portal.vy > 0);
@@ -214,7 +214,7 @@ export class PortalPair {
 		portal.x = toSubpixels(x);
 		portal.y = toSubpixels(y);
 		portal.used = true;
-		createPortalGlow(this.world, index);
+		this.world.createPortalGlow(index);
 		return true;
 	}
 
@@ -379,7 +379,7 @@ export class PortalPair {
 		if (!this.list[0].used && !this.list[1].used) return;
 		for (const [i, portal] of this.list.entries()) {
 			portal.used = false;
-			removeSparkles(this.world, i, SparkleType.PORTAL_GLOW);
+			this.world.removeSparkles(SparkleType.PORTAL_GLOW, i);
 		}
 		playSound(sfx_cancelPortals);
 	}

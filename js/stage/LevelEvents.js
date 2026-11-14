@@ -3,7 +3,6 @@
  */
 
 import { Direction, TILE_SIZE, TILE_SIZE_BITS } from './constants.js';
-import { createPortalGlow } from './entities/Sparkle.js';
 import { keyLabels } from './keys.js';
 import { toSubpixels } from './utils.js';
 
@@ -191,5 +190,5 @@ function placePortal(world, index, [column, row, side]) {
 		y: toSubpixels(y),
 	});
 
-	createPortalGlow(world, index);
+	world.createPortalGlow(index);
 }

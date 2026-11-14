@@ -6,7 +6,7 @@ import { Throwable } from './Throwable.js';
 import { playSound, playSoundIfFinished, sfx_explode, sfx_pain, sfx_shoot } from '../audio.js';
 import { Ground, PLAYFIELD_WIDTH, SparkleType, TILE_SIZE } from '../constants.js';
 import { Platform } from './Platform.js';
-import { Sparkle, createCakeOrSmokeSparkles } from './Sparkle.js';
+import { Sparkle } from './Sparkle.js';
 import { Tile } from '../tiles.js';
 import { random, toPixels, toSubpixels } from '../utils.js';
 
@@ -50,7 +50,7 @@ export class Turret extends Throwable {
 		this.dead = true;
 		this.animFrame = 2;
 		playSound(sfx_explode);
-		createCakeOrSmokeSparkles(this.world, this.x, this.y, SparkleType.SMOKE, 4, 255);
+		this.world.createCakeOrSmokeSparkles(this.x, this.y, SparkleType.SMOKE, 4, 255);
 	}
 
 	/**
@@ -213,7 +213,7 @@ export class Turret extends Throwable {
 		playSoundIfFinished(sfx_pain);
 
 		for (let i = 0; i < 5; i++) {
-			this.world.sparkles.push(
+			this.world.addSparkle(
 				new Sparkle(
 					this.world,
 					SparkleType.SHOT_HIT,

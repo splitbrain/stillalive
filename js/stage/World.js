@@ -22,7 +22,7 @@ import { traceGravPipeField } from './entities/GravPipeField.js';
 import { Plasma } from './entities/Plasma.js';
 import { Player } from './entities/Player.js';
 import { PortalPair } from './entities/PortalPair.js';
-import { createCakeOrSmokeSparkles } from './entities/Sparkle.js';
+import { Sparkle } from './entities/Sparkle.js';
 import { LevelEvents } from './LevelEvents.js';
 import { LevelPhase } from './LevelPhase.js';
 import { createObjects } from './mapObjects.js';
@@ -466,7 +466,7 @@ export class World {
 			if (!cake.used || !this.player.overlaps(cake)) continue;
 			cake.used = false;
 			this.cakesLeft--;
-			createCakeOrSmokeSparkles(this, cake.x, cake.y, SparkleType.CAKE, 2, 180);
+			this.createCakeOrSmokeSparkles(cake.x, cake.y, SparkleType.CAKE, 2, 180);
 			playSound(sfx_grabCake);
 			if (this.cakesLeft === 0) {
 				this.openExit();
@@ -497,6 +497,92 @@ export class World {
 			if (!isTileKind(door.current, kind)) continue;
 			door.used = !open;
 			this.map.setTile(door.place, open ? Tile.EMPTY : door.min);
+		}
+	}
+
+	/**
+	 * Add a sparkle.
+	 *
+	 * @param {Sparkle} sparkle The sparkle.
+	 * @returns {void}
+	 */
+	addSparkle(sparkle) {
+		this.sparkles.push(sparkle);
+	}
+
+	/**
+	 * Remove the sparkles of one type and color.
+	 *
+	 * @param {number} type The sparkle type, a value of SparkleType.
+	 * @param {number} color The color index.
+	 * @returns {void}
+	 */
+	removeSparkles(type, color) {
+		this.sparkles = this.sparkles.filter((sparkle) => sparkle.type !== type || sparkle.color !== color);
+	}
+
+	/**
+	 * Create the glow sparkles along a portal. The glow sparkles of the earlier portal with the same index go away.
+	 *
+	 * @param {number} index The portal index, 0 for blue and 1 for red.
+	 * @returns {void}
+	 */
+	createPortalGlow(index) {
+		const portal = this.portals.list[index];
+		const onSideWall = portal.direction === Direction.LEFT || portal.direction === Direction.RIGHT;
+		this.removeSparkles(SparkleType.PORTAL_GLOW, index);
+		for (let i = 0; i < 13; i++) {
+			const x = portal.x + (onSideWall ? 0 : toSubpixels(i * 2));
+			const y = portal.y + (onSideWall ? toSubpixels(i * 2) : 0);
+			const sparkle = new Sparkle(this, SparkleType.PORTAL_GLOW, x, y, 0, 0, 200, index);
+			sparkle.startX = x;
+			sparkle.startY = y;
+			sparkle.portalIndex = index;
+			switch (portal.direction) {
+				case Direction.RIGHT:
+					sparkle.vx = -random(128, 384);
+					sparkle.startX -= toSubpixels(7);
+					break;
+				case Direction.LEFT:
+					sparkle.vx = random(128, 384);
+					break;
+				case Direction.DOWN:
+					sparkle.vy = -random(128, 384);
+					sparkle.startY -= toSubpixels(8);
+					break;
+				default:
+					sparkle.vy = random(128, 384);
+					break;
+			}
+			this.sparkles.push(sparkle);
+		}
+	}
+
+	/**
+	 * Create sparkles around a point, for example for a collected cake or for smoke.
+	 *
+	 * @param {number} x The x position in 1/256 pixels.
+	 * @param {number} y The y position in 1/256 pixels.
+	 * @param {number} type SparkleType.CAKE or SparkleType.SMOKE, which also selects the color.
+	 * @param {number} number The number of sparkles.
+	 * @param {number} size The start value of the fade, which also sets the size.
+	 * @returns {void}
+	 */
+	createCakeOrSmokeSparkles(x, y, type, number, size) {
+		const color = type === SparkleType.CAKE ? 2 : 3;
+		for (let i = 0; i < number; i++) {
+			this.sparkles.push(
+				new Sparkle(
+					this,
+					type,
+					x + random(toSubpixels(-8), toSubpixels(8)),
+					y + random(toSubpixels(-8), toSubpixels(8)),
+					random(-192, 192),
+					random(-192, -96),
+					size,
+					color,
+				),
+			);
 		}
 	}
 

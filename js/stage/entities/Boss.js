@@ -7,7 +7,6 @@ import { MAP_WIDTH, SparkleType, TILE_SIZE } from '../constants.js';
 import { Crate } from './Crate.js';
 import { Plasma } from './Plasma.js';
 import { Projectile } from './Projectile.js';
-import { createCakeOrSmokeSparkles } from './Sparkle.js';
 import { FIRST_OF_KIND, TileKind } from '../tiles.js';
 import { getCos, getDistance, getSin, random, toPixels, toSubpixels } from '../utils.js';
 
@@ -265,8 +264,7 @@ export class Boss {
 		playLoop(sfx_bossRumble);
 		this.#shakeScreen();
 		if (this.world.time % 10 === 0) {
-			createCakeOrSmokeSparkles(
-				this.world,
+			this.world.createCakeOrSmokeSparkles(
 				toSubpixels(this.x + 14),
 				toSubpixels(this.y + 18),
 				SparkleType.SMOKE,

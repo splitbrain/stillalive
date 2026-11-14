@@ -1,89 +1,10 @@
 /**
- * The Sparkle object and its helper functions.
+ * The Sparkle object.
  */
 
-import { Direction, GRAVITY, SparkleType } from '../constants.js';
+import { GRAVITY, SparkleType } from '../constants.js';
 import { Tile } from '../tiles.js';
-import { random, toPixels, toSubpixels } from '../utils.js';
-
-/**
- * Remove the sparkles of one type and color.
- *
- * @param {import('../World.js').World} world The World.
- * @param {number} color The color index.
- * @param {number} type The sparkle type, a value of SparkleType.
- * @returns {void}
- */
-export function removeSparkles(world, color, type) {
-	world.sparkles = world.sparkles.filter((sparkle) => sparkle.type !== type || sparkle.color !== color);
-}
-
-/**
- * Create the glow sparkles along a portal. The glow sparkles of the earlier portal with the same index go away.
- *
- * @param {import('../World.js').World} world The World.
- * @param {number} index The portal index, 0 for blue and 1 for red.
- * @returns {void}
- */
-export function createPortalGlow(world, index) {
-	const portal = world.portals.list[index];
-	const onSideWall = portal.direction === Direction.LEFT || portal.direction === Direction.RIGHT;
-	removeSparkles(world, index, SparkleType.PORTAL_GLOW);
-	for (let i = 0; i < 13; i++) {
-		const x = portal.x + (onSideWall ? 0 : toSubpixels(i * 2));
-		const y = portal.y + (onSideWall ? toSubpixels(i * 2) : 0);
-		const sparkle = new Sparkle(world, SparkleType.PORTAL_GLOW, x, y, 0, 0, 200, index);
-		sparkle.startX = x;
-		sparkle.startY = y;
-		sparkle.portalIndex = index;
-		switch (portal.direction) {
-			case Direction.RIGHT:
-				sparkle.vx = -random(128, 384);
-				sparkle.startX -= toSubpixels(7);
-				break;
-			case Direction.LEFT:
-				sparkle.vx = random(128, 384);
-				break;
-			case Direction.DOWN:
-				sparkle.vy = -random(128, 384);
-				sparkle.startY -= toSubpixels(8);
-				break;
-			default:
-				sparkle.vy = random(128, 384);
-				break;
-		}
-		world.sparkles.push(sparkle);
-	}
-}
-
-/**
- * Create sparkles around a point, for example for a collected cake or for smoke.
- *
- * @param {import('../World.js').World} world The World.
- * @param {number} x The x position in 1/256 pixels.
- * @param {number} y The y position in 1/256 pixels.
- * @param {number} type SparkleType.CAKE or SparkleType.SMOKE, which also selects the color.
- * @param {number} number The number of sparkles.
- * @param {number} size The start value of the fade, which also sets the size.
- * @returns {void}
- */
-export function createCakeOrSmokeSparkles(world, x, y, type, number, size) {
-	const color = type === SparkleType.CAKE ? 2 : 3;
-	for (let i = 0; i < number; i++) {
-		world.sparkles.push(
-			new Sparkle(
-				world,
-				type,
-				x + random(toSubpixels(-8), toSubpixels(8)),
-				y + random(toSubpixels(-8), toSubpixels(8)),
-				random(-192, 192),
-				random(-192, -96),
-				size,
-				color,
-			),
-		);
-	}
-}
+import { toPixels } from '../utils.js';
 
 /**
  * A particle for a visual effect.

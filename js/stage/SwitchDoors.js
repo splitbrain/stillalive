@@ -3,7 +3,6 @@
  */
 
 import { Direction, SparkleType, TILE_SIZE } from './constants.js';
-import { removeSparkles } from './entities/Sparkle.js';
 import { FIRST_OF_KIND, Tile, TileKind } from './tiles.js';
 import { toPixels } from './utils.js';
 
@@ -68,7 +67,7 @@ export class SwitchDoors {
 			for (let j = 0; j < 2 * TILE_SIZE; j++) {
 				if (world.map.atPixel(onSideWall ? x : x + j, onSideWall ? y + j : y) === door) {
 					portal.used = false;
-					removeSparkles(world, i, SparkleType.PORTAL_GLOW);
+					world.removeSparkles(SparkleType.PORTAL_GLOW, i);
 					break;
 				}
 			}

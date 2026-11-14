@@ -1,7 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { FADE_START, KEY_RIGHT } from '../../js/stage/constants.js';
-import { floorTiles, runTicks, seedRandom, startWorld } from './helpers.js';
+import { Tile } from '../../js/stage/tiles.js';
+import { at, floorTiles, runTicks, runUntilRunning, seedRandom, startWorld } from './helpers.js';
 
 /** @type {number} The ticks of the opening and of the closing transition, which take 4 points of the fade per tick. */
 const TRANSITION_TICKS = FADE_START / 4;
@@ -24,4 +25,35 @@ test('a World from a map runs ticks without the stage element', (context) => {
 	// the player walks to the right on the floor
 	assert.ok(running.every((entry, i) => i === 0 || entry.x > running[i - 1].x));
 	assert.ok(running.every((entry) => entry.y === last.y));
+});
+
+test('the opening transition ends after FADE_START / 4 ticks', (context) => {
+	context.after(seedRandom(1));
+	const world = startWorld(floorTiles());
+	assert.ok(world.isOpening());
+	runTicks(world, TRANSITION_TICKS - 1);
+	assert.ok(world.isOpening());
+	runTicks(world, 1);
+	assert.ok(world.isRunning());
+	assert.equal(world.time, 0);
+});
+
+test('the level closes when the player reaches the exit and ends after the closing transition', (context) => {
+	context.after(seedRandom(1));
+	const world = startWorld(floorTiles().with(at(8, 22), Tile.EXIT));
+	runUntilRunning(world);
+	let ticks = 0;
+	while (world.isRunning() && ticks < 300) {
+		runTicks(world, 1, KEY_RIGHT);
+		ticks++;
+	}
+	assert.ok(world.isClosing());
+	assert.ok(world.closingStarted());
+	assert.ok(world.reachedExit());
+	runTicks(world, TRANSITION_TICKS - 1);
+	assert.ok(world.isClosing());
+	assert.equal(world.outcome, null);
+	runTicks(world, 1);
+	assert.ok(world.isEnded());
+	assert.equal(world.outcome, 'finished');
 });

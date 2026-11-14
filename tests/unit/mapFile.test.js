@@ -130,3 +130,8 @@ test('parseMap() rejects a damaged map', () => {
 		assert.throws(() => parseMap(data), INVALID, name);
 	}
 });
+
+test('parseMap() accepts each background index and rejects the next index', () => {
+	for (let bg = 0; bg < 11; bg++) assert.equal(parseMap({ ...validMap(), bg }).bg, bg);
+	assert.throws(() => parseMap({ ...validMap(), bg: 11 }), INVALID);
+});

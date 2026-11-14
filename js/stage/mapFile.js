@@ -2,8 +2,7 @@
  * The map file format and its check. The campaign levels and the editor maps use the same format.
  */
 
-import { MAP_SIZE, NUM_TILES } from './constants.js';
-import { bg } from './images.js';
+import { BACKGROUND_COUNT, MAP_SIZE, NUM_TILES } from './constants.js';
 import { Tile, isObjectTile } from './tiles.js';
 
 /** @type {number} The version of the map file format. */
@@ -215,7 +214,7 @@ export function parseMap(data) {
 		!data.tiles.every((tile) => isValidTile(tile, boss > 0)) ||
 		!Number.isInteger(data.bg) ||
 		data.bg < 0 ||
-		data.bg >= bg.length ||
+		data.bg >= BACKGROUND_COUNT ||
 		!(data.title === undefined || typeof data.title === 'string') ||
 		!(data.text === undefined || typeof data.text === 'string') ||
 		!isValidAbilities(data.abilities) ||

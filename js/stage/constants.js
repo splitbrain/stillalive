@@ -76,6 +76,8 @@ export const MAP_SIZE = MAP_WIDTH * MAP_HEIGHT;
 export const PLAYFIELD_WIDTH = MAP_WIDTH * TILE_SIZE;
 /** @type {number} The height of the playfield in pixels. */
 export const PLAYFIELD_HEIGHT = MAP_HEIGHT * TILE_SIZE;
+/** @type {number} The number of level backgrounds. A map selects one by its index. */
+export const BACKGROUND_COUNT = 11;
 
 /** @type {Object<string, number>} The types of the sparkles, which select their movement, their fade and their size. */
 export const SparkleType = {

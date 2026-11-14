@@ -2,8 +2,7 @@
  * The level editor, the session of the mode "edit". It also provides the level for the test run of the editor map.
  */
 
-import { MouseButton, TILE_SIZE_BITS } from './constants.js';
-import { bg } from './images.js';
+import { BACKGROUND_COUNT, MouseButton, TILE_SIZE_BITS } from './constants.js';
 import { allowTile, build, eraseObjectAbove, eraseSprites, fill } from './mapEdit.js';
 import { MAP_FORMAT, parseMap } from './mapFile.js';
 import { emptyTiles, TileMap } from './TileMap.js';
@@ -195,7 +194,7 @@ export class Editor {
 	 * @returns {void}
 	 */
 	setBackground(index) {
-		this.#background = ((index % bg.length) + bg.length) % bg.length;
+		this.#background = ((index % BACKGROUND_COUNT) + BACKGROUND_COUNT) % BACKGROUND_COUNT;
 		this.#mapChanged();
 	}
 

@@ -3,7 +3,7 @@
  */
 
 import { loadImage } from './assets.js';
-import { NUM_TILES } from './constants.js';
+import { BACKGROUND_COUNT, NUM_TILES } from './constants.js';
 import { random } from './utils.js';
 
 /** @type {number[]} The random order of the rows and of the columns for the line transitions. */
@@ -71,7 +71,7 @@ export function loadGfx() {
 		if (!lineOrder.includes(line)) lineOrder.push(line);
 	}
 
-	bg = Array.from({ length: 11 }, (_, i) => loadImage(`gfx/backgrounds/level${i + 1}.svg`));
+	bg = Array.from({ length: BACKGROUND_COUNT }, (_, i) => loadImage(`gfx/backgrounds/level${i + 1}.svg`));
 	tube = sprite('tube');
 	tube2 = sprite('tube2');
 	gravPipe = sprite('gravpipe');

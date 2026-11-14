@@ -3,7 +3,7 @@
  */
 
 import { Body } from './Body.js';
-import { playSound, setSoundVolume, sfx_bounce, sfx_plasmaField } from '../audio.js';
+import { playSound, setSoundVolume, sfx_bounce } from '../audio.js';
 import { Direction, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, TILE_SIZE, TILE_SIZE_BITS } from '../constants.js';
 import { Tile, TileKind, isTileKind } from '../tiles.js';
 import { getDistance, random, toSubpixels } from '../utils.js';
@@ -186,21 +186,6 @@ export class Plasma extends Body {
 	}
 
 	/**
-	 * Open the plasma doors.
-	 *
-	 * @returns {void}
-	 */
-	openPlasmaDoors() {
-		playSound(sfx_plasmaField);
-		for (const door of this.world.animatedTiles) {
-			if (isTileKind(door.current, TileKind.PLASMA_DOOR)) {
-				door.used = false;
-				this.world.map.setTile(door.place, Tile.EMPTY);
-			}
-		}
-	}
-
-	/**
 	 * Put the ball back to its start position with its start speed.
 	 *
 	 * @returns {void}
@@ -225,7 +210,7 @@ export class Plasma extends Body {
 		if (this.hasSlot()) this.reset();
 		else {
 			this.used = false;
-			this.openPlasmaDoors();
+			this.world.setDoors(TileKind.PLASMA_DOOR, true);
 		}
 	}
 

@@ -2,7 +2,7 @@
  * The World object.
  */
 
-import { playSound, sfx_exit, sfx_field, sfx_grabCake, sfx_transition } from './audio.js';
+import { playSound, sfx_exit, sfx_field, sfx_grabCake, sfx_plasmaField, sfx_transition } from './audio.js';
 import {
 	Direction,
 	Ground,
@@ -29,14 +29,15 @@ import { Plasma } from './entities/Plasma.js';
 import { Platform } from './entities/Platform.js';
 import { Player } from './entities/Player.js';
 import { PortalPair } from './entities/PortalPair.js';
-import { createCakeOrSmokeSparkles, removeSparkles } from './entities/Sparkle.js';
+import { createCakeOrSmokeSparkles } from './entities/Sparkle.js';
 import { Turret } from './entities/Turret.js';
 import { GRAVPIPE_DIRECTIONS, plasmaLaunch } from './level.js';
 import { LevelEvents } from './LevelEvents.js';
 import { LevelPhase } from './LevelPhase.js';
+import { SwitchDoors } from './SwitchDoors.js';
 import { TileMap } from './TileMap.js';
 import { FIRST_OF_KIND, LAST_OF_KIND, Tile, TileKind, inForceFieldRange, isDeadlyTile, isTileKind } from './tiles.js';
-import { inScreen, random, toPixels, toSubpixels } from './utils.js';
+import { inScreen, random, toSubpixels } from './utils.js';
 
 /** @type {{kind: string, type: number, speed: number}[]} The tile kinds that become animated tiles in a level. */
 const ANIMATED_KINDS = [
@@ -49,6 +50,9 @@ const ANIMATED_KINDS = [
 	{ kind: TileKind.BELT_RIGHT, type: ORDERED, speed: 10 },
 	{ kind: TileKind.BELT_LEFT, type: ORDERED, speed: 10 },
 ];
+
+/** @type {Object<string, typeof sfx_field>} The sound of the opening and the closing doors, by door kind. */
+const DOOR_SOUNDS = { [TileKind.SWITCH_DOOR]: sfx_field, [TileKind.PLASMA_DOOR]: sfx_plasmaField };
 
 /**
  * A solid thing at a point: a tile id, a crate or a platform. The tile id Tile.EMPTY means that nothing solid is there.
@@ -133,8 +137,8 @@ export class World {
 	shakeY = 0;
 	/** @type {LevelPhase} The phase of the level with the progress and the effect of its transitions. */
 	phase = new LevelPhase();
-	/** @type {boolean} True while the player or a crate holds a switch and the switch doors are open. */
-	switchPressed = false;
+	/** @type {SwitchDoors} The switches and the switch doors. */
+	switches = new SwitchDoors(this);
 	/**
 	 * @type {import('./entities/Portal.js').Portal|null} The portal that an object is in during this tick, or null.
 	 *     The drawing then draws the tiles around the portals over the objects.
@@ -296,7 +300,7 @@ export class World {
 			if (!this.objectInPortal) this.objectInPortal = this.portals.isInPortal(this.player);
 		}
 
-		this.#manageDoors();
+		this.switches.update();
 		if (this.#atExit()) {
 			this.#updateLevelEnd();
 		} else if (phase.isOpening()) {
@@ -495,6 +499,22 @@ export class World {
 	 */
 	openExit() {
 		this.map.replaceAll(Tile.EXIT_CLOSED, Tile.EXIT);
+	}
+
+	/**
+	 * Open or close the door tiles of a kind and play the sound of the doors.
+	 *
+	 * @param {string} kind The kind of the doors: TileKind.SWITCH_DOOR or TileKind.PLASMA_DOOR.
+	 * @param {boolean} open True to open the doors, false to close them.
+	 * @returns {void}
+	 */
+	setDoors(kind, open) {
+		playSound(DOOR_SOUNDS[kind]);
+		for (const door of this.animatedTiles) {
+			if (!isTileKind(door.current, kind)) continue;
+			door.used = !open;
+			this.map.setTile(door.place, open ? Tile.EMPTY : door.min);
+		}
 	}
 
 	/**
@@ -845,144 +865,6 @@ export class World {
 			this.platformAt(x + obj.width - 1, y) ||
 			((this.crateAt(x, y) || this.crateAt(x + obj.width - 1, y))?.platform ?? null)
 		);
-	}
-
-	/**
-	 * Open or close the switch doors when the player or a crate steps on or off a switch.
-	 *
-	 * @returns {void}
-	 */
-	#manageDoors() {
-		const held = this.#playerOnSwitch(this.player.pixelX, this.player.pixelY) || this.#crateOnSwitch();
-		if (held === this.switchPressed) return;
-		this.switchPressed = held;
-		if (held) this.#openSwitchDoors();
-		else this.#closeSwitchDoors();
-	}
-
-	/**
-	 * Remove everything that blocks a closed switch door. Portals on the door go away. Crates and plasma balls in the
-	 * door go back to their start positions.
-	 *
-	 * @returns {void}
-	 */
-	#clearDoorBlockers() {
-		const door = FIRST_OF_KIND[TileKind.SWITCH_DOOR];
-		for (const [i, portal] of this.portals.list.entries()) {
-			if (!portal.used) continue;
-			let x = toPixels(portal.x);
-			let y = toPixels(portal.y);
-			switch (portal.direction) {
-				case Direction.UP:
-					y += 6;
-					break;
-				case Direction.LEFT:
-					x += 6;
-					break;
-				case Direction.RIGHT:
-					x -= 2;
-					break;
-				case Direction.DOWN:
-					y -= 2;
-					break;
-			}
-			const onSideWall = portal.direction === Direction.LEFT || portal.direction === Direction.RIGHT;
-			for (let j = 0; j < 2 * TILE_SIZE; j++) {
-				if (this.map.atPixel(onSideWall ? x : x + j, onSideWall ? y + j : y) === door) {
-					portal.used = false;
-					removeSparkles(this, i, SparkleType.PORTAL_GLOW);
-					break;
-				}
-			}
-		}
-
-		for (const crate of this.crates) {
-			if (this.#touchesSwitchDoor(crate)) {
-				crate.x = crate.startX;
-				crate.y = crate.startY;
-				crate.vx = 0;
-				crate.vy = 0;
-			}
-		}
-
-		for (const ball of this.plasmaBall) {
-			if (this.#touchesSwitchDoor(ball)) ball.reset();
-		}
-	}
-
-	/**
-	 * Check if a 16 by 16 object touches a switch door with one of its corners.
-	 *
-	 * @param {import('./entities/Body.js').Body} obj The object.
-	 * @returns {boolean} True if a corner of the object is on a switch door tile.
-	 */
-	#touchesSwitchDoor(obj) {
-		const door = FIRST_OF_KIND[TileKind.SWITCH_DOOR];
-		const x = obj.pixelX;
-		const y = obj.pixelY;
-		const corners = [
-			[x, y],
-			[x + TILE_SIZE - 1, y],
-			[x, y + TILE_SIZE - 1],
-			[x + TILE_SIZE - 1, y + TILE_SIZE - 1],
-		];
-		return corners.some(([cx, cy]) => this.map.atPixel(cx, cy) === door);
-	}
-
-	/**
-	 * Close the switch doors.
-	 *
-	 * @returns {void}
-	 */
-	#closeSwitchDoors() {
-		playSound(sfx_field);
-		for (const door of this.animatedTiles) {
-			if (isTileKind(door.current, TileKind.SWITCH_DOOR)) {
-				door.used = true;
-				this.map.setTile(door.place, door.min);
-			}
-		}
-		this.#clearDoorBlockers();
-	}
-
-	/**
-	 * Open the switch doors.
-	 *
-	 * @returns {void}
-	 */
-	#openSwitchDoors() {
-		playSound(sfx_field);
-		for (const door of this.animatedTiles) {
-			if (isTileKind(door.current, TileKind.SWITCH_DOOR)) {
-				door.used = false;
-				this.map.setTile(door.place, Tile.EMPTY);
-			}
-		}
-	}
-
-	/**
-	 * Check if the player stands on a switch. The test points lie a few pixels inside the tile below the feet.
-	 *
-	 * @param {number} x The x coordinate of the player in pixels.
-	 * @param {number} y The y coordinate of the player in pixels.
-	 * @returns {boolean} True if a switch tile is below the player.
-	 */
-	#playerOnSwitch(x, y) {
-		const below = y + this.player.height + 5;
-		return this.map.atPixel(x, below) === Tile.SWITCH || this.map.atPixel(x + 15, below) === Tile.SWITCH;
-	}
-
-	/**
-	 * Check if a crate stands on a switch. The test points lie a few pixels inside the tile below the crate.
-	 *
-	 * @returns {boolean} True if a switch tile is below a crate.
-	 */
-	#crateOnSwitch() {
-		return this.crates.some((crate) => {
-			const x = crate.pixelX;
-			const y = crate.pixelY + crate.height + 3;
-			return this.map.atPixel(x, y) === Tile.SWITCH || this.map.atPixel(x + TILE_SIZE - 1, y) === Tile.SWITCH;
-		});
 	}
 
 	/**

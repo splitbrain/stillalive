@@ -39,12 +39,12 @@ test('the switch door opens while the player stands on the switch', (context) =>
 
 	world.player.x = 10 << 12;
 	runTicks(world, 1);
-	assert.ok(world.switchPressed);
+	assert.ok(world.switches.pressed);
 	assert.ok(switchDoorOpen(world));
 
 	world.player.x = 14 << 12;
 	runTicks(world, 1);
-	assert.equal(world.switchPressed, false);
+	assert.equal(world.switches.pressed, false);
 	assert.equal(switchDoorOpen(world), false);
 });
 
@@ -52,13 +52,13 @@ test('the switch door opens while a crate stands on the switch', (context) => {
 	context.after(seedRandom(1));
 	const world = startWorld(switchTiles().with(at(10, 22), Tile.CRATE));
 	runTicks(world, 1);
-	assert.ok(world.switchPressed);
+	assert.ok(world.switches.pressed);
 	assert.ok(switchDoorOpen(world));
 
 	runUntilRunning(world);
 	world.crates[0].x = 14 << 12;
 	runTicks(world, 1);
-	assert.equal(world.switchPressed, false);
+	assert.equal(world.switches.pressed, false);
 	assert.equal(switchDoorOpen(world), false);
 });
 

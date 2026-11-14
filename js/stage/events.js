@@ -91,7 +91,7 @@ function endWait() {
  * @returns {void}
  */
 export function updateEvents() {
-	if (waiting !== null && game.player.fadeNextLevel == 0 && input.mouseNewPress) {
+	if (waiting !== null && game.isHalted() && input.mouseNewPress) {
 		endWait();
 		unclick();
 	}
@@ -144,7 +144,7 @@ function fire(event) {
 	if (!event.wait) return;
 	waiting = event;
 	// stop the level time from the next tick on
-	if (game.player.fadeNextLevel == -1) game.player.fadeNextLevel = 0;
+	if (game.isRunning()) game.fadeNextLevel = 0;
 }
 
 /**

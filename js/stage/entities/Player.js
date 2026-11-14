@@ -14,7 +14,7 @@ import {
 	sfx_land,
 	sfx_step,
 } from '../audio.js';
-import { Direction, FADE_START, GRAVITY, MouseButton, PLAYFIELD_HEIGHT, SparkleType, TILE_SIZE } from '../constants.js';
+import { Direction, GRAVITY, MouseButton, PLAYFIELD_HEIGHT, SparkleType, TILE_SIZE } from '../constants.js';
 import { Body } from './Body.js';
 import { collectCakes } from './Cake.js';
 import { gravPipeFieldsAt } from './GravPipeField.js';
@@ -71,8 +71,6 @@ export class Player extends Body {
 		 * entry into the red portal. The sign selects the color of the sparkles.
 		 */
 		this.teleportTime = 0;
-		/** @type {number} 1 while the player or a crate holds a switch and the switch doors are open. */
-		this.switchPressed = 0;
 		/** @type {number} The countdown to the next frame of the walk animation. */
 		this.animationTime = 10;
 		/** @type {number} The frame of the walk animation: 0 is the standing frame, 1 to 4 are the walk cycle. */
@@ -89,11 +87,6 @@ export class Player extends Body {
 		this.recoveryTime = 0;
 		/** @type {string} The entity type, used by the shared object functions. */
 		this.type = 'player';
-		/**
-		 * @type {number} -1 while the level runs. At the level start and the level end it counts down from FADE_START
-		 * during the transition. 0 while the level time stands still and in the exit freeze after the level end.
-		 */
-		this.fadeNextLevel = FADE_START;
 		/** @type {boolean} True when the player pressed the clear key and the portals must go away in the next tick. */
 		this.askClear = false;
 	}

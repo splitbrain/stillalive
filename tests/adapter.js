@@ -6,7 +6,7 @@
  */
 
 import { readFileSync } from 'node:fs';
-import { CAMPAIGN_FOLDERS, CampaignId, FADE_START } from '../js/stage/constants.js';
+import { CAMPAIGN_FOLDERS, CampaignId } from '../js/stage/constants.js';
 
 /**
  * The campaigns with their index in the campaigns array of the game and their number of levels from the campaign
@@ -175,7 +175,7 @@ export async function playMap(page, data) {
 		const { parseMap } = await import('/js/stage/mapFile.js');
 		const t = window.__test;
 		t.stage.play({ ...parseMap(data), campaign: 'test', number: 1, fromBelow: false });
-		while (t.game.player.fadeNextLevel != -1) t.tick();
+		while (!t.game.isRunning()) t.tick();
 	}, data);
 }
 
@@ -386,7 +386,7 @@ export async function runLevel(
 	{ campaign, level, ticks, seed, inputs = null, replay = null, skipBossIntro = false },
 ) {
 	return page.evaluate(
-		async ({ campaign, level, ticks, seed, inputs, replay: replayData, skipBossIntro, interval, fadeStart }) => {
+		async ({ campaign, level, ticks, seed, inputs, replay: replayData, skipBossIntro, interval }) => {
 			const { campaigns } = await import('/js/chrome/campaigns.js');
 			const t = window.__test;
 			const { game, input, stage } = t;
@@ -429,12 +429,12 @@ export async function runLevel(
 			 * player object identifies the level run.
 			 *
 			 * @returns {{run: object, running: boolean, closing: boolean}} The player object of the level run, and the
-			 *     flags for the running level and for the start of the closing transition.
+			 *     flags for the running level and for the closing transition.
 			 */
 			const levelPhase = () => ({
 				run: game.player,
-				running: game.player.fadeNextLevel === -1,
-				closing: game.player.fadeNextLevel === fadeStart,
+				running: game.isRunning(),
+				closing: game.isClosing(),
 			});
 			/**
 			 * Check if a tick ended the level.
@@ -462,7 +462,7 @@ export async function runLevel(
 			game.replayMode = false;
 			return lines.join('\n') + '\n';
 		},
-		{ campaign, level, ticks, seed, inputs, replay, skipBossIntro, interval: SNAPSHOT_INTERVAL, fadeStart: FADE_START },
+		{ campaign, level, ticks, seed, inputs, replay, skipBossIntro, interval: SNAPSHOT_INTERVAL },
 	);
 }
 

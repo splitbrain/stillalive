@@ -2,7 +2,7 @@
  * The shared state of the stage.
  */
 
-import { Transition } from './constants.js';
+import { FADE_START, Transition } from './constants.js';
 
 /** @type {object} The state of the current level. */
 export const game = {
@@ -83,6 +83,72 @@ export const game = {
 	message: null,
 	/** @type {import('./level.js').Level} The level that runs. */
 	level: undefined,
+	/**
+	 * @type {number} The phase of the level. -1 while the level runs. At the level start and the level end it counts
+	 *     down from FADE_START during the transition. 0 while the level time stands still and in the exit freeze after
+	 *     the level end.
+	 */
+	fadeNextLevel: undefined,
+	/** @type {number} 1 while the player or a crate holds a switch and the switch doors are open. */
+	switchPressed: undefined,
+
+	/**
+	 * Set the phase of a new level, a preview or the editor map: the start of the opening transition.
+	 *
+	 * @returns {void}
+	 */
+	resetPhase() {
+		this.fadeNextLevel = FADE_START;
+	},
+
+	/**
+	 * Check if the level runs. The level time counts and the objects move.
+	 *
+	 * @returns {boolean} True while the level runs.
+	 */
+	isRunning() {
+		return this.fadeNextLevel == -1;
+	},
+
+	/**
+	 * Check if the level time stands still while an event waits for a click or the boss comes in. The exit freeze
+	 * after the level end has the same counter value, so a caller that must tell the two apart checks atExit().
+	 *
+	 * @returns {boolean} True while the level time stands still.
+	 */
+	isHalted() {
+		return this.fadeNextLevel == 0;
+	},
+
+	/**
+	 * Check if the opening transition of the level runs. The closing transition has the same counter values, so a
+	 * caller that must tell the two apart checks atExit().
+	 *
+	 * @returns {boolean} True during the opening transition.
+	 */
+	isOpening() {
+		return this.fadeNextLevel > 0;
+	},
+
+	/**
+	 * Check if the closing transition of the level runs. The opening transition has the same counter values, so a
+	 * caller that must tell the two apart checks atExit().
+	 *
+	 * @returns {boolean} True during the closing transition.
+	 */
+	isClosing() {
+		return this.fadeNextLevel > 0;
+	},
+
+	/**
+	 * Check if the level is in the exit freeze after the closing transition. A halted level has the same counter
+	 * value, so a caller that must tell the two apart checks atExit().
+	 *
+	 * @returns {boolean} True in the exit freeze.
+	 */
+	isEnded() {
+		return this.fadeNextLevel == 0;
+	},
 };
 
 /** @type {object} The state of the stage. */

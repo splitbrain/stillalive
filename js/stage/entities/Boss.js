@@ -138,11 +138,11 @@ export class Boss {
 			}
 
 			if (this.hits < 3 && this.number == 1) {
-				if (game.player.fadeNextLevel == -1 && game.time % (90 - 30 * this.hits) == 0) {
+				if (game.isRunning() && game.time % (90 - 30 * this.hits) == 0) {
 					this.#throwCrate(6, 18);
 				}
 			} else if (this.hits < 3 && this.number == 2) {
-				if (game.player.fadeNextLevel == -1 && game.time % (90 - 15 * this.hits) == 0) {
+				if (game.isRunning() && game.time % (90 - 15 * this.hits) == 0) {
 					this.#shootWheel(435, 50, 1200, 1200 - game.player.vx);
 
 					if (this.hits == 2) {
@@ -151,29 +151,25 @@ export class Boss {
 				}
 			} else if (this.hits < 3 && this.number == 3) {
 				const limit = this.hits + 1;
-				if (
-					game.player.fadeNextLevel == -1 &&
-					game.time % (90 - 30 * this.hits) == 0 &&
-					game.plasmaBall.length < limit
-				) {
+				if (game.isRunning() && game.time % (90 - 30 * this.hits) == 0 && game.plasmaBall.length < limit) {
 					this.#shootPlasma(800);
 				}
 
-				if (game.player.fadeNextLevel == -1 && game.time % (90 - 30 * this.hits) == 0 && game.crates.length == 0) {
+				if (game.isRunning() && game.time % (90 - 30 * this.hits) == 0 && game.crates.length == 0) {
 					game.crates.push(new Crate(((MAP_WIDTH - 1) * TILE_SIZE) << 8, (18 * TILE_SIZE) << 8));
 					game.crates[game.crates.length - 1].vx = -(12 << 8);
 					game.crates[game.crates.length - 1].vy = -(2 << 8);
 				}
 			} else if (this.hits < 3 && this.number == 4) {
-				if (game.player.fadeNextLevel == -1 && game.time % (90 - 20 * this.hits) == 0) {
+				if (game.isRunning() && game.time % (90 - 20 * this.hits) == 0) {
 					this.#throwCrate(5, 20);
 				}
 
-				if (this.hits > 0 && game.player.fadeNextLevel == -1 && game.time % (180 - 20 * this.hits) == 0) {
+				if (this.hits > 0 && game.isRunning() && game.time % (180 - 20 * this.hits) == 0) {
 					this.#shootWheel(27 * TILE_SIZE, 2 * TILE_SIZE, 600);
 				}
 
-				if (this.hits > 1 && game.player.fadeNextLevel == -1 && game.plasmaBall.length == 0) {
+				if (this.hits > 1 && game.isRunning() && game.plasmaBall.length == 0) {
 					this.#shootPlasma(400);
 				}
 			}

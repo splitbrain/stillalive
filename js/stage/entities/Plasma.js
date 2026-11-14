@@ -286,7 +286,7 @@ export function updatePlasma() {
 		const ball = game.plasmaBall[pi];
 		if (!ball.used) continue;
 		ball.animate();
-		if (game.player.fadeNextLevel == -1) {
+		if (game.isRunning()) {
 			ball.move();
 			if (!game.objectInPortal) game.objectInPortal = isInPortal(ball);
 			if (ball.needKill) {

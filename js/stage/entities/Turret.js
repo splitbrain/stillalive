@@ -215,7 +215,7 @@ export class Turret extends Body {
  * @returns {void}
  */
 export function updateTurrets() {
-	if (game.player.fadeNextLevel != -1) return;
+	if (!game.isRunning()) return;
 	for (const t of game.turrets) {
 		t.move();
 		if (!game.objectInPortal) game.objectInPortal = isInPortal(t);

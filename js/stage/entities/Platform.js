@@ -115,6 +115,6 @@ export function platformAt(x, y) {
  * @returns {void}
  */
 export function updatePlatforms() {
-	if (game.player.fadeNextLevel != -1) return;
+	if (!game.isRunning()) return;
 	for (const p of game.platforms) p.move();
 }

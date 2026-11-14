@@ -243,7 +243,7 @@ export function drawLevel() {
 		ctx.fillRect(0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 	}
 
-	if (game.player.fadeNextLevel >= 0) drawTransition();
+	if (!game.isRunning()) drawTransition();
 
 	drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
 }
@@ -254,7 +254,7 @@ export function drawLevel() {
  * @returns {void}
  */
 function drawLabels() {
-	if (atExit() || game.player.fadeNextLevel > 0) return;
+	if (atExit() || game.isOpening()) return;
 	ctx.save();
 	ctx.font = LABEL_FONT;
 	ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
@@ -427,7 +427,7 @@ export function drawTiles(map) {
 export function drawCakes() {
 	for (const c of game.cakes) {
 		if (!c.used) continue;
-		const float = game.player.fadeNextLevel == -1 ? c.vy : 0;
+		const float = game.isRunning() ? c.vy : 0;
 		drawImage(cake, c.x >> 8, (c.y + float) >> 8, TILE_SIZE, 12);
 	}
 }

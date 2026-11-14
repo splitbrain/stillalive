@@ -265,7 +265,7 @@ export function updateCrates() {
 			c.x += c.vx >> 1;
 			c.y += c.vy >> 1;
 		}
-		if (game.player.fadeNextLevel == -1) {
+		if (game.isRunning()) {
 			c.move();
 			if (c.needKill) {
 				game.crates.splice(ci, 1);

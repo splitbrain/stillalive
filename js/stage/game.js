@@ -41,12 +41,12 @@ export function tick() {
  * @returns {void}
  */
 function updateLevel() {
-	if (!atExit() && game.player.fadeNextLevel == -1) {
+	if (!atExit() && game.isRunning()) {
 		if (game.time == 0) unclick();
 		game.time++;
 	}
 	game.objectInPortal = null;
-	if (!game.player.dead && game.player.fadeNextLevel == -1) {
+	if (!game.player.dead && game.isRunning()) {
 		game.player.move();
 		if (!game.objectInPortal) game.objectInPortal = isInPortal(game.player);
 	}
@@ -55,16 +55,16 @@ function updateLevel() {
 	if (atExit()) {
 		updateLevelEnd();
 	} else {
-		if (game.player.fadeNextLevel > 0) {
-			game.player.fadeNextLevel -= 4;
+		if (game.isOpening()) {
+			game.fadeNextLevel -= 4;
 		}
-		if (game.player.fadeNextLevel <= 0) {
-			game.player.fadeNextLevel = -1;
+		if (game.fadeNextLevel <= 0) {
+			game.fadeNextLevel = -1;
 		}
 	}
 
-	if ((isWaiting() || game.boss?.entering) && game.player.fadeNextLevel == -1) {
-		game.player.fadeNextLevel = 0;
+	if ((isWaiting() || game.boss?.entering) && game.isRunning()) {
+		game.fadeNextLevel = 0;
 	}
 	updateObjects();
 	game.boss?.update();
@@ -84,10 +84,10 @@ function updateLevelEnd() {
 	game.shakeX = 0;
 	game.shakeY = 0;
 
-	if (game.player.fadeNextLevel > 0) {
-		game.player.fadeNextLevel -= 4;
-		if (game.player.fadeNextLevel <= 0) {
-			game.player.fadeNextLevel = 0;
+	if (game.isClosing()) {
+		game.fadeNextLevel -= 4;
+		if (game.fadeNextLevel <= 0) {
+			game.fadeNextLevel = 0;
 			if (ui.mode == 'test') {
 				stopPlayingLevel();
 				return;
@@ -96,11 +96,11 @@ function updateLevelEnd() {
 			stageEvents.push({ type: 'finished', detail: { time: game.time, replay } });
 		}
 	}
-	if (game.player.fadeNextLevel == -1 || isWaiting()) {
+	if (game.isRunning() || isWaiting()) {
 		triggerEvents('exit');
 		updateEvents();
 		if (isWaiting()) return;
-		game.player.fadeNextLevel = FADE_START;
+		game.fadeNextLevel = FADE_START;
 		ui.transition = random(Transition.TOP_LEFT, Transition.SQUARE + 1);
 		playSound(sfx_transition);
 		game.message = null;
@@ -126,7 +126,7 @@ function updateObjects() {
 	updateSparkles();
 	updateCrates();
 
-	if (game.boss && game.player.fadeNextLevel == -1) {
+	if (game.boss && game.isRunning()) {
 		if (game.boss.shootsWheels()) updateProjectiles();
 		game.boss.updateRumble();
 	}

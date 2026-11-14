@@ -132,6 +132,7 @@ export class GameStage extends HTMLElement {
 		setupInput(canvas, this);
 
 		game.player = new Player(); // the input reads the player before the first level starts
+		game.resetPhase();
 		game.time = 0;
 
 		startLoop(() => this.#step(), render);
@@ -419,7 +420,7 @@ export class GameStage extends HTMLElement {
 		this.steps.set((game.steps ?? 0) >> 8);
 		this.portals.set(game.portalShots ?? 0);
 		const time = game.time ?? 0;
-		this.time.set(player.fadeNextLevel == -1 ? time - (time % TIME_UPDATE_INTERVAL) : time);
+		this.time.set(game.isRunning() ? time - (time % TIME_UPDATE_INTERVAL) : time);
 		this.paused.set(ui.paused);
 		this.message.set(game.message);
 		this.speed.set(this.#speed);

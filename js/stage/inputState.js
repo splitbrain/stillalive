@@ -87,18 +87,18 @@ export function restoreInput(state) {
  */
 export function manageKeys() {
 	// Save the input state when the level time continues after a stop. A replay restores the state at this level time.
-	const inGame = game.player.fadeNextLevel == -1 && ui.mode == 'play' && !ui.paused;
+	const inGame = game.isRunning() && ui.mode == 'play' && !ui.paused;
 	if (inGame && !game.replayMode && !input.lastTickInGame) game.replay.states[game.time] = captureInput();
 	else if (inGame && game.replayMode && game.replay.states[game.time]) restoreInput(game.replay.states[game.time]);
 	input.lastTickInGame = inGame;
 
-	if (game.player.fadeNextLevel == -1 && ui.mode == 'play' && !game.replayMode) {
+	if (game.isRunning() && ui.mode == 'play' && !game.replayMode) {
 		input.mouseX = Math.round(input.mouseX);
 		input.mouseY = Math.round(input.mouseY);
 		game.replay.inputs[game.time] = input.keys;
 		game.replay.mouseX[game.time] = input.mouseX;
 		game.replay.mouseY[game.time] = input.mouseY;
-	} else if (game.player.fadeNextLevel == -1 && ui.mode == 'play' && game.replayMode && !ui.paused) {
+	} else if (game.isRunning() && ui.mode == 'play' && game.replayMode && !ui.paused) {
 		if (game.time < game.replay.inputs.length) {
 			input.keys = game.replay.inputs[game.time];
 			input.mouseX = game.replay.mouseX[game.time];

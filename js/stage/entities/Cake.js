@@ -80,7 +80,7 @@ export class Cake extends Body {
  * @returns {void}
  */
 export function updateCakes() {
-	if (game.player.fadeNextLevel != -1) return;
+	if (!game.isRunning()) return;
 	for (const c of game.cakes) {
 		if (c.used) c.move();
 	}

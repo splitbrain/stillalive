@@ -37,17 +37,17 @@ import { FIRST_OF_KIND, LAST_OF_KIND, Tile, TileKind, isTileKind } from './tiles
  * @returns {void}
  */
 export function manageDoors() {
-	if (!game.player.switchPressed) {
+	if (!game.switchPressed) {
 		if (playerOnSwitch(game.player.x >> 8, game.player.y >> 8)) {
-			game.player.switchPressed = 1;
+			game.switchPressed = 1;
 			openSwitchDoors();
 		} else if (crateOnSwitch()) {
-			game.player.switchPressed = 1;
+			game.switchPressed = 1;
 			openSwitchDoors();
 		}
 	} else {
 		if (!playerOnSwitch(game.player.x >> 8, game.player.y >> 8) && !crateOnSwitch()) {
-			game.player.switchPressed = 0;
+			game.switchPressed = 0;
 			closeSwitchDoors();
 		}
 	}
@@ -353,6 +353,8 @@ function resetLevelState() {
 	game.portalShots = 0;
 	game.shakeX = 0;
 	game.shakeY = 0;
+	game.switchPressed = 0;
+	game.resetPhase();
 	ui.paused = false;
 	input.keys = 0;
 	input.oldKeys = 0;
@@ -419,6 +421,7 @@ export function loadPreviewMap(level) {
 	game.projectiles = new Array();
 
 	game.player = new Player();
+	game.resetPhase();
 	parseObjects('preview');
 
 	if (level.fromBelow) jumpInFromBelow();
@@ -445,7 +448,8 @@ export function loadPreviewMap(level) {
 export function loadEditorObjects() {
 	game.player = new Player();
 	game.player.x = -(TILE_SIZE << 8);
-	game.player.fadeNextLevel = 0;
+	game.resetPhase();
+	game.fadeNextLevel = 0;
 	parseObjects('editor');
 }
 

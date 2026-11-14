@@ -597,13 +597,14 @@ export class World {
 	}
 
 	/**
-	 * Remove a crate.
+	 * Remove a crate. A crate that is not in the list changes nothing.
 	 *
 	 * @param {Crate} crate The crate.
 	 * @returns {void}
 	 */
 	removeCrate(crate) {
-		this.crates.splice(this.crates.indexOf(crate), 1);
+		const index = this.crates.indexOf(crate);
+		if (index >= 0) this.crates.splice(index, 1);
 	}
 
 	/**

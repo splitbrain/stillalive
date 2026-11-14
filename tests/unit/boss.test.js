@@ -61,3 +61,11 @@ test('the third hit kills the boss', (context) => {
 	assert.equal(world.boss.phase(), 'leaving');
 	assert.deepEqual(world.projectiles, []);
 });
+
+test('removeCrate() changes nothing for a crate that is not in the list', () => {
+	const world = startWorld(floorTiles());
+	const crate = new Crate(world, 100 << 8, 300 << 8);
+	world.addCrate(crate);
+	world.removeCrate(new Crate(world, 200 << 8, 300 << 8));
+	assert.deepEqual(world.crates, [crate]);
+});

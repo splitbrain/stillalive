@@ -20,12 +20,12 @@ let levelsToLoad = CAMPAIGN_FOLDERS.length - 1;
 const missingLevelFiles = [];
 /**
  * The loading progress of the campaign and level files from 0 to 1, and the URLs of the files that could not be
- * loaded, as {progress: number, missing: string[]}. Each change sets a new object.
+ * loaded. Each change sets a new object.
  *
- * @type {Value}
+ * @type {Value<{progress: number, missing: string[]}>}
  */
 export const campaignsLoading = new Value({ progress: 0, missing: [] });
-/** @type {Value} True when all campaign and level files are loaded or failed. */
+/** @type {Value<boolean>} True when all campaign and level files are loaded or failed. */
 export const campaignsReady = new Value(false);
 
 /**

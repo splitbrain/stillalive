@@ -8,6 +8,8 @@
 import { CAMPAIGN_FOLDERS, CampaignId } from '../stage/constants.js';
 import { Value } from '../value.js';
 
+/** @typedef {import('../stage/mapFile.js').MapFile} MapFile */
+
 /** @type {string} The localStorage key of the highest unlocked level of each campaign. */
 const PROGRESS_KEY = 'stillalive_progress';
 
@@ -111,7 +113,7 @@ function readProgress() {
  * The best times, an object with the best time in ticks for each level key, e.g. "normal-7". Each change sets a new
  * object.
  *
- * @type {Value}
+ * @type {Value<Object<string, number>>}
  */
 export const bestTimes = new Value(readBestTimes());
 
@@ -119,11 +121,11 @@ export const bestTimes = new Value(readBestTimes());
  * The highest unlocked level of each campaign, by campaign index. After the last level, it is the number of levels
  * plus one.
  *
- * @type {Value[]}
+ * @type {Value<number>[]}
  */
 export const maxLevel = readProgress().map((level) => new Value(level));
 
-/** @type {Map<number, Value>} The editor map of each slot that the page has read, by slot number. */
+/** @type {Map<number, Value<MapFile|null>>} The editor map of each slot that the page has read, by slot number. */
 const editorMaps = new Map();
 
 // a different browser tab changed the storage
@@ -208,8 +210,8 @@ export function loadBestReplay(campaign, level) {
  * Get the editor map of a slot.
  *
  * @param {number} slot The slot number, starting at 1.
- * @returns {Value} The value with the editor map in the map file format without the format, or with null if the slot
- *     is empty.
+ * @returns {Value<MapFile|null>} The value with the editor map in the map file format without the format, or with
+ *     null if the slot is empty.
  */
 export function editorMap(slot) {
 	if (!editorMaps.has(slot)) editorMaps.set(slot, new Value(readJsonItem(EDITOR_MAP_PREFIX + slot)));
@@ -220,7 +222,7 @@ export function editorMap(slot) {
  * Store an editor map, and delete the best time and the replay of the slot in the custom campaign.
  *
  * @param {number} slot The slot number, starting at 1.
- * @param {object} map The editor map in the map file format without the format.
+ * @param {MapFile} map The editor map in the map file format without the format.
  * @returns {boolean} True if the map is stored, false if the browser blocks the storage or the storage is full.
  */
 export function saveEditorMap(slot, map) {

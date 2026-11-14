@@ -212,8 +212,8 @@ export class GameStage extends HTMLElement {
 	/**
 	 * Open the editor on a map. A new map starts a new undo list.
 	 *
-	 * @param {{tiles: number[], bg: number, format?: number}} [level] The map in the map file format, or nothing to open
-	 *     the editor map from before.
+	 * @param {import('./mapFile.js').MapFile} [level] The map in the map file format, or nothing to open the editor map
+	 *     from before.
 	 * @returns {void}
 	 */
 	edit(level) {
@@ -317,7 +317,7 @@ export class GameStage extends HTMLElement {
 	/**
 	 * Get the editor map, also while the stage shows something else.
 	 *
-	 * @returns {{tiles: number[], bg: number}} The editor map in the map file format without the format property, with
+	 * @returns {import('./mapFile.js').MapFile} The editor map in the map file format without the format property, with
 	 *     a copy of the tiles.
 	 */
 	getMap() {

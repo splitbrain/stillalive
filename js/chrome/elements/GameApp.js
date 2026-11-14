@@ -92,7 +92,9 @@ export class GameApp extends ChromeElement {
 		});
 		window.addEventListener('keydown', (event) => this.#onStartKey(event), { capture: true });
 		window.addEventListener('keyup', (event) => this.#onStartKey(event), { capture: true });
-		stage.addEventListener('finished', (event) => this.#onFinished(/** @type {CustomEvent} */ (event).detail));
+		stage.addEventListener('finished', (event) =>
+			this.#onFinished(/** @type {CustomEvent<{time: number, replay: ReplayFile}>} */ (event).detail),
+		);
 		stage.addEventListener('brokenreplay', () => this.#onBrokenReplay());
 		stage.addEventListener('replaystop', () => this.#leaveReplay());
 		stage.addEventListener('focuslost', () => stage.pause());

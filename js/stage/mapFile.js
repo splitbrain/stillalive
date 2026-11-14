@@ -1,39 +1,5 @@
 /**
  * The map file format and its check. The campaign levels and the editor maps use the same format.
- *
- * A map file is JSON with these properties:
- *
- * - format: the version of the file format, always 1
- * - tiles: the 768 tile ids of the 32 x 24 tiles, row by row
- * - bg: the index of the background image
- * - title: optional, the name of the level in the level selection.
- * - boss: optional, the boss of the level from 1 to 4. Only a boss level can contain the tube.
- * - text: optional, the message at the level start. It is the same as an event with the trigger "start" and this
- *   text, before the other events.
- * - abilities: optional, an object that disables abilities of the player at the level start. The key "jump" or
- *   "portals" with the value false disables the ability. All abilities are enabled by default.
- * - events: optional, a list of events. An event fires once. Each event is an object with these properties:
- *   - on: the trigger of the event:
- *     - "start": the level starts.
- *     - "playerX": the center of the player enters the column in the property x or a column to the right of it.
- *     - "time": the level time reaches the number of seconds in the property seconds.
- *     - "bossArrived": the boss reached its place.
- *     - "bossDied": the boss died after its third hit.
- *     - "exit": the player reached the exit. The closing transition of the level clears the message, so the text of
- *       an exit event shows only with the wait "click", which holds the transition until the click.
- *   - x: the column for the trigger "playerX".
- *   - seconds: the level time in seconds for the trigger "time". The seconds can have decimals.
- *   - text: optional, the new message. An empty text removes the message. The text can contain {KeyW}, {KeyA},
- *     {KeyS}, {KeyD} and {KeyE}. They stand for the label of that key on the keyboard of the player.
- *   - wait: optional, "click" stops the level time until the player clicks. The click removes the message. The
- *     events after this event in the list fire only after the click.
- *   - unlock: optional, "jump" or "portals" enables the ability.
- *   - portals: optional, the two portals to place, as [[column, row, side], [column, row, side]]. The column and row
- *     are the wall tile of the portal, and the side "up", "down", "left" or "right" is the side that the portal opens
- *     to. The portal covers this tile and the tile below, or the tile to the right for the sides "up" and "down".
- * - labels: optional, a list of texts that show at positions of the playfield. Each label is an object with x and y,
- *   the tile that the text is centered on, and text. The tile position can be a half tile, for example 16.5 to center
- *   the text between two tiles. A line break in the text starts a new line.
  */
 
 import { MAP_SIZE, NUM_TILES } from './constants.js';
@@ -67,6 +33,23 @@ const EVENT_TRIGGERS = {
 const PORTAL_SIDES = ['up', 'down', 'left', 'right'];
 
 /**
+ * A map in the file format. A map file is this object as JSON.
+ *
+ * @typedef {object} MapFile
+ * @property {number} [format] The version of the file format, always 1. The editor map of the stage has no format.
+ * @property {number[]} tiles The 768 tile ids of the 32 x 24 tiles, row by row.
+ * @property {number} bg The index of the background image.
+ * @property {string} [title] The name of the level in the level selection.
+ * @property {number} [boss] The boss of the level from 1 to 4. Only a boss level can contain the tube.
+ * @property {string} [text] The message at the level start. It is the same as an event with the trigger "start" and
+ *     this text, before the other events.
+ * @property {{jump?: boolean, portals?: boolean}} [abilities] The abilities that the level disables at the level start.
+ *     The key "jump" or "portals" with the value false disables the ability. All abilities are enabled by default.
+ * @property {MapEvent[]} [events] The events of the level. An event fires once.
+ * @property {MapLabel[]} [labels] The texts that show at positions of the playfield.
+ */
+
+/**
  * The data of a map file after the check.
  *
  * @typedef {object} MapData
@@ -82,23 +65,35 @@ const PORTAL_SIDES = ['up', 'down', 'left', 'right'];
 /**
  * An event of a map.
  *
+ * The trigger "start" fires when the level starts. "playerX" fires when the center of the player enters the column x
+ * or a column to the right of it. "time" fires when the level time reaches the seconds. "bossArrived" fires when the
+ * boss reached its place, and "bossDied" when the boss died after its third hit. "exit" fires when the player reached
+ * the exit. The closing transition of the level clears the message, so the text of an exit event shows only with the
+ * wait "click", which holds the transition until the click.
+ *
  * @typedef {object} MapEvent
  * @property {string} on The trigger: "start", "playerX", "time", "bossArrived", "bossDied" or "exit".
  * @property {number} [x] The column for the trigger "playerX".
- * @property {number} [seconds] The level time in seconds for the trigger "time".
- * @property {string} [text] The new message.
- * @property {string} [wait] "click" to stop the level time until the player clicks.
+ * @property {number} [seconds] The level time in seconds for the trigger "time". The seconds can have decimals.
+ * @property {string} [text] The new message. An empty text removes the message. The text can contain {KeyW}, {KeyA},
+ *     {KeyS}, {KeyD} and {KeyE}. They stand for the label of that key on the keyboard of the player.
+ * @property {string} [wait] "click" stops the level time until the player clicks. The click removes the message. The
+ *     events after this event in the list fire only after the click.
  * @property {string} [unlock] The ability to enable, "jump" or "portals".
- * @property {Array<[number, number, string]>} [portals] The two portals to place, with column, row and side.
+ * @property {Array<[number, number, string]>} [portals] The two portals to place, as [[column, row, side], [column,
+ *     row, side]]. The column and row are the wall tile of the portal, and the side "up", "down", "left" or "right" is
+ *     the side that the portal opens to. The portal covers this tile and the tile below, or the tile to the right for
+ *     the sides "up" and "down".
  */
 
 /**
  * A text at a position of the playfield.
  *
  * @typedef {object} MapLabel
- * @property {number} x The x position of the tile that the text is centered on, in whole or half tiles.
+ * @property {number} x The x position of the tile that the text is centered on, in whole or half tiles. For example,
+ *     16.5 centers the text between two tiles.
  * @property {number} y The y position of the tile that the text is centered on, in whole or half tiles.
- * @property {string} text The text, with a line break between the lines.
+ * @property {string} text The text. A line break in the text starts a new line.
  */
 
 /**

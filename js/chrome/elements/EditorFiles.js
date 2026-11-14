@@ -34,7 +34,9 @@ export class EditorFiles extends SelectionScreen {
 	 */
 	setUp() {
 		super.setUp();
-		this.addEventListener('slot-select', (event) => this.#pickSlot(/** @type {CustomEvent} */ (event).detail.slot));
+		this.addEventListener('slot-select', (event) =>
+			this.#pickSlot(/** @type {CustomEvent<{slot: number}>} */ (event).detail.slot),
+		);
 	}
 
 	/**

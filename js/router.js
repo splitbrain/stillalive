@@ -97,7 +97,7 @@ function trail() {
 	return history.state?.trail ?? [];
 }
 
-/** @type {Value} The current route, a Route object. */
+/** @type {Value<Route>} The current route. */
 export const route = new Value(currentRoute());
 
 /** @type {string} The hash of the route that the router set last. */

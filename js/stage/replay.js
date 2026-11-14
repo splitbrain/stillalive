@@ -69,7 +69,7 @@ function isIntegerTable(list, length) {
 /**
  * Convert a replay in the file format into a replay for the game.
  *
- * @param {ReplayFile} data The replay in the file format.
+ * @param {*} data The replay in the file format.
  * @returns {Replay} The replay for the game.
  * @throws {Error} If the data is not a valid replay.
  */

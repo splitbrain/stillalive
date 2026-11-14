@@ -7,7 +7,7 @@ import { Value } from '../value.js';
 /**
  * The label of each control key, by key code, as an object. The defaults are the labels of a QWERTY keyboard.
  *
- * @type {Value}
+ * @type {Value<Object<string, string>>}
  */
 export const keyLabels = new Value({
 	KeyW: 'W',

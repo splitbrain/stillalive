@@ -210,7 +210,7 @@ export class Boss {
 	 */
 	#shootPlasma(speed) {
 		const [dx, dy] = this.#aimAtPlayer((game.plasmaX >> 8) + TILE_SIZE / 2, (game.plasmaY >> 8) + TILE_SIZE / 2);
-		game.plasmaBall.push(new Plasma(game.plasmaX, game.plasmaY, dx * speed, dy * speed));
+		game.plasmaBall.push(new Plasma(game.plasmaX, game.plasmaY, dx * speed, dy * speed, true));
 	}
 
 	/**

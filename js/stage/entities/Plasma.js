@@ -20,8 +20,9 @@ export class Plasma extends Body {
 	 * @param {number} y The y position in 1/256 pixels.
 	 * @param {number} vx The horizontal speed in 1/256 pixels per tick.
 	 * @param {number} vy The vertical speed in 1/256 pixels per tick.
+	 * @param {boolean} [homing] True for a ball of the boss, which follows the player.
 	 */
-	constructor(x, y, vx, vy) {
+	constructor(x, y, vx, vy, homing = false) {
 		super(x, y, TILE_SIZE, TILE_SIZE);
 		/** @type {number} The x position of the start, where the ball returns after a reset. */
 		this.xOrig = x;
@@ -45,6 +46,8 @@ export class Plasma extends Body {
 		this.scaleDir = -1;
 		/** @type {string} The entity type, used by the shared object functions. */
 		this.type = 'plasma';
+		/** @type {boolean} True for a ball of the boss. It follows the player and fills no plasma slots. */
+		this.homing = homing;
 		/** @type {number} The frame of the ball image. */
 		this.animFrame = 0;
 		/** @type {boolean} True when the ball must go away in the next tick. */
@@ -66,8 +69,8 @@ export class Plasma extends Body {
 	}
 
 	/**
-	 * Move the ball for one tick. The ball returns to its start when it leaves the playfield or touches acid. In the
-	 * boss levels 3 and 4, the ball follows the player.
+	 * Move the ball for one tick. The ball returns to its start when it leaves the playfield or touches acid. A homing
+	 * ball follows the player.
 	 *
 	 * @returns {void}
 	 */
@@ -85,7 +88,7 @@ export class Plasma extends Body {
 
 		if (!passPortals(this)) {
 			this.checkCollision();
-			if (game.boss?.shootsPlasma()) {
+			if (this.homing) {
 				if (this.x < game.player.x) this.vx += 4;
 				else if (this.x > game.player.x) this.vx -= 4;
 				if (this.y < game.player.y) this.vy += 4;
@@ -102,7 +105,7 @@ export class Plasma extends Body {
 			}
 		}
 
-		if (!game.boss) {
+		if (!this.homing) {
 			if (vx && this.vy) this.vx = 0;
 			else if (vy && this.vx) this.vy = 0;
 			if (this.vx > this.vMax) this.vx = this.vMax;
@@ -205,7 +208,7 @@ export class Plasma extends Body {
 
 			x = (this.x >> 8) - 1;
 			y = this.y >> 8;
-			for (i = 2; i <= 14 && !game.boss; i++) {
+			for (i = 2; i <= 14 && !this.homing; i++) {
 				if (game.map.atPixel(x, y + i) == Tile.PLASMA_SLOT) {
 					this.#fillSlot(x >> TILE_SIZE_BITS, (y + i) >> TILE_SIZE_BITS);
 					break;
@@ -220,7 +223,7 @@ export class Plasma extends Body {
 
 			x = (this.x >> 8) + TILE_SIZE;
 			y = this.y >> 8;
-			for (i = 2; i <= 14 && !game.boss; i++) {
+			for (i = 2; i <= 14 && !this.homing; i++) {
 				if (game.map.atPixel(x, y + i) == Tile.PLASMA_SLOT) {
 					this.#fillSlot(x >> TILE_SIZE_BITS, (y + i) >> TILE_SIZE_BITS);
 					break;
@@ -235,7 +238,7 @@ export class Plasma extends Body {
 
 			x = this.x >> 8;
 			y = (this.y >> 8) - 1;
-			for (i = 4; i <= 12 && !game.boss; i++) {
+			for (i = 4; i <= 12 && !this.homing; i++) {
 				if (game.map.atPixel(x + i, y) == Tile.PLASMA_SLOT) {
 					this.#fillSlot((x + i) >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS);
 					break;
@@ -250,7 +253,7 @@ export class Plasma extends Body {
 
 			x = this.x >> 8;
 			y = (this.y >> 8) + TILE_SIZE;
-			for (i = 4; i <= 12 && !game.boss; i++) {
+			for (i = 4; i <= 12 && !this.homing; i++) {
 				if (game.map.atPixel(x + i, y) == Tile.PLASMA_SLOT) {
 					this.#fillSlot((x + i) >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS);
 					break;

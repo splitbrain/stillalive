@@ -179,8 +179,8 @@ export function loadCampaigns() {
 	campaigns = CAMPAIGN_FOLDERS.map((folder, id) =>
 		id == CampaignId.CUSTOM ? new CustomCampaign(id, folder) : new Campaign(id, folder),
 	);
-	for (let c = 0; c < campaigns.length; c++) {
-		if (c != CampaignId.CUSTOM) loadCampaignFiles(c);
+	for (const campaign of campaigns) {
+		if (campaign.id != CampaignId.CUSTOM) loadCampaignFiles(campaign.id);
 	}
 }
 
@@ -265,7 +265,7 @@ function fileLoaded() {
  * @returns {void}
  */
 function updateLoading() {
-	campaignsLoading.set({ progress: levelsLoaded / levelsToLoad, missing: missingLevelFiles.slice() });
+	campaignsLoading.set({ progress: levelsLoaded / levelsToLoad, missing: [...missingLevelFiles] });
 }
 
 /**

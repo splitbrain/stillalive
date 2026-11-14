@@ -622,7 +622,7 @@ export function loadSfx() {
 	sfx_hover = loadSound('hover');
 	sfx_tick = loadSound('tick');
 	sfx_portal = [loadSound('portal1'), loadSound('portal2')];
-	sfx_step.concat(sfx_iceStep).forEach((sound) => setSoundVolume(sound, 0.25));
+	for (const sound of [...sfx_step, ...sfx_iceStep]) setSoundVolume(sound, 0.25);
 	setSoundVolume(sfx_jump, 0.2);
 	setSoundVolume(sfx_land, 0.35);
 	setSoundVolume(sfx_tick, 0.2);

@@ -1,6 +1,7 @@
 import js from '@eslint/js';
 import importX from 'eslint-plugin-import-x';
 import globals from 'globals';
+import unicorn from 'eslint-plugin-unicorn';
 
 /**
  * The layers of the game modules as glob patterns, from the bottom to the top. A module can import from its own layer
@@ -79,11 +80,15 @@ const STAGE_ZONES = [
 export default [
 	js.configs.recommended,
 	{
+		plugins: { unicorn },
 		rules: {
 			'no-useless-concat': 'error',
 			'one-var': ['error', 'never'],
 			'prefer-const': 'error',
 			'prefer-template': 'error',
+			'unicorn/no-for-loop': 'error',
+			'unicorn/no-new-array': 'error',
+			'unicorn/prefer-spread': 'error',
 		},
 	},
 	{

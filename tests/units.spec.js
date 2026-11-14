@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { Direction, MAP_SIZE, MAP_WIDTH } from '../js/stage/constants.js';
+import { emptyTiles } from '../js/stage/TileMap.js';
 import { Tile } from '../js/stage/tiles.js';
 import {
 	decodeReplay,
@@ -66,7 +67,7 @@ function validReplay() {
  * @returns {object} The map data.
  */
 function validMap() {
-	return { format: 1, tiles: new Array(MAP_SIZE).fill(Tile.EMPTY), bg: 0 };
+	return { format: 1, tiles: emptyTiles(), bg: 0 };
 }
 
 /**
@@ -203,7 +204,7 @@ test.describe('units', () => {
 		const cases = {
 			'no data': null,
 			'wrong format': { ...validMap(), format: 2 },
-			'too few tiles': { ...validMap(), tiles: new Array(MAP_SIZE - 1).fill(Tile.EMPTY) },
+			'too few tiles': { ...validMap(), tiles: emptyTiles().slice(1) },
 			'no tiles': { ...validMap(), tiles: undefined },
 			'negative tile id': { ...validMap(), tiles: tiles(5, -1) },
 			'unknown tile id': { ...validMap(), tiles: tiles(5, 99) },

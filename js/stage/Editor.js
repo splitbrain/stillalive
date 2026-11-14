@@ -2,11 +2,11 @@
  * The level editor, the session of the mode "edit". It also provides the level for the test run of the editor map.
  */
 
-import { MAP_SIZE, MouseButton, TILE_SIZE_BITS } from './constants.js';
+import { MouseButton, TILE_SIZE_BITS } from './constants.js';
 import { bg } from './images.js';
 import { allowTile, build, eraseSprites, fill } from './mapEdit.js';
 import { MAP_FORMAT, parseMap } from './mapFile.js';
-import { TileMap } from './TileMap.js';
+import { emptyTiles, TileMap } from './TileMap.js';
 import { Tile, isGravPipeTile, isObjectTile } from './tiles.js';
 import { UndoList } from './UndoList.js';
 import { World } from './World.js';
@@ -26,7 +26,7 @@ export class Editor {
 	#properties = {};
 
 	/** @type {TileMap} The tiles of the editor map. */
-	#map = new TileMap(new Array(MAP_SIZE).fill(Tile.EMPTY));
+	#map = new TileMap(emptyTiles());
 
 	/** @type {number} The index of the background image of the editor map. */
 	#background = 0;
@@ -133,7 +133,7 @@ export class Editor {
 	 * @returns {object} The editor map in the map file format without the format property, with a copy of the tiles.
 	 */
 	getMap() {
-		return { ...this.#properties, bg: this.#background, tiles: this.#map.tiles.slice() };
+		return { ...this.#properties, bg: this.#background, tiles: [...this.#map.tiles] };
 	}
 
 	/**
@@ -180,7 +180,7 @@ export class Editor {
 	 * @returns {void}
 	 */
 	clear() {
-		this.#map.replace(new Array(MAP_SIZE).fill(Tile.EMPTY));
+		this.#map.replace(emptyTiles());
 		this.#properties = {};
 		this.#addUndo();
 		this.#mapChanged();
@@ -246,8 +246,8 @@ export class Editor {
 	 */
 	#mapChangedSince(version) {
 		const map = this.#map;
-		for (let i = 0; i < map.tiles.length; i++) {
-			if (map.display[i] != map.tiles[i]) map.setDisplay(i, map.tiles[i]);
+		for (const [i, tile] of map.tiles.entries()) {
+			if (map.display[i] != tile) map.setDisplay(i, tile);
 		}
 		if (map.version != version) this.#mapChanged();
 	}
@@ -268,7 +268,7 @@ export class Editor {
 	 * @returns {void}
 	 */
 	#addUndo() {
-		this.#undoList.add({ tiles: this.#map.tiles.slice(), properties: this.#properties });
+		this.#undoList.add({ tiles: [...this.#map.tiles], properties: this.#properties });
 	}
 
 	/**

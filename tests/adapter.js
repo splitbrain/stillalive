@@ -439,7 +439,7 @@ export async function runLevel(
 			// the level selection shows the preview before the level
 			stage.preview(levelData);
 			stage.play(levelData, { replay: replayData, restart: skipBossIntro });
-			const startMap = t.world().map.tiles.slice();
+			const startMap = [...t.world().map.tiles];
 
 			const pick = (obj, fields) => fields.map((field) => obj[field]);
 			// the snapshots store the flags of the player, the crates, the turrets and the plasma balls as 0 and 1

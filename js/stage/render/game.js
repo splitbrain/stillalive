@@ -360,10 +360,9 @@ export function drawTileLayer(world) {
  * @returns {void}
  */
 export function drawTiles(map) {
-	const tiles = map.display;
-	for (let i = 0; i < tiles.length; i++) {
-		if (tiles[i] > 0 && tiles[i] < NUM_TILES)
-			drawImage(tileset[tiles[i]], map.column(i) * TILE_SIZE, map.row(i) * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+	for (const [i, tile] of map.display.entries()) {
+		if (tile > 0 && tile < NUM_TILES)
+			drawImage(tileset[tile], map.column(i) * TILE_SIZE, map.row(i) * TILE_SIZE, TILE_SIZE, TILE_SIZE);
 	}
 }
 
@@ -647,8 +646,7 @@ function drawCamera(world) {
  * @returns {void}
  */
 function drawPortals(world) {
-	for (let pi = 0; pi < world.portals.list.length; pi++) {
-		const p = world.portals.list[pi];
+	for (const [pi, p] of world.portals.list.entries()) {
 		if (!p.used) continue;
 		let dx = 0;
 		let dy = 0;

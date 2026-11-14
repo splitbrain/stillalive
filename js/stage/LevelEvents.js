@@ -118,8 +118,8 @@ export class LevelEvents {
 	 * @returns {void}
 	 */
 	#run() {
-		for (let i = 0; i < this.#list.length && this.#waiting === null; i++) {
-			const event = this.#list[i];
+		for (const [i, event] of this.#list.entries()) {
+			if (this.#waiting !== null) return;
 			if (!this.#fired[i] && this.#hasHappened(event)) {
 				this.#fired[i] = true;
 				this.#fire(event);

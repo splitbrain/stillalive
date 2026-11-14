@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { FADE_START, KEY_RIGHT, MAP_SIZE, MAP_WIDTH } from '../js/stage/constants.js';
+import { emptyTiles } from '../js/stage/TileMap.js';
 import { Tile } from '../js/stage/tiles.js';
 import { openGame, runWorld } from './adapter.js';
 
@@ -9,8 +10,7 @@ import { openGame, runWorld } from './adapter.js';
  * @returns {object} The map data.
  */
 function floorMap() {
-	const tiles = new Array(MAP_SIZE)
-		.fill(Tile.EMPTY)
+	const tiles = emptyTiles()
 		.fill(Tile.WALL, MAP_SIZE - MAP_WIDTH)
 		.with(MAP_SIZE - 2 * MAP_WIDTH + 2, Tile.PLAYER_START);
 	return { format: 1, tiles, bg: 0 };

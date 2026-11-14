@@ -30,9 +30,8 @@ const REPLAY_FORMAT = 2;
  */
 export function encodeReplay(replay, campaign, level) {
 	const inputs = [];
-	for (let i = 0; i < replay.inputs.length; i++) {
-		const last = inputs[inputs.length - 1];
-		const keys = replay.inputs[i];
+	for (const [i, keys] of replay.inputs.entries()) {
+		const last = inputs.at(-1);
 		const x = replay.mouseX[i];
 		const y = replay.mouseY[i];
 		if (last && last[1] === keys && last[2] === x && last[3] === y) last[0]++;
@@ -111,11 +110,11 @@ export class Replay {
 	 */
 	constructor() {
 		/** @type {number[]} The key bitmask of each tick. */
-		this.inputs = new Array();
+		this.inputs = [];
 		/** @type {number[]} The mouse x position of each tick. */
-		this.mouseX = new Array();
+		this.mouseX = [];
 		/** @type {number[]} The mouse y position of each tick. */
-		this.mouseY = new Array();
+		this.mouseY = [];
 		/** @type {Object<number, number[]>} The replay states from InputState.capture() by level time. */
 		this.states = {};
 	}

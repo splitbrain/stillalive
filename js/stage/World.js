@@ -223,8 +223,8 @@ export class World {
 		world.cakesLeft = world.cakes.length;
 		if (world.cakesLeft == 0) {
 			const map = world.map;
-			for (let i = 0; i < map.display.length; i++) {
-				if (map.display[i] == Tile.EXIT_CLOSED) map.setDisplay(i, Tile.EXIT);
+			for (const [i, tile] of map.display.entries()) {
+				if (tile == Tile.EXIT_CLOSED) map.setDisplay(i, Tile.EXIT);
 			}
 		}
 		world.background = level.bg;
@@ -383,28 +383,20 @@ export class World {
 			}
 		}
 
-		for (let i = 0; i < this.plasmaBall.length; i++) {
-			const ball = this.plasmaBall[i];
+		for (const ball of this.plasmaBall) {
 			if (!ball.used) continue;
 			ball.animate();
 			if (running) {
 				ball.move();
 				if (!this.objectInPortal) this.objectInPortal = this.portals.isInPortal(ball);
-				if (ball.needKill) {
-					this.plasmaBall.splice(i, 1);
-					i--;
-				}
 			}
 		}
+		if (running) this.plasmaBall = this.plasmaBall.filter((ball) => !ball.needKill);
 
-		for (let i = 0; i < this.sparkles.length; i++) {
-			this.sparkles[i].move();
-			if (this.sparkles[i].fading <= 0) {
-				this.sparkles.splice(i, 1);
-				i--;
-			}
-		}
+		for (const sparkle of this.sparkles) sparkle.move();
+		this.sparkles = this.sparkles.filter((sparkle) => sparkle.fading > 0);
 
+		// an update can add crates, and the other crates must not see a removed crate, so the loop removes it at once
 		for (let i = 0; i < this.crates.length; i++) {
 			const c = this.crates[i];
 			// a shrinking crate moves at half of its speed
@@ -447,6 +439,7 @@ export class World {
 	 * @returns {void}
 	 */
 	#updateProjectiles() {
+		// a hit ends the loop, so the loop removes the stopped wheels at once
 		for (let i = 0; i < this.projectiles.length; i++) {
 			const p = this.projectiles[i];
 			p.move();
@@ -471,7 +464,7 @@ export class World {
 	 */
 	#rebuildGravPipeFields() {
 		if (this.gravPipes.length == 0) return;
-		this.gravPipeFields = new Array();
+		this.gravPipeFields = [];
 		for (const t of this.gravPipes) {
 			let vx = 0;
 			let vy = 0;
@@ -521,10 +514,7 @@ export class World {
 	 * @returns {void}
 	 */
 	openExit() {
-		const map = this.map;
-		for (let i = 0; i < map.tiles.length; i++) {
-			if (map.tiles[i] == Tile.EXIT_CLOSED) map.set(i, Tile.EXIT);
-		}
+		this.map.replaceAll(Tile.EXIT_CLOSED, Tile.EXIT);
 	}
 
 	/**
@@ -561,10 +551,9 @@ export class World {
 		this.platforms = [];
 
 		const map = this.map;
-		for (let i = 0; i < map.tiles.length; i++) {
+		for (const [i, tile] of map.tiles.entries()) {
 			const x = map.column(i);
 			const y = map.row(i);
-			const tile = map.tiles[i];
 			const animated = levelStart ? ANIMATED_KINDS.find((a) => isTileKind(tile, a.kind)) : undefined;
 
 			if (tile in GRAVPIPE_DIRECTIONS) {
@@ -740,20 +729,19 @@ export class World {
 	 * @returns {Crate|null} The first crate that counts at the point, or null.
 	 */
 	#findCrate(x, y, any) {
-		for (let i = 0; i < this.crates.length; i++) {
-			const crate = this.crates[i];
-			const x2 = crate.x >> 8;
-			const y2 = crate.y >> 8;
-			if (
-				(any || (!crate.carried && !this.portals.isInPortal(crate))) &&
-				x > x2 &&
-				x < x2 + TILE_SIZE - 1 &&
-				y > y2 &&
-				y < y2 + TILE_SIZE - 1
-			)
-				return crate;
-		}
-		return null;
+		return (
+			this.crates.find((crate) => {
+				const x2 = crate.x >> 8;
+				const y2 = crate.y >> 8;
+				return (
+					(any || (!crate.carried && !this.portals.isInPortal(crate))) &&
+					x > x2 &&
+					x < x2 + TILE_SIZE - 1 &&
+					y > y2 &&
+					y < y2 + TILE_SIZE - 1
+				);
+			}) ?? null
+		);
 	}
 
 	/**
@@ -763,12 +751,12 @@ export class World {
 	 * @returns {Crate|null} The crate, or null if no moving crate overlaps the object.
 	 */
 	movingCrateTouching(obj) {
-		for (let i = 0; i < this.crates.length; i++) {
-			const crate = this.crates[i];
-			if (!crate.carried && (crate.vx != 0 || crate.vy != 0) && !this.portals.isInPortal(crate) && crate.overlaps(obj))
-				return crate;
-		}
-		return null;
+		return (
+			this.crates.find(
+				(crate) =>
+					!crate.carried && (crate.vx != 0 || crate.vy != 0) && !this.portals.isInPortal(crate) && crate.overlaps(obj),
+			) ?? null
+		);
 	}
 
 	/**
@@ -882,8 +870,7 @@ export class World {
 	 */
 	#clearDoorBlockers() {
 		const door = FIRST_OF_KIND[TileKind.SWITCH_DOOR];
-		for (let i = 0; i < 2; i++) {
-			const portal = this.portals.list[i];
+		for (const [i, portal] of this.portals.list.entries()) {
 			if (!portal.used) continue;
 			let x = portal.x >> 8;
 			let y = portal.y >> 8;

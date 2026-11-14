@@ -67,7 +67,7 @@ export async function loadGame(first, groups) {
 	defineElements(first, await Promise.all(first.map(importModule)));
 	startFiles();
 	const loads = groups.map((group) => group.map(importModule));
-	for (let g = 0; g < groups.length; g++) defineElements(groups[g], await Promise.all(loads[g]));
+	for (const [g, group] of groups.entries()) defineElements(group, await Promise.all(loads[g]));
 }
 
 /**
@@ -135,9 +135,9 @@ export function checkReady() {
  */
 function update() {
 	loading.set({
-		code: { progress: modulesRequested === 0 ? 0 : modulesDone / modulesRequested, missing: missingModules.slice() },
-		images: { progress: imageProgress(), missing: missingImages().slice() },
-		sounds: { progress: soundProgress(), missing: missingSounds().slice() },
+		code: { progress: modulesRequested === 0 ? 0 : modulesDone / modulesRequested, missing: [...missingModules] },
+		images: { progress: imageProgress(), missing: [...missingImages()] },
+		sounds: { progress: soundProgress(), missing: [...missingSounds()] },
 	});
 	checkReady();
 }

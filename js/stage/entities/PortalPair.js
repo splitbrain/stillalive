@@ -244,9 +244,8 @@ export class PortalPair {
 		const y = obj.y >> 8;
 		if (!obj.canEnterPortal(side)) return null;
 
-		for (let j = 0; j < 2; j++) {
-			const portal = this.list[j];
-			if (!portal.used || portal.direction != side || !this.list[1 - j].used) continue;
+		for (const [index, portal] of this.list.entries()) {
+			if (!portal.used || portal.direction != side || !this.other(portal).used) continue;
 			const px = portal.x >> 8;
 			const py = portal.y >> 8;
 			switch (side) {
@@ -254,26 +253,26 @@ export class PortalPair {
 					const tx = px + 3;
 					const edge = x - 1;
 					if (y >= py - 6 && y + obj.pY <= py + 2 * TILE_SIZE + 6 && edge < tx && tx - edge <= 20)
-						return { index: j, deep: tx - edge >= obj.pX >> 1 && obj.vx < 0 };
+						return { index, deep: tx - edge >= obj.pX >> 1 && obj.vx < 0 };
 					break;
 				}
 				case Direction.RIGHT: {
 					const edge = x + obj.pX;
 					if (y >= py - 6 && y + obj.pY <= py + 2 * TILE_SIZE + 6 && edge > px && edge - px <= 20)
-						return { index: j, deep: edge - px >= obj.pX >> 1 && obj.vx > 0 };
+						return { index, deep: edge - px >= obj.pX >> 1 && obj.vx > 0 };
 					break;
 				}
 				case Direction.DOWN: {
 					const edge = y + obj.pY;
 					if (x >= px - 4 && x + obj.pX < px + 2 * TILE_SIZE + 4 && edge >= py && edge - py <= 20)
-						return { index: j, deep: edge - py >= 16 && obj.vy > 0 };
+						return { index, deep: edge - py >= 16 && obj.vy > 0 };
 					break;
 				}
 				case Direction.UP: {
 					const ty = py + 4;
 					const edge = y - 1;
 					if (x >= px - 4 && x + obj.pX < px + 2 * TILE_SIZE + 4 && edge < ty && ty - edge <= 20)
-						return { index: j, deep: ty - edge >= 16 && obj.vy < 0 };
+						return { index, deep: ty - edge >= 16 && obj.vy < 0 };
 					break;
 				}
 			}
@@ -380,8 +379,8 @@ export class PortalPair {
 	 */
 	#removePortals() {
 		if (!this.list[0].used && !this.list[1].used) return;
-		for (let i = 0; i < 2; i++) {
-			this.list[i].used = false;
+		for (const [i, portal] of this.list.entries()) {
+			portal.used = false;
 			removeSparkles(this.world, i, SparkleType.PORTAL_GLOW);
 		}
 		playSound(sfx_cancelPortals);

@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { MAP_HEIGHT, MAP_SIZE, MAP_WIDTH } from '../js/stage/constants.js';
+import { emptyTiles } from '../js/stage/TileMap.js';
 import { Tile } from '../js/stage/tiles.js';
 import {
 	CAMPAIGNS,
@@ -299,7 +300,7 @@ test.describe('chrome', () => {
 		await setHash(page, '#/editor');
 		await expectScreen(page, '#/editor', EDITOR_PARTS);
 		await waitForNarrator(page);
-		const tiles = new Array(MAP_SIZE).fill(Tile.EMPTY);
+		const tiles = emptyTiles();
 		tiles[100] = 16;
 		await page.evaluate((tiles) => window.__test.stage.edit({ tiles, bg: 2 }), tiles);
 		const map = () => page.evaluate(() => window.__test.stage.getMap());
@@ -368,7 +369,7 @@ test.describe('chrome', () => {
 			({ MAP_HEIGHT, MAP_SIZE, MAP_WIDTH, Tile }) => {
 				if (sessionStorage.getItem('custom-setup')) return;
 				sessionStorage.setItem('custom-setup', '1');
-				const map = { tiles: new Array(MAP_SIZE).fill(Tile.EMPTY), bg: 0 };
+				const map = { tiles: Array.from({ length: MAP_SIZE }, () => Tile.EMPTY), bg: 0 };
 				// a floor, the player start and the exit
 				for (let x = 0; x < MAP_WIDTH; x++) map.tiles[(MAP_HEIGHT - 1) * MAP_WIDTH + x] = Tile.WALL;
 				map.tiles[(MAP_HEIGHT - 3) * MAP_WIDTH + 2] = Tile.PLAYER_START;

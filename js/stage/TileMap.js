@@ -2,7 +2,17 @@
  * The tiles of a map.
  */
 
-import { MAP_WIDTH, MAP_WIDTH_BITS, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, TILE_SIZE_BITS } from './constants.js';
+import { MAP_SIZE, MAP_WIDTH, MAP_WIDTH_BITS, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, TILE_SIZE_BITS } from './constants.js';
+import { Tile } from './tiles.js';
+
+/**
+ * Make the tile ids of an empty map.
+ *
+ * @returns {number[]} One Tile.EMPTY for each map position.
+ */
+export function emptyTiles() {
+	return Array.from({ length: MAP_SIZE }, () => Tile.EMPTY);
+}
 
 /**
  * The logic tiles and the display tiles of a map. The game logic reads the logic layer, and the drawing shows the
@@ -15,9 +25,9 @@ export class TileMap {
 	 */
 	constructor(tiles) {
 		/** @type {number[]} The tile ids that the game logic uses, one for each map position. */
-		this.tiles = tiles.slice();
+		this.tiles = [...tiles];
 		/** @type {number[]} The tile ids that the drawing shows, one for each map position. */
-		this.display = tiles.slice();
+		this.display = [...tiles];
 		/** @type {number} The number of writes to the display layer. */
 		this.version = 0;
 	}
@@ -102,14 +112,27 @@ export class TileMap {
 	}
 
 	/**
+	 * Replace a tile id in both layers at each position where the logic layer has it.
+	 *
+	 * @param {number} from The tile id to replace.
+	 * @param {number} to The new tile id.
+	 * @returns {void}
+	 */
+	replaceAll(from, to) {
+		for (const [i, tile] of this.tiles.entries()) {
+			if (tile == from) this.set(i, to);
+		}
+	}
+
+	/**
 	 * Replace all tiles of both layers.
 	 *
 	 * @param {number[]} tiles The new tile ids. The map keeps copies.
 	 * @returns {void}
 	 */
 	replace(tiles) {
-		this.tiles = tiles.slice();
-		this.display = tiles.slice();
+		this.tiles = [...tiles];
+		this.display = [...tiles];
 		this.version++;
 	}
 }

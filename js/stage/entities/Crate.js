@@ -59,10 +59,7 @@ export class Crate extends Throwable {
 					const t = this.world.map.atPixel((this.x >> 8) + this.pX + 1, this.y >> 8);
 					if (isTileKind(t, TileKind.BOSS_BLOCK)) {
 						playSound(t < LAST_OF_KIND[TileKind.BOSS_BLOCK] ? sfx_wallCrack : sfx_wallBreak);
-						const next = t < LAST_OF_KIND[TileKind.BOSS_BLOCK] ? t + 1 : Tile.EMPTY;
-						for (const [i, tile] of this.world.map.tiles.entries()) {
-							if (tile == t) this.world.map.set(i, next);
-						}
+						this.world.map.replaceAll(t, t < LAST_OF_KIND[TileKind.BOSS_BLOCK] ? t + 1 : Tile.EMPTY);
 						this.world.boss.useUpCrate(this);
 						return;
 					}

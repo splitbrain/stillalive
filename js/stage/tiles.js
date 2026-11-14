@@ -99,10 +99,10 @@ const TILE_RANGES = [
 ];
 
 /** @type {string[]} The kind of each tile id of the tile set. */
-const KIND_OF = new Array(NUM_TILES).fill(TileKind.DECOR);
-for (const [first, last, kind] of TILE_RANGES) {
-	for (let id = first; id <= last; id++) KIND_OF[id] = kind;
-}
+const KIND_OF = Array.from(
+	{ length: NUM_TILES },
+	(_, id) => TILE_RANGES.find(([first, last]) => id >= first && id <= last)?.[2] ?? TileKind.DECOR,
+);
 
 /** @type {Object<string, number>} The first id of each kind, e.g. the first frame of an animated door. */
 export const FIRST_OF_KIND = Object.fromEntries(TILE_RANGES.map(([first, , kind]) => [kind, first]));

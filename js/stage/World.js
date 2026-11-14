@@ -26,6 +26,7 @@ import { Player } from './entities/Player.js';
 import { PortalPair } from './entities/PortalPair.js';
 import { Turret } from './entities/Turret.js';
 import { GRAVPIPE_DIRECTIONS, plasmaLaunch } from './level.js';
+import { LevelEvents } from './LevelEvents.js';
 import { Replay } from './replay.js';
 import { TileMap } from './TileMap.js';
 import { FIRST_OF_KIND, LAST_OF_KIND, Tile, TileKind, inForceFieldRange, isDeadlyTile, isTileKind } from './tiles.js';
@@ -139,7 +140,7 @@ export class World {
 	 *     The drawing then draws the tiles around the portals over the objects.
 	 */
 	objectInPortal = null;
-	/** @type {import('./LevelEvents.js').LevelEvents|null} The events of the level, or null outside a level. */
+	/** @type {LevelEvents|null} The events of the level, or null outside a level. */
 	events = null;
 
 	/**
@@ -159,10 +160,12 @@ export class World {
 	 *
 	 * @param {import('./level.js').Level} level The level.
 	 * @param {object} [options] The options.
+	 * @param {boolean} [options.restart] True for a restart of the same level, for example after a death. A restart and
+	 *     a replay skip the waits of the events and the entrance of the boss.
 	 * @param {Replay|null} [options.replay] The replay that plays, or null to let the player play.
 	 * @returns {World} The World.
 	 */
-	static forLevel(level, { replay = null } = {}) {
+	static forLevel(level, { restart = false, replay = null } = {}) {
 		const world = new World(new TileMap(level.tiles));
 		world.level = level;
 		world.oldMap = level.tiles.slice();
@@ -177,6 +180,9 @@ export class World {
 		world.background = level.bg;
 		world.abilities = { ...level.abilities };
 		world.labels = level.labels;
+		world.events = new LevelEvents(world, level.events, restart || world.replayMode);
+		world.events.update(); // fire the start events
+		if (world.boss && (restart || world.replayMode)) world.boss.skipEntry();
 		return world;
 	}
 

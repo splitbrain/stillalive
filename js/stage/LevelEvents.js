@@ -6,7 +6,7 @@ import { Direction, LevelPhase, TILE_SIZE, TILE_SIZE_BITS } from './constants.js
 import { createPortalGlow } from './entities/Sparkle.js';
 import { unclick } from './inputState.js';
 import { keyLabels } from './keys.js';
-import { game, input } from './state.js';
+import { input } from './state.js';
 
 /**
  * The sides that a portal of the level file opens to, with the Direction of the portal and the pixel offset of the
@@ -47,15 +47,20 @@ export class LevelEvents {
 	/** @type {boolean} True if the waits end at once and their texts do not show. */
 	#skipWaits;
 
+	/** @type {import('./World.js').World} The World of the level. */
+	#world;
+
 	/**
 	 * Create the state of the events of a level. The start events fire in the first call of update().
 	 *
+	 * @param {import('./World.js').World} world The World of the level.
 	 * @param {import('./mapFile.js').MapEvent[]} list The events of the level file. The list is shared with the
 	 *     campaign data and does not change.
 	 * @param {boolean} skipWaits True if the waits end at once and their texts do not show, for example in a replay
 	 *     and after a restart of the level.
 	 */
-	constructor(list, skipWaits) {
+	constructor(world, list, skipWaits) {
+		this.#world = world;
 		this.#list = list;
 		this.#fired = list.map(() => false);
 		this.#skipWaits = skipWaits;
@@ -89,7 +94,7 @@ export class LevelEvents {
 	 * @returns {void}
 	 */
 	update() {
-		if (this.#waiting !== null && (game.isHalted() || game.isExitWait()) && input.mouseNewPress) {
+		if (this.#waiting !== null && (this.#world.isHalted() || this.#world.isExitWait()) && input.mouseNewPress) {
 			this.#endWait();
 			unclick();
 		}
@@ -131,8 +136,8 @@ export class LevelEvents {
 	 * @returns {boolean} True if the event can fire.
 	 */
 	#hasHappened(event) {
-		if (event.on == 'playerX') return game.player.midX() >> TILE_SIZE_BITS >= event.x;
-		if (event.on == 'time') return game.time >= Math.round(event.seconds * 60);
+		if (event.on == 'playerX') return this.#world.player.midX() >> TILE_SIZE_BITS >= event.x;
+		if (event.on == 'time') return this.#world.time >= Math.round(event.seconds * 60);
 		return this.#triggers.has(event.on);
 	}
 
@@ -143,29 +148,30 @@ export class LevelEvents {
 	 * @returns {void}
 	 */
 	#fire(event) {
-		if (event.unlock) game.abilities[event.unlock] = true;
-		if (event.portals) event.portals.forEach((portal, p) => placePortal(p, portal));
+		if (event.unlock) this.#world.abilities[event.unlock] = true;
+		if (event.portals) event.portals.forEach((portal, p) => placePortal(this.#world, p, portal));
 		if (event.wait && this.#skipWaits) return;
 		if (event.text !== undefined) {
 			const text = event.text.replace(/\{(Key[WASDE])\}/g, (_, code) => keyLabels.get()[code]);
-			this.message = text ? { text, wait: Boolean(event.wait), portrait: game.boss?.number ?? 0 } : null;
+			this.message = text ? { text, wait: Boolean(event.wait), portrait: this.#world.boss?.number ?? 0 } : null;
 		}
 		if (!event.wait) return;
 		this.#waiting = event;
 		// stop the level time from the next tick on
-		if (game.isRunning()) game.phase = LevelPhase.HALTED;
+		if (this.#world.isRunning()) this.#world.phase = LevelPhase.HALTED;
 	}
 }
 
 /**
  * Place a portal on a wall with its glow sparkles.
  *
+ * @param {import('./World.js').World} world The World of the level.
  * @param {number} p The index of the portal.
  * @param {[number, number, string]} portal The column and row of the wall tile, and the side that the portal opens to.
  * @returns {void}
  */
-function placePortal(p, [column, row, side]) {
-	const portal = game.portals.list[p];
+function placePortal(world, p, [column, row, side]) {
+	const portal = world.portals.list[p];
 	const { direction, dx, dy } = PORTAL_PLACEMENTS[side];
 	const x = column * TILE_SIZE + dx;
 	const y = row * TILE_SIZE + dy;
@@ -181,5 +187,5 @@ function placePortal(p, [column, row, side]) {
 		y: y << 8,
 	});
 
-	createPortalGlow(game, p);
+	createPortalGlow(world, p);
 }

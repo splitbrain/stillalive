@@ -5,7 +5,6 @@
 import { playSound, sfx_field } from './audio.js';
 import { Direction, MAP_HEIGHT, MAP_WIDTH, SparkleType, TILE_SIZE } from './constants.js';
 import { removeSparkles } from './entities/Sparkle.js';
-import { LevelEvents } from './LevelEvents.js';
 import { game, input, setGame, ui } from './state.js';
 import { FIRST_OF_KIND, Tile, TileKind, isTileKind } from './tiles.js';
 import { World } from './World.js';
@@ -217,13 +216,10 @@ export function plasmaLaunch(map, x, y) {
  * @returns {void}
  */
 export function loadLevel(level, restart = false, replay = null) {
-	setGame(World.forLevel(level, { replay }));
+	setGame(World.forLevel(level, { restart, replay }));
 	ui.paused = false;
 	input.keys = 0;
 	input.oldKeys = 0;
-	game.events = new LevelEvents(level.events, restart || game.replayMode);
-	game.events.update(); // fire the start events
-	if (game.boss && (restart || game.replayMode)) game.boss.skipEntry();
 }
 
 /**

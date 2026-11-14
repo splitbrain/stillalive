@@ -22,7 +22,7 @@ const LAYERS = [
 		name: 'logic',
 		files: [
 			'./js/stage/entities/*.js',
-			'./js/stage/{level,LevelEvents,mapEdit,mapFile,replay,SwitchDoors,UndoList,World}.js',
+			'./js/stage/{level,LevelEvents,mapEdit,mapFile,mapObjects,replay,SwitchDoors,UndoList,World}.js',
 		],
 	},
 	{ name: 'drawing', files: ['./js/stage/render/*.js'] },

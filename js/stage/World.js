@@ -10,49 +10,32 @@ import {
 	KEY_JUMP,
 	KEY_LEFT,
 	KEY_RIGHT,
-	ORDERED,
 	PLAYFIELD_HEIGHT,
-	RANDOM,
 	SparkleType,
 	TILE_SIZE,
 	TILE_SIZE_BITS,
 	Transition,
 } from './constants.js';
-import { AnimatedTile } from './entities/AnimatedTile.js';
 import { Boss } from './entities/Boss.js';
-import { Cake } from './entities/Cake.js';
 import { Camera } from './entities/Camera.js';
-import { Crate } from './entities/Crate.js';
-import { GravPipe } from './entities/GravPipe.js';
 import { traceGravPipeField } from './entities/GravPipeField.js';
 import { Plasma } from './entities/Plasma.js';
-import { Platform } from './entities/Platform.js';
 import { Player } from './entities/Player.js';
 import { PortalPair } from './entities/PortalPair.js';
 import { createCakeOrSmokeSparkles } from './entities/Sparkle.js';
-import { Turret } from './entities/Turret.js';
-import { GRAVPIPE_DIRECTIONS, plasmaLaunch } from './level.js';
 import { LevelEvents } from './LevelEvents.js';
 import { LevelPhase } from './LevelPhase.js';
+import { createObjects } from './mapObjects.js';
 import { SwitchDoors } from './SwitchDoors.js';
 import { TileMap } from './TileMap.js';
-import { FIRST_OF_KIND, LAST_OF_KIND, Tile, TileKind, inForceFieldRange, isDeadlyTile, isTileKind } from './tiles.js';
+import { FIRST_OF_KIND, Tile, TileKind, inForceFieldRange, isDeadlyTile, isTileKind } from './tiles.js';
 import { inScreen, random, toSubpixels } from './utils.js';
-
-/** @type {{kind: string, type: number, speed: number}[]} The tile kinds that become animated tiles in a level. */
-const ANIMATED_KINDS = [
-	{ kind: TileKind.PLASMA_DOOR, type: RANDOM, speed: 6 },
-	{ kind: TileKind.SWITCH_DOOR, type: RANDOM, speed: 6 },
-	{ kind: TileKind.WHEEL, type: ORDERED, speed: 15 },
-	{ kind: TileKind.ACID, type: ORDERED, speed: 15 },
-	{ kind: TileKind.ENERGYWALL, type: RANDOM, speed: 6 },
-	{ kind: TileKind.FORCE_FIELD, type: ORDERED, speed: 6 },
-	{ kind: TileKind.BELT_RIGHT, type: ORDERED, speed: 10 },
-	{ kind: TileKind.BELT_LEFT, type: ORDERED, speed: 10 },
-];
 
 /** @type {Object<string, typeof sfx_field>} The sound of the opening and the closing doors, by door kind. */
 const DOOR_SOUNDS = { [TileKind.SWITCH_DOOR]: sfx_field, [TileKind.PLASMA_DOOR]: sfx_plasmaField };
+
+/** @typedef {import('./entities/Crate.js').Crate} Crate */
+/** @typedef {import('./entities/Platform.js').Platform} Platform */
 
 /**
  * A solid thing at a point: a tile id, a crate or a platform. The tile id Tile.EMPTY means that nothing solid is there.
@@ -193,7 +176,7 @@ export class World {
 		world.phase.transition = transition;
 		if (level.fromBelow) world.#jumpInFromBelow();
 		world.boss = level.boss ? new Boss(world, level.boss) : null;
-		world.#parse({ levelStart: true, boss: level.boss });
+		world.#loadObjects({ levelStart: true, boss: level.boss });
 		world.camera = new Camera(world, world.player.x, world.player.y);
 		world.cakesLeft = world.cakes.length;
 		if (world.cakesLeft === 0) world.openExit();
@@ -215,7 +198,7 @@ export class World {
 	 */
 	static forPreview(level) {
 		const world = new World(new TileMap(level.tiles));
-		world.#parse();
+		world.#loadObjects();
 		if (level.fromBelow) world.#jumpInFromBelow();
 		world.boss = level.boss ? new Boss(world, level.boss) : null;
 		world.cakesLeft = world.cakes.length;
@@ -251,7 +234,7 @@ export class World {
 		this.player = new Player(this);
 		this.player.x = -toSubpixels(TILE_SIZE);
 		this.phase.reset();
-		this.#parse({ editor: true });
+		this.#loadObjects({ editor: true });
 	}
 
 	/**
@@ -529,124 +512,42 @@ export class World {
 	}
 
 	/**
-	 * Create the objects of the map at their start positions. The method sets the position of the player when the
-	 * map has a player start tile. Without options, the method prepares a preview: the logic layer stays the same, the
-	 * display layer shows the closed exits, and the tube tile is the tube of the boss.
+	 * Create the objects of the map at their start positions and put them into the World. The method sets the position
+	 * of the player and of the tube when the map has their tiles. Each plasma launch of a level start starts a plasma
+	 * ball in a level without a boss. In the levels of boss 3 and boss 4, the plasma launch is the start point of the
+	 * plasma shots of the boss.
 	 *
 	 * @param {object} [options] The options.
-	 * @param {boolean} [options.levelStart] True for a level start: the object tiles leave the map, the gravitational
-	 *     pipes block their tiles, the exits close, and the animated tiles and the plasma balls start. In the levels of
-	 *     boss 3 and boss 4, the plasma start tile is the start point of the plasma shots of the boss.
-	 * @param {boolean} [options.editor] True for the editor map: both layers stay the same, and the tube tile is a
-	 *     tile of the map.
+	 * @param {boolean} [options.levelStart] True for a level start, see createObjects().
+	 * @param {boolean} [options.editor] True for the editor map, see createObjects().
 	 * @param {number} [options.boss] The boss of the level, or 0 for a level without a boss.
 	 * @returns {void}
 	 */
-	#parse({ levelStart = false, editor = false, boss = 0 } = {}) {
-		this.cakes = [];
-		this.turrets = [];
-		this.crates = [];
-		this.gravPipes = [];
+	#loadObjects({ levelStart = false, editor = false, boss = 0 } = {}) {
+		const objects = createObjects(this, { levelStart, editor });
+		this.cakes = objects.cakes;
+		this.turrets = objects.turrets;
+		this.crates = objects.crates;
+		this.gravPipes = objects.gravPipes;
 		this.gravPipeFields = [];
-		this.platforms = [];
-
-		const map = this.map;
-		for (const [i, tile] of map.tiles.entries()) {
-			const x = map.column(i);
-			const y = map.row(i);
-			const animated = levelStart ? ANIMATED_KINDS.find((entry) => isTileKind(tile, entry.kind)) : undefined;
-
-			if (tile in GRAVPIPE_DIRECTIONS) {
-				const dir = GRAVPIPE_DIRECTIONS[tile];
-				this.gravPipes.push(new GravPipe(this, toSubpixels(x * TILE_SIZE), toSubpixels(y * TILE_SIZE), dir));
-				if (levelStart) {
-					// a gravitational pipe covers two tiles
-					const next = dir === Direction.RIGHT || dir === Direction.LEFT ? map.index(x, y + 1) : map.index(x + 1, y);
-					map.setTile(i, Tile.GRAVPIPE_BLOCK);
-					map.setTile(next, Tile.GRAVPIPE_BLOCK);
-					map.setDisplay(i, Tile.EMPTY);
-					map.setDisplay(next, Tile.EMPTY);
-				}
-				continue;
-			}
-			if (tile === Tile.EXIT) {
-				if (levelStart) map.setTile(i, Tile.EXIT_CLOSED);
-				if (!editor) map.setDisplay(i, Tile.EXIT_CLOSED);
-				continue;
-			}
-			if (animated) {
-				map.setDisplay(i, Tile.EMPTY);
-				this.animatedTiles.push(
-					new AnimatedTile(
-						this,
-						x,
-						y,
-						FIRST_OF_KIND[animated.kind],
-						LAST_OF_KIND[animated.kind],
-						animated.type,
-						i,
-						animated.speed,
-					),
-				);
-				continue;
-			}
-
-			const px = toSubpixels(x * TILE_SIZE);
-			const py = toSubpixels(y * TILE_SIZE);
-			switch (tile) {
-				case Tile.CAKE:
-					this.cakes.push(new Cake(this, px, py));
-					if (levelStart) map.setTile(i, Tile.EMPTY);
-					break;
-				case Tile.TURRET_LEFT:
-				case Tile.TURRET_RIGHT:
-					if (levelStart) map.set(i, Tile.EMPTY);
-					this.turrets.push(new Turret(this, px, py, tile === Tile.TURRET_LEFT ? -1 : 1));
-					break;
-				case Tile.CRATE:
-					if (levelStart) map.set(i, Tile.EMPTY);
-					this.crates.push(new Crate(this, px, py));
-					break;
-				case Tile.PLAYER_START:
-					this.player.x = px;
-					this.player.y = py;
-					if (levelStart) map.setTile(i, Tile.EMPTY);
-					break;
-				case Tile.PLATFORM_RIGHT:
-				case Tile.PLATFORM_LEFT:
-					this.platforms.push(new Platform(this, px, py, tile === Tile.PLATFORM_RIGHT ? 256 : -256, 0));
-					if (levelStart) map.setTile(i, Tile.EMPTY);
-					break;
-				case Tile.TUBE:
-					if (editor) break;
-					this.tubeX = px;
-					this.tubeY = py;
-					if (levelStart) map.set(i, Tile.EMPTY);
-					break;
-				case Tile.PLASMA_START:
-					if (levelStart) this.#placePlasma(x, y, boss);
-					break;
-			}
+		this.platforms = objects.platforms;
+		this.animatedTiles = objects.animatedTiles;
+		if (objects.playerStart) {
+			this.player.x = objects.playerStart.x;
+			this.player.y = objects.playerStart.y;
 		}
-	}
+		if (objects.tube) {
+			this.tubeX = objects.tube.x;
+			this.tubeY = objects.tube.y;
+		}
 
-	/**
-	 * Start the plasma ball at the plasma start of a level without a boss. In the boss levels 3 and 4, the plasma start
-	 * is the start point of the plasma shots of the boss.
-	 *
-	 * @param {number} x The column of the plasma start.
-	 * @param {number} y The row of the plasma start.
-	 * @param {number} boss The boss of the level, or 0 for a level without a boss.
-	 * @returns {void}
-	 */
-	#placePlasma(x, y, boss) {
-		const launch = plasmaLaunch(this.map, x, y);
-		if (!launch) return;
-		if (boss === 0) {
-			this.plasmaBall.push(new Plasma(this, launch.x, launch.y, launch.vx, launch.vy));
-		} else if (boss === 3 || boss === 4) {
-			this.plasmaX = launch.x;
-			this.plasmaY = launch.y;
+		for (const launch of objects.plasmaLaunches) {
+			if (boss === 0) {
+				this.plasmaBall.push(new Plasma(this, launch.x, launch.y, launch.vx, launch.vy));
+			} else if (boss === 3 || boss === 4) {
+				this.plasmaX = launch.x;
+				this.plasmaY = launch.y;
+			}
 		}
 	}
 

@@ -3,7 +3,7 @@
  */
 
 import { playSound, sfx_transition } from './audio.js';
-import { FADE_START, Transition } from './constants.js';
+import { FADE_START, LevelPhase, Transition } from './constants.js';
 import { stopPlayingLevel, updateLevelEditor } from './editor.js';
 import { animateTiles } from './entities/AnimatedTile.js';
 import { updateCakes } from './entities/Cake.js';
@@ -41,7 +41,7 @@ export function tick() {
  * @returns {void}
  */
 function updateLevel() {
-	if (!atExit() && game.isRunning()) {
+	if (game.isRunning()) {
 		if (game.time == 0) unclick();
 		game.time++;
 	}
@@ -54,21 +54,19 @@ function updateLevel() {
 	manageDoors();
 	if (atExit()) {
 		updateLevelEnd();
-	} else {
-		if (game.isOpening()) {
-			game.fadeNextLevel -= 4;
-		}
-		if (game.fadeNextLevel <= 0) {
-			game.fadeNextLevel = -1;
-		}
+	} else if (game.isOpening()) {
+		game.fade -= 4;
+		if (game.fade <= 0) game.phase = LevelPhase.RUNNING;
+	} else if (game.isHalted()) {
+		game.phase = LevelPhase.RUNNING;
 	}
 
 	if ((isWaiting() || game.boss?.entering) && game.isRunning()) {
-		game.fadeNextLevel = 0;
+		game.phase = LevelPhase.HALTED;
 	}
 	updateObjects();
 	game.boss?.update();
-	if (!atExit()) updateEvents();
+	if (!game.reachedExit()) updateEvents();
 }
 
 /**
@@ -84,10 +82,13 @@ function updateLevelEnd() {
 	game.shakeX = 0;
 	game.shakeY = 0;
 
+	// the player starts on the open exit: the opening transition continues as the closing transition
+	if (game.isOpening()) game.phase = LevelPhase.CLOSING;
 	if (game.isClosing()) {
-		game.fadeNextLevel -= 4;
-		if (game.fadeNextLevel <= 0) {
-			game.fadeNextLevel = 0;
+		game.fade -= 4;
+		if (game.fade <= 0) {
+			game.fade = 0;
+			game.phase = LevelPhase.ENDED;
 			if (ui.mode == 'test') {
 				stopPlayingLevel();
 				return;
@@ -99,8 +100,12 @@ function updateLevelEnd() {
 	if (game.isRunning() || isWaiting()) {
 		triggerEvents('exit');
 		updateEvents();
-		if (isWaiting()) return;
-		game.fadeNextLevel = FADE_START;
+		if (isWaiting()) {
+			game.phase = LevelPhase.EXIT_WAIT;
+			return;
+		}
+		game.phase = LevelPhase.CLOSING;
+		game.fade = FADE_START;
 		ui.transition = random(Transition.TOP_LEFT, Transition.SQUARE + 1);
 		playSound(sfx_transition);
 		game.message = null;

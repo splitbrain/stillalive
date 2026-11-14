@@ -16,7 +16,6 @@ import {
 	MOUSE_RIGHT,
 } from './constants.js';
 import { stopPlayingLevel } from './editor.js';
-import { atExit } from './physics.js';
 import { game, input, ui } from './state.js';
 
 /**
@@ -61,7 +60,7 @@ let stage;
  * @returns {boolean} True in a level before its end.
  */
 export function canPause() {
-	return ui.mode == 'play' && !atExit();
+	return ui.mode == 'play' && !game.reachedExit();
 }
 
 /**

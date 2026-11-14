@@ -4,7 +4,7 @@
  * The event objects of the level file are shared with the campaign data. This module keeps the state of the events.
  */
 
-import { Direction, TILE_SIZE, TILE_SIZE_BITS } from './constants.js';
+import { Direction, LevelPhase, TILE_SIZE, TILE_SIZE_BITS } from './constants.js';
 import { createPortalGlow } from './entities/Sparkle.js';
 import { unclick } from './inputState.js';
 import { keyLabels } from './keys.js';
@@ -91,7 +91,7 @@ function endWait() {
  * @returns {void}
  */
 export function updateEvents() {
-	if (waiting !== null && game.isHalted() && input.mouseNewPress) {
+	if (waiting !== null && (game.isHalted() || game.isExitWait()) && input.mouseNewPress) {
 		endWait();
 		unclick();
 	}
@@ -144,7 +144,7 @@ function fire(event) {
 	if (!event.wait) return;
 	waiting = event;
 	// stop the level time from the next tick on
-	if (game.isRunning()) game.fadeNextLevel = 0;
+	if (game.isRunning()) game.phase = LevelPhase.HALTED;
 }
 
 /**

@@ -2,7 +2,7 @@
  * The shared state of the stage.
  */
 
-import { FADE_START, Transition } from './constants.js';
+import { FADE_START, LevelPhase, Transition } from './constants.js';
 
 /** @type {object} The state of the current level. */
 export const game = {
@@ -83,12 +83,10 @@ export const game = {
 	message: null,
 	/** @type {import('./level.js').Level} The level that runs. */
 	level: undefined,
-	/**
-	 * @type {number} The phase of the level. -1 while the level runs. At the level start and the level end it counts
-	 *     down from FADE_START during the transition. 0 while the level time stands still and in the exit freeze after
-	 *     the level end.
-	 */
-	fadeNextLevel: undefined,
+	/** @type {number} The phase of the level, a value of LevelPhase. */
+	phase: undefined,
+	/** @type {number} The progress of the opening and the closing transition, from FADE_START down to 0. */
+	fade: undefined,
 	/** @type {number} 1 while the player or a crate holds a switch and the switch doors are open. */
 	switchPressed: undefined,
 
@@ -98,7 +96,8 @@ export const game = {
 	 * @returns {void}
 	 */
 	resetPhase() {
-		this.fadeNextLevel = FADE_START;
+		this.phase = LevelPhase.OPENING;
+		this.fade = FADE_START;
 	},
 
 	/**
@@ -107,47 +106,61 @@ export const game = {
 	 * @returns {boolean} True while the level runs.
 	 */
 	isRunning() {
-		return this.fadeNextLevel == -1;
+		return this.phase == LevelPhase.RUNNING;
 	},
 
 	/**
-	 * Check if the level time stands still while an event waits for a click or the boss comes in. The exit freeze
-	 * after the level end has the same counter value, so a caller that must tell the two apart checks atExit().
+	 * Check if the level time stands still while an event waits for a click or the boss comes in.
 	 *
-	 * @returns {boolean} True while the level time stands still.
+	 * @returns {boolean} True while the level is halted.
 	 */
 	isHalted() {
-		return this.fadeNextLevel == 0;
+		return this.phase == LevelPhase.HALTED;
 	},
 
 	/**
-	 * Check if the opening transition of the level runs. The closing transition has the same counter values, so a
-	 * caller that must tell the two apart checks atExit().
+	 * Check if the opening transition of the level runs.
 	 *
 	 * @returns {boolean} True during the opening transition.
 	 */
 	isOpening() {
-		return this.fadeNextLevel > 0;
+		return this.phase == LevelPhase.OPENING;
 	},
 
 	/**
-	 * Check if the closing transition of the level runs. The opening transition has the same counter values, so a
-	 * caller that must tell the two apart checks atExit().
+	 * Check if the player is on the exit and an exit event waits for a click.
+	 *
+	 * @returns {boolean} True while the exit event waits.
+	 */
+	isExitWait() {
+		return this.phase == LevelPhase.EXIT_WAIT;
+	},
+
+	/**
+	 * Check if the closing transition of the level runs.
 	 *
 	 * @returns {boolean} True during the closing transition.
 	 */
 	isClosing() {
-		return this.fadeNextLevel > 0;
+		return this.phase == LevelPhase.CLOSING;
 	},
 
 	/**
-	 * Check if the level is in the exit freeze after the closing transition. A halted level has the same counter
-	 * value, so a caller that must tell the two apart checks atExit().
+	 * Check if the level is in the exit freeze after the closing transition.
 	 *
 	 * @returns {boolean} True in the exit freeze.
 	 */
 	isEnded() {
-		return this.fadeNextLevel == 0;
+		return this.phase == LevelPhase.ENDED;
+	},
+
+	/**
+	 * Check if the player reached the exit and the level end runs.
+	 *
+	 * @returns {boolean} True in the phases EXIT_WAIT, CLOSING and ENDED.
+	 */
+	reachedExit() {
+		return this.isExitWait() || this.isClosing() || this.isEnded();
 	},
 };
 

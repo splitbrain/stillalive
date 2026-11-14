@@ -5,25 +5,22 @@
 import { ctx } from '../canvas.js';
 import { FADE_START, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, Transition } from '../constants.js';
 import { linesHoriz, linesVerti } from '../images.js';
-import { atExit } from '../physics.js';
 import { game, ui } from '../state.js';
 
 /**
- * Draw the transition at the end of a level or at its start, with the progress of the fade of the level. In the
- * exit freeze after the level end, the playfield is black.
+ * Draw the transition of the level phase with the progress of the fade. While an exit event waits and in the exit
+ * freeze after the level end, the playfield is black.
  *
  * @returns {void}
  */
 export function drawTransition() {
-	if (atExit()) {
-		if (game.isClosing()) {
-			drawClosingTransition();
-		} else if (game.isEnded()) {
-			ctx.fillStyle = 'rgb(0, 0, 0)';
-			ctx.fillRect(0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
-		}
-	} else if (game.isOpening()) {
+	if (game.isOpening()) {
 		drawOpeningTransition();
+	} else if (game.isClosing()) {
+		drawClosingTransition();
+	} else if (game.isExitWait() || game.isEnded()) {
+		ctx.fillStyle = 'rgb(0, 0, 0)';
+		ctx.fillRect(0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 	}
 }
 
@@ -35,7 +32,7 @@ export function drawTransition() {
 function drawClosingTransition() {
 	let lineCount, i;
 	ctx.fillStyle = 'rgb(0, 0, 0)';
-	const scale = 1 - game.fadeNextLevel / FADE_START;
+	const scale = 1 - game.fade / FADE_START;
 	if (ui.transition == Transition.TOP_LEFT) {
 		ctx.fillRect(0, 0, Math.trunc(PLAYFIELD_WIDTH * scale), Math.trunc(PLAYFIELD_HEIGHT * scale));
 	} else if (ui.transition == Transition.LEFT_TO_RIGHT) {
@@ -68,7 +65,7 @@ function drawOpeningTransition() {
 	let lineCount, i;
 	ctx.fillStyle = 'rgb(0, 0, 0)';
 	ctx.strokeStyle = 'rgb(0, 0, 0)';
-	const scale = game.fadeNextLevel / FADE_START;
+	const scale = game.fade / FADE_START;
 	const x = PLAYFIELD_WIDTH - Math.trunc(PLAYFIELD_WIDTH * scale);
 	const y = PLAYFIELD_HEIGHT - Math.trunc(PLAYFIELD_HEIGHT * scale);
 

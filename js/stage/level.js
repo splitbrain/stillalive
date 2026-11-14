@@ -449,7 +449,6 @@ export function loadEditorObjects() {
 	game.player = new Player();
 	game.player.x = -(TILE_SIZE << 8);
 	game.resetPhase();
-	game.fadeNextLevel = 0;
 	parseObjects('editor');
 }
 

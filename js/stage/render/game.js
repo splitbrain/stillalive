@@ -36,7 +36,6 @@ import {
 	turretImages,
 } from '../images.js';
 import { drawBoss } from './boss.js';
-import { atExit } from '../physics.js';
 import { drawTransition } from './transitions.js';
 import { game, input, ui } from '../state.js';
 import { degToRad, getAngle, radToDeg, random } from '../utils.js';
@@ -243,7 +242,7 @@ export function drawLevel() {
 		ctx.fillRect(0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 	}
 
-	if (!game.isRunning()) drawTransition();
+	drawTransition();
 
 	drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
 }
@@ -254,7 +253,7 @@ export function drawLevel() {
  * @returns {void}
  */
 function drawLabels() {
-	if (atExit() || game.isOpening()) return;
+	if (!game.isRunning() && !game.isHalted()) return;
 	ctx.save();
 	ctx.font = LABEL_FONT;
 	ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';

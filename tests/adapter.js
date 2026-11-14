@@ -495,7 +495,7 @@ export async function runLevel(
 				}
 			}
 			t.endReplay();
-			return lines.join('\n') + '\n';
+			return `${lines.join('\n')}\n`;
 		},
 		{ campaign, level, ticks, seed, inputs, replay, skipBossIntro, interval: SNAPSHOT_INTERVAL },
 	);
@@ -600,6 +600,6 @@ export async function runPortalScene(page, scene) {
 			const pick = (e) => (e ? [e.x, e.y, e.vx, e.vy] : null);
 			lines.push(JSON.stringify([tick, pick(obj), pick(t.world().player)]));
 		}
-		return lines.join('\n') + '\n';
+		return `${lines.join('\n')}\n`;
 	}, scene);
 }

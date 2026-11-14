@@ -6,10 +6,8 @@ import { loadImage } from './assets.js';
 import { NUM_TILES } from './constants.js';
 import { random } from './utils.js';
 
-/** @type {number[]} The random order of the rows for the line transitions. */
-export let linesHoriz;
-/** @type {number[]} The random order of the columns for the line transitions. */
-export let linesVerti;
+/** @type {number[]} The random order of the rows and of the columns for the line transitions. */
+export let lineOrder;
 /** @type {HTMLImageElement} The security camera. */
 export let cameraFollow;
 /** @type {HTMLImageElement[]} The eye of the robot, one image for each boss. */
@@ -59,71 +57,34 @@ export let tileset;
  * @returns {void}
  */
 export function loadGfx() {
-	let i, t, r;
-	body = loadImage('gfx/sprites/body.svg');
+	const sprite = (name) => loadImage(`gfx/sprites/${name}.svg`);
 
-	head = loadImage('gfx/sprites/head.svg');
+	body = sprite('body');
+	head = sprite('head');
+	crosshair = sprite('crosshair');
+	bluePortal = sprite('bluePortal');
+	redPortal = sprite('redPortal');
 
-	crosshair = loadImage('gfx/sprites/crosshair.svg');
-
-	bluePortal = loadImage('gfx/sprites/bluePortal.svg');
-
-	redPortal = loadImage('gfx/sprites/redPortal.svg');
-
-	linesHoriz = new Array();
-	linesVerti = new Array();
-	for (i = 0; i < 128; i++) {
-		do {
-			r = random(0, 128);
-		} while (linesHoriz.includes(r));
-		linesHoriz.push(r);
-		linesVerti.push(r);
+	lineOrder = [];
+	while (lineOrder.length < 128) {
+		const line = random(0, 128);
+		if (!lineOrder.includes(line)) lineOrder.push(line);
 	}
 
-	bg = new Array();
-	for (i = 1; i < 12; i++) {
-		const img = loadImage('gfx/backgrounds/level' + i + '.svg');
-		bg.push(img);
-	}
-
-	tube = loadImage('gfx/sprites/tube.svg');
-
-	tube2 = loadImage('gfx/sprites/tube2.svg');
-
-	gravPipe = loadImage('gfx/sprites/gravpipe.svg');
-
-	gravPipe2 = loadImage('gfx/sprites/gravpipe2.svg');
-
-	crateImage = loadImage('gfx/sprites/crate.svg');
-
-	turretImages = new Array();
-	for (i = 0; i < 2; i++) {
-		t = loadImage('gfx/sprites/turret' + i + '.svg');
-		turretImages.push(t);
-	}
-
-	sparkle = loadImage('gfx/sprites/sparkle.svg');
-
-	cake = loadImage('gfx/sprites/cake.svg');
-
-	portalGun = loadImage('gfx/sprites/portalGun.svg');
-
-	cameraFollow = loadImage('gfx/sprites/cameraFollow.svg');
-
-	robotEye = new Array();
-	for (let rob = 1; rob < 5; rob++) {
-		r = loadImage('gfx/sprites/robotEye' + rob + '.svg');
-		robotEye.push(r);
-	}
-
-	robotHead = loadImage('gfx/sprites/robotHead.svg');
-
-	plasma = loadImage('gfx/sprites/plasma.svg');
-
-	platform = loadImage('gfx/sprites/platform.svg');
-
-	tileset = new Array();
-	for (i = 0; i < NUM_TILES; i++) {
-		tileset[i] = loadImage('gfx/tiles/tile_' + i + '.svg');
-	}
+	bg = Array.from({ length: 11 }, (_, i) => loadImage(`gfx/backgrounds/level${i + 1}.svg`));
+	tube = sprite('tube');
+	tube2 = sprite('tube2');
+	gravPipe = sprite('gravpipe');
+	gravPipe2 = sprite('gravpipe2');
+	crateImage = sprite('crate');
+	turretImages = [sprite('turret0'), sprite('turret1')];
+	sparkle = sprite('sparkle');
+	cake = sprite('cake');
+	portalGun = sprite('portalGun');
+	cameraFollow = sprite('cameraFollow');
+	robotEye = [1, 2, 3, 4].map((boss) => sprite(`robotEye${boss}`));
+	robotHead = sprite('robotHead');
+	plasma = sprite('plasma');
+	platform = sprite('platform');
+	tileset = Array.from({ length: NUM_TILES }, (_, id) => loadImage(`gfx/tiles/tile_${id}.svg`));
 }

@@ -82,7 +82,7 @@ export class EditorFiles extends SelectionScreen {
 		if (mode == 'load') {
 			if (stored == null || !(await confirmReplaceMap(this.stage))) return;
 		} else if (mode == 'save') {
-			const question = 'Slot ' + slot + ' contains a map. Do you want to overwrite it?';
+			const question = `Slot ${slot} contains a map. Do you want to overwrite it?`;
 			if (stored != null && !(await confirmOnScreen(question, 'Save map'))) return;
 		} else {
 			return;

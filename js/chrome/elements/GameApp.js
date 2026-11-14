@@ -367,7 +367,7 @@ export class GameApp extends ChromeElement {
 	 */
 	async #checkBestTime(r, time, replay) {
 		const best = getBestTime(r.campaign, r.level);
-		if (best != null && best <= time) return 'Best time: ' + toTime(best);
+		if (best != null && best <= time) return `Best time: ${toTime(best)}`;
 
 		try {
 			await saveBestTime(r.campaign, r.level, time, replay);
@@ -428,7 +428,7 @@ export class GameApp extends ChromeElement {
 		const r = route.get();
 		if (r.name != 'play') return;
 		alertDialog(
-			"The replay you're watching seems to be broken -_-;\n" + 'Sorry for the inconvenience.',
+			"The replay you're watching seems to be broken -_-;\nSorry for the inconvenience.",
 			'An error occurred',
 		);
 		up(campaignPath(r.campaign, r.level));

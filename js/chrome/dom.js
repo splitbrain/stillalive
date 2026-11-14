@@ -36,7 +36,7 @@ export function setLink(link, path) {
  * @returns {string} The label, e.g. "Sounds: On".
  */
 export function settingLabel(name, on) {
-	return name + ': ' + (on ? 'On' : 'Off');
+	return `${name}: ${on ? 'On' : 'Off'}`;
 }
 
 /**

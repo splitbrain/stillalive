@@ -22,7 +22,7 @@ export class MenuButton extends ChromeElement {
 	 */
 	setUp() {
 		for (let n = 1; n <= SKEW_PROPERTIES; n++) {
-			this.style.setProperty('--skew-' + n, Math.random().toFixed(2));
+			this.style.setProperty(`--skew-${n}`, Math.random().toFixed(2));
 		}
 	}
 }

@@ -74,6 +74,15 @@ export class Campaign {
 	}
 
 	/**
+	 * Get the number of levels that are there.
+	 *
+	 * @returns {number} The number of levels that are not null.
+	 */
+	get levelCount() {
+		return this.levels.filter((level) => level != null).length;
+	}
+
+	/**
 	 * Check if a level can be played: the level is there, and the player has unlocked it.
 	 *
 	 * @param {number} level The level number.
@@ -207,15 +216,13 @@ export function listCampaigns() {
  * @returns {void}
  */
 function loadCampaignFiles(camp) {
-	const folder = 'maps/' + campaigns[camp].folder + '/';
-	loadLevelJsonFile(folder + 'campaign.json', function (data) {
+	const folder = `maps/${campaigns[camp].folder}`;
+	loadLevelJsonFile(`${folder}/campaign.json`, function (data) {
 		if (typeof data.title == 'string') campaigns[camp].title = data.title;
 		campaigns[camp].sort = Number.isFinite(data.sort) ? data.sort : 0;
 		campaigns[camp].parent = typeof data.parent == 'string' ? data.parent : '';
 		levelsToLoad += data.levels.length;
-		for (let i = 0; i < data.levels.length; i++) {
-			loadLevelFile(camp, i, folder + data.levels[i]);
-		}
+		for (const [i, file] of data.levels.entries()) loadLevelFile(camp, i, `${folder}/${file}`);
 		fileLoaded();
 	});
 }
@@ -287,7 +294,7 @@ function loadLevelJsonFile(url, callback) {
 function loadJsonFile(url, callback, onError = () => {}) {
 	fetch(url, { cache: 'no-cache' })
 		.then(function (response) {
-			if (!response.ok) throw new Error(url + ': ' + response.status);
+			if (!response.ok) throw new Error(`${url}: ${response.status}`);
 			return response.json();
 		})
 		.then(callback)

@@ -52,7 +52,7 @@ export class SlotList extends ChromeElement {
 		for (let n = 1; n <= LEVELS_PER_CAMPAIGN; n++) {
 			const stored = editorMap(n).get() != null;
 			const button = document.createElement('button');
-			button.textContent = stored ? 'Slot ' + n : 'Empty';
+			button.textContent = stored ? `Slot ${n}` : 'Empty';
 			button.dataset.choice = String(n);
 			button.disabled = loading && !stored;
 			const menuButton = document.createElement('menu-button');

@@ -4,7 +4,7 @@
 
 import { ctx } from '../canvas.js';
 import { FADE_START, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, Transition } from '../constants.js';
-import { linesHoriz, linesVerti } from '../images.js';
+import { lineOrder } from '../images.js';
 
 /**
  * Draw the transition of the level phase with the progress of the fade. While an exit event waits and in the exit
@@ -45,15 +45,15 @@ function drawClosingTransition(world) {
 			ctx.fillRect(0, 0, PLAYFIELD_WIDTH, Math.trunc(PLAYFIELD_HEIGHT * scale));
 			break;
 		case Transition.HORIZONTAL_LINES:
-			lineCount = Math.round(scale * linesHoriz.length);
+			lineCount = Math.round(scale * lineOrder.length);
 			for (i = 0; i < lineCount; i++) {
-				ctx.fillRect(0, linesHoriz[i] * 3, PLAYFIELD_WIDTH, 3);
+				ctx.fillRect(0, lineOrder[i] * 3, PLAYFIELD_WIDTH, 3);
 			}
 			break;
 		case Transition.VERTICAL_LINES:
-			lineCount = Math.round(scale * linesVerti.length);
+			lineCount = Math.round(scale * lineOrder.length);
 			for (i = 0; i < lineCount; i++) {
-				ctx.fillRect(linesVerti[i] * 4, 0, 6, PLAYFIELD_HEIGHT);
+				ctx.fillRect(lineOrder[i] * 4, 0, 6, PLAYFIELD_HEIGHT);
 			}
 			break;
 		case Transition.SQUARE: {
@@ -90,15 +90,15 @@ function drawOpeningTransition(world) {
 			ctx.fillRect(0, y, PLAYFIELD_WIDTH, Math.trunc(PLAYFIELD_HEIGHT * scale));
 			break;
 		case Transition.HORIZONTAL_LINES:
-			lineCount = Math.round(scale * linesHoriz.length);
+			lineCount = Math.round(scale * lineOrder.length);
 			for (i = 0; i < lineCount; i++) {
-				ctx.fillRect(0, linesHoriz[i] * 3, PLAYFIELD_WIDTH, 5);
+				ctx.fillRect(0, lineOrder[i] * 3, PLAYFIELD_WIDTH, 5);
 			}
 			break;
 		case Transition.VERTICAL_LINES:
-			lineCount = Math.round(scale * linesVerti.length);
+			lineCount = Math.round(scale * lineOrder.length);
 			for (i = 0; i < lineCount; i++) {
-				ctx.fillRect(linesVerti[i] * 4, 0, 6, PLAYFIELD_HEIGHT);
+				ctx.fillRect(lineOrder[i] * 4, 0, 6, PLAYFIELD_HEIGHT);
 			}
 			break;
 		case Transition.SQUARE:

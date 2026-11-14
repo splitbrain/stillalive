@@ -41,7 +41,7 @@ export class IntermissionPanel extends ChromeScreen {
 	 * @returns {void}
 	 */
 	render() {
-		this.querySelector('.time').textContent = 'Your time: ' + toTime(Number(this.getAttribute('time') ?? 0));
+		this.querySelector('.time').textContent = `Your time: ${toTime(Number(this.getAttribute('time') ?? 0))}`;
 		this.querySelector('.message').textContent = this.getAttribute('message') ?? '';
 		setLink(this.querySelector('.exit'), this.getAttribute('exit'));
 		setLink(this.querySelector('.restart'), this.getAttribute('restart'));

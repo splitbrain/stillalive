@@ -96,7 +96,7 @@ export class MainMenu extends ChromeScreen {
 	 */
 	#createItem(campaign, small = false) {
 		const count = document.createElement('span');
-		count.textContent = campaign.completed + '/' + campaign.levels.filter((level) => level != null).length;
+		count.textContent = `${campaign.completed}/${campaign.levelCount}`;
 		const link = document.createElement('a');
 		link.href = campaignPath(campaign.folder);
 		link.append(campaign.title, ' ', count);

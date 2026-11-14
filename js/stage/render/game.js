@@ -243,8 +243,7 @@ export function drawLevel(world, input, labelLayouts) {
 	drawLabels(world, labelLayouts);
 
 	if (world.player.dead) {
-		const a = -(world.player.life / 256);
-		ctx.fillStyle = 'rgba(0, 0, 0,' + (1 - a) + ')';
+		ctx.fillStyle = `rgba(0, 0, 0, ${1 + world.player.life / 256})`;
 		ctx.fillRect(0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 	}
 

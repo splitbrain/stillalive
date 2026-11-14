@@ -67,10 +67,10 @@ export class LevelSelection extends SelectionScreen {
 		const folder = campaign.folder;
 		const title = campaign.levels[level - 1]?.title ?? '';
 		const best = getBestTime(folder, level);
-		this.querySelector('.title').textContent = title || 'Level ' + level;
+		this.querySelector('.title').textContent = title || `Level ${level}`;
 		const number = this.querySelector('.number');
 		number.hidden = title === '';
-		number.textContent = 'Level ' + level;
+		number.textContent = `Level ${level}`;
 		this.querySelector('.best span').textContent = best === null ? '-' : toTime(best);
 		this.querySelector('.play').setAttribute('href', campaignPath(folder, level, 'play'));
 		const replay = this.querySelector('.replay');

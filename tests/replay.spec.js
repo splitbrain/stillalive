@@ -39,7 +39,7 @@ for (const campaign of CAMPAIGNS) {
 					level,
 					ticks: TICKS,
 					seed: hashString(`replay ${id}`),
-					inputs: generateInputs(hashString(`replay inputs ${id}` + (attempt ? ` ${attempt}` : '')), TICKS),
+					inputs: generateInputs(hashString(attempt ? `replay inputs ${id} ${attempt}` : `replay inputs ${id}`), TICKS),
 					// a replay skips the boss intro, so the played run skips it too
 					skipBossIntro: isBoss,
 				});

@@ -142,10 +142,8 @@ document.addEventListener('click', (event) => {
  * @returns {string} The path, e.g. "#/campaign/normal/5/play".
  */
 export function campaignPath(campaign, level = 0, mode = null) {
-	let path = '#/campaign/' + campaign;
-	if (level > 0) path += '/' + level;
-	if (level > 0 && mode) path += '/' + mode;
-	return path;
+	const parts = level > 0 ? [campaign, level, mode] : [campaign];
+	return ['#/campaign', ...parts.filter(Boolean)].join('/');
 }
 
 /**

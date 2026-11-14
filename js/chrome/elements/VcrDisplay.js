@@ -4,23 +4,10 @@
 
 import { isReplayRoute } from '../../router.js';
 import { ChromeScreen, loadMarkup, Screen } from '../element.js';
+import { toTimeCode } from '../time.js';
 
 /** @type {HTMLTemplateElement|null} The markup of the VCR display. */
 const TEMPLATE = await loadMarkup(import.meta.url);
-
-/**
- * Format a level time as the time code of a VCR.
- *
- * @param {number} time The time in ticks of 1/60 second.
- * @returns {string} The time as hours, minutes and seconds, e.g. "0:01:23".
- */
-function toTimeCode(time) {
-	const seconds = Math.floor(time / 60);
-	const h = Math.floor(seconds / 3600);
-	const m = Math.floor(seconds / 60) % 60;
-	const s = seconds % 60;
-	return h + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
-}
 
 /**
  * The custom element <vcr-display>. In the playback of a replay, it shows the mode of the playback and the time code
@@ -44,7 +31,7 @@ export class VcrDisplay extends ChromeScreen {
 			const speed = stage.speed.get();
 			if (stage.paused.get()) mode.dataset.mode = 'pause';
 			else mode.dataset.mode = speed > 1 ? 'fast' : 'play';
-			label.textContent = { pause: 'PAUSE', fast: speed + 'x', play: 'PLAY' }[mode.dataset.mode];
+			label.textContent = { pause: 'PAUSE', fast: `${speed}x`, play: 'PLAY' }[mode.dataset.mode];
 		};
 		return [
 			stage.speed.subscribe(showMode),

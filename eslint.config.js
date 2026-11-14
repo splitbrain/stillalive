@@ -79,6 +79,12 @@ const STAGE_ZONES = [
 export default [
 	js.configs.recommended,
 	{
+		rules: {
+			'no-useless-concat': 'error',
+			'prefer-template': 'error',
+		},
+	},
+	{
 		files: ['js/**/*.js'],
 		plugins: { 'import-x': importX },
 		languageOptions: {

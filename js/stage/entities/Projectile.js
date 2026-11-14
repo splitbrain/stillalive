@@ -5,8 +5,6 @@
 import { Body } from './Body.js';
 import { playSound, sfx_bladeStick } from '../audio.js';
 import { TILE_SIZE } from '../constants.js';
-import { anyCrateAt } from './Crate.js';
-import { getTile } from '../physics.js';
 import { game } from '../state.js';
 import { FIRST_OF_KIND, LAST_OF_KIND, TileKind } from '../tiles.js';
 
@@ -48,7 +46,7 @@ export class Projectile extends Body {
 				if (++this.img > LAST_OF_KIND[TileKind.WHEEL]) this.img = FIRST_OF_KIND[TileKind.WHEEL];
 			}
 
-			const t = getTile((this.x >> 8) + TILE_SIZE / 2, (this.y >> 8) + TILE_SIZE / 2);
+			const t = game.getTile((this.x >> 8) + TILE_SIZE / 2, (this.y >> 8) + TILE_SIZE / 2);
 
 			if (t) {
 				this.needKill = true;
@@ -57,10 +55,10 @@ export class Projectile extends Body {
 					this.timer = 0;
 				} else playSound(sfx_bladeStick);
 			} else {
-				if (anyCrateAt(this.x >> 8, this.y >> 8)) this.needKill = true;
-				else if (anyCrateAt((this.x >> 8) + TILE_SIZE, this.y >> 8)) this.needKill = true;
-				else if (anyCrateAt(this.x >> 8, (this.y >> 8) + TILE_SIZE)) this.needKill = true;
-				else if (anyCrateAt((this.x >> 8) + TILE_SIZE, (this.y >> 8) + TILE_SIZE)) this.needKill = true;
+				if (game.anyCrateAt(this.x >> 8, this.y >> 8)) this.needKill = true;
+				else if (game.anyCrateAt((this.x >> 8) + TILE_SIZE, this.y >> 8)) this.needKill = true;
+				else if (game.anyCrateAt(this.x >> 8, (this.y >> 8) + TILE_SIZE)) this.needKill = true;
+				else if (game.anyCrateAt((this.x >> 8) + TILE_SIZE, (this.y >> 8) + TILE_SIZE)) this.needKill = true;
 			}
 		} else {
 			if (--this.timer < 0) this.timer = 0;

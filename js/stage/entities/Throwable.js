@@ -4,8 +4,6 @@
 
 import { Body } from './Body.js';
 import { Direction, GRAVITY, TILE_SIZE } from '../constants.js';
-import { gravPipeFieldsAt } from './GravPipeField.js';
-import { onBelt } from './Platform.js';
 import { checkCollisions, touchingGround } from '../physics.js';
 import { isInPortal, passPortal, portalAt } from '../portals.js';
 import { game, input } from '../state.js';
@@ -135,7 +133,7 @@ export class Throwable extends Body {
 	 */
 	move() {
 		let col, i;
-		const fields = gravPipeFieldsAt(this);
+		const fields = game.gravPipeFieldsAt(this);
 		for (i = 0; i < fields.length; i++) {
 			const field = fields[i];
 			if (field.vx != 0) {
@@ -155,7 +153,7 @@ export class Throwable extends Body {
 			this.enterPipeField();
 		}
 
-		const belt = onBelt(this);
+		const belt = game.onBelt(this);
 		if (belt) {
 			this.x += belt == 3 ? 384 : belt == 4 ? -384 : 0;
 			this.vx = belt == 3 ? 8 : belt == 4 ? -8 : 0;

@@ -3,7 +3,6 @@
  */
 
 import { Direction, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, TILE_SIZE, TILE_SIZE_BITS } from '../constants.js';
-import { getTileWithoutCrates, getTileWithoutObjects } from '../physics.js';
 import { otherPortal, pointInPortal } from '../portals.js';
 import { game } from '../state.js';
 import { Tile } from '../tiles.js';
@@ -35,38 +34,6 @@ class GravPipeField {
 		/** @type {number} The vertical direction of the push, -1, 0 or 1. */
 		this.vy = vy;
 	}
-}
-
-/**
- * Find the pipe fields that an object overlaps.
- *
- * @param {import('./Body.js').Body} obj The object.
- * @returns {GravPipeField[]} The fields.
- */
-export function gravPipeFieldsAt(obj) {
-	let i;
-	const fields = new Array();
-
-	for (i = 0; i < game.gravPipeFields.length; i++) {
-		let x = game.gravPipeFields[i].x;
-		let y = game.gravPipeFields[i].y;
-		let w = game.gravPipeFields[i].w;
-		let h = game.gravPipeFields[i].h;
-
-		if (w < 0) {
-			w = -w;
-			x -= w;
-		} else if (h < 0) {
-			h = -h;
-			y -= h;
-		}
-
-		if (obj.overlapsBox(x, y, w, h)) {
-			fields.push(game.gravPipeFields[i]);
-		}
-	}
-
-	return fields;
 }
 
 /**
@@ -110,15 +77,15 @@ function traceGravPipeField(sx, sy, vx, vy) {
 
 	while (x >= 0 && x < PLAYFIELD_WIDTH && y >= 0 && y < PLAYFIELD_HEIGHT) {
 		if (vx != 0) {
-			tile = getTileWithoutObjects(x, y);
-			if (tile == Tile.EMPTY) tile = getTileWithoutObjects(x, y + TILE_SIZE / 2);
-			if (tile == Tile.EMPTY) tile = getTileWithoutObjects(x, y + TILE_SIZE);
-			if (tile == Tile.EMPTY) tile = getTileWithoutObjects(x, y + 2 * TILE_SIZE - 1);
+			tile = game.getTileWithoutObjects(x, y);
+			if (tile == Tile.EMPTY) tile = game.getTileWithoutObjects(x, y + TILE_SIZE / 2);
+			if (tile == Tile.EMPTY) tile = game.getTileWithoutObjects(x, y + TILE_SIZE);
+			if (tile == Tile.EMPTY) tile = game.getTileWithoutObjects(x, y + 2 * TILE_SIZE - 1);
 		} else if (vy != 0) {
-			tile = getTileWithoutCrates(x, y);
-			if (tile == Tile.EMPTY) tile = getTileWithoutCrates(x + TILE_SIZE / 2, y);
-			if (tile == Tile.EMPTY) tile = getTileWithoutCrates(x + TILE_SIZE, y);
-			if (tile == Tile.EMPTY) tile = getTileWithoutCrates(x + 2 * TILE_SIZE - 1, y);
+			tile = game.getTileWithoutCrates(x, y);
+			if (tile == Tile.EMPTY) tile = game.getTileWithoutCrates(x + TILE_SIZE / 2, y);
+			if (tile == Tile.EMPTY) tile = game.getTileWithoutCrates(x + TILE_SIZE, y);
+			if (tile == Tile.EMPTY) tile = game.getTileWithoutCrates(x + 2 * TILE_SIZE - 1, y);
 		}
 
 		if (tile != Tile.EMPTY) {

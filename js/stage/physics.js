@@ -2,13 +2,10 @@
  * Collision and tile query functions.
  */
 
-import { Direction, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, TILE_SIZE_BITS } from './constants.js';
-import { crateAt } from './entities/Crate.js';
-import { platformAt } from './entities/Platform.js';
+import { Direction, TILE_SIZE_BITS } from './constants.js';
 import { isInPortal } from './portals.js';
 import { game } from './state.js';
-import { FIRST_OF_KIND, inForceFieldRange, isDeadlyTile, isTileKind, Tile, TileKind } from './tiles.js';
-import { inScreen } from './utils.js';
+import { isDeadlyTile, isTileKind, Tile, TileKind } from './tiles.js';
 
 /**
  * Check what an object stands on.
@@ -19,8 +16,8 @@ import { inScreen } from './utils.js';
  */
 export function touchingGround(obj) {
 	if (obj.vy >= 0) {
-		const hit = getTile((obj.x >> 8) + 1, (obj.y >> 8) + obj.pY);
-		const hit2 = getTile((obj.x >> 8) + obj.pX - 1, (obj.y >> 8) + obj.pY);
+		const hit = game.getTile((obj.x >> 8) + 1, (obj.y >> 8) + obj.pY);
+		const hit2 = game.getTile((obj.x >> 8) + obj.pX - 1, (obj.y >> 8) + obj.pY);
 
 		if (isTileKind(hit, TileKind.BELT_RIGHT) || isTileKind(hit2, TileKind.BELT_RIGHT)) return 3;
 		if (isTileKind(hit, TileKind.BELT_LEFT) || isTileKind(hit2, TileKind.BELT_LEFT)) return 4;
@@ -65,111 +62,11 @@ export function touchesDeadlyTile(obj) {
 }
 
 /**
- * Check if objects pass through a tile. The exit, the deadly tiles, the player start and the force fields are not
- * solid.
- *
- * @param {number} tile The tile id.
- * @returns {boolean} True if objects pass the tile.
- */
-function isPassable(tile) {
-	return tile == Tile.EXIT || isDeadlyTile(tile) || tile == Tile.PLAYER_START || inForceFieldRange(tile);
-}
-
-/**
- * A solid thing at a point: a tile id, a crate or a platform. The tile id Tile.EMPTY means that nothing solid is there.
- *
- * @typedef {number|import('./entities/Crate.js').Crate|import('./entities/Platform.js').Platform} Solid
- */
-
-/**
- * Get the solid tile at a point, or the object at the point where the map is empty.
- *
- * @param {number} x The x coordinate in pixels.
- * @param {number} y The y coordinate in pixels.
- * @param {function(number, number): (Solid|null)} objectAt Gets the object at a point, or null for none.
- * @returns {Solid} The tile id or the object, or Tile.EMPTY if nothing solid is there or the point is outside the
- *     playfield.
- */
-function solidAt(x, y, objectAt) {
-	if (!inScreen(x, y)) return Tile.EMPTY;
-	const map = game.map;
-	const tile = map.tiles[map.index(x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS)];
-	if (tile == Tile.EMPTY) return objectAt(x, y) || Tile.EMPTY;
-	return isPassable(tile) ? Tile.EMPTY : tile;
-}
-
-/** @type {function(number, number): (Solid|null)} Gets the crate or else the platform at a point, or null for none. */
-const crateOrPlatformAt = (x, y) => crateAt(x, y) || platformAt(x, y);
-
-/** @type {function(number, number): null} Gets no object. */
-const nothingAt = () => null;
-
-/**
- * Get the solid tile or platform at a point, without the crates.
- *
- * @param {number} x The x coordinate in pixels.
- * @param {number} y The y coordinate in pixels.
- * @returns {Solid} The tile id, the platform, or Tile.EMPTY if nothing solid is there.
- */
-export function getTileWithoutCrates(x, y) {
-	return solidAt(x, y, platformAt);
-}
-
-/**
- * Get the solid tile at a point, without the crates and the platforms.
- *
- * @param {number} x The x coordinate in pixels.
- * @param {number} y The y coordinate in pixels.
- * @returns {number} The tile id, or Tile.EMPTY if nothing solid is there.
- */
-export function getTileWithoutObjects(x, y) {
-	return solidAt(x, y, nothingAt);
-}
-
-/**
- * Get the solid tile, crate or platform at a point.
- *
- * @param {number} x The x coordinate in pixels.
- * @param {number} y The y coordinate in pixels.
- * @returns {Solid} The tile id, the crate, the platform, or Tile.EMPTY if nothing solid is there.
- */
-export function getTile(x, y) {
-	return solidAt(x, y, crateOrPlatformAt);
-}
-
-/**
- * Get the tile or platform at a point for a portal shot. The shot passes through the exit, the first wheel frame, the
- * red energy walls, the cakes and the player start.
- *
- * @param {number} x The x coordinate in pixels.
- * @param {number} y The y coordinate in pixels.
- * @returns {Solid} The tile id, the platform, or Tile.EMPTY if the shot passes.
- */
-export function getTilePortal(x, y) {
-	if (x >= PLAYFIELD_WIDTH || y >= PLAYFIELD_HEIGHT || y < 0 || x < 0) return 0;
-	const map = game.map;
-	let tile = map.tiles[map.index(x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS)];
-	if (
-		tile == Tile.EXIT ||
-		tile == FIRST_OF_KIND[TileKind.WHEEL] ||
-		isTileKind(tile, TileKind.ENERGYWALL) ||
-		tile == Tile.CAKE ||
-		tile == Tile.PLAYER_START
-	)
-		tile = Tile.EMPTY;
-
-	if (!tile) {
-		tile = platformAt(x, y) || Tile.EMPTY;
-	}
-
-	return tile;
-}
-
-/**
  * Get the solid tile in the bottom row of an object.
  *
  * @param {import('./entities/Body.js').Body} obj The object.
- * @returns {Solid} The tile id or the object of the first solid point along the bottom edge, else Tile.EMPTY.
+ * @returns {import('./World.js').Solid} The tile id or the object of the first solid point along the bottom edge,
+ *     else Tile.EMPTY.
  */
 export function downCollision(obj) {
 	const x = obj.x >> 8;
@@ -178,7 +75,7 @@ export function downCollision(obj) {
 
 	let i;
 	for (i = x; i < x + pX; i++) {
-		const tile = getTile(i, y);
+		const tile = game.getTile(i, y);
 		if (tile) return tile;
 	}
 
@@ -189,7 +86,8 @@ export function downCollision(obj) {
  * Get the solid tile in the top row of an object.
  *
  * @param {import('./entities/Body.js').Body} obj The object.
- * @returns {Solid} The tile id or the object of the first solid point along the top edge, else Tile.EMPTY.
+ * @returns {import('./World.js').Solid} The tile id or the object of the first solid point along the top edge,
+ *     else Tile.EMPTY.
  */
 export function upCollision(obj) {
 	const x = obj.x >> 8;
@@ -198,7 +96,7 @@ export function upCollision(obj) {
 
 	let i;
 	for (i = x; i < x + pX; i++) {
-		const tile = getTile(i, y);
+		const tile = game.getTile(i, y);
 		if (tile) return tile;
 	}
 
@@ -209,7 +107,8 @@ export function upCollision(obj) {
  * Get the solid tile left of an object.
  *
  * @param {import('./entities/Body.js').Body} obj The object.
- * @returns {Solid} The tile id or the object of the first solid point along the left edge, else Tile.EMPTY.
+ * @returns {import('./World.js').Solid} The tile id or the object of the first solid point along the left edge,
+ *     else Tile.EMPTY.
  */
 export function leftCollision(obj) {
 	const x = (obj.x >> 8) - 1;
@@ -218,7 +117,7 @@ export function leftCollision(obj) {
 
 	let i;
 	for (i = y; i < y + pY; i++) {
-		const tile = getTile(x, i);
+		const tile = game.getTile(x, i);
 		if (tile) return tile;
 	}
 
@@ -229,7 +128,8 @@ export function leftCollision(obj) {
  * Get the solid tile right of an object.
  *
  * @param {import('./entities/Body.js').Body} obj The object.
- * @returns {Solid} The tile id or the object of the first solid point along the right edge, else Tile.EMPTY.
+ * @returns {import('./World.js').Solid} The tile id or the object of the first solid point along the right edge,
+ *     else Tile.EMPTY.
  */
 export function rightCollision(obj) {
 	const x = (obj.x >> 8) + obj.pX;
@@ -238,7 +138,7 @@ export function rightCollision(obj) {
 
 	let i;
 	for (i = y; i < y + pY; i++) {
-		const tile = getTile(x, i);
+		const tile = game.getTile(x, i);
 		if (tile) return tile;
 	}
 
@@ -261,12 +161,12 @@ export function getCollision(obj) {
 	let max = 0;
 
 	for (i = x; i < x + obj.pX; i += 2) {
-		if (getTile(i, y)) hit[0]++;
+		if (game.getTile(i, y)) hit[0]++;
 	}
 	let maxVal = hit[0];
 
 	for (i = x + 1; i < x + obj.pX - 1; i += 2) {
-		if (getTile(i, y + obj.pY - 1)) hit[1]++;
+		if (game.getTile(i, y + obj.pY - 1)) hit[1]++;
 	}
 	if (hit[1] > maxVal) {
 		max = 1;
@@ -274,7 +174,7 @@ export function getCollision(obj) {
 	}
 
 	for (i = y; i < y + obj.pY; i += 2) {
-		if (getTile(x, i)) hit[2]++;
+		if (game.getTile(x, i)) hit[2]++;
 	}
 	if (hit[2] > maxVal) {
 		max = 2;
@@ -282,7 +182,7 @@ export function getCollision(obj) {
 	}
 
 	for (i = y; i < y + obj.pY; i += 2) {
-		if (getTile(x + obj.pX - 1, i)) hit[3]++;
+		if (game.getTile(x + obj.pX - 1, i)) hit[3]++;
 	}
 	if (hit[3] > maxVal) {
 		max = 3;

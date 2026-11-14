@@ -19,9 +19,7 @@ import {
 import { Direction, GRAVITY, MouseButton, PLAYFIELD_HEIGHT, SparkleType, TILE_SIZE } from '../constants.js';
 import { Body } from './Body.js';
 import { collectCakes } from './Cake.js';
-import { gravPipeFieldsAt } from './GravPipeField.js';
-import { plasmaTouching } from './Plasma.js';
-import { onBelt, onPlatform, Platform } from './Platform.js';
+import { Platform } from './Platform.js';
 import { Sparkle } from './Sparkle.js';
 import { reportBrokenReplay } from '../inputState.js';
 import { loadLevel } from '../level.js';
@@ -223,7 +221,7 @@ export class Player extends Body {
 			this.askClear = false;
 		}
 
-		const fields = gravPipeFieldsAt(this);
+		const fields = game.gravPipeFieldsAt(this);
 		if (fields.length > 0) {
 			game.player.vx = 0;
 			game.player.vy = 0;
@@ -255,7 +253,7 @@ export class Player extends Body {
 			if (field.vx != 0) {
 				if (this.isJump) {
 					game.player.y -= 3 << 8;
-					fi = gravPipeFieldsAt(this);
+					fi = game.gravPipeFieldsAt(this);
 					if (fi.length == 0) {
 						game.player.vy = -800;
 						game.player.vx = field.vx << 9;
@@ -267,14 +265,14 @@ export class Player extends Body {
 			if (field.vy != 0) {
 				if (this.isLeft) {
 					game.player.x -= 3 << 8;
-					fi = gravPipeFieldsAt(this);
+					fi = game.gravPipeFieldsAt(this);
 					if (fi.length == 0) {
 						game.player.vx = -384;
 					}
 				}
 				if (this.isRight) {
 					game.player.x += 3 << 8;
-					fi = gravPipeFieldsAt(this);
+					fi = game.gravPipeFieldsAt(this);
 					if (fi.length == 0) {
 						game.player.vx = 384;
 					}
@@ -285,7 +283,7 @@ export class Player extends Body {
 		let ground = touchingGround(this);
 		if (ground && !this.onGround && fields.length == 0) playSound(sfx_land);
 		this.onGround = ground > 0;
-		const belt = onBelt(this);
+		const belt = game.onBelt(this);
 		this.x += belt == 3 ? 384 : belt == 4 ? -384 : 0;
 
 		this.animationTime -= 1 + 2 * (1 - (ground == 2 ? 1 : 0));
@@ -384,7 +382,7 @@ export class Player extends Body {
 			if (!passPortal(this, Direction.LEFT) && !passPortal(this, Direction.RIGHT)) this.y += this.vy >> 3;
 		}
 
-		const platform = onPlatform(this);
+		const platform = game.onPlatform(this);
 		if (platform) this.x += platform.vx;
 
 		let col = true;
@@ -422,7 +420,7 @@ export class Player extends Body {
 
 		const deadly = touchesDeadlyTile(this);
 		this.inAcid = isTileKind(deadly, TileKind.ACID, TileKind.ACIDPOOL);
-		if (plasmaTouching(this) || deadly) {
+		if (game.plasmaTouching(this) || deadly) {
 			this.life = 0;
 		}
 

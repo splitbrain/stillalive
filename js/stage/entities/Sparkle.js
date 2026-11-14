@@ -3,7 +3,6 @@
  */
 
 import { Direction, GRAVITY, SparkleType } from '../constants.js';
-import { getTile } from '../physics.js';
 import { game } from '../state.js';
 import { Tile } from '../tiles.js';
 import { random } from '../utils.js';
@@ -162,7 +161,7 @@ export class Sparkle {
 		}
 
 		if (this.type == SparkleType.SHOT_HIT || this.type == SparkleType.DEATH || this.type == SparkleType.LOW_LIFE) {
-			if (getTile((this.x >> 8) + ((16 * sc) >> 1), (this.y >> 8) + ((16 * sc) >> 1)) != Tile.EMPTY) {
+			if (game.getTile((this.x >> 8) + ((16 * sc) >> 1), (this.y >> 8) + ((16 * sc) >> 1)) != Tile.EMPTY) {
 				if (this.floorTime < 0) {
 					if (this.type == SparkleType.LOW_LIFE || this.type == SparkleType.SHOT_HIT) {
 						this.floorTime = 0;
@@ -175,7 +174,7 @@ export class Sparkle {
 
 		if (this.type == SparkleType.PORTAL_SHOT || this.type == SparkleType.TELEPORT) {
 			this.fading -= 8;
-			if (getTile((this.x >> 8) + 4, (this.y >> 8) + 4) != Tile.EMPTY) this.fading = 0;
+			if (game.getTile((this.x >> 8) + 4, (this.y >> 8) + 4) != Tile.EMPTY) this.fading = 0;
 		} else if (this.type == SparkleType.PORTAL_GLOW) {
 			if (this.vx != 0) {
 				d = Math.abs(this.xOrig - this.x) >> 8;

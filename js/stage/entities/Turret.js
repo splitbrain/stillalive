@@ -6,12 +6,9 @@ import { Throwable } from './Throwable.js';
 import { playSound, playSoundIfFinished, sfx_explode, sfx_pain, sfx_shoot } from '../audio.js';
 import { PLAYFIELD_WIDTH, SparkleType, TILE_SIZE } from '../constants.js';
 import { isInPortal } from '../portals.js';
-import { anyCrateAt, movingCrateTouching } from './Crate.js';
-import { gravPipeFieldsAt } from './GravPipeField.js';
-import { plasmaTouching } from './Plasma.js';
-import { onPlatform, Platform } from './Platform.js';
+import { Platform } from './Platform.js';
 import { Sparkle, createCakeOrSmokeSparkles } from './Sparkle.js';
-import { getTile, leftCollision, rightCollision, touchesDeadlyTile, touchingGround } from '../physics.js';
+import { leftCollision, rightCollision, touchesDeadlyTile, touchingGround } from '../physics.js';
 import { game } from '../state.js';
 import { Tile } from '../tiles.js';
 import { random } from '../utils.js';
@@ -115,11 +112,11 @@ export class Turret extends Throwable {
 			this.move();
 
 			if (!this.dead) {
-				if (this.vx == 0 && Math.abs(oldVx) > 3 << 8 && this.canExplode && gravPipeFieldsAt(this).length == 0)
+				if (this.vx == 0 && Math.abs(oldVx) > 3 << 8 && this.canExplode && game.gravPipeFieldsAt(this).length == 0)
 					this.dead = true;
-				else if (this.vy == 0 && Math.abs(oldVy) > 4 << 8 && this.canExplode && gravPipeFieldsAt(this).length == 0)
+				else if (this.vy == 0 && Math.abs(oldVy) > 4 << 8 && this.canExplode && game.gravPipeFieldsAt(this).length == 0)
 					this.dead = true;
-				else if (touchesDeadlyTile(this) || movingCrateTouching(this) || plasmaTouching(this)) {
+				else if (touchesDeadlyTile(this) || game.movingCrateTouching(this) || game.plasmaTouching(this)) {
 					this.dead = true;
 				}
 				if (this.dead) this.#explode();
@@ -127,7 +124,7 @@ export class Turret extends Throwable {
 				if (game.time % 4 == 0) this.animFrame++;
 			}
 
-			const platform = onPlatform(this);
+			const platform = game.onPlatform(this);
 			if (platform) this.x += platform.vx;
 
 			const colLeft = leftCollision(this);
@@ -168,12 +165,12 @@ export class Turret extends Throwable {
 				let stop = 0;
 				const oldJ = j;
 				while (j >= 0 && j < PLAYFIELD_WIDTH && !playerInSight && !stop) {
-					const tile = getTile(j, beamY);
+					const tile = game.getTile(j, beamY);
 					if (tile != Tile.EMPTY) {
 						stop = 1;
 						break;
 					} else {
-						if (anyCrateAt(j, beamY)) {
+						if (game.anyCrateAt(j, beamY)) {
 							stop = 2;
 							break;
 						} else {

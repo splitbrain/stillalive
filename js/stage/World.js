@@ -9,8 +9,10 @@ import {
 	MAP_SIZE,
 	ORDERED,
 	PLAYFIELD_HEIGHT,
+	PLAYFIELD_WIDTH,
 	RANDOM,
 	TILE_SIZE,
+	TILE_SIZE_BITS,
 } from './constants.js';
 import { AnimatedTile } from './entities/AnimatedTile.js';
 import { Boss } from './entities/Boss.js';
@@ -24,9 +26,12 @@ import { Player } from './entities/Player.js';
 import { Portal } from './entities/Portal.js';
 import { Turret } from './entities/Turret.js';
 import { GRAVPIPE_DIRECTIONS, plasmaLaunch } from './level.js';
+import { touchingGround } from './physics.js';
+import { isInPortal } from './portals.js';
 import { Replay } from './replay.js';
 import { TileMap } from './TileMap.js';
-import { FIRST_OF_KIND, LAST_OF_KIND, Tile, TileKind, isTileKind } from './tiles.js';
+import { FIRST_OF_KIND, LAST_OF_KIND, Tile, TileKind, inForceFieldRange, isDeadlyTile, isTileKind } from './tiles.js';
+import { inScreen } from './utils.js';
 
 /** @type {{kind: string, type: number, speed: number}[]} The tile kinds that become animated tiles in a level. */
 const ANIMATED_KINDS = [
@@ -39,6 +44,23 @@ const ANIMATED_KINDS = [
 	{ kind: TileKind.BELT_RIGHT, type: ORDERED, speed: 10 },
 	{ kind: TileKind.BELT_LEFT, type: ORDERED, speed: 10 },
 ];
+
+/**
+ * A solid thing at a point: a tile id, a crate or a platform. The tile id Tile.EMPTY means that nothing solid is there.
+ *
+ * @typedef {number|Crate|Platform} Solid
+ */
+
+/**
+ * Check if objects pass through a tile. The exit, the deadly tiles, the player start and the force fields are not
+ * solid.
+ *
+ * @param {number} tile The tile id.
+ * @returns {boolean} True if objects pass the tile.
+ */
+function isPassable(tile) {
+	return tile == Tile.EXIT || isDeadlyTile(tile) || tile == Tile.PLAYER_START || inForceFieldRange(tile);
+}
 
 /**
  * The state of one level, one preview or one editor map. Each level start creates a new World.
@@ -306,6 +328,244 @@ export class World {
 				}
 			}
 		}
+	}
+
+	/**
+	 * Get the solid tile at a point, or the object at the point where the map is empty.
+	 *
+	 * @param {number} x The x coordinate in pixels.
+	 * @param {number} y The y coordinate in pixels.
+	 * @param {boolean} crates True if the crates count.
+	 * @param {boolean} platforms True if the platforms count.
+	 * @returns {Solid} The tile id or the object, or Tile.EMPTY if nothing solid is there or the point is outside the
+	 *     playfield.
+	 */
+	#solidAt(x, y, crates, platforms) {
+		if (!inScreen(x, y)) return Tile.EMPTY;
+		const map = this.map;
+		const tile = map.tiles[map.index(x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS)];
+		if (tile == Tile.EMPTY) return (crates && this.crateAt(x, y)) || (platforms && this.platformAt(x, y)) || Tile.EMPTY;
+		return isPassable(tile) ? Tile.EMPTY : tile;
+	}
+
+	/**
+	 * Get the solid tile, crate or platform at a point.
+	 *
+	 * @param {number} x The x coordinate in pixels.
+	 * @param {number} y The y coordinate in pixels.
+	 * @returns {Solid} The tile id, the crate, the platform, or Tile.EMPTY if nothing solid is there.
+	 */
+	getTile(x, y) {
+		return this.#solidAt(x, y, true, true);
+	}
+
+	/**
+	 * Get the solid tile or platform at a point, without the crates.
+	 *
+	 * @param {number} x The x coordinate in pixels.
+	 * @param {number} y The y coordinate in pixels.
+	 * @returns {Solid} The tile id, the platform, or Tile.EMPTY if nothing solid is there.
+	 */
+	getTileWithoutCrates(x, y) {
+		return this.#solidAt(x, y, false, true);
+	}
+
+	/**
+	 * Get the solid tile at a point, without the crates and the platforms.
+	 *
+	 * @param {number} x The x coordinate in pixels.
+	 * @param {number} y The y coordinate in pixels.
+	 * @returns {number} The tile id, or Tile.EMPTY if nothing solid is there.
+	 */
+	getTileWithoutObjects(x, y) {
+		return this.#solidAt(x, y, false, false);
+	}
+
+	/**
+	 * Get the tile or platform at a point for a portal shot. The shot passes through the exit, the first wheel frame,
+	 * the red energy walls, the cakes and the player start.
+	 *
+	 * @param {number} x The x coordinate in pixels.
+	 * @param {number} y The y coordinate in pixels.
+	 * @returns {Solid} The tile id, the platform, or Tile.EMPTY if the shot passes.
+	 */
+	getTilePortal(x, y) {
+		if (x >= PLAYFIELD_WIDTH || y >= PLAYFIELD_HEIGHT || y < 0 || x < 0) return 0;
+		const map = this.map;
+		let tile = map.tiles[map.index(x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS)];
+		if (
+			tile == Tile.EXIT ||
+			tile == FIRST_OF_KIND[TileKind.WHEEL] ||
+			isTileKind(tile, TileKind.ENERGYWALL) ||
+			tile == Tile.CAKE ||
+			tile == Tile.PLAYER_START
+		)
+			tile = Tile.EMPTY;
+
+		if (!tile) {
+			tile = this.platformAt(x, y) || Tile.EMPTY;
+		}
+
+		return tile;
+	}
+
+	/**
+	 * Find the crate at a point. Carried crates and crates in a portal do not count.
+	 *
+	 * @param {number} x The x coordinate in pixels.
+	 * @param {number} y The y coordinate in pixels.
+	 * @returns {Crate|null} The crate, or null.
+	 */
+	crateAt(x, y) {
+		return this.#findCrate(x, y, false);
+	}
+
+	/**
+	 * Find the crate at a point, including carried crates and crates in a portal.
+	 *
+	 * @param {number} x The x coordinate in pixels.
+	 * @param {number} y The y coordinate in pixels.
+	 * @returns {Crate|null} The crate, or null.
+	 */
+	anyCrateAt(x, y) {
+		return this.#findCrate(x, y, true);
+	}
+
+	/**
+	 * Find a crate at a point.
+	 *
+	 * @param {number} x The x coordinate in pixels.
+	 * @param {number} y The y coordinate in pixels.
+	 * @param {boolean} any True if all crates count. False if carried crates and crates in a portal do not count.
+	 * @returns {Crate|null} The first crate that counts at the point, or null.
+	 */
+	#findCrate(x, y, any) {
+		for (let i = 0; i < this.crates.length; i++) {
+			const crate = this.crates[i];
+			const x2 = crate.x >> 8;
+			const y2 = crate.y >> 8;
+			if (
+				(any || (!crate.carried && !isInPortal(crate))) &&
+				x > x2 &&
+				x < x2 + TILE_SIZE - 1 &&
+				y > y2 &&
+				y < y2 + TILE_SIZE - 1
+			)
+				return crate;
+		}
+		return null;
+	}
+
+	/**
+	 * Find a moving crate that overlaps an object.
+	 *
+	 * @param {import('./entities/Body.js').Body} obj The object.
+	 * @returns {Crate|null} The crate, or null if no moving crate overlaps the object.
+	 */
+	movingCrateTouching(obj) {
+		for (let i = 0; i < this.crates.length; i++) {
+			const crate = this.crates[i];
+			if (!crate.carried && (crate.vx != 0 || crate.vy != 0) && !isInPortal(crate) && crate.overlaps(obj)) return crate;
+		}
+		return null;
+	}
+
+	/**
+	 * Find the platform at a point.
+	 *
+	 * @param {number} x The x coordinate in pixels.
+	 * @param {number} y The y coordinate in pixels.
+	 * @returns {Platform|null} The platform, or null.
+	 */
+	platformAt(x, y) {
+		let pi;
+		for (pi = 0; pi < this.platforms.length; pi++) {
+			const x2 = this.platforms[pi].x >> 8;
+			const y2 = this.platforms[pi].y >> 8;
+			if (x > x2 && x < x2 + 3 * TILE_SIZE && y >= y2 && y < y2 + TILE_SIZE - 1) return this.platforms[pi];
+		}
+		return null;
+	}
+
+	/**
+	 * Check if a plasma ball overlaps an object.
+	 *
+	 * @param {import('./entities/Body.js').Body} obj The object.
+	 * @returns {boolean} True if a ball overlaps the object.
+	 */
+	plasmaTouching(obj) {
+		let i;
+		for (i = 0; i < this.plasmaBall.length; i++) {
+			if (this.plasmaBall[i].used && this.plasmaBall[i].overlaps(obj)) return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Find the pipe fields that an object overlaps.
+	 *
+	 * @param {import('./entities/Body.js').Body} obj The object.
+	 * @returns {object[]} The fields.
+	 */
+	gravPipeFieldsAt(obj) {
+		let i;
+		const fields = new Array();
+
+		for (i = 0; i < this.gravPipeFields.length; i++) {
+			let x = this.gravPipeFields[i].x;
+			let y = this.gravPipeFields[i].y;
+			let w = this.gravPipeFields[i].w;
+			let h = this.gravPipeFields[i].h;
+
+			if (w < 0) {
+				w = -w;
+				x -= w;
+			} else if (h < 0) {
+				h = -h;
+				y -= h;
+			}
+
+			if (obj.overlapsBox(x, y, w, h)) {
+				fields.push(this.gravPipeFields[i]);
+			}
+		}
+
+		return fields;
+	}
+
+	/**
+	 * Get the conveyor belt that moves an object, directly or through the crate that the object stands on.
+	 *
+	 * @param {import('./entities/Body.js').Body} obj The object. It must also have the vertical speed vy.
+	 * @returns {number} 3 for a belt to the right, 4 for a belt to the left, else 0.
+	 */
+	onBelt(obj) {
+		const ground = touchingGround(obj);
+		if (ground == 3 || ground == 4) {
+			return ground;
+		} else {
+			const y = (obj.y >> 8) + obj.pY;
+			const crate = this.crateAt(obj.x >> 8, y) || this.crateAt((obj.x >> 8) + obj.pX - 1, y);
+			if (crate && crate.carpet > 0) return crate.carpet;
+		}
+
+		return 0;
+	}
+
+	/**
+	 * Get the platform that carries an object, directly or through the crate that the object stands on. The search
+	 * looks below the left edge of the object first, then below the right edge.
+	 *
+	 * @param {import('./entities/Body.js').Body} obj The object.
+	 * @returns {Platform|null} The platform, or null.
+	 */
+	onPlatform(obj) {
+		const x = obj.x >> 8;
+		const y = (obj.y >> 8) + obj.pY;
+		const platform = this.platformAt(x, y) || this.platformAt(x + obj.pX - 1, y);
+		if (platform) return platform;
+		return (this.crateAt(x, y) || this.crateAt(x + obj.pX - 1, y))?.platform ?? null;
 	}
 
 	/**

@@ -5,8 +5,6 @@
 import { Throwable } from './Throwable.js';
 import { playSound, sfx_crateLand, sfx_dissolve, sfx_wallBreak, sfx_wallCrack } from '../audio.js';
 import { PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, TILE_SIZE } from '../constants.js';
-import { plasmaTouching } from './Plasma.js';
-import { onPlatform } from './Platform.js';
 import { leftCollision, rightCollision, touchesDeadlyTile, touchingGround } from '../physics.js';
 import { inForceField, isInPortal } from '../portals.js';
 import { game } from '../state.js';
@@ -77,7 +75,7 @@ export class Crate extends Throwable {
 					game.boss.hit(this);
 				}
 
-				const platform = onPlatform(this);
+				const platform = game.onPlatform(this);
 				if (platform) {
 					this.x += platform.vx;
 					this.platform = platform;
@@ -101,7 +99,7 @@ export class Crate extends Throwable {
 					y < -TILE_SIZE ||
 					y > PLAYFIELD_HEIGHT ||
 					touchesDeadlyTile(this) ||
-					plasmaTouching(this)
+					game.plasmaTouching(this)
 				) {
 					if (this.#destroyOrReset()) return;
 				}
@@ -171,7 +169,7 @@ export class Crate extends Throwable {
 	 */
 	push() {
 		let c;
-		if (movingCrateTouching(game.player) && this.invincibility == 0) {
+		if (game.movingCrateTouching(game.player) && this.invincibility == 0) {
 			game.player.x += this.vx >> 3;
 
 			if (this.vx < 0) {
@@ -241,66 +239,6 @@ export class Crate extends Throwable {
 		this.vy = 0;
 		return false;
 	}
-}
-
-/**
- * Find the crate at a point. Carried crates and crates in a portal do not count.
- *
- * @param {number} x The x coordinate in pixels.
- * @param {number} y The y coordinate in pixels.
- * @returns {Crate|null} The crate, or null.
- */
-export function crateAt(x, y) {
-	return findCrate(x, y, freeCrate);
-}
-
-/**
- * Find the crate at a point, including carried crates and crates in a portal.
- *
- * @param {number} x The x coordinate in pixels.
- * @param {number} y The y coordinate in pixels.
- * @returns {Crate|null} The crate, or null.
- */
-export function anyCrateAt(x, y) {
-	return findCrate(x, y, anyCrate);
-}
-
-/** @type {function(Crate): boolean} True for a crate that is not carried and not in a portal. */
-const freeCrate = (crate) => !crate.carried && !isInPortal(crate);
-
-/** @type {function(Crate): boolean} True for every crate. */
-const anyCrate = () => true;
-
-/**
- * Find a crate at a point.
- *
- * @param {number} x The x coordinate in pixels.
- * @param {number} y The y coordinate in pixels.
- * @param {function(Crate): boolean} counts The filter that selects the crates to find.
- * @returns {Crate|null} The first crate that counts at the point, or null.
- */
-function findCrate(x, y, counts) {
-	for (let i = 0; i < game.crates.length; i++) {
-		const crate = game.crates[i];
-		const x2 = crate.x >> 8;
-		const y2 = crate.y >> 8;
-		if (counts(crate) && x > x2 && x < x2 + TILE_SIZE - 1 && y > y2 && y < y2 + TILE_SIZE - 1) return crate;
-	}
-	return null;
-}
-
-/**
- * Find a moving crate that overlaps an object.
- *
- * @param {import('./Body.js').Body} obj The object.
- * @returns {Crate|null} The crate, or null if no moving crate overlaps the object.
- */
-export function movingCrateTouching(obj) {
-	for (let i = 0; i < game.crates.length; i++) {
-		const crate = game.crates[i];
-		if (!crate.carried && (crate.vx != 0 || crate.vy != 0) && !isInPortal(crate) && crate.overlaps(obj)) return crate;
-	}
-	return null;
 }
 
 /**

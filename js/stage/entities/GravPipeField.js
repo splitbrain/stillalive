@@ -33,6 +33,27 @@ class GravPipeField {
 	}
 }
 
+/** @type {number[]} The offsets of the test points across a pipe field, from its edge in pixels. */
+const ACROSS_FIELD = [0, TILE_SIZE / 2, TILE_SIZE, 2 * TILE_SIZE - 1];
+
+/**
+ * Check if a pipe field ends at a position: a test point across the field is solid. A horizontal field ends at a tile,
+ * a vertical field also ends at a platform.
+ *
+ * @param {import('../World.js').World} world The World.
+ * @param {number} x The x coordinate of the left or top test point in pixels.
+ * @param {number} y The y coordinate of the left or top test point in pixels.
+ * @param {number} vx The horizontal direction of the push, -1, 0 or 1. If it is 0, the field is vertical.
+ * @returns {boolean} True if the field ends.
+ */
+function fieldEndsAt(world, x, y, vx) {
+	return ACROSS_FIELD.some((offset) =>
+		vx != 0
+			? world.getTileWithoutObjects(x, y + offset) != Tile.EMPTY
+			: world.getTileWithoutCrates(x + offset, y) != Tile.EMPTY,
+	);
+}
+
 /**
  * Find the end of a pipe field and add the field. At a portal, the trace continues from the other portal with a
  * second field. The trace leaves each portal only once, so the field between two facing portals ends.
@@ -45,7 +66,6 @@ class GravPipeField {
  * @returns {void}
  */
 export function traceGravPipeField(world, sx, sy, vx, vy) {
-	let tile, p1, p2;
 	const exits = [];
 	let y = sy;
 	let x = sx;
@@ -54,19 +74,7 @@ export function traceGravPipeField(world, sx, sy, vx, vy) {
 	y += vy * TILE_SIZE;
 
 	while (x >= 0 && x < PLAYFIELD_WIDTH && y >= 0 && y < PLAYFIELD_HEIGHT) {
-		if (vx != 0) {
-			tile = world.getTileWithoutObjects(x, y);
-			if (tile == Tile.EMPTY) tile = world.getTileWithoutObjects(x, y + TILE_SIZE / 2);
-			if (tile == Tile.EMPTY) tile = world.getTileWithoutObjects(x, y + TILE_SIZE);
-			if (tile == Tile.EMPTY) tile = world.getTileWithoutObjects(x, y + 2 * TILE_SIZE - 1);
-		} else if (vy != 0) {
-			tile = world.getTileWithoutCrates(x, y);
-			if (tile == Tile.EMPTY) tile = world.getTileWithoutCrates(x + TILE_SIZE / 2, y);
-			if (tile == Tile.EMPTY) tile = world.getTileWithoutCrates(x + TILE_SIZE, y);
-			if (tile == Tile.EMPTY) tile = world.getTileWithoutCrates(x + 2 * TILE_SIZE - 1, y);
-		}
-
-		if (tile != Tile.EMPTY) {
+		if (fieldEndsAt(world, x, y, vx)) {
 			x = (x >> TILE_SIZE_BITS) << TILE_SIZE_BITS;
 			y = (y >> TILE_SIZE_BITS) << TILE_SIZE_BITS;
 
@@ -74,14 +82,11 @@ export function traceGravPipeField(world, sx, sy, vx, vy) {
 			if (vx < 0) x += 13;
 
 			if (world.portals.list[0].used && world.portals.list[1].used) {
-				if (vx != 0) {
-					p1 = world.portals.pointInPortal(x, y + 4);
-					p2 = world.portals.pointInPortal(x, y + 2 * TILE_SIZE - 4);
-				} else if (vy != 0) {
-					const dy = vy < 0 ? 14 : 0;
-					p1 = world.portals.pointInPortal(x + 4, y + dy);
-					p2 = world.portals.pointInPortal(x + 2 * TILE_SIZE - 4, y + dy);
-				}
+				const dy = vy < 0 ? 14 : 0;
+				const [p1, p2] =
+					vx != 0
+						? [world.portals.pointInPortal(x, y + 4), world.portals.pointInPortal(x, y + 2 * TILE_SIZE - 4)]
+						: [world.portals.pointInPortal(x + 4, y + dy), world.portals.pointInPortal(x + 2 * TILE_SIZE - 4, y + dy)];
 				const exit = p1 && p1 == p2 ? world.portals.other(p1) : null;
 				if (exit && !exits.includes(exit)) {
 					exits.push(exit);

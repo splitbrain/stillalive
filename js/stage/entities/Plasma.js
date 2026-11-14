@@ -4,7 +4,7 @@
 
 import { Body } from './Body.js';
 import { playSound, setSoundVolume, sfx_bounce, sfx_plasmaField } from '../audio.js';
-import { Direction, MAP_SIZE, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, TILE_SIZE, TILE_SIZE_BITS } from '../constants.js';
+import { Direction, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, TILE_SIZE, TILE_SIZE_BITS } from '../constants.js';
 import { Tile, TileKind, isTileKind } from '../tiles.js';
 import { getDistance, random } from '../utils.js';
 
@@ -57,11 +57,11 @@ export class Plasma extends Body {
 	 */
 	animate() {
 		if (this.world.time % 10 != 0) return;
-		let r;
+		let frame;
 		do {
-			r = random(0, 3);
-		} while (this.animFrame == r);
-		this.animFrame = r;
+			frame = random(0, 3);
+		} while (frame == this.animFrame);
+		this.animFrame = frame;
 	}
 
 	/**
@@ -162,27 +162,21 @@ export class Plasma extends Body {
 			super.teleported(entry, exit);
 			return;
 		}
-		let swap;
 		const from = entry.direction;
 		const to = exit.direction;
 		if ((from == Direction.DOWN && to == Direction.DOWN) || (from == Direction.UP && to == Direction.UP)) {
 			this.vy = -this.vy;
-		} else if ((from == Direction.DOWN && to == Direction.LEFT) || (from == Direction.UP && to == Direction.RIGHT)) {
-			swap = this.vx;
-			this.vx = this.vy;
-			this.vy = swap;
+		} else if (
+			(from == Direction.DOWN && to == Direction.LEFT) ||
+			(from == Direction.UP && to == Direction.RIGHT) ||
+			(from == Direction.LEFT && to == Direction.DOWN) ||
+			(from == Direction.RIGHT && to == Direction.UP)
+		) {
+			[this.vx, this.vy] = [this.vy, this.vx];
 		} else if ((from == Direction.DOWN && to == Direction.RIGHT) || (from == Direction.UP && to == Direction.LEFT)) {
-			swap = this.vx;
-			this.vx = -this.vy;
-			this.vy = swap;
-		} else if ((from == Direction.LEFT && to == Direction.DOWN) || (from == Direction.RIGHT && to == Direction.UP)) {
-			swap = this.vx;
-			this.vx = this.vy;
-			this.vy = swap;
+			[this.vx, this.vy] = [-this.vy, this.vx];
 		} else if ((from == Direction.RIGHT && to == Direction.DOWN) || (from == Direction.LEFT && to == Direction.UP)) {
-			swap = this.vx;
-			this.vx = this.vy;
-			this.vy = -swap;
+			[this.vx, this.vy] = [this.vy, -this.vx];
 		} else if ((from == Direction.RIGHT && to == Direction.RIGHT) || (from == Direction.LEFT && to == Direction.LEFT)) {
 			this.vx = -this.vx;
 		}
@@ -194,12 +188,11 @@ export class Plasma extends Body {
 	 * @returns {void}
 	 */
 	openPlasmaDoors() {
-		let i;
 		playSound(sfx_plasmaField);
-		for (i = 0; i < this.world.animatedTiles.length; i++) {
-			if (isTileKind(this.world.animatedTiles[i].current, TileKind.PLASMA_DOOR)) {
-				this.world.animatedTiles[i].used = false;
-				this.world.map.setTile(this.world.animatedTiles[i].place, Tile.EMPTY);
+		for (const door of this.world.animatedTiles) {
+			if (isTileKind(door.current, TileKind.PLASMA_DOOR)) {
+				door.used = false;
+				this.world.map.setTile(door.place, Tile.EMPTY);
 			}
 		}
 	}
@@ -236,14 +229,44 @@ export class Plasma extends Body {
 	/**
 	 * Check if the map still has a plasma slot.
 	 *
-	 * @returns {number} 1 if a slot exists, else 0.
+	 * @returns {boolean} True if a slot exists.
 	 */
 	hasSlot() {
-		let i;
-		for (i = 0; i < MAP_SIZE; i++) {
-			if (this.world.map.tiles[i] == Tile.PLASMA_SLOT) return 1;
+		return this.world.map.tiles.includes(Tile.PLASMA_SLOT);
+	}
+
+	/**
+	 * Fill the first plasma slot in a column of test points beside the ball. A homing ball fills no slot.
+	 *
+	 * @param {number} x The x coordinate of the column in pixels.
+	 * @param {number} y The y coordinate of the top edge of the ball in pixels.
+	 * @returns {void}
+	 */
+	#fillSlotInColumn(x, y) {
+		if (this.homing) return;
+		for (let i = 2; i <= 14; i++) {
+			if (this.world.map.atPixel(x, y + i) == Tile.PLASMA_SLOT) {
+				this.#fillSlot(x >> TILE_SIZE_BITS, (y + i) >> TILE_SIZE_BITS);
+				return;
+			}
 		}
-		return 0;
+	}
+
+	/**
+	 * Fill the first plasma slot in a row of test points above or below the ball. A homing ball fills no slot.
+	 *
+	 * @param {number} x The x coordinate of the left edge of the ball in pixels.
+	 * @param {number} y The y coordinate of the row in pixels.
+	 * @returns {void}
+	 */
+	#fillSlotInRow(x, y) {
+		if (this.homing) return;
+		for (let i = 4; i <= 12; i++) {
+			if (this.world.map.atPixel(x + i, y) == Tile.PLASMA_SLOT) {
+				this.#fillSlot((x + i) >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS);
+				return;
+			}
+		}
 	}
 
 	/**
@@ -253,9 +276,10 @@ export class Plasma extends Body {
 	 * @returns {void}
 	 */
 	checkCollision() {
-		let x, y, i;
-		let dist = getDistance(this.x >> 8, this.y >> 8, this.world.player.x >> 8, this.world.player.y >> 8);
-		if (dist > PLAYFIELD_HEIGHT) dist = PLAYFIELD_HEIGHT;
+		const dist = Math.min(
+			getDistance(this.x >> 8, this.y >> 8, this.world.player.x >> 8, this.world.player.y >> 8),
+			PLAYFIELD_HEIGHT,
+		);
 		setSoundVolume(sfx_bounce, 1 - dist / PLAYFIELD_HEIGHT);
 
 		switch (this.getCollision()) {
@@ -266,14 +290,7 @@ export class Plasma extends Body {
 				} while (this.getCollision() == Direction.LEFT);
 				this.vx = -this.vx;
 
-				x = (this.x >> 8) - 1;
-				y = this.y >> 8;
-				for (i = 2; i <= 14 && !this.homing; i++) {
-					if (this.world.map.atPixel(x, y + i) == Tile.PLASMA_SLOT) {
-						this.#fillSlot(x >> TILE_SIZE_BITS, (y + i) >> TILE_SIZE_BITS);
-						break;
-					}
-				}
+				this.#fillSlotInColumn((this.x >> 8) - 1, this.y >> 8);
 				break;
 			case Direction.RIGHT:
 				playSound(sfx_bounce);
@@ -282,14 +299,7 @@ export class Plasma extends Body {
 				} while (this.getCollision() == Direction.RIGHT);
 				this.vx = -this.vx;
 
-				x = (this.x >> 8) + TILE_SIZE;
-				y = this.y >> 8;
-				for (i = 2; i <= 14 && !this.homing; i++) {
-					if (this.world.map.atPixel(x, y + i) == Tile.PLASMA_SLOT) {
-						this.#fillSlot(x >> TILE_SIZE_BITS, (y + i) >> TILE_SIZE_BITS);
-						break;
-					}
-				}
+				this.#fillSlotInColumn((this.x >> 8) + TILE_SIZE, this.y >> 8);
 				break;
 			case Direction.UP:
 				playSound(sfx_bounce);
@@ -298,14 +308,7 @@ export class Plasma extends Body {
 				} while (this.getCollision() == Direction.UP);
 				this.vy = -this.vy;
 
-				x = this.x >> 8;
-				y = (this.y >> 8) - 1;
-				for (i = 4; i <= 12 && !this.homing; i++) {
-					if (this.world.map.atPixel(x + i, y) == Tile.PLASMA_SLOT) {
-						this.#fillSlot((x + i) >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS);
-						break;
-					}
-				}
+				this.#fillSlotInRow(this.x >> 8, (this.y >> 8) - 1);
 				break;
 			case Direction.DOWN:
 				playSound(sfx_bounce);
@@ -314,14 +317,7 @@ export class Plasma extends Body {
 				} while (this.getCollision() == Direction.DOWN);
 				this.vy = -this.vy;
 
-				x = this.x >> 8;
-				y = (this.y >> 8) + TILE_SIZE;
-				for (i = 4; i <= 12 && !this.homing; i++) {
-					if (this.world.map.atPixel(x + i, y) == Tile.PLASMA_SLOT) {
-						this.#fillSlot((x + i) >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS);
-						break;
-					}
-				}
+				this.#fillSlotInRow(this.x >> 8, (this.y >> 8) + TILE_SIZE);
 				break;
 		}
 	}

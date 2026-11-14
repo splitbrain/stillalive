@@ -50,11 +50,11 @@ export class AnimatedTile {
 	animate() {
 		if (!this.used || this.world.time % this.speed != 0) return;
 		if (this.type == RANDOM) {
-			let r;
+			let frame;
 			do {
-				r = random(this.min, this.max + 1);
-			} while (r == this.current);
-			this.current = r;
+				frame = random(this.min, this.max + 1);
+			} while (frame == this.current);
+			this.current = frame;
 		} else if (this.type == ORDERED) {
 			if (this.current == this.max) this.current = this.min;
 			else this.current++;

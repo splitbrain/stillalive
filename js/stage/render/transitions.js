@@ -25,43 +25,60 @@ export function drawTransition(world) {
 }
 
 /**
+ * Draw the first part of the rows of the line transitions, in their random order.
+ *
+ * @param {number} scale The part of the rows to draw, from 0 to 1.
+ * @param {number} height The height of a row in pixels.
+ * @returns {void}
+ */
+function drawRows(scale, height) {
+	for (const row of lineOrder.slice(0, Math.round(scale * lineOrder.length))) {
+		ctx.fillRect(0, row * 3, PLAYFIELD_WIDTH, height);
+	}
+}
+
+/**
+ * Draw the first part of the columns of the line transitions, in their random order.
+ *
+ * @param {number} scale The part of the columns to draw, from 0 to 1.
+ * @returns {void}
+ */
+function drawColumns(scale) {
+	for (const column of lineOrder.slice(0, Math.round(scale * lineOrder.length))) {
+		ctx.fillRect(column * 4, 0, 6, PLAYFIELD_HEIGHT);
+	}
+}
+
+/**
  * Draw the closing transition of the current effect.
  *
  * @param {import('../World.js').World} world The World.
  * @returns {void}
  */
 function drawClosingTransition(world) {
-	let lineCount, i;
 	ctx.fillStyle = 'rgb(0, 0, 0)';
 	const scale = 1 - world.fade / FADE_START;
+	const width = Math.trunc(PLAYFIELD_WIDTH * scale);
+	const height = Math.trunc(PLAYFIELD_HEIGHT * scale);
 	switch (world.transition) {
 		case Transition.TOP_LEFT:
-			ctx.fillRect(0, 0, Math.trunc(PLAYFIELD_WIDTH * scale), Math.trunc(PLAYFIELD_HEIGHT * scale));
+			ctx.fillRect(0, 0, width, height);
 			break;
 		case Transition.LEFT_TO_RIGHT:
-			ctx.fillRect(0, 0, Math.trunc(PLAYFIELD_WIDTH * scale), PLAYFIELD_HEIGHT);
+			ctx.fillRect(0, 0, width, PLAYFIELD_HEIGHT);
 			break;
 		case Transition.TOP_TO_BOTTOM:
-			ctx.fillRect(0, 0, PLAYFIELD_WIDTH, Math.trunc(PLAYFIELD_HEIGHT * scale));
+			ctx.fillRect(0, 0, PLAYFIELD_WIDTH, height);
 			break;
 		case Transition.HORIZONTAL_LINES:
-			lineCount = Math.round(scale * lineOrder.length);
-			for (i = 0; i < lineCount; i++) {
-				ctx.fillRect(0, lineOrder[i] * 3, PLAYFIELD_WIDTH, 3);
-			}
+			drawRows(scale, 3);
 			break;
 		case Transition.VERTICAL_LINES:
-			lineCount = Math.round(scale * lineOrder.length);
-			for (i = 0; i < lineCount; i++) {
-				ctx.fillRect(lineOrder[i] * 4, 0, 6, PLAYFIELD_HEIGHT);
-			}
+			drawColumns(scale);
 			break;
-		case Transition.SQUARE: {
-			const x = PLAYFIELD_WIDTH - Math.trunc(PLAYFIELD_WIDTH * scale);
-			const y = PLAYFIELD_HEIGHT - Math.trunc(PLAYFIELD_HEIGHT * scale);
-			ctx.fillRect(x >> 1, y >> 1, Math.trunc(PLAYFIELD_WIDTH * scale), Math.trunc(PLAYFIELD_HEIGHT * scale));
+		case Transition.SQUARE:
+			ctx.fillRect((PLAYFIELD_WIDTH - width) >> 1, (PLAYFIELD_HEIGHT - height) >> 1, width, height);
 			break;
-		}
 	}
 }
 
@@ -72,37 +89,31 @@ function drawClosingTransition(world) {
  * @returns {void}
  */
 function drawOpeningTransition(world) {
-	let lineCount, i;
 	ctx.fillStyle = 'rgb(0, 0, 0)';
 	ctx.strokeStyle = 'rgb(0, 0, 0)';
 	const scale = world.fade / FADE_START;
-	const x = PLAYFIELD_WIDTH - Math.trunc(PLAYFIELD_WIDTH * scale);
-	const y = PLAYFIELD_HEIGHT - Math.trunc(PLAYFIELD_HEIGHT * scale);
+	const width = Math.trunc(PLAYFIELD_WIDTH * scale);
+	const height = Math.trunc(PLAYFIELD_HEIGHT * scale);
+	const x = PLAYFIELD_WIDTH - width;
+	const y = PLAYFIELD_HEIGHT - height;
 
 	switch (world.transition) {
 		case Transition.TOP_LEFT:
-			ctx.fillRect(x, y, Math.trunc(PLAYFIELD_WIDTH * scale), Math.trunc(PLAYFIELD_HEIGHT * scale));
+			ctx.fillRect(x, y, width, height);
 			break;
 		case Transition.LEFT_TO_RIGHT:
-			ctx.fillRect(x, 0, Math.trunc(PLAYFIELD_WIDTH * scale), PLAYFIELD_HEIGHT);
+			ctx.fillRect(x, 0, width, PLAYFIELD_HEIGHT);
 			break;
 		case Transition.TOP_TO_BOTTOM:
-			ctx.fillRect(0, y, PLAYFIELD_WIDTH, Math.trunc(PLAYFIELD_HEIGHT * scale));
+			ctx.fillRect(0, y, PLAYFIELD_WIDTH, height);
 			break;
 		case Transition.HORIZONTAL_LINES:
-			lineCount = Math.round(scale * lineOrder.length);
-			for (i = 0; i < lineCount; i++) {
-				ctx.fillRect(0, lineOrder[i] * 3, PLAYFIELD_WIDTH, 5);
-			}
+			drawRows(scale, 5);
 			break;
 		case Transition.VERTICAL_LINES:
-			lineCount = Math.round(scale * lineOrder.length);
-			for (i = 0; i < lineCount; i++) {
-				ctx.fillRect(lineOrder[i] * 4, 0, 6, PLAYFIELD_HEIGHT);
-			}
+			drawColumns(scale);
 			break;
 		case Transition.SQUARE:
-			ctx.strokeStyle = 'rgb(0, 0, 0)';
 			ctx.lineWidth = PLAYFIELD_HEIGHT * scale;
 			ctx.strokeRect(0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 			break;

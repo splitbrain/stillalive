@@ -145,93 +145,78 @@ export class Turret extends Throwable {
 	}
 
 	/**
+	 * Follow the beam of the turret in steps of 14 pixels until it hits a wall, a crate or the player.
+	 *
+	 * @returns {{target: string|null, x: number}} The target "crate" or "player", or null for a wall or the edge of
+	 *     the playfield, and the x coordinate of the hit in pixels.
+	 */
+	#traceBeam() {
+		const y = (this.y >> 8) + 12;
+		let x = this.dir == 1 ? (this.x >> 8) + TILE_SIZE : this.x >> 8;
+		while (x >= 0 && x < PLAYFIELD_WIDTH) {
+			if (this.world.getTile(x, y) != Tile.EMPTY) break;
+			if (this.world.anyCrateAt(x, y)) return { target: 'crate', x };
+			if (this.world.player.contains(x, y)) return { target: 'player', x };
+			x += this.dir * 14;
+		}
+		return { target: null, x };
+	}
+
+	/**
 	 * Shoot at the player if the player is in the line of sight. The shot stops at walls and crates.
 	 *
 	 * @returns {void}
 	 */
 	shoot() {
-		let j;
-		let testShoot = false;
-		if (this.dir == -1 && this.x > this.world.player.x) testShoot = true;
-		else if (this.dir == 1 && this.x < this.world.player.x) testShoot = true;
+		const player = this.world.player;
+		const facesPlayer = (this.dir == -1 && this.x > player.x) || (this.dir == 1 && this.x < player.x);
+		const inLine = Math.abs((this.y >> 8) + 13 - ((player.y >> 8) + 16)) <= this.pY;
 
-		if (testShoot) {
-			const y = (this.y >> 8) + 13;
-			const y2 = (this.world.player.y >> 8) + 16;
-
-			if (Math.abs(y - y2) > this.pY) testShoot = false;
-		}
-
-		if (!this.dead && testShoot && !this.world.player.dead) {
-			this.coolTime--;
-			if (this.coolTime < 0) this.coolTime = 0;
-			if (this.coolTime == 0) {
-				if (this.dir == 1) j = (this.x >> 8) + TILE_SIZE;
-				else j = this.x >> 8;
-				const beamY = (this.y >> 8) + 12;
-				let playerInSight = 0;
-				let stop = 0;
-				const oldJ = j;
-				while (j >= 0 && j < PLAYFIELD_WIDTH && !playerInSight && !stop) {
-					const tile = this.world.getTile(j, beamY);
-					if (tile != Tile.EMPTY) {
-						stop = 1;
-						break;
-					} else {
-						if (this.world.anyCrateAt(j, beamY)) {
-							stop = 2;
-							break;
-						} else {
-							if (this.world.player.contains(j, beamY)) {
-								playerInSight = 1;
-								break;
-							}
-						}
-					}
-					j += this.dir * 14;
-					if (oldJ == j) stop = 1;
-				}
-				if (stop == 2) {
-					this.rotation--;
-					if (this.rotation < 0) this.rotation = 0;
-					this.ex = j << 8;
-				} else if (playerInSight) {
-					this.ex = j << 8;
-					this.rotation--;
-					if (this.rotation < 0) this.rotation = 0;
-					if (!this.rotation) {
-						this.animFrame = 1 - this.animFrame;
-						this.world.player.life -= 640; // 2.5 life points
-						this.world.player.recoveryTime = 300;
-						this.world.player.vx += this.dir << 8;
-						this.coolTime = COOL_TIME;
-						playSound(sfx_shoot);
-						playSoundIfFinished(sfx_pain);
-
-						for (let i = 0; i < 5; i++) {
-							this.world.sparkles.push(
-								new Sparkle(
-									this.world,
-									SparkleType.SHOT_HIT,
-									this.world.player.x + (this.pX << 7) + random(-8 << 8, 8 << 8),
-									this.world.player.y + (this.pY << 6),
-									random(512, 1024) * this.dir,
-									random(-3 << 8, 0),
-									50,
-									4,
-								),
-							);
-						}
-					}
-				} else {
-					if (++this.rotation > 10) this.rotation = 10;
-				}
-			} else this.animFrame = 0;
-		} else {
+		if (this.dead || !facesPlayer || !inLine || player.dead) {
 			if (!this.dead) {
 				this.animFrame = 0;
 				this.rotation = 10;
 			}
+			return;
+		}
+
+		this.coolTime = Math.max(this.coolTime - 1, 0);
+		if (this.coolTime > 0) {
+			this.animFrame = 0;
+			return;
+		}
+
+		const beam = this.#traceBeam();
+		if (beam.target == null) {
+			this.rotation = Math.min(this.rotation + 1, 10);
+			return;
+		}
+
+		this.ex = beam.x << 8;
+		this.rotation = Math.max(this.rotation - 1, 0);
+		if (beam.target != 'player' || this.rotation > 0) return;
+
+		this.animFrame = 1 - this.animFrame;
+		player.life -= 640; // 2.5 life points
+		player.recoveryTime = 300;
+		player.vx += this.dir << 8;
+		this.coolTime = COOL_TIME;
+		playSound(sfx_shoot);
+		playSoundIfFinished(sfx_pain);
+
+		for (let i = 0; i < 5; i++) {
+			this.world.sparkles.push(
+				new Sparkle(
+					this.world,
+					SparkleType.SHOT_HIT,
+					player.x + (this.pX << 7) + random(-8 << 8, 8 << 8),
+					player.y + (this.pY << 6),
+					random(512, 1024) * this.dir,
+					random(-3 << 8, 0),
+					50,
+					4,
+				),
+			);
 		}
 	}
 }

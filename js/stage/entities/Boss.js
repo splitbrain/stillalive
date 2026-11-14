@@ -133,8 +133,8 @@ export class Boss {
 			}
 
 			if (this.world.player.dead) {
-				this.world.projectiles = new Array();
-				this.world.plasmaBall = new Array();
+				this.world.projectiles = [];
+				this.world.plasmaBall = [];
 				return;
 			}
 
@@ -306,20 +306,18 @@ export class Boss {
 	 * @returns {void}
 	 */
 	hit(crate) {
-		let i;
 		if (this.hits < 3 && crate.overlapsBox(this.x + 16, this.y, 74, 58)) {
 			this.useUpCrate(crate);
 			this.hits++;
 			playSound(sfx_bossHit);
 			if (this.hits < 3) {
-				for (i = 0; i < this.world.level.tiles.length; i++) {
-					if (this.world.level.tiles[i] == FIRST_OF_KIND[TileKind.BOSS_BLOCK]) {
-						this.world.map.set(i, FIRST_OF_KIND[TileKind.BOSS_BLOCK]);
-					}
+				const block = FIRST_OF_KIND[TileKind.BOSS_BLOCK];
+				for (const [i, tile] of this.world.level.tiles.entries()) {
+					if (tile == block) this.world.map.set(i, block);
 				}
 			} else {
-				this.world.projectiles = new Array();
-				this.world.plasmaBall = new Array();
+				this.world.projectiles = [];
+				this.world.plasmaBall = [];
 				this.world.events.trigger('bossDied');
 			}
 		}

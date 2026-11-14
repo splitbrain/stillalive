@@ -33,6 +33,14 @@ export function build(map) {
 	}
 }
 
+/** @type {Array<[number, number]>} The column and row steps to the right, left, lower and upper neighbor. */
+const NEIGHBORS = [
+	[1, 0],
+	[-1, 0],
+	[0, 1],
+	[0, -1],
+];
+
 /**
  * Fill a connected area of one tile id with another tile id.
  *
@@ -44,50 +52,23 @@ export function build(map) {
  * @returns {void}
  */
 export function fill(map, tile, toFill, x, y) {
-	let j, k, i;
-	const tmpMap = new Array();
-	for (i = 0; i < MAP_SIZE; i++) {
-		tmpMap.push(-1);
-	}
-
-	let current = 0;
-	let count = 1;
-	tmpMap[current] = map.index(x, y);
-
-	while (current < MAP_SIZE && tmpMap[current] != -1) {
-		const t = tmpMap[current];
-		y = map.row(t);
-		x = map.column(t);
-		map.setTile(t, tile);
-		if (x < MAP_WIDTH - 1 && map.tiles[map.index(x + 1, y)] == toFill) {
-			j = true;
-			for (k = 0; k < count; k++) {
-				if (tmpMap[k] == map.index(x + 1, y)) j = false;
+	const queue = [map.index(x, y)];
+	const queued = new Set(queue);
+	// the loop also visits the positions that it adds to the queue
+	for (const index of queue) {
+		const column = map.column(index);
+		const row = map.row(index);
+		map.setTile(index, tile);
+		for (const [dx, dy] of NEIGHBORS) {
+			const nx = column + dx;
+			const ny = row + dy;
+			if (nx < 0 || nx >= MAP_WIDTH || ny < 0 || ny >= MAP_HEIGHT) continue;
+			const next = map.index(nx, ny);
+			if (map.tiles[next] == toFill && !queued.has(next)) {
+				queued.add(next);
+				queue.push(next);
 			}
-			if (j) tmpMap[count++] = map.index(x + 1, y);
 		}
-		if (x > 0 && map.tiles[map.index(x - 1, y)] == toFill) {
-			j = true;
-			for (k = 0; k < count; k++) {
-				if (tmpMap[k] == map.index(x - 1, y)) j = false;
-			}
-			if (j) tmpMap[count++] = map.index(x - 1, y);
-		}
-		if (y < MAP_HEIGHT - 1 && map.tiles[map.index(x, y + 1)] == toFill) {
-			j = true;
-			for (k = 0; k < count; k++) {
-				if (tmpMap[k] == map.index(x, y + 1)) j = false;
-			}
-			if (j) tmpMap[count++] = map.index(x, y + 1);
-		}
-		if (y > 0 && map.tiles[map.index(x, y - 1)] == toFill) {
-			j = true;
-			for (k = 0; k < count; k++) {
-				if (tmpMap[k] == map.index(x, y - 1)) j = false;
-			}
-			if (j) tmpMap[count++] = map.index(x, y - 1);
-		}
-		current++;
 	}
 }
 
@@ -126,15 +107,14 @@ function isTileHere(map, x, y) {
  * @returns {void}
  */
 export function eraseSprites(map, til, xt, yt) {
-	let h, t;
 	if (til == Tile.PLATFORM_RIGHT || til == Tile.PLATFORM_LEFT || til == Tile.GRAVPIPE_UP || til == Tile.GRAVPIPE_DOWN) {
 		// objects wider than one tile
-		for (h = 1; h < 3; h++) {
+		for (let h = 1; h < 3; h++) {
 			if (h == 2 && til >= Tile.GRAVPIPE_UP) continue;
 			if (xt + h < MAP_WIDTH) {
 				map.setTile(map.index(xt + h, yt), Tile.EMPTY);
 				if (yt - 1 >= 0) {
-					t = map.tiles[map.index(xt + h, yt - 1)];
+					const t = map.tiles[map.index(xt + h, yt - 1)];
 					if (t == Tile.PLAYER_START || t == Tile.TURRET_LEFT || t == Tile.TURRET_RIGHT || isGravPipeTile(t))
 						map.setTile(map.index(xt + h, yt - 1), Tile.EMPTY);
 				}
@@ -151,9 +131,9 @@ export function eraseSprites(map, til, xt, yt) {
 		// objects taller than one tile
 		if (yt + 1 < MAP_HEIGHT) {
 			map.setTile(map.index(xt, yt + 1), Tile.EMPTY);
-			for (h = 1; h < 3; h++) {
+			for (let h = 1; h < 3; h++) {
 				if (xt - h >= 0) {
-					t = map.tiles[map.index(xt - h, yt + 1)];
+					const t = map.tiles[map.index(xt - h, yt + 1)];
 					if (t == Tile.PLATFORM_RIGHT || t == Tile.PLATFORM_LEFT || t == Tile.GRAVPIPE_UP || t == Tile.GRAVPIPE_DOWN)
 						map.setTile(map.index(xt - h, yt + 1), Tile.EMPTY);
 				}
@@ -162,13 +142,13 @@ export function eraseSprites(map, til, xt, yt) {
 	}
 
 	if (yt - 1 >= 0) {
-		t = map.tiles[map.index(xt, yt - 1)];
+		const t = map.tiles[map.index(xt, yt - 1)];
 		if (t == Tile.PLAYER_START || t == Tile.TURRET_LEFT || t == Tile.TURRET_RIGHT || isGravPipeTile(t))
 			map.setTile(map.index(xt, yt - 1), Tile.EMPTY);
 	}
-	for (h = 1; h < 3; h++) {
+	for (let h = 1; h < 3; h++) {
 		if (xt - h >= 0) {
-			t = map.tiles[map.index(xt - h, yt)];
+			const t = map.tiles[map.index(xt - h, yt)];
 			if (t == Tile.PLATFORM_RIGHT || t == Tile.PLATFORM_LEFT) map.setTile(map.index(xt - h, yt), Tile.EMPTY);
 			else if ((t == Tile.GRAVPIPE_UP || t == Tile.GRAVPIPE_DOWN) && h < 2)
 				map.setTile(map.index(xt - h, yt), Tile.EMPTY);
@@ -221,11 +201,5 @@ export function allowTile(map, tile) {
  * @returns {number} The count.
  */
 function countTile(map, tile) {
-	let i;
-	let c = 0;
-	for (i = 0; i < map.tiles.length; i++) {
-		if (map.tiles[i] == tile) c++;
-	}
-
-	return c;
+	return map.tiles.filter((id) => id == tile).length;
 }

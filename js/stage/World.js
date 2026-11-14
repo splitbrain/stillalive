@@ -366,7 +366,6 @@ export class World {
 	 */
 	#updateObjects() {
 		const running = this.isRunning();
-		let i;
 
 		for (const tile of this.animatedTiles) tile.animate();
 
@@ -384,7 +383,7 @@ export class World {
 			}
 		}
 
-		for (i = 0; i < this.plasmaBall.length; i++) {
+		for (let i = 0; i < this.plasmaBall.length; i++) {
 			const ball = this.plasmaBall[i];
 			if (!ball.used) continue;
 			ball.animate();
@@ -398,7 +397,7 @@ export class World {
 			}
 		}
 
-		for (i = 0; i < this.sparkles.length; i++) {
+		for (let i = 0; i < this.sparkles.length; i++) {
 			this.sparkles[i].move();
 			if (this.sparkles[i].fading <= 0) {
 				this.sparkles.splice(i, 1);
@@ -406,7 +405,7 @@ export class World {
 			}
 		}
 
-		for (i = 0; i < this.crates.length; i++) {
+		for (let i = 0; i < this.crates.length; i++) {
 			const c = this.crates[i];
 			// a shrinking crate moves at half of its speed
 			if (c.shrink > 0) {
@@ -554,7 +553,6 @@ export class World {
 	 * @returns {void}
 	 */
 	#parse({ levelStart = false, editor = false, boss = 0 } = {}) {
-		let vx;
 		this.cakes = [];
 		this.turrets = [];
 		this.crates = [];
@@ -613,7 +611,7 @@ export class World {
 				this.player.y = (y * TILE_SIZE) << 8;
 				if (levelStart) map.setTile(i, Tile.EMPTY);
 			} else if (tile == Tile.PLATFORM_RIGHT || tile == Tile.PLATFORM_LEFT) {
-				vx = tile == Tile.PLATFORM_RIGHT ? 256 : -256;
+				const vx = tile == Tile.PLATFORM_RIGHT ? 256 : -256;
 				this.platforms.push(new Platform(this, (x * TILE_SIZE) << 8, (y * TILE_SIZE) << 8, vx, 0));
 				if (levelStart) map.setTile(i, Tile.EMPTY);
 			} else if (tile == Tile.TUBE) {
@@ -781,13 +779,13 @@ export class World {
 	 * @returns {Platform|null} The platform, or null.
 	 */
 	platformAt(x, y) {
-		let pi;
-		for (pi = 0; pi < this.platforms.length; pi++) {
-			const x2 = this.platforms[pi].x >> 8;
-			const y2 = this.platforms[pi].y >> 8;
-			if (x > x2 && x < x2 + 3 * TILE_SIZE && y >= y2 && y < y2 + TILE_SIZE - 1) return this.platforms[pi];
-		}
-		return null;
+		return (
+			this.platforms.find((platform) => {
+				const x2 = platform.x >> 8;
+				const y2 = platform.y >> 8;
+				return x > x2 && x < x2 + 3 * TILE_SIZE && y >= y2 && y < y2 + TILE_SIZE - 1;
+			}) ?? null
+		);
 	}
 
 	/**
@@ -797,12 +795,7 @@ export class World {
 	 * @returns {boolean} True if a ball overlaps the object.
 	 */
 	plasmaTouching(obj) {
-		let i;
-		for (i = 0; i < this.plasmaBall.length; i++) {
-			if (this.plasmaBall[i].used && this.plasmaBall[i].overlaps(obj)) return true;
-		}
-
-		return false;
+		return this.plasmaBall.some((ball) => ball.used && ball.overlaps(obj));
 	}
 
 	/**
@@ -812,15 +805,8 @@ export class World {
 	 * @returns {object[]} The fields.
 	 */
 	gravPipeFieldsAt(obj) {
-		let i;
-		const fields = new Array();
-
-		for (i = 0; i < this.gravPipeFields.length; i++) {
-			let x = this.gravPipeFields[i].x;
-			let y = this.gravPipeFields[i].y;
-			let w = this.gravPipeFields[i].w;
-			let h = this.gravPipeFields[i].h;
-
+		return this.gravPipeFields.filter((field) => {
+			let { x, y, w, h } = field;
 			if (w < 0) {
 				w = -w;
 				x -= w;
@@ -828,13 +814,8 @@ export class World {
 				h = -h;
 				y -= h;
 			}
-
-			if (obj.overlapsBox(x, y, w, h)) {
-				fields.push(this.gravPipeFields[i]);
-			}
-		}
-
-		return fields;
+			return obj.overlapsBox(x, y, w, h);
+		});
 	}
 
 	/**
@@ -969,12 +950,11 @@ export class World {
 	 * @returns {void}
 	 */
 	#closeSwitchDoors() {
-		let i;
 		playSound(sfx_field);
-		for (i = 0; i < this.animatedTiles.length; i++) {
-			if (isTileKind(this.animatedTiles[i].current, TileKind.SWITCH_DOOR)) {
-				this.animatedTiles[i].used = true;
-				this.map.setTile(this.animatedTiles[i].place, this.animatedTiles[i].min);
+		for (const door of this.animatedTiles) {
+			if (isTileKind(door.current, TileKind.SWITCH_DOOR)) {
+				door.used = true;
+				this.map.setTile(door.place, door.min);
 			}
 		}
 		this.#clearDoorBlockers();
@@ -986,12 +966,11 @@ export class World {
 	 * @returns {void}
 	 */
 	#openSwitchDoors() {
-		let i;
 		playSound(sfx_field);
-		for (i = 0; i < this.animatedTiles.length; i++) {
-			if (isTileKind(this.animatedTiles[i].current, TileKind.SWITCH_DOOR)) {
-				this.animatedTiles[i].used = false;
-				this.map.setTile(this.animatedTiles[i].place, Tile.EMPTY);
+		for (const door of this.animatedTiles) {
+			if (isTileKind(door.current, TileKind.SWITCH_DOOR)) {
+				door.used = false;
+				this.map.setTile(door.place, Tile.EMPTY);
 			}
 		}
 	}
@@ -1015,18 +994,11 @@ export class World {
 	 * @returns {boolean} True if a switch tile is below a crate.
 	 */
 	#crateOnSwitch() {
-		let i;
-		for (i = 0; i < this.crates.length; i++) {
-			if (this.map.atPixel(this.crates[i].x >> 8, (this.crates[i].y >> 8) + this.crates[i].pY + 3) == Tile.SWITCH) {
-				return true;
-			} else if (
-				this.map.atPixel((this.crates[i].x >> 8) + TILE_SIZE - 1, (this.crates[i].y >> 8) + this.crates[i].pY + 3) ==
-				Tile.SWITCH
-			) {
-				return true;
-			}
-		}
-		return false;
+		return this.crates.some((crate) => {
+			const x = crate.x >> 8;
+			const y = (crate.y >> 8) + crate.pY + 3;
+			return this.map.atPixel(x, y) == Tile.SWITCH || this.map.atPixel(x + TILE_SIZE - 1, y) == Tile.SWITCH;
+		});
 	}
 
 	/**

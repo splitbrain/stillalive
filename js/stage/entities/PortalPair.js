@@ -42,7 +42,7 @@ export class PortalPair {
 	 * @returns {void}
 	 */
 	launchPortal(p, targetX, targetY) {
-		let i;
+		const portal = this.list[p];
 		this.world.player.portalCooldown = 0;
 
 		let x = this.world.player.x + ((this.world.player.pX >> 1) << 8);
@@ -54,28 +54,19 @@ export class PortalPair {
 			return;
 		}
 
-		this.list[p].vx = getCos(targetX, targetY, x >> 8, y >> 8) * 256;
-		this.list[p].vy = getSin(targetX, targetY, x >> 8, y >> 8) * 256;
+		portal.vx = getCos(targetX, targetY, x >> 8, y >> 8) * 256;
+		portal.vy = getSin(targetX, targetY, x >> 8, y >> 8) * 256;
 
-		for (i = 0; i < this.world.sparkles.length; i++) {
-			if (this.world.sparkles[i].color == p && this.world.sparkles[i].type == SparkleType.PORTAL_SHOT) {
-				this.world.sparkles.splice(i, 1);
-				i--;
-			}
-		}
+		removeSparkles(this.world, p, SparkleType.PORTAL_SHOT);
 
-		i = 0;
+		let steps = 0;
 		let bounces = 0;
 		let tile;
-		let now = 0;
-
 		let inScreenOK;
-
 		do {
-			inScreenOK = false;
-			now++;
-			x += this.list[p].vx;
-			y += this.list[p].vy;
+			steps++;
+			x += portal.vx;
+			y += portal.vy;
 			tile = this.world.getTilePortal(x >> 8, y >> 8);
 
 			if (tile == Tile.ICYWALL) {
@@ -84,15 +75,15 @@ export class PortalPair {
 				const left = this.world.getTilePortal((x >> 8) - 1, y >> 8);
 				const right = this.world.getTilePortal((x >> 8) + 1, y >> 8);
 				if ((!down || !up) && left && right) {
-					this.list[p].vy = -this.list[p].vy;
+					portal.vy = -portal.vy;
 				} else if ((!left || !right) && up && down) {
-					this.list[p].vx = -this.list[p].vx;
+					portal.vx = -portal.vx;
 				}
 				tile = 0;
 				bounces++;
 			}
 
-			if (i % 6 == 0 && now > 15) {
+			if (steps > 15 && steps % 6 == 1) {
 				const s = new Sparkle(
 					this.world,
 					SparkleType.PORTAL_SHOT,
@@ -107,30 +98,24 @@ export class PortalPair {
 				if (random(0, 2) == 0) s.vy = -s.vy;
 				this.world.sparkles.push(s);
 			}
-			i++;
-			if (inScreen(x >> 8, y >> 8)) {
-				inScreenOK = true;
-			} else {
-				const yy = y >> 8;
-				if (yy < 0 && this.list[p].vy > 0) inScreenOK = true;
-			}
+			// a shot above the playfield continues if it flies down
+			inScreenOK = inScreen(x >> 8, y >> 8) || (y >> 8 < 0 && portal.vy > 0);
 		} while (tile == Tile.EMPTY && inScreenOK && bounces < 5);
 
 		if (isTileKind(tile, TileKind.WALL) || tile instanceof Platform) {
 			const ok = this.#setPortalDir(p, x >> 8, y >> 8);
 			if (ok) {
-				if (this.list[p].direction == Direction.RIGHT || this.list[p].direction == Direction.LEFT) {
-					this.list[p].scaleX = 1;
-					this.list[p].scaleY = 0;
-					this.list[p].platform = null;
+				if (portal.direction == Direction.RIGHT || portal.direction == Direction.LEFT) {
+					portal.scaleX = 1;
+					portal.scaleY = 0;
+					portal.platform = null;
 				} else {
-					this.list[p].scaleX = 0;
-					this.list[p].scaleY = 1;
+					portal.scaleX = 0;
+					portal.scaleY = 1;
 					const hit = this.world.getTilePortal(x >> 8, y >> 8);
-					this.list[p].platform = hit instanceof Platform ? hit : null;
+					portal.platform = hit instanceof Platform ? hit : null;
 				}
-				const r = random(0, 2);
-				playSound(sfx_portal[r]);
+				playSound(sfx_portal[random(0, 2)]);
 				this.world.portalShots++;
 			} else playSound(sfx_noPortal);
 		} else playSound(sfx_noPortal);
@@ -147,23 +132,21 @@ export class PortalPair {
 	 * @returns {number} 1 if the portal was placed, else 0.
 	 */
 	#setPortalDir(p, x, y) {
-		let tile, x2, y2;
-		const vx = this.list[p].vx;
-		const vy = this.list[p].vy;
-		let i;
-		const oldDir = this.list[p].direction;
+		const portal = this.list[p];
+		const other = this.list[1 - p];
+		const oldDir = portal.direction;
 
 		let wallCount = 0;
 		//first check if the portal is on a left or right wall
-		for (i = y - 14; i < y + 14; i++) {
-			tile = this.world.getTilePortal(x, i);
+		for (let i = y - 14; i < y + 14; i++) {
+			const tile = this.world.getTilePortal(x, i);
 			if (tile != Tile.EMPTY) {
 				if (isTileKind(tile, TileKind.WALL) || tile instanceof Platform) wallCount++;
 			}
 		}
 		if (wallCount == 28) {
 			wallCount = 0;
-			for (i = x - TILE_SIZE; i < x + TILE_SIZE; i++) {
+			for (let i = x - TILE_SIZE; i < x + TILE_SIZE; i++) {
 				//make sure that nothing touches horizontally
 				if (this.world.getTile(i, y - 14) != Tile.EMPTY && !(this.world.getTile(i, y - 14) instanceof Crate))
 					wallCount++;
@@ -172,27 +155,27 @@ export class PortalPair {
 			}
 			if (wallCount > 36) return 0;
 
-			if (vx < 0) {
+			if (portal.vx < 0) {
 				//if the portal is on the left
 				x -= 3;
-				this.list[p].direction = Direction.LEFT;
-			} else this.list[p].direction = Direction.RIGHT;
+				portal.direction = Direction.LEFT;
+			} else portal.direction = Direction.RIGHT;
 			y -= TILE_SIZE;
 
-			x2 = this.list[1 - p].x >> 8;
-			y2 = this.list[1 - p].y >> 8;
+			const x2 = other.x >> 8;
+			const y2 = other.y >> 8;
 			if (x == x2) {
 				// the other portal is on the same wall and overlaps
-				if (y2 - y > -2 * TILE_SIZE && y2 - y < 2 * TILE_SIZE && this.list[1 - p].used) {
-					this.list[p].direction = oldDir;
+				if (y2 - y > -2 * TILE_SIZE && y2 - y < 2 * TILE_SIZE && other.used) {
+					portal.direction = oldDir;
 					return 0;
 				}
 			}
 
-			this.list[p].frame = 1;
-			this.list[p].y = y << 8;
-			this.list[p].x = x << 8;
-			this.list[p].used = true;
+			portal.frame = 1;
+			portal.y = y << 8;
+			portal.x = x << 8;
+			portal.used = true;
 
 			createPortalGlow(this.world, p);
 
@@ -200,15 +183,15 @@ export class PortalPair {
 		} else {
 			//then check if the portal is on a top or bottom wall
 			wallCount = 0;
-			for (i = x - 14; i < x + 14; i++) {
-				tile = this.world.getTilePortal(i, y);
+			for (let i = x - 14; i < x + 14; i++) {
+				const tile = this.world.getTilePortal(i, y);
 				if (tile != Tile.EMPTY) {
 					if (isTileKind(tile, TileKind.WALL) || tile instanceof Platform) wallCount++;
 				}
 			}
 			if (wallCount == 28) {
 				wallCount = 0;
-				for (i = y - TILE_SIZE; i < y + TILE_SIZE; i++) {
+				for (let i = y - TILE_SIZE; i < y + TILE_SIZE; i++) {
 					//make sure that nothing touches vertically
 					if (this.world.getTile(x - 14, i) != Tile.EMPTY && !(this.world.getTile(x - 14, i) instanceof Crate))
 						wallCount++;
@@ -217,27 +200,27 @@ export class PortalPair {
 				}
 				if (wallCount > 36) return 0;
 
-				if (vy < 0) {
+				if (portal.vy < 0) {
 					//if the portal is at the top
 					y -= 3;
-					this.list[p].direction = Direction.UP;
-				} else this.list[p].direction = Direction.DOWN;
+					portal.direction = Direction.UP;
+				} else portal.direction = Direction.DOWN;
 				x -= TILE_SIZE;
 
-				x2 = this.list[1 - p].x >> 8;
-				y2 = this.list[1 - p].y >> 8;
+				const x2 = other.x >> 8;
+				const y2 = other.y >> 8;
 				if (y == y2) {
 					// the other portal is on the same wall and overlaps
-					if (x2 - x > -2 * TILE_SIZE && x2 - x < 2 * TILE_SIZE && this.list[1 - p].used) {
-						this.list[p].direction = oldDir;
+					if (x2 - x > -2 * TILE_SIZE && x2 - x < 2 * TILE_SIZE && other.used) {
+						portal.direction = oldDir;
 						return 0;
 					}
 				}
 
-				this.list[p].y = y << 8;
-				this.list[p].x = x << 8;
-				this.list[p].used = true;
-				this.list[p].frame = 0;
+				portal.y = y << 8;
+				portal.x = x << 8;
+				portal.used = true;
+				portal.frame = 0;
 
 				createPortalGlow(this.world, p);
 
@@ -364,12 +347,10 @@ export class PortalPair {
 	 * @returns {void}
 	 */
 	#teleport(entry, exit, obj) {
-		let gap;
-
 		playSound(sfx_enterPortal);
 
 		if (exit.direction == Direction.RIGHT || exit.direction == Direction.LEFT) {
-			gap = (2 * TILE_SIZE - obj.pY) >> 1;
+			const gap = (2 * TILE_SIZE - obj.pY) >> 1;
 			obj.x = exit.x - ((obj.pX >> 1) << 8);
 			obj.y = exit.y + (gap << 8);
 		} else if (exit.direction == Direction.UP) {
@@ -412,24 +393,14 @@ export class PortalPair {
 	 * @returns {void}
 	 */
 	clearPortals() {
-		let ok = 1;
-		let i;
-		for (i = 0; i < this.world.crates.length; i++) {
-			if (!ok) break;
-			if (this.world.crates[i].shrink == 0 && this.isInPortal(this.world.crates[i])) ok = 0;
-		}
-
-		if (ok) {
-			for (i = 0; i < this.world.turrets.length; i++) {
-				if (!this.world.turrets[i].dead && this.isInPortal(this.world.turrets[i])) ok = 0;
-			}
-		}
-
-		if (ok && this.world.plasmaBall.length > 0 && this.isInPortal(this.world.plasmaBall[0])) ok = 0;
-
-		if (ok && this.isInPortal(this.world.player)) ok = 0;
-
-		if (ok) this.#removePortals();
+		const world = this.world;
+		const objects = [
+			...world.crates.filter((crate) => crate.shrink == 0),
+			...world.turrets.filter((turret) => !turret.dead),
+			...world.plasmaBall.slice(0, 1),
+			world.player,
+		];
+		if (!objects.some((obj) => this.isInPortal(obj))) this.#removePortals();
 	}
 
 	/**
@@ -440,22 +411,21 @@ export class PortalPair {
 	 * @returns {Portal|null} The portal, or null if no portal is there.
 	 */
 	pointInPortal(x, y) {
-		let i;
-		for (i = 0; i < this.list.length; i++) {
-			const xp = this.list[i].x >> 8;
-			const yp = this.list[i].y >> 8;
-
-			if (this.list[i].direction == Direction.LEFT || this.list[i].direction == Direction.RIGHT) {
-				if (x >= xp && x <= xp + 3 && y >= yp && y <= yp + 2 * TILE_SIZE) {
-					return this.list[i];
+		return (
+			this.list.find((portal) => {
+				const xp = portal.x >> 8;
+				const yp = portal.y >> 8;
+				switch (portal.direction) {
+					case Direction.LEFT:
+					case Direction.RIGHT:
+						return x >= xp && x <= xp + 3 && y >= yp && y <= yp + 2 * TILE_SIZE;
+					case Direction.UP:
+					case Direction.DOWN:
+						return x >= xp && x <= xp + 2 * TILE_SIZE && y >= yp && y <= yp + 3;
 				}
-			} else if (this.list[i].direction == Direction.UP || this.list[i].direction == Direction.DOWN) {
-				if (x >= xp && x <= xp + 2 * TILE_SIZE && y >= yp && y <= yp + 3) {
-					return this.list[i];
-				}
-			}
-		}
-		return null;
+				return false;
+			}) ?? null
+		);
 	}
 
 	/**

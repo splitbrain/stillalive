@@ -93,7 +93,6 @@ export class Throwable extends Body {
 	 * @returns {void}
 	 */
 	place() {
-		let step;
 		const portals = this.world.portals;
 		const x = this.world.player.x + (this.world.player.pX << 7);
 		const y = this.world.player.y + (this.world.player.pY << 7);
@@ -108,7 +107,7 @@ export class Throwable extends Body {
 		this.vx = cos * (TILE_SIZE << 8);
 		this.vy = sin * (TILE_SIZE << 8);
 
-		for (step = 0; step < 2; step++) {
+		for (let step = 0; step < 2; step++) {
 			this.x += this.vx >> 1;
 			this.y += this.vy >> 1;
 
@@ -132,11 +131,9 @@ export class Throwable extends Body {
 	 * @returns {void}
 	 */
 	move() {
-		let col, i;
 		const portals = this.world.portals;
 		const fields = this.world.gravPipeFieldsAt(this);
-		for (i = 0; i < fields.length; i++) {
-			const field = fields[i];
+		for (const field of fields) {
 			if (field.vx != 0) {
 				if (portals.portalAt(this, Direction.UP) || portals.portalAt(this, Direction.DOWN)) {
 					if (this.y >> 8 < field.y) this.y += 768;
@@ -186,8 +183,7 @@ export class Throwable extends Body {
 		if (this.vx > 512 && ground == 1 && !inLeftPortal) this.vx = 512;
 		else if (this.vx < -512 && ground == 1 && !inRightPortal) this.vx = -512;
 
-		let j;
-		for (j = 0; j < 8; j++) {
+		for (let j = 0; j < 8; j++) {
 			if (!portals.passPortal(this, Direction.DOWN) && !portals.passPortal(this, Direction.UP)) this.x += this.vx >> 3;
 			if (
 				!portals.passPortal(this, Direction.LEFT) &&
@@ -199,9 +195,8 @@ export class Throwable extends Body {
 			if (this.push()) break;
 		}
 
-		col = true;
-		while (col && !portals.isInPortal(this)) {
-			col = this.checkCollisions();
+		while (!portals.isInPortal(this)) {
+			if (!this.checkCollisions()) break;
 		}
 	}
 }

@@ -199,7 +199,6 @@ export class Player extends Body {
 	 * @returns {void}
 	 */
 	move() {
-		let fi, i;
 		const portals = this.world.portals;
 		if (this.teleportTime < 0) {
 			if (++this.teleportTime < 0 && this.teleportTime % 6 == 0) this.#teleportSparkles(3, 200, 0);
@@ -218,8 +217,7 @@ export class Player extends Body {
 			this.vy = 0;
 			playLoop(sfx_float);
 		}
-		for (i = 0; i < fields.length; i++) {
-			const field = fields[i];
+		for (const field of fields) {
 			if (fields.length == 1) {
 				if (field.vx != 0) {
 					if (portals.portalAt(this, Direction.UP) || portals.portalAt(this, Direction.DOWN)) {
@@ -240,8 +238,7 @@ export class Player extends Body {
 			if (field.vx != 0) {
 				if (this.jump) {
 					this.y -= 3 << 8;
-					fi = this.world.gravPipeFieldsAt(this);
-					if (fi.length == 0) {
+					if (this.world.gravPipeFieldsAt(this).length == 0) {
 						this.vy = -800;
 						this.vx = field.vx << 9;
 					}
@@ -252,22 +249,20 @@ export class Player extends Body {
 			if (field.vy != 0) {
 				if (this.left) {
 					this.x -= 3 << 8;
-					fi = this.world.gravPipeFieldsAt(this);
-					if (fi.length == 0) {
+					if (this.world.gravPipeFieldsAt(this).length == 0) {
 						this.vx = -384;
 					}
 				}
 				if (this.right) {
 					this.x += 3 << 8;
-					fi = this.world.gravPipeFieldsAt(this);
-					if (fi.length == 0) {
+					if (this.world.gravPipeFieldsAt(this).length == 0) {
 						this.vx = 384;
 					}
 				}
 			}
 		}
 
-		let ground = this.touchingGround();
+		const ground = this.touchingGround();
 		if (ground && !this.onGround && fields.length == 0) playSound(sfx_land);
 		this.onGround = ground > 0;
 		const belt = this.world.onBelt(this);
@@ -294,10 +289,8 @@ export class Player extends Body {
 		}
 
 		if (this.life <= 50 << 8) {
-			const h = this.life >> 8;
-			const r = this.world.time % h;
-
-			for (i = 0; r == 0 && i < 3; i++) {
+			const drops = this.world.time % (this.life >> 8) == 0 ? 3 : 0;
+			for (let i = 0; i < drops; i++) {
 				this.world.sparkles.push(
 					new Sparkle(
 						this.world,
@@ -385,7 +378,7 @@ export class Player extends Body {
 			else if (ground == 2) this.vx += dir >> 2;
 		}
 
-		for (i = 0; i < 8; i++) {
+		for (let i = 0; i < 8; i++) {
 			if (!portals.passPortal(this, Direction.DOWN) && !portals.passPortal(this, Direction.UP)) this.x += this.vx >> 3;
 			if (!portals.passPortal(this, Direction.LEFT) && !portals.passPortal(this, Direction.RIGHT))
 				this.y += this.vy >> 3;

@@ -128,14 +128,14 @@ export class Body {
 		const pX = this.pX;
 		const pY = this.pY;
 
-		let hit = this.#pointOnDeadlyTile(x, y);
-		if (!hit) hit = this.#pointOnDeadlyTile(x + pX - 1, y);
-		if (!hit) hit = this.#pointOnDeadlyTile(x, y + (pY >> 1));
-		if (!hit) hit = this.#pointOnDeadlyTile(x, y + pY - 6);
-		if (!hit) hit = this.#pointOnDeadlyTile(x + pX - 1, y + (pY >> 1));
-		if (!hit) hit = this.#pointOnDeadlyTile(x + pX - 1, y + pY - 6);
-
-		return hit;
+		return (
+			this.#pointOnDeadlyTile(x, y) ||
+			this.#pointOnDeadlyTile(x + pX - 1, y) ||
+			this.#pointOnDeadlyTile(x, y + (pY >> 1)) ||
+			this.#pointOnDeadlyTile(x, y + pY - 6) ||
+			this.#pointOnDeadlyTile(x + pX - 1, y + (pY >> 1)) ||
+			this.#pointOnDeadlyTile(x + pX - 1, y + pY - 6)
+		);
 	}
 
 	/**
@@ -152,24 +152,75 @@ export class Body {
 	}
 
 	/**
+	 * Get the first solid point in a row as wide as the object.
+	 *
+	 * @param {number} x The x coordinate of the first point in pixels.
+	 * @param {number} y The y coordinate of the row in pixels.
+	 * @returns {import('../World.js').Solid} The tile id or the object of the first solid point, else Tile.EMPTY.
+	 */
+	#firstSolidInRow(x, y) {
+		for (let i = x; i < x + this.pX; i++) {
+			const tile = this.world.getTile(i, y);
+			if (tile) return tile;
+		}
+		return 0;
+	}
+
+	/**
+	 * Get the first solid point in a column as high as the object.
+	 *
+	 * @param {number} x The x coordinate of the column in pixels.
+	 * @param {number} y The y coordinate of the first point in pixels.
+	 * @returns {import('../World.js').Solid} The tile id or the object of the first solid point, else Tile.EMPTY.
+	 */
+	#firstSolidInColumn(x, y) {
+		for (let i = y; i < y + this.pY; i++) {
+			const tile = this.world.getTile(x, i);
+			if (tile) return tile;
+		}
+		return 0;
+	}
+
+	/**
+	 * Count the solid points at every second pixel of a row.
+	 *
+	 * @param {number} from The x coordinate of the first point in pixels.
+	 * @param {number} to The x coordinate in pixels where the row ends, not included.
+	 * @param {number} y The y coordinate of the row in pixels.
+	 * @returns {number} The number of solid points.
+	 */
+	#countSolidInRow(from, to, y) {
+		let count = 0;
+		for (let i = from; i < to; i += 2) {
+			if (this.world.getTile(i, y)) count++;
+		}
+		return count;
+	}
+
+	/**
+	 * Count the solid points at every second pixel of a column.
+	 *
+	 * @param {number} x The x coordinate of the column in pixels.
+	 * @param {number} from The y coordinate of the first point in pixels.
+	 * @param {number} to The y coordinate in pixels where the column ends, not included.
+	 * @returns {number} The number of solid points.
+	 */
+	#countSolidInColumn(x, from, to) {
+		let count = 0;
+		for (let i = from; i < to; i += 2) {
+			if (this.world.getTile(x, i)) count++;
+		}
+		return count;
+	}
+
+	/**
 	 * Get the solid tile in the bottom row of the object.
 	 *
 	 * @returns {import('../World.js').Solid} The tile id or the object of the first solid point along the bottom edge,
 	 *     else Tile.EMPTY.
 	 */
 	downCollision() {
-		const world = this.world;
-		const x = this.x >> 8;
-		const y = (this.y >> 8) + this.pY - 1;
-		const pX = this.pX;
-
-		let i;
-		for (i = x; i < x + pX; i++) {
-			const tile = world.getTile(i, y);
-			if (tile) return tile;
-		}
-
-		return 0;
+		return this.#firstSolidInRow(this.x >> 8, (this.y >> 8) + this.pY - 1);
 	}
 
 	/**
@@ -179,18 +230,7 @@ export class Body {
 	 *     else Tile.EMPTY.
 	 */
 	upCollision() {
-		const world = this.world;
-		const x = this.x >> 8;
-		const y = this.y >> 8;
-		const pX = this.pX;
-
-		let i;
-		for (i = x; i < x + pX; i++) {
-			const tile = world.getTile(i, y);
-			if (tile) return tile;
-		}
-
-		return 0;
+		return this.#firstSolidInRow(this.x >> 8, this.y >> 8);
 	}
 
 	/**
@@ -200,18 +240,7 @@ export class Body {
 	 *     else Tile.EMPTY.
 	 */
 	leftCollision() {
-		const world = this.world;
-		const x = (this.x >> 8) - 1;
-		const y = this.y >> 8;
-		const pY = this.pY;
-
-		let i;
-		for (i = y; i < y + pY; i++) {
-			const tile = world.getTile(x, i);
-			if (tile) return tile;
-		}
-
-		return 0;
+		return this.#firstSolidInColumn((this.x >> 8) - 1, this.y >> 8);
 	}
 
 	/**
@@ -221,66 +250,28 @@ export class Body {
 	 *     else Tile.EMPTY.
 	 */
 	rightCollision() {
-		const world = this.world;
-		const x = (this.x >> 8) + this.pX;
-		const y = this.y >> 8;
-		const pY = this.pY;
-
-		let i;
-		for (i = y; i < y + pY; i++) {
-			const tile = world.getTile(x, i);
-			if (tile) return tile;
-		}
-
-		return 0;
+		return this.#firstSolidInColumn((this.x >> 8) + this.pX, this.y >> 8);
 	}
 
 	/**
-	 * Find the side of the object with the most points in solid tiles.
+	 * Find the side of the object with the most points in solid tiles. If two sides have the same number of points,
+	 * the side with the lower direction wins.
 	 *
 	 * @returns {number} Direction.UP, Direction.DOWN, Direction.LEFT or Direction.RIGHT, or -1 if the object touches
 	 *     nothing.
 	 */
 	getCollision() {
-		const world = this.world;
-		let i;
-		const hit = [0, 0, 0, 0]; //top, bottom, left, right
 		const x = this.x >> 8;
 		const y = this.y >> 8;
-
-		let max = 0;
-
-		for (i = x; i < x + this.pX; i += 2) {
-			if (world.getTile(i, y)) hit[0]++;
-		}
-		let maxVal = hit[0];
-
-		for (i = x + 1; i < x + this.pX - 1; i += 2) {
-			if (world.getTile(i, y + this.pY - 1)) hit[1]++;
-		}
-		if (hit[1] > maxVal) {
-			max = 1;
-			maxVal = hit[1];
-		}
-
-		for (i = y; i < y + this.pY; i += 2) {
-			if (world.getTile(x, i)) hit[2]++;
-		}
-		if (hit[2] > maxVal) {
-			max = 2;
-			maxVal = hit[2];
-		}
-
-		for (i = y; i < y + this.pY; i += 2) {
-			if (world.getTile(x + this.pX - 1, i)) hit[3]++;
-		}
-		if (hit[3] > maxVal) {
-			max = 3;
-			maxVal = hit[3];
-		}
-
-		if (maxVal == 0) return -1;
-		return max;
+		// the points of the sides by direction: top, bottom, left, right
+		const hits = [
+			this.#countSolidInRow(x, x + this.pX, y),
+			this.#countSolidInRow(x + 1, x + this.pX - 1, y + this.pY - 1),
+			this.#countSolidInColumn(x, y, y + this.pY),
+			this.#countSolidInColumn(x + this.pX - 1, y, y + this.pY),
+		];
+		const most = Math.max(...hits);
+		return most == 0 ? -1 : hits.indexOf(most);
 	}
 
 	/**
@@ -389,20 +380,15 @@ export class Body {
 	 * @returns {void}
 	 */
 	teleported(entry, exit) {
-		let swap;
 		const from = entry.direction;
 		const to = exit.direction;
 		if (from == Direction.DOWN && to == Direction.DOWN) {
 			this.vy = -this.vy;
 			if (this.vy > -1100) this.vy = -1100;
 		} else if (from == Direction.DOWN && to == Direction.LEFT) {
-			swap = this.vx;
-			this.vx = this.vy;
-			this.vy = swap;
+			[this.vx, this.vy] = [this.vy, this.vx];
 		} else if (from == Direction.DOWN && to == Direction.RIGHT) {
-			swap = this.vx;
-			this.vx = -this.vy;
-			this.vy = swap;
+			[this.vx, this.vy] = [-this.vy, this.vx];
 		} else if (from == Direction.LEFT && to == Direction.DOWN) {
 			this.vy = -1000;
 		} else if (from == Direction.RIGHT && to == Direction.DOWN) {

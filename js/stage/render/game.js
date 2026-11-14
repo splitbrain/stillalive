@@ -602,39 +602,20 @@ export function drawPlatform(x, y, dir, arrow) {
  * @returns {void}
  */
 function drawFrontTiles(world) {
-	let tx, ty, t, p, i;
-	if (world.objectInPortal) {
-		for (p = 0; p < world.portals.list.length; p++) {
-			if (!world.portals.list[p].platform) {
-				const x = world.portals.list[p].x >> 8;
-				const y = world.portals.list[p].y >> 8;
-				if (world.portals.list[p].direction == Direction.UP || world.portals.list[p].direction == Direction.DOWN) {
-					tx = x >> TILE_SIZE_BITS;
-					ty = y >> TILE_SIZE_BITS;
-					for (i = 0; i < 4; i++) {
-						if (tx + i < MAP_WIDTH && tx + i >= 0) {
-							t = world.map.index(tx + i, ty);
-							if (tileset[world.map.display[t]]) {
-								drawImage(tileset[world.map.display[t]], (tx + i) * TILE_SIZE, ty * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-							}
-						}
-					}
-				} else if (
-					world.portals.list[p].direction == Direction.LEFT ||
-					world.portals.list[p].direction == Direction.RIGHT
-				) {
-					tx = x >> TILE_SIZE_BITS;
-					ty = y >> TILE_SIZE_BITS;
-					for (i = 0; i < 4; i++) {
-						if (ty + i < MAP_HEIGHT && ty + i >= 0) {
-							t = world.map.index(tx, ty + i);
-							if (world.map.display[t] < tileset.length) {
-								drawImage(tileset[world.map.display[t]], tx * TILE_SIZE, (ty + i) * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-							}
-						}
-					}
-				}
-			}
+	if (!world.objectInPortal) return;
+	for (const portal of world.portals.list) {
+		if (portal.platform) continue;
+		const onFloor = portal.direction == Direction.UP || portal.direction == Direction.DOWN;
+		const onWall = portal.direction == Direction.LEFT || portal.direction == Direction.RIGHT;
+		if (!onFloor && !onWall) continue;
+		const tx = (portal.x >> 8) >> TILE_SIZE_BITS;
+		const ty = (portal.y >> 8) >> TILE_SIZE_BITS;
+		for (let i = 0; i < 4; i++) {
+			const column = onFloor ? tx + i : tx;
+			const row = onFloor ? ty : ty + i;
+			if (column < 0 || column >= MAP_WIDTH || row < 0 || row >= MAP_HEIGHT) continue;
+			const image = tileset[world.map.display[world.map.index(column, row)]];
+			if (image) drawImage(image, column * TILE_SIZE, row * TILE_SIZE, TILE_SIZE, TILE_SIZE);
 		}
 	}
 }

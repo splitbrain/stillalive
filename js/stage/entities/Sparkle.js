@@ -15,13 +15,7 @@ import { random } from '../utils.js';
  * @returns {void}
  */
 export function removeSparkles(world, p, type) {
-	let i;
-	for (i = 0; i < world.sparkles.length; i++) {
-		if (world.sparkles[i].type == type && world.sparkles[i].color == p) {
-			world.sparkles.splice(i, 1);
-			i--;
-		}
-	}
+	world.sparkles = world.sparkles.filter((sparkle) => sparkle.type != type || sparkle.color != p);
 }
 
 /**
@@ -138,26 +132,21 @@ export class Sparkle {
 	 * @returns {void}
 	 */
 	move() {
-		let d, sc;
 		if (this.type == SparkleType.SHOT_HIT) this.vy += GRAVITY;
 		else if (this.type == SparkleType.DEATH || this.type == SparkleType.LOW_LIFE) this.vy += GRAVITY >> 1;
 
 		if (this.floorTime < 0) {
 			this.x += this.vx;
 			this.y += this.vy;
-			sc = this.fading / 255;
-		} else {
-			if (this.type == SparkleType.LOW_LIFE) {
-				this.fading -= 0.7;
-				sc = this.fading / 255;
-			} else if (this.type == SparkleType.SHOT_HIT) {
-				if (++this.floorTime >= 120) this.fading -= 0.7;
-				sc = this.fading / 255;
-			}
+		} else if (this.type == SparkleType.LOW_LIFE) {
+			this.fading -= 0.7;
+		} else if (this.type == SparkleType.SHOT_HIT) {
+			if (++this.floorTime >= 120) this.fading -= 0.7;
 		}
 
 		if (this.type == SparkleType.SHOT_HIT || this.type == SparkleType.DEATH || this.type == SparkleType.LOW_LIFE) {
-			if (this.world.getTile((this.x >> 8) + ((16 * sc) >> 1), (this.y >> 8) + ((16 * sc) >> 1)) != Tile.EMPTY) {
+			const scale = this.fading / 255;
+			if (this.world.getTile((this.x >> 8) + ((16 * scale) >> 1), (this.y >> 8) + ((16 * scale) >> 1)) != Tile.EMPTY) {
 				if (this.floorTime < 0) {
 					if (this.type == SparkleType.LOW_LIFE || this.type == SparkleType.SHOT_HIT) {
 						this.floorTime = 0;
@@ -173,11 +162,9 @@ export class Sparkle {
 			if (this.world.getTile((this.x >> 8) + 4, (this.y >> 8) + 4) != Tile.EMPTY) this.fading = 0;
 		} else if (this.type == SparkleType.PORTAL_GLOW) {
 			if (this.vx != 0) {
-				d = Math.abs(this.xOrig - this.x) >> 8;
-				this.fading = 200 - 5 * d;
+				this.fading = 200 - 5 * (Math.abs(this.xOrig - this.x) >> 8);
 			} else if (this.vy != 0) {
-				d = Math.abs(this.yOrig - this.y) >> 8;
-				this.fading = 200 - 5 * d;
+				this.fading = 200 - 5 * (Math.abs(this.yOrig - this.y) >> 8);
 				const platform = this.world.portals.list[this.portalNum].platform;
 				if (platform) {
 					this.x += platform.vx;

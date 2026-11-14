@@ -44,7 +44,6 @@ export class Crate extends Throwable {
 	 * @returns {void}
 	 */
 	update() {
-		let i;
 		if (this.invincibility > 0) this.invincibility--;
 		if (this.noRemove > 0) this.noRemove--;
 
@@ -60,11 +59,9 @@ export class Crate extends Throwable {
 					const t = this.world.map.atPixel((this.x >> 8) + this.pX + 1, this.y >> 8);
 					if (isTileKind(t, TileKind.BOSS_BLOCK)) {
 						playSound(t < LAST_OF_KIND[TileKind.BOSS_BLOCK] ? sfx_wallCrack : sfx_wallBreak);
-						for (i = 0; i < this.world.map.tiles.length; i++) {
-							if (this.world.map.tiles[i] == t) {
-								if (t < LAST_OF_KIND[TileKind.BOSS_BLOCK]) this.world.map.set(i, t + 1);
-								else this.world.map.set(i, Tile.EMPTY);
-							}
+						const next = t < LAST_OF_KIND[TileKind.BOSS_BLOCK] ? t + 1 : Tile.EMPTY;
+						for (const [i, tile] of this.world.map.tiles.entries()) {
+							if (tile == t) this.world.map.set(i, next);
 						}
 						this.world.boss.useUpCrate(this);
 						return;
@@ -166,7 +163,6 @@ export class Crate extends Throwable {
 	 * @returns {boolean} True if the crate pushed another crate, which ends the movement of this tick.
 	 */
 	push() {
-		let c;
 		if (this.world.movingCrateTouching(this.world.player) && this.invincibility == 0) {
 			this.world.player.x += this.vx >> 3;
 
@@ -184,8 +180,7 @@ export class Crate extends Throwable {
 		}
 
 		if (this.vx != 0 && !this.world.portals.isInPortal(this)) {
-			for (c = 0; c < this.world.crates.length; c++) {
-				const ca = this.world.crates[c];
+			for (const ca of this.world.crates) {
 				if (this.world.portals.isInPortal(ca)) continue;
 				if (this.x != ca.x || this.y != ca.y) {
 					const y = this.y >> 8;

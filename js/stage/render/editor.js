@@ -54,23 +54,18 @@ function drawSprites(world) {
  * @returns {void}
  */
 export function drawEditorLayer(editor) {
-	let y, x, i;
 	const map = editor.map;
 	drawImage(bg[editor.background], 0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 	ctx.fillStyle = 'rgba(255, 0, 0, 0.7)';
-	for (i = 0; i < map.tiles.length; i++) {
-		if (map.tiles[i] == Tile.PLASMA_START) {
-			x = map.column(i);
-			y = map.row(i);
-
-			if (!plasmaLaunch(map, x, y)) {
-				if (y - 1 >= 0) ctx.fillRect(x * TILE_SIZE, (y - 1) * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-				if (y + 1 < MAP_HEIGHT) ctx.fillRect(x * TILE_SIZE, (y + 1) * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-				if (x - 1 >= 0) ctx.fillRect((x - 1) * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-				if (x + 1 < MAP_WIDTH) ctx.fillRect((x + 1) * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-			}
-
-			break;
+	const start = map.tiles.indexOf(Tile.PLASMA_START);
+	if (start >= 0) {
+		const x = map.column(start);
+		const y = map.row(start);
+		if (!plasmaLaunch(map, x, y)) {
+			if (y - 1 >= 0) ctx.fillRect(x * TILE_SIZE, (y - 1) * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+			if (y + 1 < MAP_HEIGHT) ctx.fillRect(x * TILE_SIZE, (y + 1) * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+			if (x - 1 >= 0) ctx.fillRect((x - 1) * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+			if (x + 1 < MAP_WIDTH) ctx.fillRect((x + 1) * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
 		}
 	}
 

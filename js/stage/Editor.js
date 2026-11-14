@@ -292,20 +292,17 @@ export class Editor {
 		const input = this.#input;
 		const brush = this.brush;
 		const map = this.#map;
-		let i;
 		if (input.mouseOnPlayfield() && isObjectTile(brush)) {
-			const x = (input.mouseX >> TILE_SIZE_BITS) << TILE_SIZE_BITS;
-			const y = (input.mouseY >> TILE_SIZE_BITS) << TILE_SIZE_BITS;
 			if (input.mousePressed) {
 				const version = map.version;
-				const xt = x >> TILE_SIZE_BITS;
-				const yt = y >> TILE_SIZE_BITS;
+				const xt = input.mouseX >> TILE_SIZE_BITS;
+				const yt = input.mouseY >> TILE_SIZE_BITS;
 
 				const tile = map.index(xt, yt);
 				if (input.mouseButton == MouseButton.LEFT) {
 					if (brush == Tile.PLAYER_START) {
-						for (i = 0; i < map.tiles.length; i++) {
-							if (map.tiles[i] == Tile.PLAYER_START) map.setTile(i, Tile.EMPTY);
+						for (const [i, id] of map.tiles.entries()) {
+							if (id == Tile.PLAYER_START) map.setTile(i, Tile.EMPTY);
 						}
 					}
 
@@ -337,30 +334,22 @@ export class Editor {
 		const input = this.#input;
 		const brush = this.brush;
 		const map = this.#map;
-		let i;
 		if (input.mouseOnPlayfield() && !isObjectTile(brush)) {
-			const x = (input.mouseX >> TILE_SIZE_BITS) << TILE_SIZE_BITS;
-			const y = (input.mouseY >> TILE_SIZE_BITS) << TILE_SIZE_BITS;
 			if (input.mousePressed) {
 				const version = map.version;
-				const tile = map.index(x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS);
+				const xt = input.mouseX >> TILE_SIZE_BITS;
+				const yt = input.mouseY >> TILE_SIZE_BITS;
+				const tile = map.index(xt, yt);
 				if (input.mouseButton == MouseButton.LEFT) {
 					if (brush == Tile.PLASMA_START) {
-						for (i = 0; i < map.tiles.length; i++) {
-							if (map.tiles[i] == Tile.PLASMA_START) {
-								map.setTile(i, Tile.EMPTY);
-								break;
-							}
-						}
+						const start = map.tiles.indexOf(Tile.PLASMA_START);
+						if (start >= 0) map.setTile(start, Tile.EMPTY);
 					}
 					map.setTile(tile, brush);
 				} else if (input.mouseButton == MouseButton.RIGHT) map.setTile(tile, Tile.EMPTY);
 				// a map has one plasma start, so it does not fill
 				else if (input.mouseButton == MouseButton.MIDDLE && brush != Tile.PLASMA_START)
-					fill(map, brush, map.tiles[tile], x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS);
-
-				const xt = x >> TILE_SIZE_BITS;
-				const yt = y >> TILE_SIZE_BITS;
+					fill(map, brush, map.tiles[tile], xt, yt);
 
 				if (yt - 1 >= 0) {
 					const t = map.tiles[map.index(xt, yt - 1)];

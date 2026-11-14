@@ -39,6 +39,24 @@ export const MouseButton = {
 
 /** @type {number} The downward acceleration in 1/256 pixels per tick squared. */
 export const GRAVITY = 60;
+/**
+ * @type {number} The length of the death fade. A dead player counts the life from -DEATH_FADE up to 0, and the
+ *     playfield fades to black on the way.
+ */
+export const DEATH_FADE = 256;
+/** @type {number} The speed of a conveyor belt in 1/256 pixels per tick. */
+export const BELT_SPEED = 384;
+/** @type {number} The speed of a pipe field in 1/256 pixels per tick. */
+export const PIPE_SPEED = 384;
+
+/** @type {Object<string, number>} What an object stands on, the result of Body.touchingGround(). */
+export const Ground = {
+	AIR: 0,
+	FLOOR: 1,
+	ICE: 2,
+	BELT_RIGHT: 3,
+	BELT_LEFT: 4,
+};
 /** @type {number} The number of tiles in the tile set. */
 export const NUM_TILES = 61;
 

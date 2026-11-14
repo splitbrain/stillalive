@@ -6,6 +6,7 @@ import { playSound, sfx_exit, sfx_field, sfx_grabCake, sfx_transition } from './
 import {
 	Direction,
 	FADE_START,
+	Ground,
 	KEY_DOWN,
 	KEY_JUMP,
 	KEY_LEFT,
@@ -444,8 +445,7 @@ export class World {
 			p.move();
 			if (!p.needKill && p.overlaps(this.player)) {
 				this.projectiles.splice(i, 1);
-				this.player.life = -200;
-				this.player.recoveryTime = 180;
+				this.player.takeFatalHit();
 				return;
 			}
 			if (p.needKill && p.timer === 0) {
@@ -835,14 +835,15 @@ export class World {
 	 * Get the conveyor belt that moves an object, directly or through the crate that the object stands on.
 	 *
 	 * @param {import('./entities/Body.js').Body} obj The object. It must also have the vertical speed vy.
-	 * @returns {number} 3 for a belt to the right, 4 for a belt to the left, else 0.
+	 * @returns {number} The direction of the belt: 1 to the right, -1 to the left, 0 for no belt.
 	 */
-	onBelt(obj) {
+	beltUnder(obj) {
 		const ground = obj.touchingGround();
-		if (ground === 3 || ground === 4) return ground;
+		if (ground === Ground.BELT_RIGHT) return 1;
+		if (ground === Ground.BELT_LEFT) return -1;
 		const y = (obj.y >> 8) + obj.pY;
 		const crate = this.crateAt(obj.x >> 8, y) || this.crateAt((obj.x >> 8) + obj.pX - 1, y);
-		return crate && crate.carpet > 0 ? crate.carpet : 0;
+		return crate ? crate.belt : 0;
 	}
 
 	/**

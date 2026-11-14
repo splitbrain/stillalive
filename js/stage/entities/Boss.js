@@ -19,6 +19,8 @@ const BOSS_Y = 150;
 const BOSS_ENTRY_DISTANCE = 50;
 /** @type {number} The x position in pixels where the boss is out of the playfield after its death. */
 const BOSS_GONE_X = 530;
+/** @type {number} The number of crate hits that destroy the boss. */
+const BOSS_LIVES = 3;
 
 /**
  * The boss of a boss level. It comes in from the right, attacks the player and dies after three hits with a crate.
@@ -39,7 +41,7 @@ export class Boss {
 		this.x = BOSS_X + BOSS_ENTRY_DISTANCE;
 		/** @type {number} The y position in pixels. */
 		this.y = BOSS_Y;
-		/** @type {number} The number of hits that the boss took, from 0 to 3. */
+		/** @type {number} The number of hits that the boss took, from 0 to BOSS_LIVES. */
 		this.hits = 0;
 		/** @type {boolean} True while the boss comes in. */
 		this.entering = true;
@@ -111,9 +113,8 @@ export class Boss {
 		}
 
 		const player = this.world.player;
-		if (this.hits < 3 && !player.dead && this.#touchesPlayer()) {
-			player.life = -200;
-			player.recoveryTime = 180;
+		if (this.hits < BOSS_LIVES && !player.dead && this.#touchesPlayer()) {
+			player.takeFatalHit();
 			return;
 		}
 		if (player.dead) {
@@ -121,7 +122,7 @@ export class Boss {
 			this.world.plasmaBall = [];
 			return;
 		}
-		if (this.hits < 3 && this.world.isRunning()) this.#attack();
+		if (this.hits < BOSS_LIVES && this.world.isRunning()) this.#attack();
 	}
 
 	/**
@@ -262,7 +263,7 @@ export class Boss {
 	 * @returns {void}
 	 */
 	updateRumble() {
-		if (this.hits !== 3 || this.x >= BOSS_GONE_X) return;
+		if (this.hits !== BOSS_LIVES || this.x >= BOSS_GONE_X) return;
 		playLoop(sfx_bossRumble);
 		this.#shakeScreen();
 		if (this.world.time % 10 === 0) {
@@ -283,7 +284,7 @@ export class Boss {
 	 */
 	phase() {
 		if (this.entering) return this.world.events.isWaiting() ? null : 'coming';
-		if (this.hits < 3) return 'fight';
+		if (this.hits < BOSS_LIVES) return 'fight';
 		return this.x < BOSS_GONE_X ? 'leaving' : null;
 	}
 
@@ -310,11 +311,11 @@ export class Boss {
 	 * @returns {void}
 	 */
 	hit(crate) {
-		if (this.hits < 3 && crate.overlapsBox(this.x + 16, this.y, 74, 58)) {
+		if (this.hits < BOSS_LIVES && crate.overlapsBox(this.x + 16, this.y, 74, 58)) {
 			this.useUpCrate(crate);
 			this.hits++;
 			playSound(sfx_bossHit);
-			if (this.hits < 3) {
+			if (this.hits < BOSS_LIVES) {
 				const block = FIRST_OF_KIND[TileKind.BOSS_BLOCK];
 				for (const [i, tile] of this.world.level.tiles.entries()) {
 					if (tile === block) this.world.map.set(i, block);

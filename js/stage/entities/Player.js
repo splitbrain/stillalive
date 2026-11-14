@@ -16,12 +16,28 @@ import {
 	sfx_step,
 	sfx_throwObject,
 } from '../audio.js';
-import { Direction, GRAVITY, MouseButton, PLAYFIELD_HEIGHT, SparkleType, TILE_SIZE } from '../constants.js';
-import { beltDirection, Body } from './Body.js';
+import {
+	BELT_SPEED,
+	DEATH_FADE,
+	Direction,
+	GRAVITY,
+	Ground,
+	MouseButton,
+	PIPE_SPEED,
+	PLAYFIELD_HEIGHT,
+	SparkleType,
+	TILE_SIZE,
+} from '../constants.js';
+import { Body } from './Body.js';
 import { Platform } from './Platform.js';
 import { Sparkle } from './Sparkle.js';
 import { isTileKind, TileKind } from '../tiles.js';
 import { getDistance, random } from '../utils.js';
+
+/** @type {number} The full life in 1/256 life points. */
+const MAX_LIFE = 100 << 8;
+/** @type {number} The ticks from one portal shot until the next shot is possible. */
+const PORTAL_COOLDOWN = 25;
 
 /**
  * The player.
@@ -50,8 +66,8 @@ export class Player extends Body {
 		this.vy = 0;
 		/** @type {number} 1 when the player faces right, -1 when the player faces left. */
 		this.flip = 1;
-		/** @type {number} Ticks since the last portal shot, up to 25. A new shot is possible at 25. */
-		this.portalCooldown = 25;
+		/** @type {number} Ticks since the last portal shot, up to PORTAL_COOLDOWN. A new shot is possible then. */
+		this.portalCooldown = PORTAL_COOLDOWN;
 		/**
 		 * @type {number} Counts to 0 after a teleport, from 42 after an entry into the blue portal and from -42 after an
 		 * entry into the red portal. The sign selects the color of the sparkles.
@@ -66,7 +82,7 @@ export class Player extends Body {
 		/** @type {boolean} True while the player touches acid. */
 		this.inAcid = false;
 		/** @type {number} The life in 1/256 points. Full life is 100 points. */
-		this.life = 100 << 8;
+		this.life = MAX_LIFE;
 		/** @type {boolean} True while the player is dead and the screen fades to the restart. */
 		this.dead = false;
 		/** @type {number} Ticks until the life starts to recover after damage. */
@@ -95,7 +111,7 @@ export class Player extends Body {
 		}
 
 		this.dead = true;
-		this.life = -256;
+		this.life = -DEATH_FADE;
 		playSound(this.inAcid ? sfx_acid : sfx_die);
 		// below the playfield, the death shows no blood
 		if (this.y >> 8 >= PLAYFIELD_HEIGHT) return;
@@ -113,6 +129,16 @@ export class Player extends Body {
 				),
 			);
 		}
+	}
+
+	/**
+	 * Take all life after a hit by the boss or a razor wheel. The death follows in checkDeath().
+	 *
+	 * @returns {void}
+	 */
+	takeFatalHit() {
+		this.life = -200;
+		this.recoveryTime = 180;
 	}
 
 	/**
@@ -249,8 +275,8 @@ export class Player extends Body {
 	#floatInField(field, alone) {
 		if (alone) this.#centerInField(field);
 
-		this.vx += field.vx * 384;
-		this.vy += field.vy * 384;
+		this.vx += field.vx * PIPE_SPEED;
+		this.vy += field.vy * PIPE_SPEED;
 
 		if (field.vx !== 0) {
 			if (this.jump) {
@@ -266,11 +292,11 @@ export class Player extends Body {
 		if (field.vy !== 0) {
 			if (this.left) {
 				this.x -= 3 << 8;
-				if (this.#outOfFields()) this.vx = -384;
+				if (this.#outOfFields()) this.vx = -PIPE_SPEED;
 			}
 			if (this.right) {
 				this.x += 3 << 8;
-				if (this.#outOfFields()) this.vx = 384;
+				if (this.#outOfFields()) this.vx = PIPE_SPEED;
 			}
 		}
 	}
@@ -278,17 +304,17 @@ export class Player extends Body {
 	/**
 	 * Advance the walk animation and play the step sounds.
 	 *
-	 * @param {number} ground The ground from touchingGround().
+	 * @param {number} ground The ground from touchingGround(), a value of Ground.
 	 * @returns {void}
 	 */
 	#animateWalk(ground) {
 		// on ice, the walk animation is slower
-		this.animationTime -= ground === 2 ? 1 : 3;
+		this.animationTime -= ground === Ground.ICE ? 1 : 3;
 		if (this.animationTime > 0) return;
 		this.animationTime = 10;
 		if (++this.animationFrame === 5) this.animationFrame = 1;
-		if (ground && this.left !== this.right && this.animationFrame % 2 === 1) {
-			const steps = ground === 2 ? sfx_iceStep : sfx_step;
+		if (ground !== Ground.AIR && this.left !== this.right && this.animationFrame % 2 === 1) {
+			const steps = ground === Ground.ICE ? sfx_iceStep : sfx_step;
 			playSound(steps[random(0, steps.length)], randomRate(0.08));
 		}
 	}
@@ -300,9 +326,10 @@ export class Player extends Body {
 	 */
 	#updateLife() {
 		if (this.recoveryTime > 0) this.recoveryTime--;
-		if (this.recoveryTime === 0 && this.life < 100 << 8) this.life = Math.min(this.life + 256, 100 << 8);
+		if (this.recoveryTime === 0 && this.life < MAX_LIFE) this.life = Math.min(this.life + 256, MAX_LIFE);
 
-		if (this.life > 50 << 8 || this.world.time % (this.life >> 8) !== 0) return;
+		// below half of the life, the player bleeds
+		if (this.life > MAX_LIFE >> 1 || this.world.time % (this.life >> 8) !== 0) return;
 		for (let i = 0; i < 3; i++) {
 			this.world.sparkles.push(
 				new Sparkle(
@@ -323,25 +350,25 @@ export class Player extends Body {
 	 * Slow the player down with the friction of the ground or the air. Steps on normal ground count for the
 	 * statistics.
 	 *
-	 * @param {number} ground The ground from touchingGround().
+	 * @param {number} ground The ground from touchingGround(), a value of Ground.
 	 * @returns {void}
 	 */
 	#applyFriction(ground) {
 		const portals = this.world.portals;
 		if (this.vx > 0) {
-			if (ground === 1 && !portals.portalAt(this, Direction.LEFT)) {
+			if (ground === Ground.FLOOR && !portals.portalAt(this, Direction.LEFT)) {
 				this.world.steps += this.vx >> 4;
 				this.vx -= 64;
 			} else {
-				this.vx -= ground === 2 ? 14 : 28;
+				this.vx -= ground === Ground.ICE ? 14 : 28;
 			}
 			if (this.vx < 0) this.vx = 0;
 		} else if (this.vx < 0) {
-			if (ground === 1 && !portals.portalAt(this, Direction.RIGHT)) {
+			if (ground === Ground.FLOOR && !portals.portalAt(this, Direction.RIGHT)) {
 				this.world.steps -= this.vx >> 4;
 				this.vx += 64;
 			} else {
-				this.vx += ground === 2 ? 14 : 28;
+				this.vx += ground === Ground.ICE ? 14 : 28;
 			}
 			if (this.vx > 0) this.vx = 0;
 		}
@@ -351,13 +378,15 @@ export class Player extends Body {
 	 * Limit the walk speed on the ground. Ice and conveyor belts allow a higher speed. In a side portal, the speed has
 	 * no limit.
 	 *
-	 * @param {number} ground The ground from touchingGround().
+	 * @param {number} ground The ground from touchingGround(), a value of Ground.
 	 * @returns {void}
 	 */
 	#limitSpeed(ground) {
 		const portals = this.world.portals;
-		if (!ground || portals.portalAt(this, Direction.LEFT) || portals.portalAt(this, Direction.RIGHT)) return;
-		const max = ground === 1 ? 448 : 672;
+		if (ground === Ground.AIR || portals.portalAt(this, Direction.LEFT) || portals.portalAt(this, Direction.RIGHT)) {
+			return;
+		}
+		const max = ground === Ground.FLOOR ? 448 : 672;
 		this.vx = Math.max(-max, Math.min(this.vx, max));
 	}
 
@@ -369,7 +398,7 @@ export class Player extends Body {
 	#shootPortal() {
 		const input = this.world.input;
 		const portals = this.world.portals;
-		if (!this.world.abilities.portals || !input.mousePressed || this.portalCooldown !== 25) return;
+		if (!this.world.abilities.portals || !input.mousePressed || this.portalCooldown !== PORTAL_COOLDOWN) return;
 		if (portals.isInPortal(this) || this.carrying) return;
 		if (input.mouseButton === MouseButton.LEFT) portals.launchPortal(0, input.mouseX, input.mouseY);
 		else if (input.mouseButton === MouseButton.RIGHT) portals.launchPortal(1, input.mouseX, input.mouseY);
@@ -414,17 +443,18 @@ export class Player extends Body {
 		for (const field of fields) this.#floatInField(field, fields.length === 1);
 
 		const ground = this.touchingGround();
-		if (ground && !this.onGround && !floating) playSound(sfx_land);
-		this.onGround = ground > 0;
-		this.x += 384 * beltDirection(this.world.onBelt(this));
+		const grounded = ground !== Ground.AIR;
+		if (grounded && !this.onGround && !floating) playSound(sfx_land);
+		this.onGround = grounded;
+		this.x += BELT_SPEED * this.world.beltUnder(this);
 
 		this.#animateWalk(ground);
-		this.portalCooldown = Math.min(this.portalCooldown + 1, 25);
+		this.portalCooldown = Math.min(this.portalCooldown + 1, PORTAL_COOLDOWN);
 		this.#updateLife();
 
 		let dir = (this.right ? 128 : 0) - (this.left ? 128 : 0);
 
-		if (this.jump && ground && !portals.portalAt(this, Direction.DOWN) && !floating) {
+		if (this.jump && grounded && !portals.portalAt(this, Direction.DOWN) && !floating) {
 			this.vy = -1300;
 			playSound(sfx_jump);
 		} else if (!this.jump && this.oldJump && this.vy < -200) {
@@ -433,10 +463,10 @@ export class Player extends Body {
 		}
 
 		this.#applyFriction(ground);
-		if (dir === 0 && ground) this.animationFrame = 0;
+		if (dir === 0 && grounded) this.animationFrame = 0;
 		if (!floating) this.#limitSpeed(ground);
 
-		if (!ground || portals.portalAt(this, Direction.DOWN)) {
+		if (!grounded || portals.portalAt(this, Direction.DOWN)) {
 			if (!floating) this.vy += GRAVITY;
 			// in the air, the keys steer less
 			dir = Math.trunc(dir * 0.28);
@@ -444,7 +474,7 @@ export class Player extends Body {
 		}
 
 		// on ice, the keys steer less
-		if (!floating) this.vx += ground === 2 ? dir >> 2 : dir;
+		if (!floating) this.vx += ground === Ground.ICE ? dir >> 2 : dir;
 
 		for (let i = 0; i < 8; i++) {
 			if (!portals.passPortal(this, Direction.DOWN) && !portals.passPortal(this, Direction.UP)) this.x += this.vx >> 3;

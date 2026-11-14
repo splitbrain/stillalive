@@ -4,6 +4,7 @@
 
 import { ctx, drawImage } from '../canvas.js';
 import {
+	DEATH_FADE,
 	Direction,
 	MAP_HEIGHT,
 	MAP_WIDTH,
@@ -243,7 +244,7 @@ export function drawLevel(world, input, labelLayouts) {
 	drawLabels(world, labelLayouts);
 
 	if (world.player.dead) {
-		ctx.fillStyle = `rgba(0, 0, 0, ${1 + world.player.life / 256})`;
+		ctx.fillStyle = `rgba(0, 0, 0, ${1 + world.player.life / DEATH_FADE})`;
 		ctx.fillRect(0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 	}
 

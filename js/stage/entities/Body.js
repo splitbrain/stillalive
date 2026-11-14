@@ -2,7 +2,7 @@
  * The Body object and its helper functions.
  */
 
-import { Direction, TILE_SIZE } from '../constants.js';
+import { Direction, Ground, TILE_SIZE } from '../constants.js';
 import { inForceFieldRange, isDeadlyTile, isTileKind, Tile, TileKind } from '../tiles.js';
 
 /**
@@ -15,17 +15,6 @@ const PUSH_OUT = [
 	{ side: Direction.LEFT, opposite: Direction.RIGHT, dx: 256, dy: 0 },
 	{ side: Direction.RIGHT, opposite: Direction.LEFT, dx: -256, dy: 0 },
 ];
-
-/**
- * Get the direction of a conveyor belt.
- *
- * @param {number} belt The belt from World.onBelt(): 3 to the right, 4 to the left, 0 for none.
- * @returns {number} 1 to the right, -1 to the left, 0 for none.
- */
-export function beltDirection(belt) {
-	if (belt === 3) return 1;
-	return belt === 4 ? -1 : 0;
-}
 
 /**
  * An object with a position and a size in the playfield. The base of the objects that move and collide.
@@ -110,19 +99,18 @@ export class Body {
 	/**
 	 * Check what the object stands on. The object must have the vertical speed vy.
 	 *
-	 * @returns {number} 0 if the object is in the air, 1 for normal ground, 2 for an icy wall, 3 for a conveyor belt to
-	 *     the right and 4 for a conveyor belt to the left.
+	 * @returns {number} The ground, a value of Ground.
 	 */
 	touchingGround() {
-		if (this.vy < 0) return 0;
+		if (this.vy < 0) return Ground.AIR;
 		const y = (this.y >> 8) + this.pY;
 		const hit = this.world.getTile((this.x >> 8) + 1, y);
 		const hit2 = this.world.getTile((this.x >> 8) + this.pX - 1, y);
 
-		if (isTileKind(hit, TileKind.BELT_RIGHT) || isTileKind(hit2, TileKind.BELT_RIGHT)) return 3;
-		if (isTileKind(hit, TileKind.BELT_LEFT) || isTileKind(hit2, TileKind.BELT_LEFT)) return 4;
-		if (hit === Tile.ICYWALL || hit2 === Tile.ICYWALL) return 2;
-		return hit || hit2 ? 1 : 0;
+		if (isTileKind(hit, TileKind.BELT_RIGHT) || isTileKind(hit2, TileKind.BELT_RIGHT)) return Ground.BELT_RIGHT;
+		if (isTileKind(hit, TileKind.BELT_LEFT) || isTileKind(hit2, TileKind.BELT_LEFT)) return Ground.BELT_LEFT;
+		if (hit === Tile.ICYWALL || hit2 === Tile.ICYWALL) return Ground.ICE;
+		return hit || hit2 ? Ground.FLOOR : Ground.AIR;
 	}
 
 	/**

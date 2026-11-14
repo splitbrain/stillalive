@@ -2,10 +2,9 @@
  * The Crate object.
  */
 
-import { beltDirection } from './Body.js';
 import { Throwable } from './Throwable.js';
 import { playSound, sfx_crateLand, sfx_dissolve, sfx_wallBreak, sfx_wallCrack } from '../audio.js';
-import { PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, TILE_SIZE } from '../constants.js';
+import { BELT_SPEED, Ground, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, TILE_SIZE } from '../constants.js';
 import { isTileKind, LAST_OF_KIND, Tile, TileKind } from '../tiles.js';
 
 /**
@@ -25,8 +24,8 @@ export class Crate extends Throwable {
 		this.yOrig = y;
 		/** @type {import('./Platform.js').Platform|null} The platform that the crate stands on, or null. */
 		this.platform = null;
-		/** @type {number} The conveyor belt that the crate stands on: 3 to the right, 4 to the left, 0 for none. */
-		this.carpet = 0;
+		/** @type {number} The direction of the conveyor belt under the crate: 1 to the right, -1 to the left, 0 for none. */
+		this.belt = 0;
 		/** @type {number} The countdown of the shrink animation after a force field destroyed the crate, or 0. */
 		this.shrink = 0;
 		/** @type {boolean} True when the crate must go away in the next tick. */
@@ -52,7 +51,7 @@ export class Crate extends Throwable {
 			this.shrink -= 4;
 			if (this.shrink === 0 && this.#destroyOrReset()) return;
 		} else if (this.carried) {
-			this.carpet = 0;
+			this.belt = 0;
 			this.place();
 		} else if (this.#moveLoose()) {
 			return;
@@ -75,7 +74,7 @@ export class Crate extends Throwable {
 	#moveLoose() {
 		const falling = this.vy > 0;
 		this.move();
-		if (falling && this.vy === 0 && this.touchingGround()) playSound(sfx_crateLand);
+		if (falling && this.vy === 0 && this.touchingGround() !== Ground.AIR) playSound(sfx_crateLand);
 
 		if (this.world.boss && this.#hitBoss()) return true;
 
@@ -87,7 +86,7 @@ export class Crate extends Throwable {
 			else if (platform.vx > 0 && this.rightCollision()) this.x -= platform.vx;
 		}
 
-		this.angle = this.touchingGround() ? 0 : this.angle + ((this.vx >> 8) << 1);
+		this.angle = this.touchingGround() === Ground.AIR ? this.angle + ((this.vx >> 8) << 1) : 0;
 		if (this.angle >= 360) this.angle -= 360;
 		if (this.landsOnPlayer()) {
 			while (this.landsOnPlayer()) this.y -= 256;
@@ -142,12 +141,13 @@ export class Crate extends Throwable {
 	/**
 	 * Give the crate the speed of the conveyor belt that it left, and store the belt under the crate.
 	 *
-	 * @param {number} belt The conveyor belt under the crate: 3 to the right, 4 to the left, 0 for none.
+	 * @param {number} belt The direction of the conveyor belt under the crate: 1 to the right, -1 to the left, 0 for
+	 *     none.
 	 * @returns {void}
 	 */
 	keepBeltSpeed(belt) {
-		if (belt === 0 && this.carpet !== 0) this.vx = 384 * beltDirection(this.carpet);
-		this.carpet = belt;
+		if (belt === 0 && this.belt !== 0) this.vx = BELT_SPEED * this.belt;
+		this.belt = belt;
 	}
 
 	/**

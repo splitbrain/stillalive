@@ -4,7 +4,7 @@
 
 import { Throwable } from './Throwable.js';
 import { playSound, playSoundIfFinished, sfx_explode, sfx_pain, sfx_shoot } from '../audio.js';
-import { PLAYFIELD_WIDTH, SparkleType, TILE_SIZE } from '../constants.js';
+import { Ground, PLAYFIELD_WIDTH, SparkleType, TILE_SIZE } from '../constants.js';
 import { Platform } from './Platform.js';
 import { Sparkle, createCakeOrSmokeSparkles } from './Sparkle.js';
 import { Tile } from '../tiles.js';
@@ -111,7 +111,7 @@ export class Turret extends Throwable {
 	 * @returns {void}
 	 */
 	#fall() {
-		this.angle = this.touchingGround() ? 0 : this.angle + ((this.vx >> 8) << 1);
+		this.angle = this.touchingGround() === Ground.AIR ? this.angle + ((this.vx >> 8) << 1) : 0;
 		if (this.angle >= 360) this.angle -= 360;
 
 		const oldVx = this.vx;

@@ -2,8 +2,8 @@
  * The Throwable object.
  */
 
-import { beltDirection, Body } from './Body.js';
-import { Direction, GRAVITY, TILE_SIZE } from '../constants.js';
+import { Body } from './Body.js';
+import { BELT_SPEED, Direction, GRAVITY, Ground, PIPE_SPEED, TILE_SIZE } from '../constants.js';
 import { getCos, getSin } from '../utils.js';
 
 /**
@@ -62,7 +62,8 @@ export class Throwable extends Body {
 	/**
 	 * Give the object the speed of the conveyor belt that it left. The base object keeps its speed.
 	 *
-	 * @param {number} belt The conveyor belt under the object: 3 to the right, 4 to the left, 0 for none.
+	 * @param {number} belt The direction of the conveyor belt under the object: 1 to the right, -1 to the left, 0 for
+	 *     none.
 	 * @returns {void}
 	 */
 	// eslint-disable-next-line no-unused-vars
@@ -159,16 +160,16 @@ export class Throwable extends Body {
 		const fields = this.world.gravPipeFieldsAt(this);
 		for (const field of fields) {
 			this.#centerInField(field);
-			this.vx = field.vx * 384;
-			this.vy = field.vy * 384;
+			this.vx = field.vx * PIPE_SPEED;
+			this.vy = field.vy * PIPE_SPEED;
 
 			this.enterPipeField();
 		}
 
-		const belt = this.world.onBelt(this);
-		if (belt) {
-			this.x += 384 * beltDirection(belt);
-			this.vx = 8 * beltDirection(belt);
+		const belt = this.world.beltUnder(this);
+		if (belt !== 0) {
+			this.x += BELT_SPEED * belt;
+			this.vx = 8 * belt;
 		}
 		this.keepBeltSpeed(belt);
 
@@ -177,7 +178,7 @@ export class Throwable extends Body {
 
 		const ground = this.touchingGround();
 
-		if (!ground || portals.portalAt(this, Direction.DOWN)) {
+		if (ground === Ground.AIR || portals.portalAt(this, Direction.DOWN)) {
 			if (fields.length === 0) this.vy += GRAVITY;
 			this.vy = Math.min(this.vy, 10 << 8);
 		}
@@ -185,11 +186,12 @@ export class Throwable extends Body {
 		if (this.vy === 0 && this.vx === 0) return;
 
 		// the friction on the ground is higher than in the air
-		if (this.vx > 0) this.vx = Math.max(this.vx - (ground && !inLeftPortal ? 64 : 10), 0);
-		else if (this.vx < 0) this.vx = Math.min(this.vx + (ground && !inRightPortal ? 64 : 10), 0);
+		const grounded = ground !== Ground.AIR;
+		if (this.vx > 0) this.vx = Math.max(this.vx - (grounded && !inLeftPortal ? 64 : 10), 0);
+		else if (this.vx < 0) this.vx = Math.min(this.vx + (grounded && !inRightPortal ? 64 : 10), 0);
 
-		if (this.vx > 512 && ground === 1 && !inLeftPortal) this.vx = 512;
-		else if (this.vx < -512 && ground === 1 && !inRightPortal) this.vx = -512;
+		if (this.vx > 512 && ground === Ground.FLOOR && !inLeftPortal) this.vx = 512;
+		else if (this.vx < -512 && ground === Ground.FLOOR && !inRightPortal) this.vx = -512;
 
 		for (let j = 0; j < 8; j++) {
 			if (!portals.passPortal(this, Direction.DOWN) && !portals.passPortal(this, Direction.UP)) this.x += this.vx >> 3;

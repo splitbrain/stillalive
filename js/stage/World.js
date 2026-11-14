@@ -11,7 +11,6 @@ import {
 	KEY_LEFT,
 	KEY_RIGHT,
 	LevelPhase,
-	MAP_SIZE,
 	ORDERED,
 	PLAYFIELD_HEIGHT,
 	PLAYFIELD_WIDTH,
@@ -160,9 +159,9 @@ export class World {
 	/**
 	 * Create a World without objects at the start of the opening transition.
 	 *
-	 * @param {TileMap} [map] The map. The World uses the object and does not copy it.
+	 * @param {TileMap} map The map. The World uses the object and does not copy it.
 	 */
-	constructor(map = new TileMap(new Array(MAP_SIZE).fill(Tile.EMPTY))) {
+	constructor(map) {
 		this.map = map;
 		this.player = new Player(this);
 		this.resetPhase();

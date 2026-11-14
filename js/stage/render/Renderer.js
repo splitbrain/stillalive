@@ -2,7 +2,7 @@
  * The Renderer object.
  */
 
-import { canvasGeneration, copyCanvas, drawCopy } from '../canvas.js';
+import { beginFrame, canvasGeneration, copyCanvas, drawCopy } from '../canvas.js';
 import { PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH } from '../constants.js';
 import { drawCursor, drawEditorLayer } from './editor.js';
 import { drawLevel, drawPreviewMap, drawTileLayer } from './game.js';
@@ -46,6 +46,14 @@ function isSameSource(a, b) {
 }
 
 /**
+ * A session that the Renderer draws: a level, a preview or the editor.
+ *
+ * @typedef {object} DrawnSession
+ * @property {import('../World.js').World} world The World of the session, with the screen shake.
+ * @property {function(Renderer): void} draw The function that draws the session with the methods of the Renderer.
+ */
+
+/**
  * The drawing of the stage. It keeps the cached layers and the label layouts for the next frames.
  */
 export class Renderer {
@@ -74,6 +82,18 @@ export class Renderer {
 	 */
 	constructor(input) {
 		this.#input = input;
+	}
+
+	/**
+	 * Draw a frame of a session. Without a session, the canvas stays the same.
+	 *
+	 * @param {DrawnSession|null} session The session.
+	 * @returns {void}
+	 */
+	render(session) {
+		if (!session) return;
+		beginFrame(session.world.shakeX, session.world.shakeY);
+		session.draw(this);
 	}
 
 	/**

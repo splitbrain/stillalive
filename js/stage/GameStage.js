@@ -17,15 +17,16 @@ import {
 	sfx_hover,
 	sfx_tick,
 } from './audio.js';
-import { beginFrame, clearCanvas, ctx, setCanvas, watchCanvasSize } from './canvas.js';
+import { clearCanvas, ctx, setCanvas, watchCanvasSize } from './canvas.js';
 import { PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, Transition } from './constants.js';
 import { Editor } from './Editor.js';
 import { setupInput } from './input.js';
 import { getFps, startLoop } from './loop.js';
 import { Renderer } from './render/Renderer.js';
-import { Recorder, ReplayPlayer, decodeReplay, encodeReplay } from './replay.js';
-import { input, stageEvents, ui } from './state.js';
-import { World } from './World.js';
+import { PlaySession } from './PlaySession.js';
+import { PreviewSession } from './PreviewSession.js';
+import { decodeReplay } from './replay.js';
+import { input } from './state.js';
 import { Value } from '../value.js';
 
 /** @type {number} The number of ticks between two updates of the level time. */
@@ -60,7 +61,19 @@ const BOSS_MUSIC_RATE = 1.4;
 const BOSS_MUSIC_DUCK = 0.5;
 
 /**
- * The game stage. It plays a level, shows the preview of a level or opens the editor on a map.
+ * A mode of the stage: a PlaySession, a PreviewSession or the Editor.
+ *
+ * @typedef {object} Session
+ * @property {string} mode The mode text: "play" or "test" for a PlaySession, "preview" for a PreviewSession and "edit"
+ *     for the Editor.
+ * @property {import('./World.js').World} world The World that the session shows.
+ * @property {function(): void} tick The function that runs one tick of the session, with the input of the tick.
+ * @property {function(Renderer): void} draw The function that draws the session with the methods of the Renderer.
+ */
+
+/**
+ * The game stage. It plays a level, shows the preview of a level or opens the editor on a map. Each of these is a
+ * session: a PlaySession, a PreviewSession or the Editor. Without a session, the stage is idle.
  */
 export class GameStage extends HTMLElement {
 	/** @type {Value<string>} What the stage shows: "idle", "play", "preview", "edit" or "test". */
@@ -82,7 +95,7 @@ export class GameStage extends HTMLElement {
 	/** @type {Value<number>} The speed of the playback of a replay: 1, 2 or 4 ticks per tick of real time. */
 	speed = new Value(1);
 	/** @type {Editor} The level editor. It keeps the editor map while the stage shows something else. */
-	#editor = new Editor();
+	#editor = new Editor(input);
 	/** @type {Value<number>} The tile id or the object id that the editor paints. */
 	brush = new Value(this.#editor.brush);
 	/** @type {Value<number>} The measured number of frames per second. */
@@ -98,17 +111,17 @@ export class GameStage extends HTMLElement {
 	/** @type {number} The number of ticks that the stage runs for each tick of real time. */
 	#speed = 1;
 
-	/** @type {World|null} The World that the stage shows, or null before the first connection. */
-	#world = null;
+	/** @type {Session|null} The session that the stage shows, or null for an idle stage. */
+	#session = null;
 
 	/** @type {Renderer} The drawing of the stage. */
 	#renderer = new Renderer(input);
 
-	/** @type {Recorder|ReplayPlayer|null} The input source of the level in the mode "play", else null. */
-	#source = null;
-
 	/** @type {number} The effect of the opening transition of the next level, a value of Transition. */
 	#transition = Transition.HORIZONTAL_LINES;
+
+	/** @type {{type: string, detail: *}[]} The events of the sessions that the next publication dispatches. */
+	#events = [];
 
 	/**
 	 * Set up the canvas, the input and the game loop when the element is first connected to the page.
@@ -136,11 +149,9 @@ export class GameStage extends HTMLElement {
 			focusLost: () => this.#onFocusLost(),
 		});
 
-		this.#world = new World(); // the input handlers and the Value properties read the World before the first level
-
 		startLoop(
 			() => this.#step(),
-			() => this.#render(),
+			() => this.#renderer.render(this.#session),
 		);
 		this.#addTestHook();
 	}
@@ -159,9 +170,13 @@ export class GameStage extends HTMLElement {
 	play(level, { replay = null, restart = false } = {}) {
 		const recorded = replay === null ? null : decodeReplay(replay);
 		this.#leave();
-		ui.mode = 'play';
-		this.#startLevel(level, restart, recorded);
-		input.unclick();
+		this.#session = new PlaySession(level, {
+			input,
+			report: (type, detail) => this.#onSessionEvent(type, detail),
+			transition: this.#transition,
+			replay: recorded,
+			restart,
+		});
 		this.#publish();
 	}
 
@@ -173,8 +188,7 @@ export class GameStage extends HTMLElement {
 	 */
 	preview(level) {
 		this.#leave();
-		ui.mode = 'preview';
-		this.#world = World.forPreview(level);
+		this.#session = new PreviewSession(level, input);
 		this.#publish();
 	}
 
@@ -186,7 +200,8 @@ export class GameStage extends HTMLElement {
 	 */
 	edit(level) {
 		this.#leave();
-		this.#world = this.#editor.open(level);
+		this.#editor.open(level);
+		this.#session = this.#editor;
 		this.#publish();
 	}
 
@@ -197,8 +212,13 @@ export class GameStage extends HTMLElement {
 	 * @returns {void}
 	 */
 	test() {
-		if (ui.mode != 'edit') return;
-		this.#world = this.#editor.startTest(this.#transition);
+		if (this.#session !== this.#editor) return;
+		this.#session = new PlaySession(this.#editor.testLevel(), {
+			input,
+			report: (type, detail) => this.#onSessionEvent(type, detail),
+			transition: this.#transition,
+			testRun: true,
+		});
 		this.#publish();
 	}
 
@@ -208,8 +228,8 @@ export class GameStage extends HTMLElement {
 	 * @returns {void}
 	 */
 	stopTest() {
-		if (ui.mode != 'test') return;
-		this.#endTest();
+		if (!this.#play?.testRun) return;
+		this.#play.endTest();
 		this.#publish();
 	}
 
@@ -219,11 +239,7 @@ export class GameStage extends HTMLElement {
 	 * @returns {void}
 	 */
 	pause() {
-		if (!this.#canPause() || ui.paused) return;
-		ui.paused = true;
-		if (this.#replaying) this.#source.pause(this.#world, input);
-		this.#updateMouseLock();
-		this.#publish();
+		if (this.#play?.pause()) this.#publish();
 	}
 
 	/**
@@ -232,12 +248,7 @@ export class GameStage extends HTMLElement {
 	 * @returns {void}
 	 */
 	resume() {
-		if (!ui.paused) return;
-		ui.paused = false;
-		input.unclick();
-		if (this.#replaying) this.#source.resume(this.#world, input);
-		this.#updateMouseLock();
-		this.#publish();
+		if (this.#play?.resume()) this.#publish();
 	}
 
 	/**
@@ -248,7 +259,7 @@ export class GameStage extends HTMLElement {
 	 * @returns {void}
 	 */
 	setSpeed(speed) {
-		if (!this.#replaying) return;
+		if (!this.#play?.replaying) return;
 		this.#speed = speed;
 		this.#publish();
 	}
@@ -260,7 +271,6 @@ export class GameStage extends HTMLElement {
 	 */
 	stop() {
 		this.#leave();
-		ui.mode = 'idle';
 		clearCanvas();
 		this.#publish();
 	}
@@ -283,7 +293,7 @@ export class GameStage extends HTMLElement {
 	 * @returns {void}
 	 */
 	setBackground(n) {
-		if (ui.mode == 'edit') this.#editor.setBackground(n);
+		if (this.#session === this.#editor) this.#editor.setBackground(n);
 	}
 
 	/**
@@ -301,7 +311,7 @@ export class GameStage extends HTMLElement {
 	 * @returns {void}
 	 */
 	clearMap() {
-		if (ui.mode == 'edit') this.#editor.clear();
+		if (this.#session === this.#editor) this.#editor.clear();
 	}
 
 	/**
@@ -310,7 +320,7 @@ export class GameStage extends HTMLElement {
 	 * @returns {void}
 	 */
 	undo() {
-		if (ui.mode == 'edit') this.#editor.undo();
+		if (this.#session === this.#editor) this.#editor.undo();
 	}
 
 	/**
@@ -319,7 +329,7 @@ export class GameStage extends HTMLElement {
 	 * @returns {void}
 	 */
 	redo() {
-		if (ui.mode == 'edit') this.#editor.redo();
+		if (this.#session === this.#editor) this.#editor.redo();
 	}
 
 	/**
@@ -383,39 +393,28 @@ export class GameStage extends HTMLElement {
 	}
 
 	/**
-	 * Start a level, or the playback of a replay of the level, with the pause and the keys released.
+	 * Get the play session that the stage shows.
 	 *
-	 * @param {import('./level.js').Level} level The level.
-	 * @param {boolean} restart True for a restart of the same level. A restart skips the waits of the events and the
-	 *     entrance of the boss.
-	 * @param {import('./replay.js').Replay|null} replay The replay to play, or null to let the player play.
-	 * @returns {void}
+	 * @returns {PlaySession|null} The session in the mode "play" or "test", else null.
 	 */
-	#startLevel(level, restart, replay) {
-		// a test run does not record
-		if (ui.mode == 'test') this.#source = null;
-		else this.#source = replay === null ? new Recorder() : new ReplayPlayer(replay);
-		this.#world = World.forLevel(level, { restart, replay: replay !== null, transition: this.#transition });
-		ui.paused = false;
-		this.#updateMouseLock();
-		input.keys = 0;
-		input.oldKeys = 0;
+	get #play() {
+		return this.#session instanceof PlaySession ? this.#session : null;
 	}
 
 	/**
-	 * Leave the current mode before a new command. A test run ends without the event "died".
+	 * Leave the current session before a new command. A test run ends without the event "died", and the editor
+	 * continues with its own map.
 	 *
 	 * @returns {void}
 	 */
 	#leave() {
-		if (ui.mode == 'test') this.#world = this.#editor.stopTest(false);
-		ui.paused = false;
-		this.#source = null;
-		this.#updateMouseLock();
+		const play = this.#play;
+		if (play) {
+			play.endPlayback();
+			if (play.testRun) this.#editor.open();
+		}
+		this.#session = null;
 		this.#speed = 1;
-		this.#world.events = null;
-		this.#world.shakeX = 0;
-		this.#world.shakeY = 0;
 	}
 
 	/**
@@ -431,89 +430,54 @@ export class GameStage extends HTMLElement {
 	}
 
 	/**
-	 * Run one tick in the current mode, and act on the outcome of a level tick. The death fade starts the level again,
-	 * and the closing transition finishes the level or ends the test run.
+	 * Run one tick of the current session. Without a session, only the input changes. The stage keeps the transition
+	 * effect of the last level for the next play session.
 	 *
 	 * @returns {void}
 	 */
 	#tick() {
-		const world = this.#world;
-		this.#source?.run(world, input, ui.paused);
-		input.update();
-		world.applyInput(input);
-		input.endTick();
-		if (ui.mode == 'edit') {
-			this.#editor.update();
+		const play = this.#play;
+		if (this.#session) {
+			this.#session.tick();
+		} else {
+			input.update();
+			input.endTick();
+		}
+		if (play) this.#transition = play.transition;
+	}
+
+	/**
+	 * Act on an event of a play session. The events "replaystop" and "focuslost" go to the page at once. The other
+	 * events go to the page with the next publication: "died" after the stage went back to the editor, and
+	 * "brokenreplay" after the stage became idle.
+	 *
+	 * @param {string} type The event type.
+	 * @param {{time: number, replay: object}|null} detail The level time and the replay of the event "finished", else
+	 *     null.
+	 * @returns {void}
+	 */
+	#onSessionEvent(type, detail) {
+		if (type == 'replaystop' || type == 'focuslost') {
+			this.dispatchEvent(new Event(type));
 			return;
 		}
-		if ((ui.mode != 'play' && ui.mode != 'test') || ui.paused) return;
-
-		if (world.outcome != 'brokenReplay') {
-			world.tick(input);
-			this.#transition = world.transition;
-			if (world.closingStarted()) this.#endPlayback();
+		if (type == 'died') {
+			this.#editor.open();
+			this.#session = this.#editor;
+		} else if (type == 'brokenreplay') {
+			this.#session = null;
 		}
-		if (world.outcome == 'died') {
-			this.#startLevel(world.level, true, null);
-		} else if (world.outcome == 'brokenReplay') {
-			this.#stopBrokenReplay();
-		} else if (world.outcome == 'finished' && ui.mode == 'test') {
-			this.#endTest();
-		} else if (world.outcome == 'finished') {
-			const replay = encodeReplay(this.#source.replay, world.level.campaign, world.level.number);
-			stageEvents.push({ type: 'finished', detail: { time: world.time, replay } });
-		}
+		this.#events.push({ type, detail });
 	}
 
 	/**
-	 * Check if a replay plays.
-	 *
-	 * @returns {boolean} True from the start of a replay until the start of its closing transition or a stop.
-	 */
-	get #replaying() {
-		return this.#source instanceof ReplayPlayer && this.#source.playing;
-	}
-
-	/**
-	 * End the playback of a replay. The level continues without the input of the replay.
-	 *
-	 * @returns {void}
-	 */
-	#endPlayback() {
-		if (this.#replaying) this.#source.stop();
-		this.#updateMouseLock();
-	}
-
-	/**
-	 * Lock the mouse position while a replay plays without a pause, so that the pointer does not move it. Unlock it
-	 * in all other cases.
-	 *
-	 * @returns {void}
-	 */
-	#updateMouseLock() {
-		input.mouseLocked = this.#replaying && !ui.paused;
-	}
-
-	/**
-	 * Check if a level runs and can pause.
-	 *
-	 * @returns {boolean} True in the mode "play" before the player reaches the exit.
-	 */
-	#canPause() {
-		return ui.mode == 'play' && !this.#world.reachedExit();
-	}
-
-	/**
-	 * Handle the release of the Escape key. In a replay it dispatches the event "replaystop". Else it ends a pause,
-	 * pauses a level or ends a test run. The next frame publishes the end of a test run.
+	 * Handle the release of the Escape key. The play session decides what the key does. A change of the pause shows at
+	 * once.
 	 *
 	 * @returns {void}
 	 */
 	#onEscape() {
-		if (this.#replaying) this.dispatchEvent(new Event('replaystop'));
-		else if (ui.paused) this.resume();
-		else if (this.#canPause()) this.pause();
-		else if (ui.mode == 'test') this.#endTest();
+		if (this.#play?.onEscape()) this.#publish();
 	}
 
 	/**
@@ -522,80 +486,48 @@ export class GameStage extends HTMLElement {
 	 * @returns {void}
 	 */
 	#onEnter() {
-		if (ui.mode == 'test') this.#endTest();
+		this.#play?.endTest();
 	}
 
 	/**
 	 * Release all keys and mouse buttons when the game loses the focus. The release events of these keys do not reach
-	 * the game. In a running level, the stage reports the lost focus with the event "focuslost". A replay ignores the
-	 * lost focus, because the replay sets the keys from the recording.
+	 * the game. A play session decides itself, because a replay keeps the keys of the recording.
 	 *
 	 * @returns {void}
 	 */
 	#onFocusLost() {
-		if (this.#replaying) return;
-		input.keys = 0;
-		if (this.#canPause() && !ui.paused) this.dispatchEvent(new Event('focuslost'));
+		if (this.#play) this.#play.onFocusLost();
+		else input.keys = 0;
 	}
 
 	/**
-	 * End the test run and go back to the editor.
-	 *
-	 * @returns {void}
-	 */
-	#endTest() {
-		this.#world = this.#editor.stopTest();
-	}
-
-	/**
-	 * Stop a replay that has fewer inputs than the level needs or in which the player died. The stage becomes idle and
-	 * reports the broken replay with the event "brokenreplay".
-	 *
-	 * @returns {void}
-	 */
-	#stopBrokenReplay() {
-		this.#endPlayback();
-		ui.mode = 'idle';
-		stageEvents.push({ type: 'brokenreplay', detail: null });
-	}
-
-	/**
-	 * Draw the canvas after the ticks of a frame.
-	 *
-	 * @returns {void}
-	 */
-	#render() {
-		if (ui.mode == 'idle') return;
-		beginFrame(this.#world.shakeX, this.#world.shakeY);
-		if (ui.mode == 'edit') this.#renderer.drawEditor(this.#editor);
-		else if (ui.mode == 'play' || ui.mode == 'test') this.#renderer.drawLevel(this.#world);
-		else if (ui.mode == 'preview') this.#renderer.drawPreview(this.#world);
-	}
-
-	/**
-	 * Update the Value properties and dispatch the events of the tick. The speed and the volume of the music follow the
-	 * phase of the boss fight.
+	 * Update the Value properties from the session and dispatch the events of the sessions. Without a session, the
+	 * life, the cakes, the steps, the portal shots and the time keep their last values. The speed and the volume of the
+	 * music follow the phase of the boss fight.
 	 *
 	 * @returns {void}
 	 */
 	#publish() {
-		const world = this.#world;
-		this.mode.set(ui.mode);
-		this.life.set(Math.max(world.player.life >> 8, 0));
-		this.cakes.set(world.cakesLeft ?? 0);
-		this.steps.set((world.steps ?? 0) >> 8);
-		this.portals.set(world.portalShots ?? 0);
-		const time = world.time ?? 0;
-		this.time.set(world.isRunning() ? time - (time % TIME_UPDATE_INTERVAL) : time);
-		this.paused.set(ui.paused);
-		this.message.set(world.events?.message ?? null);
+		const session = this.#session;
+		const world = session?.world;
+		this.mode.set(session?.mode ?? 'idle');
+		if (world) {
+			this.life.set(Math.max(world.player.life >> 8, 0));
+			this.cakes.set(world.cakesLeft);
+			this.steps.set(world.steps >> 8);
+			this.portals.set(world.portalShots);
+			const time = world.time;
+			this.time.set(world.isRunning() ? time - (time % TIME_UPDATE_INTERVAL) : time);
+		}
+		this.paused.set(this.#play?.paused ?? false);
+		this.message.set(world?.events?.message ?? null);
 		this.speed.set(this.#speed);
 		this.brush.set(this.#editor.brush);
 		this.fps.set(getFps());
-		const phase = ui.mode == 'play' ? (world.boss?.phase() ?? null) : null;
+		const phase = session?.mode == 'play' ? (world.boss?.phase() ?? null) : null;
 		setMusicMood(phase == 'fight' ? BOSS_MUSIC_RATE : 1, phase == 'coming' || phase == 'leaving' ? BOSS_MUSIC_DUCK : 1);
 
-		const events = stageEvents.splice(0);
+		const events = this.#events.splice(0);
 		for (const { type, detail } of events) this.dispatchEvent(new CustomEvent(type, { detail }));
 	}
 
@@ -608,12 +540,12 @@ export class GameStage extends HTMLElement {
 		if (!new URLSearchParams(location.search).has('test')) return;
 		window.__test = {
 			stage: this,
-			world: () => this.#world,
-			replay: () => this.#source?.replay,
-			endReplay: () => this.#endPlayback(),
+			world: () => this.#session?.world ?? null,
+			replay: () => this.#play?.source?.replay,
+			endReplay: () => this.#play?.endPlayback(),
 			input,
 			tick: () => this.#step(),
-			render: () => this.#render(),
+			render: () => this.#renderer.render(this.#session),
 		};
 	}
 }

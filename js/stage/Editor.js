@@ -1,19 +1,19 @@
 /**
- * The level editor and the test run of the editor map.
+ * The level editor, the session of the mode "edit". It also provides the level for the test run of the editor map.
  */
 
 import { MAP_SIZE, MouseButton, TILE_SIZE_BITS } from './constants.js';
 import { bg } from './images.js';
 import { allowTile, build, eraseSprites, fill } from './mapEdit.js';
 import { MAP_FORMAT, parseMap } from './mapFile.js';
-import { input, stageEvents, ui } from './state.js';
 import { TileMap } from './TileMap.js';
 import { Tile, isGravPipeTile, isObjectTile } from './tiles.js';
 import { UndoList } from './UndoList.js';
 import { World } from './World.js';
 
 /**
- * The level editor. It holds the editor map, its objects and its undo list as long as the stage exists.
+ * The level editor, the session of the mode "edit". It holds the editor map, its objects and its undo list as long as
+ * the stage exists.
  */
 export class Editor {
 	/** @type {number} The tile id or the object id that the editor paints. */
@@ -43,6 +43,27 @@ export class Editor {
 	/** @type {boolean} True when the objects of the editor map must be created again. */
 	#objectsChanged = false;
 
+	/** @type {import('./InputState.js').InputState} The keys and the mouse. */
+	#input;
+
+	/**
+	 * Create the editor with an empty map.
+	 *
+	 * @param {import('./InputState.js').InputState} input The keys and the mouse.
+	 */
+	constructor(input) {
+		this.#input = input;
+	}
+
+	/**
+	 * Get the mode text of the session.
+	 *
+	 * @returns {string} "edit".
+	 */
+	get mode() {
+		return 'edit';
+	}
+
 	/**
 	 * Get the tiles of the editor map.
 	 *
@@ -71,44 +92,20 @@ export class Editor {
 	}
 
 	/**
-	 * Start the test run of a copy of the editor map, with the pause and the keys released.
+	 * Get a copy of the editor map as a level for the test run.
 	 *
-	 * @param {number} transition The effect of the opening transition, a value of Transition.
-	 * @returns {World} The World of the test run.
+	 * @returns {import('./level.js').Level} The level.
 	 */
-	startTest(transition) {
-		const level = {
-			...parseMap({ format: MAP_FORMAT, ...this.getMap() }),
-			campaign: '',
-			number: 0,
-			fromBelow: false,
-		};
-		ui.mode = 'test';
-		const test = World.forLevel(level, { transition });
-		ui.paused = false;
-		input.keys = 0;
-		input.oldKeys = 0;
-		input.unclick();
-		return test;
+	testLevel() {
+		return { ...parseMap({ format: MAP_FORMAT, ...this.getMap() }), campaign: '', number: 0, fromBelow: false };
 	}
 
 	/**
-	 * End the test run and go back to the editor map.
-	 *
-	 * @param {boolean} [report] True to report the end with the event "died".
-	 * @returns {World} The World of the editor map.
-	 */
-	stopTest(report = true) {
-		if (report) stageEvents.push({ type: 'died', detail: null });
-		return this.open();
-	}
-
-	/**
-	 * Open the editor on a new map, or on the editor map from before. A new map starts a new undo list. The objects of
-	 * the map are created again.
+	 * Open the editor on a new map, or on the editor map from before, e.g. after a test run. A new map starts a new
+	 * undo list. The editor creates the objects of the map again.
 	 *
 	 * @param {object} [map] The new map in the map file format, or nothing for the editor map from before.
-	 * @returns {World} The World of the editor map.
+	 * @returns {void}
 	 */
 	open(map) {
 		if (map) {
@@ -121,15 +118,13 @@ export class Editor {
 		} else {
 			this.#world.createEditorObjects();
 		}
-		ui.mode = 'edit';
 		if (map || !this.#undoList) {
 			this.#undoList = new UndoList();
 			this.#addUndo();
 		}
 
-		input.unclick();
+		this.#input.unclick();
 		this.#objectsChanged = false;
-		return this.#world;
 	}
 
 	/**
@@ -142,17 +137,39 @@ export class Editor {
 	}
 
 	/**
-	 * Run one tick of the editor. When the map of the editor changed, its objects are created again.
+	 * Run one tick: the input of the tick and the edit at the mouse. When the map of the editor changed, its objects
+	 * are created again.
 	 *
 	 * @returns {void}
 	 */
-	update() {
+	tick() {
+		this.#input.update();
+		this.#input.endTick();
+		this.#edit();
+	}
+
+	/**
+	 * Draw the editor map and the cursor.
+	 *
+	 * @param {import('./render/Renderer.js').Renderer} renderer The drawing of the stage.
+	 * @returns {void}
+	 */
+	draw(renderer) {
+		renderer.drawEditor(this);
+	}
+
+	/**
+	 * Change the map at the mouse, undo or redo a change, and create the objects again after a change.
+	 *
+	 * @returns {void}
+	 */
+	#edit() {
 		this.#updateDrawTile();
 		this.#updateDrawSprite();
 		this.#manageUndoRedo();
 
-		if (this.#oldMouseReleased == 1 && input.mouseReleased == 1) input.mouseReleased = 0;
-		this.#oldMouseReleased = input.mouseReleased;
+		if (this.#oldMouseReleased == 1 && this.#input.mouseReleased == 1) this.#input.mouseReleased = 0;
+		this.#oldMouseReleased = this.#input.mouseReleased;
 
 		if (this.#objectsChanged) this.#rebuildObjects();
 	}
@@ -260,10 +277,10 @@ export class Editor {
 	 * @returns {void}
 	 */
 	#manageUndoRedo() {
-		if (input.undoPressed) this.undo();
-		else if (input.redoPressed) this.redo();
-		input.undoPressed = false;
-		input.redoPressed = false;
+		if (this.#input.undoPressed) this.undo();
+		else if (this.#input.redoPressed) this.redo();
+		this.#input.undoPressed = false;
+		this.#input.redoPressed = false;
 	}
 
 	/**
@@ -272,6 +289,7 @@ export class Editor {
 	 * @returns {void}
 	 */
 	#updateDrawSprite() {
+		const input = this.#input;
 		const brush = this.brush;
 		const map = this.#map;
 		let i;
@@ -316,6 +334,7 @@ export class Editor {
 	 * @returns {void}
 	 */
 	#updateDrawTile() {
+		const input = this.#input;
 		const brush = this.brush;
 		const map = this.#map;
 		let i;

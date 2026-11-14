@@ -22,7 +22,7 @@ const LAYERS = [
 		files: ['./js/stage/entities/*.js', './js/stage/{level,LevelEvents,mapEdit,mapFile,replay,UndoList,World}.js'],
 	},
 	{ name: 'drawing', files: ['./js/stage/render/*.js'] },
-	{ name: 'flow', files: ['./js/stage/{Editor,GameStage,input}.js'] },
+	{ name: 'flow', files: ['./js/stage/{Editor,GameStage,input,PlaySession,PreviewSession}.js'] },
 	{ name: 'page', files: ['./js/[m]ain.js', './js/[l]oader.js', './js/chrome/**/*.js', './js/[r]outer.js'] },
 ];
 

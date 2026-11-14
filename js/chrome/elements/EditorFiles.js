@@ -2,7 +2,7 @@
  * The element of the save and load screen of the editor.
  */
 
-import { up } from '../../router.js';
+import { RouteMode, up } from '../../router.js';
 import { alertDialog } from '../dialog.js';
 import { setAttributes } from '../dom.js';
 import { loadMarkup, Screen } from '../element.js';
@@ -15,7 +15,7 @@ const TEMPLATE = await loadMarkup(import.meta.url);
 
 /**
  * The custom element <editor-files>. It is the save and load screen of the editor. The attribute mode is save for the
- * save screen and load for the load screen.
+ * save screen and load for the load screen, a value of RouteMode.
  */
 export class EditorFiles extends SelectionScreen {
 	/** @type {HTMLTemplateElement|null} The markup of the save and load screen. */
@@ -56,7 +56,9 @@ export class EditorFiles extends SelectionScreen {
 	 */
 	render() {
 		const mode = this.getAttribute('mode');
-		setAttributes(this.querySelector('slot-list'), { mode: mode === 'save' || mode === 'load' ? mode : null });
+		setAttributes(this.querySelector('slot-list'), {
+			mode: mode === RouteMode.SAVE || mode === RouteMode.LOAD ? mode : null,
+		});
 	}
 
 	/**
@@ -81,9 +83,9 @@ export class EditorFiles extends SelectionScreen {
 		if (this.#leaving) return;
 		const mode = this.getAttribute('mode');
 		const stored = editorMap(slot).get();
-		if (mode === 'load') {
+		if (mode === RouteMode.LOAD) {
 			if (stored == null || !(await confirmReplaceMap(this.stage))) return;
-		} else if (mode === 'save') {
+		} else if (mode === RouteMode.SAVE) {
 			const question = `Slot ${slot} contains a map. Do you want to overwrite it?`;
 			if (stored != null && !(await confirmOnScreen(question, 'Save map'))) return;
 		} else {
@@ -91,7 +93,7 @@ export class EditorFiles extends SelectionScreen {
 		}
 		if (this.#leaving || this.getAttribute('mode') !== mode) return;
 
-		if (mode === 'load') {
+		if (mode === RouteMode.LOAD) {
 			this.stage.edit(editorMap(slot).get());
 		} else {
 			if (!saveEditorMap(slot, this.stage.getMap())) {

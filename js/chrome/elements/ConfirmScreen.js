@@ -3,7 +3,7 @@
  */
 
 import { Tile } from '../../stage/tiles.js';
-import { route } from '../../router.js';
+import { route, RouteName } from '../../router.js';
 import { Value } from '../../value.js';
 import { ChromeElement, loadMarkup } from '../element.js';
 
@@ -19,7 +19,7 @@ export const confirmShown = new Value(false);
  * @returns {boolean} True while the controls are locked.
  */
 export function isEditorLocked() {
-	return route.get().name === 'editor-file' || confirmShown.get();
+	return route.get().name === RouteName.EDITOR_FILE || confirmShown.get();
 }
 
 /**

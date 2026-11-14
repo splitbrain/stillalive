@@ -2,7 +2,7 @@
  * The level selection element.
  */
 
-import { campaignPath } from '../../router.js';
+import { campaignPath, RouteMode } from '../../router.js';
 import { campaignByFolder } from '../campaigns.js';
 import { loadMarkup, Screen } from '../element.js';
 import { bestTimes, getBestTime, maxLevel } from '../storage.js';
@@ -72,10 +72,10 @@ export class LevelSelection extends SelectionScreen {
 		number.hidden = title === '';
 		number.textContent = `Level ${level}`;
 		this.querySelector('.best span').textContent = best === null ? '-' : toTime(best);
-		this.querySelector('.play').setAttribute('href', campaignPath(folder, level, 'play'));
+		this.querySelector('.play').setAttribute('href', campaignPath(folder, level, RouteMode.PLAY));
 		const replay = this.querySelector('.replay');
 		if (best === null) replay.removeAttribute('href');
-		else replay.setAttribute('href', campaignPath(folder, level, 'replay'));
+		else replay.setAttribute('href', campaignPath(folder, level, RouteMode.REPLAY));
 	}
 
 	/**

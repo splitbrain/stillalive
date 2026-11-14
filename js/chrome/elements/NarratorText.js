@@ -2,7 +2,7 @@
  * The narrator text element.
  */
 
-import { route } from '../../router.js';
+import { isReplayRoute } from '../../router.js';
 import { ChromeScreen, loadMarkup, Screen } from '../element.js';
 
 /** @type {HTMLTemplateElement|null} The markup of the narrator text. */
@@ -70,7 +70,7 @@ export class NarratorText extends ChromeScreen {
 		if (source !== this.#source) {
 			this.#source = source;
 			this.#text = typeof source === 'string' ? source : (source?.text ?? '');
-			this.#shown = route.get().mode === 'replay' ? this.#text.length : 0;
+			this.#shown = isReplayRoute() ? this.#text.length : 0;
 			this.#show();
 		}
 		if (this.stage.paused.get() || this.#shown >= this.#text.length) this.#stopTyping();

@@ -11,9 +11,9 @@ import { editorMap } from '../storage.js';
 /**
  * The custom element <slot-list>. It shows a menu button for each slot of the editor maps.
  *
- * The attribute mode is save or load, a value of RouteMode. In the load mode, the empty slots are disabled. Each button has the slot number
- * in the attribute data-choice. A click on a slot dispatches the bubbling event slot-select with the slot number in
- * detail.slot.
+ * The attribute mode is save or load, a value of RouteMode. In the load mode, the empty slots are disabled. Each
+ * button has the slot number in the attribute data-choice. A click on a slot dispatches the bubbling event slot-select
+ * with the slot number in detail.slot.
  */
 export class SlotList extends ChromeElement {
 	/** @type {string[]} The attributes that cause a new render when they change. */

@@ -16,7 +16,8 @@ import { CAMPAIGN_FOLDERS } from './stage/constants.js';
 import { Value } from './value.js';
 
 /**
- * The names of the routes. A route name is also the name of the screen that the route shows, except for the test run.
+ * The names of the routes. A route name is also the name of the screen that the route shows, except the editor route
+ * while the stage runs a test, which shows the play screen.
  *
  * @type {Readonly<{MAIN: string, SELECT: string, PLAY: string, EDITOR: string, EDITOR_FILE: string, CREDITS: string}>}
  */

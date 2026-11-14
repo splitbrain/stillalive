@@ -110,8 +110,11 @@ const PORTAL_SIDES = ['up', 'down', 'left', 'right'];
  *     in a boss level.
  */
 function isValidTile(tile, isBossLevel) {
-	if (tile === Tile.TUBE && !isBossLevel) return false;
-	return Number.isInteger(tile) && ((tile >= 0 && tile < NUM_TILES) || isObjectTile(tile));
+	return (
+		(tile !== Tile.TUBE || isBossLevel) &&
+		Number.isInteger(tile) &&
+		((tile >= 0 && tile < NUM_TILES) || isObjectTile(tile))
+	);
 }
 
 /**
@@ -131,10 +134,10 @@ function isObject(value) {
  * @returns {boolean} True for undefined or an object with known abilities and boolean values.
  */
 function isValidAbilities(abilities) {
-	if (abilities === undefined) return true;
 	return (
-		isObject(abilities) &&
-		Object.entries(abilities).every(([name, value]) => ABILITIES.includes(name) && typeof value === 'boolean')
+		abilities === undefined ||
+		(isObject(abilities) &&
+			Object.entries(abilities).every(([name, value]) => ABILITIES.includes(name) && typeof value === 'boolean'))
 	);
 }
 

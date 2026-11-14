@@ -38,30 +38,39 @@ export class Projectile extends Body {
 	 * @returns {void}
 	 */
 	move() {
-		if (!this.needKill) {
-			this.x += this.vx;
-			this.y += this.vy;
-
-			if (this.world.time % 6 === 0) {
-				if (++this.img > LAST_OF_KIND[TileKind.WHEEL]) this.img = FIRST_OF_KIND[TileKind.WHEEL];
-			}
-
-			const t = this.world.getTile((this.x >> 8) + TILE_SIZE / 2, (this.y >> 8) + TILE_SIZE / 2);
-
-			if (t) {
-				this.needKill = true;
-				this.timer = 180;
-				if (t instanceof Body) {
-					this.timer = 0;
-				} else playSound(sfx_bladeStick);
-			} else {
-				if (this.world.anyCrateAt(this.x >> 8, this.y >> 8)) this.needKill = true;
-				else if (this.world.anyCrateAt((this.x >> 8) + TILE_SIZE, this.y >> 8)) this.needKill = true;
-				else if (this.world.anyCrateAt(this.x >> 8, (this.y >> 8) + TILE_SIZE)) this.needKill = true;
-				else if (this.world.anyCrateAt((this.x >> 8) + TILE_SIZE, (this.y >> 8) + TILE_SIZE)) this.needKill = true;
-			}
-		} else {
-			if (--this.timer < 0) this.timer = 0;
+		if (this.needKill) {
+			this.timer = Math.max(this.timer - 1, 0);
+			return;
 		}
+
+		this.x += this.vx;
+		this.y += this.vy;
+		if (this.world.time % 6 === 0 && ++this.img > LAST_OF_KIND[TileKind.WHEEL]) {
+			this.img = FIRST_OF_KIND[TileKind.WHEEL];
+		}
+
+		const t = this.world.getTile((this.x >> 8) + TILE_SIZE / 2, (this.y >> 8) + TILE_SIZE / 2);
+		if (t) {
+			// a wheel sticks in a wall for a while, and goes away at once at an object
+			this.needKill = true;
+			if (t instanceof Body) {
+				this.timer = 0;
+			} else {
+				this.timer = 180;
+				playSound(sfx_bladeStick);
+			}
+			return;
+		}
+
+		// a crate at a corner of the wheel stops it
+		const x = this.x >> 8;
+		const y = this.y >> 8;
+		const corners = [
+			[x, y],
+			[x + TILE_SIZE, y],
+			[x, y + TILE_SIZE],
+			[x + TILE_SIZE, y + TILE_SIZE],
+		];
+		if (corners.some(([cx, cy]) => this.world.anyCrateAt(cx, cy))) this.needKill = true;
 	}
 }

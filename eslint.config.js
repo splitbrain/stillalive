@@ -82,14 +82,21 @@ export default [
 	{
 		plugins: { unicorn },
 		rules: {
+			curly: ['error', 'multi-line'],
 			eqeqeq: ['error', 'always', { null: 'ignore' }],
+			'no-else-return': ['error', { allowElseIf: false }],
+			'no-nested-ternary': 'error',
 			'no-useless-concat': 'error',
 			'one-var': ['error', 'never'],
 			'prefer-const': 'error',
 			'prefer-template': 'error',
 			'unicorn/no-for-loop': 'error',
+			'unicorn/no-lonely-if': 'error',
+			'unicorn/no-negated-condition': 'error',
 			'unicorn/no-new-array': 'error',
 			'unicorn/prefer-spread': 'error',
+			'unicorn/prefer-switch': 'error',
+			'unicorn/prefer-ternary': 'error',
 		},
 	},
 	{

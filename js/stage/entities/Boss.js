@@ -106,78 +106,82 @@ export class Boss {
 	 */
 	update() {
 		if (this.entering) {
-			if (!this.world.events.isWaiting()) {
-				playLoop(sfx_bossRumble);
-				playLoop(sfx_bossAlarm);
-				this.entryDistance += 32;
-				this.entryTicks++;
-				this.x = BOSS_X + BOSS_ENTRY_DISTANCE - (this.entryDistance >> 8);
-				if (this.x === BOSS_X) {
-					this.entering = false;
-					this.world.shakeX = 0;
-					this.world.shakeY = 0;
-					this.world.events.trigger('bossArrived');
-				}
-				if (this.entryTicks % 3 === 0) {
-					this.world.shakeX = random(-3, 3);
-					this.world.shakeY = random(-3, 3);
-				}
-			}
-		} else {
-			if (this.hits < 3) {
-				if (!this.world.player.dead && this.#touchesPlayer()) {
-					this.world.player.life = -200;
-					this.world.player.recoveryTime = 180;
-					return;
-				}
-			}
+			this.#enter();
+			return;
+		}
 
-			if (this.world.player.dead) {
-				this.world.projectiles = [];
-				this.world.plasmaBall = [];
-				return;
-			}
+		const player = this.world.player;
+		if (this.hits < 3 && !player.dead && this.#touchesPlayer()) {
+			player.life = -200;
+			player.recoveryTime = 180;
+			return;
+		}
+		if (player.dead) {
+			this.world.projectiles = [];
+			this.world.plasmaBall = [];
+			return;
+		}
+		if (this.hits < 3 && this.world.isRunning()) this.#attack();
+	}
 
-			if (this.hits < 3 && this.number === 1) {
-				if (this.world.isRunning() && this.world.time % (90 - 30 * this.hits) === 0) {
-					this.#throwCrate(6, 18);
-				}
-			} else if (this.hits < 3 && this.number === 2) {
-				if (this.world.isRunning() && this.world.time % (90 - 15 * this.hits) === 0) {
+	/**
+	 * Move the boss into the playfield with rumble, alarm and a shaking screen, unless an event waits.
+	 *
+	 * @returns {void}
+	 */
+	#enter() {
+		if (this.world.events.isWaiting()) return;
+		playLoop(sfx_bossRumble);
+		playLoop(sfx_bossAlarm);
+		this.entryDistance += 32;
+		this.entryTicks++;
+		this.x = BOSS_X + BOSS_ENTRY_DISTANCE - (this.entryDistance >> 8);
+		if (this.x === BOSS_X) {
+			this.entering = false;
+			this.world.shakeX = 0;
+			this.world.shakeY = 0;
+			this.world.events.trigger('bossArrived');
+		}
+		if (this.entryTicks % 3 === 0) {
+			this.world.shakeX = random(-3, 3);
+			this.world.shakeY = random(-3, 3);
+		}
+	}
+
+	/**
+	 * Attack the player in the way of the boss. Each hit makes the attacks faster or adds an attack.
+	 *
+	 * @returns {void}
+	 */
+	#attack() {
+		const time = this.world.time;
+		const hits = this.hits;
+		switch (this.number) {
+			case 1:
+				if (time % (90 - 30 * hits) === 0) this.#throwCrate(6, 18);
+				break;
+			case 2:
+				if (time % (90 - 15 * hits) === 0) {
 					this.#shootWheel(435, 50, 1200, 1200 - this.world.player.vx);
-
-					if (this.hits === 2) {
-						this.#shootWheel(TILE_SIZE, 3 * TILE_SIZE, 1200);
-					}
+					if (hits === 2) this.#shootWheel(TILE_SIZE, 3 * TILE_SIZE, 1200);
 				}
-			} else if (this.hits < 3 && this.number === 3) {
-				const limit = this.hits + 1;
-				if (
-					this.world.isRunning() &&
-					this.world.time % (90 - 30 * this.hits) === 0 &&
-					this.world.plasmaBall.length < limit
-				) {
-					this.#shootPlasma(800);
+				break;
+			case 3: {
+				const due = time % (90 - 30 * hits) === 0;
+				if (due && this.world.plasmaBall.length < hits + 1) this.#shootPlasma(800);
+				if (due && this.world.crates.length === 0) {
+					const crate = new Crate(this.world, ((MAP_WIDTH - 1) * TILE_SIZE) << 8, (18 * TILE_SIZE) << 8);
+					crate.vx = -(12 << 8);
+					crate.vy = -(2 << 8);
+					this.world.crates.push(crate);
 				}
-
-				if (this.world.isRunning() && this.world.time % (90 - 30 * this.hits) === 0 && this.world.crates.length === 0) {
-					this.world.crates.push(new Crate(this.world, ((MAP_WIDTH - 1) * TILE_SIZE) << 8, (18 * TILE_SIZE) << 8));
-					this.world.crates[this.world.crates.length - 1].vx = -(12 << 8);
-					this.world.crates[this.world.crates.length - 1].vy = -(2 << 8);
-				}
-			} else if (this.hits < 3 && this.number === 4) {
-				if (this.world.isRunning() && this.world.time % (90 - 20 * this.hits) === 0) {
-					this.#throwCrate(5, 20);
-				}
-
-				if (this.hits > 0 && this.world.isRunning() && this.world.time % (180 - 20 * this.hits) === 0) {
-					this.#shootWheel(27 * TILE_SIZE, 2 * TILE_SIZE, 600);
-				}
-
-				if (this.hits > 1 && this.world.isRunning() && this.world.plasmaBall.length === 0) {
-					this.#shootPlasma(400);
-				}
+				break;
 			}
+			case 4:
+				if (time % (90 - 20 * hits) === 0) this.#throwCrate(5, 20);
+				if (hits > 0 && time % (180 - 20 * hits) === 0) this.#shootWheel(27 * TILE_SIZE, 2 * TILE_SIZE, 600);
+				if (hits > 1 && this.world.plasmaBall.length === 0) this.#shootPlasma(400);
+				break;
 		}
 	}
 

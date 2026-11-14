@@ -78,12 +78,10 @@ export function getSin(x1, y1, x2, y2) {
  *
  * @param {number} x The x coordinate in pixels.
  * @param {number} y The y coordinate in pixels.
- * @returns {number} 1 if the point is inside the 512 x 384 pixels of the playfield, else 0.
+ * @returns {boolean} True if the point is inside the 512 x 384 pixels of the playfield.
  */
 export function inScreen(x, y) {
-	if (x < 0 || x >= PLAYFIELD_WIDTH) return 0;
-	if (y < 0 || y >= PLAYFIELD_HEIGHT) return 0;
-	return 1;
+	return x >= 0 && x < PLAYFIELD_WIDTH && y >= 0 && y < PLAYFIELD_HEIGHT;
 }
 
 /**

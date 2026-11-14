@@ -2,6 +2,7 @@
  * The confirmation screen element.
  */
 
+import { Tile } from '../../stage/tiles.js';
 import { route } from '../../router.js';
 import { Value } from '../../value.js';
 import { ChromeElement, loadMarkup } from '../element.js';
@@ -39,8 +40,8 @@ export function confirmOnScreen(message, title) {
  * @returns {Promise<boolean>} True if the editor map is empty or the player confirms.
  */
 export async function confirmReplaceMap(stage) {
-	if (stage.getMap().tiles.every((tile) => tile === 0)) return true;
-	return confirmOnScreen('The current map is not empty. Do you want to discard it?', 'Replace map');
+	const empty = stage.getMap().tiles.every((tile) => tile === Tile.EMPTY);
+	return empty || confirmOnScreen('The current map is not empty. Do you want to discard it?', 'Replace map');
 }
 
 /**

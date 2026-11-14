@@ -126,12 +126,12 @@ export class Renderer {
 	 */
 	drawEditor(editor) {
 		const source = layerSource(editor.map, editor.background);
-		if (!isSameSource(this.#editorLayerSource, source)) {
+		if (isSameSource(this.#editorLayerSource, source)) {
+			drawCopy(this.#editorLayer, 0, 0);
+		} else {
 			drawEditorLayer(editor);
 			this.#editorLayer = copyCanvas(0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 			this.#editorLayerSource = source;
-		} else {
-			drawCopy(this.#editorLayer, 0, 0);
 		}
 		drawCursor(editor.brush, this.#input);
 	}

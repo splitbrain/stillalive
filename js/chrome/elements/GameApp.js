@@ -208,8 +208,8 @@ export class GameApp extends ChromeElement {
 	#screen() {
 		if (!this.#started) return Screen.LOADING;
 		const name = route.get().name;
-		if (name === Screen.EDITOR && this.stage.mode.get() === 'test') return Screen.PLAY;
-		return name;
+		// the test run of the editor map shows the play screen
+		return name === Screen.EDITOR && this.stage.mode.get() === 'test' ? Screen.PLAY : name;
 	}
 
 	/**

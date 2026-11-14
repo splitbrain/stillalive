@@ -2,7 +2,7 @@
  * The Throwable object.
  */
 
-import { Body } from './Body.js';
+import { beltDirection, Body } from './Body.js';
 import { Direction, GRAVITY, TILE_SIZE } from '../constants.js';
 import { getCos, getSin } from '../utils.js';
 
@@ -126,6 +126,30 @@ export class Throwable extends Body {
 	}
 
 	/**
+	 * Move the object towards the middle of a pipe field. In a floor or ceiling portal, the object moves faster.
+	 *
+	 * @param {import('./GravPipeField.js').GravPipeField} field The pipe field.
+	 * @returns {void}
+	 */
+	#centerInField(field) {
+		const portals = this.world.portals;
+		if (field.vx !== 0) {
+			if (portals.portalAt(this, Direction.UP) || portals.portalAt(this, Direction.DOWN)) {
+				if (this.y >> 8 < field.y) this.y += 768;
+				else if ((this.y >> 8) + this.pY > field.y + 2 * TILE_SIZE) this.y -= 768;
+			} else {
+				const margin = TILE_SIZE - (this.pY >> 1);
+				if (this.y >> 8 < field.y + margin) this.y += 512;
+				else if ((this.y >> 8) + this.pY > field.y + 2 * TILE_SIZE - margin) this.y -= 512;
+			}
+		} else if (field.vy !== 0) {
+			const margin = TILE_SIZE - (this.pX >> 1);
+			if (this.x >> 8 < field.x + margin) this.x += 256;
+			else if ((this.x >> 8) + this.pX > field.x + 2 * TILE_SIZE - margin) this.x -= 256;
+		}
+	}
+
+	/**
 	 * Move the object for one tick with the pipe fields, the conveyor belts, the gravity, the friction and the portals.
 	 *
 	 * @returns {void}
@@ -134,17 +158,7 @@ export class Throwable extends Body {
 		const portals = this.world.portals;
 		const fields = this.world.gravPipeFieldsAt(this);
 		for (const field of fields) {
-			if (field.vx !== 0) {
-				if (portals.portalAt(this, Direction.UP) || portals.portalAt(this, Direction.DOWN)) {
-					if (this.y >> 8 < field.y) this.y += 768;
-					else if ((this.y >> 8) + this.pY > field.y + 2 * TILE_SIZE) this.y -= 768;
-				} else if (this.y >> 8 < field.y + (TILE_SIZE - (this.pY >> 1))) this.y += 512;
-				else if ((this.y >> 8) + this.pY > field.y + 2 * TILE_SIZE - (TILE_SIZE - (this.pY >> 1))) this.y -= 512;
-			} else if (field.vy !== 0) {
-				if (this.x >> 8 < field.x + (TILE_SIZE - (this.pX >> 1))) this.x += 256;
-				else if ((this.x >> 8) + this.pX > field.x + 2 * TILE_SIZE - (TILE_SIZE - (this.pX >> 1))) this.x -= 256;
-			}
-
+			this.#centerInField(field);
 			this.vx = field.vx * 384;
 			this.vy = field.vy * 384;
 
@@ -153,8 +167,8 @@ export class Throwable extends Body {
 
 		const belt = this.world.onBelt(this);
 		if (belt) {
-			this.x += belt === 3 ? 384 : belt === 4 ? -384 : 0;
-			this.vx = belt === 3 ? 8 : belt === 4 ? -8 : 0;
+			this.x += 384 * beltDirection(belt);
+			this.vx = 8 * beltDirection(belt);
 		}
 		this.keepBeltSpeed(belt);
 
@@ -165,20 +179,14 @@ export class Throwable extends Body {
 
 		if (!ground || portals.portalAt(this, Direction.DOWN)) {
 			if (fields.length === 0) this.vy += GRAVITY;
-			if (this.vy > 10 << 8) this.vy = 10 << 8;
+			this.vy = Math.min(this.vy, 10 << 8);
 		}
 
 		if (this.vy === 0 && this.vx === 0) return;
 
-		if (this.vx > 0) {
-			if (ground && !inLeftPortal) this.vx -= 64;
-			else this.vx -= 10;
-			if (this.vx < 0) this.vx = 0;
-		} else if (this.vx < 0) {
-			if (ground && !inRightPortal) this.vx += 64;
-			else this.vx += 10;
-			if (this.vx > 0) this.vx = 0;
-		}
+		// the friction on the ground is higher than in the air
+		if (this.vx > 0) this.vx = Math.max(this.vx - (ground && !inLeftPortal ? 64 : 10), 0);
+		else if (this.vx < 0) this.vx = Math.min(this.vx + (ground && !inRightPortal ? 64 : 10), 0);
 
 		if (this.vx > 512 && ground === 1 && !inLeftPortal) this.vx = 512;
 		else if (this.vx < -512 && ground === 1 && !inRightPortal) this.vx = -512;
@@ -189,8 +197,9 @@ export class Throwable extends Body {
 				!portals.passPortal(this, Direction.LEFT) &&
 				!portals.passPortal(this, Direction.RIGHT) &&
 				!this.landsOnPlayer()
-			)
+			) {
 				this.y += this.vy >> 3;
+			}
 
 			if (this.push()) break;
 		}

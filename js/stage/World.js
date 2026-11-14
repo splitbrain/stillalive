@@ -13,7 +13,6 @@ import {
 	LevelPhase,
 	ORDERED,
 	PLAYFIELD_HEIGHT,
-	PLAYFIELD_WIDTH,
 	RANDOM,
 	SparkleType,
 	TILE_SIZE,
@@ -493,17 +492,14 @@ export class World {
 	 */
 	collectCakes() {
 		for (const cake of this.cakes) {
-			if (cake.used) {
-				if (this.player.overlaps(cake)) {
-					cake.used = false;
-					this.cakesLeft--;
-					createCakeOrSmokeSparkles(this, cake.x, cake.y, SparkleType.CAKE, 2, 180);
-					playSound(sfx_grabCake);
-					if (this.cakesLeft === 0) {
-						this.openExit();
-						playSound(sfx_exit);
-					}
-				}
+			if (!cake.used || !this.player.overlaps(cake)) continue;
+			cake.used = false;
+			this.cakesLeft--;
+			createCakeOrSmokeSparkles(this, cake.x, cake.y, SparkleType.CAKE, 2, 180);
+			playSound(sfx_grabCake);
+			if (this.cakesLeft === 0) {
+				this.openExit();
+				playSound(sfx_exit);
 			}
 		}
 	}
@@ -567,10 +563,14 @@ export class World {
 					map.setDisplay(i, Tile.EMPTY);
 					map.setDisplay(next, Tile.EMPTY);
 				}
-			} else if (tile === Tile.EXIT) {
+				continue;
+			}
+			if (tile === Tile.EXIT) {
 				if (levelStart) map.setTile(i, Tile.EXIT_CLOSED);
 				if (!editor) map.setDisplay(i, Tile.EXIT_CLOSED);
-			} else if (animated) {
+				continue;
+			}
+			if (animated) {
 				map.setDisplay(i, Tile.EMPTY);
 				this.animatedTiles.push(
 					new AnimatedTile(
@@ -584,38 +584,65 @@ export class World {
 						animated.speed,
 					),
 				);
-			} else if (tile === Tile.CAKE) {
-				this.cakes.push(new Cake(this, (x * TILE_SIZE) << 8, (y * TILE_SIZE) << 8));
-				if (levelStart) map.setTile(i, Tile.EMPTY);
-			} else if (tile === Tile.TURRET_LEFT || tile === Tile.TURRET_RIGHT) {
-				if (levelStart) map.set(i, Tile.EMPTY);
-				this.turrets.push(
-					new Turret(this, (x * TILE_SIZE) << 8, (y * TILE_SIZE) << 8, tile === Tile.TURRET_LEFT ? -1 : 1),
-				);
-			} else if (tile === Tile.CRATE) {
-				if (levelStart) map.set(i, Tile.EMPTY);
-				this.crates.push(new Crate(this, (x * TILE_SIZE) << 8, (y * TILE_SIZE) << 8));
-			} else if (tile === Tile.PLAYER_START) {
-				this.player.x = (x * TILE_SIZE) << 8;
-				this.player.y = (y * TILE_SIZE) << 8;
-				if (levelStart) map.setTile(i, Tile.EMPTY);
-			} else if (tile === Tile.PLATFORM_RIGHT || tile === Tile.PLATFORM_LEFT) {
-				const vx = tile === Tile.PLATFORM_RIGHT ? 256 : -256;
-				this.platforms.push(new Platform(this, (x * TILE_SIZE) << 8, (y * TILE_SIZE) << 8, vx, 0));
-				if (levelStart) map.setTile(i, Tile.EMPTY);
-			} else if (tile === Tile.TUBE) {
-				if (editor) continue;
-				this.tubeX = (x * TILE_SIZE) << 8;
-				this.tubeY = (y * TILE_SIZE) << 8;
-				if (levelStart) map.set(i, Tile.EMPTY);
-			} else if (tile === Tile.PLASMA_START && levelStart) {
-				const launch = plasmaLaunch(map, x, y);
-				if (launch && boss === 0) this.plasmaBall.push(new Plasma(this, launch.x, launch.y, launch.vx, launch.vy));
-				else if (launch && (boss === 3 || boss === 4)) {
-					this.plasmaX = launch.x;
-					this.plasmaY = launch.y;
-				}
+				continue;
 			}
+
+			const px = (x * TILE_SIZE) << 8;
+			const py = (y * TILE_SIZE) << 8;
+			switch (tile) {
+				case Tile.CAKE:
+					this.cakes.push(new Cake(this, px, py));
+					if (levelStart) map.setTile(i, Tile.EMPTY);
+					break;
+				case Tile.TURRET_LEFT:
+				case Tile.TURRET_RIGHT:
+					if (levelStart) map.set(i, Tile.EMPTY);
+					this.turrets.push(new Turret(this, px, py, tile === Tile.TURRET_LEFT ? -1 : 1));
+					break;
+				case Tile.CRATE:
+					if (levelStart) map.set(i, Tile.EMPTY);
+					this.crates.push(new Crate(this, px, py));
+					break;
+				case Tile.PLAYER_START:
+					this.player.x = px;
+					this.player.y = py;
+					if (levelStart) map.setTile(i, Tile.EMPTY);
+					break;
+				case Tile.PLATFORM_RIGHT:
+				case Tile.PLATFORM_LEFT:
+					this.platforms.push(new Platform(this, px, py, tile === Tile.PLATFORM_RIGHT ? 256 : -256, 0));
+					if (levelStart) map.setTile(i, Tile.EMPTY);
+					break;
+				case Tile.TUBE:
+					if (editor) break;
+					this.tubeX = px;
+					this.tubeY = py;
+					if (levelStart) map.set(i, Tile.EMPTY);
+					break;
+				case Tile.PLASMA_START:
+					if (levelStart) this.#placePlasma(x, y, boss);
+					break;
+			}
+		}
+	}
+
+	/**
+	 * Start the plasma ball at the plasma start of a level without a boss. In the boss levels 3 and 4, the plasma start
+	 * is the start point of the plasma shots of the boss.
+	 *
+	 * @param {number} x The column of the plasma start.
+	 * @param {number} y The row of the plasma start.
+	 * @param {number} boss The boss of the level, or 0 for a level without a boss.
+	 * @returns {void}
+	 */
+	#placePlasma(x, y, boss) {
+		const launch = plasmaLaunch(this.map, x, y);
+		if (!launch) return;
+		if (boss === 0) {
+			this.plasmaBall.push(new Plasma(this, launch.x, launch.y, launch.vx, launch.vy));
+		} else if (boss === 3 || boss === 4) {
+			this.plasmaX = launch.x;
+			this.plasmaY = launch.y;
 		}
 	}
 
@@ -633,8 +660,9 @@ export class World {
 		if (!inScreen(x, y)) return Tile.EMPTY;
 		const map = this.map;
 		const tile = map.tiles[map.index(x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS)];
-		if (tile === Tile.EMPTY)
+		if (tile === Tile.EMPTY) {
 			return (crates && this.crateAt(x, y)) || (platforms && this.platformAt(x, y)) || Tile.EMPTY;
+		}
 		return isPassable(tile) ? Tile.EMPTY : tile;
 	}
 
@@ -680,23 +708,16 @@ export class World {
 	 * @returns {Solid} The tile id, the platform, or Tile.EMPTY if the shot passes.
 	 */
 	getTilePortal(x, y) {
-		if (x >= PLAYFIELD_WIDTH || y >= PLAYFIELD_HEIGHT || y < 0 || x < 0) return Tile.EMPTY;
+		if (!inScreen(x, y)) return Tile.EMPTY;
 		const map = this.map;
-		let tile = map.tiles[map.index(x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS)];
-		if (
+		const tile = map.tiles[map.index(x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS)];
+		const passes =
 			tile === Tile.EXIT ||
 			tile === FIRST_OF_KIND[TileKind.WHEEL] ||
 			isTileKind(tile, TileKind.ENERGYWALL) ||
 			tile === Tile.CAKE ||
-			tile === Tile.PLAYER_START
-		)
-			tile = Tile.EMPTY;
-
-		if (!tile) {
-			tile = this.platformAt(x, y) || Tile.EMPTY;
-		}
-
-		return tile;
+			tile === Tile.PLAYER_START;
+		return passes || !tile ? this.platformAt(x, y) || Tile.EMPTY : tile;
 	}
 
 	/**
@@ -818,15 +839,10 @@ export class World {
 	 */
 	onBelt(obj) {
 		const ground = obj.touchingGround();
-		if (ground === 3 || ground === 4) {
-			return ground;
-		} else {
-			const y = (obj.y >> 8) + obj.pY;
-			const crate = this.crateAt(obj.x >> 8, y) || this.crateAt((obj.x >> 8) + obj.pX - 1, y);
-			if (crate && crate.carpet > 0) return crate.carpet;
-		}
-
-		return 0;
+		if (ground === 3 || ground === 4) return ground;
+		const y = (obj.y >> 8) + obj.pY;
+		const crate = this.crateAt(obj.x >> 8, y) || this.crateAt((obj.x >> 8) + obj.pX - 1, y);
+		return crate && crate.carpet > 0 ? crate.carpet : 0;
 	}
 
 	/**
@@ -839,9 +855,11 @@ export class World {
 	onPlatform(obj) {
 		const x = obj.x >> 8;
 		const y = (obj.y >> 8) + obj.pY;
-		const platform = this.platformAt(x, y) || this.platformAt(x + obj.pX - 1, y);
-		if (platform) return platform;
-		return (this.crateAt(x, y) || this.crateAt(x + obj.pX - 1, y))?.platform ?? null;
+		return (
+			this.platformAt(x, y) ||
+			this.platformAt(x + obj.pX - 1, y) ||
+			((this.crateAt(x, y) || this.crateAt(x + obj.pX - 1, y))?.platform ?? null)
+		);
 	}
 
 	/**

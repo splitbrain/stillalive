@@ -4,10 +4,10 @@
 
 import { MouseButton, TILE_SIZE_BITS } from './constants.js';
 import { bg } from './images.js';
-import { allowTile, build, eraseSprites, fill } from './mapEdit.js';
+import { allowTile, build, eraseObjectAbove, eraseSprites, fill } from './mapEdit.js';
 import { MAP_FORMAT, parseMap } from './mapFile.js';
 import { emptyTiles, TileMap } from './TileMap.js';
-import { Tile, isGravPipeTile, isObjectTile } from './tiles.js';
+import { Tile, isObjectTile } from './tiles.js';
 import { UndoList } from './UndoList.js';
 import { World } from './World.js';
 
@@ -292,37 +292,38 @@ export class Editor {
 		const input = this.#input;
 		const brush = this.brush;
 		const map = this.#map;
-		if (input.mouseOnPlayfield() && isObjectTile(brush)) {
-			if (input.mousePressed) {
-				const version = map.version;
-				const xt = input.mouseX >> TILE_SIZE_BITS;
-				const yt = input.mouseY >> TILE_SIZE_BITS;
-
-				const tile = map.index(xt, yt);
-				if (input.mouseButton === MouseButton.LEFT) {
-					if (brush === Tile.PLAYER_START) {
-						for (const [i, id] of map.tiles.entries()) {
-							if (id === Tile.PLAYER_START) map.setTile(i, Tile.EMPTY);
-						}
-					}
-
-					eraseSprites(map, brush, xt, yt);
-
-					if (allowTile(map, brush)) {
-						map.setTile(tile, brush);
-					}
-				} else if (input.mouseButton === MouseButton.RIGHT) {
-					map.setTile(tile, Tile.EMPTY);
-					eraseSprites(map, brush, xt, yt);
-				}
-				build(map);
-				this.#mapChangedSince(version);
-			} else if (input.mouseReleased) {
+		if (!input.mouseOnPlayfield() || !isObjectTile(brush)) return;
+		if (!input.mousePressed) {
+			if (input.mouseReleased) {
 				input.mouseReleased = false;
 				this.#addUndo();
 				this.#mapChanged();
 			}
+			return;
 		}
+
+		const version = map.version;
+		const xt = input.mouseX >> TILE_SIZE_BITS;
+		const yt = input.mouseY >> TILE_SIZE_BITS;
+		const tile = map.index(xt, yt);
+		switch (input.mouseButton) {
+			case MouseButton.LEFT:
+				// a map has one player start
+				if (brush === Tile.PLAYER_START) {
+					for (const [i, id] of map.tiles.entries()) {
+						if (id === Tile.PLAYER_START) map.setTile(i, Tile.EMPTY);
+					}
+				}
+				eraseSprites(map, brush, xt, yt);
+				if (allowTile(map, brush)) map.setTile(tile, brush);
+				break;
+			case MouseButton.RIGHT:
+				map.setTile(tile, Tile.EMPTY);
+				eraseSprites(map, brush, xt, yt);
+				break;
+		}
+		build(map);
+		this.#mapChangedSince(version);
 	}
 
 	/**
@@ -334,35 +335,40 @@ export class Editor {
 		const input = this.#input;
 		const brush = this.brush;
 		const map = this.#map;
-		if (input.mouseOnPlayfield() && !isObjectTile(brush)) {
-			if (input.mousePressed) {
-				const version = map.version;
-				const xt = input.mouseX >> TILE_SIZE_BITS;
-				const yt = input.mouseY >> TILE_SIZE_BITS;
-				const tile = map.index(xt, yt);
-				if (input.mouseButton === MouseButton.LEFT) {
-					if (brush === Tile.PLASMA_START) {
-						const start = map.tiles.indexOf(Tile.PLASMA_START);
-						if (start >= 0) map.setTile(start, Tile.EMPTY);
-					}
-					map.setTile(tile, brush);
-				} else if (input.mouseButton === MouseButton.RIGHT) map.setTile(tile, Tile.EMPTY);
-				// a map has one plasma start, so it does not fill
-				else if (input.mouseButton === MouseButton.MIDDLE && brush !== Tile.PLASMA_START)
-					fill(map, brush, map.tiles[tile], xt, yt);
-
-				if (yt - 1 >= 0) {
-					const t = map.tiles[map.index(xt, yt - 1)];
-					if (t === Tile.PLAYER_START || t === Tile.TURRET_LEFT || t === Tile.TURRET_RIGHT || isGravPipeTile(t))
-						map.setTile(map.index(xt, yt - 1), Tile.EMPTY);
-				}
-
-				build(map);
-				this.#mapChangedSince(version);
-			} else if (input.mouseReleased) {
+		if (!input.mouseOnPlayfield() || isObjectTile(brush)) return;
+		if (!input.mousePressed) {
+			if (input.mouseReleased) {
 				input.mouseReleased = false;
 				this.#addUndo();
 			}
+			return;
 		}
+
+		const version = map.version;
+		const xt = input.mouseX >> TILE_SIZE_BITS;
+		const yt = input.mouseY >> TILE_SIZE_BITS;
+		const tile = map.index(xt, yt);
+		switch (input.mouseButton) {
+			case MouseButton.LEFT:
+				// a map has one plasma start
+				if (brush === Tile.PLASMA_START) {
+					const start = map.tiles.indexOf(Tile.PLASMA_START);
+					if (start >= 0) map.setTile(start, Tile.EMPTY);
+				}
+				map.setTile(tile, brush);
+				break;
+			case MouseButton.RIGHT:
+				map.setTile(tile, Tile.EMPTY);
+				break;
+			case MouseButton.MIDDLE:
+				// a map has one plasma start, so it does not fill
+				if (brush !== Tile.PLASMA_START) fill(map, brush, map.tiles[tile], xt, yt);
+				break;
+		}
+
+		eraseObjectAbove(map, xt, yt);
+
+		build(map);
+		this.#mapChangedSince(version);
 	}
 }

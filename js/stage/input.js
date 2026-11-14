@@ -46,8 +46,10 @@ const MOUSE_BITS = MOUSE_LEFT | MOUSE_RIGHT | MOUSE_MIDDLE;
  */
 function isForeignTarget(event) {
 	const target = event.target;
-	if (!(target instanceof Element)) return false;
-	return target.isContentEditable || target.closest('input, textarea, select, dialog') !== null;
+	return (
+		target instanceof Element &&
+		(target.isContentEditable || target.closest('input, textarea, select, dialog') !== null)
+	);
 }
 
 /**

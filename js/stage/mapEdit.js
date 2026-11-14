@@ -97,6 +97,45 @@ function isTileHere(map, x, y) {
 	return isTileKind(map.tiles[map.index(x, y)], TileKind.WALL, TileKind.DECOR) ? 1 : 0;
 }
 
+/** @type {number[]} The objects that are wider than one tile: two tiles for a pipe, three for a platform. */
+const WIDE_OBJECTS = [Tile.PLATFORM_RIGHT, Tile.PLATFORM_LEFT, Tile.GRAVPIPE_UP, Tile.GRAVPIPE_DOWN];
+
+/** @type {number[]} The objects that are two tiles high. */
+const TALL_OBJECTS = [Tile.PLAYER_START, Tile.TURRET_LEFT, Tile.TURRET_RIGHT, Tile.GRAVPIPE_RIGHT, Tile.GRAVPIPE_LEFT];
+
+/**
+ * Remove the logic tile at a map position if the position is in the map and the tile passes a test.
+ *
+ * @param {TileMap} map The map. The function changes the logic layer.
+ * @param {number} x The column.
+ * @param {number} y The row.
+ * @param {function(number): boolean} test The test of the tile id.
+ * @returns {void}
+ */
+function eraseIf(map, x, y, test) {
+	if (x < 0 || x >= MAP_WIDTH || y < 0 || y >= MAP_HEIGHT) return;
+	const index = map.index(x, y);
+	if (test(map.tiles[index])) map.setTile(index, Tile.EMPTY);
+}
+
+/**
+ * Remove the object above a map position if the object reaches into the position: the player start, a turret or a
+ * gravitational pipe.
+ *
+ * @param {TileMap} map The map. The function changes the logic layer.
+ * @param {number} x The column.
+ * @param {number} y The row.
+ * @returns {void}
+ */
+export function eraseObjectAbove(map, x, y) {
+	eraseIf(
+		map,
+		x,
+		y - 1,
+		(t) => t === Tile.PLAYER_START || t === Tile.TURRET_LEFT || t === Tile.TURRET_RIGHT || isGravPipeTile(t),
+	);
+}
+
 /**
  * Remove the objects that overlap a new object, because an object covers more than one tile.
  *
@@ -107,63 +146,22 @@ function isTileHere(map, x, y) {
  * @returns {void}
  */
 export function eraseSprites(map, til, xt, yt) {
-	if (
-		til === Tile.PLATFORM_RIGHT ||
-		til === Tile.PLATFORM_LEFT ||
-		til === Tile.GRAVPIPE_UP ||
-		til === Tile.GRAVPIPE_DOWN
-	) {
-		// objects wider than one tile
-		for (let h = 1; h < 3; h++) {
-			if (h === 2 && til >= Tile.GRAVPIPE_UP) continue;
-			if (xt + h < MAP_WIDTH) {
-				map.setTile(map.index(xt + h, yt), Tile.EMPTY);
-				if (yt - 1 >= 0) {
-					const t = map.tiles[map.index(xt + h, yt - 1)];
-					if (t === Tile.PLAYER_START || t === Tile.TURRET_LEFT || t === Tile.TURRET_RIGHT || isGravPipeTile(t))
-						map.setTile(map.index(xt + h, yt - 1), Tile.EMPTY);
-				}
-			}
+	if (WIDE_OBJECTS.includes(til)) {
+		const width = til >= Tile.GRAVPIPE_UP ? 2 : 3;
+		for (let h = 1; h < width && xt + h < MAP_WIDTH; h++) {
+			map.setTile(map.index(xt + h, yt), Tile.EMPTY);
+			eraseObjectAbove(map, xt + h, yt);
 		}
 	}
-	if (
-		til === Tile.PLAYER_START ||
-		til === Tile.TURRET_LEFT ||
-		til === Tile.TURRET_RIGHT ||
-		til === Tile.GRAVPIPE_RIGHT ||
-		til === Tile.GRAVPIPE_LEFT
-	) {
-		// objects taller than one tile
-		if (yt + 1 < MAP_HEIGHT) {
-			map.setTile(map.index(xt, yt + 1), Tile.EMPTY);
-			for (let h = 1; h < 3; h++) {
-				if (xt - h >= 0) {
-					const t = map.tiles[map.index(xt - h, yt + 1)];
-					if (
-						t === Tile.PLATFORM_RIGHT ||
-						t === Tile.PLATFORM_LEFT ||
-						t === Tile.GRAVPIPE_UP ||
-						t === Tile.GRAVPIPE_DOWN
-					)
-						map.setTile(map.index(xt - h, yt + 1), Tile.EMPTY);
-				}
-			}
-		}
+	if (TALL_OBJECTS.includes(til) && yt + 1 < MAP_HEIGHT) {
+		map.setTile(map.index(xt, yt + 1), Tile.EMPTY);
+		for (let h = 1; h < 3; h++) eraseIf(map, xt - h, yt + 1, (t) => WIDE_OBJECTS.includes(t));
 	}
 
-	if (yt - 1 >= 0) {
-		const t = map.tiles[map.index(xt, yt - 1)];
-		if (t === Tile.PLAYER_START || t === Tile.TURRET_LEFT || t === Tile.TURRET_RIGHT || isGravPipeTile(t))
-			map.setTile(map.index(xt, yt - 1), Tile.EMPTY);
-	}
-	for (let h = 1; h < 3; h++) {
-		if (xt - h >= 0) {
-			const t = map.tiles[map.index(xt - h, yt)];
-			if (t === Tile.PLATFORM_RIGHT || t === Tile.PLATFORM_LEFT) map.setTile(map.index(xt - h, yt), Tile.EMPTY);
-			else if ((t === Tile.GRAVPIPE_UP || t === Tile.GRAVPIPE_DOWN) && h < 2)
-				map.setTile(map.index(xt - h, yt), Tile.EMPTY);
-		}
-	}
+	eraseObjectAbove(map, xt, yt);
+	// the wide objects to the left reach into the position
+	eraseIf(map, xt - 1, yt, (t) => WIDE_OBJECTS.includes(t));
+	eraseIf(map, xt - 2, yt, (t) => t === Tile.PLATFORM_RIGHT || t === Tile.PLATFORM_LEFT);
 }
 
 /**

@@ -17,7 +17,7 @@ import {
 	sfx_throwObject,
 } from '../audio.js';
 import { Direction, GRAVITY, MouseButton, PLAYFIELD_HEIGHT, SparkleType, TILE_SIZE } from '../constants.js';
-import { Body } from './Body.js';
+import { beltDirection, Body } from './Body.js';
 import { Platform } from './Platform.js';
 import { Sparkle } from './Sparkle.js';
 import { isTileKind, TileKind } from '../tiles.js';
@@ -84,33 +84,34 @@ export class Player extends Body {
 	 * @returns {void}
 	 */
 	checkDeath() {
-		if (this.life <= 0 && !this.dead) {
-			if (this.world.replaying) {
-				this.world.outcome = 'brokenReplay';
-				return;
-			}
-
-			this.dead = true;
-			this.life = -256;
-			playSound(this.inAcid ? sfx_acid : sfx_die);
-			if (this.y >> 8 < PLAYFIELD_HEIGHT) {
-				for (let i = 0; i < 20; i++) {
-					this.world.sparkles.push(
-						new Sparkle(
-							this.world,
-							SparkleType.DEATH,
-							this.x + (this.pX << 7) + random(-14 << 8, 8 << 8),
-							this.y + (this.pY << 6),
-							0,
-							random(-2 << 8, 0),
-							150,
-							4,
-						),
-					);
-				}
-			}
-		} else if (this.dead) {
+		if (this.dead) {
 			if (this.life >= 0) this.world.outcome = 'died';
+			return;
+		}
+		if (this.life > 0) return;
+		if (this.world.replaying) {
+			this.world.outcome = 'brokenReplay';
+			return;
+		}
+
+		this.dead = true;
+		this.life = -256;
+		playSound(this.inAcid ? sfx_acid : sfx_die);
+		// below the playfield, the death shows no blood
+		if (this.y >> 8 >= PLAYFIELD_HEIGHT) return;
+		for (let i = 0; i < 20; i++) {
+			this.world.sparkles.push(
+				new Sparkle(
+					this.world,
+					SparkleType.DEATH,
+					this.x + (this.pX << 7) + random(-14 << 8, 8 << 8),
+					this.y + (this.pY << 6),
+					0,
+					random(-2 << 8, 0),
+					150,
+					4,
+				),
+			);
 		}
 	}
 
@@ -160,16 +161,16 @@ export class Player extends Body {
 	 */
 	#grabObject() {
 		const input = this.world.input;
-		if (!this.carrying) {
-			if (input.mousePressed && input.mouseButton === MouseButton.LEFT) {
-				this.carrying = this.#grabbableIn(this.world.crates) ?? this.#grabbableIn(this.world.turrets);
-				if (this.carrying) playSound(sfx_pickUp);
-			}
-		} else if (!input.mousePressed) {
+		if (this.carrying) {
+			if (input.mousePressed) return;
 			this.carrying.thrown();
 			this.carrying = null;
 			playSound(sfx_throwObject);
+			return;
 		}
+		if (!input.mousePressed || input.mouseButton !== MouseButton.LEFT) return;
+		this.carrying = this.#grabbableIn(this.world.crates) ?? this.#grabbableIn(this.world.turrets);
+		if (this.carrying) playSound(sfx_pickUp);
 	}
 
 	/**
@@ -182,140 +183,151 @@ export class Player extends Body {
 		const input = this.world.input;
 		const x = this.midX();
 		const y = this.midY();
-		for (const obj of objects) {
-			if (
-				obj.canGrab() &&
-				getDistance(obj.midX(), obj.midY(), x, y) < 2 * TILE_SIZE &&
-				obj.contains(input.mouseX, input.mouseY)
-			)
-				return obj;
-		}
-		return null;
+		return (
+			objects.find(
+				(obj) =>
+					obj.canGrab() &&
+					getDistance(obj.midX(), obj.midY(), x, y) < 2 * TILE_SIZE &&
+					obj.contains(input.mouseX, input.mouseY),
+			) ?? null
+		);
 	}
 
 	/**
-	 * Update the player for one tick from the input and the level objects.
+	 * Count the teleport time towards 0 and create the teleport sparkles at every sixth tick. The sign of the time
+	 * selects the color of the sparkles.
 	 *
 	 * @returns {void}
 	 */
-	move() {
-		const portals = this.world.portals;
+	#updateTeleportSparkles() {
 		if (this.teleportTime < 0) {
-			if (++this.teleportTime < 0 && this.teleportTime % 6 === 0) this.#teleportSparkles(3, 200, 0);
+			this.teleportTime++;
+			if (this.teleportTime < 0 && this.teleportTime % 6 === 0) this.#teleportSparkles(3, 200, 0);
 		} else if (this.teleportTime > 0) {
-			if (--this.teleportTime > 0 && this.teleportTime % 6 === 0) this.#teleportSparkles(5, 255, 1);
+			this.teleportTime--;
+			if (this.teleportTime > 0 && this.teleportTime % 6 === 0) this.#teleportSparkles(5, 255, 1);
 		}
+	}
 
-		if (this.askClear) {
-			portals.clearPortals();
-			this.askClear = false;
-		}
+	/**
+	 * Check if the player is outside of all pipe fields.
+	 *
+	 * @returns {boolean} True if no pipe field holds the player.
+	 */
+	#outOfFields() {
+		return this.world.gravPipeFieldsAt(this).length === 0;
+	}
 
-		const fields = this.world.gravPipeFieldsAt(this);
-		if (fields.length > 0) {
-			this.vx = 0;
-			this.vy = 0;
-			playLoop(sfx_float);
+	/**
+	 * Move the player towards the middle of a pipe field. In a floor or ceiling portal, the player moves faster.
+	 *
+	 * @param {import('./GravPipeField.js').GravPipeField} field The pipe field.
+	 * @returns {void}
+	 */
+	#centerInField(field) {
+		const portals = this.world.portals;
+		if (field.vx !== 0) {
+			const step = portals.portalAt(this, Direction.UP) || portals.portalAt(this, Direction.DOWN) ? 768 : 512;
+			if (this.y >> 8 < field.y) this.y += step;
+			else if ((this.y >> 8) + this.pY > field.y + 2 * TILE_SIZE) this.y -= step;
+		} else if (field.vy !== 0) {
+			// the height pY centers the player on the x axis, in the same way as moveObject()
+			const margin = TILE_SIZE - (this.pY >> 1);
+			if (this.x >> 8 < field.x + margin) this.x += 256;
+			else if ((this.x >> 8) + this.pX > field.x + 2 * TILE_SIZE - margin) this.x -= 256;
 		}
-		for (const field of fields) {
-			if (fields.length === 1) {
-				if (field.vx !== 0) {
-					if (portals.portalAt(this, Direction.UP) || portals.portalAt(this, Direction.DOWN)) {
-						if (this.y >> 8 < field.y) this.y += 768;
-						else if ((this.y >> 8) + this.pY > field.y + 2 * TILE_SIZE) this.y -= 768;
-					} else if (this.y >> 8 < field.y) this.y += 512;
-					else if ((this.y >> 8) + this.pY > field.y + 2 * TILE_SIZE) this.y -= 512;
-				} else if (field.vy !== 0) {
-					// the height pY centers the player on the x axis, in the same way as moveObject()
-					if (this.x >> 8 < field.x + (TILE_SIZE - (this.pY >> 1))) this.x += 256;
-					else if ((this.x >> 8) + this.pX > field.x + 2 * TILE_SIZE - (TILE_SIZE - (this.pY >> 1))) this.x -= 256;
+	}
+
+	/**
+	 * Push the player with a pipe field. In a horizontal field, the jump key jumps out and the down key moves down. In
+	 * a vertical field, the left and right keys move the player out to the side.
+	 *
+	 * @param {import('./GravPipeField.js').GravPipeField} field The pipe field.
+	 * @param {boolean} alone True if this is the only field that holds the player.
+	 * @returns {void}
+	 */
+	#floatInField(field, alone) {
+		if (alone) this.#centerInField(field);
+
+		this.vx += field.vx * 384;
+		this.vy += field.vy * 384;
+
+		if (field.vx !== 0) {
+			if (this.jump) {
+				this.y -= 3 << 8;
+				if (this.#outOfFields()) {
+					this.vy = -800;
+					this.vx = field.vx << 9;
 				}
 			}
+			if (this.down) this.y += 3 << 8;
+		}
 
-			this.vx += field.vx * 384;
-			this.vy += field.vy * 384;
-
-			if (field.vx !== 0) {
-				if (this.jump) {
-					this.y -= 3 << 8;
-					if (this.world.gravPipeFieldsAt(this).length === 0) {
-						this.vy = -800;
-						this.vx = field.vx << 9;
-					}
-				}
-				if (this.down) this.y += 3 << 8;
+		if (field.vy !== 0) {
+			if (this.left) {
+				this.x -= 3 << 8;
+				if (this.#outOfFields()) this.vx = -384;
 			}
-
-			if (field.vy !== 0) {
-				if (this.left) {
-					this.x -= 3 << 8;
-					if (this.world.gravPipeFieldsAt(this).length === 0) {
-						this.vx = -384;
-					}
-				}
-				if (this.right) {
-					this.x += 3 << 8;
-					if (this.world.gravPipeFieldsAt(this).length === 0) {
-						this.vx = 384;
-					}
-				}
+			if (this.right) {
+				this.x += 3 << 8;
+				if (this.#outOfFields()) this.vx = 384;
 			}
 		}
+	}
 
-		const ground = this.touchingGround();
-		if (ground && !this.onGround && fields.length === 0) playSound(sfx_land);
-		this.onGround = ground > 0;
-		const belt = this.world.onBelt(this);
-		this.x += belt === 3 ? 384 : belt === 4 ? -384 : 0;
-
-		this.animationTime -= 1 + 2 * (1 - (ground === 2 ? 1 : 0));
-		if (this.animationTime <= 0) {
-			this.animationTime = 10;
-			if (++this.animationFrame === 5) this.animationFrame = 1;
-			if (ground && this.left !== this.right && this.animationFrame % 2 === 1) {
-				const steps = ground === 2 ? sfx_iceStep : sfx_step;
-				playSound(steps[random(0, steps.length)], randomRate(0.08));
-			}
+	/**
+	 * Advance the walk animation and play the step sounds.
+	 *
+	 * @param {number} ground The ground from touchingGround().
+	 * @returns {void}
+	 */
+	#animateWalk(ground) {
+		// on ice, the walk animation is slower
+		this.animationTime -= ground === 2 ? 1 : 3;
+		if (this.animationTime > 0) return;
+		this.animationTime = 10;
+		if (++this.animationFrame === 5) this.animationFrame = 1;
+		if (ground && this.left !== this.right && this.animationFrame % 2 === 1) {
+			const steps = ground === 2 ? sfx_iceStep : sfx_step;
+			playSound(steps[random(0, steps.length)], randomRate(0.08));
 		}
+	}
 
-		if (++this.portalCooldown > 25) this.portalCooldown = 25;
+	/**
+	 * Let the life recover after the recovery time, and let the player bleed while the life is low.
+	 *
+	 * @returns {void}
+	 */
+	#updateLife() {
+		if (this.recoveryTime > 0) this.recoveryTime--;
+		if (this.recoveryTime === 0 && this.life < 100 << 8) this.life = Math.min(this.life + 256, 100 << 8);
 
-		if (this.recoveryTime > 0) {
-			this.recoveryTime--;
+		if (this.life > 50 << 8 || this.world.time % (this.life >> 8) !== 0) return;
+		for (let i = 0; i < 3; i++) {
+			this.world.sparkles.push(
+				new Sparkle(
+					this.world,
+					SparkleType.LOW_LIFE,
+					this.x + (this.pX << 5) + random(-5 << 8, 5 << 8),
+					this.y + (this.pY << 6) + random(-5 << 8, 5 << 8),
+					0,
+					0,
+					100,
+					4,
+				),
+			);
 		}
+	}
 
-		if (this.recoveryTime === 0 && this.life < 100 << 8) {
-			if ((this.life += 256) > 100 << 8) this.life = 100 << 8;
-		}
-
-		if (this.life <= 50 << 8) {
-			const drops = this.world.time % (this.life >> 8) === 0 ? 3 : 0;
-			for (let i = 0; i < drops; i++) {
-				this.world.sparkles.push(
-					new Sparkle(
-						this.world,
-						SparkleType.LOW_LIFE,
-						this.x + (this.pX << 5) + random(-5 << 8, 5 << 8),
-						this.y + (this.pY << 6) + random(-5 << 8, 5 << 8),
-						0,
-						0,
-						100,
-						4,
-					),
-				);
-			}
-		}
-
-		let dir = (this.right ? 128 : 0) - (this.left ? 128 : 0);
-
-		//jump handling
-		if (this.jump && ground && !portals.portalAt(this, Direction.DOWN) && fields.length === 0) {
-			this.vy = -1300;
-			playSound(sfx_jump);
-		} else if (!this.jump && this.oldJump && this.vy < -200) {
-			this.vy = -200;
-		}
-
+	/**
+	 * Slow the player down with the friction of the ground or the air. Steps on normal ground count for the
+	 * statistics.
+	 *
+	 * @param {number} ground The ground from touchingGround().
+	 * @returns {void}
+	 */
+	#applyFriction(ground) {
+		const portals = this.world.portals;
 		if (this.vx > 0) {
 			if (ground === 1 && !portals.portalAt(this, Direction.LEFT)) {
 				this.world.steps += this.vx >> 4;
@@ -333,99 +345,138 @@ export class Player extends Body {
 			}
 			if (this.vx > 0) this.vx = 0;
 		}
+	}
 
-		if (dir === 0 && ground) this.animationFrame = 0;
+	/**
+	 * Limit the walk speed on the ground. Ice and conveyor belts allow a higher speed. In a side portal, the speed has
+	 * no limit.
+	 *
+	 * @param {number} ground The ground from touchingGround().
+	 * @returns {void}
+	 */
+	#limitSpeed(ground) {
+		const portals = this.world.portals;
+		if (!ground || portals.portalAt(this, Direction.LEFT) || portals.portalAt(this, Direction.RIGHT)) return;
+		const max = ground === 1 ? 448 : 672;
+		this.vx = Math.max(-max, Math.min(this.vx, max));
+	}
 
-		if (fields.length === 0) {
-			if (
-				this.vx > 448 &&
-				ground === 1 &&
-				!portals.portalAt(this, Direction.LEFT) &&
-				!portals.portalAt(this, Direction.RIGHT)
-			)
-				this.vx = 448;
-			else if (
-				this.vx < -448 &&
-				ground === 1 &&
-				!portals.portalAt(this, Direction.LEFT) &&
-				!portals.portalAt(this, Direction.RIGHT)
-			)
-				this.vx = -448;
-			if (
-				this.vx > 672 &&
-				ground > 1 &&
-				!portals.portalAt(this, Direction.LEFT) &&
-				!portals.portalAt(this, Direction.RIGHT)
-			)
-				this.vx = 672;
-			else if (
-				this.vx < -672 &&
-				ground > 1 &&
-				!portals.portalAt(this, Direction.LEFT) &&
-				!portals.portalAt(this, Direction.RIGHT)
-			)
-				this.vx = -672;
+	/**
+	 * Shoot a portal with the mouse: the left button shoots the blue portal, the right button the red portal.
+	 *
+	 * @returns {void}
+	 */
+	#shootPortal() {
+		const input = this.world.input;
+		const portals = this.world.portals;
+		if (!this.world.abilities.portals || !input.mousePressed || this.portalCooldown !== 25) return;
+		if (portals.isInPortal(this) || this.carrying) return;
+		if (input.mouseButton === MouseButton.LEFT) portals.launchPortal(0, input.mouseX, input.mouseY);
+		else if (input.mouseButton === MouseButton.RIGHT) portals.launchPortal(1, input.mouseX, input.mouseY);
+	}
+
+	/**
+	 * Check if a platform crushes the player against a wall.
+	 *
+	 * @returns {boolean} True if the player is squeezed between two solid sides and one of them is a platform.
+	 */
+	#crushedByPlatform() {
+		const left = this.leftCollision();
+		const right = this.rightCollision();
+		return (
+			Boolean(left && right) &&
+			!this.world.portals.isInPortal(this) &&
+			(left instanceof Platform || right instanceof Platform)
+		);
+	}
+
+	/**
+	 * Update the player for one tick from the input and the level objects.
+	 *
+	 * @returns {void}
+	 */
+	move() {
+		const portals = this.world.portals;
+		this.#updateTeleportSparkles();
+
+		if (this.askClear) {
+			portals.clearPortals();
+			this.askClear = false;
 		}
+
+		const fields = this.world.gravPipeFieldsAt(this);
+		const floating = fields.length > 0;
+		if (floating) {
+			this.vx = 0;
+			this.vy = 0;
+			playLoop(sfx_float);
+		}
+		for (const field of fields) this.#floatInField(field, fields.length === 1);
+
+		const ground = this.touchingGround();
+		if (ground && !this.onGround && !floating) playSound(sfx_land);
+		this.onGround = ground > 0;
+		this.x += 384 * beltDirection(this.world.onBelt(this));
+
+		this.#animateWalk(ground);
+		this.portalCooldown = Math.min(this.portalCooldown + 1, 25);
+		this.#updateLife();
+
+		let dir = (this.right ? 128 : 0) - (this.left ? 128 : 0);
+
+		if (this.jump && ground && !portals.portalAt(this, Direction.DOWN) && !floating) {
+			this.vy = -1300;
+			playSound(sfx_jump);
+		} else if (!this.jump && this.oldJump && this.vy < -200) {
+			// a short press of the jump key gives a low jump
+			this.vy = -200;
+		}
+
+		this.#applyFriction(ground);
+		if (dir === 0 && ground) this.animationFrame = 0;
+		if (!floating) this.#limitSpeed(ground);
 
 		if (!ground || portals.portalAt(this, Direction.DOWN)) {
-			if (fields.length === 0) this.vy += GRAVITY;
+			if (!floating) this.vy += GRAVITY;
+			// in the air, the keys steer less
 			dir = Math.trunc(dir * 0.28);
-			if (this.vy > (10 << 8) + 128) this.vy = (10 << 8) + 128;
+			this.vy = Math.min(this.vy, (10 << 8) + 128);
 		}
 
-		if (fields.length === 0) {
-			if (ground !== 2) this.vx += dir;
-			else if (ground === 2) this.vx += dir >> 2;
-		}
+		// on ice, the keys steer less
+		if (!floating) this.vx += ground === 2 ? dir >> 2 : dir;
 
 		for (let i = 0; i < 8; i++) {
 			if (!portals.passPortal(this, Direction.DOWN) && !portals.passPortal(this, Direction.UP)) this.x += this.vx >> 3;
-			if (!portals.passPortal(this, Direction.LEFT) && !portals.passPortal(this, Direction.RIGHT))
+			if (!portals.passPortal(this, Direction.LEFT) && !portals.passPortal(this, Direction.RIGHT)) {
 				this.y += this.vy >> 3;
+			}
 		}
 
 		const platform = this.world.onPlatform(this);
 		if (platform) this.x += platform.vx;
 
-		let col = true;
-		while (col && !portals.isInPortal(this)) {
-			col = this.checkCollisions();
+		while (!portals.isInPortal(this)) {
+			if (!this.checkCollisions()) break;
 		}
 
-		if (portals.portalAt(this, Direction.UP) && this.vy > 0) {
-			if (this.downCollision()) this.vy = -this.vy;
-		} else if (portals.portalAt(this, Direction.DOWN) && this.vy < 0) {
-			if (this.upCollision()) this.vy = -this.vy;
+		if (
+			(portals.portalAt(this, Direction.UP) && this.vy > 0 && this.downCollision()) ||
+			(portals.portalAt(this, Direction.DOWN) && this.vy < 0 && this.upCollision())
+		) {
+			this.vy = -this.vy;
 		}
 
 		this.world.collectCakes();
 		this.#grabObject();
 		portals.clearPortalsAtForceField();
+		this.#shootPortal();
 
-		const input = this.world.input;
-		if (this.world.abilities.portals) {
-			if (input.mousePressed && this.portalCooldown === 25 && !portals.isInPortal(this) && !this.carrying) {
-				if (input.mouseButton === MouseButton.LEFT) {
-					portals.launchPortal(0, input.mouseX, input.mouseY);
-				} else if (input.mouseButton === MouseButton.RIGHT) {
-					portals.launchPortal(1, input.mouseX, input.mouseY);
-				}
-			}
-		}
-
-		const colLeft = this.leftCollision();
-		const colRight = this.rightCollision();
-		if (colLeft && colRight && !portals.isInPortal(this)) {
-			if (colLeft instanceof Platform || colRight instanceof Platform) {
-				this.life = 0;
-			}
-		}
+		if (this.#crushedByPlatform()) this.life = 0;
 
 		const deadly = this.touchesDeadlyTile();
 		this.inAcid = isTileKind(deadly, TileKind.ACID, TileKind.ACIDPOOL);
-		if (this.world.plasmaTouching(this) || deadly) {
-			this.life = 0;
-		}
+		if (this.world.plasmaTouching(this) || deadly) this.life = 0;
 
 		if (this.y > (PLAYFIELD_HEIGHT + 40) << 8) this.life = 0;
 		this.oldJump = this.jump;

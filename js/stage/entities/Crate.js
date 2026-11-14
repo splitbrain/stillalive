@@ -2,6 +2,7 @@
  * The Crate object.
  */
 
+import { beltDirection } from './Body.js';
 import { Throwable } from './Throwable.js';
 import { playSound, sfx_crateLand, sfx_dissolve, sfx_wallBreak, sfx_wallCrack } from '../audio.js';
 import { PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, TILE_SIZE } from '../constants.js';
@@ -47,61 +48,14 @@ export class Crate extends Throwable {
 		if (this.invincibility > 0) this.invincibility--;
 		if (this.noRemove > 0) this.noRemove--;
 
-		if (this.shrink === 0) {
-			if (!this.carried) {
-				const falling = this.vy > 0;
-				this.move();
-				if (falling && this.vy === 0 && this.touchingGround()) playSound(sfx_crateLand);
-
-				if (this.world.boss) {
-					if (this.world.boss.throwsCrates()) this.#shrinkInTube();
-
-					const t = this.world.map.atPixel((this.x >> 8) + this.pX + 1, this.y >> 8);
-					if (isTileKind(t, TileKind.BOSS_BLOCK)) {
-						playSound(t < LAST_OF_KIND[TileKind.BOSS_BLOCK] ? sfx_wallCrack : sfx_wallBreak);
-						this.world.map.replaceAll(t, t < LAST_OF_KIND[TileKind.BOSS_BLOCK] ? t + 1 : Tile.EMPTY);
-						this.world.boss.useUpCrate(this);
-						return;
-					}
-
-					this.world.boss.hit(this);
-				}
-
-				const platform = this.world.onPlatform(this);
-				if (platform) {
-					this.x += platform.vx;
-					this.platform = platform;
-					if (platform.vx < 0 && this.leftCollision()) this.x -= platform.vx;
-					else if (platform.vx > 0 && this.rightCollision()) this.x -= platform.vx;
-				} else this.platform = null;
-
-				if (!this.touchingGround()) this.angle += (this.vx >> 8) << 1;
-				else this.angle = 0;
-				if (this.angle >= 360) this.angle -= 360;
-				if (this.landsOnPlayer()) {
-					while (this.landsOnPlayer()) this.y -= 256;
-					this.vy = 0;
-					this.angle = 0;
-				}
-				const x = this.x >> 8;
-				const y = this.y >> 8;
-				if (
-					x < -TILE_SIZE ||
-					x > PLAYFIELD_WIDTH ||
-					y < -TILE_SIZE ||
-					y > PLAYFIELD_HEIGHT ||
-					this.touchesDeadlyTile() ||
-					this.world.plasmaTouching(this)
-				) {
-					if (this.#destroyOrReset()) return;
-				}
-			} else {
-				if (this.carpet > 0) this.carpet = 0;
-				this.place();
-			}
-		} else {
+		if (this.shrink !== 0) {
 			this.shrink -= 4;
 			if (this.shrink === 0 && this.#destroyOrReset()) return;
+		} else if (this.carried) {
+			this.carpet = 0;
+			this.place();
+		} else if (this.#moveLoose()) {
+			return;
 		}
 
 		if (this.shrink === 0 && this.inForceField()) {
@@ -109,6 +63,70 @@ export class Crate extends Throwable {
 			this.shrink = 60;
 			playSound(sfx_dissolve);
 		}
+	}
+
+	/**
+	 * Move the crate when nobody carries it: it falls, it rides on platforms, it tumbles in the air, and it does not
+	 * fall into the player. Outside the playfield, on a deadly tile or at a plasma ball, the crate returns to its start
+	 * or goes away.
+	 *
+	 * @returns {boolean} True if the crate went away or was used up, which ends its update.
+	 */
+	#moveLoose() {
+		const falling = this.vy > 0;
+		this.move();
+		if (falling && this.vy === 0 && this.touchingGround()) playSound(sfx_crateLand);
+
+		if (this.world.boss && this.#hitBoss()) return true;
+
+		const platform = this.world.onPlatform(this);
+		this.platform = platform;
+		if (platform) {
+			this.x += platform.vx;
+			if (platform.vx < 0 && this.leftCollision()) this.x -= platform.vx;
+			else if (platform.vx > 0 && this.rightCollision()) this.x -= platform.vx;
+		}
+
+		this.angle = this.touchingGround() ? 0 : this.angle + ((this.vx >> 8) << 1);
+		if (this.angle >= 360) this.angle -= 360;
+		if (this.landsOnPlayer()) {
+			while (this.landsOnPlayer()) this.y -= 256;
+			this.vy = 0;
+			this.angle = 0;
+		}
+
+		const x = this.x >> 8;
+		const y = this.y >> 8;
+		const lost =
+			x < -TILE_SIZE ||
+			x > PLAYFIELD_WIDTH ||
+			y < -TILE_SIZE ||
+			y > PLAYFIELD_HEIGHT ||
+			this.touchesDeadlyTile() ||
+			this.world.plasmaTouching(this);
+		return lost && this.#destroyOrReset();
+	}
+
+	/**
+	 * Let the crate hit the boss or crack the boss block in front of it. In a boss level that throws crates, the crate
+	 * also shrinks in the tube.
+	 *
+	 * @returns {boolean} True if the crate cracked a boss block, which uses it up.
+	 */
+	#hitBoss() {
+		const boss = this.world.boss;
+		if (boss.throwsCrates()) this.#shrinkInTube();
+
+		const t = this.world.map.atPixel((this.x >> 8) + this.pX + 1, this.y >> 8);
+		if (isTileKind(t, TileKind.BOSS_BLOCK)) {
+			playSound(t < LAST_OF_KIND[TileKind.BOSS_BLOCK] ? sfx_wallCrack : sfx_wallBreak);
+			this.world.map.replaceAll(t, t < LAST_OF_KIND[TileKind.BOSS_BLOCK] ? t + 1 : Tile.EMPTY);
+			boss.useUpCrate(this);
+			return true;
+		}
+
+		boss.hit(this);
+		return false;
 	}
 
 	/**
@@ -128,7 +146,7 @@ export class Crate extends Throwable {
 	 * @returns {void}
 	 */
 	keepBeltSpeed(belt) {
-		if (belt === 0 && this.carpet !== 0) this.vx = this.carpet === 3 ? 384 : this.carpet === 4 ? -384 : 0;
+		if (belt === 0 && this.carpet !== 0) this.vx = 384 * beltDirection(this.carpet);
 		this.carpet = belt;
 	}
 
@@ -138,19 +156,16 @@ export class Crate extends Throwable {
 	 * @returns {boolean} True if the crate falls onto the player.
 	 */
 	landsOnPlayer() {
-		if (this.vy > 0 && !this.world.portals.isInPortal(this)) {
-			let x = (this.x >> 8) + 3;
-			const y = (this.y >> 8) + this.pY;
-			const x2 = this.world.player.x >> 8;
-			const y2 = this.world.player.y >> 8;
-
-			if (x >= x2 && x < x2 + 16 && y >= y2 && y < y2 + 4) return true;
-			else {
-				x += 9;
-				if (x >= x2 && x < x2 + 16 && y >= y2 && y < y2 + 4) return true;
-			}
-		}
-		return false;
+		if (this.vy <= 0 || this.world.portals.isInPortal(this)) return false;
+		const y = (this.y >> 8) + this.pY;
+		const x2 = this.world.player.x >> 8;
+		const y2 = this.world.player.y >> 8;
+		if (y < y2 || y >= y2 + 4) return false;
+		// two test points below the crate
+		return [3, 12].some((dx) => {
+			const x = (this.x >> 8) + dx;
+			return x >= x2 && x < x2 + 16;
+		});
 	}
 
 	/**
@@ -160,43 +175,42 @@ export class Crate extends Throwable {
 	 * @returns {boolean} True if the crate pushed another crate, which ends the movement of this tick.
 	 */
 	push() {
-		if (this.world.movingCrateTouching(this.world.player) && this.invincibility === 0) {
-			this.world.player.x += this.vx >> 3;
+		const player = this.world.player;
+		if (this.world.movingCrateTouching(player) && this.invincibility === 0) this.#pushPlayer();
 
-			if (this.vx < 0) {
-				if (this.world.player.leftCollision()) {
-					while (this.world.player.leftCollision()) this.world.player.x += 128;
-					this.vx = 0;
-				}
-			} else if (this.vx > 0) {
-				if (this.world.player.rightCollision()) {
-					while (this.world.player.rightCollision()) this.world.player.x -= 128;
-					this.vx = 0;
-				}
-			}
-		}
-
-		if (this.vx !== 0 && !this.world.portals.isInPortal(this)) {
-			for (const ca of this.world.crates) {
-				if (this.world.portals.isInPortal(ca)) continue;
-				if (this.x !== ca.x || this.y !== ca.y) {
-					const y = this.y >> 8;
-					let x = this.x >> 8;
-
-					if (this.vx > 0) x += TILE_SIZE;
-					else if (this.vx < 0) x -= 1;
-
-					if (ca.contains(x, y + 1) || ca.contains(x, y + TILE_SIZE / 2) || ca.contains(x, y + 13)) {
-						if (ca.carried) this.world.player.vx = this.vx;
-						else if (this.carried) this.world.player.vx = ca.vx;
-						ca.vx = this.vx;
-						this.vx >>= 1;
-						return true;
-					}
-				}
+		const portals = this.world.portals;
+		if (this.vx === 0 || portals.isInPortal(this)) return false;
+		// the test points lie in front of the crate in the direction of its move
+		const x = (this.x >> 8) + (this.vx > 0 ? TILE_SIZE : -1);
+		const y = this.y >> 8;
+		for (const ca of this.world.crates) {
+			if (portals.isInPortal(ca) || (this.x === ca.x && this.y === ca.y)) continue;
+			if (ca.contains(x, y + 1) || ca.contains(x, y + TILE_SIZE / 2) || ca.contains(x, y + 13)) {
+				if (ca.carried) player.vx = this.vx;
+				else if (this.carried) player.vx = ca.vx;
+				ca.vx = this.vx;
+				this.vx >>= 1;
+				return true;
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * Push the player with the speed of the crate, but not into a wall.
+	 *
+	 * @returns {void}
+	 */
+	#pushPlayer() {
+		const player = this.world.player;
+		player.x += this.vx >> 3;
+		if (this.vx < 0 && player.leftCollision()) {
+			while (player.leftCollision()) player.x += 128;
+			this.vx = 0;
+		} else if (this.vx > 0 && player.rightCollision()) {
+			while (player.rightCollision()) player.x -= 128;
+			this.vx = 0;
+		}
 	}
 
 	/**

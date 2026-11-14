@@ -573,8 +573,9 @@ export async function runPortalScene(page, scene) {
 			'gravPipes',
 			'gravPipeFields',
 			'animatedTiles',
-		])
+		]) {
 			world[list] = [];
+		}
 		input.keys = 0;
 		for (let i = 0; i < 40; i++) t.tick();
 
@@ -588,9 +589,20 @@ export async function runPortalScene(page, scene) {
 		Object.assign(world.player, { x: scene.player[0] << 8, y: scene.player[1] << 8, vx: 0, vy: 0 });
 		const o = scene.object;
 		let obj = null;
-		if (o?.type === 'crate') world.crates.push((obj = new Crate(world, o.x << 8, o.y << 8)));
-		else if (o?.type === 'turret') world.turrets.push((obj = new Turret(world, o.x << 8, o.y << 8, -1)));
-		else if (o?.type === 'plasma') world.plasmaBall.push((obj = new Plasma(world, o.x << 8, o.y << 8, o.vx, o.vy)));
+		switch (o?.type) {
+			case 'crate':
+				obj = new Crate(world, o.x << 8, o.y << 8);
+				world.crates.push(obj);
+				break;
+			case 'turret':
+				obj = new Turret(world, o.x << 8, o.y << 8, -1);
+				world.turrets.push(obj);
+				break;
+			case 'plasma':
+				obj = new Plasma(world, o.x << 8, o.y << 8, o.vx, o.vy);
+				world.plasmaBall.push(obj);
+				break;
+		}
 
 		const p = world.portals.list.map((portal) => [portal.used, portal.direction, portal.x >> 8, portal.y >> 8]);
 		const lines = [JSON.stringify({ portals: p })];

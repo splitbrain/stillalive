@@ -121,9 +121,36 @@ export class PortalPair {
 	}
 
 	/**
+	 * Check if all points are on a wall or a platform that can hold a portal.
+	 *
+	 * @param {Array<[number, number]>} points The points in pixels.
+	 * @returns {boolean} True if each point is a wall tile or a platform.
+	 */
+	#allWall(points) {
+		return points.every(([x, y]) => {
+			const tile = this.world.getTilePortal(x, y);
+			return isTileKind(tile, TileKind.WALL) || tile instanceof Platform;
+		});
+	}
+
+	/**
+	 * Count the points that something solid blocks. Crates do not count.
+	 *
+	 * @param {Array<[number, number]>} points The points in pixels.
+	 * @returns {number} The number of blocked points.
+	 */
+	#countBlocked(points) {
+		return points.filter(([x, y]) => {
+			const tile = this.world.getTile(x, y);
+			return tile !== Tile.EMPTY && !(tile instanceof Crate);
+		}).length;
+	}
+
+	/**
 	 * Place a portal on the wall at a point and set its direction.
 	 *
-	 * The wall must be straight along the portal, and the area in front of the portal must be free.
+	 * The wall must be straight along the portal, and the area in front of the portal must be nearly free. A side wall
+	 * is checked first, then a floor or a ceiling.
 	 *
 	 * @param {number} p The portal index.
 	 * @param {number} x The x coordinate of the hit in pixels.
@@ -132,101 +159,58 @@ export class PortalPair {
 	 */
 	#placePortal(p, x, y) {
 		const portal = this.list[p];
-		const other = this.list[1 - p];
-		const oldDir = portal.direction;
+		// the offsets along the portal and across the area in front of it
+		const along = Array.from({ length: 28 }, (_, i) => i - 14);
+		const across = Array.from({ length: 2 * TILE_SIZE }, (_, i) => i - TILE_SIZE);
 
-		let wallCount = 0;
-		//first check if the portal is on a left or right wall
-		for (let i = y - 14; i < y + 14; i++) {
-			const tile = this.world.getTilePortal(x, i);
-			if (tile !== Tile.EMPTY) {
-				if (isTileKind(tile, TileKind.WALL) || tile instanceof Platform) wallCount++;
-			}
+		if (this.#allWall(along.map((d) => [x, y + d]))) {
+			const area = across.flatMap((d) => [
+				[x + d, y - 14],
+				[x + d, y + 13],
+			]);
+			if (this.#countBlocked(area) > 36) return false;
+			const left = portal.vx < 0;
+			return this.#setPortal(p, left ? x - 3 : x, y - TILE_SIZE, left ? Direction.LEFT : Direction.RIGHT);
 		}
-		if (wallCount === 28) {
-			wallCount = 0;
-			for (let i = x - TILE_SIZE; i < x + TILE_SIZE; i++) {
-				//make sure that nothing touches horizontally
-				if (this.world.getTile(i, y - 14) !== Tile.EMPTY && !(this.world.getTile(i, y - 14) instanceof Crate))
-					wallCount++;
-				if (this.world.getTile(i, y + 13) !== Tile.EMPTY && !(this.world.getTile(i, y + 13) instanceof Crate))
-					wallCount++;
-			}
-			if (wallCount > 36) return false;
 
-			if (portal.vx < 0) {
-				//if the portal is on the left
-				x -= 3;
-				portal.direction = Direction.LEFT;
-			} else portal.direction = Direction.RIGHT;
-			y -= TILE_SIZE;
-
-			const x2 = other.x >> 8;
-			const y2 = other.y >> 8;
-			if (x === x2) {
-				// the other portal is on the same wall and overlaps
-				if (y2 - y > -2 * TILE_SIZE && y2 - y < 2 * TILE_SIZE && other.used) {
-					portal.direction = oldDir;
-					return false;
-				}
-			}
-
-			portal.frame = 1;
-			portal.y = y << 8;
-			portal.x = x << 8;
-			portal.used = true;
-
-			createPortalGlow(this.world, p);
-
-			return true;
-		} else {
-			//then check if the portal is on a top or bottom wall
-			wallCount = 0;
-			for (let i = x - 14; i < x + 14; i++) {
-				const tile = this.world.getTilePortal(i, y);
-				if (tile !== Tile.EMPTY) {
-					if (isTileKind(tile, TileKind.WALL) || tile instanceof Platform) wallCount++;
-				}
-			}
-			if (wallCount === 28) {
-				wallCount = 0;
-				for (let i = y - TILE_SIZE; i < y + TILE_SIZE; i++) {
-					//make sure that nothing touches vertically
-					if (this.world.getTile(x - 14, i) !== Tile.EMPTY && !(this.world.getTile(x - 14, i) instanceof Crate))
-						wallCount++;
-					if (this.world.getTile(x + 13, i) !== Tile.EMPTY && !(this.world.getTile(x + 13, i) instanceof Crate))
-						wallCount++;
-				}
-				if (wallCount > 36) return false;
-
-				if (portal.vy < 0) {
-					//if the portal is at the top
-					y -= 3;
-					portal.direction = Direction.UP;
-				} else portal.direction = Direction.DOWN;
-				x -= TILE_SIZE;
-
-				const x2 = other.x >> 8;
-				const y2 = other.y >> 8;
-				if (y === y2) {
-					// the other portal is on the same wall and overlaps
-					if (x2 - x > -2 * TILE_SIZE && x2 - x < 2 * TILE_SIZE && other.used) {
-						portal.direction = oldDir;
-						return false;
-					}
-				}
-
-				portal.y = y << 8;
-				portal.x = x << 8;
-				portal.used = true;
-				portal.frame = 0;
-
-				createPortalGlow(this.world, p);
-
-				return true;
-			}
+		if (this.#allWall(along.map((d) => [x + d, y]))) {
+			const area = across.flatMap((d) => [
+				[x - 14, y + d],
+				[x + 13, y + d],
+			]);
+			if (this.#countBlocked(area) > 36) return false;
+			const top = portal.vy < 0;
+			return this.#setPortal(p, x - TILE_SIZE, top ? y - 3 : y, top ? Direction.UP : Direction.DOWN);
 		}
+
 		return false;
+	}
+
+	/**
+	 * Set a portal to its place, unless it overlaps the other portal on the same wall.
+	 *
+	 * @param {number} p The portal index.
+	 * @param {number} x The x coordinate of the portal in pixels.
+	 * @param {number} y The y coordinate of the portal in pixels.
+	 * @param {number} direction The direction of the portal, a value of Direction.
+	 * @returns {boolean} True if the portal was placed.
+	 */
+	#setPortal(p, x, y, direction) {
+		const portal = this.list[p];
+		const other = this.list[1 - p];
+		const onSideWall = direction === Direction.LEFT || direction === Direction.RIGHT;
+		const [line, otherLine] = onSideWall ? [x, other.x >> 8] : [y, other.y >> 8];
+		const [pos, otherPos] = onSideWall ? [y, other.y >> 8] : [x, other.x >> 8];
+		if (other.used && line === otherLine && Math.abs(otherPos - pos) < 2 * TILE_SIZE) return false;
+
+		portal.direction = direction;
+		// the portal image has one frame for floors and ceilings and one frame for side walls
+		portal.frame = onSideWall ? 1 : 0;
+		portal.x = x << 8;
+		portal.y = y << 8;
+		portal.used = true;
+		createPortalGlow(this.world, p);
+		return true;
 	}
 
 	/**
@@ -251,27 +235,31 @@ export class PortalPair {
 				case Direction.LEFT: {
 					const tx = px + 3;
 					const edge = x - 1;
-					if (y >= py - 6 && y + obj.pY <= py + 2 * TILE_SIZE + 6 && edge < tx && tx - edge <= 20)
+					if (y >= py - 6 && y + obj.pY <= py + 2 * TILE_SIZE + 6 && edge < tx && tx - edge <= 20) {
 						return { index, deep: tx - edge >= obj.pX >> 1 && obj.vx < 0 };
+					}
 					break;
 				}
 				case Direction.RIGHT: {
 					const edge = x + obj.pX;
-					if (y >= py - 6 && y + obj.pY <= py + 2 * TILE_SIZE + 6 && edge > px && edge - px <= 20)
+					if (y >= py - 6 && y + obj.pY <= py + 2 * TILE_SIZE + 6 && edge > px && edge - px <= 20) {
 						return { index, deep: edge - px >= obj.pX >> 1 && obj.vx > 0 };
+					}
 					break;
 				}
 				case Direction.DOWN: {
 					const edge = y + obj.pY;
-					if (x >= px - 4 && x + obj.pX < px + 2 * TILE_SIZE + 4 && edge >= py && edge - py <= 20)
+					if (x >= px - 4 && x + obj.pX < px + 2 * TILE_SIZE + 4 && edge >= py && edge - py <= 20) {
 						return { index, deep: edge - py >= 16 && obj.vy > 0 };
+					}
 					break;
 				}
 				case Direction.UP: {
 					const ty = py + 4;
 					const edge = y - 1;
-					if (x >= px - 4 && x + obj.pX < px + 2 * TILE_SIZE + 4 && edge < ty && ty - edge <= 20)
+					if (x >= px - 4 && x + obj.pX < px + 2 * TILE_SIZE + 4 && edge < ty && ty - edge <= 20) {
 						return { index, deep: ty - edge >= 16 && obj.vy < 0 };
+					}
 					break;
 				}
 			}
@@ -347,16 +335,22 @@ export class PortalPair {
 	#teleport(entry, exit, obj) {
 		playSound(sfx_enterPortal);
 
-		if (exit.direction === Direction.RIGHT || exit.direction === Direction.LEFT) {
-			const gap = (2 * TILE_SIZE - obj.pY) >> 1;
-			obj.x = exit.x - ((obj.pX >> 1) << 8);
-			obj.y = exit.y + (gap << 8);
-		} else if (exit.direction === Direction.UP) {
-			obj.x = exit.x + ((TILE_SIZE / 2) << 8);
-			obj.y = exit.y - ((obj.pY >> 1) << 8) + (4 << 8);
-		} else if (exit.direction === Direction.DOWN) {
-			obj.x = exit.x + ((TILE_SIZE / 2) << 8);
-			obj.y = exit.y - ((obj.pY >> 1) << 8);
+		switch (exit.direction) {
+			case Direction.RIGHT:
+			case Direction.LEFT: {
+				const gap = (2 * TILE_SIZE - obj.pY) >> 1;
+				obj.x = exit.x - ((obj.pX >> 1) << 8);
+				obj.y = exit.y + (gap << 8);
+				break;
+			}
+			case Direction.UP:
+				obj.x = exit.x + ((TILE_SIZE / 2) << 8);
+				obj.y = exit.y - ((obj.pY >> 1) << 8) + (4 << 8);
+				break;
+			case Direction.DOWN:
+				obj.x = exit.x + ((TILE_SIZE / 2) << 8);
+				obj.y = exit.y - ((obj.pY >> 1) << 8);
+				break;
 		}
 
 		obj.teleported(entry, exit);

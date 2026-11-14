@@ -101,7 +101,10 @@ export class EditorButtons extends ChromeScreen {
 	 *     test run of the editor map.
 	 */
 	shouldShow(screen) {
-		if (screen === Screen.EDITOR || screen === Screen.EDITOR_FILE) return true;
-		return screen === Screen.PLAY && this.stage.mode.get() === 'test';
+		return (
+			screen === Screen.EDITOR ||
+			screen === Screen.EDITOR_FILE ||
+			(screen === Screen.PLAY && this.stage.mode.get() === 'test')
+		);
 	}
 }

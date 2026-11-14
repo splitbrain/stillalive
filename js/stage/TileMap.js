@@ -2,8 +2,9 @@
  * The tiles of a map.
  */
 
-import { MAP_SIZE, MAP_WIDTH, MAP_WIDTH_BITS, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, TILE_SIZE_BITS } from './constants.js';
+import { MAP_SIZE, MAP_WIDTH, MAP_WIDTH_BITS, TILE_SIZE_BITS } from './constants.js';
 import { Tile } from './tiles.js';
+import { inScreen } from './utils.js';
 
 /**
  * Make the tile ids of an empty map.
@@ -71,8 +72,7 @@ export class TileMap {
 	 * @returns {number} The tile id, or 0 outside the playfield.
 	 */
 	atPixel(x, y) {
-		if (x >= PLAYFIELD_WIDTH || y >= PLAYFIELD_HEIGHT || y < 0 || x < 0) return Tile.EMPTY;
-		return this.tiles[this.index(x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS)];
+		return inScreen(x, y) ? this.tiles[this.index(x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS)] : Tile.EMPTY;
 	}
 
 	/**

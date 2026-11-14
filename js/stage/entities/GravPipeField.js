@@ -48,9 +48,9 @@ const ACROSS_FIELD = [0, TILE_SIZE / 2, TILE_SIZE, 2 * TILE_SIZE - 1];
  */
 function fieldEndsAt(world, x, y, vx) {
 	return ACROSS_FIELD.some((offset) =>
-		vx !== 0
-			? world.getTileWithoutObjects(x, y + offset) !== Tile.EMPTY
-			: world.getTileWithoutCrates(x + offset, y) !== Tile.EMPTY,
+		vx === 0
+			? world.getTileWithoutCrates(x + offset, y) !== Tile.EMPTY
+			: world.getTileWithoutObjects(x, y + offset) !== Tile.EMPTY,
 	);
 }
 
@@ -84,9 +84,9 @@ export function traceGravPipeField(world, sx, sy, vx, vy) {
 			if (world.portals.list[0].used && world.portals.list[1].used) {
 				const dy = vy < 0 ? 14 : 0;
 				const [p1, p2] =
-					vx !== 0
-						? [world.portals.pointInPortal(x, y + 4), world.portals.pointInPortal(x, y + 2 * TILE_SIZE - 4)]
-						: [world.portals.pointInPortal(x + 4, y + dy), world.portals.pointInPortal(x + 2 * TILE_SIZE - 4, y + dy)];
+					vx === 0
+						? [world.portals.pointInPortal(x + 4, y + dy), world.portals.pointInPortal(x + 2 * TILE_SIZE - 4, y + dy)]
+						: [world.portals.pointInPortal(x, y + 4), world.portals.pointInPortal(x, y + 2 * TILE_SIZE - 4)];
 				const exit = p1 && p1 === p2 ? world.portals.other(p1) : null;
 				if (exit && !exits.includes(exit)) {
 					exits.push(exit);

@@ -1,9 +1,31 @@
 /**
- * The Body object.
+ * The Body object and its helper functions.
  */
 
 import { Direction, TILE_SIZE } from '../constants.js';
 import { inForceFieldRange, isDeadlyTile, isTileKind, Tile, TileKind } from '../tiles.js';
+
+/**
+ * @type {Array<{side: number, opposite: number, dx: number, dy: number}>} The sides in the order in which
+ *     checkCollisions() resolves them, with the step that moves the object away from the side.
+ */
+const PUSH_OUT = [
+	{ side: Direction.UP, opposite: Direction.DOWN, dx: 0, dy: 256 },
+	{ side: Direction.DOWN, opposite: Direction.UP, dx: 0, dy: -256 },
+	{ side: Direction.LEFT, opposite: Direction.RIGHT, dx: 256, dy: 0 },
+	{ side: Direction.RIGHT, opposite: Direction.LEFT, dx: -256, dy: 0 },
+];
+
+/**
+ * Get the direction of a conveyor belt.
+ *
+ * @param {number} belt The belt from World.onBelt(): 3 to the right, 4 to the left, 0 for none.
+ * @returns {number} 1 to the right, -1 to the left, 0 for none.
+ */
+export function beltDirection(belt) {
+	if (belt === 3) return 1;
+	return belt === 4 ? -1 : 0;
+}
 
 /**
  * An object with a position and a size in the playfield. The base of the objects that move and collide.
@@ -92,17 +114,15 @@ export class Body {
 	 *     the right and 4 for a conveyor belt to the left.
 	 */
 	touchingGround() {
-		const world = this.world;
-		if (this.vy >= 0) {
-			const hit = world.getTile((this.x >> 8) + 1, (this.y >> 8) + this.pY);
-			const hit2 = world.getTile((this.x >> 8) + this.pX - 1, (this.y >> 8) + this.pY);
+		if (this.vy < 0) return 0;
+		const y = (this.y >> 8) + this.pY;
+		const hit = this.world.getTile((this.x >> 8) + 1, y);
+		const hit2 = this.world.getTile((this.x >> 8) + this.pX - 1, y);
 
-			if (isTileKind(hit, TileKind.BELT_RIGHT) || isTileKind(hit2, TileKind.BELT_RIGHT)) return 3;
-			if (isTileKind(hit, TileKind.BELT_LEFT) || isTileKind(hit2, TileKind.BELT_LEFT)) return 4;
-			if (hit === Tile.ICYWALL || hit2 === Tile.ICYWALL) return 2;
-			else if (hit || hit2) return 1;
-		}
-		return 0;
+		if (isTileKind(hit, TileKind.BELT_RIGHT) || isTileKind(hit2, TileKind.BELT_RIGHT)) return 3;
+		if (isTileKind(hit, TileKind.BELT_LEFT) || isTileKind(hit2, TileKind.BELT_LEFT)) return 4;
+		if (hit === Tile.ICYWALL || hit2 === Tile.ICYWALL) return 2;
+		return hit || hit2 ? 1 : 0;
 	}
 
 	/**
@@ -282,64 +302,60 @@ export class Body {
 	 *     sides.
 	 */
 	checkCollisions() {
-		let coll = false;
-
-		if (this.getCollision() === Direction.UP) {
-			coll = true;
-			if (this.vy < 0) {
-				this.vx >>= 1;
-				this.vy = 0;
-			}
-			do {
-				this.y += 256;
-				if (this.getCollision() === Direction.DOWN) {
-					coll = false;
-					break;
-				}
-			} while (this.getCollision() === Direction.UP);
+		for (const { side, opposite, dx, dy } of PUSH_OUT) {
+			if (this.getCollision() !== side) continue;
+			this.#stopAgainst(side);
+			if (this.#pushOut(side, opposite, dx, dy)) return true;
 		}
+		return false;
+	}
 
-		if (!coll && this.getCollision() === Direction.DOWN) {
-			coll = true;
-			if (this.vy > 0) {
-				this.vy = 0;
-			}
-			do {
-				this.y -= 256;
-				if (this.getCollision() === Direction.UP) {
-					coll = false;
-					break;
-				}
-			} while (this.getCollision() === Direction.DOWN);
-		}
-
-		if (!coll && this.getCollision() === Direction.LEFT) {
-			coll = true;
-			if (this.vx < 0) this.vx = 0;
-			do {
-				this.x += 256;
-				if (this.getCollision() === Direction.RIGHT) {
-					coll = false;
+	/**
+	 * Stop the speed towards a side that touches a solid tile. A hit at the top also halves the horizontal speed.
+	 *
+	 * @param {number} side The side, a value of Direction.
+	 * @returns {void}
+	 */
+	#stopAgainst(side) {
+		switch (side) {
+			case Direction.UP:
+				if (this.vy < 0) {
+					this.vx >>= 1;
 					this.vy = 0;
-					break;
 				}
-			} while (this.getCollision() === Direction.LEFT);
+				break;
+			case Direction.DOWN:
+				if (this.vy > 0) this.vy = 0;
+				break;
+			case Direction.LEFT:
+				if (this.vx < 0) this.vx = 0;
+				break;
+			case Direction.RIGHT:
+				if (this.vx > 0) this.vx = 0;
+				break;
 		}
+	}
 
-		if (!coll && this.getCollision() === Direction.RIGHT) {
-			coll = true;
-			if (this.vx > 0) this.vx = 0;
-			do {
-				this.x -= 256;
-				if (this.getCollision() === Direction.LEFT) {
-					coll = false;
-					this.vy = 0;
-					break;
-				}
-			} while (this.getCollision() === Direction.RIGHT);
-		}
-
-		return coll;
+	/**
+	 * Move the object away from a side in steps of one pixel until the side is free.
+	 *
+	 * @param {number} side The side that touches a solid tile, a value of Direction.
+	 * @param {number} opposite The opposite side.
+	 * @param {number} dx The horizontal step in 1/256 pixels.
+	 * @param {number} dy The vertical step in 1/256 pixels.
+	 * @returns {boolean} True if the side is free, false if the object is stuck because the opposite side touches a
+	 *     solid tile. A stuck object between two side walls also stops falling.
+	 */
+	#pushOut(side, opposite, dx, dy) {
+		do {
+			this.x += dx;
+			this.y += dy;
+			if (this.getCollision() === opposite) {
+				if (dx !== 0) this.vy = 0;
+				return false;
+			}
+		} while (this.getCollision() === side);
+		return true;
 	}
 
 	/**

@@ -127,6 +127,25 @@ export class Sparkle {
 	}
 
 	/**
+	 * Fade a portal glow sparkle with its distance from the portal. On a floor portal, the sparkle moves with the
+	 * platform of the portal.
+	 *
+	 * @returns {void}
+	 */
+	#glow() {
+		if (this.vx !== 0) {
+			this.fading = 200 - 5 * (Math.abs(this.xOrig - this.x) >> 8);
+		} else if (this.vy !== 0) {
+			this.fading = 200 - 5 * (Math.abs(this.yOrig - this.y) >> 8);
+			const platform = this.world.portals.list[this.portalNum].platform;
+			if (platform) {
+				this.x += platform.vx;
+				this.xOrig = this.x;
+			}
+		}
+	}
+
+	/**
 	 * Move and fade the sparkle for one tick. A used up portal glow sparkle starts again at its start position.
 	 *
 	 * @returns {void}
@@ -140,39 +159,34 @@ export class Sparkle {
 			this.y += this.vy;
 		} else if (this.type === SparkleType.LOW_LIFE) {
 			this.fading -= 0.7;
-		} else if (this.type === SparkleType.SHOT_HIT) {
-			if (++this.floorTime >= 120) this.fading -= 0.7;
+		} else if (this.type === SparkleType.SHOT_HIT && ++this.floorTime >= 120) {
+			this.fading -= 0.7;
 		}
 
 		if (this.type === SparkleType.SHOT_HIT || this.type === SparkleType.DEATH || this.type === SparkleType.LOW_LIFE) {
 			const scale = this.fading / 255;
-			if (this.world.getTile((this.x >> 8) + ((16 * scale) >> 1), (this.y >> 8) + ((16 * scale) >> 1)) !== Tile.EMPTY) {
-				if (this.floorTime < 0) {
-					if (this.type === SparkleType.LOW_LIFE || this.type === SparkleType.SHOT_HIT) {
-						this.floorTime = 0;
-					} else {
-						this.fading = 0;
-					}
-				}
+			const onFloor =
+				this.world.getTile((this.x >> 8) + ((16 * scale) >> 1), (this.y >> 8) + ((16 * scale) >> 1)) !== Tile.EMPTY;
+			// blood stays on the floor for a while, the other sparkles go away
+			if (onFloor && this.floorTime < 0) {
+				if (this.type === SparkleType.LOW_LIFE || this.type === SparkleType.SHOT_HIT) this.floorTime = 0;
+				else this.fading = 0;
 			}
 		}
 
-		if (this.type === SparkleType.PORTAL_SHOT || this.type === SparkleType.TELEPORT) {
-			this.fading -= 8;
-			if (this.world.getTile((this.x >> 8) + 4, (this.y >> 8) + 4) !== Tile.EMPTY) this.fading = 0;
-		} else if (this.type === SparkleType.PORTAL_GLOW) {
-			if (this.vx !== 0) {
-				this.fading = 200 - 5 * (Math.abs(this.xOrig - this.x) >> 8);
-			} else if (this.vy !== 0) {
-				this.fading = 200 - 5 * (Math.abs(this.yOrig - this.y) >> 8);
-				const platform = this.world.portals.list[this.portalNum].platform;
-				if (platform) {
-					this.x += platform.vx;
-					this.xOrig = this.x;
-				}
-			}
-		} else if (this.type === SparkleType.CAKE || this.type === SparkleType.SMOKE) {
-			this.fading -= 8;
+		switch (this.type) {
+			case SparkleType.PORTAL_SHOT:
+			case SparkleType.TELEPORT:
+				this.fading -= 8;
+				if (this.world.getTile((this.x >> 8) + 4, (this.y >> 8) + 4) !== Tile.EMPTY) this.fading = 0;
+				break;
+			case SparkleType.PORTAL_GLOW:
+				this.#glow();
+				break;
+			case SparkleType.CAKE:
+			case SparkleType.SMOKE:
+				this.fading -= 8;
+				break;
 		}
 
 		if (this.fading <= 0 && this.type === SparkleType.PORTAL_GLOW) {

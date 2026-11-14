@@ -99,49 +99,56 @@ export class Turret extends Throwable {
 	 * @returns {void}
 	 */
 	update() {
-		if (!this.carried) {
-			if (!this.touchingGround()) this.angle += (this.vx >> 8) << 1;
-			else this.angle = 0;
-			if (this.angle >= 360) this.angle -= 360;
-
-			const oldVx = this.vx;
-			const oldVy = this.vy;
-
-			this.move();
-
-			if (!this.dead) {
-				if (
-					this.vx === 0 &&
-					Math.abs(oldVx) > 3 << 8 &&
-					this.canExplode &&
-					this.world.gravPipeFieldsAt(this).length === 0
-				)
-					this.dead = true;
-				else if (
-					this.vy === 0 &&
-					Math.abs(oldVy) > 4 << 8 &&
-					this.canExplode &&
-					this.world.gravPipeFieldsAt(this).length === 0
-				)
-					this.dead = true;
-				else if (this.touchesDeadlyTile() || this.world.movingCrateTouching(this) || this.world.plasmaTouching(this)) {
-					this.dead = true;
-				}
-				if (this.dead) this.#explode();
-			} else if (this.animFrame < 10) {
-				if (this.world.time % 4 === 0) this.animFrame++;
-			}
-
-			const platform = this.world.onPlatform(this);
-			if (platform) this.x += platform.vx;
-
-			const colLeft = this.leftCollision();
-			const colRight = this.rightCollision();
-			if (!this.dead && (colLeft instanceof Platform || colRight instanceof Platform)) this.#explode();
-		} else {
-			this.place();
-		}
+		if (this.carried) this.place();
+		else this.#fall();
 		if (!this.dead) this.shoot();
+	}
+
+	/**
+	 * Move the turret when nobody carries it: it tumbles in the air, and it breaks on a hard landing, on a deadly
+	 * tile, at a moving crate, at a plasma ball or at a platform. A broken turret plays its breaking animation.
+	 *
+	 * @returns {void}
+	 */
+	#fall() {
+		this.angle = this.touchingGround() ? 0 : this.angle + ((this.vx >> 8) << 1);
+		if (this.angle >= 360) this.angle -= 360;
+
+		const oldVx = this.vx;
+		const oldVy = this.vy;
+		this.move();
+
+		if (this.dead) {
+			if (this.animFrame < 10 && this.world.time % 4 === 0) this.animFrame++;
+		} else if (this.#isDestroyed(oldVx, oldVy)) {
+			this.dead = true;
+			this.#explode();
+		}
+
+		const platform = this.world.onPlatform(this);
+		if (platform) this.x += platform.vx;
+
+		if (!this.dead && (this.leftCollision() instanceof Platform || this.rightCollision() instanceof Platform)) {
+			this.#explode();
+		}
+	}
+
+	/**
+	 * Check if the turret breaks after its move. A hard landing breaks a turret after a throw, a pipe field or a
+	 * portal, but not while a pipe field holds it.
+	 *
+	 * @param {number} oldVx The horizontal speed before the move.
+	 * @param {number} oldVy The vertical speed before the move.
+	 * @returns {boolean} True if the turret breaks.
+	 */
+	#isDestroyed(oldVx, oldVy) {
+		const hardLanding = (this.vx === 0 && Math.abs(oldVx) > 3 << 8) || (this.vy === 0 && Math.abs(oldVy) > 4 << 8);
+		return (
+			(hardLanding && this.canExplode && this.world.gravPipeFieldsAt(this).length === 0) ||
+			this.touchesDeadlyTile() ||
+			Boolean(this.world.movingCrateTouching(this)) ||
+			this.world.plasmaTouching(this)
+		);
 	}
 
 	/**

@@ -127,6 +127,19 @@ function drawPortalGun(world, input) {
 }
 
 /**
+ * Limit the angle of the head of the player, so the head does not turn too far up or down.
+ *
+ * @param {number} angle The angle from the neck to the mouse in degrees.
+ * @param {number} flipDx 1 when the player faces left, else 0.
+ * @returns {number} The angle of the head in degrees. Facing left, the angle is turned by 180 degrees.
+ */
+function limitHeadAngle(angle, flipDx) {
+	if (!flipDx) return Math.min(Math.max(angle, -23), 15);
+	const turned = angle - 180;
+	return turned >= -360 && turned <= -270 ? Math.min(turned, -334) : Math.max(turned, -15);
+}
+
+/**
  * Draw the head of the player, turned towards the mouse.
  *
  * @param {import('../World.js').World} world The World.
@@ -135,7 +148,7 @@ function drawPortalGun(world, input) {
  * @returns {void}
  */
 function drawRotatedHead(world, input, flipDx) {
-	let a = getAngle(world.player.midX(), world.player.midY(), input.mouseX, input.mouseY);
+	const a = getAngle(world.player.midX(), world.player.midY(), input.mouseX, input.mouseY);
 	ctx.save();
 	// facing left, the head image is mirrored around the pivot, so the pivot sits at the mirrored x of the neck
 	const [pivotX, pivotY] = HEAD_PIVOT;
@@ -143,20 +156,7 @@ function drawRotatedHead(world, input, flipDx) {
 		(world.player.x >> 8) + (flipDx ? 16 - pivotX : pivotX),
 		(world.player.y >> 8) + pivotY + HEAD_BOB[world.player.animationFrame],
 	);
-	let ad = radToDeg(a);
-
-	if (!flipDx) {
-		if (ad > 15) ad = 15;
-		else if (ad < -23) ad = -23;
-	} else {
-		ad -= 180;
-		if (ad >= -360 && ad <= -270) {
-			if (ad > -334) ad = -334;
-		} else if (ad < -15) ad = -15;
-	}
-
-	a = degToRad(ad);
-	ctx.rotate(a);
+	ctx.rotate(degToRad(limitHeadAngle(radToDeg(a), flipDx)));
 	if (flipDx) ctx.scale(-1, 1);
 	drawImage(head, -pivotX, -pivotY, 16, 14);
 	ctx.restore();
@@ -361,8 +361,9 @@ export function drawTileLayer(world) {
  */
 export function drawTiles(map) {
 	for (const [i, tile] of map.display.entries()) {
-		if (tile > 0 && tile < NUM_TILES)
+		if (tile > 0 && tile < NUM_TILES) {
 			drawImage(tileset[tile], map.column(i) * TILE_SIZE, map.row(i) * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+		}
 	}
 }
 
@@ -500,8 +501,8 @@ export function drawArrow(x1, y1, x2, y2, lineWidth, dir) {
 	ctx.lineWidth = lineWidth;
 	line(x1, y1, x2, y2);
 	const xa = x1 + (Math.abs(x1 - x2) >> 1) + dir * 2;
-	if (dir === -1) triangle(xa - 6, y1, xa, y1 - 6, xa, y1 + 6);
-	else triangle(xa + 6, y1, xa, y1 - 6, xa, y1 + 6);
+	const tip = dir === -1 ? xa - 6 : xa + 6;
+	triangle(tip, y1, xa, y1 - 6, xa, y1 + 6);
 }
 
 /**

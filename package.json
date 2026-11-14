@@ -6,6 +6,7 @@
   "scripts": {
     "start": "http-server . -p 8080 -c-1",
     "test": "playwright test",
+    "test:unit": "node --test tests/unit/",
     "lint": "eslint",
     "typecheck": "tsc",
     "format": "prettier --write .",

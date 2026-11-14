@@ -117,10 +117,19 @@ export default [
 	},
 	{
 		files: ['tests/**/*.js'],
+		ignores: ['tests/unit/**'],
 		languageOptions: {
 			ecmaVersion: 'latest',
 			sourceType: 'module',
 			globals: { ...globals.node, ...globals.browser },
+		},
+	},
+	{
+		files: ['tests/unit/**/*.js'],
+		languageOptions: {
+			ecmaVersion: 'latest',
+			sourceType: 'module',
+			globals: globals.node,
 		},
 	},
 	{

@@ -26,11 +26,11 @@ export class LevelList extends ChromeElement {
 		const campaign = campaignByFolder(folder);
 		const count = campaign?.levels.length ?? 0;
 		const buttons = [];
-		for (let n = 1; n <= count; n++) {
+		for (let level = 1; level <= count; level++) {
 			const link = document.createElement('a');
-			link.textContent = `Level ${n}`;
-			link.dataset.choice = String(n);
-			if (campaign.isOpen(n)) link.setAttribute('href', campaignPath(folder, n));
+			link.textContent = `Level ${level}`;
+			link.dataset.choice = String(level);
+			if (campaign.isOpen(level)) link.setAttribute('href', campaignPath(folder, level));
 			const button = document.createElement('menu-button');
 			button.append(link);
 			buttons.push(button);

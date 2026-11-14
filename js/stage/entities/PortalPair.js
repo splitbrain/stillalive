@@ -36,28 +36,31 @@ export class PortalPair {
 	 * The shot follows a straight line, bounces off icy walls, and places the portal on the first wall or platform.
 	 * Sparkles show the path of the shot.
 	 *
-	 * @param {number} p The portal index, 0 for blue and 1 for red.
+	 * @param {number} index The portal index, 0 for blue and 1 for red.
 	 * @param {number} targetX The x coordinate of the target point in playfield units, e.g. the mouse position.
 	 * @param {number} targetY The y coordinate of the target point in playfield units.
 	 * @returns {void}
 	 */
-	launchPortal(p, targetX, targetY) {
-		const portal = this.list[p];
+	launchPortal(index, targetX, targetY) {
+		const portal = this.list[index];
 		this.world.player.portalCooldown = 0;
 
 		let x = this.world.player.x + toSubpixels(this.world.player.width >> 1);
 		let y = this.world.player.y + toSubpixels(this.world.player.height >> 1);
 
-		// A click on the start point gives no direction
-		if (targetX === toPixels(x) && targetY === toPixels(y)) {
+		// a click on the start point gives no direction
+		const startX = toPixels(x);
+		const startY = toPixels(y);
+		if (targetX === startX && targetY === startY) {
 			playSound(sfx_noPortal);
 			return;
 		}
 
-		portal.vx = getCos(targetX, targetY, toPixels(x), toPixels(y)) * 256;
-		portal.vy = getSin(targetX, targetY, toPixels(x), toPixels(y)) * 256;
+		// the shot moves one pixel in each step
+		portal.vx = getCos(targetX, targetY, startX, startY) * 256;
+		portal.vy = getSin(targetX, targetY, startX, startY) * 256;
 
-		removeSparkles(this.world, p, SparkleType.PORTAL_SHOT);
+		removeSparkles(this.world, index, SparkleType.PORTAL_SHOT);
 
 		let steps = 0;
 		let bounces = 0;
@@ -67,13 +70,15 @@ export class PortalPair {
 			steps++;
 			x += portal.vx;
 			y += portal.vy;
-			tile = this.world.getTilePortal(toPixels(x), toPixels(y));
+			const pixelX = toPixels(x);
+			const pixelY = toPixels(y);
+			tile = this.world.getTilePortal(pixelX, pixelY);
 
 			if (tile === Tile.ICYWALL) {
-				const up = this.world.getTilePortal(toPixels(x), toPixels(y) - 1);
-				const down = this.world.getTilePortal(toPixels(x), toPixels(y) + 1);
-				const left = this.world.getTilePortal(toPixels(x) - 1, toPixels(y));
-				const right = this.world.getTilePortal(toPixels(x) + 1, toPixels(y));
+				const up = this.world.getTilePortal(pixelX, pixelY - 1);
+				const down = this.world.getTilePortal(pixelX, pixelY + 1);
+				const left = this.world.getTilePortal(pixelX - 1, pixelY);
+				const right = this.world.getTilePortal(pixelX + 1, pixelY);
 				if ((!down || !up) && left && right) {
 					portal.vy = -portal.vy;
 				} else if ((!left || !right) && up && down) {
@@ -84,7 +89,7 @@ export class PortalPair {
 			}
 
 			if (steps > 15 && steps % 6 === 1) {
-				const s = new Sparkle(
+				const sparkle = new Sparkle(
 					this.world,
 					SparkleType.PORTAL_SHOT,
 					x + random(toSubpixels(-5), toSubpixels(5)) - toSubpixels(8),
@@ -92,18 +97,18 @@ export class PortalPair {
 					random(96, 192),
 					random(96, 192),
 					255,
-					p,
+					index,
 				);
-				if (random(0, 2) === 0) s.vx = -s.vx;
-				if (random(0, 2) === 0) s.vy = -s.vy;
-				this.world.sparkles.push(s);
+				if (random(0, 2) === 0) sparkle.vx = -sparkle.vx;
+				if (random(0, 2) === 0) sparkle.vy = -sparkle.vy;
+				this.world.sparkles.push(sparkle);
 			}
 			// a shot above the playfield continues if it flies down
-			inScreenOK = inScreen(toPixels(x), toPixels(y)) || (toPixels(y) < 0 && portal.vy > 0);
+			inScreenOK = inScreen(pixelX, pixelY) || (pixelY < 0 && portal.vy > 0);
 		} while (tile === Tile.EMPTY && inScreenOK && bounces < 5);
 
 		if (isTileKind(tile, TileKind.WALL) || tile instanceof Platform) {
-			if (this.#placePortal(p, toPixels(x), toPixels(y))) {
+			if (this.#placePortal(index, toPixels(x), toPixels(y))) {
 				if (portal.direction === Direction.RIGHT || portal.direction === Direction.LEFT) {
 					portal.scaleX = 1;
 					portal.scaleY = 0;
@@ -152,35 +157,35 @@ export class PortalPair {
 	 * The wall must be straight along the portal, and the area in front of the portal must be nearly free. A side wall
 	 * is checked first, then a floor or a ceiling.
 	 *
-	 * @param {number} p The portal index.
+	 * @param {number} index The portal index.
 	 * @param {number} x The x coordinate of the hit in pixels.
 	 * @param {number} y The y coordinate of the hit in pixels.
 	 * @returns {boolean} True if the portal was placed.
 	 */
-	#placePortal(p, x, y) {
-		const portal = this.list[p];
+	#placePortal(index, x, y) {
+		const portal = this.list[index];
 		// the offsets along the portal and across the area in front of it
 		const along = Array.from({ length: 28 }, (_, i) => i - 14);
 		const across = Array.from({ length: 2 * TILE_SIZE }, (_, i) => i - TILE_SIZE);
 
-		if (this.#allWall(along.map((d) => [x, y + d]))) {
-			const area = across.flatMap((d) => [
-				[x + d, y - 14],
-				[x + d, y + 13],
+		if (this.#allWall(along.map((offset) => [x, y + offset]))) {
+			const area = across.flatMap((offset) => [
+				[x + offset, y - 14],
+				[x + offset, y + 13],
 			]);
 			if (this.#countBlocked(area) > 36) return false;
 			const left = portal.vx < 0;
-			return this.#setPortal(p, left ? x - 3 : x, y - TILE_SIZE, left ? Direction.LEFT : Direction.RIGHT);
+			return this.#setPortal(index, left ? x - 3 : x, y - TILE_SIZE, left ? Direction.LEFT : Direction.RIGHT);
 		}
 
-		if (this.#allWall(along.map((d) => [x + d, y]))) {
-			const area = across.flatMap((d) => [
-				[x - 14, y + d],
-				[x + 13, y + d],
+		if (this.#allWall(along.map((offset) => [x + offset, y]))) {
+			const area = across.flatMap((offset) => [
+				[x - 14, y + offset],
+				[x + 13, y + offset],
 			]);
 			if (this.#countBlocked(area) > 36) return false;
 			const top = portal.vy < 0;
-			return this.#setPortal(p, x - TILE_SIZE, top ? y - 3 : y, top ? Direction.UP : Direction.DOWN);
+			return this.#setPortal(index, x - TILE_SIZE, top ? y - 3 : y, top ? Direction.UP : Direction.DOWN);
 		}
 
 		return false;
@@ -189,15 +194,15 @@ export class PortalPair {
 	/**
 	 * Set a portal to its place, unless it overlaps the other portal on the same wall.
 	 *
-	 * @param {number} p The portal index.
+	 * @param {number} index The portal index.
 	 * @param {number} x The x coordinate of the portal in pixels.
 	 * @param {number} y The y coordinate of the portal in pixels.
 	 * @param {number} direction The direction of the portal, a value of Direction.
 	 * @returns {boolean} True if the portal was placed.
 	 */
-	#setPortal(p, x, y, direction) {
-		const portal = this.list[p];
-		const other = this.list[1 - p];
+	#setPortal(index, x, y, direction) {
+		const portal = this.list[index];
+		const other = this.list[1 - index];
 		const onSideWall = direction === Direction.LEFT || direction === Direction.RIGHT;
 		const [line, otherLine] = onSideWall ? [x, toPixels(other.x)] : [y, toPixels(other.y)];
 		const [pos, otherPos] = onSideWall ? [y, toPixels(other.y)] : [x, toPixels(other.x)];
@@ -209,7 +214,7 @@ export class PortalPair {
 		portal.x = toSubpixels(x);
 		portal.y = toSubpixels(y);
 		portal.used = true;
-		createPortalGlow(this.world, p);
+		createPortalGlow(this.world, index);
 		return true;
 	}
 
@@ -287,8 +292,8 @@ export class PortalPair {
 	 */
 	isInPortal(obj) {
 		for (const side of PORTAL_CHECK_SIDES) {
-			const p = this.portalAt(obj, side);
-			if (p) return p;
+			const index = this.portalAt(obj, side);
+			if (index) return index;
 		}
 		return null;
 	}
@@ -318,8 +323,8 @@ export class PortalPair {
 	 */
 	passPortals(obj) {
 		for (const side of PORTAL_CHECK_SIDES) {
-			const p = this.passPortal(obj, side);
-			if (p) return p;
+			const index = this.passPortal(obj, side);
+			if (index) return index;
 		}
 		return null;
 	}
@@ -436,10 +441,10 @@ export class PortalPair {
 	 * @returns {void}
 	 */
 	update() {
-		for (const p of this.list) {
-			if (!p.used) continue;
-			p.animate();
-			p.move();
+		for (const index of this.list) {
+			if (!index.used) continue;
+			index.animate();
+			index.move();
 		}
 	}
 }

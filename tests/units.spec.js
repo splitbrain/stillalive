@@ -34,8 +34,8 @@ async function call(page, module, name, ...args) {
 			const exports = await import(module);
 			try {
 				return { result: exports[name](...args) };
-			} catch (e) {
-				return { error: e.message };
+			} catch (error) {
+				return { error: error.message };
 			}
 		},
 		{ module, name, args },
@@ -300,7 +300,7 @@ test.describe('units', () => {
 		const portals = async (list) => {
 			await playMap(page, { ...floorMap(), events: [{ on: 'start', portals: list }] });
 			const name = (direction) => Object.keys(Direction).find((key) => Direction[key] === direction);
-			return (await levelPortals(page)).map((p) => [p.x >> 8, p.y >> 8, name(p.direction)]);
+			return (await levelPortals(page)).map((portal) => [portal.x >> 8, portal.y >> 8, name(portal.direction)]);
 		};
 		// a portal on a side wall has the direction of the portal shot that hits the wall
 		expect(

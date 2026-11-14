@@ -15,7 +15,7 @@ export let robotEye;
 /** @type {HTMLImageElement} The head of the robot. */
 export let robotHead;
 /** @type {HTMLImageElement} The platform. */
-export let platform;
+export let platformImage;
 /** @type {HTMLImageElement} The head of the player, facing right. */
 export let head;
 /** @type {HTMLImageElement} The body of the player facing right, with the standing frame and 4 walk frames. */
@@ -35,7 +35,7 @@ export let plasma;
 /** @type {HTMLImageElement} The crate. */
 export let crateImage;
 /** @type {HTMLImageElement} The sparkle shapes in rows: blue star, red star, cake crumb, smoke and blood. */
-export let sparkle;
+export let sparkleImage;
 /** @type {HTMLImageElement} The blue portal frames. */
 export let bluePortal;
 /** @type {HTMLImageElement} The red portal frames. */
@@ -45,7 +45,7 @@ export let crosshair;
 /** @type {HTMLImageElement[]} The level backgrounds. */
 export let bg;
 /** @type {HTMLImageElement} The cake. */
-export let cake;
+export let cakeImage;
 /** @type {HTMLImageElement} The portal gun. */
 export let portalGun;
 /** @type {HTMLImageElement[]} The tile images by tile id. */
@@ -78,13 +78,13 @@ export function loadGfx() {
 	gravPipe2 = sprite('gravpipe2');
 	crateImage = sprite('crate');
 	turretImages = [sprite('turret0'), sprite('turret1')];
-	sparkle = sprite('sparkle');
-	cake = sprite('cake');
+	sparkleImage = sprite('sparkle');
+	cakeImage = sprite('cake');
 	portalGun = sprite('portalGun');
 	cameraFollow = sprite('cameraFollow');
 	robotEye = [1, 2, 3, 4].map((boss) => sprite(`robotEye${boss}`));
 	robotHead = sprite('robotHead');
 	plasma = sprite('plasma');
-	platform = sprite('platform');
+	platformImage = sprite('platform');
 	tileset = Array.from({ length: NUM_TILES }, (_, id) => loadImage(`gfx/tiles/tile_${id}.svg`));
 }

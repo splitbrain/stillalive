@@ -132,7 +132,8 @@ export function eraseObjectAbove(map, x, y) {
 		map,
 		x,
 		y - 1,
-		(t) => t === Tile.PLAYER_START || t === Tile.TURRET_LEFT || t === Tile.TURRET_RIGHT || isGravPipeTile(t),
+		(tile) =>
+			tile === Tile.PLAYER_START || tile === Tile.TURRET_LEFT || tile === Tile.TURRET_RIGHT || isGravPipeTile(tile),
 	);
 }
 
@@ -140,28 +141,30 @@ export function eraseObjectAbove(map, x, y) {
  * Remove the objects that overlap a new object, because an object covers more than one tile.
  *
  * @param {TileMap} map The map. The function changes the logic layer.
- * @param {number} til The id of the new object.
- * @param {number} xt The column of the new object.
- * @param {number} yt The row of the new object.
+ * @param {number} object The id of the new object.
+ * @param {number} column The column of the new object.
+ * @param {number} row The row of the new object.
  * @returns {void}
  */
-export function eraseSprites(map, til, xt, yt) {
-	if (WIDE_OBJECTS.includes(til)) {
-		const width = til >= Tile.GRAVPIPE_UP ? 2 : 3;
-		for (let h = 1; h < width && xt + h < MAP_WIDTH; h++) {
-			map.setTile(map.index(xt + h, yt), Tile.EMPTY);
-			eraseObjectAbove(map, xt + h, yt);
+export function eraseSprites(map, object, column, row) {
+	if (WIDE_OBJECTS.includes(object)) {
+		const width = object >= Tile.GRAVPIPE_UP ? 2 : 3;
+		for (let offset = 1; offset < width && column + offset < MAP_WIDTH; offset++) {
+			map.setTile(map.index(column + offset, row), Tile.EMPTY);
+			eraseObjectAbove(map, column + offset, row);
 		}
 	}
-	if (TALL_OBJECTS.includes(til) && yt + 1 < MAP_HEIGHT) {
-		map.setTile(map.index(xt, yt + 1), Tile.EMPTY);
-		for (let h = 1; h < 3; h++) eraseIf(map, xt - h, yt + 1, (t) => WIDE_OBJECTS.includes(t));
+	if (TALL_OBJECTS.includes(object) && row + 1 < MAP_HEIGHT) {
+		map.setTile(map.index(column, row + 1), Tile.EMPTY);
+		for (let offset = 1; offset < 3; offset++) {
+			eraseIf(map, column - offset, row + 1, (tile) => WIDE_OBJECTS.includes(tile));
+		}
 	}
 
-	eraseObjectAbove(map, xt, yt);
+	eraseObjectAbove(map, column, row);
 	// the wide objects to the left reach into the position
-	eraseIf(map, xt - 1, yt, (t) => WIDE_OBJECTS.includes(t));
-	eraseIf(map, xt - 2, yt, (t) => t === Tile.PLATFORM_RIGHT || t === Tile.PLATFORM_LEFT);
+	eraseIf(map, column - 1, row, (tile) => WIDE_OBJECTS.includes(tile));
+	eraseIf(map, column - 2, row, (tile) => tile === Tile.PLATFORM_RIGHT || tile === Tile.PLATFORM_LEFT);
 }
 
 /**

@@ -57,7 +57,7 @@ async function openMap(page, map) {
 	await clickButton(page, 'Import');
 	const buffer = Buffer.from(JSON.stringify(map));
 	await (await chooser).setFiles({ name: 'map.json', mimeType: 'application/json', buffer });
-	await expect.poll(() => editorMap(page).then((m) => m.title)).toBe(map.title);
+	await expect.poll(() => editorMap(page).then((stored) => stored.title)).toBe(map.title);
 }
 
 /**

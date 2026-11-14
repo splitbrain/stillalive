@@ -146,9 +146,9 @@ export function runTicks(page, count) {
  */
 export function runTicksUntilMessage(page, maxTime) {
 	return page.evaluate((maxTime) => {
-		const t = window.__test;
-		while (!t.world().events?.message && t.world().time < maxTime) t.tick();
-		return t.world().time;
+		const hooks = window.__test;
+		while (!hooks.world().events?.message && hooks.world().time < maxTime) hooks.tick();
+		return hooks.world().time;
 	}, maxTime);
 }
 
@@ -173,9 +173,9 @@ export async function waitForLevelTime(page) {
 export async function playMap(page, data) {
 	await page.evaluate(async (data) => {
 		const { parseMap } = await import('/js/stage/mapFile.js');
-		const t = window.__test;
-		t.stage.play({ ...parseMap(data), campaign: 'test', number: 1, fromBelow: false });
-		while (!t.world().isRunning()) t.tick();
+		const hooks = window.__test;
+		hooks.stage.play({ ...parseMap(data), campaign: 'test', number: 1, fromBelow: false });
+		while (!hooks.world().isRunning()) hooks.tick();
 	}, data);
 }
 
@@ -227,8 +227,8 @@ export function decodeReplay(page, data) {
 		const { decodeReplay } = await import('/js/stage/replay.js');
 		try {
 			return { result: decodeReplay(data) };
-		} catch (e) {
-			return { error: e.message };
+		} catch (error) {
+			return { error: error.message };
 		}
 	}, data);
 }
@@ -424,37 +424,38 @@ export async function runLevel(
 	return page.evaluate(
 		async ({ campaign, level, ticks, seed, inputs, replay: replayData, skipBossIntro, interval }) => {
 			const { campaigns } = await import('/js/chrome/campaigns.js');
-			const t = window.__test;
-			const { input, stage } = t;
+			const hooks = window.__test;
+			const { input, stage } = hooks;
 			const levelData = campaigns[campaign].levels[level - 1];
 			let state = seed >>> 0;
 			Math.random = () => {
 				state = (state + 0x6d2b79f5) >>> 0;
-				let t = state;
-				t = Math.imul(t ^ (t >>> 15), t | 1);
-				t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-				return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+				let mixed = state;
+				mixed = Math.imul(mixed ^ (mixed >>> 15), mixed | 1);
+				mixed ^= mixed + Math.imul(mixed ^ (mixed >>> 7), mixed | 61);
+				return ((mixed ^ (mixed >>> 14)) >>> 0) / 4294967296;
 			};
 
 			// the level selection shows the preview before the level
 			stage.preview(levelData);
 			stage.play(levelData, { replay: replayData, restart: skipBossIntro });
-			const startMap = [...t.world().map.tiles];
+			const startMap = [...hooks.world().map.tiles];
 
 			const pick = (obj, fields) => fields.map((field) => obj[field]);
 			// the snapshots store the flags of the player, the crates, the turrets and the plasma balls as 0 and 1
-			const pickNumbers = (obj, fields) => pick(obj, fields).map((v) => (typeof v === 'boolean' ? Number(v) : v));
+			const pickNumbers = (obj, fields) =>
+				pick(obj, fields).map((value) => (typeof value === 'boolean' ? Number(value) : value));
 			// a restart creates a new World, so the snapshot reads the current one
-			const snapshot = (tick, world = t.world()) =>
+			const snapshot = (tick, world = hooks.world()) =>
 				JSON.stringify({
 					tick,
 					time: world.time,
 					player: pickNumbers(world.player, ['x', 'y', 'vx', 'vy', 'life', 'dead']),
-					crates: world.crates.map((c) => pickNumbers(c, ['x', 'y', 'vx', 'vy', 'carried'])),
-					turrets: world.turrets.map((t) => pickNumbers(t, ['x', 'y', 'vx', 'vy', 'dead', 'carried'])),
-					plasma: world.plasmaBall.map((p) => pickNumbers(p, ['x', 'y', 'vx', 'vy', 'used'])),
-					platforms: world.platforms.map((p) => pick(p, ['x', 'y', 'vx'])),
-					portals: world.portals.list.map((p) => pick(p, ['x', 'y', 'used', 'direction'])),
+					crates: world.crates.map((crate) => pickNumbers(crate, ['x', 'y', 'vx', 'vy', 'carried'])),
+					turrets: world.turrets.map((turret) => pickNumbers(turret, ['x', 'y', 'vx', 'vy', 'dead', 'carried'])),
+					plasma: world.plasmaBall.map((ball) => pickNumbers(ball, ['x', 'y', 'vx', 'vy', 'used'])),
+					platforms: world.platforms.map((platform) => pick(platform, ['x', 'y', 'vx'])),
+					portals: world.portals.list.map((portal) => pick(portal, ['x', 'y', 'used', 'direction'])),
 					cakesLeft: world.cakesLeft,
 					map: world.map.tiles.flatMap((tile, i) => (tile === startMap[i] ? [] : [[i, tile]])),
 				});
@@ -467,9 +468,9 @@ export async function runLevel(
 			 *     flags for the running level and for the closing transition.
 			 */
 			const levelPhase = () => ({
-				run: t.world().player,
-				running: t.world().isRunning(),
-				closing: t.world().isClosing(),
+				run: hooks.world().player,
+				running: hooks.world().isRunning(),
+				closing: hooks.world().isClosing(),
 			});
 			/**
 			 * Check if a tick ended the level.
@@ -486,7 +487,7 @@ export async function runLevel(
 					[input.keys, input.mouseX, input.mouseY] = inputs[tick - 1];
 				}
 				const before = levelPhase();
-				t.tick();
+				hooks.tick();
 				const finished = levelEnded(before, levelPhase());
 				if (tick % interval === 0 || finished) lines.push(snapshot(tick));
 				if (finished) {
@@ -494,7 +495,7 @@ export async function runLevel(
 					break;
 				}
 			}
-			t.endReplay();
+			hooks.endReplay();
 			return `${lines.join('\n')}\n`;
 		},
 		{ campaign, level, ticks, seed, inputs, replay, skipBossIntro, interval: SNAPSHOT_INTERVAL },
@@ -510,9 +511,9 @@ export async function runLevel(
 export async function recordedReplay(page) {
 	const data = await page.evaluate(async () => {
 		const { encodeReplay } = await import('/js/stage/replay.js');
-		const t = window.__test;
-		const world = t.world();
-		return JSON.stringify(encodeReplay(t.replay(), world.level.campaign, world.level.number));
+		const hooks = window.__test;
+		const world = hooks.world();
+		return JSON.stringify(encodeReplay(hooks.replay(), world.level.campaign, world.level.number));
 	});
 	return JSON.parse(data);
 }
@@ -538,8 +539,8 @@ export async function recordedReplay(page) {
  */
 export async function runPortalScene(page, scene) {
 	return page.evaluate(async (scene) => {
-		const t = window.__test;
-		const { input, stage } = t;
+		const hooks = window.__test;
+		const { input, stage } = hooks;
 		const { campaigns } = await import('/js/chrome/campaigns.js');
 		const { Crate } = await import('/js/stage/entities/Crate.js');
 		const { Turret } = await import('/js/stage/entities/Turret.js');
@@ -549,14 +550,14 @@ export async function runPortalScene(page, scene) {
 		let state = scene.seed >>> 0;
 		Math.random = () => {
 			state = (state + 0x6d2b79f5) >>> 0;
-			let r = state;
-			r = Math.imul(r ^ (r >>> 15), r | 1);
-			r ^= r + Math.imul(r ^ (r >>> 7), r | 61);
-			return ((r ^ (r >>> 14)) >>> 0) / 4294967296;
+			let mixed = state;
+			mixed = Math.imul(mixed ^ (mixed >>> 15), mixed | 1);
+			mixed ^= mixed + Math.imul(mixed ^ (mixed >>> 7), mixed | 61);
+			return ((mixed ^ (mixed >>> 14)) >>> 0) / 4294967296;
 		};
 
 		stage.play(campaigns[0].levels[0]);
-		const world = t.world();
+		const world = hooks.world();
 		world.map.replace(
 			world.map.tiles.map((tile, i) => {
 				const x = world.map.column(i);
@@ -577,40 +578,40 @@ export async function runPortalScene(page, scene) {
 			world[list] = [];
 		}
 		input.keys = 0;
-		for (let i = 0; i < 40; i++) t.tick();
+		for (let i = 0; i < 40; i++) hooks.tick();
 
-		scene.portals.forEach(([sx, sy, tx, ty], p) => {
+		for (const [index, [sx, sy, tx, ty]] of scene.portals.entries()) {
 			world.player.x = sx << 8;
 			world.player.y = sy << 8;
 			input.mouseX = tx;
 			input.mouseY = ty;
-			world.portals.launchPortal(p, input.mouseX, input.mouseY);
-		});
+			world.portals.launchPortal(index, input.mouseX, input.mouseY);
+		}
 		Object.assign(world.player, { x: scene.player[0] << 8, y: scene.player[1] << 8, vx: 0, vy: 0 });
-		const o = scene.object;
+		const spec = scene.object;
 		let obj = null;
-		switch (o?.type) {
+		switch (spec?.type) {
 			case 'crate':
-				obj = new Crate(world, o.x << 8, o.y << 8);
+				obj = new Crate(world, spec.x << 8, spec.y << 8);
 				world.crates.push(obj);
 				break;
 			case 'turret':
-				obj = new Turret(world, o.x << 8, o.y << 8, -1);
+				obj = new Turret(world, spec.x << 8, spec.y << 8, -1);
 				world.turrets.push(obj);
 				break;
 			case 'plasma':
-				obj = new Plasma(world, o.x << 8, o.y << 8, o.vx, o.vy);
+				obj = new Plasma(world, spec.x << 8, spec.y << 8, spec.vx, spec.vy);
 				world.plasmaBall.push(obj);
 				break;
 		}
 
-		const p = world.portals.list.map((portal) => [portal.used, portal.direction, portal.x >> 8, portal.y >> 8]);
-		const lines = [JSON.stringify({ portals: p })];
+		const portals = world.portals.list.map((portal) => [portal.used, portal.direction, portal.x >> 8, portal.y >> 8]);
+		const lines = [JSON.stringify({ portals })];
 		for (let tick = 1; tick <= scene.ticks; tick++) {
 			input.keys = scene.keys;
-			t.tick();
-			const pick = (e) => (e ? [e.x, e.y, e.vx, e.vy] : null);
-			lines.push(JSON.stringify([tick, pick(obj), pick(t.world().player)]));
+			hooks.tick();
+			const pick = (body) => (body ? [body.x, body.y, body.vx, body.vy] : null);
+			lines.push(JSON.stringify([tick, pick(obj), pick(hooks.world().player)]));
 		}
 		return `${lines.join('\n')}\n`;
 	}, scene);

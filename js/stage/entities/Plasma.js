@@ -23,17 +23,17 @@ export class Plasma extends Body {
 	constructor(world, x, y, vx, vy, homing = false) {
 		super(world, x, y, TILE_SIZE, TILE_SIZE);
 		/** @type {number} The x position of the start, where the ball returns after a reset. */
-		this.xOrig = x;
+		this.startX = x;
 		/** @type {number} The y position of the start, where the ball returns after a reset. */
-		this.yOrig = y;
+		this.startY = y;
 		/** @type {number} The horizontal speed in 1/256 pixels per tick. */
 		this.vx = vx;
 		/** @type {number} The vertical speed in 1/256 pixels per tick. */
 		this.vy = vy;
 		/** @type {number} The horizontal speed of the start. */
-		this.origVx = vx;
+		this.startVx = vx;
 		/** @type {number} The vertical speed of the start. */
-		this.origVy = vy;
+		this.startVy = vy;
 		/** @type {number} The speed limit in 1/256 pixels per tick. */
 		this.vMax = 424;
 		/** @type {boolean} True while the ball exists. */
@@ -110,19 +110,13 @@ export class Plasma extends Body {
 			else if (this.vy < -this.vMax) this.vy = -this.vMax;
 		}
 
-		if (
+		const outside =
 			this.pixelY > PLAYFIELD_HEIGHT ||
 			this.pixelY <= -TILE_SIZE ||
 			this.pixelX > PLAYFIELD_WIDTH ||
-			this.pixelX < -TILE_SIZE
-		) {
-			this.reset();
-		} else {
-			const t = this.world.map.atPixel(this.pixelX + TILE_SIZE / 2, this.pixelY + TILE_SIZE / 2);
-			if (isTileKind(t, TileKind.ACID, TileKind.ACIDPOOL)) {
-				this.reset();
-			}
-		}
+			this.pixelX < -TILE_SIZE;
+		const tile = this.world.map.atPixel(this.pixelX + TILE_SIZE / 2, this.pixelY + TILE_SIZE / 2);
+		if (outside || isTileKind(tile, TileKind.ACID, TileKind.ACIDPOOL)) this.reset();
 	}
 
 	/**
@@ -212,10 +206,10 @@ export class Plasma extends Body {
 	 * @returns {void}
 	 */
 	reset() {
-		this.x = this.xOrig;
-		this.y = this.yOrig;
-		this.vx = this.origVx;
-		this.vy = this.origVy;
+		this.x = this.startX;
+		this.y = this.startY;
+		this.vx = this.startVx;
+		this.vy = this.startVy;
 	}
 
 	/**

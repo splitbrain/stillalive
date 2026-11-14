@@ -21,8 +21,8 @@ export class MenuButton extends ChromeElement {
 	 * @returns {void}
 	 */
 	setUp() {
-		for (let n = 1; n <= SKEW_PROPERTIES; n++) {
-			this.style.setProperty(`--skew-${n}`, Math.random().toFixed(2));
+		for (let index = 1; index <= SKEW_PROPERTIES; index++) {
+			this.style.setProperty(`--skew-${index}`, Math.random().toFixed(2));
 		}
 	}
 }

@@ -27,21 +27,21 @@ export function toSubpixels(pixels) {
 /**
  * Convert degrees to radians.
  *
- * @param {number} d The angle in degrees.
+ * @param {number} degrees The angle in degrees.
  * @returns {number} The angle in radians.
  */
-export function degToRad(d) {
-	return (d * Math.PI) / 180;
+export function degToRad(degrees) {
+	return (degrees * Math.PI) / 180;
 }
 
 /**
  * Convert radians to degrees.
  *
- * @param {number} r The angle in radians.
+ * @param {number} radians The angle in radians.
  * @returns {number} The angle in degrees.
  */
-export function radToDeg(r) {
-	return (r * 180) / Math.PI;
+export function radToDeg(radians) {
+	return (radians * 180) / Math.PI;
 }
 
 /**

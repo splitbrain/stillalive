@@ -191,10 +191,10 @@ export function drawImage(image, ...args) {
 	}
 	const picture = scaledImage(image);
 	let [dx, dy, dw, dh] = args.length === 2 ? [...args, image.naturalWidth, image.naturalHeight] : args.slice(-4);
-	const m = ctx.getTransform();
-	if (m.b === 0 && m.c === 0) {
-		[dx, dw] = snapSpan(dx, dw, m.a, m.e);
-		[dy, dh] = snapSpan(dy, dh, m.d, m.f);
+	const matrix = ctx.getTransform();
+	if (matrix.b === 0 && matrix.c === 0) {
+		[dx, dw] = snapSpan(dx, dw, matrix.a, matrix.e);
+		[dy, dh] = snapSpan(dy, dh, matrix.d, matrix.f);
 	}
 	if (args.length === 8) {
 		const [sx, sy, sw, sh] = args;
@@ -226,12 +226,12 @@ function snapSpan(start, size, factor, offset) {
  *
  * @param {number} x The left edge of the part in playfield units.
  * @param {number} y The top edge of the part in playfield units.
- * @param {number} w The width of the part in playfield units.
- * @param {number} h The height of the part in playfield units.
+ * @param {number} width The width of the part in playfield units.
+ * @param {number} height The height of the part in playfield units.
  * @returns {OffscreenCanvas} The copy.
  */
-export function copyCanvas(x, y, w, h) {
-	const copy = new OffscreenCanvas(Math.round(w * scale), Math.round(h * scale));
+export function copyCanvas(x, y, width, height) {
+	const copy = new OffscreenCanvas(Math.round(width * scale), Math.round(height * scale));
 	copy
 		.getContext('2d')
 		.drawImage(

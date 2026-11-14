@@ -19,16 +19,16 @@ import {
 	bg,
 	bluePortal,
 	body,
-	cake,
+	cakeImage,
 	cameraFollow,
 	crateImage,
 	crosshair,
 	head,
 	plasma,
-	platform,
+	platformImage,
 	portalGun,
 	redPortal,
-	sparkle,
+	sparkleImage,
 	tileset,
 	tube,
 	tube2,
@@ -118,10 +118,10 @@ function triangle(x1, y1, x2, y2, x3, y3) {
  */
 function drawPortalGun(world, input) {
 	if (world.abilities.portals) {
-		const a = getAngle(world.player.midX(), world.player.midY(), input.mouseX, input.mouseY);
+		const angle = getAngle(world.player.midX(), world.player.midY(), input.mouseX, input.mouseY);
 		ctx.save();
 		ctx.translate(world.player.midX(), world.player.midY());
-		ctx.rotate(a);
+		ctx.rotate(angle);
 		drawImage(portalGun, -5, -5);
 		ctx.restore();
 	}
@@ -149,7 +149,7 @@ function limitHeadAngle(angle, flipDx) {
  * @returns {void}
  */
 function drawRotatedHead(world, input, flipDx) {
-	const a = getAngle(world.player.midX(), world.player.midY(), input.mouseX, input.mouseY);
+	const angle = getAngle(world.player.midX(), world.player.midY(), input.mouseX, input.mouseY);
 	ctx.save();
 	// facing left, the head image is mirrored around the pivot, so the pivot sits at the mirrored x of the neck
 	const [pivotX, pivotY] = HEAD_PIVOT;
@@ -157,7 +157,7 @@ function drawRotatedHead(world, input, flipDx) {
 		world.player.pixelX + (flipDx ? 16 - pivotX : pivotX),
 		world.player.pixelY + pivotY + HEAD_BOB[world.player.animationFrame],
 	);
-	ctx.rotate(degToRad(limitHeadAngle(radToDeg(a), flipDx)));
+	ctx.rotate(degToRad(limitHeadAngle(radToDeg(angle), flipDx)));
 	if (flipDx) ctx.scale(-1, 1);
 	drawImage(head, -pivotX, -pivotY, 16, 14);
 	ctx.restore();
@@ -197,12 +197,23 @@ function drawBody(x, y, frame, flipX) {
  * @returns {void}
  */
 function drawSparkles(world) {
-	for (const s of world.sparkles) {
-		if (s.fading <= 0) continue;
-		const sc = s.fading / 255;
-		let dt = 9 - sc * 9;
-		if (s.type === SparkleType.LOW_LIFE || s.type === SparkleType.SHOT_HIT) dt -= 8;
-		drawImage(sparkle, 0, s.color * 9, 9, 9, toPixels(s.x) + dt, toPixels(s.y) + dt, 16 * sc, 16 * sc);
+	for (const sparkle of world.sparkles) {
+		if (sparkle.fading <= 0) continue;
+		const scale = sparkle.fading / 255;
+		// a fading sparkle shrinks around its middle, and blood drops sit lower
+		let offset = 9 - scale * 9;
+		if (sparkle.type === SparkleType.LOW_LIFE || sparkle.type === SparkleType.SHOT_HIT) offset -= 8;
+		drawImage(
+			sparkleImage,
+			0,
+			sparkle.color * 9,
+			9,
+			9,
+			toPixels(sparkle.x) + offset,
+			toPixels(sparkle.y) + offset,
+			16 * scale,
+			16 * scale,
+		);
 	}
 }
 
@@ -285,10 +296,10 @@ function drawLabel(label, labelLayouts) {
 	ctx.save();
 	ctx.translate(label.x * TILE_SIZE + TILE_SIZE / 2, label.y * TILE_SIZE + TILE_SIZE / 2);
 	ctx.rotate(tilt);
-	metrics.forEach((m, i) => {
+	for (const [i, metric] of metrics.entries()) {
 		const lineY = (i - (lines.length - 1) / 2) * LABEL_LINE_HEIGHT;
-		ctx.fillText(lines[i], 0, lineY + (m.actualBoundingBoxAscent - m.actualBoundingBoxDescent) / 2);
-	});
+		ctx.fillText(lines[i], 0, lineY + (metric.actualBoundingBoxAscent - metric.actualBoundingBoxDescent) / 2);
+	}
 	ctx.restore();
 }
 
@@ -307,7 +318,7 @@ function drawLabel(label, labelLayouts) {
 function layoutLabel(label, labelLayouts) {
 	const lines = label.text.split('\n');
 	const metrics = lines.map((line) => ctx.measureText(line));
-	const width = Math.max(...metrics.map((m) => m.width));
+	const width = Math.max(...metrics.map((metric) => metric.width));
 	const maxTilt = Math.min(degToRad(LABEL_MAX_TILT), Math.atan(LABEL_MAX_RISE / (width / 2)));
 	const tilt = ((hashText(label.text) / 0xffffffff) * 2 - 1) * maxTilt;
 	const layout = { lines, metrics, tilt };
@@ -375,10 +386,10 @@ export function drawTiles(map) {
  * @returns {void}
  */
 export function drawCakes(world) {
-	for (const c of world.cakes) {
-		if (!c.used) continue;
-		const float = world.isRunning() ? c.vy : 0;
-		drawImage(cake, c.pixelX, toPixels(c.y + float), TILE_SIZE, 12);
+	for (const cake of world.cakes) {
+		if (!cake.used) continue;
+		const float = world.isRunning() ? cake.vy : 0;
+		drawImage(cakeImage, cake.pixelX, toPixels(cake.y + float), TILE_SIZE, 12);
 	}
 }
 
@@ -389,36 +400,36 @@ export function drawCakes(world) {
  * @returns {void}
  */
 export function drawTurrets(world) {
-	for (const t of world.turrets) {
-		const side = t.dir < 0 ? 0 : 1;
-		const x = t.pixelX;
-		const y = t.pixelY;
+	for (const turret of world.turrets) {
+		const side = turret.dir < 0 ? 0 : 1;
+		const x = turret.pixelX;
+		const y = turret.pixelY;
 		ctx.save();
-		ctx.translate(t.midX(), t.midY());
-		ctx.rotate(degToRad(t.angle));
+		ctx.translate(turret.midX(), turret.midY());
+		ctx.rotate(degToRad(turret.angle));
 		drawImage(
 			turretImages[side],
 			0,
-			t.animFrame * 2 * TILE_SIZE,
+			turret.animFrame * 2 * TILE_SIZE,
 			TILE_SIZE,
 			2 * TILE_SIZE,
-			-(t.width >> 1),
-			-(t.height >> 1),
+			-(turret.width >> 1),
+			-(turret.height >> 1),
 			TILE_SIZE,
 			2 * TILE_SIZE,
 		);
 		ctx.restore();
-		const dx = t.dir < 0 ? 0 : t.width;
+		const dx = turret.dir < 0 ? 0 : turret.width;
 		const playerY = world.player.midY();
-		if (t.animFrame === 1 && !t.dead) {
+		if (turret.animFrame === 1 && !turret.dead) {
 			ctx.strokeStyle = 'rgb(255, 255, 0)';
 			ctx.lineWidth = 3;
 			const dy = random(-16, 16);
 			line(x + dx, y + 13, world.player.pixelX, playerY + dy);
-		} else if (t.rotation < 10 && !t.dead) {
+		} else if (turret.rotation < 10 && !turret.dead) {
 			ctx.strokeStyle = 'rgb(255, 0, 0)';
 			ctx.lineWidth = 1;
-			line(x + dx, y + 13, toPixels(t.ex), playerY);
+			line(x + dx, y + 13, toPixels(turret.sightEndX), playerY);
 		}
 	}
 }
@@ -457,16 +468,16 @@ function drawPlasma(world) {
  * @returns {void}
  */
 function drawProjectiles(world) {
-	for (const p of world.projectiles) {
-		const image = tileset[p.img];
-		if (!p.needKill) {
+	for (const wheel of world.projectiles) {
+		const image = tileset[wheel.frame];
+		if (!wheel.needKill) {
 			ctx.globalAlpha = 0.5;
-			drawImage(image, toPixels(p.x - p.vx * 4), toPixels(p.y - p.vy * 4), TILE_SIZE, TILE_SIZE);
+			drawImage(image, toPixels(wheel.x - wheel.vx * 4), toPixels(wheel.y - wheel.vy * 4), TILE_SIZE, TILE_SIZE);
 			ctx.globalAlpha = 0.75;
-			drawImage(image, toPixels(p.x - p.vx * 2), toPixels(p.y - p.vy * 2), TILE_SIZE, TILE_SIZE);
+			drawImage(image, toPixels(wheel.x - wheel.vx * 2), toPixels(wheel.y - wheel.vy * 2), TILE_SIZE, TILE_SIZE);
 			ctx.globalAlpha = 1;
 		}
-		drawImage(image, p.pixelX, p.pixelY, TILE_SIZE, TILE_SIZE);
+		drawImage(image, wheel.pixelX, wheel.pixelY, TILE_SIZE, TILE_SIZE);
 	}
 }
 
@@ -477,21 +488,21 @@ function drawProjectiles(world) {
  * @returns {void}
  */
 export function drawCrates(world) {
-	for (const c of world.crates) {
-		const sc = c.shrink > 0 ? c.shrink / 60 : 1;
+	for (const crate of world.crates) {
+		const scale = crate.shrink > 0 ? crate.shrink / 60 : 1;
 		ctx.save();
-		ctx.translate(c.midX(), c.midY());
-		ctx.rotate(degToRad(c.angle));
+		ctx.translate(crate.midX(), crate.midY());
+		ctx.rotate(degToRad(crate.angle));
 		drawImage(
 			crateImage,
 			0,
 			0,
 			TILE_SIZE,
 			TILE_SIZE,
-			-(c.width >> 1),
-			-(c.height >> 1),
-			TILE_SIZE * sc,
-			TILE_SIZE * sc,
+			-(crate.width >> 1),
+			-(crate.height >> 1),
+			TILE_SIZE * scale,
+			TILE_SIZE * scale,
 		);
 		ctx.restore();
 	}
@@ -526,7 +537,7 @@ function drawGravPipeFields(world) {
 	ctx.fillStyle = 'rgb(151, 206, 233)';
 	ctx.globalAlpha = 0.5;
 	for (const field of world.gravPipeFields) {
-		ctx.fillRect(field.x, field.y, field.w, field.h);
+		ctx.fillRect(field.x, field.y, field.width, field.height);
 	}
 	ctx.globalAlpha = 1;
 }
@@ -539,7 +550,7 @@ function drawGravPipeFields(world) {
  */
 export function drawGravPipes(world) {
 	drawGravPipeFields(world);
-	for (const t of world.gravPipes) drawGravPipe(t.dir, t.pixelX, t.pixelY);
+	for (const pipe of world.gravPipes) drawGravPipe(pipe.dir, pipe.pixelX, pipe.pixelY);
 }
 
 /**
@@ -585,7 +596,7 @@ function drawTube(world) {
  * @returns {void}
  */
 export function drawPlatforms(world, arrow) {
-	for (const p of world.platforms) drawPlatform(p.pixelX, p.pixelY, p.dir, arrow);
+	for (const platform of world.platforms) drawPlatform(platform.pixelX, platform.pixelY, platform.dir, arrow);
 }
 
 /**
@@ -598,7 +609,7 @@ export function drawPlatforms(world, arrow) {
  * @returns {void}
  */
 export function drawPlatform(x, y, dir, arrow) {
-	drawImage(platform, x, y);
+	drawImage(platformImage, x, y);
 	if (arrow) {
 		ctx.fillStyle = 'rgb(255, 0, 0)';
 		ctx.strokeStyle = 'rgb(255, 0, 0)';
@@ -638,7 +649,7 @@ function drawFrontTiles(world) {
  * @returns {void}
  */
 function drawCamera(world) {
-	const a = getAngle(
+	const angle = getAngle(
 		world.player.midX(),
 		world.player.pixelY + 8,
 		toPixels(world.camera.x) + TILE_SIZE / 2,
@@ -646,7 +657,7 @@ function drawCamera(world) {
 	);
 	ctx.save();
 	ctx.translate(toPixels(world.camera.x) + TILE_SIZE / 2, toPixels(world.camera.y) + TILE_SIZE / 2);
-	ctx.rotate(a);
+	ctx.rotate(angle);
 	drawImage(cameraFollow, 0, 0);
 	ctx.restore();
 }
@@ -658,22 +669,23 @@ function drawCamera(world) {
  * @returns {void}
  */
 function drawPortals(world) {
-	for (const [pi, p] of world.portals.list.entries()) {
-		if (!p.used) continue;
-		let dx = 0;
-		let dy = 0;
-		if (p.direction === Direction.LEFT || p.direction === Direction.RIGHT) dy = TILE_SIZE - p.scaleY * TILE_SIZE;
-		else if (p.direction === Direction.UP || p.direction === Direction.DOWN) dx = TILE_SIZE - p.scaleX * TILE_SIZE;
+	for (const [index, portal] of world.portals.list.entries()) {
+		if (!portal.used) continue;
+		// an opening portal grows from its middle
+		const onSideWall = portal.direction === Direction.LEFT || portal.direction === Direction.RIGHT;
+		const onFloor = portal.direction === Direction.UP || portal.direction === Direction.DOWN;
+		const dx = onFloor ? TILE_SIZE - portal.scaleX * TILE_SIZE : 0;
+		const dy = onSideWall ? TILE_SIZE - portal.scaleY * TILE_SIZE : 0;
 		drawImage(
-			pi === 0 ? bluePortal : redPortal,
+			index === 0 ? bluePortal : redPortal,
 			0,
-			2 * TILE_SIZE * p.frame,
+			2 * TILE_SIZE * portal.frame,
 			2 * TILE_SIZE,
 			2 * TILE_SIZE,
-			toPixels(p.x) + dx,
-			toPixels(p.y) + dy,
-			2 * TILE_SIZE * p.scaleX,
-			2 * TILE_SIZE * p.scaleY,
+			toPixels(portal.x) + dx,
+			toPixels(portal.y) + dy,
+			2 * TILE_SIZE * portal.scaleX,
+			2 * TILE_SIZE * portal.scaleY,
 		);
 	}
 }

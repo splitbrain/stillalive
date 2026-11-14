@@ -374,12 +374,12 @@ export class World {
 		this.#rebuildGravPipeFields();
 
 		if (running) {
-			for (const c of this.cakes) {
-				if (c.used) c.move();
+			for (const cake of this.cakes) {
+				if (cake.used) cake.move();
 			}
-			for (const t of this.turrets) {
-				t.update();
-				if (!this.objectInPortal) this.objectInPortal = this.portals.isInPortal(t);
+			for (const turret of this.turrets) {
+				turret.update();
+				if (!this.objectInPortal) this.objectInPortal = this.portals.isInPortal(turret);
 			}
 		}
 
@@ -398,21 +398,21 @@ export class World {
 
 		// an update can add crates, and the other crates must not see a removed crate, so the loop removes it at once
 		for (let i = 0; i < this.crates.length; i++) {
-			const c = this.crates[i];
+			const crate = this.crates[i];
 			// a shrinking crate moves at half of its speed
-			if (c.shrink > 0) {
-				c.x += c.vx >> 1;
-				c.y += c.vy >> 1;
+			if (crate.shrink > 0) {
+				crate.x += crate.vx >> 1;
+				crate.y += crate.vy >> 1;
 			}
 			if (running) {
-				c.update();
-				if (c.needKill) {
-					if (c.carried) this.player.carrying = null;
+				crate.update();
+				if (crate.needKill) {
+					if (crate.carried) this.player.carrying = null;
 					this.crates.splice(i, 1);
 					i--;
 					continue;
 				}
-				if (!this.objectInPortal) this.objectInPortal = this.portals.isInPortal(c);
+				if (!this.objectInPortal) this.objectInPortal = this.portals.isInPortal(crate);
 			}
 		}
 
@@ -422,7 +422,7 @@ export class World {
 		}
 
 		if (running) {
-			for (const p of this.platforms) p.move();
+			for (const platform of this.platforms) platform.move();
 		}
 		this.portals.update();
 		this.camera.move();
@@ -441,14 +441,14 @@ export class World {
 	#updateProjectiles() {
 		// a hit ends the loop, so the loop removes the stopped wheels at once
 		for (let i = 0; i < this.projectiles.length; i++) {
-			const p = this.projectiles[i];
-			p.move();
-			if (!p.needKill && p.overlaps(this.player)) {
+			const wheel = this.projectiles[i];
+			wheel.move();
+			if (!wheel.needKill && wheel.overlaps(this.player)) {
 				this.projectiles.splice(i, 1);
 				this.player.takeFatalHit();
 				return;
 			}
-			if (p.needKill && p.timer === 0) {
+			if (wheel.needKill && wheel.timer === 0) {
 				this.projectiles.splice(i, 1);
 				i--;
 			}
@@ -464,10 +464,10 @@ export class World {
 	#rebuildGravPipeFields() {
 		if (this.gravPipes.length === 0) return;
 		this.gravPipeFields = [];
-		for (const t of this.gravPipes) {
+		for (const pipe of this.gravPipes) {
 			let vx = 0;
 			let vy = 0;
-			switch (t.dir) {
+			switch (pipe.dir) {
 				case Direction.RIGHT:
 					vx = 1;
 					break;
@@ -481,7 +481,7 @@ export class World {
 					vy = 1;
 					break;
 			}
-			traceGravPipeField(this, t.pixelX, t.pixelY, vx, vy);
+			traceGravPipeField(this, pipe.pixelX, pipe.pixelY, vx, vy);
 		}
 	}
 
@@ -550,7 +550,7 @@ export class World {
 		for (const [i, tile] of map.tiles.entries()) {
 			const x = map.column(i);
 			const y = map.row(i);
-			const animated = levelStart ? ANIMATED_KINDS.find((a) => isTileKind(tile, a.kind)) : undefined;
+			const animated = levelStart ? ANIMATED_KINDS.find((entry) => isTileKind(tile, entry.kind)) : undefined;
 
 			if (tile in GRAVPIPE_DIRECTIONS) {
 				const dir = GRAVPIPE_DIRECTIONS[tile];
@@ -753,14 +753,14 @@ export class World {
 	#findCrate(x, y, any) {
 		return (
 			this.crates.find((crate) => {
-				const x2 = crate.pixelX;
-				const y2 = crate.pixelY;
+				const left = crate.pixelX;
+				const top = crate.pixelY;
 				return (
 					(any || (!crate.carried && !this.portals.isInPortal(crate))) &&
-					x > x2 &&
-					x < x2 + TILE_SIZE - 1 &&
-					y > y2 &&
-					y < y2 + TILE_SIZE - 1
+					x > left &&
+					x < left + TILE_SIZE - 1 &&
+					y > top &&
+					y < top + TILE_SIZE - 1
 				);
 			}) ?? null
 		);
@@ -794,9 +794,9 @@ export class World {
 	platformAt(x, y) {
 		return (
 			this.platforms.find((platform) => {
-				const x2 = platform.pixelX;
-				const y2 = platform.pixelY;
-				return x > x2 && x < x2 + 3 * TILE_SIZE && y >= y2 && y < y2 + TILE_SIZE - 1;
+				const left = platform.pixelX;
+				const top = platform.pixelY;
+				return x > left && x < left + 3 * TILE_SIZE && y >= top && y < top + TILE_SIZE - 1;
 			}) ?? null
 		);
 	}
@@ -819,15 +819,15 @@ export class World {
 	 */
 	gravPipeFieldsAt(obj) {
 		return this.gravPipeFields.filter((field) => {
-			let { x, y, w, h } = field;
-			if (w < 0) {
-				w = -w;
-				x -= w;
-			} else if (h < 0) {
-				h = -h;
-				y -= h;
+			let { x, y, width, height } = field;
+			if (width < 0) {
+				width = -width;
+				x -= width;
+			} else if (height < 0) {
+				height = -height;
+				y -= height;
 			}
-			return obj.overlapsBox(x, y, w, h);
+			return obj.overlapsBox(x, y, width, height);
 		});
 	}
 
@@ -914,8 +914,8 @@ export class World {
 
 		for (const crate of this.crates) {
 			if (this.#touchesSwitchDoor(crate)) {
-				crate.x = crate.xOrig;
-				crate.y = crate.yOrig;
+				crate.x = crate.startX;
+				crate.y = crate.startY;
 				crate.vx = 0;
 				crate.vy = 0;
 			}
@@ -1007,18 +1007,16 @@ export class World {
 	 * @returns {boolean} True if the player is on the open exit.
 	 */
 	#atExit() {
-		const p = this.player;
-		if (!this.portals.isInPortal(p)) {
-			const x = p.pixelX;
-			const y = p.pixelY;
-			// check each tile that the box of the player touches
-			for (let ty = y >> TILE_SIZE_BITS; ty <= (y + p.height - 1) >> TILE_SIZE_BITS; ty++) {
-				for (let tx = x >> TILE_SIZE_BITS; tx <= (x + p.width - 1) >> TILE_SIZE_BITS; tx++) {
-					if (this.map.atPixel(tx << TILE_SIZE_BITS, ty << TILE_SIZE_BITS) === Tile.EXIT) return true;
-				}
+		const player = this.player;
+		if (this.portals.isInPortal(player)) return false;
+		const x = player.pixelX;
+		const y = player.pixelY;
+		// check each tile that the box of the player touches
+		for (let row = y >> TILE_SIZE_BITS; row <= (y + player.height - 1) >> TILE_SIZE_BITS; row++) {
+			for (let column = x >> TILE_SIZE_BITS; column <= (x + player.width - 1) >> TILE_SIZE_BITS; column++) {
+				if (this.map.atPixel(column << TILE_SIZE_BITS, row << TILE_SIZE_BITS) === Tile.EXIT) return true;
 			}
 		}
-
 		return false;
 	}
 

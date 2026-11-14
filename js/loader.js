@@ -67,7 +67,7 @@ export async function loadGame(first, groups) {
 	defineElements(first, await Promise.all(first.map(importModule)));
 	startFiles();
 	const loads = groups.map((group) => group.map(importModule));
-	for (const [g, group] of groups.entries()) defineElements(group, await Promise.all(loads[g]));
+	for (const [index, group] of groups.entries()) defineElements(group, await Promise.all(loads[index]));
 }
 
 /**

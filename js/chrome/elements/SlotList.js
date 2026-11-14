@@ -37,7 +37,9 @@ export class SlotList extends ChromeElement {
 	 */
 	subscribe() {
 		const unsubscribe = [];
-		for (let n = 1; n <= LEVELS_PER_CAMPAIGN; n++) unsubscribe.push(editorMap(n).subscribe(() => this.render()));
+		for (let slot = 1; slot <= LEVELS_PER_CAMPAIGN; slot++) {
+			unsubscribe.push(editorMap(slot).subscribe(() => this.render()));
+		}
 		return unsubscribe;
 	}
 
@@ -49,11 +51,11 @@ export class SlotList extends ChromeElement {
 	render() {
 		const loading = this.getAttribute('mode') === 'load';
 		const buttons = [];
-		for (let n = 1; n <= LEVELS_PER_CAMPAIGN; n++) {
-			const stored = editorMap(n).get() != null;
+		for (let slot = 1; slot <= LEVELS_PER_CAMPAIGN; slot++) {
+			const stored = editorMap(slot).get() != null;
 			const button = document.createElement('button');
-			button.textContent = stored ? `Slot ${n}` : 'Empty';
-			button.dataset.choice = String(n);
+			button.textContent = stored ? `Slot ${slot}` : 'Empty';
+			button.dataset.choice = String(slot);
 			button.disabled = loading && !stored;
 			const menuButton = document.createElement('menu-button');
 			menuButton.append(button);

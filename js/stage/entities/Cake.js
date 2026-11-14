@@ -18,7 +18,7 @@ export class Cake extends Body {
 	constructor(world, x, y) {
 		super(world, x, y, TILE_SIZE, TILE_SIZE);
 		/** @type {number} The direction of the float, 1 down or -1 up. */
-		this.mDir = random(0, 2) === 0 ? -1 : 1;
+		this.floatDir = random(0, 2) === 0 ? -1 : 1;
 		/** @type {number} The vertical offset of the float in 1/256 pixels. */
 		this.vy = random(toSubpixels(-3), toSubpixels(3));
 		/** @type {boolean} True until the player collects the cake. */
@@ -31,8 +31,8 @@ export class Cake extends Body {
 	 * @returns {void}
 	 */
 	move() {
-		this.vy += 32 * this.mDir;
-		if (this.vy < toSubpixels(-3)) this.mDir = -this.mDir;
-		else if (this.vy > toSubpixels(3)) this.mDir = -this.mDir;
+		this.vy += 32 * this.floatDir;
+		if (this.vy < toSubpixels(-3)) this.floatDir = -this.floatDir;
+		else if (this.vy > toSubpixels(3)) this.floatDir = -this.floatDir;
 	}
 }

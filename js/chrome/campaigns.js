@@ -99,8 +99,8 @@ export class Campaign {
 	 * @returns {number} The number of the next level, or 0 if there is none.
 	 */
 	nextLevel(level) {
-		for (let n = level + 1; n <= this.levels.length; n++) {
-			if (this.isOpen(n)) return n;
+		for (let next = level + 1; next <= this.levels.length; next++) {
+			if (this.isOpen(next)) return next;
 		}
 		return 0;
 	}
@@ -200,7 +200,7 @@ export function campaignByFolder(folder) {
  * @returns {Campaign[]} The campaigns, sorted by their sort number.
  */
 export function listCampaigns() {
-	return campaigns.toSorted((a, b) => a.sort - b.sort);
+	return campaigns.toSorted((one, other) => one.sort - other.sort);
 }
 
 /**
@@ -298,8 +298,8 @@ function loadJsonFile(url, callback, onError = () => {}) {
 			return response.json();
 		})
 		.then(callback)
-		.catch(function (e) {
-			console.error(url, e);
+		.catch(function (error) {
+			console.error(url, error);
 			onError();
 		});
 }

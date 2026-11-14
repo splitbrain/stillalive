@@ -13,20 +13,20 @@ class GravPipeField {
 	/**
 	 * @param {number} x The left edge in pixels.
 	 * @param {number} y The top edge in pixels.
-	 * @param {number} w The width in pixels.
-	 * @param {number} h The height in pixels.
+	 * @param {number} width The width in pixels.
+	 * @param {number} height The height in pixels.
 	 * @param {number} vx The horizontal direction of the push, -1, 0 or 1.
 	 * @param {number} vy The vertical direction of the push, -1, 0 or 1.
 	 */
-	constructor(x, y, w, h, vx, vy) {
+	constructor(x, y, width, height, vx, vy) {
 		/** @type {number} The left edge in pixels. */
 		this.x = x;
 		/** @type {number} The top edge in pixels. */
 		this.y = y;
-		/** @type {number} The height in pixels. */
-		this.h = h;
 		/** @type {number} The width in pixels. */
-		this.w = w;
+		this.width = width;
+		/** @type {number} The height in pixels. */
+		this.height = height;
 		/** @type {number} The horizontal direction of the push, -1, 0 or 1. */
 		this.vx = vx;
 		/** @type {number} The vertical direction of the push, -1, 0 or 1. */

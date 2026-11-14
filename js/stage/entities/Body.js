@@ -95,14 +95,14 @@ export class Body {
 	 *
 	 * @param {number} x The left edge of the box in pixels.
 	 * @param {number} y The top edge of the box in pixels.
-	 * @param {number} w The width of the box in pixels.
-	 * @param {number} h The height of the box in pixels.
+	 * @param {number} width The width of the box in pixels.
+	 * @param {number} height The height of the box in pixels.
 	 * @returns {boolean} True if the object and the box overlap.
 	 */
-	overlapsBox(x, y, w, h) {
+	overlapsBox(x, y, width, height) {
 		const left = this.pixelX;
 		const top = this.pixelY;
-		return left + this.width > x && x + w > left && top + this.height > y && y + h > top;
+		return left + this.width > x && x + width > left && top + this.height > y && y + height > top;
 	}
 
 	/**
@@ -172,8 +172,8 @@ export class Body {
 	 */
 	inForceField() {
 		for (let j = 0; j <= this.width - 1; j += 2) {
-			const t = this.world.map.atPixel(this.pixelX + j, this.pixelY + j);
-			if (inForceFieldRange(t)) return true;
+			const tile = this.world.map.atPixel(this.pixelX + j, this.pixelY + j);
+			if (inForceFieldRange(tile)) return true;
 		}
 		return false;
 	}

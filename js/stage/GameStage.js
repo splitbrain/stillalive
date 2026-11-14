@@ -292,11 +292,11 @@ export class GameStage extends HTMLElement {
 	/**
 	 * Set the background of the editor map. A number outside the range of the backgrounds wraps around.
 	 *
-	 * @param {number} n The background index.
+	 * @param {number} index The background index.
 	 * @returns {void}
 	 */
-	setBackground(n) {
-		if (this.#session === this.#editor) this.#editor.setBackground(n);
+	setBackground(index) {
+		if (this.#session === this.#editor) this.#editor.setBackground(index);
 	}
 
 	/**

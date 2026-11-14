@@ -38,7 +38,7 @@ export class Turret extends Throwable {
 		/** @type {boolean} True after a throw, a portal or a pipe field moved the turret. A hard landing then destroys it. */
 		this.canExplode = false;
 		/** @type {number} The x position where the laser sight ends, in 1/256 pixels. */
-		this.ex = 0;
+		this.sightEndX = 0;
 	}
 
 	/**
@@ -200,7 +200,7 @@ export class Turret extends Throwable {
 			return;
 		}
 
-		this.ex = toSubpixels(beam.x);
+		this.sightEndX = toSubpixels(beam.x);
 		this.rotation = Math.max(this.rotation - 1, 0);
 		if (beam.target !== 'player' || this.rotation > 0) return;
 

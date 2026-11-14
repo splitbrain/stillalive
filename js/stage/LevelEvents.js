@@ -149,7 +149,7 @@ export class LevelEvents {
 	 */
 	#fire(event) {
 		if (event.unlock) this.#world.abilities[event.unlock] = true;
-		if (event.portals) event.portals.forEach((portal, p) => placePortal(this.#world, p, portal));
+		if (event.portals) event.portals.forEach((portal, index) => placePortal(this.#world, index, portal));
 		if (event.wait && this.#skipWaits) return;
 		if (event.text !== undefined) {
 			const text = event.text.replace(/\{(Key[WASDE])\}/g, (_, code) => keyLabels.get()[code]);
@@ -166,12 +166,12 @@ export class LevelEvents {
  * Place a portal on a wall with its glow sparkles.
  *
  * @param {import('./World.js').World} world The World of the level.
- * @param {number} p The index of the portal.
+ * @param {number} index The index of the portal.
  * @param {[number, number, string]} portal The column and row of the wall tile, and the side that the portal opens to.
  * @returns {void}
  */
-function placePortal(world, p, [column, row, side]) {
-	const portal = world.portals.list[p];
+function placePortal(world, index, [column, row, side]) {
+	const portal = world.portals.list[index];
 	const { direction, dx, dy } = PORTAL_PLACEMENTS[side];
 	const x = column * TILE_SIZE + dx;
 	const y = row * TILE_SIZE + dy;
@@ -187,5 +187,5 @@ function placePortal(world, p, [column, row, side]) {
 		y: toSubpixels(y),
 	});
 
-	createPortalGlow(world, p);
+	createPortalGlow(world, index);
 }

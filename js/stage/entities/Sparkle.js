@@ -10,49 +10,49 @@ import { random, toPixels, toSubpixels } from '../utils.js';
  * Remove the sparkles of one type and color.
  *
  * @param {import('../World.js').World} world The World.
- * @param {number} p The color index.
+ * @param {number} color The color index.
  * @param {number} type The sparkle type, a value of SparkleType.
  * @returns {void}
  */
-export function removeSparkles(world, p, type) {
-	world.sparkles = world.sparkles.filter((sparkle) => sparkle.type !== type || sparkle.color !== p);
+export function removeSparkles(world, color, type) {
+	world.sparkles = world.sparkles.filter((sparkle) => sparkle.type !== type || sparkle.color !== color);
 }
 
 /**
  * Create the glow sparkles along a portal. The glow sparkles of the earlier portal with the same index go away.
  *
  * @param {import('../World.js').World} world The World.
- * @param {number} p The portal index, 0 for blue and 1 for red.
+ * @param {number} index The portal index, 0 for blue and 1 for red.
  * @returns {void}
  */
-export function createPortalGlow(world, p) {
-	const portal = world.portals.list[p];
+export function createPortalGlow(world, index) {
+	const portal = world.portals.list[index];
 	const onSideWall = portal.direction === Direction.LEFT || portal.direction === Direction.RIGHT;
-	removeSparkles(world, p, SparkleType.PORTAL_GLOW);
+	removeSparkles(world, index, SparkleType.PORTAL_GLOW);
 	for (let i = 0; i < 13; i++) {
 		const x = portal.x + (onSideWall ? 0 : toSubpixels(i * 2));
 		const y = portal.y + (onSideWall ? toSubpixels(i * 2) : 0);
-		const s = new Sparkle(world, SparkleType.PORTAL_GLOW, x, y, 0, 0, 200, p);
-		s.xOrig = x;
-		s.yOrig = y;
-		s.portalNum = p;
+		const sparkle = new Sparkle(world, SparkleType.PORTAL_GLOW, x, y, 0, 0, 200, index);
+		sparkle.startX = x;
+		sparkle.startY = y;
+		sparkle.portalIndex = index;
 		switch (portal.direction) {
 			case Direction.RIGHT:
-				s.vx = -random(128, 384);
-				s.xOrig -= toSubpixels(7);
+				sparkle.vx = -random(128, 384);
+				sparkle.startX -= toSubpixels(7);
 				break;
 			case Direction.LEFT:
-				s.vx = random(128, 384);
+				sparkle.vx = random(128, 384);
 				break;
 			case Direction.DOWN:
-				s.vy = -random(128, 384);
-				s.yOrig -= toSubpixels(8);
+				sparkle.vy = -random(128, 384);
+				sparkle.startY -= toSubpixels(8);
 				break;
 			default:
-				s.vy = random(128, 384);
+				sparkle.vy = random(128, 384);
 				break;
 		}
-		world.sparkles.push(s);
+		world.sparkles.push(sparkle);
 	}
 }
 
@@ -69,7 +69,7 @@ export function createPortalGlow(world, p) {
  */
 export function createCakeOrSmokeSparkles(world, x, y, type, number, size) {
 	const color = type === SparkleType.CAKE ? 2 : 3;
-	for (let k = 0; k < number; k++) {
+	for (let i = 0; i < number; i++) {
 		world.sparkles.push(
 			new Sparkle(
 				world,
@@ -107,9 +107,9 @@ export class Sparkle {
 		/** @type {number} The y position in 1/256 pixels. */
 		this.y = y;
 		/** @type {number} The x position where a portal glow sparkle starts and restarts, in 1/256 pixels. */
-		this.xOrig = 0;
+		this.startX = 0;
 		/** @type {number} The y position where a portal glow sparkle starts and restarts, in 1/256 pixels. */
-		this.yOrig = 0;
+		this.startY = 0;
 		/** @type {number} The horizontal speed in 1/256 pixels per tick. */
 		this.vx = vx;
 		/** @type {number} The vertical speed in 1/256 pixels per tick. */
@@ -123,7 +123,7 @@ export class Sparkle {
 		/** @type {number} The remaining visibility, which also sets the size. */
 		this.fading = fading;
 		/** @type {number} The index of the portal of a portal glow sparkle, or -1. */
-		this.portalNum = -1;
+		this.portalIndex = -1;
 	}
 
 	/**
@@ -134,13 +134,13 @@ export class Sparkle {
 	 */
 	#glow() {
 		if (this.vx !== 0) {
-			this.fading = 200 - 5 * toPixels(Math.abs(this.xOrig - this.x));
+			this.fading = 200 - 5 * toPixels(Math.abs(this.startX - this.x));
 		} else if (this.vy !== 0) {
-			this.fading = 200 - 5 * toPixels(Math.abs(this.yOrig - this.y));
-			const platform = this.world.portals.list[this.portalNum].platform;
+			this.fading = 200 - 5 * toPixels(Math.abs(this.startY - this.y));
+			const platform = this.world.portals.list[this.portalIndex].platform;
 			if (platform) {
 				this.x += platform.vx;
-				this.xOrig = this.x;
+				this.startX = this.x;
 			}
 		}
 	}
@@ -191,8 +191,8 @@ export class Sparkle {
 		}
 
 		if (this.fading <= 0 && this.type === SparkleType.PORTAL_GLOW) {
-			this.x = this.xOrig;
-			this.y = this.yOrig;
+			this.x = this.startX;
+			this.y = this.startY;
 			this.fading = 200;
 		}
 	}

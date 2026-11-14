@@ -242,7 +242,7 @@ function deleteBestTime(campaign, level) {
 	delete times[key];
 	writeItem(BEST_TIMES_KEY, JSON.stringify(times));
 	bestTimes.set(times);
-	replayRequest('readwrite', (store) => store.delete(key)).catch((e) => console.error(e));
+	replayRequest('readwrite', (store) => store.delete(key)).catch((error) => console.error(error));
 }
 
 /**

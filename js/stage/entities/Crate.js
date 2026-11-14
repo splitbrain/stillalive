@@ -20,9 +20,9 @@ export class Crate extends Throwable {
 	constructor(world, x, y) {
 		super(world, x, y, TILE_SIZE, TILE_SIZE);
 		/** @type {number} The x position of the start, where the crate returns after a reset. */
-		this.xOrig = x;
+		this.startX = x;
 		/** @type {number} The y position of the start, where the crate returns after a reset. */
-		this.yOrig = y;
+		this.startY = y;
 		/** @type {import('./Platform.js').Platform|null} The platform that the crate stands on, or null. */
 		this.platform = null;
 		/** @type {number} The direction of the conveyor belt under the crate: 1 to the right, -1 to the left, 0 for none. */
@@ -117,10 +117,12 @@ export class Crate extends Throwable {
 		const boss = this.world.boss;
 		if (boss.throwsCrates()) this.#shrinkInTube();
 
-		const t = this.world.map.atPixel(this.pixelX + this.width + 1, this.pixelY);
-		if (isTileKind(t, TileKind.BOSS_BLOCK)) {
-			playSound(t < LAST_OF_KIND[TileKind.BOSS_BLOCK] ? sfx_wallCrack : sfx_wallBreak);
-			this.world.map.replaceAll(t, t < LAST_OF_KIND[TileKind.BOSS_BLOCK] ? t + 1 : Tile.EMPTY);
+		const block = this.world.map.atPixel(this.pixelX + this.width + 1, this.pixelY);
+		if (isTileKind(block, TileKind.BOSS_BLOCK)) {
+			// a block cracks with each hit and breaks after its last frame
+			const cracks = block < LAST_OF_KIND[TileKind.BOSS_BLOCK];
+			playSound(cracks ? sfx_wallCrack : sfx_wallBreak);
+			this.world.map.replaceAll(block, cracks ? block + 1 : Tile.EMPTY);
 			boss.useUpCrate(this);
 			return true;
 		}
@@ -159,13 +161,13 @@ export class Crate extends Throwable {
 	landsOnPlayer() {
 		if (this.vy <= 0 || this.world.portals.isInPortal(this)) return false;
 		const y = this.pixelY + this.height;
-		const x2 = this.world.player.pixelX;
-		const y2 = this.world.player.pixelY;
-		if (y < y2 || y >= y2 + 4) return false;
+		const playerX = this.world.player.pixelX;
+		const playerY = this.world.player.pixelY;
+		if (y < playerY || y >= playerY + 4) return false;
 		// two test points below the crate
 		return [3, 12].some((dx) => {
 			const x = this.pixelX + dx;
-			return x >= x2 && x < x2 + 16;
+			return x >= playerX && x < playerX + 16;
 		});
 	}
 
@@ -184,12 +186,12 @@ export class Crate extends Throwable {
 		// the test points lie in front of the crate in the direction of its move
 		const x = this.pixelX + (this.vx > 0 ? TILE_SIZE : -1);
 		const y = this.pixelY;
-		for (const ca of this.world.crates) {
-			if (portals.isInPortal(ca) || (this.x === ca.x && this.y === ca.y)) continue;
-			if (ca.contains(x, y + 1) || ca.contains(x, y + TILE_SIZE / 2) || ca.contains(x, y + 13)) {
-				if (ca.carried) player.vx = this.vx;
-				else if (this.carried) player.vx = ca.vx;
-				ca.vx = this.vx;
+		for (const other of this.world.crates) {
+			if (portals.isInPortal(other) || (this.x === other.x && this.y === other.y)) continue;
+			if (other.contains(x, y + 1) || other.contains(x, y + TILE_SIZE / 2) || other.contains(x, y + 13)) {
+				if (other.carried) player.vx = this.vx;
+				else if (this.carried) player.vx = other.vx;
+				other.vx = this.vx;
 				this.vx >>= 1;
 				return true;
 			}
@@ -238,8 +240,8 @@ export class Crate extends Throwable {
 			this.needKill = true;
 			return true;
 		}
-		this.x = this.xOrig;
-		this.y = this.yOrig;
+		this.x = this.startX;
+		this.y = this.startY;
 		this.vx = 0;
 		this.vy = 0;
 		return false;

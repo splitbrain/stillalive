@@ -21,11 +21,11 @@ function pad(value, digits = 2) {
  */
 export function toTime(time) {
 	const total = Math.round((time * 1000) / 60);
-	const m = Math.floor(total / 60000);
-	const s = Math.floor(total / 1000) % 60;
-	const ms = total % 1000;
+	const minutes = Math.floor(total / 60000);
+	const seconds = Math.floor(total / 1000) % 60;
+	const milliseconds = total % 1000;
 
-	return `${pad(m)}:${pad(s)}.${pad(ms, 3)}`;
+	return `${pad(minutes)}:${pad(seconds)}.${pad(milliseconds, 3)}`;
 }
 
 /**
@@ -35,10 +35,10 @@ export function toTime(time) {
  * @returns {string} The time as hours, minutes and seconds, e.g. "0:01:23".
  */
 export function toTimeCode(time) {
-	const seconds = Math.floor(time / 60);
-	const h = Math.floor(seconds / 3600);
-	const m = Math.floor(seconds / 60) % 60;
-	const s = seconds % 60;
+	const total = Math.floor(time / 60);
+	const hours = Math.floor(total / 3600);
+	const minutes = Math.floor(total / 60) % 60;
+	const seconds = total % 60;
 
-	return `${h}:${pad(m)}:${pad(s)}`;
+	return `${hours}:${pad(minutes)}:${pad(seconds)}`;
 }

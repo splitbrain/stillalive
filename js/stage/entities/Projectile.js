@@ -29,7 +29,7 @@ export class Projectile extends Body {
 		/** @type {number} Ticks until the stopped wheel goes away. */
 		this.timer = 0;
 		/** @type {number} The tile id of the wheel frame to draw. */
-		this.img = FIRST_OF_KIND[TileKind.WHEEL];
+		this.frame = FIRST_OF_KIND[TileKind.WHEEL];
 	}
 
 	/**
@@ -45,15 +45,15 @@ export class Projectile extends Body {
 
 		this.x += this.vx;
 		this.y += this.vy;
-		if (this.world.time % 6 === 0 && ++this.img > LAST_OF_KIND[TileKind.WHEEL]) {
-			this.img = FIRST_OF_KIND[TileKind.WHEEL];
+		if (this.world.time % 6 === 0 && ++this.frame > LAST_OF_KIND[TileKind.WHEEL]) {
+			this.frame = FIRST_OF_KIND[TileKind.WHEEL];
 		}
 
-		const t = this.world.getTile(this.pixelX + TILE_SIZE / 2, this.pixelY + TILE_SIZE / 2);
-		if (t) {
+		const hit = this.world.getTile(this.pixelX + TILE_SIZE / 2, this.pixelY + TILE_SIZE / 2);
+		if (hit) {
 			// a wheel sticks in a wall for a while, and goes away at once at an object
 			this.needKill = true;
-			if (t instanceof Body) {
+			if (hit instanceof Body) {
 				this.timer = 0;
 			} else {
 				this.timer = 180;

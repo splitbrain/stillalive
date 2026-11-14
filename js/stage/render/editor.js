@@ -4,7 +4,7 @@
 
 import { ctx, drawImage } from '../canvas.js';
 import { MAP_HEIGHT, MAP_WIDTH, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, TILE_SIZE, TILE_SIZE_BITS } from '../constants.js';
-import { bg, cake, crateImage, tileset, turretImages } from '../images.js';
+import { bg, cakeImage, crateImage, tileset, turretImages } from '../images.js';
 import { GRAVPIPE_DIRECTIONS, plasmaLaunch } from '../level.js';
 import { Tile, isObjectTile } from '../tiles.js';
 import {
@@ -103,7 +103,7 @@ function drawSpriteCursor(sprite, input) {
 	const y = (input.mouseY >> TILE_SIZE_BITS) << TILE_SIZE_BITS;
 	switch (sprite) {
 		case Tile.CAKE:
-			drawImage(cake, x, y);
+			drawImage(cakeImage, x, y);
 			break;
 		case Tile.CRATE:
 			drawImage(crateImage, x, y);

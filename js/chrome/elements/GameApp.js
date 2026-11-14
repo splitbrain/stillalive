@@ -95,8 +95,8 @@ export class GameApp extends ChromeElement {
 		stage.addEventListener('focuslost', () => stage.pause());
 		this.addEventListener('replay-stop', () => this.#leaveReplay());
 		this.addEventListener('replay-watch', () => {
-			const r = route.get();
-			const path = campaignPath(r.campaign, r.level, r.mode);
+			const current = route.get();
+			const path = campaignPath(current.campaign, current.level, current.mode);
 			this.watch(this.#intermissionReplay, { path, intermission: this.#intermission });
 		});
 	}
@@ -115,8 +115,8 @@ export class GameApp extends ChromeElement {
 			route.subscribe(() => this.#applyRoute()),
 			ready.subscribe(() => this.#applyRoute()),
 			stage.mode.subscribe((mode) => {
-				const r = route.get();
-				if (mode !== 'test' && r.name === 'editor' && r.mode === 'test') up('#/editor');
+				const current = route.get();
+				if (mode !== 'test' && current.name === 'editor' && current.mode === 'test') up('#/editor');
 				this.#showScreen();
 			}),
 			stage.paused.subscribe(() => this.#showScreen()),
@@ -151,9 +151,9 @@ export class GameApp extends ChromeElement {
 	 * @returns {void}
 	 */
 	#leaveReplay() {
-		const r = route.get();
-		if (r.name !== 'play' || r.mode !== 'replay') return;
-		up(this.#replayReturn?.path ?? campaignPath(r.campaign, r.level));
+		const current = route.get();
+		if (current.name !== 'play' || current.mode !== 'replay') return;
+		up(this.#replayReturn?.path ?? campaignPath(current.campaign, current.level));
 	}
 
 	/**
@@ -238,74 +238,79 @@ export class GameApp extends ChromeElement {
 			this.#showScreen();
 			return;
 		}
-		const r = route.get();
-		const campaign = campaignByFolder(r.campaign);
-		if (r.level > 0) {
-			const usable = r.mode === 'replay' ? campaign.levels[r.level - 1] != null : campaign.isOpen(r.level);
+		const current = route.get();
+		const campaign = campaignByFolder(current.campaign);
+		if (current.level > 0) {
+			const usable =
+				current.mode === 'replay' ? campaign.levels[current.level - 1] != null : campaign.isOpen(current.level);
 			if (!usable) {
-				navigate(campaignPath(r.campaign), true);
+				navigate(campaignPath(current.campaign), true);
 				return;
 			}
 		}
 
 		const previous = this.#applied;
-		const otherLevel = previous?.name === 'play' && previous.campaign === r.campaign && previous.level !== r.level;
-		if (r.name === 'select' && r.level > 0 && otherLevel) {
-			navigate(campaignPath(r.campaign, previous.level), true);
+		const otherLevel =
+			previous?.name === 'play' && previous.campaign === current.campaign && previous.level !== current.level;
+		if (current.name === 'select' && current.level > 0 && otherLevel) {
+			navigate(campaignPath(current.campaign, previous.level), true);
 			return;
 		}
-		const sameLevel = previous?.name === 'play' && previous.campaign === r.campaign && previous.level === r.level;
-		const again = sameLevel && previous.mode === r.mode;
-		const path = r.name === 'play' ? campaignPath(r.campaign, r.level, r.mode) : null;
+		const sameLevel =
+			previous?.name === 'play' && previous.campaign === current.campaign && previous.level === current.level;
+		const again = sameLevel && previous.mode === current.mode;
+		const path = current.name === 'play' ? campaignPath(current.campaign, current.level, current.mode) : null;
 		const replayLeft = previous?.mode === 'replay' && !again;
 		const reopen = replayLeft && this.#replayReturn?.path === path ? this.#replayReturn.intermission : null;
-		this.#applied = r;
-		const level = r.level > 0 ? campaign.levels[r.level - 1] : null;
+		this.#applied = current;
+		const level = current.level > 0 ? campaign.levels[current.level - 1] : null;
 
-		if (r.name === 'select') {
-			const shown = campaign.shownLevel(r.level);
+		if (current.name === 'select') {
+			const shown = campaign.shownLevel(current.level);
 			if (shown) this.stage.preview(shown);
 			else this.stage.stop();
-		} else if (r.name === 'play' && r.mode === 'play' && reopen) {
+		} else if (current.name === 'play' && current.mode === 'play' && reopen) {
 			this.stage.stop();
-		} else if (r.name === 'play' && r.mode === 'play') {
+		} else if (current.name === 'play' && current.mode === 'play') {
 			this.stage.play(level, { restart: sameLevel });
-		} else if (r.name === 'play') {
+		} else if (current.name === 'play') {
 			this.#replayReturn = this.#pendingReturn;
 			this.#pendingReturn = null;
-			this.#playReplay(r, level, again);
-		} else if (r.name === 'editor' && r.mode === 'test') {
+			this.#playReplay(current, level, again);
+		} else if (current.name === 'editor' && current.mode === 'test') {
 			this.stage.test();
 			if (this.stage.mode.get() !== 'test') {
 				navigate('#/editor', true);
 				return;
 			}
-		} else if (r.name === 'editor' && this.stage.mode.get() === 'test') {
+		} else if (current.name === 'editor' && this.stage.mode.get() === 'test') {
 			this.stage.stopTest();
-		} else if (r.name === 'editor') {
+		} else if (current.name === 'editor') {
 			this.stage.edit();
 			if (previous?.name !== 'editor-file' && previous?.name !== 'editor') this.stage.setBrush(1);
-		} else if (r.name === 'editor-file') {
+		} else if (current.name === 'editor-file') {
 			this.stage.preview(this.stage.getMap());
 		} else {
 			this.stage.stop();
 		}
-		this.stage.playMusic(r.name === 'play' && r.mode === 'play' ? 'level' : 'menu');
-		setAttributes(this.querySelector('level-selection'), { campaign: r.campaign, level: r.level });
-		const play = r.name === 'play';
+		this.stage.playMusic(current.name === 'play' && current.mode === 'play' ? 'level' : 'menu');
+		setAttributes(this.querySelector('level-selection'), { campaign: current.campaign, level: current.level });
+		const play = current.name === 'play';
 		const exit = play ? '#/' : null;
 		setAttributes(this.querySelector('pause-menu'), {
-			restart: play ? campaignPath(r.campaign, r.level, r.mode) : null,
+			restart: play ? campaignPath(current.campaign, current.level, current.mode) : null,
 			exit,
 		});
-		this.#intermission = r.name === 'play' ? reopen : null;
+		this.#intermission = current.name === 'play' ? reopen : null;
 		setAttributes(this.querySelector('intermission-panel'), { exit, ...reopen, open: reopen ? '' : null });
 		setAttributes(this.querySelector('robot-head'), {
-			eye: play && campaign.id === CampaignId.STORY ? Math.min(Math.floor((r.level - 1) / 7), 3) + 1 : null,
+			eye: play && campaign.id === CampaignId.STORY ? Math.min(Math.floor((current.level - 1) / 7), 3) + 1 : null,
 			absent: play && level.boss > 0 ? '' : null, // the boss is the robot
 		});
-		setAttributes(this.querySelector('narrator-text'), { text: r.name.startsWith('editor') ? EDITOR_TEXT : null });
-		setAttributes(this.querySelector('editor-files'), { mode: r.name === 'editor-file' ? r.mode : null });
+		setAttributes(this.querySelector('narrator-text'), {
+			text: current.name.startsWith('editor') ? EDITOR_TEXT : null,
+		});
+		setAttributes(this.querySelector('editor-files'), { mode: current.name === 'editor-file' ? current.mode : null });
 		this.#showScreen();
 	}
 
@@ -313,24 +318,24 @@ export class GameApp extends ChromeElement {
 	 * Play a replay on the replay route: the replay from watch(), the same replay again for a restart, or else the
 	 * stored replay of the best time.
 	 *
-	 * @param {import('../../router.js').Route} r The replay route.
+	 * @param {import('../../router.js').Route} current The replay route.
 	 * @param {import('../../stage/level.js').Level} level The level.
 	 * @param {boolean} restart True if the route applies again.
 	 * @returns {void}
 	 */
-	#playReplay(r, level, restart) {
+	#playReplay(current, level, restart) {
 		const pending = this.#pendingReplay;
 		this.#pendingReplay = null;
-		if (pending?.campaign === r.campaign && pending.level === r.level) {
-			this.#startReplay(r, level, pending, restart);
+		if (pending?.campaign === current.campaign && pending.level === current.level) {
+			this.#startReplay(current, level, pending, restart);
 		} else if (restart && this.#replay) {
-			this.#startReplay(r, level, this.#replay, restart);
+			this.#startReplay(current, level, this.#replay, restart);
 		} else {
 			this.stage.stop();
-			loadBestReplay(r.campaign, r.level)
+			loadBestReplay(current.campaign, current.level)
 				.catch(() => null)
 				.then((data) => {
-					if (route.get() === r) this.#startReplay(r, level, data, false);
+					if (route.get() === current) this.#startReplay(current, level, data, false);
 				});
 		}
 	}
@@ -339,40 +344,40 @@ export class GameApp extends ChromeElement {
 	 * Start the playback of a replay. If there is no replay or the replay is not valid, a message shows and the player
 	 * goes up to the selection of the level.
 	 *
-	 * @param {import('../../router.js').Route} r The replay route.
+	 * @param {import('../../router.js').Route} current The replay route.
 	 * @param {import('../../stage/level.js').Level} level The level.
 	 * @param {object|null|undefined} data The replay in the file format, or nothing.
 	 * @param {boolean} restart True to skip the waits at the level start.
 	 * @returns {void}
 	 */
-	#startReplay(r, level, data, restart) {
+	#startReplay(current, level, data, restart) {
 		try {
 			if (!data) throw new Error('There is no stored replay for this level.');
 			this.stage.play(level, { replay: data, restart });
 			this.#replay = data;
 		} catch (error) {
 			alertDialog(error.message, 'Replay');
-			up(campaignPath(r.campaign, r.level));
+			up(campaignPath(current.campaign, current.level));
 		}
 	}
 
 	/**
 	 * Store the level time and the replay if the time is a new best time.
 	 *
-	 * @param {import('../../router.js').Route} r The route of the level.
+	 * @param {import('../../router.js').Route} current The route of the level.
 	 * @param {number} time The level time in ticks.
 	 * @param {object} replay The replay in the file format.
 	 * @returns {Promise<string>} The message for the intermission panel. Resolves when the new best time is stored.
 	 *     The message is empty if the time cannot be stored.
 	 */
-	async #checkBestTime(r, time, replay) {
-		const best = getBestTime(r.campaign, r.level);
+	async #checkBestTime(current, time, replay) {
+		const best = getBestTime(current.campaign, current.level);
 		if (best != null && best <= time) return `Best time: ${toTime(best)}`;
 
 		try {
-			await saveBestTime(r.campaign, r.level, time, replay);
-		} catch (e) {
-			console.error(e);
+			await saveBestTime(current.campaign, current.level, time, replay);
+		} catch (error) {
+			console.error(error);
 			return '';
 		}
 		return 'New best time!';
@@ -388,31 +393,35 @@ export class GameApp extends ChromeElement {
 	 * @returns {Promise<void>} Resolves when the next screen shows.
 	 */
 	async #onFinished({ time, replay }) {
-		const r = route.get();
-		if (!this.#started || r.name !== 'play') return;
-		if (r.mode === 'replay') {
+		const current = route.get();
+		if (!this.#started || current.name !== 'play') return;
+		if (current.mode === 'replay') {
 			this.#leaveReplay();
 			return;
 		}
-		const campaign = campaignByFolder(r.campaign);
+		const campaign = campaignByFolder(current.campaign);
 		let message = '';
 		let credits = false;
-		if (r.mode === 'play') message = await this.#checkBestTime(r, time, replay);
-		if (r.mode === 'play' && campaign.id !== CampaignId.CUSTOM && maxLevel[campaign.id].get() < r.level + 1) {
+		if (current.mode === 'play') message = await this.#checkBestTime(current, time, replay);
+		if (
+			current.mode === 'play' &&
+			campaign.id !== CampaignId.CUSTOM &&
+			maxLevel[campaign.id].get() < current.level + 1
+		) {
 			credits = campaign.id === CampaignId.STORY && maxLevel[campaign.id].get() === LEVELS_PER_CAMPAIGN;
-			saveProgress(campaign.id, r.level + 1);
+			saveProgress(campaign.id, current.level + 1);
 		}
 
 		if (credits) {
 			navigate('#/credits', true);
 		} else {
-			const next = campaign.nextLevel(r.level);
+			const next = campaign.nextLevel(current.level);
 			this.#intermissionReplay = replay;
 			this.#intermission = {
 				time,
 				message,
-				next: next > 0 ? campaignPath(r.campaign, next, 'play') : null,
-				restart: campaign.isOpen(r.level) ? campaignPath(r.campaign, r.level, 'play') : null,
+				next: next > 0 ? campaignPath(current.campaign, next, 'play') : null,
+				restart: campaign.isOpen(current.level) ? campaignPath(current.campaign, current.level, 'play') : null,
 			};
 			setAttributes(this.querySelector('intermission-panel'), { ...this.#intermission, open: '' });
 			this.#showScreen();
@@ -425,12 +434,12 @@ export class GameApp extends ChromeElement {
 	 * @returns {void}
 	 */
 	#onBrokenReplay() {
-		const r = route.get();
-		if (r.name !== 'play') return;
+		const current = route.get();
+		if (current.name !== 'play') return;
 		alertDialog(
 			"The replay you're watching seems to be broken -_-;\nSorry for the inconvenience.",
 			'An error occurred',
 		);
-		up(campaignPath(r.campaign, r.level));
+		up(campaignPath(current.campaign, current.level));
 	}
 }

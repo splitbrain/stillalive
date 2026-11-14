@@ -159,8 +159,8 @@ export class Player extends Body {
 	 * @returns {void}
 	 */
 	#teleportSparkles(number, fading, color) {
-		for (let n = 0; n < number; n++) {
-			const s = new Sparkle(
+		for (let i = 0; i < number; i++) {
+			const sparkle = new Sparkle(
 				this.world,
 				SparkleType.TELEPORT,
 				this.x + (toSubpixels(this.width) >> 1) + random(toSubpixels(-8), toSubpixels(8)),
@@ -170,9 +170,9 @@ export class Player extends Body {
 				fading,
 				color,
 			);
-			if (random(0, 2) === 0) s.vx = -s.vx;
-			if (random(0, 2) === 0) s.vy = -s.vy;
-			this.world.sparkles.push(s);
+			if (random(0, 2) === 0) sparkle.vx = -sparkle.vx;
+			if (random(0, 2) === 0) sparkle.vy = -sparkle.vy;
+			this.world.sparkles.push(sparkle);
 		}
 	}
 

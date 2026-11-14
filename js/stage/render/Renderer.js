@@ -31,17 +31,17 @@ function layerSource(map, background) {
 /**
  * Check if two layer sources are the same, so a cached layer of one source can show the other.
  *
- * @param {LayerSource|null} a The first source, or null for no cached layer.
- * @param {LayerSource} b The second source.
+ * @param {LayerSource|null} cached The source of the cached layer, or null for no cached layer.
+ * @param {LayerSource} source The source to show.
  * @returns {boolean} True if the sources are the same.
  */
-function isSameSource(a, b) {
+function isSameSource(cached, source) {
 	return (
-		a != null &&
-		a.map === b.map &&
-		a.version === b.version &&
-		a.background === b.background &&
-		a.generation === b.generation
+		cached != null &&
+		cached.map === source.map &&
+		cached.version === source.version &&
+		cached.background === source.background &&
+		cached.generation === source.generation
 	);
 }
 

@@ -595,8 +595,8 @@ export function loadSfx() {
 	sfx_exit = loadSound('exit');
 	sfx_jump = loadSound('jump');
 	sfx_land = loadSound('land');
-	sfx_step = Array.from({ length: 13 }, (_, n) => loadSound(`step${n + 1}`));
-	sfx_iceStep = Array.from({ length: 4 }, (_, n) => loadSound(`iceStep${n + 1}`));
+	sfx_step = Array.from({ length: 13 }, (_, i) => loadSound(`step${i + 1}`));
+	sfx_iceStep = Array.from({ length: 4 }, (_, i) => loadSound(`iceStep${i + 1}`));
 	sfx_float = loadSound('float');
 	sfx_pickUp = loadSound('pickUp');
 	sfx_throwObject = loadSound('throwObject');

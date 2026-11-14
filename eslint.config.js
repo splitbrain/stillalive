@@ -84,6 +84,7 @@ export default [
 		rules: {
 			curly: ['error', 'multi-line'],
 			eqeqeq: ['error', 'always', { null: 'ignore' }],
+			'id-length': ['error', { min: 2, exceptions: ['x', 'y', 'i', 'j', '_'] }],
 			'no-else-return': ['error', { allowElseIf: false }],
 			'no-nested-ternary': 'error',
 			'no-useless-concat': 'error',

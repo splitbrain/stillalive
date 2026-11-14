@@ -250,11 +250,9 @@ export class Boss {
 				}
 			}
 		}
-		let d = getDistance(this.world.player.pixelX, this.world.player.pixelY, crate.pixelX, crate.pixelY);
-		d = Math.trunc(d / divisor);
-		if (d > 16) d = 16;
-		if (d < 3) d = 3;
-		crate.vx = -toSubpixels(d);
+		const distance = getDistance(this.world.player.pixelX, this.world.player.pixelY, crate.pixelX, crate.pixelY);
+		const speed = Math.min(Math.max(Math.trunc(distance / divisor), 3), 16);
+		crate.vx = -toSubpixels(speed);
 	}
 
 	/**
@@ -301,14 +299,10 @@ export class Boss {
 	 * @returns {boolean} True if the player touches the boss.
 	 */
 	#touchesPlayer() {
-		const x = this.world.player.pixelX + this.world.player.width;
-		const y = this.world.player.midY();
-		const x2 = this.x + 15;
-		const y2 = this.y;
-
-		if (x > x2 && y > y2 && y < y2 + 58) return true;
-
-		return false;
+		// the right edge and the middle of the player against the front of the boss
+		const right = this.world.player.pixelX + this.world.player.width;
+		const middle = this.world.player.midY();
+		return right > this.x + 15 && middle > this.y && middle < this.y + 58;
 	}
 
 	/**
@@ -370,14 +364,14 @@ export class Boss {
 	/**
 	 * Get a pseudo-random shake offset.
 	 *
-	 * @param {number} n The index of the offset.
+	 * @param {number} index The index of the offset.
 	 * @returns {number} An offset from -3 to 2 pixels, the same range as random(-3, 3).
 	 */
-	static #shakeOffset(n) {
-		let h = Math.imul(n ^ 0x9e3779b9, 0x85ebca6b);
-		h ^= h >>> 13;
-		h = Math.imul(h, 0xc2b2ae35);
-		h ^= h >>> 16;
-		return ((h >>> 0) % 6) - 3;
+	static #shakeOffset(index) {
+		let hash = Math.imul(index ^ 0x9e3779b9, 0x85ebca6b);
+		hash ^= hash >>> 13;
+		hash = Math.imul(hash, 0xc2b2ae35);
+		hash ^= hash >>> 16;
+		return ((hash >>> 0) % 6) - 3;
 	}
 }

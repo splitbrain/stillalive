@@ -189,11 +189,11 @@ export class Editor {
 	/**
 	 * Set the background of the editor map. A number outside the range of the backgrounds wraps around.
 	 *
-	 * @param {number} n The background index.
+	 * @param {number} index The background index.
 	 * @returns {void}
 	 */
-	setBackground(n) {
-		this.#background = ((n % bg.length) + bg.length) % bg.length;
+	setBackground(index) {
+		this.#background = ((index % bg.length) + bg.length) % bg.length;
 		this.#mapChanged();
 	}
 
@@ -303,9 +303,9 @@ export class Editor {
 		}
 
 		const version = map.version;
-		const xt = input.mouseX >> TILE_SIZE_BITS;
-		const yt = input.mouseY >> TILE_SIZE_BITS;
-		const tile = map.index(xt, yt);
+		const column = input.mouseX >> TILE_SIZE_BITS;
+		const row = input.mouseY >> TILE_SIZE_BITS;
+		const tile = map.index(column, row);
 		switch (input.mouseButton) {
 			case MouseButton.LEFT:
 				// a map has one player start
@@ -314,12 +314,12 @@ export class Editor {
 						if (id === Tile.PLAYER_START) map.setTile(i, Tile.EMPTY);
 					}
 				}
-				eraseSprites(map, brush, xt, yt);
+				eraseSprites(map, brush, column, row);
 				if (allowTile(map, brush)) map.setTile(tile, brush);
 				break;
 			case MouseButton.RIGHT:
 				map.setTile(tile, Tile.EMPTY);
-				eraseSprites(map, brush, xt, yt);
+				eraseSprites(map, brush, column, row);
 				break;
 		}
 		build(map);
@@ -345,9 +345,9 @@ export class Editor {
 		}
 
 		const version = map.version;
-		const xt = input.mouseX >> TILE_SIZE_BITS;
-		const yt = input.mouseY >> TILE_SIZE_BITS;
-		const tile = map.index(xt, yt);
+		const column = input.mouseX >> TILE_SIZE_BITS;
+		const row = input.mouseY >> TILE_SIZE_BITS;
+		const tile = map.index(column, row);
 		switch (input.mouseButton) {
 			case MouseButton.LEFT:
 				// a map has one plasma start
@@ -362,11 +362,11 @@ export class Editor {
 				break;
 			case MouseButton.MIDDLE:
 				// a map has one plasma start, so it does not fill
-				if (brush !== Tile.PLASMA_START) fill(map, brush, map.tiles[tile], xt, yt);
+				if (brush !== Tile.PLASMA_START) fill(map, brush, map.tiles[tile], column, row);
 				break;
 		}
 
-		eraseObjectAbove(map, xt, yt);
+		eraseObjectAbove(map, column, row);
 
 		build(map);
 		this.#mapChangedSince(version);

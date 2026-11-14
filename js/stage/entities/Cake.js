@@ -1,49 +1,10 @@
 /**
- * The Cake object and its helper functions.
+ * The Cake object.
  */
 
-import { playSound, sfx_exit, sfx_grabCake } from '../audio.js';
 import { Body } from './Body.js';
-import { MAP_SIZE, SparkleType, TILE_SIZE } from '../constants.js';
-import { createCakeOrSmokeSparkles } from './Sparkle.js';
-import { Tile } from '../tiles.js';
+import { TILE_SIZE } from '../constants.js';
 import { random } from '../utils.js';
-
-/**
- * Open the exit.
- *
- * @param {import('../World.js').World} world The World.
- * @returns {void}
- */
-export function openExit(world) {
-	let i;
-	for (i = 0; i < MAP_SIZE; i++) {
-		if (world.map.tiles[i] == Tile.EXIT_CLOSED) world.map.set(i, Tile.EXIT);
-	}
-}
-
-/**
- * Collect the cakes that the player touches, and open the exit when the last cake is collected.
- *
- * @param {import('../World.js').World} world The World.
- * @returns {void}
- */
-export function collectCakes(world) {
-	for (const cake of world.cakes) {
-		if (cake.used) {
-			if (world.player.overlaps(cake)) {
-				cake.used = false;
-				world.cakesLeft--;
-				createCakeOrSmokeSparkles(world, cake.x, cake.y, SparkleType.CAKE, 2, 180);
-				playSound(sfx_grabCake);
-				if (world.cakesLeft == 0) {
-					openExit(world);
-					playSound(sfx_exit);
-				}
-			}
-		}
-	}
-}
 
 /**
  * A cake that the player collects. The cake floats up and down.
@@ -73,18 +34,5 @@ export class Cake extends Body {
 		this.vy += 32 * this.mDir;
 		if (this.vy < -3 << 8) this.mDir = -this.mDir;
 		else if (this.vy > 3 << 8) this.mDir = -this.mDir;
-	}
-}
-
-/**
- * Let the cakes float up and down. The cakes stand still during the level transitions.
- *
- * @param {import('../World.js').World} world The World.
- * @returns {void}
- */
-export function updateCakes(world) {
-	if (!world.isRunning()) return;
-	for (const c of world.cakes) {
-		if (c.used) c.move();
 	}
 }

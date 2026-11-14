@@ -18,11 +18,8 @@ import {
 } from '../audio.js';
 import { Direction, GRAVITY, MouseButton, PLAYFIELD_HEIGHT, SparkleType, TILE_SIZE } from '../constants.js';
 import { Body } from './Body.js';
-import { collectCakes } from './Cake.js';
 import { Platform } from './Platform.js';
 import { Sparkle } from './Sparkle.js';
-import { reportBrokenReplay } from '../inputState.js';
-import { input } from '../state.js';
 import { isTileKind, TileKind } from '../tiles.js';
 import { getDistance, random } from '../utils.js';
 
@@ -82,14 +79,14 @@ export class Player extends Body {
 
 	/**
 	 * Kill the player when the life is used up. The outcome "died" asks for a restart when the death fade is complete.
-	 * During a replay, a death ends the replay as broken.
+	 * During a replay, a death sets the outcome "brokenReplay".
 	 *
 	 * @returns {void}
 	 */
 	checkDeath() {
 		if (this.life <= 0 && !this.dead) {
-			if (this.world.replayMode) {
-				reportBrokenReplay();
+			if (this.world.replaying) {
+				this.world.outcome = 'brokenReplay';
 				return;
 			}
 
@@ -162,6 +159,7 @@ export class Player extends Body {
 	 * @returns {void}
 	 */
 	#grabObject() {
+		const input = this.world.input;
 		if (!this.carrying) {
 			if (input.mousePressed && input.mouseButton == MouseButton.LEFT) {
 				this.carrying = this.#grabbableIn(this.world.crates) ?? this.#grabbableIn(this.world.turrets);
@@ -181,6 +179,7 @@ export class Player extends Body {
 	 * @returns {import('./Throwable.js').Throwable|null} The first object near the player under the mouse, or null.
 	 */
 	#grabbableIn(objects) {
+		const input = this.world.input;
 		const x = this.midX();
 		const y = this.midY();
 		for (const obj of objects) {
@@ -406,10 +405,11 @@ export class Player extends Body {
 			if (this.upCollision()) this.vy = -this.vy;
 		}
 
-		collectCakes(this.world);
+		this.world.collectCakes();
 		this.#grabObject();
 		portals.clearPortalsAtForceField();
 
+		const input = this.world.input;
 		if (this.world.abilities.portals) {
 			if (input.mousePressed && this.portalCooldown == 25 && !portals.isInPortal(this) && !this.carrying) {
 				if (input.mouseButton == MouseButton.LEFT) {

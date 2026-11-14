@@ -3,7 +3,6 @@
  */
 
 import { MAP_SIZE, MouseButton, TILE_SIZE_BITS } from './constants.js';
-import { PortalPair } from './entities/PortalPair.js';
 import { bg } from './images.js';
 import { mouseOnPlayfield, unclick } from './inputState.js';
 import { allowTile, build, eraseSprites, fill } from './mapEdit.js';
@@ -42,17 +41,18 @@ export class Editor {
 	/**
 	 * Start the test run of the map, with the pause and the keys released.
 	 *
+	 * @param {number} transition The effect of the opening transition, a value of Transition.
 	 * @returns {World} The World of the test run.
 	 */
-	startTest() {
+	startTest(transition) {
 		const level = { ...parseMap({ format: MAP_FORMAT, ...this.getMap() }), campaign: '', number: 0, fromBelow: false };
 		this.leave();
 		ui.mode = 'test';
-		const world = World.forLevel(level);
+		const world = World.forLevel(level, { transition });
 		ui.paused = false;
 		input.keys = 0;
 		input.oldKeys = 0;
-		unclick();
+		unclick(input);
 		return world;
 	}
 
@@ -60,16 +60,11 @@ export class Editor {
 	 * End the test run and go back to the editor.
 	 *
 	 * @param {boolean} [report] True to report the end with the event "died".
-	 * @returns {void}
+	 * @returns {World} The World of the editor map.
 	 */
 	stopTest(report = true) {
-		game.portals = new PortalPair(game);
-		unclick();
-		ui.mode = 'edit';
-		game.map = new TileMap(this.#storedMap.tiles);
-		game.events.message = null;
-		this.#rebuildObjects();
 		if (report) stageEvents.push({ type: 'died', detail: null });
+		return this.open();
 	}
 
 	/**
@@ -93,7 +88,7 @@ export class Editor {
 			this.#addUndo(world);
 		}
 
-		unclick();
+		unclick(input);
 		this.#objectsChanged = false;
 		return world;
 	}

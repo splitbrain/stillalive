@@ -4,10 +4,6 @@
 
 import {
 	KEY_CLEAR,
-	KEY_DOWN,
-	KEY_JUMP,
-	KEY_LEFT,
-	KEY_RIGHT,
 	MOUSE_LEFT,
 	MOUSE_MIDDLE,
 	MOUSE_RIGHT,
@@ -15,14 +11,15 @@ import {
 	PLAYFIELD_HEIGHT,
 	PLAYFIELD_WIDTH,
 } from './constants.js';
-import { game, input, stageEvents, ui } from './state.js';
+import { input, ui } from './state.js';
 
 /**
  * Release all mouse buttons and clear the pressed and released state.
  *
+ * @param {object} input The keys and the mouse.
  * @returns {void}
  */
-export function unclick() {
+export function unclick(input) {
 	input.mousePressed = 0;
 	input.mouseReleased = 0;
 	input.mouseNewPress = 0;
@@ -33,77 +30,86 @@ export function unclick() {
 }
 
 /**
- * Stop a replay that has fewer inputs than the level needs or in which the player dies. The stage becomes idle and
- * reports the broken replay with the event "brokenreplay".
- *
- * @returns {void}
- */
-export function reportBrokenReplay() {
-	game.replayMode = false;
-	ui.mode = 'idle';
-	stageEvents.push({ type: 'brokenreplay', detail: null });
-}
-
-/**
  * Get the input state that the game derives from the keys of the previous ticks.
  *
+ * @param {import('./World.js').World} world The World of the level.
  * @returns {number[]} The old keys, the mouse state and the jump and clear state of the player.
  */
-export function captureInput() {
+export function captureInput(world) {
 	return [
 		input.oldKeys,
 		input.mousePressed,
 		input.mouseReleased,
 		input.mouseButton,
 		input.mouseNewPress,
-		game.player.isJump,
-		game.player.oldIsJump,
-		game.player.askClear ? 1 : 0,
+		world.player.isJump,
+		world.player.oldIsJump,
+		world.player.askClear ? 1 : 0,
 	];
 }
 
 /**
  * Restore an input state from captureInput().
  *
+ * @param {import('./World.js').World} world The World of the level.
  * @param {number[]} state The input state.
  * @returns {void}
  */
-export function restoreInput(state) {
+function restoreInput(world, state) {
 	input.oldKeys = state[0];
 	input.mousePressed = state[1];
 	input.mouseReleased = state[2];
 	input.mouseButton = state[3];
 	input.mouseNewPress = state[4];
-	game.player.isJump = state[5];
-	game.player.oldIsJump = state[6];
-	game.player.askClear = state[7] == 1;
+	world.player.isJump = state[5];
+	world.player.oldIsJump = state[6];
+	world.player.askClear = state[7] == 1;
 }
 
 /**
- * Process the input of one tick. In a level, the function records the input for the replay or plays back the replay.
+ * Continue a paused replay: restore the input state of the pause and the input of the current tick.
  *
+ * @param {import('./World.js').World} world The World of the level.
+ * @param {import('./replay.js').Replay} replay The replay that plays.
  * @returns {void}
  */
-export function manageKeys() {
+export function resumeReplay(world, replay) {
+	restoreInput(world, input.replayPauseInput);
+	input.keys = replay.inputs[world.time];
+	input.mouseX = replay.mouseX[world.time];
+	input.mouseY = replay.mouseY[world.time];
+}
+
+/**
+ * Process the input of one tick and set the control flags of the player. In a level, the function records the input
+ * for the replay or plays back the replay.
+ *
+ * @param {import('./World.js').World} world The World that the stage shows.
+ * @param {import('./replay.js').Replay} replay The recording of the level, or the replay that plays.
+ * @param {boolean} replayMode True while the replay plays.
+ * @returns {boolean} True if the replay has fewer inputs than the level needs.
+ */
+export function manageKeys(world, replay, replayMode) {
+	let broken = false;
 	// Save the input state when the level time continues after a stop. A replay restores the state at this level time.
-	const inGame = game.isRunning() && ui.mode == 'play' && !ui.paused;
-	if (inGame && !game.replayMode && !input.lastTickInGame) game.replay.states[game.time] = captureInput();
-	else if (inGame && game.replayMode && game.replay.states[game.time]) restoreInput(game.replay.states[game.time]);
+	const inGame = world.isRunning() && ui.mode == 'play' && !ui.paused;
+	if (inGame && !replayMode && !input.lastTickInGame) replay.states[world.time] = captureInput(world);
+	else if (inGame && replayMode && replay.states[world.time]) restoreInput(world, replay.states[world.time]);
 	input.lastTickInGame = inGame;
 
-	if (game.isRunning() && ui.mode == 'play' && !game.replayMode) {
+	if (world.isRunning() && ui.mode == 'play' && !replayMode) {
 		input.mouseX = Math.round(input.mouseX);
 		input.mouseY = Math.round(input.mouseY);
-		game.replay.inputs[game.time] = input.keys;
-		game.replay.mouseX[game.time] = input.mouseX;
-		game.replay.mouseY[game.time] = input.mouseY;
-	} else if (game.isRunning() && ui.mode == 'play' && game.replayMode && !ui.paused) {
-		if (game.time < game.replay.inputs.length) {
-			input.keys = game.replay.inputs[game.time];
-			input.mouseX = game.replay.mouseX[game.time];
-			input.mouseY = game.replay.mouseY[game.time];
+		replay.inputs[world.time] = input.keys;
+		replay.mouseX[world.time] = input.mouseX;
+		replay.mouseY[world.time] = input.mouseY;
+	} else if (world.isRunning() && ui.mode == 'play' && replayMode && !ui.paused) {
+		if (world.time < replay.inputs.length) {
+			input.keys = replay.inputs[world.time];
+			input.mouseX = replay.mouseX[world.time];
+			input.mouseY = replay.mouseY[world.time];
 		} else {
-			reportBrokenReplay();
+			broken = true;
 		}
 	}
 
@@ -146,35 +152,13 @@ export function manageKeys() {
 		input.mousePressed = 0;
 	}
 
-	if (input.keys & KEY_CLEAR) {
-		//clear portals
-		if (input.oldKeys & KEY_CLEAR) input.keys &= ~KEY_CLEAR;
-		else game.player.askClear = true;
-	}
+	// a held clear key loses its bit, and the auto repeat of the keyboard sets the bit again
+	if (input.keys & KEY_CLEAR && input.oldKeys & KEY_CLEAR) input.keys &= ~KEY_CLEAR;
 
-	if (input.keys & KEY_LEFT) game.player.isLeft = 1;
-	if (!(input.keys & KEY_LEFT)) game.player.isLeft = 0;
-	if (input.keys & KEY_RIGHT) game.player.isRight = 1;
-	if (!(input.keys & KEY_RIGHT)) game.player.isRight = 0;
-	if (input.keys & KEY_DOWN) game.player.isDown = 1;
-	if (!(input.keys & KEY_DOWN)) game.player.isDown = 0;
-
-	//jump
-	if (
-		input.keys & KEY_JUMP &&
-		(ui.mode == 'test' || ui.mode == 'play') &&
-		game.abilities.jump &&
-		!game.portals.isInPortal(game.player)
-	) {
-		if (!(input.oldKeys & KEY_JUMP)) game.player.oldIsJump = game.player.isJump;
-		game.player.isJump = 1;
-	}
-	if (!(input.keys & KEY_JUMP)) {
-		if (input.oldKeys & KEY_JUMP) game.player.oldIsJump = game.player.isJump;
-		game.player.isJump = 0;
-	}
+	world.applyInput(input);
 
 	input.oldKeys = input.keys;
+	return broken;
 }
 
 /**

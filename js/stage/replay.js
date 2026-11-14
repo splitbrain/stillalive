@@ -13,9 +13,6 @@
  *   while the level time stands still, e.g. in a pause. The playback restores the state when the time continues.
  */
 
-import { restoreInput } from './inputState.js';
-import { game, input } from './state.js';
-
 /** @type {number} The length of an input state from captureInput(). */
 const STATE_LENGTH = 8;
 
@@ -121,16 +118,4 @@ export class Replay {
 		/** @type {Object<number, number[]>} The input state from captureInput() by level time. */
 		this.states = {};
 	}
-}
-
-/**
- * Continue a paused replay: restore the input state of the pause and the input of the current tick.
- *
- * @returns {void}
- */
-export function resumeReplay() {
-	restoreInput(input.replayPauseInput);
-	input.keys = game.replay.inputs[game.time];
-	input.mouseX = game.replay.mouseX[game.time];
-	input.mouseY = game.replay.mouseY[game.time];
 }

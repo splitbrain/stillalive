@@ -347,10 +347,9 @@ export function gravPipeFieldCount(page) {
  */
 export async function finishLevel(page) {
 	await page.evaluate(async () => {
-		const { openExit } = await import('/js/stage/entities/Cake.js');
 		const { Tile } = await import('/js/stage/tiles.js');
 		const world = window.__test.world();
-		openExit(world);
+		world.openExit();
 		// a tile is 16 pixels, and the player position is in 1/256 pixels
 		const exit = world.map.tiles.indexOf(Tile.EXIT);
 		if (exit < 0) throw new Error('The level has no exit tile.');
@@ -459,7 +458,7 @@ export async function runLevel(
 					break;
 				}
 			}
-			t.world().replayMode = false;
+			t.endReplay();
 			return lines.join('\n') + '\n';
 		},
 		{ campaign, level, ticks, seed, inputs, replay, skipBossIntro, interval: SNAPSHOT_INTERVAL },
@@ -475,8 +474,9 @@ export async function runLevel(
 export async function recordedReplay(page) {
 	const data = await page.evaluate(async () => {
 		const { encodeReplay } = await import('/js/stage/replay.js');
-		const world = window.__test.world();
-		return JSON.stringify(encodeReplay(world.replay, world.level.campaign, world.level.number));
+		const t = window.__test;
+		const world = t.world();
+		return JSON.stringify(encodeReplay(t.replay(), world.level.campaign, world.level.number));
 	});
 	return JSON.parse(data);
 }

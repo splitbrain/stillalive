@@ -1,5 +1,5 @@
 /**
- * The Platform object and its helper functions.
+ * The Platform object.
  */
 
 import { Body } from './Body.js';
@@ -43,15 +43,4 @@ export class Platform extends Body {
 			this.vx = -this.vx;
 		}
 	}
-}
-
-/**
- * Move the platforms. The platforms stand still during the level transitions.
- *
- * @param {import('../World.js').World} world The World.
- * @returns {void}
- */
-export function updatePlatforms(world) {
-	if (!world.isRunning()) return;
-	for (const p of world.platforms) p.move();
 }

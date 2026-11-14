@@ -1,5 +1,5 @@
 /**
- * The Crate object and its helper functions.
+ * The Crate object.
  */
 
 import { Throwable } from './Throwable.js';
@@ -236,32 +236,5 @@ export class Crate extends Throwable {
 		this.vx = 0;
 		this.vy = 0;
 		return false;
-	}
-}
-
-/**
- * Move the crates and remove the destroyed ones. A shrinking crate moves at half of its speed. The crates stand still
- * during the level transitions.
- *
- * @param {import('../World.js').World} world The World.
- * @returns {void}
- */
-export function updateCrates(world) {
-	for (let ci = 0; ci < world.crates.length; ci++) {
-		const c = world.crates[ci];
-		if (c.shrink > 0) {
-			c.x += c.vx >> 1;
-			c.y += c.vy >> 1;
-		}
-		if (world.isRunning()) {
-			c.update();
-			if (c.needKill) {
-				if (c.carried) world.player.carrying = null;
-				world.crates.splice(ci, 1);
-				ci--;
-				continue;
-			}
-			if (!world.objectInPortal) world.objectInPortal = world.portals.isInPortal(c);
-		}
 	}
 }

@@ -1,5 +1,5 @@
 /**
- * The Plasma object and its helper functions.
+ * The Plasma object.
  */
 
 import { Body } from './Body.js';
@@ -317,29 +317,6 @@ export class Plasma extends Body {
 					this.#fillSlot((x + i) >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS);
 					break;
 				}
-			}
-		}
-	}
-}
-
-/**
- * Advance the animation of the plasma balls, move them and remove the dead ones. The balls stand still during the
- * level transitions.
- *
- * @param {import('../World.js').World} world The World.
- * @returns {void}
- */
-export function updatePlasma(world) {
-	for (let pi = 0; pi < world.plasmaBall.length; pi++) {
-		const ball = world.plasmaBall[pi];
-		if (!ball.used) continue;
-		ball.animate();
-		if (world.isRunning()) {
-			ball.move();
-			if (!world.objectInPortal) world.objectInPortal = world.portals.isInPortal(ball);
-			if (ball.needKill) {
-				world.plasmaBall.splice(pi, 1);
-				pi--;
 			}
 		}
 	}

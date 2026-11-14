@@ -15,7 +15,7 @@ import {
 	MOUSE_MIDDLE,
 	MOUSE_RIGHT,
 } from './constants.js';
-import { game, input, ui } from './state.js';
+import { input, ui } from './state.js';
 
 /**
  * The key bits for the movement keys, by the physical position of the key.
@@ -50,19 +50,29 @@ function isForeignTarget(event) {
 	return target.isContentEditable || target.closest('input, textarea, select, dialog') !== null;
 }
 
+/**
+ * The state of the stage element that the handlers read, and the end of the test run.
+ *
+ * @typedef {object} StageAccess
+ * @property {() => import('./World.js').World} world Get the World that the stage shows.
+ * @property {() => boolean} replaying Check if a replay plays.
+ * @property {() => void} stopTest End the test run and go back to the editor.
+ */
+
 /** @type {import('./GameStage.js').GameStage} The stage element that the keys command. */
 let stage;
 
-/** @type {import('./Editor.js').Editor} The editor of the stage. The Escape key and the Enter key end its test run. */
-let editor;
+/** @type {StageAccess} The state of the stage element. */
+let access;
 
 /**
  * Check if a level runs and can pause.
  *
+ * @param {import('./World.js').World} world The World that the stage shows.
  * @returns {boolean} True in a level before its end.
  */
-export function canPause() {
-	return ui.mode == 'play' && !game.reachedExit();
+export function canPause(world) {
+	return ui.mode == 'play' && !world.reachedExit();
 }
 
 /**
@@ -73,9 +83,9 @@ export function canPause() {
  * @returns {void}
  */
 function onFocusLost() {
-	if (game.replayMode) return;
+	if (access.replaying()) return;
 	input.keys = 0;
-	if (canPause() && !ui.paused) stage.dispatchEvent(new Event('focuslost'));
+	if (canPause(access.world()) && !ui.paused) stage.dispatchEvent(new Event('focuslost'));
 }
 
 /**
@@ -107,13 +117,13 @@ function onKeyUp(event) {
 	if (event.ctrlKey && key === 'y') input.redoPressed = 1;
 
 	if (event.key === 'Escape') {
-		if (game.replayMode) stage.dispatchEvent(new Event('replaystop'));
+		if (access.replaying()) stage.dispatchEvent(new Event('replaystop'));
 		else if (ui.paused) stage.resume();
-		else if (canPause()) stage.pause();
-		else if (ui.mode == 'test') editor.stopTest();
+		else if (canPause(access.world())) stage.pause();
+		else if (ui.mode == 'test') access.stopTest();
 	}
 
-	if (event.key === 'Enter' && ui.mode == 'test') editor.stopTest();
+	if (event.key === 'Enter' && ui.mode == 'test') access.stopTest();
 }
 
 /**
@@ -138,7 +148,7 @@ function onPointer(event) {
 	if (event.buttons & 4) buttons |= MOUSE_MIDDLE;
 	input.keys = (input.keys & ~MOUSE_BITS) | buttons;
 
-	if (!game.replayMode || ui.paused) {
+	if (!access.replaying() || ui.paused) {
 		const rect = canvas.getBoundingClientRect();
 		[input.mouseX, input.mouseY] = playfieldPoint(
 			event.clientX - rect.left - canvas.clientLeft,
@@ -152,12 +162,12 @@ function onPointer(event) {
  *
  * @param {HTMLCanvasElement} canvas The canvas that takes the pointer input.
  * @param {import('./GameStage.js').GameStage} element The stage element that the keys command.
- * @param {import('./Editor.js').Editor} stageEditor The editor of the stage.
+ * @param {StageAccess} stageAccess The state of the stage element.
  * @returns {void}
  */
-export function setupInput(canvas, element, stageEditor) {
+export function setupInput(canvas, element, stageAccess) {
 	stage = element;
-	editor = stageEditor;
+	access = stageAccess;
 	window.addEventListener('keydown', onKeyDown);
 	window.addEventListener('keyup', onKeyUp);
 	window.addEventListener('blur', onFocusLost);

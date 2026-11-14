@@ -18,14 +18,13 @@ import {
 	sfx_tick,
 } from './audio.js';
 import { clearCanvas, ctx, setCanvas, watchCanvasSize } from './canvas.js';
-import { PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH } from './constants.js';
+import { PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, Transition } from './constants.js';
 import { Editor } from './Editor.js';
-import { tick } from './game.js';
 import { canPause, setupInput } from './input.js';
-import { captureInput, unclick } from './inputState.js';
+import { captureInput, manageKeys, resumeReplay, unclick } from './inputState.js';
 import { getFps, startLoop } from './loop.js';
 import { render } from './render/frame.js';
-import { decodeReplay, resumeReplay } from './replay.js';
+import { Replay, decodeReplay, encodeReplay } from './replay.js';
 import { input, setGame, stageEvents, ui } from './state.js';
 import { World } from './World.js';
 import { Value } from '../value.js';
@@ -103,6 +102,15 @@ export class GameStage extends HTMLElement {
 	/** @type {World|null} The World that the stage shows, or null before the first connection. */
 	#world = null;
 
+	/** @type {Replay} The recording of the level, or the replay that plays. */
+	#replay = new Replay();
+
+	/** @type {boolean} True while a replay plays. */
+	#replayMode = false;
+
+	/** @type {number} The effect of the opening transition of the next level, a value of Transition. */
+	#transition = Transition.HORIZONTAL_LINES;
+
 	/**
 	 * Set up the canvas, the input and the game loop when the element is first connected to the page.
 	 *
@@ -123,7 +131,11 @@ export class GameStage extends HTMLElement {
 		ctx.font = 'bold 10px Arial';
 
 		watchCanvasSize();
-		setupInput(canvas, this, this.#editor);
+		setupInput(canvas, this, {
+			world: () => this.#world,
+			replaying: () => this.#replayMode,
+			stopTest: () => this.#endTest(),
+		});
 
 		this.#setWorld(new World()); // the input reads the player before the first level starts
 
@@ -150,7 +162,7 @@ export class GameStage extends HTMLElement {
 		this.#leave();
 		ui.mode = 'play';
 		this.#startLevel(level, restart, recorded);
-		unclick();
+		unclick(input);
 		this.#publish();
 	}
 
@@ -187,7 +199,7 @@ export class GameStage extends HTMLElement {
 	 */
 	test() {
 		if (ui.mode != 'edit') return;
-		this.#setWorld(this.#editor.startTest());
+		this.#setWorld(this.#editor.startTest(this.#transition));
 		this.#publish();
 	}
 
@@ -198,7 +210,7 @@ export class GameStage extends HTMLElement {
 	 */
 	stopTest() {
 		if (ui.mode != 'test') return;
-		this.#editor.stopTest();
+		this.#endTest();
 		this.#publish();
 	}
 
@@ -208,11 +220,11 @@ export class GameStage extends HTMLElement {
 	 * @returns {void}
 	 */
 	pause() {
-		if (!canPause() || ui.paused) return;
+		if (!canPause(this.#world) || ui.paused) return;
 		ui.paused = true;
-		if (this.#world.replayMode) {
-			input.replayPauseInput = captureInput();
-			unclick();
+		if (this.#replayMode) {
+			input.replayPauseInput = captureInput(this.#world);
+			unclick(input);
 			input.keys = 0;
 		}
 		this.#publish();
@@ -226,8 +238,8 @@ export class GameStage extends HTMLElement {
 	resume() {
 		if (!ui.paused) return;
 		ui.paused = false;
-		unclick();
-		if (this.#world.replayMode) resumeReplay();
+		unclick(input);
+		if (this.#replayMode) resumeReplay(this.#world, this.#replay);
 		this.#publish();
 	}
 
@@ -239,7 +251,7 @@ export class GameStage extends HTMLElement {
 	 * @returns {void}
 	 */
 	setSpeed(speed) {
-		if (!this.#world.replayMode) return;
+		if (!this.#replayMode) return;
 		this.#speed = speed;
 		this.#publish();
 	}
@@ -394,7 +406,9 @@ export class GameStage extends HTMLElement {
 	 * @returns {void}
 	 */
 	#startLevel(level, restart, replay) {
-		this.#setWorld(World.forLevel(level, { restart, replay }));
+		this.#replayMode = replay !== null;
+		this.#replay = replay ?? new Replay();
+		this.#setWorld(World.forLevel(level, { restart, replay: this.#replayMode, transition: this.#transition }));
 		ui.paused = false;
 		input.keys = 0;
 		input.oldKeys = 0;
@@ -406,12 +420,10 @@ export class GameStage extends HTMLElement {
 	 * @returns {void}
 	 */
 	#leave() {
-		if (ui.mode == 'test') {
-			this.#editor.stopTest(false);
-		}
+		if (ui.mode == 'test') this.#setWorld(this.#editor.stopTest(false));
 		if (ui.mode == 'edit') this.#editor.leave();
 		ui.paused = false;
-		this.#world.replayMode = false;
+		this.#replayMode = false;
 		this.#speed = 1;
 		this.#world.events = null;
 		this.#world.shakeX = 0;
@@ -425,12 +437,60 @@ export class GameStage extends HTMLElement {
 	 */
 	#step() {
 		setSoundMuted(this.#speed > 1);
-		for (let i = 0; i < this.#speed; i++) {
-			tick(this.#editor);
-			if (this.#world.outcome == 'died') this.#startLevel(this.#world.level, true, null);
-		}
+		for (let i = 0; i < this.#speed; i++) this.#tick();
 		setSoundMuted(false);
 		this.#publish();
+	}
+
+	/**
+	 * Run one tick in the current mode, and act on the outcome of a level tick. The death fade starts the level again,
+	 * and the closing transition finishes the level or ends the test run.
+	 *
+	 * @returns {void}
+	 */
+	#tick() {
+		const world = this.#world;
+		if (manageKeys(world, this.#replay, this.#replayMode)) this.#stopBrokenReplay();
+		if (ui.mode == 'edit') {
+			this.#editor.update();
+			return;
+		}
+		if ((ui.mode != 'play' && ui.mode != 'test') || ui.paused) return;
+
+		world.tick(input);
+		this.#transition = world.transition;
+		if (!world.replaying) this.#replayMode = false;
+		if (world.outcome == 'died') {
+			this.#startLevel(world.level, true, null);
+		} else if (world.outcome == 'brokenReplay') {
+			this.#stopBrokenReplay();
+		} else if (world.outcome == 'finished' && ui.mode == 'test') {
+			this.#endTest();
+		} else if (world.outcome == 'finished') {
+			const replay = encodeReplay(this.#replay, world.level.campaign, world.level.number);
+			stageEvents.push({ type: 'finished', detail: { time: world.time, replay } });
+		}
+	}
+
+	/**
+	 * End the test run and go back to the editor.
+	 *
+	 * @returns {void}
+	 */
+	#endTest() {
+		this.#setWorld(this.#editor.stopTest());
+	}
+
+	/**
+	 * Stop a replay that has fewer inputs than the level needs or in which the player died. The stage becomes idle and
+	 * reports the broken replay with the event "brokenreplay".
+	 *
+	 * @returns {void}
+	 */
+	#stopBrokenReplay() {
+		this.#replayMode = false;
+		ui.mode = 'idle';
+		stageEvents.push({ type: 'brokenreplay', detail: null });
 	}
 
 	/**
@@ -470,6 +530,8 @@ export class GameStage extends HTMLElement {
 		window.__test = {
 			stage: this,
 			world: () => this.#world,
+			replay: () => this.#replay,
+			endReplay: () => (this.#replayMode = false),
 			input,
 			tick: () => this.#step(),
 			render: () => render(this.#editor),

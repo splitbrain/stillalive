@@ -4,7 +4,6 @@
 
 import { Body } from './Body.js';
 import { Direction, GRAVITY, TILE_SIZE } from '../constants.js';
-import { input } from '../state.js';
 import { getCos, getSin } from '../utils.js';
 
 /**
@@ -102,8 +101,9 @@ export class Throwable extends Body {
 		this.x = x - (this.pX << 7);
 		this.y = y - (this.pY << 7);
 
-		const cos = getCos(input.mouseX, input.mouseY, x >> 8, y >> 8);
-		const sin = getSin(input.mouseX, input.mouseY, x >> 8, y >> 8);
+		const { mouseX, mouseY } = this.world.input;
+		const cos = getCos(mouseX, mouseY, x >> 8, y >> 8);
+		const sin = getSin(mouseX, mouseY, x >> 8, y >> 8);
 
 		this.vx = cos * (TILE_SIZE << 8);
 		this.vy = sin * (TILE_SIZE << 8);

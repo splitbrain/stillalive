@@ -1,5 +1,5 @@
 /**
- * The Turret object and its helper functions.
+ * The Turret object.
  */
 
 import { Throwable } from './Throwable.js';
@@ -233,19 +233,5 @@ export class Turret extends Throwable {
 				this.rotation = 10;
 			}
 		}
-	}
-}
-
-/**
- * Move the turrets. The turrets stand still during the level transitions.
- *
- * @param {import('../World.js').World} world The World.
- * @returns {void}
- */
-export function updateTurrets(world) {
-	if (!world.isRunning()) return;
-	for (const t of world.turrets) {
-		t.update();
-		if (!world.objectInPortal) world.objectInPortal = world.portals.isInPortal(t);
 	}
 }

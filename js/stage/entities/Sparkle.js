@@ -58,22 +58,6 @@ export function createPortalGlow(world, p) {
 }
 
 /**
- * Move and fade all sparkles for one tick and remove the used up ones.
- *
- * @param {import('../World.js').World} world The World.
- * @returns {void}
- */
-export function updateSparkles(world) {
-	for (let i = 0; i < world.sparkles.length; i++) {
-		world.sparkles[i].move();
-		if (world.sparkles[i].fading <= 0) {
-			world.sparkles.splice(i, 1);
-			i--;
-		}
-	}
-}
-
-/**
  * Create sparkles around a point, for example for a collected cake or for smoke.
  *
  * @param {import('../World.js').World} world The World.

@@ -2,8 +2,6 @@
  * The shared state of the stage.
  */
 
-import { Transition } from './constants.js';
-
 /** @type {import('./World.js').World} The World of the level, the preview or the editor map that the stage shows. */
 export let game = null;
 
@@ -23,8 +21,6 @@ export const ui = {
 	mode: 'idle',
 	/** @type {boolean} True while the level time stands still for a pause. */
 	paused: false,
-	/** @type {number} The transition effect of the level end, chosen at random. */
-	transition: Transition.HORIZONTAL_LINES,
 };
 
 /** @type {{type: string, detail: *}[]} The events of the stage from a tick. The stage element dispatches them. */

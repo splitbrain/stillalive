@@ -6,8 +6,7 @@ import { Direction, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, TILE_SIZE, TILE_SIZE_BITS
 import { Tile } from '../tiles.js';
 
 /**
- * The area in front of a gravitational pipe that moves objects. rebuildGravPipeFields() builds the fields again in
- * each tick.
+ * The area in front of a gravitational pipe that moves objects. The World builds the fields again in each tick.
  */
 class GravPipeField {
 	/**
@@ -35,27 +34,6 @@ class GravPipeField {
 }
 
 /**
- * Build the pipe fields of all gravitational pipes again. A field reaches from the gravitational pipe to the first
- * wall or platform. At a portal, the field continues from the other portal.
- *
- * @param {import('../World.js').World} world The World.
- * @returns {void}
- */
-export function rebuildGravPipeFields(world) {
-	if (world.gravPipes.length == 0) return;
-	world.gravPipeFields = new Array();
-	for (const t of world.gravPipes) {
-		let vx = 0;
-		let vy = 0;
-		if (t.dir == Direction.RIGHT) vx = 1;
-		else if (t.dir == Direction.LEFT) vx = -1;
-		else if (t.dir == Direction.UP) vy = -1;
-		else if (t.dir == Direction.DOWN) vy = 1;
-		traceGravPipeField(world, t.x >> 8, t.y >> 8, vx, vy);
-	}
-}
-
-/**
  * Find the end of a pipe field and add the field. At a portal, the trace continues from the other portal with a
  * second field. The trace leaves each portal only once, so the field between two facing portals ends.
  *
@@ -66,7 +44,7 @@ export function rebuildGravPipeFields(world) {
  * @param {number} vy The vertical direction of the push, -1, 0 or 1.
  * @returns {void}
  */
-function traceGravPipeField(world, sx, sy, vx, vy) {
+export function traceGravPipeField(world, sx, sy, vx, vy) {
 	let tile, p1, p2;
 	const exits = [];
 	let y = sy;

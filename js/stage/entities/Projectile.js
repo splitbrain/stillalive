@@ -1,5 +1,5 @@
 /**
- * The Projectile object and its helper functions.
+ * The Projectile object.
  */
 
 import { Body } from './Body.js';
@@ -62,29 +62,6 @@ export class Projectile extends Body {
 			}
 		} else {
 			if (--this.timer < 0) this.timer = 0;
-		}
-	}
-}
-
-/**
- * Move the razor wheels of the boss, kill the player on a hit and remove the stopped wheels after their timer.
- *
- * @param {import('../World.js').World} world The World.
- * @returns {void}
- */
-export function updateProjectiles(world) {
-	for (let pi = 0; pi < world.projectiles.length; pi++) {
-		const p = world.projectiles[pi];
-		p.move();
-		if (!p.needKill && p.overlaps(world.player)) {
-			world.projectiles.splice(pi, 1);
-			world.player.life = -200;
-			world.player.recoveryTime = 180;
-			return;
-		}
-		if (p.needKill && p.timer == 0) {
-			world.projectiles.splice(pi, 1);
-			pi--;
 		}
 	}
 }

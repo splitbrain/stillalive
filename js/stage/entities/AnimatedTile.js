@@ -1,5 +1,5 @@
 /**
- * The AnimatedTile object and its helper functions.
+ * The AnimatedTile object.
  */
 
 import { ORDERED, RANDOM } from '../constants.js';
@@ -60,14 +60,4 @@ export class AnimatedTile {
 			else this.current++;
 		}
 	}
-}
-
-/**
- * Advance the frames of the animated tiles.
- *
- * @param {import('../World.js').World} world The World.
- * @returns {void}
- */
-export function animateTiles(world) {
-	for (const tile of world.animatedTiles) tile.animate();
 }

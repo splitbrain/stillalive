@@ -6,7 +6,7 @@ import { Throwable } from './Throwable.js';
 import { playSound, playSoundIfFinished, sfx_explode, sfx_pain, sfx_shoot } from '../audio.js';
 import { Ground, PLAYFIELD_WIDTH, SparkleType, TILE_SIZE } from '../constants.js';
 import { Platform } from './Platform.js';
-import { Sparkle } from './Sparkle.js';
+import { ShotHitSparkle } from './sparkles.js';
 import { Tile } from '../tiles.js';
 import { random, toPixels, toSubpixels } from '../utils.js';
 
@@ -214,15 +214,13 @@ export class Turret extends Throwable {
 
 		for (let i = 0; i < 5; i++) {
 			this.world.addSparkle(
-				new Sparkle(
+				new ShotHitSparkle(
 					this.world,
-					SparkleType.SHOT_HIT,
 					player.x + (toSubpixels(this.width) >> 1) + random(toSubpixels(-8), toSubpixels(8)),
 					player.y + (toSubpixels(this.height) >> 2),
 					random(512, 1024) * this.dir,
 					random(toSubpixels(-3), 0),
 					50,
-					4,
 				),
 			);
 		}

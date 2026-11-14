@@ -12,7 +12,6 @@ import {
 	NUM_TILES,
 	PLAYFIELD_HEIGHT,
 	PLAYFIELD_WIDTH,
-	SparkleType,
 	TILE_SIZE,
 	TILE_SIZE_BITS,
 } from '../constants.js';
@@ -213,9 +212,8 @@ function drawSparkles(world) {
 	for (const sparkle of world.sparkles) {
 		if (sparkle.fading <= 0) continue;
 		const scale = sparkle.fading / 255;
-		// a fading sparkle shrinks around its middle, and blood drops sit lower
-		let offset = 9 - scale * 9;
-		if (sparkle.type === SparkleType.LOW_LIFE || sparkle.type === SparkleType.SHOT_HIT) offset -= 8;
+		// a fading sparkle shrinks around its middle
+		const offset = 9 - scale * 9 + sparkle.drawOffset;
 		drawImage(
 			sparkleImage,
 			0,

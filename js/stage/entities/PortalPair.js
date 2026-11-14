@@ -3,11 +3,11 @@
  */
 
 import { playSound, sfx_cancelPortals, sfx_enterPortal, sfx_noPortal, sfx_portal } from '../audio.js';
-import { Direction, DIRECTIONS, SparkleType, TILE_SIZE } from '../constants.js';
+import { Direction, DIRECTIONS, TILE_SIZE } from '../constants.js';
 import { Crate } from './Crate.js';
 import { Platform } from './Platform.js';
 import { Portal } from './Portal.js';
-import { Sparkle } from './Sparkle.js';
+import { PortalGlow, PortalShotSparkle } from './sparkles.js';
 import { isTileKind, Tile, TileKind } from '../tiles.js';
 import { getCos, getSin, inScreen, random, toPixels, toSubpixels } from '../utils.js';
 
@@ -60,7 +60,7 @@ export class PortalPair {
 		portal.vx = getCos(targetX, targetY, startX, startY) * 256;
 		portal.vy = getSin(targetX, targetY, startX, startY) * 256;
 
-		this.world.removeSparkles(SparkleType.PORTAL_SHOT, index);
+		this.world.removeSparkles(PortalShotSparkle, index);
 
 		let steps = 0;
 		let bounces = 0;
@@ -89,9 +89,8 @@ export class PortalPair {
 			}
 
 			if (steps > 15 && steps % 6 === 1) {
-				const sparkle = new Sparkle(
+				const sparkle = new PortalShotSparkle(
 					this.world,
-					SparkleType.PORTAL_SHOT,
 					x + random(toSubpixels(-5), toSubpixels(5)) - toSubpixels(8),
 					y + random(toSubpixels(-5), toSubpixels(5)) - toSubpixels(8),
 					random(96, 192),
@@ -372,7 +371,7 @@ export class PortalPair {
 		if (!this.list[0].used && !this.list[1].used) return;
 		for (const [i, portal] of this.list.entries()) {
 			portal.used = false;
-			this.world.removeSparkles(SparkleType.PORTAL_GLOW, i);
+			this.world.removeSparkles(PortalGlow, i);
 		}
 		playSound(sfx_cancelPortals);
 	}

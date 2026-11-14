@@ -25,12 +25,11 @@ import {
 	MouseButton,
 	PIPE_SPEED,
 	PLAYFIELD_HEIGHT,
-	SparkleType,
 	TILE_SIZE,
 } from '../constants.js';
 import { Body } from './Body.js';
 import { Platform } from './Platform.js';
-import { Sparkle } from './Sparkle.js';
+import { DeathSparkle, LowLifeSparkle, TeleportSparkle } from './sparkles.js';
 import { isTileKind, TileKind } from '../tiles.js';
 import { getDistance, random, toSubpixels } from '../utils.js';
 
@@ -117,15 +116,13 @@ export class Player extends Body {
 		if (this.pixelY >= PLAYFIELD_HEIGHT) return;
 		for (let i = 0; i < 20; i++) {
 			this.world.addSparkle(
-				new Sparkle(
+				new DeathSparkle(
 					this.world,
-					SparkleType.DEATH,
 					this.x + (toSubpixels(this.width) >> 1) + random(toSubpixels(-14), toSubpixels(8)),
 					this.y + (toSubpixels(this.height) >> 2),
 					0,
 					random(toSubpixels(-2), 0),
 					150,
-					4,
 				),
 			);
 		}
@@ -160,9 +157,8 @@ export class Player extends Body {
 	 */
 	#teleportSparkles(number, fading, color) {
 		for (let i = 0; i < number; i++) {
-			const sparkle = new Sparkle(
+			const sparkle = new TeleportSparkle(
 				this.world,
-				SparkleType.TELEPORT,
 				this.x + (toSubpixels(this.width) >> 1) + random(toSubpixels(-8), toSubpixels(8)),
 				this.y + (toSubpixels(this.height) >> 1) + random(toSubpixels(-16), toSubpixels(16)),
 				random(32, 64),
@@ -344,15 +340,13 @@ export class Player extends Body {
 		if (this.life > MAX_LIFE >> 1 || this.world.time % this.lifePoints !== 0) return;
 		for (let i = 0; i < 3; i++) {
 			this.world.addSparkle(
-				new Sparkle(
+				new LowLifeSparkle(
 					this.world,
-					SparkleType.LOW_LIFE,
 					this.x + (toSubpixels(this.width) >> 3) + random(toSubpixels(-5), toSubpixels(5)),
 					this.y + (toSubpixels(this.height) >> 2) + random(toSubpixels(-5), toSubpixels(5)),
 					0,
 					0,
 					100,
-					4,
 				),
 			);
 		}

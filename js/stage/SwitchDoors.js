@@ -2,7 +2,8 @@
  * The SwitchDoors object.
  */
 
-import { Direction, DIRECTIONS, SparkleType, TILE_SIZE } from './constants.js';
+import { Direction, DIRECTIONS, TILE_SIZE } from './constants.js';
+import { PortalGlow } from './entities/sparkles.js';
 import { FIRST_OF_KIND, Tile, TileKind } from './tiles.js';
 import { toPixels } from './utils.js';
 
@@ -65,7 +66,7 @@ export class SwitchDoors {
 			for (let j = 0; j < 2 * TILE_SIZE; j++) {
 				if (world.map.atPixel(onSideWall ? x : x + j, onSideWall ? y + j : y) === door) {
 					portal.used = false;
-					world.removeSparkles(SparkleType.PORTAL_GLOW, i);
+					world.removeSparkles(PortalGlow, i);
 					break;
 				}
 			}

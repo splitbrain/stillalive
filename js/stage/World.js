@@ -23,7 +23,7 @@ import { traceGravPipeField } from './entities/GravPipeField.js';
 import { Plasma } from './entities/Plasma.js';
 import { Player } from './entities/Player.js';
 import { PortalPair } from './entities/PortalPair.js';
-import { Sparkle } from './entities/Sparkle.js';
+import { PortalGlow, PuffSparkle } from './entities/sparkles.js';
 import { LevelEvents } from './LevelEvents.js';
 import { LevelPhase } from './LevelPhase.js';
 import { createObjects } from './mapObjects.js';
@@ -48,6 +48,7 @@ const GLOW_START_OFFSETS = {
 
 /** @typedef {import('./entities/Crate.js').Crate} Crate */
 /** @typedef {import('./entities/Platform.js').Platform} Platform */
+/** @typedef {import('./entities/Sparkle.js').Sparkle} Sparkle */
 
 /**
  * A solid thing at a point: a tile id, a crate or a platform. The tile id Tile.EMPTY means that nothing solid is there.
@@ -94,7 +95,7 @@ export class World {
 	animatedTiles = [];
 	/** @type {import('./entities/Projectile.js').Projectile[]} The projectiles of the boss. */
 	projectiles = [];
-	/** @type {import('./entities/Sparkle.js').Sparkle[]} The sparkles. */
+	/** @type {Sparkle[]} The sparkles. */
 	sparkles = [];
 	/** @type {Player} The player. */
 	player;
@@ -508,14 +509,14 @@ export class World {
 	}
 
 	/**
-	 * Remove the sparkles of one type and color.
+	 * Remove the sparkles of one kind and color.
 	 *
-	 * @param {number} type The sparkle type, a value of SparkleType.
+	 * @param {new (...args: any[]) => Sparkle} kind The class of the sparkles, for example PortalGlow.
 	 * @param {number} color The color index.
 	 * @returns {void}
 	 */
-	removeSparkles(type, color) {
-		this.sparkles = this.sparkles.filter((sparkle) => sparkle.type !== type || sparkle.color !== color);
+	removeSparkles(kind, color) {
+		this.sparkles = this.sparkles.filter((sparkle) => !(sparkle instanceof kind) || sparkle.color !== color);
 	}
 
 	/**
@@ -530,18 +531,14 @@ export class World {
 		// the glow moves away from the wall
 		const { dx, dy } = DIRECTIONS[DIRECTIONS[portal.direction].opposite];
 		const offset = GLOW_START_OFFSETS[portal.direction];
-		this.removeSparkles(SparkleType.PORTAL_GLOW, index);
+		this.removeSparkles(PortalGlow, index);
 		for (let i = 0; i < 13; i++) {
 			const x = portal.x + (onSideWall ? 0 : toSubpixels(i * 2));
 			const y = portal.y + (onSideWall ? toSubpixels(i * 2) : 0);
-			const sparkle = new Sparkle(this, SparkleType.PORTAL_GLOW, x, y, 0, 0, 200, index);
-			sparkle.startX = x + toSubpixels(offset.x);
-			sparkle.startY = y + toSubpixels(offset.y);
-			sparkle.portalIndex = index;
 			const speed = random(128, 384);
-			sparkle.vx = dx * speed;
-			sparkle.vy = dy * speed;
-			this.addSparkle(sparkle);
+			this.addSparkle(
+				new PortalGlow(this, x, y, dx * speed, dy * speed, x + toSubpixels(offset.x), y + toSubpixels(offset.y), index),
+			);
 		}
 	}
 
@@ -556,12 +553,11 @@ export class World {
 	 * @returns {void}
 	 */
 	createCakeOrSmokeSparkles(x, y, type, number, size) {
-		const color = type === SparkleType.CAKE ? 2 : 3;
+		const color = type === SparkleType.CAKE ? PuffSparkle.CAKE : PuffSparkle.SMOKE;
 		for (let i = 0; i < number; i++) {
 			this.addSparkle(
-				new Sparkle(
+				new PuffSparkle(
 					this,
-					type,
 					x + random(toSubpixels(-8), toSubpixels(8)),
 					y + random(toSubpixels(-8), toSubpixels(8)),
 					random(-192, 192),

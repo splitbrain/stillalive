@@ -228,7 +228,7 @@ const PORTAL_CHECK_SIDES = [Direction.DOWN, Direction.UP, Direction.LEFT, Direct
 /**
  * Find the portal on one side that an object touches. The function does not change the object.
  *
- * @param {import('./entities/Body.js').Body} obj The object. It must also have the speeds vx and vy and the entity type.
+ * @param {import('./entities/Body.js').Body} obj The object. It must also have the speeds vx and vy.
  * @param {number} side The side of the wall with the portal: Direction.LEFT, Direction.RIGHT, Direction.DOWN for a
  *     floor or Direction.UP for a ceiling.
  * @returns {{index: number, deep: boolean}|null} The index of the portal, and true in deep if the object moves into
@@ -237,8 +237,7 @@ const PORTAL_CHECK_SIDES = [Direction.DOWN, Direction.UP, Direction.LEFT, Direct
 function findPortal(obj, side) {
 	const x = obj.x >> 8;
 	const y = obj.y >> 8;
-	const vertical = side == Direction.DOWN || side == Direction.UP;
-	if (vertical && obj.type == 'plasma' && obj.vy == 0) return null;
+	if (!obj.canEnterPortal(side)) return null;
 
 	for (let j = 0; j < 2; j++) {
 		const portal = game.portals[j];
@@ -271,7 +270,7 @@ function findPortal(obj, side) {
 /**
  * Check if an object touches a portal on one side. The function does not change the object.
  *
- * @param {import('./entities/Body.js').Body} obj The object. It must also have the speeds vx and vy and the entity type.
+ * @param {import('./entities/Body.js').Body} obj The object. It must also have the speeds vx and vy.
  * @param {number} side The side of the wall with the portal, a value of Direction.
  * @returns {import('./entities/Portal.js').Portal|null} The portal, or null if the object touches no portal on this
  *     side.
@@ -284,7 +283,7 @@ export function portalAt(obj, side) {
 /**
  * Check if an object touches a portal. The function does not change the object.
  *
- * @param {import('./entities/Body.js').Body} obj The object. It must also have the speeds vx and vy and the entity type.
+ * @param {import('./entities/Body.js').Body} obj The object. It must also have the speeds vx and vy.
  * @returns {import('./entities/Portal.js').Portal|null} The portal, or null if the object touches no portal.
  */
 export function isInPortal(obj) {
@@ -299,7 +298,7 @@ export function isInPortal(obj) {
  * Move an object through a portal on one side. An object in the portal moves to the middle of the portal. The object
  * teleports to the other portal when it moves into the portal far enough.
  *
- * @param {import('./entities/Body.js').Body} obj The object. It must also have the speeds vx and vy and the entity type.
+ * @param {import('./entities/Body.js').Body} obj The object. It must also have the speeds vx and vy.
  * @param {number} side The side of the wall with the portal, a value of Direction.
  * @returns {import('./entities/Portal.js').Portal|null} The portal, or null if the object touches no portal on this
  *     side.
@@ -308,21 +307,15 @@ export function passPortal(obj, side) {
 	const found = findPortal(obj, side);
 	if (!found) return null;
 	const portal = game.portals[found.index];
-	if (side == Direction.LEFT || side == Direction.RIGHT) {
-		const gap = (2 * TILE_SIZE - obj.pY) >> 1;
-		obj.y = ((portal.y >> 8) + gap) << 8;
-		if (!game.boss || obj.type != 'plasma') obj.vy = 0;
-	} else {
-		obj.x = ((portal.x >> 8) + TILE_SIZE / 2) << 8;
-	}
-	if (found.deep) teleport(found.index, obj);
+	obj.alignToPortal(portal, side);
+	if (found.deep) teleport(portal, game.portals[1 - found.index], obj);
 	return portal;
 }
 
 /**
  * Move an object through a portal on any side.
  *
- * @param {import('./entities/Body.js').Body} obj The object. It must also have the speeds vx and vy and the entity type.
+ * @param {import('./entities/Body.js').Body} obj The object. It must also have the speeds vx and vy.
  * @returns {import('./entities/Portal.js').Portal|null} The portal, or null if the object touches no portal.
  */
 export function passPortals(obj) {
@@ -334,114 +327,31 @@ export function passPortals(obj) {
 }
 
 /**
- * Move an object from one portal to the other and turn its speed to the direction of the exit portal.
+ * Move an object from one portal to the other. The object then turns its speed to the direction of the exit portal.
  *
- * @param {number} p The index of the portal that the object enters.
+ * @param {import('./entities/Portal.js').Portal} entry The portal that the object enters.
+ * @param {import('./entities/Portal.js').Portal} exit The other portal.
  * @param {import('./entities/Body.js').Body} obj The object.
  * @returns {void}
  */
-function teleport(p, obj) {
-	let gap, swap;
-	const entry = game.portals[p].direction;
-	const exit = game.portals[1 - p].direction;
+function teleport(entry, exit, obj) {
+	let gap;
 
 	playSound(sfx_enterPortal);
 
-	if (obj.type == 'turret') {
-		obj.canExplode = true;
-	}
-
-	if (obj.type == 'player') {
-		game.player.teleportTime = p == 0 ? 42 : -42;
-	}
-
-	if (exit == Direction.RIGHT || exit == Direction.LEFT) {
+	if (exit.direction == Direction.RIGHT || exit.direction == Direction.LEFT) {
 		gap = (2 * TILE_SIZE - obj.pY) >> 1;
-		obj.x = game.portals[1 - p].x - ((obj.pX >> 1) << 8);
-		obj.y = game.portals[1 - p].y + (gap << 8);
-	} else if (exit == Direction.UP) {
-		obj.x = game.portals[1 - p].x + ((TILE_SIZE / 2) << 8);
-		obj.y = game.portals[1 - p].y - ((obj.pY >> 1) << 8) + (4 << 8);
-	} else if (exit == Direction.DOWN) {
-		obj.x = game.portals[1 - p].x + ((TILE_SIZE / 2) << 8);
-		obj.y = game.portals[1 - p].y - ((obj.pY >> 1) << 8);
+		obj.x = exit.x - ((obj.pX >> 1) << 8);
+		obj.y = exit.y + (gap << 8);
+	} else if (exit.direction == Direction.UP) {
+		obj.x = exit.x + ((TILE_SIZE / 2) << 8);
+		obj.y = exit.y - ((obj.pY >> 1) << 8) + (4 << 8);
+	} else if (exit.direction == Direction.DOWN) {
+		obj.x = exit.x + ((TILE_SIZE / 2) << 8);
+		obj.y = exit.y - ((obj.pY >> 1) << 8);
 	}
 
-	if (!game.boss || obj.type != 'plasma') {
-		if (entry == Direction.DOWN && exit == Direction.DOWN) {
-			obj.vy = -obj.vy;
-			if (obj.vy > -1100) obj.vy = -1100;
-		} else if (entry == Direction.DOWN && exit == Direction.LEFT) {
-			swap = obj.vx;
-			obj.vx = obj.vy;
-			obj.vy = swap;
-		} else if (entry == Direction.DOWN && exit == Direction.RIGHT) {
-			swap = obj.vx;
-			obj.vx = -obj.vy;
-			obj.vy = swap;
-		} else if (entry == Direction.LEFT && exit == Direction.DOWN) {
-			obj.vy = -1000;
-		} else if (entry == Direction.RIGHT && exit == Direction.DOWN) {
-			obj.vy = -1000;
-		} else if (entry == Direction.RIGHT && exit == Direction.RIGHT) {
-			obj.vx = -1000;
-		} else if (entry == Direction.LEFT && exit == Direction.LEFT) {
-			obj.vx = 1000;
-		} else if (entry == Direction.UP && exit == Direction.UP) {
-			obj.vy = 650;
-		} else if (entry == Direction.LEFT && exit == Direction.RIGHT) {
-			obj.vx = -650;
-		} else if (entry == Direction.RIGHT && exit == Direction.LEFT) {
-			obj.vx = 650;
-		} else if (entry == Direction.RIGHT && exit == Direction.UP) {
-			obj.vy = 650;
-		} else if (entry == Direction.LEFT && exit == Direction.UP) {
-			obj.vy = 650;
-		} else if (entry == Direction.UP && exit == Direction.LEFT) {
-			obj.vx = 650;
-		} else if (entry == Direction.UP && exit == Direction.RIGHT) {
-			obj.vx = -650;
-		} else if (entry == Direction.UP && exit == Direction.DOWN) {
-			obj.vy = -1000;
-		}
-	} else if (game.boss?.shootsPlasma() && obj.type == 'plasma') {
-		if ((entry == Direction.DOWN && exit == Direction.DOWN) || (entry == Direction.UP && exit == Direction.UP)) {
-			obj.vy = -obj.vy;
-		} else if (
-			(entry == Direction.DOWN && exit == Direction.LEFT) ||
-			(entry == Direction.UP && exit == Direction.RIGHT)
-		) {
-			swap = obj.vx;
-			obj.vx = obj.vy;
-			obj.vy = swap;
-		} else if (
-			(entry == Direction.DOWN && exit == Direction.RIGHT) ||
-			(entry == Direction.UP && exit == Direction.LEFT)
-		) {
-			swap = obj.vx;
-			obj.vx = -obj.vy;
-			obj.vy = swap;
-		} else if (
-			(entry == Direction.LEFT && exit == Direction.DOWN) ||
-			(entry == Direction.RIGHT && exit == Direction.UP)
-		) {
-			swap = obj.vx;
-			obj.vx = obj.vy;
-			obj.vy = swap;
-		} else if (
-			(entry == Direction.RIGHT && exit == Direction.DOWN) ||
-			(entry == Direction.LEFT && exit == Direction.UP)
-		) {
-			swap = obj.vx;
-			obj.vx = obj.vy;
-			obj.vy = -swap;
-		} else if (
-			(entry == Direction.RIGHT && exit == Direction.RIGHT) ||
-			(entry == Direction.LEFT && exit == Direction.LEFT)
-		) {
-			obj.vx = -obj.vx;
-		}
-	}
+	obj.teleported(entry, exit);
 }
 
 /**

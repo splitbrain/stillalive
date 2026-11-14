@@ -42,8 +42,6 @@ export class Turret extends Throwable {
 		this.animFrame = 0;
 		/** @type {boolean} True after a throw, a portal or a pipe field moved the turret. A hard landing then destroys it. */
 		this.canExplode = false;
-		/** @type {string} The entity type, used by the shared object functions. */
-		this.type = 'turret';
 		/** @type {number} The x position where the laser sight ends, in 1/256 pixels. */
 		this.ex = 0;
 	}
@@ -85,6 +83,18 @@ export class Turret extends Throwable {
 	 */
 	enterPipeField() {
 		this.canExplode = true;
+	}
+
+	/**
+	 * Turn the speed after a teleport, and let a hard landing destroy the turret.
+	 *
+	 * @param {import('./Portal.js').Portal} entry The portal that the turret entered.
+	 * @param {import('./Portal.js').Portal} exit The portal that the turret came out of.
+	 * @returns {void}
+	 */
+	teleported(entry, exit) {
+		this.canExplode = true;
+		super.teleported(entry, exit);
 	}
 
 	/**

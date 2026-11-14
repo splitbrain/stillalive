@@ -85,8 +85,6 @@ export class Player extends Body {
 		this.dead = false;
 		/** @type {number} Ticks until the life starts to recover after damage. */
 		this.recoveryTime = 0;
-		/** @type {string} The entity type, used by the shared object functions. */
-		this.type = 'player';
 		/** @type {import('./Throwable.js').Throwable|null} The crate or turret that the player carries, or null. */
 		this.carrying = null;
 		/** @type {boolean} True when the player pressed the clear key and the portals must go away in the next tick. */
@@ -154,6 +152,18 @@ export class Player extends Body {
 			if (random(0, 2) == 0) s.vy = -s.vy;
 			game.sparkles.push(s);
 		}
+	}
+
+	/**
+	 * Turn the speed after a teleport, and start the teleport sparkles in the color of the entry portal.
+	 *
+	 * @param {import('./Portal.js').Portal} entry The portal that the player entered.
+	 * @param {import('./Portal.js').Portal} exit The portal that the player came out of.
+	 * @returns {void}
+	 */
+	teleported(entry, exit) {
+		this.teleportTime = entry == game.portals[0] ? 42 : -42;
+		super.teleported(entry, exit);
 	}
 
 	/**

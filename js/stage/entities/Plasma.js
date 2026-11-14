@@ -44,8 +44,6 @@ export class Plasma extends Body {
 		this.scale = 1;
 		/** @type {number} The direction of the pulse, 1 or -1. */
 		this.scaleDir = -1;
-		/** @type {string} The entity type, used by the shared object functions. */
-		this.type = 'plasma';
 		/** @type {boolean} True for a ball of the boss. It follows the player and fills no plasma slots. */
 		this.homing = homing;
 		/** @type {number} The frame of the ball image. */
@@ -126,6 +124,69 @@ export class Plasma extends Body {
 			if (isTileKind(t, TileKind.ACID, TileKind.ACIDPOOL)) {
 				this.reset();
 			}
+		}
+	}
+
+	/**
+	 * Check if the ball can go into a portal on one side. A ball without vertical speed does not go into a portal in a
+	 * floor or a ceiling.
+	 *
+	 * @param {number} side The side of the wall with the portal, a value of Direction.
+	 * @returns {boolean} True if the ball can go into the portal.
+	 */
+	canEnterPortal(side) {
+		return (side != Direction.DOWN && side != Direction.UP) || this.vy != 0;
+	}
+
+	/**
+	 * Move the ball to the middle of a portal that it goes into. A homing ball keeps its vertical speed.
+	 *
+	 * @param {import('./Portal.js').Portal} portal The portal.
+	 * @param {number} side The side of the wall with the portal, a value of Direction.
+	 * @returns {void}
+	 */
+	alignToPortal(portal, side) {
+		const vy = this.vy;
+		super.alignToPortal(portal, side);
+		if (this.homing) this.vy = vy;
+	}
+
+	/**
+	 * Turn the speed of the ball to the direction of the exit portal after a teleport. A homing ball turns its speed
+	 * with the angle between the two portals.
+	 *
+	 * @param {import('./Portal.js').Portal} entry The portal that the ball entered.
+	 * @param {import('./Portal.js').Portal} exit The portal that the ball came out of.
+	 * @returns {void}
+	 */
+	teleported(entry, exit) {
+		if (!this.homing) {
+			super.teleported(entry, exit);
+			return;
+		}
+		let swap;
+		const from = entry.direction;
+		const to = exit.direction;
+		if ((from == Direction.DOWN && to == Direction.DOWN) || (from == Direction.UP && to == Direction.UP)) {
+			this.vy = -this.vy;
+		} else if ((from == Direction.DOWN && to == Direction.LEFT) || (from == Direction.UP && to == Direction.RIGHT)) {
+			swap = this.vx;
+			this.vx = this.vy;
+			this.vy = swap;
+		} else if ((from == Direction.DOWN && to == Direction.RIGHT) || (from == Direction.UP && to == Direction.LEFT)) {
+			swap = this.vx;
+			this.vx = -this.vy;
+			this.vy = swap;
+		} else if ((from == Direction.LEFT && to == Direction.DOWN) || (from == Direction.RIGHT && to == Direction.UP)) {
+			swap = this.vx;
+			this.vx = this.vy;
+			this.vy = swap;
+		} else if ((from == Direction.RIGHT && to == Direction.DOWN) || (from == Direction.LEFT && to == Direction.UP)) {
+			swap = this.vx;
+			this.vx = this.vy;
+			this.vy = -swap;
+		} else if ((from == Direction.RIGHT && to == Direction.RIGHT) || (from == Direction.LEFT && to == Direction.LEFT)) {
+			this.vx = -this.vx;
 		}
 	}
 

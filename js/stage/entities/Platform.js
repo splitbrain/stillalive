@@ -24,8 +24,6 @@ export class Platform extends Body {
 		this.vx = vx;
 		/** @type {number} The vertical speed in 1/256 pixels per tick. */
 		this.vy = vy;
-		/** @type {string} The entity type, used by the shared object functions. */
-		this.type = 'platform';
 		/** @type {number} The direction of the arrow on the platform, 1 right or -1 left. */
 		this.dir = vx > 0 ? 1 : -1;
 	}

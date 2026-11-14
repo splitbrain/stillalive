@@ -25,7 +25,7 @@ import { captureInput, manageKeys, resumeReplay, unclick } from './inputState.js
 import { getFps, startLoop } from './loop.js';
 import { render } from './render/frame.js';
 import { Replay, decodeReplay, encodeReplay } from './replay.js';
-import { input, setGame, stageEvents, ui } from './state.js';
+import { input, stageEvents, ui } from './state.js';
 import { World } from './World.js';
 import { Value } from '../value.js';
 
@@ -137,7 +137,7 @@ export class GameStage extends HTMLElement {
 			stopTest: () => this.#endTest(),
 		});
 
-		this.#setWorld(new World()); // the input reads the player before the first level starts
+		this.#world = new World(); // the input handlers and the Value properties read the World before the first level
 
 		startLoop(
 			() => this.#step(),
@@ -175,7 +175,7 @@ export class GameStage extends HTMLElement {
 	preview(level) {
 		this.#leave();
 		ui.mode = 'preview';
-		this.#setWorld(World.forPreview(level));
+		this.#world = World.forPreview(level);
 		this.#publish();
 	}
 
@@ -187,7 +187,7 @@ export class GameStage extends HTMLElement {
 	 */
 	edit(level) {
 		this.#leave();
-		this.#setWorld(this.#editor.open(level));
+		this.#world = this.#editor.open(level);
 		this.#publish();
 	}
 
@@ -199,7 +199,7 @@ export class GameStage extends HTMLElement {
 	 */
 	test() {
 		if (ui.mode != 'edit') return;
-		this.#setWorld(this.#editor.startTest(this.#world, this.#transition));
+		this.#world = this.#editor.startTest(this.#world, this.#transition);
 		this.#publish();
 	}
 
@@ -386,17 +386,6 @@ export class GameStage extends HTMLElement {
 	}
 
 	/**
-	 * Show a World. The other modules reach the World through the binding in state.js.
-	 *
-	 * @param {World} world The World.
-	 * @returns {void}
-	 */
-	#setWorld(world) {
-		this.#world = world;
-		setGame(world);
-	}
-
-	/**
 	 * Start a level, or the playback of a replay of the level, with the pause and the keys released.
 	 *
 	 * @param {import('./level.js').Level} level The level.
@@ -408,7 +397,7 @@ export class GameStage extends HTMLElement {
 	#startLevel(level, restart, replay) {
 		this.#replayMode = replay !== null;
 		this.#replay = replay ?? new Replay();
-		this.#setWorld(World.forLevel(level, { restart, replay: this.#replayMode, transition: this.#transition }));
+		this.#world = World.forLevel(level, { restart, replay: this.#replayMode, transition: this.#transition });
 		ui.paused = false;
 		input.keys = 0;
 		input.oldKeys = 0;
@@ -420,7 +409,7 @@ export class GameStage extends HTMLElement {
 	 * @returns {void}
 	 */
 	#leave() {
-		if (ui.mode == 'test') this.#setWorld(this.#editor.stopTest(false));
+		if (ui.mode == 'test') this.#world = this.#editor.stopTest(false);
 		if (ui.mode == 'edit') this.#editor.leave(this.#world);
 		ui.paused = false;
 		this.#replayMode = false;
@@ -478,7 +467,7 @@ export class GameStage extends HTMLElement {
 	 * @returns {void}
 	 */
 	#endTest() {
-		this.#setWorld(this.#editor.stopTest());
+		this.#world = this.#editor.stopTest();
 	}
 
 	/**

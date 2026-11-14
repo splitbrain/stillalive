@@ -2,19 +2,6 @@
  * The shared state of the stage.
  */
 
-/** @type {import('./World.js').World} The World of the level, the preview or the editor map that the stage shows. */
-export let game = null;
-
-/**
- * Set the World that the stage shows.
- *
- * @param {import('./World.js').World} world The World.
- * @returns {void}
- */
-export function setGame(world) {
-	game = world;
-}
-
 /** @type {object} The state of the stage. */
 export const ui = {
 	/** @type {string} The mode of the stage, "idle", "play", "preview", "edit" or "test". */

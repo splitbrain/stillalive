@@ -457,7 +457,7 @@ test.describe('chrome', () => {
 	});
 
 	test('shows the credits after the last story level', async ({ page }) => {
-		const last = CAMPAIGNS.find((campaign) => campaign.name == 'story').levels;
+		const last = CAMPAIGNS.find((campaign) => campaign.name === 'story').levels;
 		// the game reads the progress when the page loads, and this progress unlocks the last story level
 		await page.addInitScript(
 			(last) => localStorage.setItem('stillalive_progress', JSON.stringify({ story: last })),
@@ -501,7 +501,7 @@ test.describe('chrome', () => {
 						stage: !document.querySelector('game-stage').hidden,
 					};
 				}, screen);
-			await expect.poll(result).toEqual({ parts: 14, mismatches: [], stage: screen != 'main' });
+			await expect.poll(result).toEqual({ parts: 14, mismatches: [], stage: screen !== 'main' });
 		}
 	});
 

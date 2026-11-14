@@ -177,10 +177,10 @@ class CustomCampaign extends Campaign {
  */
 export function loadCampaigns() {
 	campaigns = CAMPAIGN_FOLDERS.map((folder, id) =>
-		id == CampaignId.CUSTOM ? new CustomCampaign(id, folder) : new Campaign(id, folder),
+		id === CampaignId.CUSTOM ? new CustomCampaign(id, folder) : new Campaign(id, folder),
 	);
 	for (const campaign of campaigns) {
-		if (campaign.id != CampaignId.CUSTOM) loadCampaignFiles(campaign.id);
+		if (campaign.id !== CampaignId.CUSTOM) loadCampaignFiles(campaign.id);
 	}
 }
 
@@ -218,9 +218,9 @@ export function listCampaigns() {
 function loadCampaignFiles(camp) {
 	const folder = `maps/${campaigns[camp].folder}`;
 	loadLevelJsonFile(`${folder}/campaign.json`, function (data) {
-		if (typeof data.title == 'string') campaigns[camp].title = data.title;
+		if (typeof data.title === 'string') campaigns[camp].title = data.title;
 		campaigns[camp].sort = Number.isFinite(data.sort) ? data.sort : 0;
-		campaigns[camp].parent = typeof data.parent == 'string' ? data.parent : '';
+		campaigns[camp].parent = typeof data.parent === 'string' ? data.parent : '';
 		levelsToLoad += data.levels.length;
 		for (const [i, file] of data.levels.entries()) loadLevelFile(camp, i, `${folder}/${file}`);
 		fileLoaded();
@@ -242,7 +242,7 @@ function loadLevelFile(camp, index, url) {
 			...parseMap(data),
 			campaign: campaigns[camp].folder,
 			number: index + 1,
-			fromBelow: index == 7 && camp <= CampaignId.ADVANCED,
+			fromBelow: index === 7 && camp <= CampaignId.ADVANCED,
 		};
 		fileLoaded();
 	});

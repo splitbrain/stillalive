@@ -67,7 +67,7 @@ function isVectorImage(image) {
  */
 function onResize(entries) {
 	const rect = entries[0].contentRect;
-	if (rect.width == 0 || rect.height == 0) return;
+	if (rect.width === 0 || rect.height === 0) return;
 	wantedWidth = Math.round(rect.width * devicePixelRatio);
 	wantedHeight = Math.round(rect.height * devicePixelRatio);
 }

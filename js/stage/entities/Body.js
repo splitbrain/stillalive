@@ -99,7 +99,7 @@ export class Body {
 
 			if (isTileKind(hit, TileKind.BELT_RIGHT) || isTileKind(hit2, TileKind.BELT_RIGHT)) return 3;
 			if (isTileKind(hit, TileKind.BELT_LEFT) || isTileKind(hit2, TileKind.BELT_LEFT)) return 4;
-			if (hit == Tile.ICYWALL || hit2 == Tile.ICYWALL) return 2;
+			if (hit === Tile.ICYWALL || hit2 === Tile.ICYWALL) return 2;
 			else if (hit || hit2) return 1;
 		}
 		return 0;
@@ -163,7 +163,7 @@ export class Body {
 			const tile = this.world.getTile(i, y);
 			if (tile) return tile;
 		}
-		return 0;
+		return Tile.EMPTY;
 	}
 
 	/**
@@ -178,7 +178,7 @@ export class Body {
 			const tile = this.world.getTile(x, i);
 			if (tile) return tile;
 		}
-		return 0;
+		return Tile.EMPTY;
 	}
 
 	/**
@@ -271,7 +271,7 @@ export class Body {
 			this.#countSolidInColumn(x + this.pX - 1, y, y + this.pY),
 		];
 		const most = Math.max(...hits);
-		return most == 0 ? -1 : hits.indexOf(most);
+		return most === 0 ? -1 : hits.indexOf(most);
 	}
 
 	/**
@@ -284,7 +284,7 @@ export class Body {
 	checkCollisions() {
 		let coll = false;
 
-		if (this.getCollision() == Direction.UP) {
+		if (this.getCollision() === Direction.UP) {
 			coll = true;
 			if (this.vy < 0) {
 				this.vx >>= 1;
@@ -292,51 +292,51 @@ export class Body {
 			}
 			do {
 				this.y += 256;
-				if (this.getCollision() == Direction.DOWN) {
+				if (this.getCollision() === Direction.DOWN) {
 					coll = false;
 					break;
 				}
-			} while (this.getCollision() == Direction.UP);
+			} while (this.getCollision() === Direction.UP);
 		}
 
-		if (!coll && this.getCollision() == Direction.DOWN) {
+		if (!coll && this.getCollision() === Direction.DOWN) {
 			coll = true;
 			if (this.vy > 0) {
 				this.vy = 0;
 			}
 			do {
 				this.y -= 256;
-				if (this.getCollision() == Direction.UP) {
+				if (this.getCollision() === Direction.UP) {
 					coll = false;
 					break;
 				}
-			} while (this.getCollision() == Direction.DOWN);
+			} while (this.getCollision() === Direction.DOWN);
 		}
 
-		if (!coll && this.getCollision() == Direction.LEFT) {
+		if (!coll && this.getCollision() === Direction.LEFT) {
 			coll = true;
 			if (this.vx < 0) this.vx = 0;
 			do {
 				this.x += 256;
-				if (this.getCollision() == Direction.RIGHT) {
+				if (this.getCollision() === Direction.RIGHT) {
 					coll = false;
 					this.vy = 0;
 					break;
 				}
-			} while (this.getCollision() == Direction.LEFT);
+			} while (this.getCollision() === Direction.LEFT);
 		}
 
-		if (!coll && this.getCollision() == Direction.RIGHT) {
+		if (!coll && this.getCollision() === Direction.RIGHT) {
 			coll = true;
 			if (this.vx > 0) this.vx = 0;
 			do {
 				this.x -= 256;
-				if (this.getCollision() == Direction.LEFT) {
+				if (this.getCollision() === Direction.LEFT) {
 					coll = false;
 					this.vy = 0;
 					break;
 				}
-			} while (this.getCollision() == Direction.RIGHT);
+			} while (this.getCollision() === Direction.RIGHT);
 		}
 
 		return coll;
@@ -362,7 +362,7 @@ export class Body {
 	 * @returns {void}
 	 */
 	alignToPortal(portal, side) {
-		if (side == Direction.LEFT || side == Direction.RIGHT) {
+		if (side === Direction.LEFT || side === Direction.RIGHT) {
 			const gap = (2 * TILE_SIZE - this.pY) >> 1;
 			this.y = ((portal.y >> 8) + gap) << 8;
 			this.vy = 0;
@@ -382,36 +382,36 @@ export class Body {
 	teleported(entry, exit) {
 		const from = entry.direction;
 		const to = exit.direction;
-		if (from == Direction.DOWN && to == Direction.DOWN) {
+		if (from === Direction.DOWN && to === Direction.DOWN) {
 			this.vy = -this.vy;
 			if (this.vy > -1100) this.vy = -1100;
-		} else if (from == Direction.DOWN && to == Direction.LEFT) {
+		} else if (from === Direction.DOWN && to === Direction.LEFT) {
 			[this.vx, this.vy] = [this.vy, this.vx];
-		} else if (from == Direction.DOWN && to == Direction.RIGHT) {
+		} else if (from === Direction.DOWN && to === Direction.RIGHT) {
 			[this.vx, this.vy] = [-this.vy, this.vx];
-		} else if (from == Direction.LEFT && to == Direction.DOWN) {
+		} else if (from === Direction.LEFT && to === Direction.DOWN) {
 			this.vy = -1000;
-		} else if (from == Direction.RIGHT && to == Direction.DOWN) {
+		} else if (from === Direction.RIGHT && to === Direction.DOWN) {
 			this.vy = -1000;
-		} else if (from == Direction.RIGHT && to == Direction.RIGHT) {
+		} else if (from === Direction.RIGHT && to === Direction.RIGHT) {
 			this.vx = -1000;
-		} else if (from == Direction.LEFT && to == Direction.LEFT) {
+		} else if (from === Direction.LEFT && to === Direction.LEFT) {
 			this.vx = 1000;
-		} else if (from == Direction.UP && to == Direction.UP) {
+		} else if (from === Direction.UP && to === Direction.UP) {
 			this.vy = 650;
-		} else if (from == Direction.LEFT && to == Direction.RIGHT) {
+		} else if (from === Direction.LEFT && to === Direction.RIGHT) {
 			this.vx = -650;
-		} else if (from == Direction.RIGHT && to == Direction.LEFT) {
+		} else if (from === Direction.RIGHT && to === Direction.LEFT) {
 			this.vx = 650;
-		} else if (from == Direction.RIGHT && to == Direction.UP) {
+		} else if (from === Direction.RIGHT && to === Direction.UP) {
 			this.vy = 650;
-		} else if (from == Direction.LEFT && to == Direction.UP) {
+		} else if (from === Direction.LEFT && to === Direction.UP) {
 			this.vy = 650;
-		} else if (from == Direction.UP && to == Direction.LEFT) {
+		} else if (from === Direction.UP && to === Direction.LEFT) {
 			this.vx = 650;
-		} else if (from == Direction.UP && to == Direction.RIGHT) {
+		} else if (from === Direction.UP && to === Direction.RIGHT) {
 			this.vx = -650;
-		} else if (from == Direction.UP && to == Direction.DOWN) {
+		} else if (from === Direction.UP && to === Direction.DOWN) {
 			this.vy = -1000;
 		}
 	}

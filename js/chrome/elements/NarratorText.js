@@ -65,16 +65,16 @@ export class NarratorText extends ChromeScreen {
 	 * @returns {void}
 	 */
 	render() {
-		const testing = this.stage.mode.get() == 'test';
+		const testing = this.stage.mode.get() === 'test';
 		const source = (testing ? null : this.getAttribute('text')) ?? this.stage.message.get();
 		if (source !== this.#source) {
 			this.#source = source;
-			this.#text = typeof source == 'string' ? source : (source?.text ?? '');
-			this.#shown = route.get().mode == 'replay' ? this.#text.length : 0;
+			this.#text = typeof source === 'string' ? source : (source?.text ?? '');
+			this.#shown = route.get().mode === 'replay' ? this.#text.length : 0;
 			this.#show();
 		}
 		if (this.stage.paused.get() || this.#shown >= this.#text.length) this.#stopTyping();
-		else if (this.#timer == 0) this.#timer = setInterval(() => this.#type(), TYPE_TIME);
+		else if (this.#timer === 0) this.#timer = setInterval(() => this.#type(), TYPE_TIME);
 	}
 
 	/**
@@ -96,7 +96,7 @@ export class NarratorText extends ChromeScreen {
 	#type() {
 		this.#shown++;
 		this.#show();
-		if (this.#text[this.#shown - 1] != ' ' && this.#shown % 2 == 0) this.stage.playTypeSound();
+		if (this.#text[this.#shown - 1] !== ' ' && this.#shown % 2 === 0) this.stage.playTypeSound();
 		if (this.#shown >= this.#text.length) this.#stopTyping();
 	}
 
@@ -109,11 +109,11 @@ export class NarratorText extends ChromeScreen {
 	 * @returns {void}
 	 */
 	#onKeyDown(event) {
-		if (event.code != 'Space' || this.hidden) return;
+		if (event.code !== 'Space' || this.hidden) return;
 		if (event.target instanceof Element && event.target.closest('input, textarea, select, dialog')) return;
-		if (this.#timer == 0 && event.target != document.body) return;
+		if (this.#timer === 0 && event.target !== document.body) return;
 		event.preventDefault();
-		if (this.#timer == 0) return;
+		if (this.#timer === 0) return;
 		this.#shown = this.#text.length;
 		this.#show();
 		this.#stopTyping();

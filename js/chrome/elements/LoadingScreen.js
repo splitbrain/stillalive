@@ -83,7 +83,7 @@ export class LoadingScreen extends ChromeScreen {
 	 */
 	#showMissing(kind, { missing }, prefix) {
 		const line = this.querySelector(`[data-missing="${kind}"]`);
-		line.hidden = missing.length == 0;
+		line.hidden = missing.length === 0;
 		line.textContent = prefix + missing.join(', ');
 	}
 }

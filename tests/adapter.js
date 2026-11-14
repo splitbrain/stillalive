@@ -15,7 +15,7 @@ import { CAMPAIGN_FOLDERS, CampaignId } from '../js/stage/constants.js';
  * @type {{name: string, index: number, levels: number}[]}
  */
 export const CAMPAIGNS = CAMPAIGN_FOLDERS.flatMap((name, index) =>
-	index == CampaignId.CUSTOM
+	index === CampaignId.CUSTOM
 		? []
 		: {
 				name,
@@ -116,7 +116,7 @@ export async function startGame(page) {
 export async function waitForNarrator(page) {
 	await page.waitForFunction(() => {
 		const narrator = document.querySelector('narrator-text');
-		const testing = window.__test.stage.mode.get() == 'test';
+		const testing = window.__test.stage.mode.get() === 'test';
 		const text = (testing ? null : narrator.getAttribute('text')) ?? window.__test.stage.message.get()?.text ?? '';
 		return narrator.querySelector('p').textContent === text;
 	});

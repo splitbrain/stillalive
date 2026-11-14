@@ -33,7 +33,7 @@ export class Throwable extends Body {
 	 * @type {boolean}
 	 */
 	get carried() {
-		return this.world.player.carrying == this;
+		return this.world.player.carrying === this;
 	}
 
 	/**
@@ -134,13 +134,13 @@ export class Throwable extends Body {
 		const portals = this.world.portals;
 		const fields = this.world.gravPipeFieldsAt(this);
 		for (const field of fields) {
-			if (field.vx != 0) {
+			if (field.vx !== 0) {
 				if (portals.portalAt(this, Direction.UP) || portals.portalAt(this, Direction.DOWN)) {
 					if (this.y >> 8 < field.y) this.y += 768;
 					else if ((this.y >> 8) + this.pY > field.y + 2 * TILE_SIZE) this.y -= 768;
 				} else if (this.y >> 8 < field.y + (TILE_SIZE - (this.pY >> 1))) this.y += 512;
 				else if ((this.y >> 8) + this.pY > field.y + 2 * TILE_SIZE - (TILE_SIZE - (this.pY >> 1))) this.y -= 512;
-			} else if (field.vy != 0) {
+			} else if (field.vy !== 0) {
 				if (this.x >> 8 < field.x + (TILE_SIZE - (this.pX >> 1))) this.x += 256;
 				else if ((this.x >> 8) + this.pX > field.x + 2 * TILE_SIZE - (TILE_SIZE - (this.pX >> 1))) this.x -= 256;
 			}
@@ -153,8 +153,8 @@ export class Throwable extends Body {
 
 		const belt = this.world.onBelt(this);
 		if (belt) {
-			this.x += belt == 3 ? 384 : belt == 4 ? -384 : 0;
-			this.vx = belt == 3 ? 8 : belt == 4 ? -8 : 0;
+			this.x += belt === 3 ? 384 : belt === 4 ? -384 : 0;
+			this.vx = belt === 3 ? 8 : belt === 4 ? -8 : 0;
 		}
 		this.keepBeltSpeed(belt);
 
@@ -164,11 +164,11 @@ export class Throwable extends Body {
 		const ground = this.touchingGround();
 
 		if (!ground || portals.portalAt(this, Direction.DOWN)) {
-			if (fields.length == 0) this.vy += GRAVITY;
+			if (fields.length === 0) this.vy += GRAVITY;
 			if (this.vy > 10 << 8) this.vy = 10 << 8;
 		}
 
-		if (this.vy == 0 && this.vx == 0) return;
+		if (this.vy === 0 && this.vx === 0) return;
 
 		if (this.vx > 0) {
 			if (ground && !inLeftPortal) this.vx -= 64;
@@ -180,8 +180,8 @@ export class Throwable extends Body {
 			if (this.vx > 0) this.vx = 0;
 		}
 
-		if (this.vx > 512 && ground == 1 && !inLeftPortal) this.vx = 512;
-		else if (this.vx < -512 && ground == 1 && !inRightPortal) this.vx = -512;
+		if (this.vx > 512 && ground === 1 && !inLeftPortal) this.vx = 512;
+		else if (this.vx < -512 && ground === 1 && !inRightPortal) this.vx = -512;
 
 		for (let j = 0; j < 8; j++) {
 			if (!portals.passPortal(this, Direction.DOWN) && !portals.passPortal(this, Direction.UP)) this.x += this.vx >> 3;

@@ -15,7 +15,7 @@ import { random } from '../utils.js';
  * @returns {void}
  */
 export function removeSparkles(world, p, type) {
-	world.sparkles = world.sparkles.filter((sparkle) => sparkle.type != type || sparkle.color != p);
+	world.sparkles = world.sparkles.filter((sparkle) => sparkle.type !== type || sparkle.color !== p);
 }
 
 /**
@@ -27,7 +27,7 @@ export function removeSparkles(world, p, type) {
  */
 export function createPortalGlow(world, p) {
 	const portal = world.portals.list[p];
-	const onSideWall = portal.direction == Direction.LEFT || portal.direction == Direction.RIGHT;
+	const onSideWall = portal.direction === Direction.LEFT || portal.direction === Direction.RIGHT;
 	removeSparkles(world, p, SparkleType.PORTAL_GLOW);
 	for (let i = 0; i < 13; i++) {
 		const x = portal.x + (onSideWall ? 0 : (i * 2) << 8);
@@ -68,7 +68,7 @@ export function createPortalGlow(world, p) {
  * @returns {void}
  */
 export function createCakeOrSmokeSparkles(world, x, y, type, number, size) {
-	const color = type == SparkleType.CAKE ? 2 : 3;
+	const color = type === SparkleType.CAKE ? 2 : 3;
 	for (let k = 0; k < number; k++) {
 		world.sparkles.push(
 			new Sparkle(
@@ -132,23 +132,23 @@ export class Sparkle {
 	 * @returns {void}
 	 */
 	move() {
-		if (this.type == SparkleType.SHOT_HIT) this.vy += GRAVITY;
-		else if (this.type == SparkleType.DEATH || this.type == SparkleType.LOW_LIFE) this.vy += GRAVITY >> 1;
+		if (this.type === SparkleType.SHOT_HIT) this.vy += GRAVITY;
+		else if (this.type === SparkleType.DEATH || this.type === SparkleType.LOW_LIFE) this.vy += GRAVITY >> 1;
 
 		if (this.floorTime < 0) {
 			this.x += this.vx;
 			this.y += this.vy;
-		} else if (this.type == SparkleType.LOW_LIFE) {
+		} else if (this.type === SparkleType.LOW_LIFE) {
 			this.fading -= 0.7;
-		} else if (this.type == SparkleType.SHOT_HIT) {
+		} else if (this.type === SparkleType.SHOT_HIT) {
 			if (++this.floorTime >= 120) this.fading -= 0.7;
 		}
 
-		if (this.type == SparkleType.SHOT_HIT || this.type == SparkleType.DEATH || this.type == SparkleType.LOW_LIFE) {
+		if (this.type === SparkleType.SHOT_HIT || this.type === SparkleType.DEATH || this.type === SparkleType.LOW_LIFE) {
 			const scale = this.fading / 255;
-			if (this.world.getTile((this.x >> 8) + ((16 * scale) >> 1), (this.y >> 8) + ((16 * scale) >> 1)) != Tile.EMPTY) {
+			if (this.world.getTile((this.x >> 8) + ((16 * scale) >> 1), (this.y >> 8) + ((16 * scale) >> 1)) !== Tile.EMPTY) {
 				if (this.floorTime < 0) {
-					if (this.type == SparkleType.LOW_LIFE || this.type == SparkleType.SHOT_HIT) {
+					if (this.type === SparkleType.LOW_LIFE || this.type === SparkleType.SHOT_HIT) {
 						this.floorTime = 0;
 					} else {
 						this.fading = 0;
@@ -157,13 +157,13 @@ export class Sparkle {
 			}
 		}
 
-		if (this.type == SparkleType.PORTAL_SHOT || this.type == SparkleType.TELEPORT) {
+		if (this.type === SparkleType.PORTAL_SHOT || this.type === SparkleType.TELEPORT) {
 			this.fading -= 8;
-			if (this.world.getTile((this.x >> 8) + 4, (this.y >> 8) + 4) != Tile.EMPTY) this.fading = 0;
-		} else if (this.type == SparkleType.PORTAL_GLOW) {
-			if (this.vx != 0) {
+			if (this.world.getTile((this.x >> 8) + 4, (this.y >> 8) + 4) !== Tile.EMPTY) this.fading = 0;
+		} else if (this.type === SparkleType.PORTAL_GLOW) {
+			if (this.vx !== 0) {
 				this.fading = 200 - 5 * (Math.abs(this.xOrig - this.x) >> 8);
-			} else if (this.vy != 0) {
+			} else if (this.vy !== 0) {
 				this.fading = 200 - 5 * (Math.abs(this.yOrig - this.y) >> 8);
 				const platform = this.world.portals.list[this.portalNum].platform;
 				if (platform) {
@@ -171,11 +171,11 @@ export class Sparkle {
 					this.xOrig = this.x;
 				}
 			}
-		} else if (this.type == SparkleType.CAKE || this.type == SparkleType.SMOKE) {
+		} else if (this.type === SparkleType.CAKE || this.type === SparkleType.SMOKE) {
 			this.fading -= 8;
 		}
 
-		if (this.fading <= 0 && this.type == SparkleType.PORTAL_GLOW) {
+		if (this.fading <= 0 && this.type === SparkleType.PORTAL_GLOW) {
 			this.x = this.xOrig;
 			this.y = this.yOrig;
 			this.fading = 200;

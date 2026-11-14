@@ -26,7 +26,7 @@ export class EditorButtons extends ChromeScreen {
 	 */
 	setUp() {
 		this.querySelector('.test').addEventListener('click', () => {
-			if (this.stage.mode.get() == 'test') up('#/editor');
+			if (this.stage.mode.get() === 'test') up('#/editor');
 			else navigate('#/editor/test');
 		});
 		this.querySelector('.undo').addEventListener('click', () => this.stage.undo());
@@ -63,10 +63,10 @@ export class EditorButtons extends ChromeScreen {
 	 */
 	#updateButtons() {
 		const test = this.querySelector('.test');
-		const testing = this.stage.mode.get() == 'test';
+		const testing = this.stage.mode.get() === 'test';
 		const locked = isEditorLocked();
 		test.textContent = testing ? 'Stop' : 'Try';
-		for (const button of this.querySelectorAll('button')) button.disabled = locked || (testing && button != test);
+		for (const button of this.querySelectorAll('button')) button.disabled = locked || (testing && button !== test);
 	}
 
 	/**
@@ -88,7 +88,7 @@ export class EditorButtons extends ChromeScreen {
 	async #import() {
 		if (!(await confirmReplaceMap(this.stage))) return;
 		const data = await pickJsonFile();
-		if (data === null || this.stage.mode.get() != 'edit') return;
+		if (data === null || this.stage.mode.get() !== 'edit') return;
 		if (parseMap(data).boss > 0) throw new Error('The editor does not support boss levels.');
 		this.stage.edit(data);
 	}
@@ -102,6 +102,6 @@ export class EditorButtons extends ChromeScreen {
 	 */
 	shouldShow(screen) {
 		if (screen === Screen.EDITOR || screen === Screen.EDITOR_FILE) return true;
-		return screen === Screen.PLAY && this.stage.mode.get() == 'test';
+		return screen === Screen.PLAY && this.stage.mode.get() === 'test';
 	}
 }

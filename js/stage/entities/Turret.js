@@ -111,17 +111,17 @@ export class Turret extends Throwable {
 
 			if (!this.dead) {
 				if (
-					this.vx == 0 &&
+					this.vx === 0 &&
 					Math.abs(oldVx) > 3 << 8 &&
 					this.canExplode &&
-					this.world.gravPipeFieldsAt(this).length == 0
+					this.world.gravPipeFieldsAt(this).length === 0
 				)
 					this.dead = true;
 				else if (
-					this.vy == 0 &&
+					this.vy === 0 &&
 					Math.abs(oldVy) > 4 << 8 &&
 					this.canExplode &&
-					this.world.gravPipeFieldsAt(this).length == 0
+					this.world.gravPipeFieldsAt(this).length === 0
 				)
 					this.dead = true;
 				else if (this.touchesDeadlyTile() || this.world.movingCrateTouching(this) || this.world.plasmaTouching(this)) {
@@ -129,7 +129,7 @@ export class Turret extends Throwable {
 				}
 				if (this.dead) this.#explode();
 			} else if (this.animFrame < 10) {
-				if (this.world.time % 4 == 0) this.animFrame++;
+				if (this.world.time % 4 === 0) this.animFrame++;
 			}
 
 			const platform = this.world.onPlatform(this);
@@ -152,9 +152,9 @@ export class Turret extends Throwable {
 	 */
 	#traceBeam() {
 		const y = (this.y >> 8) + 12;
-		let x = this.dir == 1 ? (this.x >> 8) + TILE_SIZE : this.x >> 8;
+		let x = this.dir === 1 ? (this.x >> 8) + TILE_SIZE : this.x >> 8;
 		while (x >= 0 && x < PLAYFIELD_WIDTH) {
-			if (this.world.getTile(x, y) != Tile.EMPTY) break;
+			if (this.world.getTile(x, y) !== Tile.EMPTY) break;
 			if (this.world.anyCrateAt(x, y)) return { target: 'crate', x };
 			if (this.world.player.contains(x, y)) return { target: 'player', x };
 			x += this.dir * 14;
@@ -169,7 +169,7 @@ export class Turret extends Throwable {
 	 */
 	shoot() {
 		const player = this.world.player;
-		const facesPlayer = (this.dir == -1 && this.x > player.x) || (this.dir == 1 && this.x < player.x);
+		const facesPlayer = (this.dir === -1 && this.x > player.x) || (this.dir === 1 && this.x < player.x);
 		const inLine = Math.abs((this.y >> 8) + 13 - ((player.y >> 8) + 16)) <= this.pY;
 
 		if (this.dead || !facesPlayer || !inLine || player.dead) {
@@ -194,7 +194,7 @@ export class Turret extends Throwable {
 
 		this.ex = beam.x << 8;
 		this.rotation = Math.max(this.rotation - 1, 0);
-		if (beam.target != 'player' || this.rotation > 0) return;
+		if (beam.target !== 'player' || this.rotation > 0) return;
 
 		this.animFrame = 1 - this.animFrame;
 		player.life -= 640; // 2.5 life points

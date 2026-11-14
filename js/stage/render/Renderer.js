@@ -39,9 +39,9 @@ function isSameSource(a, b) {
 	return (
 		a != null &&
 		a.map === b.map &&
-		a.version == b.version &&
-		a.background == b.background &&
-		a.generation == b.generation
+		a.version === b.version &&
+		a.background === b.background &&
+		a.generation === b.generation
 	);
 }
 

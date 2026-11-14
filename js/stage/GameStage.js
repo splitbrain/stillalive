@@ -459,14 +459,14 @@ export class GameStage extends HTMLElement {
 	 * @returns {void}
 	 */
 	#onSessionEvent(type, detail) {
-		if (type == 'replaystop' || type == 'focuslost') {
+		if (type === 'replaystop' || type === 'focuslost') {
 			this.dispatchEvent(new Event(type));
 			return;
 		}
-		if (type == 'died') {
+		if (type === 'died') {
 			this.#editor.open();
 			this.#session = this.#editor;
-		} else if (type == 'brokenreplay') {
+		} else if (type === 'brokenreplay') {
 			this.#session = null;
 		}
 		this.#events.push({ type, detail });
@@ -526,8 +526,11 @@ export class GameStage extends HTMLElement {
 		this.speed.set(this.#speed);
 		this.brush.set(this.#editor.brush);
 		this.fps.set(getFps());
-		const phase = session?.mode == 'play' ? (world.boss?.phase() ?? null) : null;
-		setMusicMood(phase == 'fight' ? BOSS_MUSIC_RATE : 1, phase == 'coming' || phase == 'leaving' ? BOSS_MUSIC_DUCK : 1);
+		const phase = session?.mode === 'play' ? (world.boss?.phase() ?? null) : null;
+		setMusicMood(
+			phase === 'fight' ? BOSS_MUSIC_RATE : 1,
+			phase === 'coming' || phase === 'leaving' ? BOSS_MUSIC_DUCK : 1,
+		);
 
 		const events = this.#events.splice(0);
 		for (const { type, detail } of events) this.dispatchEvent(new CustomEvent(type, { detail }));

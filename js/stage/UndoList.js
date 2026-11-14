@@ -29,7 +29,7 @@ export class UndoList {
 	 * @returns {void}
 	 */
 	add(entry) {
-		if (this.#index == UNDO_SIZE - 1) {
+		if (this.#index === UNDO_SIZE - 1) {
 			this.#entries.shift();
 			this.#index--;
 		}

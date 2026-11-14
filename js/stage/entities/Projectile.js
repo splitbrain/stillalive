@@ -42,7 +42,7 @@ export class Projectile extends Body {
 			this.x += this.vx;
 			this.y += this.vy;
 
-			if (this.world.time % 6 == 0) {
+			if (this.world.time % 6 === 0) {
 				if (++this.img > LAST_OF_KIND[TileKind.WHEEL]) this.img = FIRST_OF_KIND[TileKind.WHEEL];
 			}
 

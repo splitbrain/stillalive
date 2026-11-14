@@ -116,7 +116,7 @@ export class GameApp extends ChromeElement {
 			ready.subscribe(() => this.#applyRoute()),
 			stage.mode.subscribe((mode) => {
 				const r = route.get();
-				if (mode != 'test' && r.name == 'editor' && r.mode == 'test') up('#/editor');
+				if (mode !== 'test' && r.name === 'editor' && r.mode === 'test') up('#/editor');
 				this.#showScreen();
 			}),
 			stage.paused.subscribe(() => this.#showScreen()),
@@ -152,7 +152,7 @@ export class GameApp extends ChromeElement {
 	 */
 	#leaveReplay() {
 		const r = route.get();
-		if (r.name != 'play' || r.mode != 'replay') return;
+		if (r.name !== 'play' || r.mode !== 'replay') return;
 		up(this.#replayReturn?.path ?? campaignPath(r.campaign, r.level));
 	}
 
@@ -190,11 +190,11 @@ export class GameApp extends ChromeElement {
 	 */
 	#onStartKey(event) {
 		if (this.#startKey === null) {
-			if (event.type != 'keydown' || !this.#start()) return;
+			if (event.type !== 'keydown' || !this.#start()) return;
 			this.#startKey = event.code;
-		} else if (event.code != this.#startKey) {
+		} else if (event.code !== this.#startKey) {
 			return;
-		} else if (event.type == 'keyup') {
+		} else if (event.type === 'keyup') {
 			this.#startKey = null;
 		}
 		event.stopImmediatePropagation();
@@ -208,7 +208,7 @@ export class GameApp extends ChromeElement {
 	#screen() {
 		if (!this.#started) return Screen.LOADING;
 		const name = route.get().name;
-		if (name == Screen.EDITOR && this.stage.mode.get() == 'test') return Screen.PLAY;
+		if (name === Screen.EDITOR && this.stage.mode.get() === 'test') return Screen.PLAY;
 		return name;
 	}
 
@@ -241,7 +241,7 @@ export class GameApp extends ChromeElement {
 		const r = route.get();
 		const campaign = campaignByFolder(r.campaign);
 		if (r.level > 0) {
-			const usable = r.mode == 'replay' ? campaign.levels[r.level - 1] != null : campaign.isOpen(r.level);
+			const usable = r.mode === 'replay' ? campaign.levels[r.level - 1] != null : campaign.isOpen(r.level);
 			if (!usable) {
 				navigate(campaignPath(r.campaign), true);
 				return;
@@ -249,63 +249,63 @@ export class GameApp extends ChromeElement {
 		}
 
 		const previous = this.#applied;
-		const otherLevel = previous?.name == 'play' && previous.campaign === r.campaign && previous.level !== r.level;
-		if (r.name == 'select' && r.level > 0 && otherLevel) {
+		const otherLevel = previous?.name === 'play' && previous.campaign === r.campaign && previous.level !== r.level;
+		if (r.name === 'select' && r.level > 0 && otherLevel) {
 			navigate(campaignPath(r.campaign, previous.level), true);
 			return;
 		}
-		const sameLevel = previous?.name == 'play' && previous.campaign === r.campaign && previous.level === r.level;
+		const sameLevel = previous?.name === 'play' && previous.campaign === r.campaign && previous.level === r.level;
 		const again = sameLevel && previous.mode === r.mode;
-		const path = r.name == 'play' ? campaignPath(r.campaign, r.level, r.mode) : null;
-		const replayLeft = previous?.mode == 'replay' && !again;
+		const path = r.name === 'play' ? campaignPath(r.campaign, r.level, r.mode) : null;
+		const replayLeft = previous?.mode === 'replay' && !again;
 		const reopen = replayLeft && this.#replayReturn?.path === path ? this.#replayReturn.intermission : null;
 		this.#applied = r;
 		const level = r.level > 0 ? campaign.levels[r.level - 1] : null;
 
-		if (r.name == 'select') {
+		if (r.name === 'select') {
 			const shown = campaign.shownLevel(r.level);
 			if (shown) this.stage.preview(shown);
 			else this.stage.stop();
-		} else if (r.name == 'play' && r.mode == 'play' && reopen) {
+		} else if (r.name === 'play' && r.mode === 'play' && reopen) {
 			this.stage.stop();
-		} else if (r.name == 'play' && r.mode == 'play') {
+		} else if (r.name === 'play' && r.mode === 'play') {
 			this.stage.play(level, { restart: sameLevel });
-		} else if (r.name == 'play') {
+		} else if (r.name === 'play') {
 			this.#replayReturn = this.#pendingReturn;
 			this.#pendingReturn = null;
 			this.#playReplay(r, level, again);
-		} else if (r.name == 'editor' && r.mode == 'test') {
+		} else if (r.name === 'editor' && r.mode === 'test') {
 			this.stage.test();
-			if (this.stage.mode.get() != 'test') {
+			if (this.stage.mode.get() !== 'test') {
 				navigate('#/editor', true);
 				return;
 			}
-		} else if (r.name == 'editor' && this.stage.mode.get() == 'test') {
+		} else if (r.name === 'editor' && this.stage.mode.get() === 'test') {
 			this.stage.stopTest();
-		} else if (r.name == 'editor') {
+		} else if (r.name === 'editor') {
 			this.stage.edit();
-			if (previous?.name != 'editor-file' && previous?.name != 'editor') this.stage.setBrush(1);
-		} else if (r.name == 'editor-file') {
+			if (previous?.name !== 'editor-file' && previous?.name !== 'editor') this.stage.setBrush(1);
+		} else if (r.name === 'editor-file') {
 			this.stage.preview(this.stage.getMap());
 		} else {
 			this.stage.stop();
 		}
-		this.stage.playMusic(r.name == 'play' && r.mode == 'play' ? 'level' : 'menu');
+		this.stage.playMusic(r.name === 'play' && r.mode === 'play' ? 'level' : 'menu');
 		setAttributes(this.querySelector('level-selection'), { campaign: r.campaign, level: r.level });
-		const play = r.name == 'play';
+		const play = r.name === 'play';
 		const exit = play ? '#/' : null;
 		setAttributes(this.querySelector('pause-menu'), {
 			restart: play ? campaignPath(r.campaign, r.level, r.mode) : null,
 			exit,
 		});
-		this.#intermission = r.name == 'play' ? reopen : null;
+		this.#intermission = r.name === 'play' ? reopen : null;
 		setAttributes(this.querySelector('intermission-panel'), { exit, ...reopen, open: reopen ? '' : null });
 		setAttributes(this.querySelector('robot-head'), {
-			eye: play && campaign.id == CampaignId.STORY ? Math.min(Math.floor((r.level - 1) / 7), 3) + 1 : null,
+			eye: play && campaign.id === CampaignId.STORY ? Math.min(Math.floor((r.level - 1) / 7), 3) + 1 : null,
 			absent: play && level.boss > 0 ? '' : null, // the boss is the robot
 		});
 		setAttributes(this.querySelector('narrator-text'), { text: r.name.startsWith('editor') ? EDITOR_TEXT : null });
-		setAttributes(this.querySelector('editor-files'), { mode: r.name == 'editor-file' ? r.mode : null });
+		setAttributes(this.querySelector('editor-files'), { mode: r.name === 'editor-file' ? r.mode : null });
 		this.#showScreen();
 	}
 
@@ -389,17 +389,17 @@ export class GameApp extends ChromeElement {
 	 */
 	async #onFinished({ time, replay }) {
 		const r = route.get();
-		if (!this.#started || r.name != 'play') return;
-		if (r.mode == 'replay') {
+		if (!this.#started || r.name !== 'play') return;
+		if (r.mode === 'replay') {
 			this.#leaveReplay();
 			return;
 		}
 		const campaign = campaignByFolder(r.campaign);
 		let message = '';
 		let credits = false;
-		if (r.mode == 'play') message = await this.#checkBestTime(r, time, replay);
-		if (r.mode == 'play' && campaign.id != CampaignId.CUSTOM && maxLevel[campaign.id].get() < r.level + 1) {
-			credits = campaign.id == CampaignId.STORY && maxLevel[campaign.id].get() == LEVELS_PER_CAMPAIGN;
+		if (r.mode === 'play') message = await this.#checkBestTime(r, time, replay);
+		if (r.mode === 'play' && campaign.id !== CampaignId.CUSTOM && maxLevel[campaign.id].get() < r.level + 1) {
+			credits = campaign.id === CampaignId.STORY && maxLevel[campaign.id].get() === LEVELS_PER_CAMPAIGN;
 			saveProgress(campaign.id, r.level + 1);
 		}
 
@@ -426,7 +426,7 @@ export class GameApp extends ChromeElement {
 	 */
 	#onBrokenReplay() {
 		const r = route.get();
-		if (r.name != 'play') return;
+		if (r.name !== 'play') return;
 		alertDialog(
 			"The replay you're watching seems to be broken -_-;\nSorry for the inconvenience.",
 			'An error occurred',

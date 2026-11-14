@@ -30,6 +30,6 @@ test('a World from a map runs ticks without the stage element', async ({ page })
 	expect(opened).toEqual(start);
 	expect(last.time).toBe(60);
 	// the player walks to the right on the floor
-	expect(running.every((state, i) => i == 0 || state.x > running[i - 1].x)).toBe(true);
-	expect(running.every((state) => state.y == last.y)).toBe(true);
+	expect(running.every((state, i) => i === 0 || state.x > running[i - 1].x)).toBe(true);
+	expect(running.every((state) => state.y === last.y)).toBe(true);
 });

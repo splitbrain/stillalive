@@ -200,7 +200,7 @@ function drawSparkles(world) {
 		if (s.fading <= 0) continue;
 		const sc = s.fading / 255;
 		let dt = 9 - sc * 9;
-		if (s.type == SparkleType.LOW_LIFE || s.type == SparkleType.SHOT_HIT) dt -= 8;
+		if (s.type === SparkleType.LOW_LIFE || s.type === SparkleType.SHOT_HIT) dt -= 8;
 		drawImage(sparkle, 0, s.color * 9, 9, 9, (s.x >> 8) + dt, (s.y >> 8) + dt, 16 * sc, 16 * sc);
 	}
 }
@@ -408,7 +408,7 @@ export function drawTurrets(world) {
 		ctx.restore();
 		const dx = t.dir < 0 ? 0 : t.pX;
 		const playerY = world.player.midY();
-		if (t.animFrame == 1 && !t.dead) {
+		if (t.animFrame === 1 && !t.dead) {
 			ctx.strokeStyle = 'rgb(255, 255, 0)';
 			ctx.lineWidth = 3;
 			const dy = random(-16, 16);
@@ -432,8 +432,8 @@ function drawPlasma(world) {
 		if (!ball.used) continue;
 		let vx = 0;
 		let vy = 0;
-		if (ball.vx != 0) vy = ball.scale;
-		else if (ball.vy != 0) vx = ball.scale;
+		if (ball.vx !== 0) vy = ball.scale;
+		else if (ball.vy !== 0) vx = ball.scale;
 		drawImage(
 			plasma,
 			0,
@@ -500,7 +500,7 @@ export function drawArrow(x1, y1, x2, y2, lineWidth, dir) {
 	ctx.lineWidth = lineWidth;
 	line(x1, y1, x2, y2);
 	const xa = x1 + (Math.abs(x1 - x2) >> 1) + dir * 2;
-	if (dir == -1) triangle(xa - 6, y1, xa, y1 - 6, xa, y1 + 6);
+	if (dir === -1) triangle(xa - 6, y1, xa, y1 - 6, xa, y1 + 6);
 	else triangle(xa + 6, y1, xa, y1 - 6, xa, y1 + 6);
 }
 
@@ -562,7 +562,7 @@ export function drawGravPipe(dir, x, y) {
  * @returns {void}
  */
 function drawTube(world) {
-	drawImage(world.boss.number == 2 ? tube2 : tube, world.tubeX >> 8, world.tubeY >> 8);
+	drawImage(world.boss.number === 2 ? tube2 : tube, world.tubeX >> 8, world.tubeY >> 8);
 }
 
 /**
@@ -604,8 +604,8 @@ function drawFrontTiles(world) {
 	if (!world.objectInPortal) return;
 	for (const portal of world.portals.list) {
 		if (portal.platform) continue;
-		const onFloor = portal.direction == Direction.UP || portal.direction == Direction.DOWN;
-		const onWall = portal.direction == Direction.LEFT || portal.direction == Direction.RIGHT;
+		const onFloor = portal.direction === Direction.UP || portal.direction === Direction.DOWN;
+		const onWall = portal.direction === Direction.LEFT || portal.direction === Direction.RIGHT;
 		if (!onFloor && !onWall) continue;
 		const tx = (portal.x >> 8) >> TILE_SIZE_BITS;
 		const ty = (portal.y >> 8) >> TILE_SIZE_BITS;
@@ -650,10 +650,10 @@ function drawPortals(world) {
 		if (!p.used) continue;
 		let dx = 0;
 		let dy = 0;
-		if (p.direction == Direction.LEFT || p.direction == Direction.RIGHT) dy = TILE_SIZE - p.scaleY * TILE_SIZE;
-		else if (p.direction == Direction.UP || p.direction == Direction.DOWN) dx = TILE_SIZE - p.scaleX * TILE_SIZE;
+		if (p.direction === Direction.LEFT || p.direction === Direction.RIGHT) dy = TILE_SIZE - p.scaleY * TILE_SIZE;
+		else if (p.direction === Direction.UP || p.direction === Direction.DOWN) dx = TILE_SIZE - p.scaleX * TILE_SIZE;
 		drawImage(
-			pi == 0 ? bluePortal : redPortal,
+			pi === 0 ? bluePortal : redPortal,
 			0,
 			2 * TILE_SIZE * p.frame,
 			2 * TILE_SIZE,

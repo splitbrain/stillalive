@@ -64,7 +64,7 @@ export function fill(map, tile, toFill, x, y) {
 			const ny = row + dy;
 			if (nx < 0 || nx >= MAP_WIDTH || ny < 0 || ny >= MAP_HEIGHT) continue;
 			const next = map.index(nx, ny);
-			if (map.tiles[next] == toFill && !queued.has(next)) {
+			if (map.tiles[next] === toFill && !queued.has(next)) {
 				queued.add(next);
 				queue.push(next);
 			}
@@ -107,26 +107,31 @@ function isTileHere(map, x, y) {
  * @returns {void}
  */
 export function eraseSprites(map, til, xt, yt) {
-	if (til == Tile.PLATFORM_RIGHT || til == Tile.PLATFORM_LEFT || til == Tile.GRAVPIPE_UP || til == Tile.GRAVPIPE_DOWN) {
+	if (
+		til === Tile.PLATFORM_RIGHT ||
+		til === Tile.PLATFORM_LEFT ||
+		til === Tile.GRAVPIPE_UP ||
+		til === Tile.GRAVPIPE_DOWN
+	) {
 		// objects wider than one tile
 		for (let h = 1; h < 3; h++) {
-			if (h == 2 && til >= Tile.GRAVPIPE_UP) continue;
+			if (h === 2 && til >= Tile.GRAVPIPE_UP) continue;
 			if (xt + h < MAP_WIDTH) {
 				map.setTile(map.index(xt + h, yt), Tile.EMPTY);
 				if (yt - 1 >= 0) {
 					const t = map.tiles[map.index(xt + h, yt - 1)];
-					if (t == Tile.PLAYER_START || t == Tile.TURRET_LEFT || t == Tile.TURRET_RIGHT || isGravPipeTile(t))
+					if (t === Tile.PLAYER_START || t === Tile.TURRET_LEFT || t === Tile.TURRET_RIGHT || isGravPipeTile(t))
 						map.setTile(map.index(xt + h, yt - 1), Tile.EMPTY);
 				}
 			}
 		}
 	}
 	if (
-		til == Tile.PLAYER_START ||
-		til == Tile.TURRET_LEFT ||
-		til == Tile.TURRET_RIGHT ||
-		til == Tile.GRAVPIPE_RIGHT ||
-		til == Tile.GRAVPIPE_LEFT
+		til === Tile.PLAYER_START ||
+		til === Tile.TURRET_LEFT ||
+		til === Tile.TURRET_RIGHT ||
+		til === Tile.GRAVPIPE_RIGHT ||
+		til === Tile.GRAVPIPE_LEFT
 	) {
 		// objects taller than one tile
 		if (yt + 1 < MAP_HEIGHT) {
@@ -134,7 +139,12 @@ export function eraseSprites(map, til, xt, yt) {
 			for (let h = 1; h < 3; h++) {
 				if (xt - h >= 0) {
 					const t = map.tiles[map.index(xt - h, yt + 1)];
-					if (t == Tile.PLATFORM_RIGHT || t == Tile.PLATFORM_LEFT || t == Tile.GRAVPIPE_UP || t == Tile.GRAVPIPE_DOWN)
+					if (
+						t === Tile.PLATFORM_RIGHT ||
+						t === Tile.PLATFORM_LEFT ||
+						t === Tile.GRAVPIPE_UP ||
+						t === Tile.GRAVPIPE_DOWN
+					)
 						map.setTile(map.index(xt - h, yt + 1), Tile.EMPTY);
 				}
 			}
@@ -143,14 +153,14 @@ export function eraseSprites(map, til, xt, yt) {
 
 	if (yt - 1 >= 0) {
 		const t = map.tiles[map.index(xt, yt - 1)];
-		if (t == Tile.PLAYER_START || t == Tile.TURRET_LEFT || t == Tile.TURRET_RIGHT || isGravPipeTile(t))
+		if (t === Tile.PLAYER_START || t === Tile.TURRET_LEFT || t === Tile.TURRET_RIGHT || isGravPipeTile(t))
 			map.setTile(map.index(xt, yt - 1), Tile.EMPTY);
 	}
 	for (let h = 1; h < 3; h++) {
 		if (xt - h >= 0) {
 			const t = map.tiles[map.index(xt - h, yt)];
-			if (t == Tile.PLATFORM_RIGHT || t == Tile.PLATFORM_LEFT) map.setTile(map.index(xt - h, yt), Tile.EMPTY);
-			else if ((t == Tile.GRAVPIPE_UP || t == Tile.GRAVPIPE_DOWN) && h < 2)
+			if (t === Tile.PLATFORM_RIGHT || t === Tile.PLATFORM_LEFT) map.setTile(map.index(xt - h, yt), Tile.EMPTY);
+			else if ((t === Tile.GRAVPIPE_UP || t === Tile.GRAVPIPE_DOWN) && h < 2)
 				map.setTile(map.index(xt - h, yt), Tile.EMPTY);
 		}
 	}
@@ -201,5 +211,5 @@ export function allowTile(map, tile) {
  * @returns {number} The count.
  */
 function countTile(map, tile) {
-	return map.tiles.filter((id) => id == tile).length;
+	return map.tiles.filter((id) => id === tile).length;
 }

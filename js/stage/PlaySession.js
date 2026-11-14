@@ -108,7 +108,7 @@ export class PlaySession {
 		input.endTick();
 		if (this.#paused) return;
 
-		if (world.outcome != 'brokenReplay') {
+		if (world.outcome !== 'brokenReplay') {
 			world.tick(input);
 			this.transition = world.transition;
 			if (world.closingStarted()) this.endPlayback();

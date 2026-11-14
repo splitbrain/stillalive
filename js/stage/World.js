@@ -65,7 +65,7 @@ const ANIMATED_KINDS = [
  * @returns {boolean} True if objects pass the tile.
  */
 function isPassable(tile) {
-	return tile == Tile.EXIT || isDeadlyTile(tile) || tile == Tile.PLAYER_START || inForceFieldRange(tile);
+	return tile === Tile.EXIT || isDeadlyTile(tile) || tile === Tile.PLAYER_START || inForceFieldRange(tile);
 }
 
 /**
@@ -136,8 +136,8 @@ export class World {
 	phase;
 	/** @type {number} The progress of the opening and the closing transition, from FADE_START down to 0. */
 	fade;
-	/** @type {number} 1 while the player or a crate holds a switch and the switch doors are open. */
-	switchPressed = 0;
+	/** @type {boolean} True while the player or a crate holds a switch and the switch doors are open. */
+	switchPressed = false;
 	/**
 	 * @type {import('./entities/Portal.js').Portal|null} The portal that an object is in during this tick, or null.
 	 *     The drawing then draws the tiles around the portals over the objects.
@@ -198,7 +198,7 @@ export class World {
 		world.#parse({ levelStart: true, boss: level.boss });
 		world.camera = new Camera(world, world.player.x, world.player.y);
 		world.cakesLeft = world.cakes.length;
-		if (world.cakesLeft == 0) world.openExit();
+		if (world.cakesLeft === 0) world.openExit();
 		world.background = level.bg;
 		world.abilities = { ...level.abilities };
 		world.labels = level.labels;
@@ -221,10 +221,10 @@ export class World {
 		if (level.fromBelow) world.#jumpInFromBelow();
 		world.boss = level.boss ? new Boss(world, level.boss) : null;
 		world.cakesLeft = world.cakes.length;
-		if (world.cakesLeft == 0) {
+		if (world.cakesLeft === 0) {
 			const map = world.map;
 			for (const [i, tile] of map.display.entries()) {
-				if (tile == Tile.EXIT_CLOSED) map.setDisplay(i, Tile.EXIT);
+				if (tile === Tile.EXIT_CLOSED) map.setDisplay(i, Tile.EXIT);
 			}
 		}
 		world.background = level.bg;
@@ -267,9 +267,9 @@ export class World {
 		const player = this.player;
 		if (input.clearPressed) player.askClear = true;
 
-		player.left = (input.keys & KEY_LEFT) != 0;
-		player.right = (input.keys & KEY_RIGHT) != 0;
-		player.down = (input.keys & KEY_DOWN) != 0;
+		player.left = (input.keys & KEY_LEFT) !== 0;
+		player.right = (input.keys & KEY_RIGHT) !== 0;
+		player.down = (input.keys & KEY_DOWN) !== 0;
 
 		if (input.keys & KEY_JUMP && this.abilities.jump && !this.portals.isInPortal(player)) {
 			if (!(input.oldKeys & KEY_JUMP)) player.oldJump = player.jump;
@@ -292,7 +292,7 @@ export class World {
 		this.input = input;
 		this.outcome = null;
 		if (this.isRunning()) {
-			if (this.time == 0) input.unclick();
+			if (this.time === 0) input.unclick();
 			this.time++;
 		}
 		this.objectInPortal = null;
@@ -316,7 +316,7 @@ export class World {
 		}
 		this.#updateObjects();
 		// the caller starts the level again after this tick, so the boss and the events do not run in this tick
-		if (this.outcome == 'died') return;
+		if (this.outcome === 'died') return;
 		this.boss?.update();
 		if (!this.reachedExit()) this.events.update();
 	}
@@ -449,7 +449,7 @@ export class World {
 				this.player.recoveryTime = 180;
 				return;
 			}
-			if (p.needKill && p.timer == 0) {
+			if (p.needKill && p.timer === 0) {
 				this.projectiles.splice(i, 1);
 				i--;
 			}
@@ -463,7 +463,7 @@ export class World {
 	 * @returns {void}
 	 */
 	#rebuildGravPipeFields() {
-		if (this.gravPipes.length == 0) return;
+		if (this.gravPipes.length === 0) return;
 		this.gravPipeFields = [];
 		for (const t of this.gravPipes) {
 			let vx = 0;
@@ -499,7 +499,7 @@ export class World {
 					this.cakesLeft--;
 					createCakeOrSmokeSparkles(this, cake.x, cake.y, SparkleType.CAKE, 2, 180);
 					playSound(sfx_grabCake);
-					if (this.cakesLeft == 0) {
+					if (this.cakesLeft === 0) {
 						this.openExit();
 						playSound(sfx_exit);
 					}
@@ -561,13 +561,13 @@ export class World {
 				this.gravPipes.push(new GravPipe(this, (x * TILE_SIZE) << 8, (y * TILE_SIZE) << 8, dir));
 				if (levelStart) {
 					// a gravitational pipe covers two tiles
-					const next = dir == Direction.RIGHT || dir == Direction.LEFT ? map.index(x, y + 1) : map.index(x + 1, y);
+					const next = dir === Direction.RIGHT || dir === Direction.LEFT ? map.index(x, y + 1) : map.index(x + 1, y);
 					map.setTile(i, Tile.GRAVPIPE_BLOCK);
 					map.setTile(next, Tile.GRAVPIPE_BLOCK);
 					map.setDisplay(i, Tile.EMPTY);
 					map.setDisplay(next, Tile.EMPTY);
 				}
-			} else if (tile == Tile.EXIT) {
+			} else if (tile === Tile.EXIT) {
 				if (levelStart) map.setTile(i, Tile.EXIT_CLOSED);
 				if (!editor) map.setDisplay(i, Tile.EXIT_CLOSED);
 			} else if (animated) {
@@ -584,34 +584,34 @@ export class World {
 						animated.speed,
 					),
 				);
-			} else if (tile == Tile.CAKE) {
+			} else if (tile === Tile.CAKE) {
 				this.cakes.push(new Cake(this, (x * TILE_SIZE) << 8, (y * TILE_SIZE) << 8));
 				if (levelStart) map.setTile(i, Tile.EMPTY);
-			} else if (tile == Tile.TURRET_LEFT || tile == Tile.TURRET_RIGHT) {
+			} else if (tile === Tile.TURRET_LEFT || tile === Tile.TURRET_RIGHT) {
 				if (levelStart) map.set(i, Tile.EMPTY);
 				this.turrets.push(
-					new Turret(this, (x * TILE_SIZE) << 8, (y * TILE_SIZE) << 8, tile == Tile.TURRET_LEFT ? -1 : 1),
+					new Turret(this, (x * TILE_SIZE) << 8, (y * TILE_SIZE) << 8, tile === Tile.TURRET_LEFT ? -1 : 1),
 				);
-			} else if (tile == Tile.CRATE) {
+			} else if (tile === Tile.CRATE) {
 				if (levelStart) map.set(i, Tile.EMPTY);
 				this.crates.push(new Crate(this, (x * TILE_SIZE) << 8, (y * TILE_SIZE) << 8));
-			} else if (tile == Tile.PLAYER_START) {
+			} else if (tile === Tile.PLAYER_START) {
 				this.player.x = (x * TILE_SIZE) << 8;
 				this.player.y = (y * TILE_SIZE) << 8;
 				if (levelStart) map.setTile(i, Tile.EMPTY);
-			} else if (tile == Tile.PLATFORM_RIGHT || tile == Tile.PLATFORM_LEFT) {
-				const vx = tile == Tile.PLATFORM_RIGHT ? 256 : -256;
+			} else if (tile === Tile.PLATFORM_RIGHT || tile === Tile.PLATFORM_LEFT) {
+				const vx = tile === Tile.PLATFORM_RIGHT ? 256 : -256;
 				this.platforms.push(new Platform(this, (x * TILE_SIZE) << 8, (y * TILE_SIZE) << 8, vx, 0));
 				if (levelStart) map.setTile(i, Tile.EMPTY);
-			} else if (tile == Tile.TUBE) {
+			} else if (tile === Tile.TUBE) {
 				if (editor) continue;
 				this.tubeX = (x * TILE_SIZE) << 8;
 				this.tubeY = (y * TILE_SIZE) << 8;
 				if (levelStart) map.set(i, Tile.EMPTY);
-			} else if (tile == Tile.PLASMA_START && levelStart) {
+			} else if (tile === Tile.PLASMA_START && levelStart) {
 				const launch = plasmaLaunch(map, x, y);
-				if (launch && boss == 0) this.plasmaBall.push(new Plasma(this, launch.x, launch.y, launch.vx, launch.vy));
-				else if (launch && (boss == 3 || boss == 4)) {
+				if (launch && boss === 0) this.plasmaBall.push(new Plasma(this, launch.x, launch.y, launch.vx, launch.vy));
+				else if (launch && (boss === 3 || boss === 4)) {
 					this.plasmaX = launch.x;
 					this.plasmaY = launch.y;
 				}
@@ -633,7 +633,8 @@ export class World {
 		if (!inScreen(x, y)) return Tile.EMPTY;
 		const map = this.map;
 		const tile = map.tiles[map.index(x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS)];
-		if (tile == Tile.EMPTY) return (crates && this.crateAt(x, y)) || (platforms && this.platformAt(x, y)) || Tile.EMPTY;
+		if (tile === Tile.EMPTY)
+			return (crates && this.crateAt(x, y)) || (platforms && this.platformAt(x, y)) || Tile.EMPTY;
 		return isPassable(tile) ? Tile.EMPTY : tile;
 	}
 
@@ -679,15 +680,15 @@ export class World {
 	 * @returns {Solid} The tile id, the platform, or Tile.EMPTY if the shot passes.
 	 */
 	getTilePortal(x, y) {
-		if (x >= PLAYFIELD_WIDTH || y >= PLAYFIELD_HEIGHT || y < 0 || x < 0) return 0;
+		if (x >= PLAYFIELD_WIDTH || y >= PLAYFIELD_HEIGHT || y < 0 || x < 0) return Tile.EMPTY;
 		const map = this.map;
 		let tile = map.tiles[map.index(x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS)];
 		if (
-			tile == Tile.EXIT ||
-			tile == FIRST_OF_KIND[TileKind.WHEEL] ||
+			tile === Tile.EXIT ||
+			tile === FIRST_OF_KIND[TileKind.WHEEL] ||
 			isTileKind(tile, TileKind.ENERGYWALL) ||
-			tile == Tile.CAKE ||
-			tile == Tile.PLAYER_START
+			tile === Tile.CAKE ||
+			tile === Tile.PLAYER_START
 		)
 			tile = Tile.EMPTY;
 
@@ -754,7 +755,10 @@ export class World {
 		return (
 			this.crates.find(
 				(crate) =>
-					!crate.carried && (crate.vx != 0 || crate.vy != 0) && !this.portals.isInPortal(crate) && crate.overlaps(obj),
+					!crate.carried &&
+					(crate.vx !== 0 || crate.vy !== 0) &&
+					!this.portals.isInPortal(crate) &&
+					crate.overlaps(obj),
 			) ?? null
 		);
 	}
@@ -814,7 +818,7 @@ export class World {
 	 */
 	onBelt(obj) {
 		const ground = obj.touchingGround();
-		if (ground == 3 || ground == 4) {
+		if (ground === 3 || ground === 4) {
 			return ground;
 		} else {
 			const y = (obj.y >> 8) + obj.pY;
@@ -846,20 +850,11 @@ export class World {
 	 * @returns {void}
 	 */
 	#manageDoors() {
-		if (!this.switchPressed) {
-			if (this.#playerOnSwitch(this.player.x >> 8, this.player.y >> 8)) {
-				this.switchPressed = 1;
-				this.#openSwitchDoors();
-			} else if (this.#crateOnSwitch()) {
-				this.switchPressed = 1;
-				this.#openSwitchDoors();
-			}
-		} else {
-			if (!this.#playerOnSwitch(this.player.x >> 8, this.player.y >> 8) && !this.#crateOnSwitch()) {
-				this.switchPressed = 0;
-				this.#closeSwitchDoors();
-			}
-		}
+		const held = this.#playerOnSwitch(this.player.x >> 8, this.player.y >> 8) || this.#crateOnSwitch();
+		if (held === this.switchPressed) return;
+		this.switchPressed = held;
+		if (held) this.#openSwitchDoors();
+		else this.#closeSwitchDoors();
 	}
 
 	/**
@@ -888,9 +883,9 @@ export class World {
 					y -= 2;
 					break;
 			}
-			const onSideWall = portal.direction == Direction.LEFT || portal.direction == Direction.RIGHT;
+			const onSideWall = portal.direction === Direction.LEFT || portal.direction === Direction.RIGHT;
 			for (let j = 0; j < 2 * TILE_SIZE; j++) {
-				if (this.map.atPixel(onSideWall ? x : x + j, onSideWall ? y + j : y) == door) {
+				if (this.map.atPixel(onSideWall ? x : x + j, onSideWall ? y + j : y) === door) {
 					portal.used = false;
 					removeSparkles(this, i, SparkleType.PORTAL_GLOW);
 					break;
@@ -928,7 +923,7 @@ export class World {
 			[x, y + TILE_SIZE - 1],
 			[x + TILE_SIZE - 1, y + TILE_SIZE - 1],
 		];
-		return corners.some(([cx, cy]) => this.map.atPixel(cx, cy) == door);
+		return corners.some(([cx, cy]) => this.map.atPixel(cx, cy) === door);
 	}
 
 	/**
@@ -970,9 +965,8 @@ export class World {
 	 * @returns {boolean} True if a switch tile is below the player.
 	 */
 	#playerOnSwitch(x, y) {
-		if (this.map.atPixel(x, y + this.player.pY + 5) == Tile.SWITCH) return true;
-		else if (this.map.atPixel(x + 15, y + this.player.pY + 5) == Tile.SWITCH) return true;
-		return false;
+		const below = y + this.player.pY + 5;
+		return this.map.atPixel(x, below) === Tile.SWITCH || this.map.atPixel(x + 15, below) === Tile.SWITCH;
 	}
 
 	/**
@@ -984,7 +978,7 @@ export class World {
 		return this.crates.some((crate) => {
 			const x = crate.x >> 8;
 			const y = (crate.y >> 8) + crate.pY + 3;
-			return this.map.atPixel(x, y) == Tile.SWITCH || this.map.atPixel(x + TILE_SIZE - 1, y) == Tile.SWITCH;
+			return this.map.atPixel(x, y) === Tile.SWITCH || this.map.atPixel(x + TILE_SIZE - 1, y) === Tile.SWITCH;
 		});
 	}
 
@@ -1001,7 +995,7 @@ export class World {
 			// check each tile that the box of the player touches
 			for (let ty = y >> TILE_SIZE_BITS; ty <= (y + p.pY - 1) >> TILE_SIZE_BITS; ty++) {
 				for (let tx = x >> TILE_SIZE_BITS; tx <= (x + p.pX - 1) >> TILE_SIZE_BITS; tx++) {
-					if (this.map.atPixel(tx << TILE_SIZE_BITS, ty << TILE_SIZE_BITS) == Tile.EXIT) return true;
+					if (this.map.atPixel(tx << TILE_SIZE_BITS, ty << TILE_SIZE_BITS) === Tile.EXIT) return true;
 				}
 			}
 		}
@@ -1025,7 +1019,7 @@ export class World {
 	 * @returns {boolean} True while the level runs.
 	 */
 	isRunning() {
-		return this.phase == LevelPhase.RUNNING;
+		return this.phase === LevelPhase.RUNNING;
 	}
 
 	/**
@@ -1034,7 +1028,7 @@ export class World {
 	 * @returns {boolean} True while the level is halted.
 	 */
 	isHalted() {
-		return this.phase == LevelPhase.HALTED;
+		return this.phase === LevelPhase.HALTED;
 	}
 
 	/**
@@ -1043,7 +1037,7 @@ export class World {
 	 * @returns {boolean} True during the opening transition.
 	 */
 	isOpening() {
-		return this.phase == LevelPhase.OPENING;
+		return this.phase === LevelPhase.OPENING;
 	}
 
 	/**
@@ -1052,7 +1046,7 @@ export class World {
 	 * @returns {boolean} True while the exit event waits.
 	 */
 	isExitWait() {
-		return this.phase == LevelPhase.EXIT_WAIT;
+		return this.phase === LevelPhase.EXIT_WAIT;
 	}
 
 	/**
@@ -1061,7 +1055,7 @@ export class World {
 	 * @returns {boolean} True during the closing transition.
 	 */
 	isClosing() {
-		return this.phase == LevelPhase.CLOSING;
+		return this.phase === LevelPhase.CLOSING;
 	}
 
 	/**
@@ -1070,7 +1064,7 @@ export class World {
 	 * @returns {boolean} True in the tick in which the closing transition started.
 	 */
 	closingStarted() {
-		return this.isClosing() && this.fade == FADE_START;
+		return this.isClosing() && this.fade === FADE_START;
 	}
 
 	/**
@@ -1079,7 +1073,7 @@ export class World {
 	 * @returns {boolean} True in the exit freeze.
 	 */
 	isEnded() {
-		return this.phase == LevelPhase.ENDED;
+		return this.phase === LevelPhase.ENDED;
 	}
 
 	/**

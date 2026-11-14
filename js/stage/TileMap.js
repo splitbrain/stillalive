@@ -71,7 +71,7 @@ export class TileMap {
 	 * @returns {number} The tile id, or 0 outside the playfield.
 	 */
 	atPixel(x, y) {
-		if (x >= PLAYFIELD_WIDTH || y >= PLAYFIELD_HEIGHT || y < 0 || x < 0) return 0;
+		if (x >= PLAYFIELD_WIDTH || y >= PLAYFIELD_HEIGHT || y < 0 || x < 0) return Tile.EMPTY;
 		return this.tiles[this.index(x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS)];
 	}
 
@@ -120,7 +120,7 @@ export class TileMap {
 	 */
 	replaceAll(from, to) {
 		for (const [i, tile] of this.tiles.entries()) {
-			if (tile == from) this.set(i, to);
+			if (tile === from) this.set(i, to);
 		}
 	}
 

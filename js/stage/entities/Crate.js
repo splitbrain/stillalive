@@ -47,11 +47,11 @@ export class Crate extends Throwable {
 		if (this.invincibility > 0) this.invincibility--;
 		if (this.noRemove > 0) this.noRemove--;
 
-		if (this.shrink == 0) {
+		if (this.shrink === 0) {
 			if (!this.carried) {
 				const falling = this.vy > 0;
 				this.move();
-				if (falling && this.vy == 0 && this.touchingGround()) playSound(sfx_crateLand);
+				if (falling && this.vy === 0 && this.touchingGround()) playSound(sfx_crateLand);
 
 				if (this.world.boss) {
 					if (this.world.boss.throwsCrates()) this.#shrinkInTube();
@@ -101,10 +101,10 @@ export class Crate extends Throwable {
 			}
 		} else {
 			this.shrink -= 4;
-			if (this.shrink == 0 && this.#destroyOrReset()) return;
+			if (this.shrink === 0 && this.#destroyOrReset()) return;
 		}
 
-		if (this.shrink == 0 && this.inForceField()) {
+		if (this.shrink === 0 && this.inForceField()) {
 			if (this.carried) this.world.player.carrying = null;
 			this.shrink = 60;
 			playSound(sfx_dissolve);
@@ -128,7 +128,7 @@ export class Crate extends Throwable {
 	 * @returns {void}
 	 */
 	keepBeltSpeed(belt) {
-		if (belt == 0 && this.carpet != 0) this.vx = this.carpet == 3 ? 384 : this.carpet == 4 ? -384 : 0;
+		if (belt === 0 && this.carpet !== 0) this.vx = this.carpet === 3 ? 384 : this.carpet === 4 ? -384 : 0;
 		this.carpet = belt;
 	}
 
@@ -160,7 +160,7 @@ export class Crate extends Throwable {
 	 * @returns {boolean} True if the crate pushed another crate, which ends the movement of this tick.
 	 */
 	push() {
-		if (this.world.movingCrateTouching(this.world.player) && this.invincibility == 0) {
+		if (this.world.movingCrateTouching(this.world.player) && this.invincibility === 0) {
 			this.world.player.x += this.vx >> 3;
 
 			if (this.vx < 0) {
@@ -176,10 +176,10 @@ export class Crate extends Throwable {
 			}
 		}
 
-		if (this.vx != 0 && !this.world.portals.isInPortal(this)) {
+		if (this.vx !== 0 && !this.world.portals.isInPortal(this)) {
 			for (const ca of this.world.crates) {
 				if (this.world.portals.isInPortal(ca)) continue;
-				if (this.x != ca.x || this.y != ca.y) {
+				if (this.x !== ca.x || this.y !== ca.y) {
 					const y = this.y >> 8;
 					let x = this.x >> 8;
 

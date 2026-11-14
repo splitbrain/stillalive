@@ -56,11 +56,11 @@ export class Plasma extends Body {
 	 * @returns {void}
 	 */
 	animate() {
-		if (this.world.time % 10 != 0) return;
+		if (this.world.time % 10 !== 0) return;
 		let frame;
 		do {
 			frame = random(0, 3);
-		} while (frame == this.animFrame);
+		} while (frame === this.animFrame);
 		this.animFrame = frame;
 	}
 
@@ -71,7 +71,7 @@ export class Plasma extends Body {
 	 * @returns {void}
 	 */
 	move() {
-		if (this.world.time % 10 == 0) {
+		if (this.world.time % 10 === 0) {
 			this.scale += 1 * this.scaleDir;
 			if (this.scale < -2 || this.scale > 2) this.scaleDir = -this.scaleDir;
 		}
@@ -133,7 +133,7 @@ export class Plasma extends Body {
 	 * @returns {boolean} True if the ball can go into the portal.
 	 */
 	canEnterPortal(side) {
-		return (side != Direction.DOWN && side != Direction.UP) || this.vy != 0;
+		return (side !== Direction.DOWN && side !== Direction.UP) || this.vy !== 0;
 	}
 
 	/**
@@ -164,20 +164,29 @@ export class Plasma extends Body {
 		}
 		const from = entry.direction;
 		const to = exit.direction;
-		if ((from == Direction.DOWN && to == Direction.DOWN) || (from == Direction.UP && to == Direction.UP)) {
+		if ((from === Direction.DOWN && to === Direction.DOWN) || (from === Direction.UP && to === Direction.UP)) {
 			this.vy = -this.vy;
 		} else if (
-			(from == Direction.DOWN && to == Direction.LEFT) ||
-			(from == Direction.UP && to == Direction.RIGHT) ||
-			(from == Direction.LEFT && to == Direction.DOWN) ||
-			(from == Direction.RIGHT && to == Direction.UP)
+			(from === Direction.DOWN && to === Direction.LEFT) ||
+			(from === Direction.UP && to === Direction.RIGHT) ||
+			(from === Direction.LEFT && to === Direction.DOWN) ||
+			(from === Direction.RIGHT && to === Direction.UP)
 		) {
 			[this.vx, this.vy] = [this.vy, this.vx];
-		} else if ((from == Direction.DOWN && to == Direction.RIGHT) || (from == Direction.UP && to == Direction.LEFT)) {
+		} else if (
+			(from === Direction.DOWN && to === Direction.RIGHT) ||
+			(from === Direction.UP && to === Direction.LEFT)
+		) {
 			[this.vx, this.vy] = [-this.vy, this.vx];
-		} else if ((from == Direction.RIGHT && to == Direction.DOWN) || (from == Direction.LEFT && to == Direction.UP)) {
+		} else if (
+			(from === Direction.RIGHT && to === Direction.DOWN) ||
+			(from === Direction.LEFT && to === Direction.UP)
+		) {
 			[this.vx, this.vy] = [this.vy, -this.vx];
-		} else if ((from == Direction.RIGHT && to == Direction.RIGHT) || (from == Direction.LEFT && to == Direction.LEFT)) {
+		} else if (
+			(from === Direction.RIGHT && to === Direction.RIGHT) ||
+			(from === Direction.LEFT && to === Direction.LEFT)
+		) {
 			this.vx = -this.vx;
 		}
 	}
@@ -245,7 +254,7 @@ export class Plasma extends Body {
 	#fillSlotInColumn(x, y) {
 		if (this.homing) return;
 		for (let i = 2; i <= 14; i++) {
-			if (this.world.map.atPixel(x, y + i) == Tile.PLASMA_SLOT) {
+			if (this.world.map.atPixel(x, y + i) === Tile.PLASMA_SLOT) {
 				this.#fillSlot(x >> TILE_SIZE_BITS, (y + i) >> TILE_SIZE_BITS);
 				return;
 			}
@@ -262,7 +271,7 @@ export class Plasma extends Body {
 	#fillSlotInRow(x, y) {
 		if (this.homing) return;
 		for (let i = 4; i <= 12; i++) {
-			if (this.world.map.atPixel(x + i, y) == Tile.PLASMA_SLOT) {
+			if (this.world.map.atPixel(x + i, y) === Tile.PLASMA_SLOT) {
 				this.#fillSlot((x + i) >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS);
 				return;
 			}
@@ -287,7 +296,7 @@ export class Plasma extends Body {
 				playSound(sfx_bounce);
 				do {
 					this.x += 128;
-				} while (this.getCollision() == Direction.LEFT);
+				} while (this.getCollision() === Direction.LEFT);
 				this.vx = -this.vx;
 
 				this.#fillSlotInColumn((this.x >> 8) - 1, this.y >> 8);
@@ -296,7 +305,7 @@ export class Plasma extends Body {
 				playSound(sfx_bounce);
 				do {
 					this.x -= 128;
-				} while (this.getCollision() == Direction.RIGHT);
+				} while (this.getCollision() === Direction.RIGHT);
 				this.vx = -this.vx;
 
 				this.#fillSlotInColumn((this.x >> 8) + TILE_SIZE, this.y >> 8);
@@ -305,7 +314,7 @@ export class Plasma extends Body {
 				playSound(sfx_bounce);
 				do {
 					this.y += 128;
-				} while (this.getCollision() == Direction.UP);
+				} while (this.getCollision() === Direction.UP);
 				this.vy = -this.vy;
 
 				this.#fillSlotInRow(this.x >> 8, (this.y >> 8) - 1);
@@ -314,7 +323,7 @@ export class Plasma extends Body {
 				playSound(sfx_bounce);
 				do {
 					this.y -= 128;
-				} while (this.getCollision() == Direction.DOWN);
+				} while (this.getCollision() === Direction.DOWN);
 				this.vy = -this.vy;
 
 				this.#fillSlotInRow(this.x >> 8, (this.y >> 8) + TILE_SIZE);

@@ -82,6 +82,7 @@ export default [
 	{
 		plugins: { unicorn },
 		rules: {
+			eqeqeq: ['error', 'always', { null: 'ignore' }],
 			'no-useless-concat': 'error',
 			'one-var': ['error', 'never'],
 			'prefer-const': 'error',

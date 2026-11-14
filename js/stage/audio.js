@@ -389,11 +389,11 @@ export function setMusicPlaying(track) {
  * @returns {void}
  */
 export function setMusicMood(rate, duck) {
-	if (rate != musicRate) {
+	if (rate !== musicRate) {
 		musicRate = rate;
 		if (levelPlayback) rampTo(levelPlayback.source.playbackRate, rate, MUSIC_GLIDE);
 	}
-	if (duck != musicDuck) {
+	if (duck !== musicDuck) {
 		musicDuck = duck;
 		if (musicGain) rampTo(musicGain.gain, MUSIC_VOLUME * duck, MUSIC_DUCK_FADE);
 	}
@@ -407,8 +407,8 @@ export function setMusicMood(rate, duck) {
 function updateMusic() {
 	if (!context) return;
 	const track = musicEnabled ? musicTrack : null;
-	updateLevelMusic(track == 'level');
-	updateMenuMusic(track == 'menu');
+	updateLevelMusic(track === 'level');
+	updateMenuMusic(track === 'menu');
 }
 
 /**
@@ -419,7 +419,7 @@ function updateMusic() {
  */
 function updateLevelMusic(play) {
 	play = play && levelBuffer !== null;
-	if (play == (levelPlayback !== null)) return;
+	if (play === (levelPlayback !== null)) return;
 	if (play) {
 		const source = context.createBufferSource();
 		source.buffer = levelBuffer;
@@ -449,7 +449,7 @@ function updateLevelMusic(play) {
  * @returns {void}
  */
 function updateMenuMusic(play) {
-	if (play == menuPlaying) return;
+	if (play === menuPlaying) return;
 	menuPlaying = play;
 	clearTimeout(menuPauseTimer);
 	if (play) {

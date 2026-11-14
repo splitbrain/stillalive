@@ -67,9 +67,9 @@ export class RobotHead extends ChromeScreen {
 	#step() {
 		if (!this.querySelector('.eye').checkVisibility({ visibilityProperty: true })) return;
 		const r = Math.floor(Math.random() * 100);
-		if (r < 2) this.#move('--eye-x', r == 0 ? -1 : 1);
-		else if (r < 4) this.#move('--eye-y', r == 2 ? -1 : 1);
-		else if (r < 6) this.#move('--head-x', r == 4 ? -1 : 1);
+		if (r < 2) this.#move('--eye-x', r === 0 ? -1 : 1);
+		else if (r < 4) this.#move('--eye-y', r === 2 ? -1 : 1);
+		else if (r < 6) this.#move('--head-x', r === 4 ? -1 : 1);
 		else if (r >= 90) this.querySelector('.eye').classList.add('blink');
 	}
 

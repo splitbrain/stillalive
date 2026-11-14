@@ -135,8 +135,8 @@ export class LevelEvents {
 	 * @returns {boolean} True if the event can fire.
 	 */
 	#hasHappened(event) {
-		if (event.on == 'playerX') return this.#world.player.midX() >> TILE_SIZE_BITS >= event.x;
-		if (event.on == 'time') return this.#world.time >= Math.round(event.seconds * 60);
+		if (event.on === 'playerX') return this.#world.player.midX() >> TILE_SIZE_BITS >= event.x;
+		if (event.on === 'time') return this.#world.time >= Math.round(event.seconds * 60);
 		return this.#triggers.has(event.on);
 	}
 
@@ -174,7 +174,7 @@ function placePortal(world, p, [column, row, side]) {
 	const { direction, dx, dy } = PORTAL_PLACEMENTS[side];
 	const x = column * TILE_SIZE + dx;
 	const y = row * TILE_SIZE + dy;
-	const onSideWall = direction == Direction.LEFT || direction == Direction.RIGHT;
+	const onSideWall = direction === Direction.LEFT || direction === Direction.RIGHT;
 	Object.assign(portal, {
 		direction,
 		frame: onSideWall ? 1 : 0,

@@ -41,7 +41,7 @@ export const GRAVPIPE_DIRECTIONS = {
  */
 export function plasmaLaunch(map, x, y) {
 	const closed = (cx, cy) =>
-		cx < 0 || cx >= MAP_WIDTH || cy < 0 || cy >= MAP_HEIGHT || map.tiles[map.index(cx, cy)] != Tile.EMPTY;
+		cx < 0 || cx >= MAP_WIDTH || cy < 0 || cy >= MAP_HEIGHT || map.tiles[map.index(cx, cy)] !== Tile.EMPTY;
 	const up = closed(x, y - 1);
 	const down = closed(x, y + 1);
 	const left = closed(x - 1, y);

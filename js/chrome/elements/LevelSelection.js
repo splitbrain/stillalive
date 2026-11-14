@@ -50,7 +50,7 @@ export class LevelSelection extends SelectionScreen {
 		const list = this.querySelector('level-list');
 		list.hidden = level > 0;
 		list.setAttribute('campaign', folder);
-		this.querySelector('.details').hidden = level == 0;
+		this.querySelector('.details').hidden = level === 0;
 		this.querySelector('.back').setAttribute('href', level > 0 ? campaignPath(folder) : '#/');
 		if (level > 0) this.#renderDetails(campaign, level);
 	}

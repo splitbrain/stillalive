@@ -47,7 +47,7 @@ export class SlotList extends ChromeElement {
 	 * @returns {void}
 	 */
 	render() {
-		const loading = this.getAttribute('mode') == 'load';
+		const loading = this.getAttribute('mode') === 'load';
 		const buttons = [];
 		for (let n = 1; n <= LEVELS_PER_CAMPAIGN; n++) {
 			const stored = editorMap(n).get() != null;

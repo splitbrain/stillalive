@@ -55,7 +55,7 @@ export class Boss {
 	 * @returns {boolean} True for the bosses 1, 3 and 4.
 	 */
 	makesCrates() {
-		return this.number == 1 || this.number == 3 || this.number == 4;
+		return this.number === 1 || this.number === 3 || this.number === 4;
 	}
 
 	/**
@@ -64,7 +64,7 @@ export class Boss {
 	 * @returns {boolean} True for the bosses 1 and 4.
 	 */
 	throwsCrates() {
-		return this.number == 1 || this.number == 4;
+		return this.number === 1 || this.number === 4;
 	}
 
 	/**
@@ -73,7 +73,7 @@ export class Boss {
 	 * @returns {boolean} True for the bosses 2 and 4.
 	 */
 	shootsWheels() {
-		return this.number == 2 || this.number == 4;
+		return this.number === 2 || this.number === 4;
 	}
 
 	/**
@@ -82,7 +82,7 @@ export class Boss {
 	 * @returns {boolean} True for the bosses 3 and 4.
 	 */
 	shootsPlasma() {
-		return this.number == 3 || this.number == 4;
+		return this.number === 3 || this.number === 4;
 	}
 
 	/**
@@ -112,13 +112,13 @@ export class Boss {
 				this.entryDistance += 32;
 				this.entryTicks++;
 				this.x = BOSS_X + BOSS_ENTRY_DISTANCE - (this.entryDistance >> 8);
-				if (this.x == BOSS_X) {
+				if (this.x === BOSS_X) {
 					this.entering = false;
 					this.world.shakeX = 0;
 					this.world.shakeY = 0;
 					this.world.events.trigger('bossArrived');
 				}
-				if (this.entryTicks % 3 == 0) {
+				if (this.entryTicks % 3 === 0) {
 					this.world.shakeX = random(-3, 3);
 					this.world.shakeY = random(-3, 3);
 				}
@@ -138,43 +138,43 @@ export class Boss {
 				return;
 			}
 
-			if (this.hits < 3 && this.number == 1) {
-				if (this.world.isRunning() && this.world.time % (90 - 30 * this.hits) == 0) {
+			if (this.hits < 3 && this.number === 1) {
+				if (this.world.isRunning() && this.world.time % (90 - 30 * this.hits) === 0) {
 					this.#throwCrate(6, 18);
 				}
-			} else if (this.hits < 3 && this.number == 2) {
-				if (this.world.isRunning() && this.world.time % (90 - 15 * this.hits) == 0) {
+			} else if (this.hits < 3 && this.number === 2) {
+				if (this.world.isRunning() && this.world.time % (90 - 15 * this.hits) === 0) {
 					this.#shootWheel(435, 50, 1200, 1200 - this.world.player.vx);
 
-					if (this.hits == 2) {
+					if (this.hits === 2) {
 						this.#shootWheel(TILE_SIZE, 3 * TILE_SIZE, 1200);
 					}
 				}
-			} else if (this.hits < 3 && this.number == 3) {
+			} else if (this.hits < 3 && this.number === 3) {
 				const limit = this.hits + 1;
 				if (
 					this.world.isRunning() &&
-					this.world.time % (90 - 30 * this.hits) == 0 &&
+					this.world.time % (90 - 30 * this.hits) === 0 &&
 					this.world.plasmaBall.length < limit
 				) {
 					this.#shootPlasma(800);
 				}
 
-				if (this.world.isRunning() && this.world.time % (90 - 30 * this.hits) == 0 && this.world.crates.length == 0) {
+				if (this.world.isRunning() && this.world.time % (90 - 30 * this.hits) === 0 && this.world.crates.length === 0) {
 					this.world.crates.push(new Crate(this.world, ((MAP_WIDTH - 1) * TILE_SIZE) << 8, (18 * TILE_SIZE) << 8));
 					this.world.crates[this.world.crates.length - 1].vx = -(12 << 8);
 					this.world.crates[this.world.crates.length - 1].vy = -(2 << 8);
 				}
-			} else if (this.hits < 3 && this.number == 4) {
-				if (this.world.isRunning() && this.world.time % (90 - 20 * this.hits) == 0) {
+			} else if (this.hits < 3 && this.number === 4) {
+				if (this.world.isRunning() && this.world.time % (90 - 20 * this.hits) === 0) {
 					this.#throwCrate(5, 20);
 				}
 
-				if (this.hits > 0 && this.world.isRunning() && this.world.time % (180 - 20 * this.hits) == 0) {
+				if (this.hits > 0 && this.world.isRunning() && this.world.time % (180 - 20 * this.hits) === 0) {
 					this.#shootWheel(27 * TILE_SIZE, 2 * TILE_SIZE, 600);
 				}
 
-				if (this.hits > 1 && this.world.isRunning() && this.world.plasmaBall.length == 0) {
+				if (this.hits > 1 && this.world.isRunning() && this.world.plasmaBall.length === 0) {
 					this.#shootPlasma(400);
 				}
 			}
@@ -239,7 +239,7 @@ export class Boss {
 		this.world.crates.push(crate);
 		if (this.world.crates.length > 10) {
 			for (let i = 0; i < 10; i++) {
-				if (!this.world.crates[i].carried && this.world.crates[i].noRemove == 0) {
+				if (!this.world.crates[i].carried && this.world.crates[i].noRemove === 0) {
 					this.world.crates.splice(i, 1);
 					break;
 				}
@@ -258,10 +258,10 @@ export class Boss {
 	 * @returns {void}
 	 */
 	updateRumble() {
-		if (this.hits != 3 || this.x >= BOSS_GONE_X) return;
+		if (this.hits !== 3 || this.x >= BOSS_GONE_X) return;
 		playLoop(sfx_bossRumble);
 		this.#shakeScreen();
-		if (this.world.time % 10 == 0) {
+		if (this.world.time % 10 === 0) {
 			createCakeOrSmokeSparkles(this.world, (this.x + 14) << 8, (this.y + 18) << 8, SparkleType.SMOKE, 3, 300);
 			this.x += 1;
 		}
@@ -313,7 +313,7 @@ export class Boss {
 			if (this.hits < 3) {
 				const block = FIRST_OF_KIND[TileKind.BOSS_BLOCK];
 				for (const [i, tile] of this.world.level.tiles.entries()) {
-					if (tile == block) this.world.map.set(i, block);
+					if (tile === block) this.world.map.set(i, block);
 				}
 			} else {
 				this.world.projectiles = [];

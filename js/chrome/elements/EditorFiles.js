@@ -54,7 +54,7 @@ export class EditorFiles extends SelectionScreen {
 	 */
 	render() {
 		const mode = this.getAttribute('mode');
-		setAttributes(this.querySelector('slot-list'), { mode: mode == 'save' || mode == 'load' ? mode : null });
+		setAttributes(this.querySelector('slot-list'), { mode: mode === 'save' || mode === 'load' ? mode : null });
 	}
 
 	/**
@@ -79,17 +79,17 @@ export class EditorFiles extends SelectionScreen {
 		if (this.#leaving) return;
 		const mode = this.getAttribute('mode');
 		const stored = editorMap(slot).get();
-		if (mode == 'load') {
+		if (mode === 'load') {
 			if (stored == null || !(await confirmReplaceMap(this.stage))) return;
-		} else if (mode == 'save') {
+		} else if (mode === 'save') {
 			const question = `Slot ${slot} contains a map. Do you want to overwrite it?`;
 			if (stored != null && !(await confirmOnScreen(question, 'Save map'))) return;
 		} else {
 			return;
 		}
-		if (this.#leaving || this.getAttribute('mode') != mode) return;
+		if (this.#leaving || this.getAttribute('mode') !== mode) return;
 
-		if (mode == 'load') {
+		if (mode === 'load') {
 			this.stage.edit(editorMap(slot).get());
 		} else {
 			if (!saveEditorMap(slot, this.stage.getMap())) {

@@ -13,6 +13,16 @@ import {
 } from './constants.js';
 
 /**
+ * @type {Array<[number, number]>} The key bit and the MouseButton value of each mouse button, in the order in which
+ *     the tick checks them.
+ */
+const MOUSE_BUTTONS = [
+	[MOUSE_LEFT, MouseButton.LEFT],
+	[MOUSE_RIGHT, MouseButton.RIGHT],
+	[MOUSE_MIDDLE, MouseButton.MIDDLE],
+];
+
+/**
  * The keys and the mouse. The input handlers write the keys and the mouse position, and the tick finds the changes.
  */
 export class InputState {
@@ -28,14 +38,14 @@ export class InputState {
 	mouseOver = false;
 	/** @type {boolean} True while a replay plays without a pause. */
 	mouseLocked = false;
-	/** @type {number} 1 from the press of a mouse button until its release, else 0. */
-	mousePressed = 0;
-	/** @type {number} 1 after the release of a mouse button, else 0. */
-	mouseReleased = 0;
+	/** @type {boolean} True from the press of a mouse button until its release. */
+	mousePressed = false;
+	/** @type {boolean} True after the release of a mouse button. */
+	mouseReleased = false;
 	/** @type {number} The mouse button of the last press or release, a value of MouseButton. */
 	mouseButton = 0;
-	/** @type {number} 1 in the first tick of a left click, else 0. */
-	mouseNewPress = 0;
+	/** @type {boolean} True in the first tick of a left click. */
+	mouseNewPress = false;
 	/** @type {boolean} True in the tick of a press of the clear key. */
 	clearPressed = false;
 	/** @type {boolean} True after the undo key was pressed, until the editor takes it. */
@@ -50,46 +60,23 @@ export class InputState {
 	 * @returns {void}
 	 */
 	update() {
-		// check for a new left click
-		if (this.keys & MOUSE_LEFT) {
-			if (this.mousePressed == 0) {
-				this.mouseNewPress = 1;
-			} else {
-				this.mouseNewPress = 0;
-			}
-		} else this.mouseNewPress = 0;
+		this.mouseNewPress = Boolean(this.keys & MOUSE_LEFT) && !this.mousePressed;
 
-		//check if a mouse button was just pressed
-		if (!(this.oldKeys & MOUSE_LEFT) && this.keys & MOUSE_LEFT) {
-			this.mouseButton = MouseButton.LEFT;
-			this.mousePressed = 1;
-			this.mouseReleased = 0;
-		} else if (!(this.oldKeys & MOUSE_RIGHT) && this.keys & MOUSE_RIGHT) {
-			this.mouseButton = MouseButton.RIGHT;
-			this.mousePressed = 1;
-			this.mouseReleased = 0;
-		} else if (!(this.oldKeys & MOUSE_MIDDLE) && this.keys & MOUSE_MIDDLE) {
-			this.mouseButton = MouseButton.MIDDLE;
-			this.mousePressed = 1;
-			this.mouseReleased = 0;
+		const pressed = MOUSE_BUTTONS.find(([bit]) => !(this.oldKeys & bit) && this.keys & bit);
+		if (pressed) {
+			this.mouseButton = pressed[1];
+			this.mousePressed = true;
+			this.mouseReleased = false;
 		}
 
-		//check if a mouse button was just released
-		if (this.oldKeys & MOUSE_LEFT && !(this.keys & MOUSE_LEFT)) {
-			this.mouseButton = MouseButton.LEFT;
-			this.mouseReleased = 1;
-			this.mousePressed = 0;
-		} else if (this.oldKeys & MOUSE_RIGHT && !(this.keys & MOUSE_RIGHT)) {
-			this.mouseButton = MouseButton.RIGHT;
-			this.mouseReleased = 1;
-			this.mousePressed = 0;
-		} else if (this.oldKeys & MOUSE_MIDDLE && !(this.keys & MOUSE_MIDDLE)) {
-			this.mouseButton = MouseButton.MIDDLE;
-			this.mouseReleased = 1;
-			this.mousePressed = 0;
+		const released = MOUSE_BUTTONS.find(([bit]) => this.oldKeys & bit && !(this.keys & bit));
+		if (released) {
+			this.mouseButton = released[1];
+			this.mouseReleased = true;
+			this.mousePressed = false;
 		}
 
-		this.clearPressed = (this.keys & KEY_CLEAR) != 0 && (this.oldKeys & KEY_CLEAR) == 0;
+		this.clearPressed = (this.keys & KEY_CLEAR) !== 0 && (this.oldKeys & KEY_CLEAR) === 0;
 		if (this.keys & KEY_CLEAR && this.oldKeys & KEY_CLEAR) this.keys &= ~KEY_CLEAR;
 	}
 
@@ -108,13 +95,10 @@ export class InputState {
 	 * @returns {void}
 	 */
 	unclick() {
-		this.mousePressed = 0;
-		this.mouseReleased = 0;
-		this.mouseNewPress = 0;
-
-		this.keys &= ~MOUSE_LEFT;
-		this.keys &= ~MOUSE_RIGHT;
-		this.keys &= ~MOUSE_MIDDLE;
+		this.mousePressed = false;
+		this.mouseReleased = false;
+		this.mouseNewPress = false;
+		this.keys &= ~(MOUSE_LEFT | MOUSE_RIGHT | MOUSE_MIDDLE);
 	}
 
 	/**
@@ -135,10 +119,10 @@ export class InputState {
 	capture(player) {
 		return [
 			this.oldKeys,
-			this.mousePressed,
-			this.mouseReleased,
+			this.mousePressed ? 1 : 0,
+			this.mouseReleased ? 1 : 0,
 			this.mouseButton,
-			this.mouseNewPress,
+			this.mouseNewPress ? 1 : 0,
 			player.jump ? 1 : 0,
 			player.oldJump ? 1 : 0,
 			player.askClear ? 1 : 0,
@@ -154,12 +138,12 @@ export class InputState {
 	 */
 	restore(player, state) {
 		this.oldKeys = state[0];
-		this.mousePressed = state[1];
-		this.mouseReleased = state[2];
+		this.mousePressed = state[1] === 1;
+		this.mouseReleased = state[2] === 1;
 		this.mouseButton = state[3];
-		this.mouseNewPress = state[4];
-		player.jump = state[5] == 1;
-		player.oldJump = state[6] == 1;
-		player.askClear = state[7] == 1;
+		this.mouseNewPress = state[4] === 1;
+		player.jump = state[5] === 1;
+		player.oldJump = state[6] === 1;
+		player.askClear = state[7] === 1;
 	}
 }

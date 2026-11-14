@@ -134,8 +134,8 @@ export class Player extends Body {
 				fading,
 				color,
 			);
-			if (random(0, 2) == 0) s.vx = -s.vx;
-			if (random(0, 2) == 0) s.vy = -s.vy;
+			if (random(0, 2) === 0) s.vx = -s.vx;
+			if (random(0, 2) === 0) s.vy = -s.vy;
 			this.world.sparkles.push(s);
 		}
 	}
@@ -148,7 +148,7 @@ export class Player extends Body {
 	 * @returns {void}
 	 */
 	teleported(entry, exit) {
-		this.teleportTime = entry == this.world.portals.list[0] ? 42 : -42;
+		this.teleportTime = entry === this.world.portals.list[0] ? 42 : -42;
 		super.teleported(entry, exit);
 	}
 
@@ -161,7 +161,7 @@ export class Player extends Body {
 	#grabObject() {
 		const input = this.world.input;
 		if (!this.carrying) {
-			if (input.mousePressed && input.mouseButton == MouseButton.LEFT) {
+			if (input.mousePressed && input.mouseButton === MouseButton.LEFT) {
 				this.carrying = this.#grabbableIn(this.world.crates) ?? this.#grabbableIn(this.world.turrets);
 				if (this.carrying) playSound(sfx_pickUp);
 			}
@@ -201,9 +201,9 @@ export class Player extends Body {
 	move() {
 		const portals = this.world.portals;
 		if (this.teleportTime < 0) {
-			if (++this.teleportTime < 0 && this.teleportTime % 6 == 0) this.#teleportSparkles(3, 200, 0);
+			if (++this.teleportTime < 0 && this.teleportTime % 6 === 0) this.#teleportSparkles(3, 200, 0);
 		} else if (this.teleportTime > 0) {
-			if (--this.teleportTime > 0 && this.teleportTime % 6 == 0) this.#teleportSparkles(5, 255, 1);
+			if (--this.teleportTime > 0 && this.teleportTime % 6 === 0) this.#teleportSparkles(5, 255, 1);
 		}
 
 		if (this.askClear) {
@@ -218,14 +218,14 @@ export class Player extends Body {
 			playLoop(sfx_float);
 		}
 		for (const field of fields) {
-			if (fields.length == 1) {
-				if (field.vx != 0) {
+			if (fields.length === 1) {
+				if (field.vx !== 0) {
 					if (portals.portalAt(this, Direction.UP) || portals.portalAt(this, Direction.DOWN)) {
 						if (this.y >> 8 < field.y) this.y += 768;
 						else if ((this.y >> 8) + this.pY > field.y + 2 * TILE_SIZE) this.y -= 768;
 					} else if (this.y >> 8 < field.y) this.y += 512;
 					else if ((this.y >> 8) + this.pY > field.y + 2 * TILE_SIZE) this.y -= 512;
-				} else if (field.vy != 0) {
+				} else if (field.vy !== 0) {
 					// the height pY centers the player on the x axis, in the same way as moveObject()
 					if (this.x >> 8 < field.x + (TILE_SIZE - (this.pY >> 1))) this.x += 256;
 					else if ((this.x >> 8) + this.pX > field.x + 2 * TILE_SIZE - (TILE_SIZE - (this.pY >> 1))) this.x -= 256;
@@ -235,10 +235,10 @@ export class Player extends Body {
 			this.vx += field.vx * 384;
 			this.vy += field.vy * 384;
 
-			if (field.vx != 0) {
+			if (field.vx !== 0) {
 				if (this.jump) {
 					this.y -= 3 << 8;
-					if (this.world.gravPipeFieldsAt(this).length == 0) {
+					if (this.world.gravPipeFieldsAt(this).length === 0) {
 						this.vy = -800;
 						this.vx = field.vx << 9;
 					}
@@ -246,16 +246,16 @@ export class Player extends Body {
 				if (this.down) this.y += 3 << 8;
 			}
 
-			if (field.vy != 0) {
+			if (field.vy !== 0) {
 				if (this.left) {
 					this.x -= 3 << 8;
-					if (this.world.gravPipeFieldsAt(this).length == 0) {
+					if (this.world.gravPipeFieldsAt(this).length === 0) {
 						this.vx = -384;
 					}
 				}
 				if (this.right) {
 					this.x += 3 << 8;
-					if (this.world.gravPipeFieldsAt(this).length == 0) {
+					if (this.world.gravPipeFieldsAt(this).length === 0) {
 						this.vx = 384;
 					}
 				}
@@ -263,17 +263,17 @@ export class Player extends Body {
 		}
 
 		const ground = this.touchingGround();
-		if (ground && !this.onGround && fields.length == 0) playSound(sfx_land);
+		if (ground && !this.onGround && fields.length === 0) playSound(sfx_land);
 		this.onGround = ground > 0;
 		const belt = this.world.onBelt(this);
-		this.x += belt == 3 ? 384 : belt == 4 ? -384 : 0;
+		this.x += belt === 3 ? 384 : belt === 4 ? -384 : 0;
 
-		this.animationTime -= 1 + 2 * (1 - (ground == 2 ? 1 : 0));
+		this.animationTime -= 1 + 2 * (1 - (ground === 2 ? 1 : 0));
 		if (this.animationTime <= 0) {
 			this.animationTime = 10;
-			if (++this.animationFrame == 5) this.animationFrame = 1;
-			if (ground && this.left != this.right && this.animationFrame % 2 == 1) {
-				const steps = ground == 2 ? sfx_iceStep : sfx_step;
+			if (++this.animationFrame === 5) this.animationFrame = 1;
+			if (ground && this.left !== this.right && this.animationFrame % 2 === 1) {
+				const steps = ground === 2 ? sfx_iceStep : sfx_step;
 				playSound(steps[random(0, steps.length)], randomRate(0.08));
 			}
 		}
@@ -284,12 +284,12 @@ export class Player extends Body {
 			this.recoveryTime--;
 		}
 
-		if (this.recoveryTime == 0 && this.life < 100 << 8) {
+		if (this.recoveryTime === 0 && this.life < 100 << 8) {
 			if ((this.life += 256) > 100 << 8) this.life = 100 << 8;
 		}
 
 		if (this.life <= 50 << 8) {
-			const drops = this.world.time % (this.life >> 8) == 0 ? 3 : 0;
+			const drops = this.world.time % (this.life >> 8) === 0 ? 3 : 0;
 			for (let i = 0; i < drops; i++) {
 				this.world.sparkles.push(
 					new Sparkle(
@@ -309,7 +309,7 @@ export class Player extends Body {
 		let dir = (this.right ? 128 : 0) - (this.left ? 128 : 0);
 
 		//jump handling
-		if (this.jump && ground && !portals.portalAt(this, Direction.DOWN) && fields.length == 0) {
+		if (this.jump && ground && !portals.portalAt(this, Direction.DOWN) && fields.length === 0) {
 			this.vy = -1300;
 			playSound(sfx_jump);
 		} else if (!this.jump && this.oldJump && this.vy < -200) {
@@ -317,36 +317,36 @@ export class Player extends Body {
 		}
 
 		if (this.vx > 0) {
-			if (ground == 1 && !portals.portalAt(this, Direction.LEFT)) {
+			if (ground === 1 && !portals.portalAt(this, Direction.LEFT)) {
 				this.world.steps += this.vx >> 4;
 				this.vx -= 64;
 			} else {
-				this.vx -= ground == 2 ? 14 : 28;
+				this.vx -= ground === 2 ? 14 : 28;
 			}
 			if (this.vx < 0) this.vx = 0;
 		} else if (this.vx < 0) {
-			if (ground == 1 && !portals.portalAt(this, Direction.RIGHT)) {
+			if (ground === 1 && !portals.portalAt(this, Direction.RIGHT)) {
 				this.world.steps -= this.vx >> 4;
 				this.vx += 64;
 			} else {
-				this.vx += ground == 2 ? 14 : 28;
+				this.vx += ground === 2 ? 14 : 28;
 			}
 			if (this.vx > 0) this.vx = 0;
 		}
 
-		if (dir == 0 && ground) this.animationFrame = 0;
+		if (dir === 0 && ground) this.animationFrame = 0;
 
-		if (fields.length == 0) {
+		if (fields.length === 0) {
 			if (
 				this.vx > 448 &&
-				ground == 1 &&
+				ground === 1 &&
 				!portals.portalAt(this, Direction.LEFT) &&
 				!portals.portalAt(this, Direction.RIGHT)
 			)
 				this.vx = 448;
 			else if (
 				this.vx < -448 &&
-				ground == 1 &&
+				ground === 1 &&
 				!portals.portalAt(this, Direction.LEFT) &&
 				!portals.portalAt(this, Direction.RIGHT)
 			)
@@ -368,14 +368,14 @@ export class Player extends Body {
 		}
 
 		if (!ground || portals.portalAt(this, Direction.DOWN)) {
-			if (fields.length == 0) this.vy += GRAVITY;
+			if (fields.length === 0) this.vy += GRAVITY;
 			dir = Math.trunc(dir * 0.28);
 			if (this.vy > (10 << 8) + 128) this.vy = (10 << 8) + 128;
 		}
 
-		if (fields.length == 0) {
-			if (ground != 2) this.vx += dir;
-			else if (ground == 2) this.vx += dir >> 2;
+		if (fields.length === 0) {
+			if (ground !== 2) this.vx += dir;
+			else if (ground === 2) this.vx += dir >> 2;
 		}
 
 		for (let i = 0; i < 8; i++) {
@@ -404,10 +404,10 @@ export class Player extends Body {
 
 		const input = this.world.input;
 		if (this.world.abilities.portals) {
-			if (input.mousePressed && this.portalCooldown == 25 && !portals.isInPortal(this) && !this.carrying) {
-				if (input.mouseButton == MouseButton.LEFT) {
+			if (input.mousePressed && this.portalCooldown === 25 && !portals.isInPortal(this) && !this.carrying) {
+				if (input.mouseButton === MouseButton.LEFT) {
 					portals.launchPortal(0, input.mouseX, input.mouseY);
-				} else if (input.mouseButton == MouseButton.RIGHT) {
+				} else if (input.mouseButton === MouseButton.RIGHT) {
 					portals.launchPortal(1, input.mouseX, input.mouseY);
 				}
 			}

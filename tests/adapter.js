@@ -133,7 +133,7 @@ export async function waitForNarrator(page) {
 export function runTicks(page, count) {
 	return page.evaluate((count) => {
 		for (let tick = 0; tick < count; tick++) window.__test.tick();
-		return window.__test.game.message;
+		return window.__test.game.events?.message ?? null;
 	}, count);
 }
 
@@ -147,7 +147,7 @@ export function runTicks(page, count) {
 export function runTicksUntilMessage(page, maxTime) {
 	return page.evaluate((maxTime) => {
 		const t = window.__test;
-		while (!t.game.message && t.game.time < maxTime) t.tick();
+		while (!t.game.events?.message && t.game.time < maxTime) t.tick();
 		return t.game.time;
 	}, maxTime);
 }

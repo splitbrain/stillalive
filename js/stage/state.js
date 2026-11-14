@@ -20,8 +20,8 @@ export const game = {
 	background: undefined,
 	/** @type {{jump: boolean, portals: boolean}} The abilities of the player at the start of the level. */
 	abilities: undefined,
-	/** @type {import('./mapFile.js').MapEvent[]} The events of the level. */
-	events: undefined,
+	/** @type {import('./LevelEvents.js').LevelEvents|null} The events of the level that runs or that ran last, or null after the stage leaves a mode. */
+	events: null,
 	/** @type {import('./mapFile.js').MapLabel[]} The texts at positions of the playfield. */
 	labels: undefined,
 	/** @type {number} The x shift of the drawing in playfield units: the screen shake of the boss levels, else 0. */
@@ -75,12 +75,6 @@ export const game = {
 	plasmaY: undefined,
 	/** @type {import('./entities/Boss.js').Boss|null} The boss of the level, or null for a level without a boss. */
 	boss: null,
-	/**
-	 * @type {{text: string, wait: boolean, portrait: number}|null} The message of the events of the level, or null.
-	 *     The property wait is true while the message waits for a click. The portrait is 0 for the robot or the number
-	 *     of the boss. Each event creates a new object.
-	 */
-	message: null,
 	/** @type {import('./level.js').Level} The level that runs. */
 	level: undefined,
 	/** @type {number} The phase of the level, a value of LevelPhase. */

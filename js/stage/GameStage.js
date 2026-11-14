@@ -389,7 +389,7 @@ export class GameStage extends HTMLElement {
 		ui.paused = false;
 		game.replayMode = false;
 		this.#speed = 1;
-		game.message = null;
+		game.events = null;
 		game.shakeX = 0;
 		game.shakeY = 0;
 	}
@@ -422,7 +422,7 @@ export class GameStage extends HTMLElement {
 		const time = game.time ?? 0;
 		this.time.set(game.isRunning() ? time - (time % TIME_UPDATE_INTERVAL) : time);
 		this.paused.set(ui.paused);
-		this.message.set(game.message);
+		this.message.set(game.events?.message ?? null);
 		this.speed.set(this.#speed);
 		this.brush.set(ui.editor.brush);
 		this.fps.set(getFps());

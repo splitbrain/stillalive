@@ -25,7 +25,7 @@ import { Portal } from './entities/Portal.js';
 import { removeSparkles } from './entities/Sparkle.js';
 import { GravPipe } from './entities/GravPipe.js';
 import { Turret } from './entities/Turret.js';
-import { startEvents } from './events.js';
+import { LevelEvents } from './LevelEvents.js';
 import { Replay } from './replay.js';
 import { game, input, ui } from './state.js';
 import { TileMap } from './TileMap.js';
@@ -399,9 +399,9 @@ export function loadLevel(level, restart = false) {
 
 	game.background = level.bg;
 	game.abilities = { ...level.abilities };
-	game.events = level.events;
 	game.labels = level.labels;
-	startEvents(restart);
+	game.events = new LevelEvents(level.events, restart || game.replayMode);
+	game.events.update(); // fire the start events
 	if (game.boss && (restart || game.replayMode)) game.boss.skipEntry();
 }
 

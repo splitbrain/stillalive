@@ -15,7 +15,6 @@ import { updatePortals } from './entities/Portal.js';
 import { updateProjectiles } from './entities/Projectile.js';
 import { updateSparkles } from './entities/Sparkle.js';
 import { updateTurrets } from './entities/Turret.js';
-import { isWaiting, triggerEvents, updateEvents } from './events.js';
 import { manageKeys, unclick } from './inputState.js';
 import { loadLevel, manageDoors } from './level.js';
 import { atExit } from './physics.js';
@@ -61,12 +60,12 @@ function updateLevel() {
 		game.phase = LevelPhase.RUNNING;
 	}
 
-	if ((isWaiting() || game.boss?.entering) && game.isRunning()) {
+	if ((game.events.isWaiting() || game.boss?.entering) && game.isRunning()) {
 		game.phase = LevelPhase.HALTED;
 	}
 	updateObjects();
 	game.boss?.update();
-	if (!game.reachedExit()) updateEvents();
+	if (!game.reachedExit()) game.events.update();
 }
 
 /**
@@ -97,10 +96,10 @@ function updateLevelEnd() {
 			stageEvents.push({ type: 'finished', detail: { time: game.time, replay } });
 		}
 	}
-	if (game.isRunning() || isWaiting()) {
-		triggerEvents('exit');
-		updateEvents();
-		if (isWaiting()) {
+	if (game.isRunning() || game.events.isWaiting()) {
+		game.events.trigger('exit');
+		game.events.update();
+		if (game.events.isWaiting()) {
 			game.phase = LevelPhase.EXIT_WAIT;
 			return;
 		}
@@ -108,7 +107,7 @@ function updateLevelEnd() {
 		game.fade = FADE_START;
 		ui.transition = random(Transition.TOP_LEFT, Transition.SQUARE + 1);
 		playSound(sfx_transition);
-		game.message = null;
+		game.events.message = null;
 		unclick();
 		game.replayMode = false;
 	}

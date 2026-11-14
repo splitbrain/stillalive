@@ -19,7 +19,10 @@ const LAYERS = [
 	},
 	{
 		name: 'logic',
-		files: ['./js/stage/entities/*.js', './js/stage/{boss,events,inputState,level,mapFile,physics,portals,replay}.js'],
+		files: [
+			'./js/stage/entities/*.js',
+			'./js/stage/{boss,inputState,level,LevelEvents,mapFile,physics,portals,replay}.js',
+		],
 	},
 	{ name: 'drawing', files: ['./js/stage/render/*.js'] },
 	{ name: 'flow', files: ['./js/stage/{editor,game,GameStage,input}.js'] },

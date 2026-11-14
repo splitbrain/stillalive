@@ -8,7 +8,6 @@ import { Crate } from './Crate.js';
 import { Plasma } from './Plasma.js';
 import { Projectile } from './Projectile.js';
 import { createCakeOrSmokeSparkles } from './Sparkle.js';
-import { isWaiting, triggerEvents } from '../events.js';
 import { game } from '../state.js';
 import { FIRST_OF_KIND, TileKind } from '../tiles.js';
 import { getCos, getDistance, getSin, random } from '../utils.js';
@@ -94,7 +93,7 @@ export class Boss {
 		this.entryDistance = 0;
 		this.x = BOSS_X;
 		this.entryTicks = 0;
-		triggerEvents('bossArrived');
+		game.events.trigger('bossArrived');
 	}
 
 	/**
@@ -105,7 +104,7 @@ export class Boss {
 	 */
 	update() {
 		if (this.entering) {
-			if (!isWaiting()) {
+			if (!game.events.isWaiting()) {
 				playLoop(sfx_bossRumble);
 				playLoop(sfx_bossAlarm);
 				this.entryDistance += 32;
@@ -115,7 +114,7 @@ export class Boss {
 					this.entering = false;
 					game.shakeX = 0;
 					game.shakeY = 0;
-					triggerEvents('bossArrived');
+					game.events.trigger('bossArrived');
 				}
 				if (this.entryTicks % 3 == 0) {
 					game.shakeX = random(-3, 3);
@@ -266,7 +265,7 @@ export class Boss {
 	 *     its death, or null before the entrance and after the boss is gone.
 	 */
 	phase() {
-		if (this.entering) return isWaiting() ? null : 'coming';
+		if (this.entering) return game.events.isWaiting() ? null : 'coming';
 		if (this.hits < 3) return 'fight';
 		return this.x < BOSS_GONE_X ? 'leaving' : null;
 	}
@@ -308,7 +307,7 @@ export class Boss {
 			} else {
 				game.projectiles = new Array();
 				game.plasmaBall = new Array();
-				triggerEvents('bossDied');
+				game.events.trigger('bossDied');
 			}
 		}
 	}

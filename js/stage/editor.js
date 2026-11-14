@@ -52,7 +52,7 @@ export function stopPlayingLevel(report = true) {
 	unclick();
 	ui.mode = 'edit';
 	game.map = new TileMap(game.oldMap);
-	game.message = null;
+	game.events.message = null;
 	rebuildObjects();
 	if (report) stageEvents.push({ type: 'died', detail: null });
 }

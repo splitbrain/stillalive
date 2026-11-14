@@ -83,9 +83,9 @@ export class GameApp extends ChromeElement {
 	#pendingReturn = null;
 
 	/**
-	 * @type {Record<string, (context: RouteContext) => boolean>} The handlers of the routes, by the route name and the
-	 *     mode, e.g. "play/replay", or by the route name alone. A handler applies the route to the stage. It returns
-	 *     false if it went on to another route, so that the parts are left to that route.
+	 * @type {Record<string, (context: RouteContext) => void>} The handlers of the routes, by the route name and the
+	 *     mode, e.g. "play/replay", or by the route name alone. A handler applies the route to the stage. A handler can
+	 *     go on to another route; then the apply of the new route sets the parts.
 	 */
 	#routeHandlers = {
 		[RouteName.SELECT]: (context) => this.#showSelection(context),
@@ -310,7 +310,9 @@ export class GameApp extends ChromeElement {
 		const level = current.level > 0 ? campaign.levels[current.level - 1] : null;
 
 		const context = { current, previous, campaign, level, sameLevel, again, reopen };
-		if (!this.#routeHandler(current)(context)) return;
+		this.#routeHandler(current)(context);
+		// a handler that went on to another route leaves the parts to the apply of that route
+		if (route.get() !== current) return;
 		this.stage.playMusic(current.name === RouteName.PLAY && current.mode === RouteMode.PLAY ? 'level' : 'menu');
 		this.#updateParts(context);
 		this.#showScreen();
@@ -321,7 +323,7 @@ export class GameApp extends ChromeElement {
 	 * route name, else the handler that stops the stage.
 	 *
 	 * @param {import('../../router.js').Route} current The route.
-	 * @returns {(context: RouteContext) => boolean} The handler.
+	 * @returns {(context: RouteContext) => void} The handler.
 	 */
 	#routeHandler({ name, mode }) {
 		return this.#routeHandlers[`${name}/${mode}`] ?? this.#routeHandlers[name] ?? (() => this.#stopStage());
@@ -331,11 +333,10 @@ export class GameApp extends ChromeElement {
 	 * Show the preview of the level that the selection shows.
 	 *
 	 * @param {RouteContext} context The route and its state.
-	 * @returns {boolean} True, because the route stays.
+	 * @returns {void}
 	 */
 	#showSelection({ current, campaign }) {
 		this.#previewLevel(campaign, current.level);
-		return true;
 	}
 
 	/**
@@ -357,37 +358,33 @@ export class GameApp extends ChromeElement {
 	 * replay opens again, stop the stage.
 	 *
 	 * @param {RouteContext} context The route and its state.
-	 * @returns {boolean} True, because the route stays.
+	 * @returns {void}
 	 */
 	#playLevel({ level, sameLevel, reopen }) {
 		if (reopen) this.stage.stop();
 		else this.stage.play(level, { restart: sameLevel });
-		return true;
 	}
 
 	/**
 	 * Play the replay of the route, and keep where the replay goes back to.
 	 *
 	 * @param {RouteContext} context The route and its state.
-	 * @returns {boolean} True, because the route stays.
+	 * @returns {void}
 	 */
 	#watchReplay({ current, level, again }) {
 		this.#replayReturn = this.#pendingReturn;
 		this.#pendingReturn = null;
 		this.#playReplay(current, level, again);
-		return true;
 	}
 
 	/**
 	 * Start the test run of the editor map. If the test run does not start, go to the editor.
 	 *
-	 * @returns {boolean} True if the test run started, false if the handler went to the editor route.
+	 * @returns {void}
 	 */
 	#testMap() {
 		this.stage.test();
-		if (this.stage.mode.get() === 'test') return true;
-		navigate('#/editor', true);
-		return false;
+		if (this.stage.mode.get() !== 'test') navigate('#/editor', true);
 	}
 
 	/**
@@ -395,7 +392,7 @@ export class GameApp extends ChromeElement {
 	 * first tile.
 	 *
 	 * @param {RouteContext} context The route and its state.
-	 * @returns {boolean} True, because the route stays.
+	 * @returns {void}
 	 */
 	#openEditor({ previous }) {
 		if (this.stage.mode.get() === 'test') {
@@ -404,27 +401,24 @@ export class GameApp extends ChromeElement {
 			this.stage.edit();
 			if (previous?.name !== RouteName.EDITOR_FILE && previous?.name !== RouteName.EDITOR) this.stage.setBrush(1);
 		}
-		return true;
 	}
 
 	/**
 	 * Show the preview of the editor map behind the save and load screen.
 	 *
-	 * @returns {boolean} True, because the route stays.
+	 * @returns {void}
 	 */
 	#previewEditorMap() {
 		this.stage.preview(this.stage.getMap());
-		return true;
 	}
 
 	/**
 	 * Stop the stage, for the routes that show no level.
 	 *
-	 * @returns {boolean} True, because the route stays.
+	 * @returns {void}
 	 */
 	#stopStage() {
 		this.stage.stop();
-		return true;
 	}
 
 	/**

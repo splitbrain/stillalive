@@ -2,17 +2,18 @@
  * The Camera object.
  */
 
-import { game } from '../state.js';
-
 /**
  * The security camera that follows the player.
  */
 export class Camera {
 	/**
+	 * @param {import('../World.js').World} world The World of the object.
 	 * @param {number} x The x position in 1/256 pixels.
 	 * @param {number} y The y position in 1/256 pixels.
 	 */
-	constructor(x, y) {
+	constructor(world, x, y) {
+		/** @type {import('../World.js').World} The World of the object. */
+		this.world = world;
 		/** @type {number} The x position in 1/256 pixels. */
 		this.x = x;
 		/** @type {number} The y position in 1/256 pixels. */
@@ -38,14 +39,14 @@ export class Camera {
 
 		let angle;
 
-		if (game.player.flip == -1) {
+		if (this.world.player.flip == -1) {
 			angle = 335;
 		} else {
 			angle = 185;
 		}
 
-		const dx = game.player.x + Math.cos((angle / 180) * Math.PI) * (40 << 8);
-		const dy = game.player.y + Math.sin((angle / 180) * Math.PI) * (40 << 8);
+		const dx = this.world.player.x + Math.cos((angle / 180) * Math.PI) * (40 << 8);
+		const dy = this.world.player.y + Math.sin((angle / 180) * Math.PI) * (40 << 8);
 
 		this.vx = (dx - this.x) >> 4;
 		this.vy = (dy - this.y) >> 4;

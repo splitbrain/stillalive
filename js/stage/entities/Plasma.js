@@ -5,9 +5,7 @@
 import { Body } from './Body.js';
 import { playSound, setSoundVolume, sfx_bounce, sfx_plasmaField } from '../audio.js';
 import { Direction, MAP_SIZE, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, TILE_SIZE, TILE_SIZE_BITS } from '../constants.js';
-import { getCollision } from '../physics.js';
 import { isInPortal, passPortals } from '../portals.js';
-import { game } from '../state.js';
 import { Tile, TileKind, isTileKind } from '../tiles.js';
 import { getDistance, random } from '../utils.js';
 
@@ -16,14 +14,15 @@ import { getDistance, random } from '../utils.js';
  */
 export class Plasma extends Body {
 	/**
+	 * @param {import('../World.js').World} world The World of the object.
 	 * @param {number} x The x position in 1/256 pixels.
 	 * @param {number} y The y position in 1/256 pixels.
 	 * @param {number} vx The horizontal speed in 1/256 pixels per tick.
 	 * @param {number} vy The vertical speed in 1/256 pixels per tick.
 	 * @param {boolean} [homing] True for a ball of the boss, which follows the player.
 	 */
-	constructor(x, y, vx, vy, homing = false) {
-		super(x, y, TILE_SIZE, TILE_SIZE);
+	constructor(world, x, y, vx, vy, homing = false) {
+		super(world, x, y, TILE_SIZE, TILE_SIZE);
 		/** @type {number} The x position of the start, where the ball returns after a reset. */
 		this.xOrig = x;
 		/** @type {number} The y position of the start, where the ball returns after a reset. */
@@ -58,7 +57,7 @@ export class Plasma extends Body {
 	 * @returns {void}
 	 */
 	animate() {
-		if (game.time % 10 != 0) return;
+		if (this.world.time % 10 != 0) return;
 		let r;
 		do {
 			r = random(0, 3);
@@ -73,7 +72,7 @@ export class Plasma extends Body {
 	 * @returns {void}
 	 */
 	move() {
-		if (game.time % 10 == 0) {
+		if (this.world.time % 10 == 0) {
 			this.scale += 1 * this.scaleDir;
 			if (this.scale < -2 || this.scale > 2) this.scaleDir = -this.scaleDir;
 		}
@@ -87,10 +86,10 @@ export class Plasma extends Body {
 		if (!passPortals(this)) {
 			this.checkCollision();
 			if (this.homing) {
-				if (this.x < game.player.x) this.vx += 4;
-				else if (this.x > game.player.x) this.vx -= 4;
-				if (this.y < game.player.y) this.vy += 4;
-				else if (this.y > game.player.y) this.vy -= 4;
+				if (this.x < this.world.player.x) this.vx += 4;
+				else if (this.x > this.world.player.x) this.vx -= 4;
+				if (this.y < this.world.player.y) this.vy += 4;
+				else if (this.y > this.world.player.y) this.vy -= 4;
 
 				const maxSpeed = 3;
 
@@ -99,7 +98,7 @@ export class Plasma extends Body {
 				if (this.vy > maxSpeed << 8) this.vy = maxSpeed << 8;
 				else if (this.vy < -(maxSpeed << 8)) this.vy = -(maxSpeed << 8);
 
-				if (this.x > game.tubeX) this.needKill = true;
+				if (this.x > this.world.tubeX) this.needKill = true;
 			}
 		}
 
@@ -120,7 +119,7 @@ export class Plasma extends Body {
 		) {
 			this.reset();
 		} else {
-			const t = game.map.atPixel((this.x >> 8) + TILE_SIZE / 2, (this.y >> 8) + TILE_SIZE / 2);
+			const t = this.world.map.atPixel((this.x >> 8) + TILE_SIZE / 2, (this.y >> 8) + TILE_SIZE / 2);
 			if (isTileKind(t, TileKind.ACID, TileKind.ACIDPOOL)) {
 				this.reset();
 			}
@@ -198,10 +197,10 @@ export class Plasma extends Body {
 	openPlasmaDoors() {
 		let i;
 		playSound(sfx_plasmaField);
-		for (i = 0; i < game.animatedTiles.length; i++) {
-			if (isTileKind(game.animatedTiles[i].current, TileKind.PLASMA_DOOR)) {
-				game.animatedTiles[i].used = false;
-				game.map.setTile(game.animatedTiles[i].place, Tile.EMPTY);
+		for (i = 0; i < this.world.animatedTiles.length; i++) {
+			if (isTileKind(this.world.animatedTiles[i].current, TileKind.PLASMA_DOOR)) {
+				this.world.animatedTiles[i].used = false;
+				this.world.map.setTile(this.world.animatedTiles[i].place, Tile.EMPTY);
 			}
 		}
 	}
@@ -227,7 +226,7 @@ export class Plasma extends Body {
 	 * @returns {void}
 	 */
 	#fillSlot(column, row) {
-		game.map.set(game.map.index(column, row), Tile.WALL);
+		this.world.map.set(this.world.map.index(column, row), Tile.WALL);
 		if (this.hasSlot()) this.reset();
 		else {
 			this.used = false;
@@ -243,7 +242,7 @@ export class Plasma extends Body {
 	hasSlot() {
 		let i;
 		for (i = 0; i < MAP_SIZE; i++) {
-			if (game.map.tiles[i] == Tile.PLASMA_SLOT) return 1;
+			if (this.world.map.tiles[i] == Tile.PLASMA_SLOT) return 1;
 		}
 		return 0;
 	}
@@ -256,66 +255,66 @@ export class Plasma extends Body {
 	 */
 	checkCollision() {
 		let x, y, i;
-		let dist = getDistance(this.x >> 8, this.y >> 8, game.player.x >> 8, game.player.y >> 8);
+		let dist = getDistance(this.x >> 8, this.y >> 8, this.world.player.x >> 8, this.world.player.y >> 8);
 		if (dist > PLAYFIELD_HEIGHT) dist = PLAYFIELD_HEIGHT;
 		setSoundVolume(sfx_bounce, 1 - dist / PLAYFIELD_HEIGHT);
 
-		if (getCollision(this) == Direction.LEFT) {
+		if (this.getCollision() == Direction.LEFT) {
 			playSound(sfx_bounce);
 			do {
 				this.x += 128;
-			} while (getCollision(this) == Direction.LEFT);
+			} while (this.getCollision() == Direction.LEFT);
 			this.vx = -this.vx;
 
 			x = (this.x >> 8) - 1;
 			y = this.y >> 8;
 			for (i = 2; i <= 14 && !this.homing; i++) {
-				if (game.map.atPixel(x, y + i) == Tile.PLASMA_SLOT) {
+				if (this.world.map.atPixel(x, y + i) == Tile.PLASMA_SLOT) {
 					this.#fillSlot(x >> TILE_SIZE_BITS, (y + i) >> TILE_SIZE_BITS);
 					break;
 				}
 			}
-		} else if (getCollision(this) == Direction.RIGHT) {
+		} else if (this.getCollision() == Direction.RIGHT) {
 			playSound(sfx_bounce);
 			do {
 				this.x -= 128;
-			} while (getCollision(this) == Direction.RIGHT);
+			} while (this.getCollision() == Direction.RIGHT);
 			this.vx = -this.vx;
 
 			x = (this.x >> 8) + TILE_SIZE;
 			y = this.y >> 8;
 			for (i = 2; i <= 14 && !this.homing; i++) {
-				if (game.map.atPixel(x, y + i) == Tile.PLASMA_SLOT) {
+				if (this.world.map.atPixel(x, y + i) == Tile.PLASMA_SLOT) {
 					this.#fillSlot(x >> TILE_SIZE_BITS, (y + i) >> TILE_SIZE_BITS);
 					break;
 				}
 			}
-		} else if (getCollision(this) == Direction.UP) {
+		} else if (this.getCollision() == Direction.UP) {
 			playSound(sfx_bounce);
 			do {
 				this.y += 128;
-			} while (getCollision(this) == Direction.UP);
+			} while (this.getCollision() == Direction.UP);
 			this.vy = -this.vy;
 
 			x = this.x >> 8;
 			y = (this.y >> 8) - 1;
 			for (i = 4; i <= 12 && !this.homing; i++) {
-				if (game.map.atPixel(x + i, y) == Tile.PLASMA_SLOT) {
+				if (this.world.map.atPixel(x + i, y) == Tile.PLASMA_SLOT) {
 					this.#fillSlot((x + i) >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS);
 					break;
 				}
 			}
-		} else if (getCollision(this) == Direction.DOWN) {
+		} else if (this.getCollision() == Direction.DOWN) {
 			playSound(sfx_bounce);
 			do {
 				this.y -= 128;
-			} while (getCollision(this) == Direction.DOWN);
+			} while (this.getCollision() == Direction.DOWN);
 			this.vy = -this.vy;
 
 			x = this.x >> 8;
 			y = (this.y >> 8) + TILE_SIZE;
 			for (i = 4; i <= 12 && !this.homing; i++) {
-				if (game.map.atPixel(x + i, y) == Tile.PLASMA_SLOT) {
+				if (this.world.map.atPixel(x + i, y) == Tile.PLASMA_SLOT) {
 					this.#fillSlot((x + i) >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS);
 					break;
 				}
@@ -328,18 +327,19 @@ export class Plasma extends Body {
  * Advance the animation of the plasma balls, move them and remove the dead ones. The balls stand still during the
  * level transitions.
  *
+ * @param {import('../World.js').World} world The World.
  * @returns {void}
  */
-export function updatePlasma() {
-	for (let pi = 0; pi < game.plasmaBall.length; pi++) {
-		const ball = game.plasmaBall[pi];
+export function updatePlasma(world) {
+	for (let pi = 0; pi < world.plasmaBall.length; pi++) {
+		const ball = world.plasmaBall[pi];
 		if (!ball.used) continue;
 		ball.animate();
-		if (game.isRunning()) {
+		if (world.isRunning()) {
 			ball.move();
-			if (!game.objectInPortal) game.objectInPortal = isInPortal(ball);
+			if (!world.objectInPortal) world.objectInPortal = isInPortal(ball);
 			if (ball.needKill) {
-				game.plasmaBall.splice(pi, 1);
+				world.plasmaBall.splice(pi, 1);
 				pi--;
 			}
 		}

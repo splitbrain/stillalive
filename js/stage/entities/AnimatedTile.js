@@ -3,7 +3,6 @@
  */
 
 import { ORDERED, RANDOM } from '../constants.js';
-import { game } from '../state.js';
 import { random } from '../utils.js';
 
 /**
@@ -11,6 +10,7 @@ import { random } from '../utils.js';
  */
 export class AnimatedTile {
 	/**
+	 * @param {import('../World.js').World} world The World of the object.
 	 * @param {number} x The column of the tile in the map.
 	 * @param {number} y The row of the tile in the map.
 	 * @param {number} min The first frame, as a tile id.
@@ -19,7 +19,9 @@ export class AnimatedTile {
 	 * @param {number} place The index of the tile in the map.
 	 * @param {number} speed The number of ticks between two frames.
 	 */
-	constructor(x, y, min, max, type, place, speed) {
+	constructor(world, x, y, min, max, type, place, speed) {
+		/** @type {import('../World.js').World} The World of the object. */
+		this.world = world;
 		/** @type {number} The column of the tile in the map. */
 		this.x = x;
 		/** @type {number} The row of the tile in the map. */
@@ -46,7 +48,7 @@ export class AnimatedTile {
 	 * @returns {void}
 	 */
 	animate() {
-		if (!this.used || game.time % this.speed != 0) return;
+		if (!this.used || this.world.time % this.speed != 0) return;
 		if (this.type == RANDOM) {
 			let r;
 			do {
@@ -63,8 +65,9 @@ export class AnimatedTile {
 /**
  * Advance the frames of the animated tiles.
  *
+ * @param {import('../World.js').World} world The World.
  * @returns {void}
  */
-export function animateTiles() {
-	for (const tile of game.animatedTiles) tile.animate();
+export function animateTiles(world) {
+	for (const tile of world.animatedTiles) tile.animate();
 }

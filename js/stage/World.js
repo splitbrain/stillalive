@@ -16,7 +16,7 @@ import {
 } from './constants.js';
 import { AnimatedTile } from './entities/AnimatedTile.js';
 import { Boss } from './entities/Boss.js';
-import { Cake } from './entities/Cake.js';
+import { Cake, openExit } from './entities/Cake.js';
 import { Camera } from './entities/Camera.js';
 import { Crate } from './entities/Crate.js';
 import { GravPipe } from './entities/GravPipe.js';
@@ -26,7 +26,6 @@ import { Player } from './entities/Player.js';
 import { Portal } from './entities/Portal.js';
 import { Turret } from './entities/Turret.js';
 import { GRAVPIPE_DIRECTIONS, plasmaLaunch } from './level.js';
-import { touchingGround } from './physics.js';
 import { isInPortal } from './portals.js';
 import { Replay } from './replay.js';
 import { TileMap } from './TileMap.js';
@@ -151,7 +150,7 @@ export class World {
 	 */
 	constructor(map = new TileMap(new Array(MAP_SIZE).fill(Tile.EMPTY))) {
 		this.map = map;
-		this.player = new Player();
+		this.player = new Player(this);
 		this.resetPhase();
 	}
 
@@ -171,10 +170,11 @@ export class World {
 		world.replayMode = replay !== null;
 		world.replay = replay ?? new Replay();
 		if (level.fromBelow) world.#jumpInFromBelow();
-		world.boss = level.boss ? new Boss(level.boss) : null;
+		world.boss = level.boss ? new Boss(world, level.boss) : null;
 		world.#parse({ levelStart: true, boss: level.boss });
-		world.camera = new Camera(world.player.x, world.player.y);
+		world.camera = new Camera(world, world.player.x, world.player.y);
 		world.cakesLeft = world.cakes.length;
+		if (world.cakesLeft == 0) openExit(world);
 		world.background = level.bg;
 		world.abilities = { ...level.abilities };
 		world.labels = level.labels;
@@ -192,7 +192,7 @@ export class World {
 		const world = new World(new TileMap(level.tiles));
 		world.#parse();
 		if (level.fromBelow) world.#jumpInFromBelow();
-		world.boss = level.boss ? new Boss(level.boss) : null;
+		world.boss = level.boss ? new Boss(world, level.boss) : null;
 		world.cakesLeft = world.cakes.length;
 		if (world.cakesLeft == 0) {
 			const map = world.map;
@@ -223,7 +223,7 @@ export class World {
 	 * @returns {void}
 	 */
 	createEditorObjects() {
-		this.player = new Player();
+		this.player = new Player(this);
 		this.player.x = -(TILE_SIZE << 8);
 		this.resetPhase();
 		this.#parse({ editor: true });
@@ -272,7 +272,7 @@ export class World {
 
 			if (tile in GRAVPIPE_DIRECTIONS) {
 				const dir = GRAVPIPE_DIRECTIONS[tile];
-				this.gravPipes.push(new GravPipe((x * TILE_SIZE) << 8, (y * TILE_SIZE) << 8, dir));
+				this.gravPipes.push(new GravPipe(this, (x * TILE_SIZE) << 8, (y * TILE_SIZE) << 8, dir));
 				if (levelStart) {
 					// a gravitational pipe covers two tiles
 					const next = dir == Direction.RIGHT || dir == Direction.LEFT ? map.index(x, y + 1) : map.index(x + 1, y);
@@ -288,6 +288,7 @@ export class World {
 				map.setDisplay(i, Tile.EMPTY);
 				this.animatedTiles.push(
 					new AnimatedTile(
+						this,
 						x,
 						y,
 						FIRST_OF_KIND[animated.kind],
@@ -298,21 +299,23 @@ export class World {
 					),
 				);
 			} else if (tile == Tile.CAKE) {
-				this.cakes.push(new Cake((x * TILE_SIZE) << 8, (y * TILE_SIZE) << 8));
+				this.cakes.push(new Cake(this, (x * TILE_SIZE) << 8, (y * TILE_SIZE) << 8));
 				if (levelStart) map.setTile(i, Tile.EMPTY);
 			} else if (tile == Tile.TURRET_LEFT || tile == Tile.TURRET_RIGHT) {
 				if (levelStart) map.set(i, Tile.EMPTY);
-				this.turrets.push(new Turret((x * TILE_SIZE) << 8, (y * TILE_SIZE) << 8, tile == Tile.TURRET_LEFT ? -1 : 1));
+				this.turrets.push(
+					new Turret(this, (x * TILE_SIZE) << 8, (y * TILE_SIZE) << 8, tile == Tile.TURRET_LEFT ? -1 : 1),
+				);
 			} else if (tile == Tile.CRATE) {
 				if (levelStart) map.set(i, Tile.EMPTY);
-				this.crates.push(new Crate((x * TILE_SIZE) << 8, (y * TILE_SIZE) << 8));
+				this.crates.push(new Crate(this, (x * TILE_SIZE) << 8, (y * TILE_SIZE) << 8));
 			} else if (tile == Tile.PLAYER_START) {
 				this.player.x = (x * TILE_SIZE) << 8;
 				this.player.y = (y * TILE_SIZE) << 8;
 				if (levelStart) map.setTile(i, Tile.EMPTY);
 			} else if (tile == Tile.PLATFORM_RIGHT || tile == Tile.PLATFORM_LEFT) {
 				vx = tile == Tile.PLATFORM_RIGHT ? 256 : -256;
-				this.platforms.push(new Platform((x * TILE_SIZE) << 8, (y * TILE_SIZE) << 8, vx, 0));
+				this.platforms.push(new Platform(this, (x * TILE_SIZE) << 8, (y * TILE_SIZE) << 8, vx, 0));
 				if (levelStart) map.setTile(i, Tile.EMPTY);
 			} else if (tile == Tile.TUBE) {
 				if (editor) continue;
@@ -321,7 +324,7 @@ export class World {
 				if (levelStart) map.set(i, Tile.EMPTY);
 			} else if (tile == Tile.PLASMA_START && levelStart) {
 				const launch = plasmaLaunch(map, x, y);
-				if (launch && boss == 0) this.plasmaBall.push(new Plasma(launch.x, launch.y, launch.vx, launch.vy));
+				if (launch && boss == 0) this.plasmaBall.push(new Plasma(this, launch.x, launch.y, launch.vx, launch.vy));
 				else if (launch && (boss == 3 || boss == 4)) {
 					this.plasmaX = launch.x;
 					this.plasmaY = launch.y;
@@ -541,7 +544,7 @@ export class World {
 	 * @returns {number} 3 for a belt to the right, 4 for a belt to the left, else 0.
 	 */
 	onBelt(obj) {
-		const ground = touchingGround(obj);
+		const ground = obj.touchingGround();
 		if (ground == 3 || ground == 4) {
 			return ground;
 		} else {
@@ -566,6 +569,27 @@ export class World {
 		const platform = this.platformAt(x, y) || this.platformAt(x + obj.pX - 1, y);
 		if (platform) return platform;
 		return (this.crateAt(x, y) || this.crateAt(x + obj.pX - 1, y))?.platform ?? null;
+	}
+
+	/**
+	 * Check if the player touches the exit.
+	 *
+	 * @returns {boolean} True if the player is on the open exit.
+	 */
+	atExit() {
+		const p = this.player;
+		if (!isInPortal(p)) {
+			const x = p.x >> 8;
+			const y = p.y >> 8;
+			// check each tile that the box of the player touches
+			for (let ty = y >> TILE_SIZE_BITS; ty <= (y + p.pY - 1) >> TILE_SIZE_BITS; ty++) {
+				for (let tx = x >> TILE_SIZE_BITS; tx <= (x + p.pX - 1) >> TILE_SIZE_BITS; tx++) {
+					if (this.map.atPixel(tx << TILE_SIZE_BITS, ty << TILE_SIZE_BITS) == Tile.EXIT) return true;
+				}
+			}
+		}
+
+		return false;
 	}
 
 	/**

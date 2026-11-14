@@ -4,21 +4,20 @@
 
 import { Body } from './Body.js';
 import { PLAYFIELD_WIDTH, TILE_SIZE } from '../constants.js';
-import { leftCollision, rightCollision } from '../physics.js';
-import { game } from '../state.js';
 
 /**
  * A moving platform. It turns around at walls and at the edges of the playfield.
  */
 export class Platform extends Body {
 	/**
+	 * @param {import('../World.js').World} world The World of the object.
 	 * @param {number} x The x position in 1/256 pixels.
 	 * @param {number} y The y position in 1/256 pixels.
 	 * @param {number} vx The horizontal speed in 1/256 pixels per tick.
 	 * @param {number} vy The vertical speed in 1/256 pixels per tick.
 	 */
-	constructor(x, y, vx, vy) {
-		super(x, y, 3 * TILE_SIZE, TILE_SIZE);
+	constructor(world, x, y, vx, vy) {
+		super(world, x, y, 3 * TILE_SIZE, TILE_SIZE);
 		/** @type {number} The horizontal speed in 1/256 pixels per tick. */
 		this.vx = vx;
 		/** @type {number} The vertical speed in 1/256 pixels per tick. */
@@ -38,8 +37,8 @@ export class Platform extends Body {
 		if (
 			x < 0 ||
 			x > PLAYFIELD_WIDTH - 3 * TILE_SIZE ||
-			(this.vx > 0 && rightCollision(this)) ||
-			(this.vx < 0 && leftCollision(this))
+			(this.vx > 0 && this.rightCollision()) ||
+			(this.vx < 0 && this.leftCollision())
 		) {
 			this.vx = -this.vx;
 		}
@@ -49,9 +48,10 @@ export class Platform extends Body {
 /**
  * Move the platforms. The platforms stand still during the level transitions.
  *
+ * @param {import('../World.js').World} world The World.
  * @returns {void}
  */
-export function updatePlatforms() {
-	if (!game.isRunning()) return;
-	for (const p of game.platforms) p.move();
+export function updatePlatforms(world) {
+	if (!world.isRunning()) return;
+	for (const p of world.platforms) p.move();
 }

@@ -4,9 +4,8 @@
 
 import { Body } from './Body.js';
 import { Direction, GRAVITY, TILE_SIZE } from '../constants.js';
-import { checkCollisions, touchingGround } from '../physics.js';
 import { isInPortal, passPortal, portalAt } from '../portals.js';
-import { game, input } from '../state.js';
+import { input } from '../state.js';
 import { getCos, getSin } from '../utils.js';
 
 /**
@@ -14,13 +13,14 @@ import { getCos, getSin } from '../utils.js';
  */
 export class Throwable extends Body {
 	/**
+	 * @param {import('../World.js').World} world The World of the object.
 	 * @param {number} x The x position in 1/256 pixels.
 	 * @param {number} y The y position in 1/256 pixels.
 	 * @param {number} pX The width in pixels.
 	 * @param {number} pY The height in pixels.
 	 */
-	constructor(x, y, pX, pY) {
-		super(x, y, pX, pY);
+	constructor(world, x, y, pX, pY) {
+		super(world, x, y, pX, pY);
 		/** @type {number} The horizontal speed in 1/256 pixels per tick. */
 		this.vx = 0;
 		/** @type {number} The vertical speed in 1/256 pixels per tick. */
@@ -35,7 +35,7 @@ export class Throwable extends Body {
 	 * @type {boolean}
 	 */
 	get carried() {
-		return game.player.carrying == this;
+		return this.world.player.carrying == this;
 	}
 
 	/**
@@ -96,8 +96,8 @@ export class Throwable extends Body {
 	 */
 	place() {
 		let step;
-		const x = game.player.x + (game.player.pX << 7);
-		const y = game.player.y + (game.player.pY << 7);
+		const x = this.world.player.x + (this.world.player.pX << 7);
+		const y = this.world.player.y + (this.world.player.pY << 7);
 
 		this.x = x - (this.pX << 7);
 		this.y = y - (this.pY << 7);
@@ -118,7 +118,7 @@ export class Throwable extends Body {
 				!passPortal(this, Direction.UP) &&
 				!passPortal(this, Direction.RIGHT)
 			) {
-				checkCollisions(this);
+				this.checkCollisions();
 			}
 		}
 
@@ -133,7 +133,7 @@ export class Throwable extends Body {
 	 */
 	move() {
 		let col, i;
-		const fields = game.gravPipeFieldsAt(this);
+		const fields = this.world.gravPipeFieldsAt(this);
 		for (i = 0; i < fields.length; i++) {
 			const field = fields[i];
 			if (field.vx != 0) {
@@ -153,7 +153,7 @@ export class Throwable extends Body {
 			this.enterPipeField();
 		}
 
-		const belt = game.onBelt(this);
+		const belt = this.world.onBelt(this);
 		if (belt) {
 			this.x += belt == 3 ? 384 : belt == 4 ? -384 : 0;
 			this.vx = belt == 3 ? 8 : belt == 4 ? -8 : 0;
@@ -163,7 +163,7 @@ export class Throwable extends Body {
 		const inLeftPortal = portalAt(this, Direction.LEFT);
 		const inRightPortal = portalAt(this, Direction.RIGHT);
 
-		const ground = touchingGround(this);
+		const ground = this.touchingGround();
 
 		if (!ground || portalAt(this, Direction.DOWN)) {
 			if (fields.length == 0) this.vy += GRAVITY;
@@ -196,7 +196,7 @@ export class Throwable extends Body {
 
 		col = true;
 		while (col && !isInPortal(this)) {
-			col = checkCollisions(this);
+			col = this.checkCollisions();
 		}
 	}
 }

@@ -6,37 +6,38 @@ import { playSound, sfx_exit, sfx_grabCake } from '../audio.js';
 import { Body } from './Body.js';
 import { MAP_SIZE, SparkleType, TILE_SIZE } from '../constants.js';
 import { createCakeOrSmokeSparkles } from './Sparkle.js';
-import { game } from '../state.js';
 import { Tile } from '../tiles.js';
 import { random } from '../utils.js';
 
 /**
  * Open the exit.
  *
+ * @param {import('../World.js').World} world The World.
  * @returns {void}
  */
-export function openExit() {
+export function openExit(world) {
 	let i;
 	for (i = 0; i < MAP_SIZE; i++) {
-		if (game.map.tiles[i] == Tile.EXIT_CLOSED) game.map.set(i, Tile.EXIT);
+		if (world.map.tiles[i] == Tile.EXIT_CLOSED) world.map.set(i, Tile.EXIT);
 	}
 }
 
 /**
  * Collect the cakes that the player touches, and open the exit when the last cake is collected.
  *
+ * @param {import('../World.js').World} world The World.
  * @returns {void}
  */
-export function collectCakes() {
-	for (const cake of game.cakes) {
+export function collectCakes(world) {
+	for (const cake of world.cakes) {
 		if (cake.used) {
-			if (game.player.overlaps(cake)) {
+			if (world.player.overlaps(cake)) {
 				cake.used = false;
-				game.cakesLeft--;
-				createCakeOrSmokeSparkles(cake.x, cake.y, SparkleType.CAKE, 2, 180);
+				world.cakesLeft--;
+				createCakeOrSmokeSparkles(world, cake.x, cake.y, SparkleType.CAKE, 2, 180);
 				playSound(sfx_grabCake);
-				if (game.cakesLeft == 0) {
-					openExit();
+				if (world.cakesLeft == 0) {
+					openExit(world);
 					playSound(sfx_exit);
 				}
 			}
@@ -49,11 +50,12 @@ export function collectCakes() {
  */
 export class Cake extends Body {
 	/**
+	 * @param {import('../World.js').World} world The World of the object.
 	 * @param {number} x The x position in 1/256 pixels.
 	 * @param {number} y The y position in 1/256 pixels.
 	 */
-	constructor(x, y) {
-		super(x, y, TILE_SIZE, TILE_SIZE);
+	constructor(world, x, y) {
+		super(world, x, y, TILE_SIZE, TILE_SIZE);
 		/** @type {number} The direction of the float, 1 down or -1 up. */
 		this.mDir = random(0, 2) == 0 ? -1 : 1;
 		/** @type {number} The vertical offset of the float in 1/256 pixels. */
@@ -77,11 +79,12 @@ export class Cake extends Body {
 /**
  * Let the cakes float up and down. The cakes stand still during the level transitions.
  *
+ * @param {import('../World.js').World} world The World.
  * @returns {void}
  */
-export function updateCakes() {
-	if (!game.isRunning()) return;
-	for (const c of game.cakes) {
+export function updateCakes(world) {
+	if (!world.isRunning()) return;
+	for (const c of world.cakes) {
 		if (c.used) c.move();
 	}
 }

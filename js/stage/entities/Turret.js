@@ -8,8 +8,6 @@ import { PLAYFIELD_WIDTH, SparkleType, TILE_SIZE } from '../constants.js';
 import { isInPortal } from '../portals.js';
 import { Platform } from './Platform.js';
 import { Sparkle, createCakeOrSmokeSparkles } from './Sparkle.js';
-import { leftCollision, rightCollision, touchesDeadlyTile, touchingGround } from '../physics.js';
-import { game } from '../state.js';
 import { Tile } from '../tiles.js';
 import { random } from '../utils.js';
 
@@ -21,12 +19,13 @@ const COOL_TIME = 3;
  */
 export class Turret extends Throwable {
 	/**
+	 * @param {import('../World.js').World} world The World of the object.
 	 * @param {number} x The x position in 1/256 pixels.
 	 * @param {number} y The y position in 1/256 pixels.
 	 * @param {number} dir The direction that the turret faces, -1 left or 1 right.
 	 */
-	constructor(x, y, dir) {
-		super(x, y, TILE_SIZE, 2 * TILE_SIZE);
+	constructor(world, x, y, dir) {
+		super(world, x, y, TILE_SIZE, 2 * TILE_SIZE);
 		/** @type {number} The direction that the turret faces, -1 left or 1 right. */
 		this.dir = dir;
 		/** @type {number} Ticks until the next shot. */
@@ -52,7 +51,7 @@ export class Turret extends Throwable {
 		this.dead = true;
 		this.animFrame = 2;
 		playSound(sfx_explode);
-		createCakeOrSmokeSparkles(this.x, this.y, SparkleType.SMOKE, 4, 255);
+		createCakeOrSmokeSparkles(this.world, this.x, this.y, SparkleType.SMOKE, 4, 255);
 	}
 
 	/**
@@ -102,7 +101,7 @@ export class Turret extends Throwable {
 	 */
 	update() {
 		if (!this.carried) {
-			if (!touchingGround(this)) this.angle += (this.vx >> 8) << 1;
+			if (!this.touchingGround()) this.angle += (this.vx >> 8) << 1;
 			else this.angle = 0;
 			if (this.angle >= 360) this.angle -= 360;
 
@@ -112,23 +111,33 @@ export class Turret extends Throwable {
 			this.move();
 
 			if (!this.dead) {
-				if (this.vx == 0 && Math.abs(oldVx) > 3 << 8 && this.canExplode && game.gravPipeFieldsAt(this).length == 0)
+				if (
+					this.vx == 0 &&
+					Math.abs(oldVx) > 3 << 8 &&
+					this.canExplode &&
+					this.world.gravPipeFieldsAt(this).length == 0
+				)
 					this.dead = true;
-				else if (this.vy == 0 && Math.abs(oldVy) > 4 << 8 && this.canExplode && game.gravPipeFieldsAt(this).length == 0)
+				else if (
+					this.vy == 0 &&
+					Math.abs(oldVy) > 4 << 8 &&
+					this.canExplode &&
+					this.world.gravPipeFieldsAt(this).length == 0
+				)
 					this.dead = true;
-				else if (touchesDeadlyTile(this) || game.movingCrateTouching(this) || game.plasmaTouching(this)) {
+				else if (this.touchesDeadlyTile() || this.world.movingCrateTouching(this) || this.world.plasmaTouching(this)) {
 					this.dead = true;
 				}
 				if (this.dead) this.#explode();
 			} else if (this.animFrame < 10) {
-				if (game.time % 4 == 0) this.animFrame++;
+				if (this.world.time % 4 == 0) this.animFrame++;
 			}
 
-			const platform = game.onPlatform(this);
+			const platform = this.world.onPlatform(this);
 			if (platform) this.x += platform.vx;
 
-			const colLeft = leftCollision(this);
-			const colRight = rightCollision(this);
+			const colLeft = this.leftCollision();
+			const colRight = this.rightCollision();
 			if (!this.dead && (colLeft instanceof Platform || colRight instanceof Platform)) this.#explode();
 		} else {
 			this.place();
@@ -144,17 +153,17 @@ export class Turret extends Throwable {
 	shoot() {
 		let j;
 		let testShoot = false;
-		if (this.dir == -1 && this.x > game.player.x) testShoot = true;
-		else if (this.dir == 1 && this.x < game.player.x) testShoot = true;
+		if (this.dir == -1 && this.x > this.world.player.x) testShoot = true;
+		else if (this.dir == 1 && this.x < this.world.player.x) testShoot = true;
 
 		if (testShoot) {
 			const y = (this.y >> 8) + 13;
-			const y2 = (game.player.y >> 8) + 16;
+			const y2 = (this.world.player.y >> 8) + 16;
 
 			if (Math.abs(y - y2) > this.pY) testShoot = false;
 		}
 
-		if (!this.dead && testShoot && !game.player.dead) {
+		if (!this.dead && testShoot && !this.world.player.dead) {
 			this.coolTime--;
 			if (this.coolTime < 0) this.coolTime = 0;
 			if (this.coolTime == 0) {
@@ -165,16 +174,16 @@ export class Turret extends Throwable {
 				let stop = 0;
 				const oldJ = j;
 				while (j >= 0 && j < PLAYFIELD_WIDTH && !playerInSight && !stop) {
-					const tile = game.getTile(j, beamY);
+					const tile = this.world.getTile(j, beamY);
 					if (tile != Tile.EMPTY) {
 						stop = 1;
 						break;
 					} else {
-						if (game.anyCrateAt(j, beamY)) {
+						if (this.world.anyCrateAt(j, beamY)) {
 							stop = 2;
 							break;
 						} else {
-							if (game.player.contains(j, beamY)) {
+							if (this.world.player.contains(j, beamY)) {
 								playerInSight = 1;
 								break;
 							}
@@ -193,19 +202,20 @@ export class Turret extends Throwable {
 					if (this.rotation < 0) this.rotation = 0;
 					if (!this.rotation) {
 						this.animFrame = 1 - this.animFrame;
-						game.player.life -= 640; // 2.5 life points
-						game.player.recoveryTime = 300;
-						game.player.vx += this.dir << 8;
+						this.world.player.life -= 640; // 2.5 life points
+						this.world.player.recoveryTime = 300;
+						this.world.player.vx += this.dir << 8;
 						this.coolTime = COOL_TIME;
 						playSound(sfx_shoot);
 						playSoundIfFinished(sfx_pain);
 
 						for (let i = 0; i < 5; i++) {
-							game.sparkles.push(
+							this.world.sparkles.push(
 								new Sparkle(
+									this.world,
 									SparkleType.SHOT_HIT,
-									game.player.x + (this.pX << 7) + random(-8 << 8, 8 << 8),
-									game.player.y + (this.pY << 6),
+									this.world.player.x + (this.pX << 7) + random(-8 << 8, 8 << 8),
+									this.world.player.y + (this.pY << 6),
 									random(512, 1024) * this.dir,
 									random(-3 << 8, 0),
 									50,
@@ -230,12 +240,13 @@ export class Turret extends Throwable {
 /**
  * Move the turrets. The turrets stand still during the level transitions.
  *
+ * @param {import('../World.js').World} world The World.
  * @returns {void}
  */
-export function updateTurrets() {
-	if (!game.isRunning()) return;
-	for (const t of game.turrets) {
+export function updateTurrets(world) {
+	if (!world.isRunning()) return;
+	for (const t of world.turrets) {
 		t.update();
-		if (!game.objectInPortal) game.objectInPortal = isInPortal(t);
+		if (!world.objectInPortal) world.objectInPortal = isInPortal(t);
 	}
 }

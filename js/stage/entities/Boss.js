@@ -8,7 +8,6 @@ import { Crate } from './Crate.js';
 import { Plasma } from './Plasma.js';
 import { Projectile } from './Projectile.js';
 import { createCakeOrSmokeSparkles } from './Sparkle.js';
-import { game } from '../state.js';
 import { FIRST_OF_KIND, TileKind } from '../tiles.js';
 import { getCos, getDistance, getSin, random } from '../utils.js';
 
@@ -28,9 +27,12 @@ export class Boss {
 	/**
 	 * Create the boss outside of the playfield. It comes in after the waits of the start events.
 	 *
+	 * @param {import('../World.js').World} world The World of the object.
 	 * @param {number} number The number of the boss, from 1 to 4.
 	 */
-	constructor(number) {
+	constructor(world, number) {
+		/** @type {import('../World.js').World} The World of the object. */
+		this.world = world;
 		/** @type {number} The number of the boss, from 1 to 4. */
 		this.number = number;
 		/** @type {number} The x position in pixels. */
@@ -93,7 +95,7 @@ export class Boss {
 		this.entryDistance = 0;
 		this.x = BOSS_X;
 		this.entryTicks = 0;
-		game.events.trigger('bossArrived');
+		this.world.events.trigger('bossArrived');
 	}
 
 	/**
@@ -104,7 +106,7 @@ export class Boss {
 	 */
 	update() {
 		if (this.entering) {
-			if (!game.events.isWaiting()) {
+			if (!this.world.events.isWaiting()) {
 				playLoop(sfx_bossRumble);
 				playLoop(sfx_bossAlarm);
 				this.entryDistance += 32;
@@ -112,37 +114,37 @@ export class Boss {
 				this.x = BOSS_X + BOSS_ENTRY_DISTANCE - (this.entryDistance >> 8);
 				if (this.x == BOSS_X) {
 					this.entering = false;
-					game.shakeX = 0;
-					game.shakeY = 0;
-					game.events.trigger('bossArrived');
+					this.world.shakeX = 0;
+					this.world.shakeY = 0;
+					this.world.events.trigger('bossArrived');
 				}
 				if (this.entryTicks % 3 == 0) {
-					game.shakeX = random(-3, 3);
-					game.shakeY = random(-3, 3);
+					this.world.shakeX = random(-3, 3);
+					this.world.shakeY = random(-3, 3);
 				}
 			}
 		} else {
 			if (this.hits < 3) {
-				if (!game.player.dead && this.#touchesPlayer()) {
-					game.player.life = -200;
-					game.player.recoveryTime = 180;
+				if (!this.world.player.dead && this.#touchesPlayer()) {
+					this.world.player.life = -200;
+					this.world.player.recoveryTime = 180;
 					return;
 				}
 			}
 
-			if (game.player.dead) {
-				game.projectiles = new Array();
-				game.plasmaBall = new Array();
+			if (this.world.player.dead) {
+				this.world.projectiles = new Array();
+				this.world.plasmaBall = new Array();
 				return;
 			}
 
 			if (this.hits < 3 && this.number == 1) {
-				if (game.isRunning() && game.time % (90 - 30 * this.hits) == 0) {
+				if (this.world.isRunning() && this.world.time % (90 - 30 * this.hits) == 0) {
 					this.#throwCrate(6, 18);
 				}
 			} else if (this.hits < 3 && this.number == 2) {
-				if (game.isRunning() && game.time % (90 - 15 * this.hits) == 0) {
-					this.#shootWheel(435, 50, 1200, 1200 - game.player.vx);
+				if (this.world.isRunning() && this.world.time % (90 - 15 * this.hits) == 0) {
+					this.#shootWheel(435, 50, 1200, 1200 - this.world.player.vx);
 
 					if (this.hits == 2) {
 						this.#shootWheel(TILE_SIZE, 3 * TILE_SIZE, 1200);
@@ -150,25 +152,29 @@ export class Boss {
 				}
 			} else if (this.hits < 3 && this.number == 3) {
 				const limit = this.hits + 1;
-				if (game.isRunning() && game.time % (90 - 30 * this.hits) == 0 && game.plasmaBall.length < limit) {
+				if (
+					this.world.isRunning() &&
+					this.world.time % (90 - 30 * this.hits) == 0 &&
+					this.world.plasmaBall.length < limit
+				) {
 					this.#shootPlasma(800);
 				}
 
-				if (game.isRunning() && game.time % (90 - 30 * this.hits) == 0 && game.crates.length == 0) {
-					game.crates.push(new Crate(((MAP_WIDTH - 1) * TILE_SIZE) << 8, (18 * TILE_SIZE) << 8));
-					game.crates[game.crates.length - 1].vx = -(12 << 8);
-					game.crates[game.crates.length - 1].vy = -(2 << 8);
+				if (this.world.isRunning() && this.world.time % (90 - 30 * this.hits) == 0 && this.world.crates.length == 0) {
+					this.world.crates.push(new Crate(this.world, ((MAP_WIDTH - 1) * TILE_SIZE) << 8, (18 * TILE_SIZE) << 8));
+					this.world.crates[this.world.crates.length - 1].vx = -(12 << 8);
+					this.world.crates[this.world.crates.length - 1].vy = -(2 << 8);
 				}
 			} else if (this.hits < 3 && this.number == 4) {
-				if (game.isRunning() && game.time % (90 - 20 * this.hits) == 0) {
+				if (this.world.isRunning() && this.world.time % (90 - 20 * this.hits) == 0) {
 					this.#throwCrate(5, 20);
 				}
 
-				if (this.hits > 0 && game.isRunning() && game.time % (180 - 20 * this.hits) == 0) {
+				if (this.hits > 0 && this.world.isRunning() && this.world.time % (180 - 20 * this.hits) == 0) {
 					this.#shootWheel(27 * TILE_SIZE, 2 * TILE_SIZE, 600);
 				}
 
-				if (this.hits > 1 && game.isRunning() && game.plasmaBall.length == 0) {
+				if (this.hits > 1 && this.world.isRunning() && this.world.plasmaBall.length == 0) {
 					this.#shootPlasma(400);
 				}
 			}
@@ -183,8 +189,8 @@ export class Boss {
 	 * @returns {number[]} The cosine and the sine of the direction.
 	 */
 	#aimAtPlayer(x, y) {
-		const px = game.player.midX();
-		const py = game.player.midY();
+		const px = this.world.player.midX();
+		const py = this.world.player.midY();
 		return [getCos(px, py, x, y), getSin(px, py, x, y)];
 	}
 
@@ -199,7 +205,9 @@ export class Boss {
 	 */
 	#shootWheel(x, y, speed, speedX = speed) {
 		const [dx, dy] = this.#aimAtPlayer(x + TILE_SIZE / 2, y + TILE_SIZE / 2);
-		game.projectiles.push(new Projectile(x << 8, y << 8, Math.trunc(dx * speedX), Math.trunc(dy * speed)));
+		this.world.projectiles.push(
+			new Projectile(this.world, x << 8, y << 8, Math.trunc(dx * speedX), Math.trunc(dy * speed)),
+		);
 	}
 
 	/**
@@ -209,8 +217,13 @@ export class Boss {
 	 * @returns {void}
 	 */
 	#shootPlasma(speed) {
-		const [dx, dy] = this.#aimAtPlayer((game.plasmaX >> 8) + TILE_SIZE / 2, (game.plasmaY >> 8) + TILE_SIZE / 2);
-		game.plasmaBall.push(new Plasma(game.plasmaX, game.plasmaY, dx * speed, dy * speed, true));
+		const [dx, dy] = this.#aimAtPlayer(
+			(this.world.plasmaX >> 8) + TILE_SIZE / 2,
+			(this.world.plasmaY >> 8) + TILE_SIZE / 2,
+		);
+		this.world.plasmaBall.push(
+			new Plasma(this.world, this.world.plasmaX, this.world.plasmaY, dx * speed, dy * speed, true),
+		);
 	}
 
 	/**
@@ -222,17 +235,17 @@ export class Boss {
 	 * @returns {void}
 	 */
 	#throwCrate(row, divisor) {
-		const crate = new Crate(((MAP_WIDTH - 1) * TILE_SIZE) << 8, (row * TILE_SIZE) << 8);
-		game.crates.push(crate);
-		if (game.crates.length > 10) {
+		const crate = new Crate(this.world, ((MAP_WIDTH - 1) * TILE_SIZE) << 8, (row * TILE_SIZE) << 8);
+		this.world.crates.push(crate);
+		if (this.world.crates.length > 10) {
 			for (let i = 0; i < 10; i++) {
-				if (!game.crates[i].carried && game.crates[i].noRemove == 0) {
-					game.crates.splice(i, 1);
+				if (!this.world.crates[i].carried && this.world.crates[i].noRemove == 0) {
+					this.world.crates.splice(i, 1);
 					break;
 				}
 			}
 		}
-		let d = getDistance(game.player.x >> 8, game.player.y >> 8, crate.x >> 8, crate.y >> 8);
+		let d = getDistance(this.world.player.x >> 8, this.world.player.y >> 8, crate.x >> 8, crate.y >> 8);
 		d = Math.trunc(d / divisor);
 		if (d > 16) d = 16;
 		if (d < 3) d = 3;
@@ -248,13 +261,13 @@ export class Boss {
 		if (this.hits != 3 || this.x >= BOSS_GONE_X) return;
 		playLoop(sfx_bossRumble);
 		this.#shakeScreen();
-		if (game.time % 10 == 0) {
-			createCakeOrSmokeSparkles((this.x + 14) << 8, (this.y + 18) << 8, SparkleType.SMOKE, 3, 300);
+		if (this.world.time % 10 == 0) {
+			createCakeOrSmokeSparkles(this.world, (this.x + 14) << 8, (this.y + 18) << 8, SparkleType.SMOKE, 3, 300);
 			this.x += 1;
 		}
 		if (this.x >= BOSS_GONE_X) {
-			game.shakeX = 0;
-			game.shakeY = 0;
+			this.world.shakeX = 0;
+			this.world.shakeY = 0;
 		}
 	}
 
@@ -265,7 +278,7 @@ export class Boss {
 	 *     its death, or null before the entrance and after the boss is gone.
 	 */
 	phase() {
-		if (this.entering) return game.events.isWaiting() ? null : 'coming';
+		if (this.entering) return this.world.events.isWaiting() ? null : 'coming';
 		if (this.hits < 3) return 'fight';
 		return this.x < BOSS_GONE_X ? 'leaving' : null;
 	}
@@ -276,8 +289,8 @@ export class Boss {
 	 * @returns {boolean} True if the player touches the boss.
 	 */
 	#touchesPlayer() {
-		const x = (game.player.x >> 8) + game.player.pX;
-		const y = game.player.midY();
+		const x = (this.world.player.x >> 8) + this.world.player.pX;
+		const y = this.world.player.midY();
 		const x2 = this.x + 15;
 		const y2 = this.y;
 
@@ -299,15 +312,15 @@ export class Boss {
 			this.hits++;
 			playSound(sfx_bossHit);
 			if (this.hits < 3) {
-				for (i = 0; i < game.oldMap.length; i++) {
-					if (game.oldMap[i] == FIRST_OF_KIND[TileKind.BOSS_BLOCK]) {
-						game.map.set(i, FIRST_OF_KIND[TileKind.BOSS_BLOCK]);
+				for (i = 0; i < this.world.level.tiles.length; i++) {
+					if (this.world.level.tiles[i] == FIRST_OF_KIND[TileKind.BOSS_BLOCK]) {
+						this.world.map.set(i, FIRST_OF_KIND[TileKind.BOSS_BLOCK]);
 					}
 				}
 			} else {
-				game.projectiles = new Array();
-				game.plasmaBall = new Array();
-				game.events.trigger('bossDied');
+				this.world.projectiles = new Array();
+				this.world.plasmaBall = new Array();
+				this.world.events.trigger('bossDied');
 			}
 		}
 	}
@@ -339,9 +352,9 @@ export class Boss {
 	 * @returns {void}
 	 */
 	#shakeScreen() {
-		const step = Math.floor(game.time / 3);
-		game.shakeX = Boss.#shakeOffset(step * 2);
-		game.shakeY = Boss.#shakeOffset(step * 2 + 1);
+		const step = Math.floor(this.world.time / 3);
+		this.world.shakeX = Boss.#shakeOffset(step * 2);
+		this.world.shakeY = Boss.#shakeOffset(step * 2 + 1);
 	}
 
 	/**

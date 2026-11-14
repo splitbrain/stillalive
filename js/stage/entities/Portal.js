@@ -2,8 +2,6 @@
  * The Portal object and its helper functions.
  */
 
-import { game } from '../state.js';
-
 /**
  * One of the two portals. The game has a blue portal with index 0 and a red portal with index 1.
  */
@@ -62,10 +60,11 @@ export class Portal {
 /**
  * Advance the opening animation of the placed portals and move them with their platforms.
  *
+ * @param {import('../World.js').World} world The World.
  * @returns {void}
  */
-export function updatePortals() {
-	for (const p of game.portals) {
+export function updatePortals(world) {
+	for (const p of world.portals) {
 		if (!p.used) continue;
 		p.animate();
 		p.move();

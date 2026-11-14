@@ -181,5 +181,5 @@ function placePortal(p, [column, row, side]) {
 		y: y << 8,
 	});
 
-	createPortalGlow(p);
+	createPortalGlow(game, p);
 }

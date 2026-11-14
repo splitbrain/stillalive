@@ -16,7 +16,6 @@ import { updateSparkles } from './entities/Sparkle.js';
 import { updateTurrets } from './entities/Turret.js';
 import { manageKeys, unclick } from './inputState.js';
 import { loadLevel, manageDoors } from './level.js';
-import { atExit } from './physics.js';
 import { isInPortal } from './portals.js';
 import { encodeReplay } from './replay.js';
 import { game, input, stageEvents, ui } from './state.js';
@@ -52,7 +51,7 @@ function updateLevel(editor) {
 	}
 
 	manageDoors();
-	if (atExit()) {
+	if (game.atExit()) {
 		updateLevelEnd(editor);
 	} else if (game.isOpening()) {
 		game.fade -= 4;
@@ -121,24 +120,24 @@ function updateLevelEnd(editor) {
  * @returns {void}
  */
 function updateObjects() {
-	animateTiles();
+	animateTiles(game);
 
 	game.player.flip = input.mouseX > game.player.midX() ? 1 : -1;
 
-	rebuildGravPipeFields();
-	updateCakes();
-	updateTurrets();
-	updatePlasma();
-	updateSparkles();
-	updateCrates();
+	rebuildGravPipeFields(game);
+	updateCakes(game);
+	updateTurrets(game);
+	updatePlasma(game);
+	updateSparkles(game);
+	updateCrates(game);
 
 	if (game.boss && game.isRunning()) {
-		if (game.boss.shootsWheels()) updateProjectiles();
+		if (game.boss.shootsWheels()) updateProjectiles(game);
 		game.boss.updateRumble();
 	}
 
-	updatePlatforms();
-	updatePortals();
+	updatePlatforms(game);
+	updatePortals(game);
 	game.camera.move();
 
 	if (game.player.dead) {

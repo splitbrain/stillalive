@@ -5,9 +5,7 @@
 import { Throwable } from './Throwable.js';
 import { playSound, sfx_crateLand, sfx_dissolve, sfx_wallBreak, sfx_wallCrack } from '../audio.js';
 import { PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, TILE_SIZE } from '../constants.js';
-import { leftCollision, rightCollision, touchesDeadlyTile, touchingGround } from '../physics.js';
 import { inForceField, isInPortal } from '../portals.js';
-import { game } from '../state.js';
 import { isTileKind, LAST_OF_KIND, Tile, TileKind } from '../tiles.js';
 
 /**
@@ -15,11 +13,12 @@ import { isTileKind, LAST_OF_KIND, Tile, TileKind } from '../tiles.js';
  */
 export class Crate extends Throwable {
 	/**
+	 * @param {import('../World.js').World} world The World of the object.
 	 * @param {number} x The x position in 1/256 pixels.
 	 * @param {number} y The y position in 1/256 pixels.
 	 */
-	constructor(x, y) {
-		super(x, y, TILE_SIZE, TILE_SIZE);
+	constructor(world, x, y) {
+		super(world, x, y, TILE_SIZE, TILE_SIZE);
 		/** @type {number} The x position of the start, where the crate returns after a reset. */
 		this.xOrig = x;
 		/** @type {number} The y position of the start, where the crate returns after a reset. */
@@ -54,36 +53,36 @@ export class Crate extends Throwable {
 			if (!this.carried) {
 				const falling = this.vy > 0;
 				this.move();
-				if (falling && this.vy == 0 && touchingGround(this)) playSound(sfx_crateLand);
+				if (falling && this.vy == 0 && this.touchingGround()) playSound(sfx_crateLand);
 
-				if (game.boss) {
-					if (game.boss.throwsCrates()) this.#shrinkInTube();
+				if (this.world.boss) {
+					if (this.world.boss.throwsCrates()) this.#shrinkInTube();
 
-					const t = game.map.atPixel((this.x >> 8) + this.pX + 1, this.y >> 8);
+					const t = this.world.map.atPixel((this.x >> 8) + this.pX + 1, this.y >> 8);
 					if (isTileKind(t, TileKind.BOSS_BLOCK)) {
 						playSound(t < LAST_OF_KIND[TileKind.BOSS_BLOCK] ? sfx_wallCrack : sfx_wallBreak);
-						for (i = 0; i < game.map.tiles.length; i++) {
-							if (game.map.tiles[i] == t) {
-								if (t < LAST_OF_KIND[TileKind.BOSS_BLOCK]) game.map.set(i, t + 1);
-								else game.map.set(i, Tile.EMPTY);
+						for (i = 0; i < this.world.map.tiles.length; i++) {
+							if (this.world.map.tiles[i] == t) {
+								if (t < LAST_OF_KIND[TileKind.BOSS_BLOCK]) this.world.map.set(i, t + 1);
+								else this.world.map.set(i, Tile.EMPTY);
 							}
 						}
-						game.boss.useUpCrate(this);
+						this.world.boss.useUpCrate(this);
 						return;
 					}
 
-					game.boss.hit(this);
+					this.world.boss.hit(this);
 				}
 
-				const platform = game.onPlatform(this);
+				const platform = this.world.onPlatform(this);
 				if (platform) {
 					this.x += platform.vx;
 					this.platform = platform;
-					if (platform.vx < 0 && leftCollision(this)) this.x -= platform.vx;
-					else if (platform.vx > 0 && rightCollision(this)) this.x -= platform.vx;
+					if (platform.vx < 0 && this.leftCollision()) this.x -= platform.vx;
+					else if (platform.vx > 0 && this.rightCollision()) this.x -= platform.vx;
 				} else this.platform = null;
 
-				if (!touchingGround(this)) this.angle += (this.vx >> 8) << 1;
+				if (!this.touchingGround()) this.angle += (this.vx >> 8) << 1;
 				else this.angle = 0;
 				if (this.angle >= 360) this.angle -= 360;
 				if (this.landsOnPlayer()) {
@@ -98,8 +97,8 @@ export class Crate extends Throwable {
 					x > PLAYFIELD_WIDTH ||
 					y < -TILE_SIZE ||
 					y > PLAYFIELD_HEIGHT ||
-					touchesDeadlyTile(this) ||
-					game.plasmaTouching(this)
+					this.touchesDeadlyTile() ||
+					this.world.plasmaTouching(this)
 				) {
 					if (this.#destroyOrReset()) return;
 				}
@@ -113,7 +112,7 @@ export class Crate extends Throwable {
 		}
 
 		if (this.shrink == 0 && inForceField(this)) {
-			if (this.carried) game.player.carrying = null;
+			if (this.carried) this.world.player.carrying = null;
 			this.shrink = 60;
 			playSound(sfx_dissolve);
 		}
@@ -149,8 +148,8 @@ export class Crate extends Throwable {
 		if (this.vy > 0 && !isInPortal(this)) {
 			let x = (this.x >> 8) + 3;
 			const y = (this.y >> 8) + this.pY;
-			const x2 = game.player.x >> 8;
-			const y2 = game.player.y >> 8;
+			const x2 = this.world.player.x >> 8;
+			const y2 = this.world.player.y >> 8;
 
 			if (x >= x2 && x < x2 + 16 && y >= y2 && y < y2 + 4) return true;
 			else {
@@ -169,25 +168,25 @@ export class Crate extends Throwable {
 	 */
 	push() {
 		let c;
-		if (game.movingCrateTouching(game.player) && this.invincibility == 0) {
-			game.player.x += this.vx >> 3;
+		if (this.world.movingCrateTouching(this.world.player) && this.invincibility == 0) {
+			this.world.player.x += this.vx >> 3;
 
 			if (this.vx < 0) {
-				if (leftCollision(game.player)) {
-					while (leftCollision(game.player)) game.player.x += 128;
+				if (this.world.player.leftCollision()) {
+					while (this.world.player.leftCollision()) this.world.player.x += 128;
 					this.vx = 0;
 				}
 			} else if (this.vx > 0) {
-				if (rightCollision(game.player)) {
-					while (rightCollision(game.player)) game.player.x -= 128;
+				if (this.world.player.rightCollision()) {
+					while (this.world.player.rightCollision()) this.world.player.x -= 128;
 					this.vx = 0;
 				}
 			}
 		}
 
 		if (this.vx != 0 && !isInPortal(this)) {
-			for (c = 0; c < game.crates.length; c++) {
-				const ca = game.crates[c];
+			for (c = 0; c < this.world.crates.length; c++) {
+				const ca = this.world.crates[c];
 				if (isInPortal(ca)) continue;
 				if (this.x != ca.x || this.y != ca.y) {
 					const y = this.y >> 8;
@@ -197,8 +196,8 @@ export class Crate extends Throwable {
 					else if (this.vx < 0) x -= 1;
 
 					if (ca.contains(x, y + 1) || ca.contains(x, y + TILE_SIZE / 2) || ca.contains(x, y + 13)) {
-						if (ca.carried) game.player.vx = this.vx;
-						else if (this.carried) game.player.vx = ca.vx;
+						if (ca.carried) this.world.player.vx = this.vx;
+						else if (this.carried) this.world.player.vx = ca.vx;
 						ca.vx = this.vx;
 						this.vx >>= 1;
 						return true;
@@ -217,7 +216,7 @@ export class Crate extends Throwable {
 	#shrinkInTube() {
 		if (this.vx < 0) return;
 
-		if (this.overlapsBox(game.tubeX >> 8, game.tubeY >> 8, 4 * TILE_SIZE, 3 * TILE_SIZE)) {
+		if (this.overlapsBox(this.world.tubeX >> 8, this.world.tubeY >> 8, 4 * TILE_SIZE, 3 * TILE_SIZE)) {
 			this.shrink = 60;
 		}
 	}
@@ -229,7 +228,7 @@ export class Crate extends Throwable {
 	 * @returns {boolean} True if the crate goes away.
 	 */
 	#destroyOrReset() {
-		if (game.boss?.makesCrates()) {
+		if (this.world.boss?.makesCrates()) {
 			this.needKill = true;
 			return true;
 		}
@@ -245,24 +244,25 @@ export class Crate extends Throwable {
  * Move the crates and remove the destroyed ones. A shrinking crate moves at half of its speed. The crates stand still
  * during the level transitions.
  *
+ * @param {import('../World.js').World} world The World.
  * @returns {void}
  */
-export function updateCrates() {
-	for (let ci = 0; ci < game.crates.length; ci++) {
-		const c = game.crates[ci];
+export function updateCrates(world) {
+	for (let ci = 0; ci < world.crates.length; ci++) {
+		const c = world.crates[ci];
 		if (c.shrink > 0) {
 			c.x += c.vx >> 1;
 			c.y += c.vy >> 1;
 		}
-		if (game.isRunning()) {
+		if (world.isRunning()) {
 			c.update();
 			if (c.needKill) {
-				if (c.carried) game.player.carrying = null;
-				game.crates.splice(ci, 1);
+				if (c.carried) world.player.carrying = null;
+				world.crates.splice(ci, 1);
 				ci--;
 				continue;
 			}
-			if (!game.objectInPortal) game.objectInPortal = isInPortal(c);
+			if (!world.objectInPortal) world.objectInPortal = isInPortal(c);
 		}
 	}
 }

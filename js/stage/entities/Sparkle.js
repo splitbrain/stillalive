@@ -3,22 +3,22 @@
  */
 
 import { Direction, GRAVITY, SparkleType } from '../constants.js';
-import { game } from '../state.js';
 import { Tile } from '../tiles.js';
 import { random } from '../utils.js';
 
 /**
  * Remove the sparkles of one type and color.
  *
+ * @param {import('../World.js').World} world The World.
  * @param {number} p The color index.
  * @param {number} type The sparkle type, a value of SparkleType.
  * @returns {void}
  */
-export function removeSparkles(p, type) {
+export function removeSparkles(world, p, type) {
 	let i;
-	for (i = 0; i < game.sparkles.length; i++) {
-		if (game.sparkles[i].type == type && game.sparkles[i].color == p) {
-			game.sparkles.splice(i, 1);
+	for (i = 0; i < world.sparkles.length; i++) {
+		if (world.sparkles[i].type == type && world.sparkles[i].color == p) {
+			world.sparkles.splice(i, 1);
 			i--;
 		}
 	}
@@ -27,17 +27,18 @@ export function removeSparkles(p, type) {
 /**
  * Create the glow sparkles along a portal. The glow sparkles of the earlier portal with the same index go away.
  *
+ * @param {import('../World.js').World} world The World.
  * @param {number} p The portal index, 0 for blue and 1 for red.
  * @returns {void}
  */
-export function createPortalGlow(p) {
-	const portal = game.portals[p];
+export function createPortalGlow(world, p) {
+	const portal = world.portals[p];
 	const onSideWall = portal.direction == Direction.LEFT || portal.direction == Direction.RIGHT;
-	removeSparkles(p, SparkleType.PORTAL_GLOW);
+	removeSparkles(world, p, SparkleType.PORTAL_GLOW);
 	for (let i = 0; i < 13; i++) {
 		const x = portal.x + (onSideWall ? 0 : (i * 2) << 8);
 		const y = portal.y + (onSideWall ? (i * 2) << 8 : 0);
-		const s = new Sparkle(SparkleType.PORTAL_GLOW, x, y, 0, 0, 200, p);
+		const s = new Sparkle(world, SparkleType.PORTAL_GLOW, x, y, 0, 0, 200, p);
 		s.xOrig = x;
 		s.yOrig = y;
 		s.portalNum = p;
@@ -52,20 +53,21 @@ export function createPortalGlow(p) {
 		} else {
 			s.vy = random(128, 384);
 		}
-		game.sparkles.push(s);
+		world.sparkles.push(s);
 	}
 }
 
 /**
  * Move and fade all sparkles for one tick and remove the used up ones.
  *
+ * @param {import('../World.js').World} world The World.
  * @returns {void}
  */
-export function updateSparkles() {
-	for (let i = 0; i < game.sparkles.length; i++) {
-		game.sparkles[i].move();
-		if (game.sparkles[i].fading <= 0) {
-			game.sparkles.splice(i, 1);
+export function updateSparkles(world) {
+	for (let i = 0; i < world.sparkles.length; i++) {
+		world.sparkles[i].move();
+		if (world.sparkles[i].fading <= 0) {
+			world.sparkles.splice(i, 1);
 			i--;
 		}
 	}
@@ -74,6 +76,7 @@ export function updateSparkles() {
 /**
  * Create sparkles around a point, for example for a collected cake or for smoke.
  *
+ * @param {import('../World.js').World} world The World.
  * @param {number} x The x position in 1/256 pixels.
  * @param {number} y The y position in 1/256 pixels.
  * @param {number} type SparkleType.CAKE or SparkleType.SMOKE, which also selects the color.
@@ -81,11 +84,12 @@ export function updateSparkles() {
  * @param {number} size The start value of the fade, which also sets the size.
  * @returns {void}
  */
-export function createCakeOrSmokeSparkles(x, y, type, number, size) {
+export function createCakeOrSmokeSparkles(world, x, y, type, number, size) {
 	const color = type == SparkleType.CAKE ? 2 : 3;
 	for (let k = 0; k < number; k++) {
-		game.sparkles.push(
+		world.sparkles.push(
 			new Sparkle(
+				world,
 				type,
 				x + random(-8 << 8, 8 << 8),
 				y + random(-8 << 8, 8 << 8),
@@ -103,6 +107,7 @@ export function createCakeOrSmokeSparkles(x, y, type, number, size) {
  */
 export class Sparkle {
 	/**
+	 * @param {import('../World.js').World} world The World of the object.
 	 * @param {number} type The sparkle type, a value of SparkleType.
 	 * @param {number} x The x position in 1/256 pixels.
 	 * @param {number} y The y position in 1/256 pixels.
@@ -111,7 +116,9 @@ export class Sparkle {
 	 * @param {number} fading The start value of the fade, which also sets the size.
 	 * @param {number} color The row of the sparkle image: 0 blue star, 1 red star, 2 cake crumb, 3 smoke, 4 blood.
 	 */
-	constructor(type, x, y, vx, vy, fading, color) {
+	constructor(world, type, x, y, vx, vy, fading, color) {
+		/** @type {import('../World.js').World} The World of the object. */
+		this.world = world;
 		/** @type {number} The x position in 1/256 pixels. */
 		this.x = x;
 		/** @type {number} The y position in 1/256 pixels. */
@@ -161,7 +168,7 @@ export class Sparkle {
 		}
 
 		if (this.type == SparkleType.SHOT_HIT || this.type == SparkleType.DEATH || this.type == SparkleType.LOW_LIFE) {
-			if (game.getTile((this.x >> 8) + ((16 * sc) >> 1), (this.y >> 8) + ((16 * sc) >> 1)) != Tile.EMPTY) {
+			if (this.world.getTile((this.x >> 8) + ((16 * sc) >> 1), (this.y >> 8) + ((16 * sc) >> 1)) != Tile.EMPTY) {
 				if (this.floorTime < 0) {
 					if (this.type == SparkleType.LOW_LIFE || this.type == SparkleType.SHOT_HIT) {
 						this.floorTime = 0;
@@ -174,7 +181,7 @@ export class Sparkle {
 
 		if (this.type == SparkleType.PORTAL_SHOT || this.type == SparkleType.TELEPORT) {
 			this.fading -= 8;
-			if (game.getTile((this.x >> 8) + 4, (this.y >> 8) + 4) != Tile.EMPTY) this.fading = 0;
+			if (this.world.getTile((this.x >> 8) + 4, (this.y >> 8) + 4) != Tile.EMPTY) this.fading = 0;
 		} else if (this.type == SparkleType.PORTAL_GLOW) {
 			if (this.vx != 0) {
 				d = Math.abs(this.xOrig - this.x) >> 8;
@@ -182,7 +189,7 @@ export class Sparkle {
 			} else if (this.vy != 0) {
 				d = Math.abs(this.yOrig - this.y) >> 8;
 				this.fading = 200 - 5 * d;
-				const platform = game.portals[this.portalNum].platform;
+				const platform = this.world.portals[this.portalNum].platform;
 				if (platform) {
 					this.x += platform.vx;
 					this.xOrig = this.x;

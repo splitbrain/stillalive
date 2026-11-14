@@ -23,17 +23,8 @@ import { Platform } from './Platform.js';
 import { Sparkle } from './Sparkle.js';
 import { reportBrokenReplay } from '../inputState.js';
 import { loadLevel } from '../level.js';
-import {
-	checkCollisions,
-	downCollision,
-	leftCollision,
-	rightCollision,
-	touchesDeadlyTile,
-	touchingGround,
-	upCollision,
-} from '../physics.js';
 import { clearPortals, clearPortalsAtForceField, isInPortal, launchPortal, passPortal, portalAt } from '../portals.js';
-import { game, input, ui } from '../state.js';
+import { input, ui } from '../state.js';
 import { isTileKind, TileKind } from '../tiles.js';
 import { getDistance, random } from '../utils.js';
 
@@ -43,9 +34,11 @@ import { getDistance, random } from '../utils.js';
 export class Player extends Body {
 	/**
 	 * Create the player at the origin with full life.
+	 *
+	 * @param {import('../World.js').World} world The World of the object.
 	 */
-	constructor() {
-		super(0, 0, 15, 27);
+	constructor(world) {
+		super(world, 0, 0, 15, 27);
 		/** @type {number} 1 while the player holds the left key. */
 		this.isLeft = 0;
 		/** @type {number} 1 while the player holds the right key. */
@@ -97,7 +90,7 @@ export class Player extends Body {
 	 */
 	checkDeath() {
 		if (this.life <= 0 && !this.dead) {
-			if (game.replayMode) {
+			if (this.world.replayMode) {
 				reportBrokenReplay();
 				return;
 			}
@@ -105,13 +98,14 @@ export class Player extends Body {
 			this.dead = true;
 			this.life = -256;
 			playSound(this.inAcid ? sfx_acid : sfx_die);
-			if (game.player.y >> 8 < PLAYFIELD_HEIGHT) {
+			if (this.y >> 8 < PLAYFIELD_HEIGHT) {
 				for (let i = 0; i < 20; i++) {
-					game.sparkles.push(
+					this.world.sparkles.push(
 						new Sparkle(
+							this.world,
 							SparkleType.DEATH,
-							game.player.x + (this.pX << 7) + random(-14 << 8, 8 << 8),
-							game.player.y + (this.pY << 6),
+							this.x + (this.pX << 7) + random(-14 << 8, 8 << 8),
+							this.y + (this.pY << 6),
 							0,
 							random(-2 << 8, 0),
 							150,
@@ -122,7 +116,7 @@ export class Player extends Body {
 			}
 		} else if (this.dead) {
 			if (this.life >= 0) {
-				if (ui.mode == 'play' || ui.mode == 'test') loadLevel(game.level, true);
+				if (ui.mode == 'play' || ui.mode == 'test') loadLevel(this.world.level, true);
 			}
 		}
 	}
@@ -138,6 +132,7 @@ export class Player extends Body {
 	#teleportSparkles(number, fading, color) {
 		for (let n = 0; n < number; n++) {
 			const s = new Sparkle(
+				this.world,
 				SparkleType.TELEPORT,
 				this.x + (this.pX << 7) + random(-8 << 8, 8 << 8),
 				this.y + (this.pY << 7) + random(-16 << 8, 16 << 8),
@@ -148,7 +143,7 @@ export class Player extends Body {
 			);
 			if (random(0, 2) == 0) s.vx = -s.vx;
 			if (random(0, 2) == 0) s.vy = -s.vy;
-			game.sparkles.push(s);
+			this.world.sparkles.push(s);
 		}
 	}
 
@@ -160,7 +155,7 @@ export class Player extends Body {
 	 * @returns {void}
 	 */
 	teleported(entry, exit) {
-		this.teleportTime = entry == game.portals[0] ? 42 : -42;
+		this.teleportTime = entry == this.world.portals[0] ? 42 : -42;
 		super.teleported(entry, exit);
 	}
 
@@ -173,7 +168,7 @@ export class Player extends Body {
 	#grabObject() {
 		if (!this.carrying) {
 			if (input.mousePressed && input.mouseButton == MouseButton.LEFT) {
-				this.carrying = this.#grabbableIn(game.crates) ?? this.#grabbableIn(game.turrets);
+				this.carrying = this.#grabbableIn(this.world.crates) ?? this.#grabbableIn(this.world.turrets);
 				if (this.carrying) playSound(sfx_pickUp);
 			}
 		} else if (!input.mousePressed) {
@@ -221,10 +216,10 @@ export class Player extends Body {
 			this.askClear = false;
 		}
 
-		const fields = game.gravPipeFieldsAt(this);
+		const fields = this.world.gravPipeFieldsAt(this);
 		if (fields.length > 0) {
-			game.player.vx = 0;
-			game.player.vy = 0;
+			this.vx = 0;
+			this.vy = 0;
 			playLoop(sfx_float);
 		}
 		for (i = 0; i < fields.length; i++) {
@@ -232,58 +227,54 @@ export class Player extends Body {
 			if (fields.length == 1) {
 				if (field.vx != 0) {
 					if (portalAt(this, Direction.UP) || portalAt(this, Direction.DOWN)) {
-						if (game.player.y >> 8 < field.y) game.player.y += 768;
-						else if ((game.player.y >> 8) + game.player.pY > field.y + 2 * TILE_SIZE) game.player.y -= 768;
-					} else if (game.player.y >> 8 < field.y) game.player.y += 512;
-					else if ((game.player.y >> 8) + game.player.pY > field.y + 2 * TILE_SIZE) game.player.y -= 512;
+						if (this.y >> 8 < field.y) this.y += 768;
+						else if ((this.y >> 8) + this.pY > field.y + 2 * TILE_SIZE) this.y -= 768;
+					} else if (this.y >> 8 < field.y) this.y += 512;
+					else if ((this.y >> 8) + this.pY > field.y + 2 * TILE_SIZE) this.y -= 512;
 				} else if (field.vy != 0) {
 					// the height pY centers the player on the x axis, in the same way as moveObject()
-					if (game.player.x >> 8 < field.x + (TILE_SIZE - (game.player.pY >> 1))) game.player.x += 256;
-					else if (
-						(game.player.x >> 8) + game.player.pX >
-						field.x + 2 * TILE_SIZE - (TILE_SIZE - (game.player.pY >> 1))
-					)
-						game.player.x -= 256;
+					if (this.x >> 8 < field.x + (TILE_SIZE - (this.pY >> 1))) this.x += 256;
+					else if ((this.x >> 8) + this.pX > field.x + 2 * TILE_SIZE - (TILE_SIZE - (this.pY >> 1))) this.x -= 256;
 				}
 			}
 
-			game.player.vx += field.vx * 384;
-			game.player.vy += field.vy * 384;
+			this.vx += field.vx * 384;
+			this.vy += field.vy * 384;
 
 			if (field.vx != 0) {
 				if (this.isJump) {
-					game.player.y -= 3 << 8;
-					fi = game.gravPipeFieldsAt(this);
+					this.y -= 3 << 8;
+					fi = this.world.gravPipeFieldsAt(this);
 					if (fi.length == 0) {
-						game.player.vy = -800;
-						game.player.vx = field.vx << 9;
+						this.vy = -800;
+						this.vx = field.vx << 9;
 					}
 				}
-				if (this.isDown) game.player.y += 3 << 8;
+				if (this.isDown) this.y += 3 << 8;
 			}
 
 			if (field.vy != 0) {
 				if (this.isLeft) {
-					game.player.x -= 3 << 8;
-					fi = game.gravPipeFieldsAt(this);
+					this.x -= 3 << 8;
+					fi = this.world.gravPipeFieldsAt(this);
 					if (fi.length == 0) {
-						game.player.vx = -384;
+						this.vx = -384;
 					}
 				}
 				if (this.isRight) {
-					game.player.x += 3 << 8;
-					fi = game.gravPipeFieldsAt(this);
+					this.x += 3 << 8;
+					fi = this.world.gravPipeFieldsAt(this);
 					if (fi.length == 0) {
-						game.player.vx = 384;
+						this.vx = 384;
 					}
 				}
 			}
 		}
 
-		let ground = touchingGround(this);
+		let ground = this.touchingGround();
 		if (ground && !this.onGround && fields.length == 0) playSound(sfx_land);
 		this.onGround = ground > 0;
-		const belt = game.onBelt(this);
+		const belt = this.world.onBelt(this);
 		this.x += belt == 3 ? 384 : belt == 4 ? -384 : 0;
 
 		this.animationTime -= 1 + 2 * (1 - (ground == 2 ? 1 : 0));
@@ -308,14 +299,15 @@ export class Player extends Body {
 
 		if (this.life <= 50 << 8) {
 			const h = this.life >> 8;
-			const r = game.time % h;
+			const r = this.world.time % h;
 
 			for (i = 0; r == 0 && i < 3; i++) {
-				game.sparkles.push(
+				this.world.sparkles.push(
 					new Sparkle(
+						this.world,
 						SparkleType.LOW_LIFE,
-						game.player.x + (this.pX << 5) + random(-5 << 8, 5 << 8),
-						game.player.y + (this.pY << 6) + random(-5 << 8, 5 << 8),
+						this.x + (this.pX << 5) + random(-5 << 8, 5 << 8),
+						this.y + (this.pY << 6) + random(-5 << 8, 5 << 8),
 						0,
 						0,
 						100,
@@ -337,7 +329,7 @@ export class Player extends Body {
 
 		if (this.vx > 0) {
 			if (ground == 1 && !portalAt(this, Direction.LEFT)) {
-				game.steps += game.player.vx >> 4;
+				this.world.steps += this.vx >> 4;
 				this.vx -= 64;
 			} else {
 				this.vx -= ground == 2 ? 14 : 28;
@@ -345,7 +337,7 @@ export class Player extends Body {
 			if (this.vx < 0) this.vx = 0;
 		} else if (this.vx < 0) {
 			if (ground == 1 && !portalAt(this, Direction.RIGHT)) {
-				game.steps -= game.player.vx >> 4;
+				this.world.steps -= this.vx >> 4;
 				this.vx += 64;
 			} else {
 				this.vx += ground == 2 ? 14 : 28;
@@ -382,25 +374,25 @@ export class Player extends Body {
 			if (!passPortal(this, Direction.LEFT) && !passPortal(this, Direction.RIGHT)) this.y += this.vy >> 3;
 		}
 
-		const platform = game.onPlatform(this);
+		const platform = this.world.onPlatform(this);
 		if (platform) this.x += platform.vx;
 
 		let col = true;
 		while (col && !isInPortal(this)) {
-			col = checkCollisions(this);
+			col = this.checkCollisions();
 		}
 
 		if (portalAt(this, Direction.UP) && this.vy > 0) {
-			if (downCollision(this)) this.vy = -this.vy;
+			if (this.downCollision()) this.vy = -this.vy;
 		} else if (portalAt(this, Direction.DOWN) && this.vy < 0) {
-			if (upCollision(this)) this.vy = -this.vy;
+			if (this.upCollision()) this.vy = -this.vy;
 		}
 
-		collectCakes();
+		collectCakes(this.world);
 		this.#grabObject();
 		clearPortalsAtForceField();
 
-		if (game.abilities.portals) {
+		if (this.world.abilities.portals) {
 			if (input.mousePressed && this.portalCooldown == 25 && !isInPortal(this) && !this.carrying) {
 				if (input.mouseButton == MouseButton.LEFT) {
 					launchPortal(0);
@@ -410,17 +402,17 @@ export class Player extends Body {
 			}
 		}
 
-		const colLeft = leftCollision(this);
-		const colRight = rightCollision(this);
+		const colLeft = this.leftCollision();
+		const colRight = this.rightCollision();
 		if (colLeft && colRight && !isInPortal(this)) {
 			if (colLeft instanceof Platform || colRight instanceof Platform) {
 				this.life = 0;
 			}
 		}
 
-		const deadly = touchesDeadlyTile(this);
+		const deadly = this.touchesDeadlyTile();
 		this.inAcid = isTileKind(deadly, TileKind.ACID, TileKind.ACIDPOOL);
-		if (game.plasmaTouching(this) || deadly) {
+		if (this.world.plasmaTouching(this) || deadly) {
 			this.life = 0;
 		}
 

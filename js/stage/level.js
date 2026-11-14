@@ -4,7 +4,6 @@
 
 import { playSound, sfx_field } from './audio.js';
 import { Direction, MAP_HEIGHT, MAP_WIDTH, SparkleType, TILE_SIZE } from './constants.js';
-import { openExit } from './entities/Cake.js';
 import { removeSparkles } from './entities/Sparkle.js';
 import { LevelEvents } from './LevelEvents.js';
 import { game, input, setGame, ui } from './state.js';
@@ -54,7 +53,7 @@ function clearDoorBlockers() {
 		for (let j = 0; j < 2 * TILE_SIZE; j++) {
 			if (game.map.atPixel(onSideWall ? x : x + j, onSideWall ? y + j : y) == door) {
 				portal.used = false;
-				removeSparkles(i, SparkleType.PORTAL_GLOW);
+				removeSparkles(game, i, SparkleType.PORTAL_GLOW);
 				break;
 			}
 		}
@@ -222,7 +221,6 @@ export function loadLevel(level, restart = false, replay = null) {
 	ui.paused = false;
 	input.keys = 0;
 	input.oldKeys = 0;
-	if (game.cakesLeft == 0) openExit();
 	game.events = new LevelEvents(level.events, restart || game.replayMode);
 	game.events.update(); // fire the start events
 	if (game.boss && (restart || game.replayMode)) game.boss.skipEntry();

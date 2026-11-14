@@ -10,12 +10,13 @@ import { TILE_SIZE } from '../constants.js';
  */
 export class GravPipe extends Body {
 	/**
+	 * @param {import('../World.js').World} world The World of the object.
 	 * @param {number} x The x position in 1/256 pixels.
 	 * @param {number} y The y position in 1/256 pixels.
 	 * @param {number} dir The direction of the push: Direction.UP, Direction.DOWN, Direction.LEFT or Direction.RIGHT.
 	 */
-	constructor(x, y, dir) {
-		super(x, y, TILE_SIZE, 2 * TILE_SIZE);
+	constructor(world, x, y, dir) {
+		super(world, x, y, TILE_SIZE, 2 * TILE_SIZE);
 		/** @type {number} The direction of the push: Direction.UP, Direction.DOWN, Direction.LEFT or Direction.RIGHT. */
 		this.dir = dir;
 	}

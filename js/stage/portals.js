@@ -73,6 +73,7 @@ export function launchPortal(p) {
 
 		if (i % 6 == 0 && now > 15) {
 			const s = new Sparkle(
+				game,
 				SparkleType.PORTAL_SHOT,
 				x + random(-5 << 8, 5 << 8) - (8 << 8),
 				y + random(-5 << 8, 5 << 8) - (8 << 8),
@@ -170,7 +171,7 @@ function setPortalDir(p, x, y) {
 		game.portals[p].x = x << 8;
 		game.portals[p].used = true;
 
-		createPortalGlow(p);
+		createPortalGlow(game, p);
 
 		return 1;
 	} else {
@@ -213,7 +214,7 @@ function setPortalDir(p, x, y) {
 			game.portals[p].used = true;
 			game.portals[p].frame = 0;
 
-			createPortalGlow(p);
+			createPortalGlow(game, p);
 
 			return 1;
 		}
@@ -371,7 +372,7 @@ function removePortals() {
 	if (!game.portals[0].used && !game.portals[1].used) return;
 	for (let i = 0; i < 2; i++) {
 		game.portals[i].used = false;
-		removeSparkles(i, SparkleType.PORTAL_GLOW);
+		removeSparkles(game, i, SparkleType.PORTAL_GLOW);
 	}
 	playSound(sfx_cancelPortals);
 }

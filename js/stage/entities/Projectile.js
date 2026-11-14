@@ -5,7 +5,6 @@
 import { Body } from './Body.js';
 import { playSound, sfx_bladeStick } from '../audio.js';
 import { TILE_SIZE } from '../constants.js';
-import { game } from '../state.js';
 import { FIRST_OF_KIND, LAST_OF_KIND, TileKind } from '../tiles.js';
 
 /**
@@ -13,13 +12,14 @@ import { FIRST_OF_KIND, LAST_OF_KIND, TileKind } from '../tiles.js';
  */
 export class Projectile extends Body {
 	/**
+	 * @param {import('../World.js').World} world The World of the object.
 	 * @param {number} x The x position in 1/256 pixels.
 	 * @param {number} y The y position in 1/256 pixels.
 	 * @param {number} vx The horizontal speed in 1/256 pixels per tick.
 	 * @param {number} vy The vertical speed in 1/256 pixels per tick.
 	 */
-	constructor(x, y, vx, vy) {
-		super(x, y, TILE_SIZE, TILE_SIZE);
+	constructor(world, x, y, vx, vy) {
+		super(world, x, y, TILE_SIZE, TILE_SIZE);
 		/** @type {number} The horizontal speed in 1/256 pixels per tick. */
 		this.vx = vx;
 		/** @type {number} The vertical speed in 1/256 pixels per tick. */
@@ -42,11 +42,11 @@ export class Projectile extends Body {
 			this.x += this.vx;
 			this.y += this.vy;
 
-			if (game.time % 6 == 0) {
+			if (this.world.time % 6 == 0) {
 				if (++this.img > LAST_OF_KIND[TileKind.WHEEL]) this.img = FIRST_OF_KIND[TileKind.WHEEL];
 			}
 
-			const t = game.getTile((this.x >> 8) + TILE_SIZE / 2, (this.y >> 8) + TILE_SIZE / 2);
+			const t = this.world.getTile((this.x >> 8) + TILE_SIZE / 2, (this.y >> 8) + TILE_SIZE / 2);
 
 			if (t) {
 				this.needKill = true;
@@ -55,10 +55,10 @@ export class Projectile extends Body {
 					this.timer = 0;
 				} else playSound(sfx_bladeStick);
 			} else {
-				if (game.anyCrateAt(this.x >> 8, this.y >> 8)) this.needKill = true;
-				else if (game.anyCrateAt((this.x >> 8) + TILE_SIZE, this.y >> 8)) this.needKill = true;
-				else if (game.anyCrateAt(this.x >> 8, (this.y >> 8) + TILE_SIZE)) this.needKill = true;
-				else if (game.anyCrateAt((this.x >> 8) + TILE_SIZE, (this.y >> 8) + TILE_SIZE)) this.needKill = true;
+				if (this.world.anyCrateAt(this.x >> 8, this.y >> 8)) this.needKill = true;
+				else if (this.world.anyCrateAt((this.x >> 8) + TILE_SIZE, this.y >> 8)) this.needKill = true;
+				else if (this.world.anyCrateAt(this.x >> 8, (this.y >> 8) + TILE_SIZE)) this.needKill = true;
+				else if (this.world.anyCrateAt((this.x >> 8) + TILE_SIZE, (this.y >> 8) + TILE_SIZE)) this.needKill = true;
 			}
 		} else {
 			if (--this.timer < 0) this.timer = 0;
@@ -69,20 +69,21 @@ export class Projectile extends Body {
 /**
  * Move the razor wheels of the boss, kill the player on a hit and remove the stopped wheels after their timer.
  *
+ * @param {import('../World.js').World} world The World.
  * @returns {void}
  */
-export function updateProjectiles() {
-	for (let pi = 0; pi < game.projectiles.length; pi++) {
-		const p = game.projectiles[pi];
+export function updateProjectiles(world) {
+	for (let pi = 0; pi < world.projectiles.length; pi++) {
+		const p = world.projectiles[pi];
 		p.move();
-		if (!p.needKill && p.overlaps(game.player)) {
-			game.projectiles.splice(pi, 1);
-			game.player.life = -200;
-			game.player.recoveryTime = 180;
+		if (!p.needKill && p.overlaps(world.player)) {
+			world.projectiles.splice(pi, 1);
+			world.player.life = -200;
+			world.player.recoveryTime = 180;
 			return;
 		}
 		if (p.needKill && p.timer == 0) {
-			game.projectiles.splice(pi, 1);
+			world.projectiles.splice(pi, 1);
 			pi--;
 		}
 	}

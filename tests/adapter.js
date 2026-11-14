@@ -320,7 +320,8 @@ export async function setPortals(page, placed) {
 export async function setGravPipes(page, pipes) {
 	await page.evaluate(async (pipes) => {
 		const { GravPipe } = await import('/js/stage/entities/GravPipe.js');
-		window.__test.game.gravPipes = pipes.map(({ x, y, direction }) => new GravPipe(x, y, direction));
+		const { game } = window.__test;
+		game.gravPipes = pipes.map(({ x, y, direction }) => new GravPipe(game, x, y, direction));
 	}, pipes);
 }
 
@@ -349,7 +350,7 @@ export async function finishLevel(page) {
 		const { openExit } = await import('/js/stage/entities/Cake.js');
 		const { Tile } = await import('/js/stage/tiles.js');
 		const { game } = window.__test;
-		openExit();
+		openExit(game);
 		// a tile is 16 pixels, and the player position is in 1/256 pixels
 		const exit = game.map.tiles.indexOf(Tile.EXIT);
 		if (exit < 0) throw new Error('The level has no exit tile.');
@@ -554,9 +555,9 @@ export async function runPortalScene(page, scene) {
 		Object.assign(game.player, { x: scene.player[0] << 8, y: scene.player[1] << 8, vx: 0, vy: 0 });
 		const o = scene.object;
 		let obj = null;
-		if (o?.type === 'crate') game.crates.push((obj = new Crate(o.x << 8, o.y << 8)));
-		else if (o?.type === 'turret') game.turrets.push((obj = new Turret(o.x << 8, o.y << 8, -1)));
-		else if (o?.type === 'plasma') game.plasmaBall.push((obj = new Plasma(o.x << 8, o.y << 8, o.vx, o.vy)));
+		if (o?.type === 'crate') game.crates.push((obj = new Crate(game, o.x << 8, o.y << 8)));
+		else if (o?.type === 'turret') game.turrets.push((obj = new Turret(game, o.x << 8, o.y << 8, -1)));
+		else if (o?.type === 'plasma') game.plasmaBall.push((obj = new Plasma(game, o.x << 8, o.y << 8, o.vx, o.vy)));
 
 		const p = game.portals.map((portal) => [portal.used, portal.direction, portal.x >> 8, portal.y >> 8]);
 		const lines = [JSON.stringify({ portals: p })];

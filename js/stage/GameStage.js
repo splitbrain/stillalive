@@ -20,7 +20,7 @@ import {
 import { clearCanvas, ctx, setCanvas, watchCanvasSize } from './canvas.js';
 import { PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, Transition } from './constants.js';
 import { Editor } from './Editor.js';
-import { canPause, setupInput } from './input.js';
+import { setupInput } from './input.js';
 import { getFps, startLoop } from './loop.js';
 import { render } from './render/frame.js';
 import { Recorder, ReplayPlayer, decodeReplay, encodeReplay } from './replay.js';
@@ -128,9 +128,9 @@ export class GameStage extends HTMLElement {
 
 		watchCanvasSize();
 		setupInput(canvas, this, {
-			world: () => this.#world,
-			replaying: () => this.#replaying,
-			stopTest: () => this.#endTest(),
+			escape: () => this.#onEscape(),
+			enter: () => this.#onEnter(),
+			focusLost: () => this.#onFocusLost(),
 		});
 
 		this.#world = new World(); // the input handlers and the Value properties read the World before the first level
@@ -216,9 +216,10 @@ export class GameStage extends HTMLElement {
 	 * @returns {void}
 	 */
 	pause() {
-		if (!canPause(this.#world) || ui.paused) return;
+		if (!this.#canPause() || ui.paused) return;
 		ui.paused = true;
 		if (this.#replaying) this.#source.pause(this.#world, input);
+		this.#updateMouseLock();
 		this.#publish();
 	}
 
@@ -232,6 +233,7 @@ export class GameStage extends HTMLElement {
 		ui.paused = false;
 		input.unclick();
 		if (this.#replaying) this.#source.resume(this.#world, input);
+		this.#updateMouseLock();
 		this.#publish();
 	}
 
@@ -392,6 +394,7 @@ export class GameStage extends HTMLElement {
 		else this.#source = replay === null ? new Recorder() : new ReplayPlayer(replay);
 		this.#world = World.forLevel(level, { restart, replay: replay !== null, transition: this.#transition });
 		ui.paused = false;
+		this.#updateMouseLock();
 		input.keys = 0;
 		input.oldKeys = 0;
 	}
@@ -406,6 +409,7 @@ export class GameStage extends HTMLElement {
 		if (ui.mode == 'edit') this.#editor.leave(this.#world);
 		ui.paused = false;
 		this.#source = null;
+		this.#updateMouseLock();
 		this.#speed = 1;
 		this.#world.events = null;
 		this.#world.shakeX = 0;
@@ -475,6 +479,61 @@ export class GameStage extends HTMLElement {
 	 */
 	#endPlayback() {
 		if (this.#replaying) this.#source.stop();
+		this.#updateMouseLock();
+	}
+
+	/**
+	 * Lock the mouse position while a replay plays without a pause, so that the pointer does not move it. Unlock it
+	 * in all other cases.
+	 *
+	 * @returns {void}
+	 */
+	#updateMouseLock() {
+		input.mouseLocked = this.#replaying && !ui.paused;
+	}
+
+	/**
+	 * Check if a level runs and can pause.
+	 *
+	 * @returns {boolean} True in the mode "play" before the player reaches the exit.
+	 */
+	#canPause() {
+		return ui.mode == 'play' && !this.#world.reachedExit();
+	}
+
+	/**
+	 * Handle the release of the Escape key. In a replay it dispatches the event "replaystop". Else it ends a pause,
+	 * pauses a level or ends a test run. The next frame publishes the end of a test run.
+	 *
+	 * @returns {void}
+	 */
+	#onEscape() {
+		if (this.#replaying) this.dispatchEvent(new Event('replaystop'));
+		else if (ui.paused) this.resume();
+		else if (this.#canPause()) this.pause();
+		else if (ui.mode == 'test') this.#endTest();
+	}
+
+	/**
+	 * Handle the release of the Enter key. It ends a test run, and the next frame publishes the end.
+	 *
+	 * @returns {void}
+	 */
+	#onEnter() {
+		if (ui.mode == 'test') this.#endTest();
+	}
+
+	/**
+	 * Release all keys and mouse buttons when the game loses the focus. The release events of these keys do not reach
+	 * the game. In a running level, the stage reports the lost focus with the event "focuslost". A replay ignores the
+	 * lost focus, because the replay sets the keys from the recording.
+	 *
+	 * @returns {void}
+	 */
+	#onFocusLost() {
+		if (this.#replaying) return;
+		input.keys = 0;
+		if (this.#canPause() && !ui.paused) this.dispatchEvent(new Event('focuslost'));
 	}
 
 	/**

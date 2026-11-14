@@ -26,6 +26,8 @@ export class InputState {
 	mouseY = 0;
 	/** @type {boolean} True while the pointer is over the canvas. */
 	mouseOver = false;
+	/** @type {boolean} True while a replay plays without a pause. */
+	mouseLocked = false;
 	/** @type {number} 1 from the press of a mouse button until its release, else 0. */
 	mousePressed = 0;
 	/** @type {number} 1 after the release of a mouse button, else 0. */

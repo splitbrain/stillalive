@@ -1,7 +1,8 @@
 /**
  * Keyboard and pointer input.
  *
- * The handlers write the keys and the mouse into the input state. The game reads the input state once per tick.
+ * The handlers write the keys and the mouse into the input state. The game reads the input state once per tick. The
+ * Escape key, the Enter key and the lost focus call the stage element, which decides what they do.
  */
 
 import { playfieldPoint } from './canvas.js';
@@ -15,7 +16,7 @@ import {
 	MOUSE_MIDDLE,
 	MOUSE_RIGHT,
 } from './constants.js';
-import { input, ui } from './state.js';
+import { input } from './state.js';
 
 /**
  * The key bits for the movement keys, by the physical position of the key.
@@ -51,42 +52,19 @@ function isForeignTarget(event) {
 }
 
 /**
- * The state of the stage element that the handlers read, and the end of the test run.
+ * The methods of the stage element for the keys and the focus.
  *
- * @typedef {object} StageAccess
- * @property {() => import('./World.js').World} world Get the World that the stage shows.
- * @property {() => boolean} replaying Check if a replay plays.
- * @property {() => void} stopTest End the test run and go back to the editor.
+ * @typedef {object} StageCommands
+ * @property {() => void} escape Handle the release of the Escape key.
+ * @property {() => void} enter Handle the release of the Enter key.
+ * @property {() => void} focusLost Handle the loss of the focus.
  */
 
 /** @type {import('./GameStage.js').GameStage} The stage element that the keys command. */
 let stage;
 
-/** @type {StageAccess} The state of the stage element. */
-let access;
-
-/**
- * Check if a level runs and can pause.
- *
- * @param {import('./World.js').World} world The World that the stage shows.
- * @returns {boolean} True in a level before its end.
- */
-export function canPause(world) {
-	return ui.mode == 'play' && !world.reachedExit();
-}
-
-/**
- * Release all keys and mouse buttons when the game loses the focus. The release events of these keys do not reach
- * the game. In a running level, the function reports the lost focus with the event "focuslost". A replay ignores the
- * lost focus, because the replay sets the keys from the recording.
- *
- * @returns {void}
- */
-function onFocusLost() {
-	if (access.replaying()) return;
-	input.keys = 0;
-	if (canPause(access.world()) && !ui.paused) stage.dispatchEvent(new Event('focuslost'));
-}
+/** @type {StageCommands} The methods of the stage element for the keys and the focus. */
+let commands;
 
 /**
  * Handle a key press. While the stage shows, the arrow keys do not scroll the page.
@@ -116,14 +94,8 @@ function onKeyUp(event) {
 	if (event.ctrlKey && key === 'z') input.undoPressed = true;
 	if (event.ctrlKey && key === 'y') input.redoPressed = true;
 
-	if (event.key === 'Escape') {
-		if (access.replaying()) stage.dispatchEvent(new Event('replaystop'));
-		else if (ui.paused) stage.resume();
-		else if (canPause(access.world())) stage.pause();
-		else if (ui.mode == 'test') access.stopTest();
-	}
-
-	if (event.key === 'Enter' && ui.mode == 'test') access.stopTest();
+	if (event.key === 'Escape') commands.escape();
+	if (event.key === 'Enter') commands.enter();
 }
 
 /**
@@ -148,7 +120,7 @@ function onPointer(event) {
 	if (event.buttons & 4) buttons |= MOUSE_MIDDLE;
 	input.keys = (input.keys & ~MOUSE_BITS) | buttons;
 
-	if (!access.replaying() || ui.paused) {
+	if (!input.mouseLocked) {
 		const rect = canvas.getBoundingClientRect();
 		[input.mouseX, input.mouseY] = playfieldPoint(
 			event.clientX - rect.left - canvas.clientLeft,
@@ -162,17 +134,17 @@ function onPointer(event) {
  *
  * @param {HTMLCanvasElement} canvas The canvas that takes the pointer input.
  * @param {import('./GameStage.js').GameStage} element The stage element that the keys command.
- * @param {StageAccess} stageAccess The state of the stage element.
+ * @param {StageCommands} stageCommands The methods of the stage element for the keys and the focus.
  * @returns {void}
  */
-export function setupInput(canvas, element, stageAccess) {
+export function setupInput(canvas, element, stageCommands) {
 	stage = element;
-	access = stageAccess;
+	commands = stageCommands;
 	window.addEventListener('keydown', onKeyDown);
 	window.addEventListener('keyup', onKeyUp);
-	window.addEventListener('blur', onFocusLost);
+	window.addEventListener('blur', () => commands.focusLost());
 	document.addEventListener('visibilitychange', () => {
-		if (document.hidden) onFocusLost();
+		if (document.hidden) commands.focusLost();
 	});
 
 	for (const type of ['pointerdown', 'pointermove', 'pointerup', 'pointercancel']) {

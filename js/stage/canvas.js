@@ -186,7 +186,7 @@ function scaledImage(image) {
 export function drawImage(image, ...args) {
 	if (!image.complete || image.naturalWidth === 0) return;
 	if (!isVectorImage(image)) {
-		ctx.drawImage(image, ...args);
+		Reflect.apply(ctx.drawImage, ctx, [image, ...args]);
 		return;
 	}
 	const picture = scaledImage(image);

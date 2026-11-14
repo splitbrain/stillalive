@@ -460,7 +460,7 @@ function updateMenuMusic(play) {
 		rampTo(menuFade.gain, MENU_MUSIC_SHARE, MUSIC_FADE);
 	} else {
 		rampTo(menuFade.gain, 0, MUSIC_FADE);
-		menuPauseTimer = setTimeout(() => menuElement.pause(), MUSIC_FADE * 1000);
+		menuPauseTimer = window.setTimeout(() => menuElement.pause(), MUSIC_FADE * 1000);
 	}
 }
 

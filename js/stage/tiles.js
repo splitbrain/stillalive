@@ -119,7 +119,7 @@ export const LAST_OF_KIND = Object.fromEntries(TILE_RANGES.map(([, last, kind]) 
  * @returns {boolean} True if the tile has one of the kinds, false for an object.
  */
 export function isTileKind(id, ...kinds) {
-	return kinds.includes(KIND_OF[id]);
+	return typeof id === 'number' && kinds.includes(KIND_OF[id]);
 }
 
 /**

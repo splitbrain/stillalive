@@ -48,7 +48,8 @@ function isForeignTarget(event) {
 	const target = event.target;
 	return (
 		target instanceof Element &&
-		(target.isContentEditable || target.closest('input, textarea, select, dialog') !== null)
+		((target instanceof HTMLElement && target.isContentEditable) ||
+			target.closest('input, textarea, select, dialog') !== null)
 	);
 }
 

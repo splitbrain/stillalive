@@ -74,7 +74,7 @@ export class NarratorText extends ChromeScreen {
 			this.#show();
 		}
 		if (this.stage.paused.get() || this.#shown >= this.#text.length) this.#stopTyping();
-		else if (this.#timer === 0) this.#timer = setInterval(() => this.#type(), TYPE_TIME);
+		else if (this.#timer === 0) this.#timer = window.setInterval(() => this.#type(), TYPE_TIME);
 	}
 
 	/**

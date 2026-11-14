@@ -20,7 +20,8 @@ export const CAMPAIGNS = CAMPAIGN_FOLDERS.flatMap((name, index) =>
 		: {
 				name,
 				index,
-				levels: JSON.parse(readFileSync(new URL(`../maps/${name}/campaign.json`, import.meta.url))).levels.length,
+				levels: JSON.parse(readFileSync(new URL(`../maps/${name}/campaign.json`, import.meta.url), 'utf8')).levels
+					.length,
 			},
 );
 
@@ -40,11 +41,11 @@ export const SNAPSHOT_INTERVAL = 60;
  */
 export function campaignLevels(campaign) {
 	const folder = new URL(`../maps/${campaign.name}/`, import.meta.url);
-	const files = JSON.parse(readFileSync(new URL('campaign.json', folder))).levels;
+	const files = JSON.parse(readFileSync(new URL('campaign.json', folder), 'utf8')).levels;
 	return Array.from({ length: campaign.levels }, (_, i) => ({
 		level: i + 1,
 		id: `${campaign.name}-${String(i + 1).padStart(2, '0')}`,
-		boss: JSON.parse(readFileSync(new URL(files[i], folder))).boss ?? 0,
+		boss: JSON.parse(readFileSync(new URL(files[i], folder), 'utf8')).boss ?? 0,
 	}));
 }
 

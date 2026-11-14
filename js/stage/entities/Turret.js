@@ -146,7 +146,7 @@ export class Turret extends Throwable {
 			(this.vx === 0 && Math.abs(oldVx) > toSubpixels(3)) || (this.vy === 0 && Math.abs(oldVy) > toSubpixels(4));
 		return (
 			(hardLanding && this.canExplode && this.world.gravPipeFieldsAt(this).length === 0) ||
-			this.touchesDeadlyTile() ||
+			this.touchesDeadlyTile() !== 0 ||
 			Boolean(this.world.movingCrateTouching(this)) ||
 			this.world.plasmaTouching(this)
 		);

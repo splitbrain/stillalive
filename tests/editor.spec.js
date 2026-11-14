@@ -18,7 +18,7 @@ import {
 } from './adapter.js';
 
 /** @type {object} A map file with a title, abilities, events and labels. */
-const MAP = JSON.parse(readFileSync(new URL('../maps/tutorial/level04.json', import.meta.url)));
+const MAP = JSON.parse(readFileSync(new URL('../maps/tutorial/level04.json', import.meta.url), 'utf8'));
 
 /**
  * Get the editor map of the stage in the map file format.

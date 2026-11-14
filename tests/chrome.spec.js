@@ -110,7 +110,9 @@ async function expectTrail(page, trail) {
  * @returns {Promise<void>}
  */
 function setHash(page, hash) {
-	return page.evaluate((hash) => (location.hash = hash), hash);
+	return page.evaluate((hash) => {
+		location.hash = hash;
+	}, hash);
 }
 
 test.describe('chrome', () => {

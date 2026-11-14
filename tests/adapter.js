@@ -180,6 +180,48 @@ export async function playMap(page, data) {
 }
 
 /**
+ * Create a World from map data in the page and run ticks with the same keys in each tick. The stage element does not
+ * take part.
+ *
+ * @param {import('@playwright/test').Page} page The Playwright page.
+ * @param {object} data The map in the map file format.
+ * @param {object} options The run options.
+ * @param {number} options.ticks The number of ticks to run.
+ * @param {number} [options.keys] The key bitmask of each tick.
+ * @returns {Promise<{time: number, x: number, y: number}[]>} The level time and the player position in 1/256 pixels
+ *     after the creation and after each tick.
+ */
+export function runWorld(page, data, { ticks, keys = 0 }) {
+	return page.evaluate(
+		async ({ data, ticks, keys }) => {
+			const { parseMap } = await import('/js/stage/mapFile.js');
+			const { World } = await import('/js/stage/World.js');
+			const world = World.forLevel({ ...parseMap(data), campaign: 'test', number: 1, fromBelow: false });
+			const input = {
+				keys,
+				oldKeys: 0,
+				mouseX: 0,
+				mouseY: 0,
+				mousePressed: 0,
+				mouseReleased: 0,
+				mouseButton: 0,
+				mouseNewPress: 0,
+			};
+			const state = () => ({ time: world.time, x: world.player.x, y: world.player.y });
+			const states = [state()];
+			for (let tick = 0; tick < ticks; tick++) {
+				world.applyInput(input);
+				input.oldKeys = input.keys;
+				world.tick(input);
+				states.push(state());
+			}
+			return states;
+		},
+		{ data, ticks, keys },
+	);
+}
+
+/**
  * Decode a replay in the file format with the decoder of the stage.
  *
  * @param {import('@playwright/test').Page} page The Playwright page.

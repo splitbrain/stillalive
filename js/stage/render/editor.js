@@ -7,7 +7,7 @@ import { MAP_HEIGHT, MAP_WIDTH, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, TILE_SIZE, TI
 import { bg, cake, crateImage, tileset, turretImages } from '../images.js';
 import { mouseOnPlayfield } from '../inputState.js';
 import { GRAVPIPE_DIRECTIONS, plasmaLaunch } from '../level.js';
-import { game, input, ui } from '../state.js';
+import { game, input } from '../state.js';
 import { Tile, isGravPipeTile, isObjectTile } from '../tiles.js';
 import {
 	drawCakes,
@@ -32,12 +32,13 @@ let tilesBuffSource = null;
 /**
  * Draw the editor map and the cursor.
  *
+ * @param {import('../Editor.js').Editor} editor The editor.
  * @returns {void}
  */
-export function drawEditor() {
+export function drawEditor(editor) {
 	drawTileMap();
-	drawTileCursor();
-	drawSpriteCursor();
+	drawTileCursor(editor.brush);
+	drawSpriteCursor(editor.brush);
 }
 
 /**
@@ -94,10 +95,10 @@ function drawTileMap() {
 /**
  * Draw the selected tile at the mouse while the pointer is over the canvas and the mouse is over the map.
  *
+ * @param {number} brush The tile id that the editor paints.
  * @returns {void}
  */
-function drawTileCursor() {
-	const brush = ui.editor.brush;
+function drawTileCursor(brush) {
 	if (!input.mouseOver || !mouseOnPlayfield() || isObjectTile(brush)) return;
 	const x = (input.mouseX >> TILE_SIZE_BITS) << TILE_SIZE_BITS;
 	const y = (input.mouseY >> TILE_SIZE_BITS) << TILE_SIZE_BITS;
@@ -110,10 +111,10 @@ function drawTileCursor() {
 /**
  * Draw the selected object at the mouse while the pointer is over the canvas and the mouse is over the map.
  *
+ * @param {number} sprite The object id that the editor paints.
  * @returns {void}
  */
-function drawSpriteCursor() {
-	const sprite = ui.editor.brush;
+function drawSpriteCursor(sprite) {
 	if (!input.mouseOver || !mouseOnPlayfield() || !isObjectTile(sprite)) return;
 	const x = (input.mouseX >> TILE_SIZE_BITS) << TILE_SIZE_BITS;
 	const y = (input.mouseY >> TILE_SIZE_BITS) << TILE_SIZE_BITS;

@@ -166,13 +166,6 @@ export const ui = {
 	paused: false,
 	/** @type {number} The transition effect of the level end, chosen at random. */
 	transition: Transition.HORIZONTAL_LINES,
-	/** @type {object} The state of the level editor. */
-	editor: {
-		/** @type {number} The tile id or the object id that the editor paints. */
-		brush: 1,
-		/** @type {boolean} True when the objects of the editor map must be created again. */
-		objectsChanged: false,
-	},
 };
 
 /** @type {{type: string, detail: *}[]} The events of the stage from a tick. The stage element dispatches them. */

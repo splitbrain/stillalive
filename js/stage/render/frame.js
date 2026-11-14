@@ -10,12 +10,13 @@ import { drawLevel, drawPreviewMap } from './game.js';
 /**
  * Draw the canvas after the ticks of a frame.
  *
+ * @param {import('../Editor.js').Editor} editor The editor of the stage.
  * @returns {void}
  */
-export function render() {
+export function render(editor) {
 	if (ui.mode == 'idle') return;
 	beginFrame(game.shakeX, game.shakeY);
-	if (ui.mode == 'edit') drawEditor();
+	if (ui.mode == 'edit') drawEditor(editor);
 	else if (ui.mode == 'play' || ui.mode == 'test') drawLevel();
 	else if (ui.mode == 'preview') drawPreviewMap();
 }

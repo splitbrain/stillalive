@@ -21,11 +21,11 @@ const LAYERS = [
 		name: 'logic',
 		files: [
 			'./js/stage/entities/*.js',
-			'./js/stage/{boss,inputState,level,LevelEvents,mapEdit,mapFile,physics,portals,replay}.js',
+			'./js/stage/{boss,inputState,level,LevelEvents,mapEdit,mapFile,physics,portals,replay,UndoList}.js',
 		],
 	},
 	{ name: 'drawing', files: ['./js/stage/render/*.js'] },
-	{ name: 'flow', files: ['./js/stage/{editor,game,GameStage,input}.js'] },
+	{ name: 'flow', files: ['./js/stage/{Editor,game,GameStage,input}.js'] },
 	{ name: 'page', files: ['./js/[m]ain.js', './js/[l]oader.js', './js/chrome/**/*.js', './js/[r]outer.js'] },
 ];
 

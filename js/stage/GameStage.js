@@ -19,17 +19,7 @@ import {
 } from './audio.js';
 import { clearCanvas, ctx, setCanvas, watchCanvasSize } from './canvas.js';
 import { PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH } from './constants.js';
-import {
-	clearEditorMap,
-	editorMap,
-	leaveEditor,
-	openEditor,
-	redoEditor,
-	setEditorBackground,
-	startPlayingLevel,
-	stopPlayingLevel,
-	undoEditor,
-} from './editor.js';
+import { Editor } from './Editor.js';
 import { Player } from './entities/Player.js';
 import { startLevel, tick } from './game.js';
 import { canPause, setupInput } from './input.js';
@@ -94,8 +84,10 @@ export class GameStage extends HTMLElement {
 	message = new Value(null);
 	/** @type {Value<number>} The speed of the playback of a replay: 1, 2 or 4 ticks per tick of real time. */
 	speed = new Value(1);
+	/** @type {Editor} The level editor. It keeps the editor map while the stage shows something else. */
+	#editor = new Editor();
 	/** @type {Value<number>} The tile id or the object id that the editor paints. */
-	brush = new Value(ui.editor.brush);
+	brush = new Value(this.#editor.brush);
 	/** @type {Value<number>} The measured number of frames per second. */
 	fps = new Value(0);
 	/** @type {Value<boolean>} True if the stage plays the sounds. */
@@ -129,13 +121,16 @@ export class GameStage extends HTMLElement {
 		ctx.font = 'bold 10px Arial';
 
 		watchCanvasSize();
-		setupInput(canvas, this);
+		setupInput(canvas, this, this.#editor);
 
 		game.player = new Player(); // the input reads the player before the first level starts
 		game.resetPhase();
 		game.time = 0;
 
-		startLoop(() => this.#step(), render);
+		startLoop(
+			() => this.#step(),
+			() => render(this.#editor),
+		);
 		this.#addTestHook();
 	}
 
@@ -178,7 +173,7 @@ export class GameStage extends HTMLElement {
 	 */
 	edit(level) {
 		this.#leave();
-		openEditor(level);
+		this.#editor.open(level);
 		this.#publish();
 	}
 
@@ -190,7 +185,7 @@ export class GameStage extends HTMLElement {
 	 */
 	test() {
 		if (ui.mode != 'edit') return;
-		startPlayingLevel();
+		this.#editor.startTest();
 		this.#publish();
 	}
 
@@ -201,7 +196,7 @@ export class GameStage extends HTMLElement {
 	 */
 	stopTest() {
 		if (ui.mode != 'test') return;
-		stopPlayingLevel();
+		this.#editor.stopTest();
 		this.#publish();
 	}
 
@@ -266,7 +261,7 @@ export class GameStage extends HTMLElement {
 	 * @returns {void}
 	 */
 	setBrush(tile) {
-		ui.editor.brush = tile;
+		this.#editor.brush = tile;
 		this.#publish();
 	}
 
@@ -277,7 +272,7 @@ export class GameStage extends HTMLElement {
 	 * @returns {void}
 	 */
 	setBackground(n) {
-		if (ui.mode == 'edit') setEditorBackground(n);
+		if (ui.mode == 'edit') this.#editor.setBackground(n);
 	}
 
 	/**
@@ -286,7 +281,7 @@ export class GameStage extends HTMLElement {
 	 * @returns {object} The editor map in the map file format without the format property, with a copy of the tiles.
 	 */
 	getMap() {
-		return editorMap();
+		return this.#editor.getMap();
 	}
 
 	/**
@@ -295,7 +290,7 @@ export class GameStage extends HTMLElement {
 	 * @returns {void}
 	 */
 	clearMap() {
-		if (ui.mode == 'edit') clearEditorMap();
+		if (ui.mode == 'edit') this.#editor.clear();
 	}
 
 	/**
@@ -304,7 +299,7 @@ export class GameStage extends HTMLElement {
 	 * @returns {void}
 	 */
 	undo() {
-		if (ui.mode == 'edit') undoEditor();
+		if (ui.mode == 'edit') this.#editor.undo();
 	}
 
 	/**
@@ -313,7 +308,7 @@ export class GameStage extends HTMLElement {
 	 * @returns {void}
 	 */
 	redo() {
-		if (ui.mode == 'edit') redoEditor();
+		if (ui.mode == 'edit') this.#editor.redo();
 	}
 
 	/**
@@ -383,9 +378,9 @@ export class GameStage extends HTMLElement {
 	 */
 	#leave() {
 		if (ui.mode == 'test') {
-			stopPlayingLevel(false);
+			this.#editor.stopTest(false);
 		}
-		if (ui.mode == 'edit') leaveEditor();
+		if (ui.mode == 'edit') this.#editor.leave();
 		ui.paused = false;
 		game.replayMode = false;
 		this.#speed = 1;
@@ -401,7 +396,7 @@ export class GameStage extends HTMLElement {
 	 */
 	#step() {
 		setSoundMuted(this.#speed > 1);
-		for (let i = 0; i < this.#speed; i++) tick();
+		for (let i = 0; i < this.#speed; i++) tick(this.#editor);
 		setSoundMuted(false);
 		this.#publish();
 	}
@@ -424,7 +419,7 @@ export class GameStage extends HTMLElement {
 		this.paused.set(ui.paused);
 		this.message.set(game.events?.message ?? null);
 		this.speed.set(this.#speed);
-		this.brush.set(ui.editor.brush);
+		this.brush.set(this.#editor.brush);
 		this.fps.set(getFps());
 		const phase = ui.mode == 'play' ? (game.boss?.phase() ?? null) : null;
 		setMusicMood(phase == 'fight' ? BOSS_MUSIC_RATE : 1, phase == 'coming' || phase == 'leaving' ? BOSS_MUSIC_DUCK : 1);
@@ -445,6 +440,7 @@ export class GameStage extends HTMLElement {
 			game,
 			input,
 			tick: () => this.#step(),
+			render: () => render(this.#editor),
 			loadLevel,
 			loadPreviewMap,
 		};

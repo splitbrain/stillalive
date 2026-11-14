@@ -15,7 +15,6 @@ import {
 	MOUSE_MIDDLE,
 	MOUSE_RIGHT,
 } from './constants.js';
-import { stopPlayingLevel } from './editor.js';
 import { game, input, ui } from './state.js';
 
 /**
@@ -53,6 +52,9 @@ function isForeignTarget(event) {
 
 /** @type {import('./GameStage.js').GameStage} The stage element that the keys command. */
 let stage;
+
+/** @type {import('./Editor.js').Editor} The editor of the stage. The Escape key and the Enter key end its test run. */
+let editor;
 
 /**
  * Check if a level runs and can pause.
@@ -108,10 +110,10 @@ function onKeyUp(event) {
 		if (game.replayMode) stage.dispatchEvent(new Event('replaystop'));
 		else if (ui.paused) stage.resume();
 		else if (canPause()) stage.pause();
-		else if (ui.mode == 'test') stopPlayingLevel();
+		else if (ui.mode == 'test') editor.stopTest();
 	}
 
-	if (event.key === 'Enter' && ui.mode == 'test') stopPlayingLevel();
+	if (event.key === 'Enter' && ui.mode == 'test') editor.stopTest();
 }
 
 /**
@@ -150,10 +152,12 @@ function onPointer(event) {
  *
  * @param {HTMLCanvasElement} canvas The canvas that takes the pointer input.
  * @param {import('./GameStage.js').GameStage} element The stage element that the keys command.
+ * @param {import('./Editor.js').Editor} stageEditor The editor of the stage.
  * @returns {void}
  */
-export function setupInput(canvas, element) {
+export function setupInput(canvas, element, stageEditor) {
 	stage = element;
+	editor = stageEditor;
 	window.addEventListener('keydown', onKeyDown);
 	window.addEventListener('keyup', onKeyUp);
 	window.addEventListener('blur', onFocusLost);

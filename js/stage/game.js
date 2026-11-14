@@ -4,7 +4,6 @@
 
 import { playSound, sfx_transition } from './audio.js';
 import { FADE_START, LevelPhase, Transition } from './constants.js';
-import { stopPlayingLevel, updateLevelEditor } from './editor.js';
 import { animateTiles } from './entities/AnimatedTile.js';
 import { updateCakes } from './entities/Cake.js';
 import { updateCrates } from './entities/Crate.js';
@@ -26,20 +25,22 @@ import { random } from './utils.js';
 /**
  * Run one tick of the stage in the current mode.
  *
+ * @param {import('./Editor.js').Editor} editor The editor of the stage.
  * @returns {void}
  */
-export function tick() {
+export function tick(editor) {
 	manageKeys();
-	if (ui.mode == 'edit') updateLevelEditor();
-	else if ((ui.mode == 'play' || ui.mode == 'test') && !ui.paused) updateLevel();
+	if (ui.mode == 'edit') editor.update();
+	else if ((ui.mode == 'play' || ui.mode == 'test') && !ui.paused) updateLevel(editor);
 }
 
 /**
  * Run one tick of a level. The level time stands still while an event waits and while the boss comes in.
  *
+ * @param {import('./Editor.js').Editor} editor The editor, which gets the end of a test run.
  * @returns {void}
  */
-function updateLevel() {
+function updateLevel(editor) {
 	if (game.isRunning()) {
 		if (game.time == 0) unclick();
 		game.time++;
@@ -52,7 +53,7 @@ function updateLevel() {
 
 	manageDoors();
 	if (atExit()) {
-		updateLevelEnd();
+		updateLevelEnd(editor);
 	} else if (game.isOpening()) {
 		game.fade -= 4;
 		if (game.fade <= 0) game.phase = LevelPhase.RUNNING;
@@ -74,9 +75,10 @@ function updateLevel() {
  * An exit event that waits for a click holds the closing transition until the click. After the transition, the stage
  * reports the event "finished" and the level stays in the exit freeze. A test run goes back to the editor.
  *
+ * @param {import('./Editor.js').Editor} editor The editor, which gets the end of a test run.
  * @returns {void}
  */
-function updateLevelEnd() {
+function updateLevelEnd(editor) {
 	game.boss = null;
 	game.shakeX = 0;
 	game.shakeY = 0;
@@ -89,7 +91,7 @@ function updateLevelEnd() {
 			game.fade = 0;
 			game.phase = LevelPhase.ENDED;
 			if (ui.mode == 'test') {
-				stopPlayingLevel();
+				editor.stopTest();
 				return;
 			}
 			const replay = encodeReplay(game.replay, game.level.campaign, game.level.number);

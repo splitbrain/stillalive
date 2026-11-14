@@ -258,66 +258,71 @@ export class Plasma extends Body {
 		if (dist > PLAYFIELD_HEIGHT) dist = PLAYFIELD_HEIGHT;
 		setSoundVolume(sfx_bounce, 1 - dist / PLAYFIELD_HEIGHT);
 
-		if (this.getCollision() == Direction.LEFT) {
-			playSound(sfx_bounce);
-			do {
-				this.x += 128;
-			} while (this.getCollision() == Direction.LEFT);
-			this.vx = -this.vx;
+		switch (this.getCollision()) {
+			case Direction.LEFT:
+				playSound(sfx_bounce);
+				do {
+					this.x += 128;
+				} while (this.getCollision() == Direction.LEFT);
+				this.vx = -this.vx;
 
-			x = (this.x >> 8) - 1;
-			y = this.y >> 8;
-			for (i = 2; i <= 14 && !this.homing; i++) {
-				if (this.world.map.atPixel(x, y + i) == Tile.PLASMA_SLOT) {
-					this.#fillSlot(x >> TILE_SIZE_BITS, (y + i) >> TILE_SIZE_BITS);
-					break;
+				x = (this.x >> 8) - 1;
+				y = this.y >> 8;
+				for (i = 2; i <= 14 && !this.homing; i++) {
+					if (this.world.map.atPixel(x, y + i) == Tile.PLASMA_SLOT) {
+						this.#fillSlot(x >> TILE_SIZE_BITS, (y + i) >> TILE_SIZE_BITS);
+						break;
+					}
 				}
-			}
-		} else if (this.getCollision() == Direction.RIGHT) {
-			playSound(sfx_bounce);
-			do {
-				this.x -= 128;
-			} while (this.getCollision() == Direction.RIGHT);
-			this.vx = -this.vx;
+				break;
+			case Direction.RIGHT:
+				playSound(sfx_bounce);
+				do {
+					this.x -= 128;
+				} while (this.getCollision() == Direction.RIGHT);
+				this.vx = -this.vx;
 
-			x = (this.x >> 8) + TILE_SIZE;
-			y = this.y >> 8;
-			for (i = 2; i <= 14 && !this.homing; i++) {
-				if (this.world.map.atPixel(x, y + i) == Tile.PLASMA_SLOT) {
-					this.#fillSlot(x >> TILE_SIZE_BITS, (y + i) >> TILE_SIZE_BITS);
-					break;
+				x = (this.x >> 8) + TILE_SIZE;
+				y = this.y >> 8;
+				for (i = 2; i <= 14 && !this.homing; i++) {
+					if (this.world.map.atPixel(x, y + i) == Tile.PLASMA_SLOT) {
+						this.#fillSlot(x >> TILE_SIZE_BITS, (y + i) >> TILE_SIZE_BITS);
+						break;
+					}
 				}
-			}
-		} else if (this.getCollision() == Direction.UP) {
-			playSound(sfx_bounce);
-			do {
-				this.y += 128;
-			} while (this.getCollision() == Direction.UP);
-			this.vy = -this.vy;
+				break;
+			case Direction.UP:
+				playSound(sfx_bounce);
+				do {
+					this.y += 128;
+				} while (this.getCollision() == Direction.UP);
+				this.vy = -this.vy;
 
-			x = this.x >> 8;
-			y = (this.y >> 8) - 1;
-			for (i = 4; i <= 12 && !this.homing; i++) {
-				if (this.world.map.atPixel(x + i, y) == Tile.PLASMA_SLOT) {
-					this.#fillSlot((x + i) >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS);
-					break;
+				x = this.x >> 8;
+				y = (this.y >> 8) - 1;
+				for (i = 4; i <= 12 && !this.homing; i++) {
+					if (this.world.map.atPixel(x + i, y) == Tile.PLASMA_SLOT) {
+						this.#fillSlot((x + i) >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS);
+						break;
+					}
 				}
-			}
-		} else if (this.getCollision() == Direction.DOWN) {
-			playSound(sfx_bounce);
-			do {
-				this.y -= 128;
-			} while (this.getCollision() == Direction.DOWN);
-			this.vy = -this.vy;
+				break;
+			case Direction.DOWN:
+				playSound(sfx_bounce);
+				do {
+					this.y -= 128;
+				} while (this.getCollision() == Direction.DOWN);
+				this.vy = -this.vy;
 
-			x = this.x >> 8;
-			y = (this.y >> 8) + TILE_SIZE;
-			for (i = 4; i <= 12 && !this.homing; i++) {
-				if (this.world.map.atPixel(x + i, y) == Tile.PLASMA_SLOT) {
-					this.#fillSlot((x + i) >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS);
-					break;
+				x = this.x >> 8;
+				y = (this.y >> 8) + TILE_SIZE;
+				for (i = 4; i <= 12 && !this.homing; i++) {
+					if (this.world.map.atPixel(x + i, y) == Tile.PLASMA_SLOT) {
+						this.#fillSlot((x + i) >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS);
+						break;
+					}
 				}
-			}
+				break;
 		}
 	}
 }

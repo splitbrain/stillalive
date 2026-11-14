@@ -85,34 +85,39 @@ export function traceGravPipeField(world, sx, sy, vx, vy) {
 				const exit = p1 && p1 == p2 ? world.portals.other(p1) : null;
 				if (exit && !exits.includes(exit)) {
 					exits.push(exit);
-					if (exit.direction == Direction.RIGHT) {
-						sx = exit.x >> 8;
-						sy = exit.y >> 8;
-						vx = -1;
-						vy = 0;
-						y = sy;
-						x = sx;
-					} else if (exit.direction == Direction.LEFT) {
-						sx = (exit.x >> 8) + 3;
-						sy = exit.y >> 8;
-						vx = 1;
-						vy = 0;
-						y = sy;
-						x = sx;
-					} else if (exit.direction == Direction.UP) {
-						sx = exit.x >> 8;
-						sy = exit.y >> 8;
-						vx = 0;
-						vy = 1;
-						y = sy + 3;
-						x = sx;
-					} else if (exit.direction == Direction.DOWN) {
-						sx = exit.x >> 8;
-						sy = exit.y >> 8;
-						vx = 0;
-						vy = -1;
-						y = sy;
-						x = sx;
+					switch (exit.direction) {
+						case Direction.RIGHT:
+							sx = exit.x >> 8;
+							sy = exit.y >> 8;
+							vx = -1;
+							vy = 0;
+							y = sy;
+							x = sx;
+							break;
+						case Direction.LEFT:
+							sx = (exit.x >> 8) + 3;
+							sy = exit.y >> 8;
+							vx = 1;
+							vy = 0;
+							y = sy;
+							x = sx;
+							break;
+						case Direction.UP:
+							sx = exit.x >> 8;
+							sy = exit.y >> 8;
+							vx = 0;
+							vy = 1;
+							y = sy + 3;
+							x = sx;
+							break;
+						case Direction.DOWN:
+							sx = exit.x >> 8;
+							sy = exit.y >> 8;
+							vx = 0;
+							vy = -1;
+							y = sy;
+							x = sx;
+							break;
 					}
 				} else {
 					return;

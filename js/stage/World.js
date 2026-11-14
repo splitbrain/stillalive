@@ -476,10 +476,20 @@ export class World {
 		for (const t of this.gravPipes) {
 			let vx = 0;
 			let vy = 0;
-			if (t.dir == Direction.RIGHT) vx = 1;
-			else if (t.dir == Direction.LEFT) vx = -1;
-			else if (t.dir == Direction.UP) vy = -1;
-			else if (t.dir == Direction.DOWN) vy = 1;
+			switch (t.dir) {
+				case Direction.RIGHT:
+					vx = 1;
+					break;
+				case Direction.LEFT:
+					vx = -1;
+					break;
+				case Direction.UP:
+					vy = -1;
+					break;
+				case Direction.DOWN:
+					vy = 1;
+					break;
+			}
 			traceGravPipeField(this, t.x >> 8, t.y >> 8, vx, vy);
 		}
 	}
@@ -896,10 +906,20 @@ export class World {
 			if (!portal.used) continue;
 			let x = portal.x >> 8;
 			let y = portal.y >> 8;
-			if (portal.direction == Direction.UP) y += 6;
-			else if (portal.direction == Direction.LEFT) x += 6;
-			else if (portal.direction == Direction.RIGHT) x -= 2;
-			else if (portal.direction == Direction.DOWN) y -= 2;
+			switch (portal.direction) {
+				case Direction.UP:
+					y += 6;
+					break;
+				case Direction.LEFT:
+					x += 6;
+					break;
+				case Direction.RIGHT:
+					x -= 2;
+					break;
+				case Direction.DOWN:
+					y -= 2;
+					break;
+			}
 			const onSideWall = portal.direction == Direction.LEFT || portal.direction == Direction.RIGHT;
 			for (let j = 0; j < 2 * TILE_SIZE; j++) {
 				if (this.map.atPixel(onSideWall ? x : x + j, onSideWall ? y + j : y) == door) {

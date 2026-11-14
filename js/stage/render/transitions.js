@@ -34,26 +34,34 @@ function drawClosingTransition(world) {
 	let lineCount, i;
 	ctx.fillStyle = 'rgb(0, 0, 0)';
 	const scale = 1 - world.fade / FADE_START;
-	if (world.transition == Transition.TOP_LEFT) {
-		ctx.fillRect(0, 0, Math.trunc(PLAYFIELD_WIDTH * scale), Math.trunc(PLAYFIELD_HEIGHT * scale));
-	} else if (world.transition == Transition.LEFT_TO_RIGHT) {
-		ctx.fillRect(0, 0, Math.trunc(PLAYFIELD_WIDTH * scale), PLAYFIELD_HEIGHT);
-	} else if (world.transition == Transition.TOP_TO_BOTTOM) {
-		ctx.fillRect(0, 0, PLAYFIELD_WIDTH, Math.trunc(PLAYFIELD_HEIGHT * scale));
-	} else if (world.transition == Transition.HORIZONTAL_LINES) {
-		lineCount = Math.round(scale * linesHoriz.length);
-		for (i = 0; i < lineCount; i++) {
-			ctx.fillRect(0, linesHoriz[i] * 3, PLAYFIELD_WIDTH, 3);
+	switch (world.transition) {
+		case Transition.TOP_LEFT:
+			ctx.fillRect(0, 0, Math.trunc(PLAYFIELD_WIDTH * scale), Math.trunc(PLAYFIELD_HEIGHT * scale));
+			break;
+		case Transition.LEFT_TO_RIGHT:
+			ctx.fillRect(0, 0, Math.trunc(PLAYFIELD_WIDTH * scale), PLAYFIELD_HEIGHT);
+			break;
+		case Transition.TOP_TO_BOTTOM:
+			ctx.fillRect(0, 0, PLAYFIELD_WIDTH, Math.trunc(PLAYFIELD_HEIGHT * scale));
+			break;
+		case Transition.HORIZONTAL_LINES:
+			lineCount = Math.round(scale * linesHoriz.length);
+			for (i = 0; i < lineCount; i++) {
+				ctx.fillRect(0, linesHoriz[i] * 3, PLAYFIELD_WIDTH, 3);
+			}
+			break;
+		case Transition.VERTICAL_LINES:
+			lineCount = Math.round(scale * linesVerti.length);
+			for (i = 0; i < lineCount; i++) {
+				ctx.fillRect(linesVerti[i] * 4, 0, 6, PLAYFIELD_HEIGHT);
+			}
+			break;
+		case Transition.SQUARE: {
+			const x = PLAYFIELD_WIDTH - Math.trunc(PLAYFIELD_WIDTH * scale);
+			const y = PLAYFIELD_HEIGHT - Math.trunc(PLAYFIELD_HEIGHT * scale);
+			ctx.fillRect(x >> 1, y >> 1, Math.trunc(PLAYFIELD_WIDTH * scale), Math.trunc(PLAYFIELD_HEIGHT * scale));
+			break;
 		}
-	} else if (world.transition == Transition.VERTICAL_LINES) {
-		lineCount = Math.round(scale * linesVerti.length);
-		for (i = 0; i < lineCount; i++) {
-			ctx.fillRect(linesVerti[i] * 4, 0, 6, PLAYFIELD_HEIGHT);
-		}
-	} else if (world.transition == Transition.SQUARE) {
-		const x = PLAYFIELD_WIDTH - Math.trunc(PLAYFIELD_WIDTH * scale);
-		const y = PLAYFIELD_HEIGHT - Math.trunc(PLAYFIELD_HEIGHT * scale);
-		ctx.fillRect(x >> 1, y >> 1, Math.trunc(PLAYFIELD_WIDTH * scale), Math.trunc(PLAYFIELD_HEIGHT * scale));
 	}
 }
 
@@ -71,25 +79,32 @@ function drawOpeningTransition(world) {
 	const x = PLAYFIELD_WIDTH - Math.trunc(PLAYFIELD_WIDTH * scale);
 	const y = PLAYFIELD_HEIGHT - Math.trunc(PLAYFIELD_HEIGHT * scale);
 
-	if (world.transition == Transition.TOP_LEFT) {
-		ctx.fillRect(x, y, Math.trunc(PLAYFIELD_WIDTH * scale), Math.trunc(PLAYFIELD_HEIGHT * scale));
-	} else if (world.transition == Transition.LEFT_TO_RIGHT) {
-		ctx.fillRect(x, 0, Math.trunc(PLAYFIELD_WIDTH * scale), PLAYFIELD_HEIGHT);
-	} else if (world.transition == Transition.TOP_TO_BOTTOM) {
-		ctx.fillRect(0, y, PLAYFIELD_WIDTH, Math.trunc(PLAYFIELD_HEIGHT * scale));
-	} else if (world.transition == Transition.HORIZONTAL_LINES) {
-		lineCount = Math.round(scale * linesHoriz.length);
-		for (i = 0; i < lineCount; i++) {
-			ctx.fillRect(0, linesHoriz[i] * 3, PLAYFIELD_WIDTH, 5);
-		}
-	} else if (world.transition == Transition.VERTICAL_LINES) {
-		lineCount = Math.round(scale * linesVerti.length);
-		for (i = 0; i < lineCount; i++) {
-			ctx.fillRect(linesVerti[i] * 4, 0, 6, PLAYFIELD_HEIGHT);
-		}
-	} else if (world.transition == Transition.SQUARE) {
-		ctx.strokeStyle = 'rgb(0, 0, 0)';
-		ctx.lineWidth = PLAYFIELD_HEIGHT * scale;
-		ctx.strokeRect(0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
+	switch (world.transition) {
+		case Transition.TOP_LEFT:
+			ctx.fillRect(x, y, Math.trunc(PLAYFIELD_WIDTH * scale), Math.trunc(PLAYFIELD_HEIGHT * scale));
+			break;
+		case Transition.LEFT_TO_RIGHT:
+			ctx.fillRect(x, 0, Math.trunc(PLAYFIELD_WIDTH * scale), PLAYFIELD_HEIGHT);
+			break;
+		case Transition.TOP_TO_BOTTOM:
+			ctx.fillRect(0, y, PLAYFIELD_WIDTH, Math.trunc(PLAYFIELD_HEIGHT * scale));
+			break;
+		case Transition.HORIZONTAL_LINES:
+			lineCount = Math.round(scale * linesHoriz.length);
+			for (i = 0; i < lineCount; i++) {
+				ctx.fillRect(0, linesHoriz[i] * 3, PLAYFIELD_WIDTH, 5);
+			}
+			break;
+		case Transition.VERTICAL_LINES:
+			lineCount = Math.round(scale * linesVerti.length);
+			for (i = 0; i < lineCount; i++) {
+				ctx.fillRect(linesVerti[i] * 4, 0, 6, PLAYFIELD_HEIGHT);
+			}
+			break;
+		case Transition.SQUARE:
+			ctx.strokeStyle = 'rgb(0, 0, 0)';
+			ctx.lineWidth = PLAYFIELD_HEIGHT * scale;
+			ctx.strokeRect(0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
+			break;
 	}
 }

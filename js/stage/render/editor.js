@@ -6,7 +6,7 @@ import { ctx, drawImage } from '../canvas.js';
 import { MAP_HEIGHT, MAP_WIDTH, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, TILE_SIZE, TILE_SIZE_BITS } from '../constants.js';
 import { bg, cake, crateImage, tileset, turretImages } from '../images.js';
 import { GRAVPIPE_DIRECTIONS, plasmaLaunch } from '../level.js';
-import { Tile, isGravPipeTile, isObjectTile } from '../tiles.js';
+import { Tile, isObjectTile } from '../tiles.js';
 import {
 	drawCakes,
 	drawCrates,
@@ -106,14 +106,33 @@ function drawSpriteCursor(sprite, input) {
 	if (!input.mouseOver || !input.mouseOnPlayfield() || !isObjectTile(sprite)) return;
 	const x = (input.mouseX >> TILE_SIZE_BITS) << TILE_SIZE_BITS;
 	const y = (input.mouseY >> TILE_SIZE_BITS) << TILE_SIZE_BITS;
-	if (sprite == Tile.CAKE) drawImage(cake, x, y);
-	else if (sprite == Tile.CRATE) drawImage(crateImage, x, y);
-	else if (sprite == Tile.TURRET_LEFT)
-		drawImage(turretImages[0], 0, 0, TILE_SIZE, 2 * TILE_SIZE, x, y, TILE_SIZE, 2 * TILE_SIZE);
-	else if (sprite == Tile.TURRET_RIGHT)
-		drawImage(turretImages[1], 0, 0, TILE_SIZE, 2 * TILE_SIZE, x, y, TILE_SIZE, 2 * TILE_SIZE);
-	else if (sprite == Tile.PLATFORM_RIGHT) drawPlatform(x, y, 1, true);
-	else if (sprite == Tile.PLATFORM_LEFT) drawPlatform(x, y, -1, true);
-	else if (sprite == Tile.PLAYER_START) drawPlayer(x, y, 0);
-	else if (isGravPipeTile(sprite)) drawGravPipe(GRAVPIPE_DIRECTIONS[sprite], x, y);
+	switch (sprite) {
+		case Tile.CAKE:
+			drawImage(cake, x, y);
+			break;
+		case Tile.CRATE:
+			drawImage(crateImage, x, y);
+			break;
+		case Tile.TURRET_LEFT:
+			drawImage(turretImages[0], 0, 0, TILE_SIZE, 2 * TILE_SIZE, x, y, TILE_SIZE, 2 * TILE_SIZE);
+			break;
+		case Tile.TURRET_RIGHT:
+			drawImage(turretImages[1], 0, 0, TILE_SIZE, 2 * TILE_SIZE, x, y, TILE_SIZE, 2 * TILE_SIZE);
+			break;
+		case Tile.PLATFORM_RIGHT:
+			drawPlatform(x, y, 1, true);
+			break;
+		case Tile.PLATFORM_LEFT:
+			drawPlatform(x, y, -1, true);
+			break;
+		case Tile.PLAYER_START:
+			drawPlayer(x, y, 0);
+			break;
+		case Tile.GRAVPIPE_RIGHT:
+		case Tile.GRAVPIPE_LEFT:
+		case Tile.GRAVPIPE_UP:
+		case Tile.GRAVPIPE_DOWN:
+			drawGravPipe(GRAVPIPE_DIRECTIONS[sprite], x, y);
+			break;
+	}
 }

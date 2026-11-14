@@ -541,12 +541,20 @@ export function drawGravPipes(world) {
  * @returns {void}
  */
 export function drawGravPipe(dir, x, y) {
-	if (dir == Direction.RIGHT) drawImage(gravPipe, 0, 0, TILE_SIZE, 2 * TILE_SIZE, x, y, TILE_SIZE, 2 * TILE_SIZE);
-	else if (dir == Direction.LEFT)
-		drawImage(gravPipe, 0, 2 * TILE_SIZE, TILE_SIZE, 2 * TILE_SIZE, x, y, TILE_SIZE, 2 * TILE_SIZE);
-	else if (dir == Direction.UP) drawImage(gravPipe2, 0, 0, 2 * TILE_SIZE, TILE_SIZE, x, y, 2 * TILE_SIZE, TILE_SIZE);
-	else if (dir == Direction.DOWN)
-		drawImage(gravPipe2, 2 * TILE_SIZE, 0, 2 * TILE_SIZE, TILE_SIZE, x, y, 2 * TILE_SIZE, TILE_SIZE);
+	switch (dir) {
+		case Direction.RIGHT:
+			drawImage(gravPipe, 0, 0, TILE_SIZE, 2 * TILE_SIZE, x, y, TILE_SIZE, 2 * TILE_SIZE);
+			break;
+		case Direction.LEFT:
+			drawImage(gravPipe, 0, 2 * TILE_SIZE, TILE_SIZE, 2 * TILE_SIZE, x, y, TILE_SIZE, 2 * TILE_SIZE);
+			break;
+		case Direction.UP:
+			drawImage(gravPipe2, 0, 0, 2 * TILE_SIZE, TILE_SIZE, x, y, 2 * TILE_SIZE, TILE_SIZE);
+			break;
+		case Direction.DOWN:
+			drawImage(gravPipe2, 2 * TILE_SIZE, 0, 2 * TILE_SIZE, TILE_SIZE, x, y, 2 * TILE_SIZE, TILE_SIZE);
+			break;
+	}
 }
 
 /**

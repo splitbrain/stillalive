@@ -184,27 +184,33 @@ export function eraseSprites(map, til, xt, yt) {
  * @returns {boolean} True if the object can be placed.
  */
 export function allowTile(map, tile) {
-	if (tile == Tile.PLAYER_START) return true;
-
-	if (tile == Tile.CAKE) {
-		return countTile(map, tile) < 30;
-	} else if (tile == Tile.CRATE) {
-		return countTile(map, tile) < 15;
-	} else if (tile == Tile.TURRET_LEFT || tile == Tile.TURRET_RIGHT) {
-		return countTile(map, Tile.TURRET_LEFT) + countTile(map, Tile.TURRET_RIGHT) < 15;
-	} else if (tile == Tile.PLATFORM_RIGHT || tile == Tile.PLATFORM_LEFT) {
-		return countTile(map, Tile.PLATFORM_RIGHT) + countTile(map, Tile.PLATFORM_LEFT) < 8;
-	} else if (isGravPipeTile(tile)) {
-		return (
-			countTile(map, Tile.GRAVPIPE_RIGHT) +
-				countTile(map, Tile.GRAVPIPE_LEFT) +
-				countTile(map, Tile.GRAVPIPE_UP) +
-				countTile(map, Tile.GRAVPIPE_DOWN) <
-			8
-		);
+	switch (tile) {
+		case Tile.PLAYER_START:
+			return true;
+		case Tile.CAKE:
+			return countTile(map, tile) < 30;
+		case Tile.CRATE:
+			return countTile(map, tile) < 15;
+		case Tile.TURRET_LEFT:
+		case Tile.TURRET_RIGHT:
+			return countTile(map, Tile.TURRET_LEFT) + countTile(map, Tile.TURRET_RIGHT) < 15;
+		case Tile.PLATFORM_RIGHT:
+		case Tile.PLATFORM_LEFT:
+			return countTile(map, Tile.PLATFORM_RIGHT) + countTile(map, Tile.PLATFORM_LEFT) < 8;
+		case Tile.GRAVPIPE_RIGHT:
+		case Tile.GRAVPIPE_LEFT:
+		case Tile.GRAVPIPE_UP:
+		case Tile.GRAVPIPE_DOWN:
+			return (
+				countTile(map, Tile.GRAVPIPE_RIGHT) +
+					countTile(map, Tile.GRAVPIPE_LEFT) +
+					countTile(map, Tile.GRAVPIPE_UP) +
+					countTile(map, Tile.GRAVPIPE_DOWN) <
+				8
+			);
+		default:
+			return false;
 	}
-
-	return false;
 }
 
 /**

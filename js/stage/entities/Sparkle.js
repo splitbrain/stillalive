@@ -42,16 +42,21 @@ export function createPortalGlow(world, p) {
 		s.xOrig = x;
 		s.yOrig = y;
 		s.portalNum = p;
-		if (portal.direction == Direction.RIGHT) {
-			s.vx = -random(128, 384);
-			s.xOrig -= 7 << 8;
-		} else if (portal.direction == Direction.LEFT) {
-			s.vx = random(128, 384);
-		} else if (portal.direction == Direction.DOWN) {
-			s.vy = -random(128, 384);
-			s.yOrig -= 8 << 8;
-		} else {
-			s.vy = random(128, 384);
+		switch (portal.direction) {
+			case Direction.RIGHT:
+				s.vx = -random(128, 384);
+				s.xOrig -= 7 << 8;
+				break;
+			case Direction.LEFT:
+				s.vx = random(128, 384);
+				break;
+			case Direction.DOWN:
+				s.vy = -random(128, 384);
+				s.yOrig -= 8 << 8;
+				break;
+			default:
+				s.vy = random(128, 384);
+				break;
 		}
 		world.sparkles.push(s);
 	}

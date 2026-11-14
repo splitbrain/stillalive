@@ -113,16 +113,22 @@ export class PlaySession {
 			this.transition = world.transition;
 			if (world.closingStarted()) this.endPlayback();
 		}
-		if (world.outcome == 'died') {
-			this.#start(true, null);
-		} else if (world.outcome == 'brokenReplay') {
-			this.endPlayback();
-			this.#report('brokenreplay', null);
-		} else if (world.outcome == 'finished' && this.testRun) {
-			this.#report('died', null);
-		} else if (world.outcome == 'finished') {
-			const replay = encodeReplay(this.source.replay, this.level.campaign, this.level.number);
-			this.#report('finished', { time: world.time, replay });
+		switch (world.outcome) {
+			case 'died':
+				this.#start(true, null);
+				break;
+			case 'brokenReplay':
+				this.endPlayback();
+				this.#report('brokenreplay', null);
+				break;
+			case 'finished':
+				if (this.testRun) {
+					this.#report('died', null);
+				} else {
+					const replay = encodeReplay(this.source.replay, this.level.campaign, this.level.number);
+					this.#report('finished', { time: world.time, replay });
+				}
+				break;
 		}
 	}
 

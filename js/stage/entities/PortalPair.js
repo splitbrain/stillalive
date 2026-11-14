@@ -266,24 +266,33 @@ export class PortalPair {
 			if (!portal.used || portal.direction != side || !this.list[1 - j].used) continue;
 			const px = portal.x >> 8;
 			const py = portal.y >> 8;
-			if (side == Direction.LEFT) {
-				const tx = px + 3;
-				const edge = x - 1;
-				if (y >= py - 6 && y + obj.pY <= py + 2 * TILE_SIZE + 6 && edge < tx && tx - edge <= 20)
-					return { index: j, deep: tx - edge >= obj.pX >> 1 && obj.vx < 0 };
-			} else if (side == Direction.RIGHT) {
-				const edge = x + obj.pX;
-				if (y >= py - 6 && y + obj.pY <= py + 2 * TILE_SIZE + 6 && edge > px && edge - px <= 20)
-					return { index: j, deep: edge - px >= obj.pX >> 1 && obj.vx > 0 };
-			} else if (side == Direction.DOWN) {
-				const edge = y + obj.pY;
-				if (x >= px - 4 && x + obj.pX < px + 2 * TILE_SIZE + 4 && edge >= py && edge - py <= 20)
-					return { index: j, deep: edge - py >= 16 && obj.vy > 0 };
-			} else if (side == Direction.UP) {
-				const ty = py + 4;
-				const edge = y - 1;
-				if (x >= px - 4 && x + obj.pX < px + 2 * TILE_SIZE + 4 && edge < ty && ty - edge <= 20)
-					return { index: j, deep: ty - edge >= 16 && obj.vy < 0 };
+			switch (side) {
+				case Direction.LEFT: {
+					const tx = px + 3;
+					const edge = x - 1;
+					if (y >= py - 6 && y + obj.pY <= py + 2 * TILE_SIZE + 6 && edge < tx && tx - edge <= 20)
+						return { index: j, deep: tx - edge >= obj.pX >> 1 && obj.vx < 0 };
+					break;
+				}
+				case Direction.RIGHT: {
+					const edge = x + obj.pX;
+					if (y >= py - 6 && y + obj.pY <= py + 2 * TILE_SIZE + 6 && edge > px && edge - px <= 20)
+						return { index: j, deep: edge - px >= obj.pX >> 1 && obj.vx > 0 };
+					break;
+				}
+				case Direction.DOWN: {
+					const edge = y + obj.pY;
+					if (x >= px - 4 && x + obj.pX < px + 2 * TILE_SIZE + 4 && edge >= py && edge - py <= 20)
+						return { index: j, deep: edge - py >= 16 && obj.vy > 0 };
+					break;
+				}
+				case Direction.UP: {
+					const ty = py + 4;
+					const edge = y - 1;
+					if (x >= px - 4 && x + obj.pX < px + 2 * TILE_SIZE + 4 && edge < ty && ty - edge <= 20)
+						return { index: j, deep: ty - edge >= 16 && obj.vy < 0 };
+					break;
+				}
 			}
 		}
 		return null;

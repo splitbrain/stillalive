@@ -15,7 +15,7 @@ import {
 	TILE_SIZE_BITS,
 	Transition,
 } from './constants.js';
-import { Boss } from './entities/Boss.js';
+import { createBoss } from './entities/bosses.js';
 import { Camera } from './entities/Camera.js';
 import { traceGravPipeField } from './entities/GravPipeField.js';
 import { Plasma } from './entities/Plasma.js';
@@ -33,6 +33,7 @@ import { inScreen, random, toSubpixels } from './utils.js';
 /** @type {Object<string, typeof sfx_field>} The sound of the opening and the closing doors, by door kind. */
 const DOOR_SOUNDS = { [TileKind.SWITCH_DOOR]: sfx_field, [TileKind.PLASMA_DOOR]: sfx_plasmaField };
 
+/** @typedef {import('./entities/Boss.js').Boss} Boss */
 /** @typedef {import('./entities/Crate.js').Crate} Crate */
 /** @typedef {import('./entities/Platform.js').Platform} Platform */
 /** @typedef {import('./entities/Sparkle.js').Sparkle} Sparkle */
@@ -175,8 +176,8 @@ export class World {
 		world.#replaying = replay;
 		world.phase.transition = transition;
 		if (level.fromBelow) world.#jumpInFromBelow();
-		world.boss = level.boss ? new Boss(world, level.boss) : null;
-		world.#loadObjects({ levelStart: true, boss: level.boss });
+		world.boss = level.boss ? createBoss(world, level.boss) : null;
+		world.#loadObjects({ levelStart: true });
 		world.camera = new Camera(world, world.player.x, world.player.y);
 		world.cakesLeft = world.cakes.length;
 		if (world.cakesLeft === 0) world.openExit();
@@ -200,7 +201,7 @@ export class World {
 		const world = new World(new TileMap(level.tiles));
 		world.#loadObjects();
 		if (level.fromBelow) world.#jumpInFromBelow();
-		world.boss = level.boss ? new Boss(world, level.boss) : null;
+		world.boss = level.boss ? createBoss(world, level.boss) : null;
 		world.cakesLeft = world.cakes.length;
 		if (world.cakesLeft === 0) {
 			const map = world.map;
@@ -388,7 +389,7 @@ export class World {
 		}
 
 		if (this.boss && running) {
-			if (this.boss.shootsWheels()) this.#updateProjectiles();
+			if (this.boss.shootsWheels) this.#updateProjectiles();
 			this.boss.updateRumble();
 		}
 
@@ -595,17 +596,16 @@ export class World {
 
 	/**
 	 * Create the objects of the map at their start positions and put them into the World. The method sets the position
-	 * of the player and of the tube when the map has their tiles. Each plasma launch of a level start starts a plasma
-	 * ball in a level without a boss. In the levels of boss 3 and boss 4, the plasma launch is the start point of the
-	 * plasma shots of the boss.
+	 * of the player and of the tube when the map has their tiles. Each plasma launch starts a plasma ball when the World
+	 * has no boss. For a boss that shoots plasma balls, the plasma launch is the start point of its shots. The method
+	 * reads the boss, so the caller creates the boss first.
 	 *
 	 * @param {object} [options] The options.
 	 * @param {boolean} [options.levelStart] True for a level start, see createObjects().
 	 * @param {boolean} [options.editor] True for the editor map, see createObjects().
-	 * @param {number} [options.boss] The boss of the level, or 0 for a level without a boss.
 	 * @returns {void}
 	 */
-	#loadObjects({ levelStart = false, editor = false, boss = 0 } = {}) {
+	#loadObjects({ levelStart = false, editor = false } = {}) {
 		const objects = createObjects(this, { levelStart, editor });
 		this.cakes = objects.cakes;
 		this.turrets = objects.turrets;
@@ -624,9 +624,9 @@ export class World {
 		}
 
 		for (const launch of objects.plasmaLaunches) {
-			if (boss === 0) {
+			if (!this.boss) {
 				this.plasmaBall.push(new Plasma(this, launch.x, launch.y, launch.vx, launch.vy));
-			} else if (boss === 3 || boss === 4) {
+			} else if (this.boss.shootsPlasma) {
 				this.plasmaX = launch.x;
 				this.plasmaY = launch.y;
 			}

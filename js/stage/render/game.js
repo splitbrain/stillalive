@@ -255,7 +255,7 @@ export function drawLevel(world, input, labelLayouts) {
 
 	if (world.boss) {
 		drawBoss(world);
-		if (world.boss.shootsWheels()) drawProjectiles(world);
+		if (world.boss.shootsWheels) drawProjectiles(world);
 		drawTube(world);
 	}
 

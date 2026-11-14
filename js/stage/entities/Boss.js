@@ -24,18 +24,19 @@ const BOSS_LIVES = 3;
 
 /**
  * The boss of a boss level. It comes in from the right, attacks the player and dies after three hits with a crate.
+ * The subclasses in bosses.js define the attacks and set the abilities.
  */
 export class Boss {
 	/**
 	 * Create the boss outside of the playfield. It comes in after the waits of the start events.
 	 *
 	 * @param {import('../World.js').World} world The World of the object.
-	 * @param {number} number The number of the boss, from 1 to 4.
+	 * @param {number} number The number of the boss, from 1 to 4. It selects the eye, the portrait and the tube image.
 	 */
 	constructor(world, number) {
 		/** @type {import('../World.js').World} The World of the object. */
 		this.world = world;
-		/** @type {number} The number of the boss, from 1 to 4. */
+		/** @type {number} The number of the boss, from 1 to 4. It selects the eye, the portrait and the tube image. */
 		this.number = number;
 		/** @type {number} The x position in pixels. */
 		this.x = BOSS_X + BOSS_ENTRY_DISTANCE;
@@ -49,42 +50,14 @@ export class Boss {
 		this.entryDistance = 0;
 		/** @type {number} The number of ticks since the boss started to come in. */
 		this.entryTicks = 0;
-	}
-
-	/**
-	 * Check if the boss makes new crates. Then a crate that is used up goes away and does not return.
-	 *
-	 * @returns {boolean} True for the bosses 1, 3 and 4.
-	 */
-	makesCrates() {
-		return this.number === 1 || this.number === 3 || this.number === 4;
-	}
-
-	/**
-	 * Check if the boss throws crates.
-	 *
-	 * @returns {boolean} True for the bosses 1 and 4.
-	 */
-	throwsCrates() {
-		return this.number === 1 || this.number === 4;
-	}
-
-	/**
-	 * Check if the boss shoots razor wheels.
-	 *
-	 * @returns {boolean} True for the bosses 2 and 4.
-	 */
-	shootsWheels() {
-		return this.number === 2 || this.number === 4;
-	}
-
-	/**
-	 * Check if the boss shoots plasma balls. These balls follow the player.
-	 *
-	 * @returns {boolean} True for the bosses 3 and 4.
-	 */
-	shootsPlasma() {
-		return this.number === 3 || this.number === 4;
+		/** @type {boolean} True if the boss makes new crates. A used up crate goes away and does not return. */
+		this.makesCrates = false;
+		/** @type {boolean} True if the boss throws crates. */
+		this.throwsCrates = false;
+		/** @type {boolean} True if the boss shoots razor wheels. */
+		this.shootsWheels = false;
+		/** @type {boolean} True if the boss shoots plasma balls. These balls follow the player. */
+		this.shootsPlasma = false;
 	}
 
 	/**
@@ -121,7 +94,7 @@ export class Boss {
 			this.world.clearBossAttacks();
 			return;
 		}
-		if (this.hits < BOSS_LIVES && this.world.phase.isRunning()) this.#attack();
+		if (this.hits < BOSS_LIVES && this.world.phase.isRunning()) this.attack();
 	}
 
 	/**
@@ -149,41 +122,12 @@ export class Boss {
 	}
 
 	/**
-	 * Attack the player in the way of the boss. Each hit makes the attacks faster or adds an attack.
+	 * Attack the player in the way of the boss. Each hit makes the attacks faster or adds an attack. The subclasses
+	 * define the attacks.
 	 *
 	 * @returns {void}
 	 */
-	#attack() {
-		const time = this.world.time;
-		const hits = this.hits;
-		switch (this.number) {
-			case 1:
-				if (time % (90 - 30 * hits) === 0) this.#throwCrate(6, 18);
-				break;
-			case 2:
-				if (time % (90 - 15 * hits) === 0) {
-					this.#shootWheel(435, 50, 1200, 1200 - this.world.player.vx);
-					if (hits === 2) this.#shootWheel(TILE_SIZE, 3 * TILE_SIZE, 1200);
-				}
-				break;
-			case 3: {
-				const due = time % (90 - 30 * hits) === 0;
-				if (due && this.world.plasmaBall.length < hits + 1) this.#shootPlasma(800);
-				if (due && this.world.crates.length === 0) {
-					const crate = new Crate(this.world, toSubpixels((MAP_WIDTH - 1) * TILE_SIZE), toSubpixels(18 * TILE_SIZE));
-					crate.vx = -toSubpixels(12);
-					crate.vy = -toSubpixels(2);
-					this.world.addCrate(crate);
-				}
-				break;
-			}
-			case 4:
-				if (time % (90 - 20 * hits) === 0) this.#throwCrate(5, 20);
-				if (hits > 0 && time % (180 - 20 * hits) === 0) this.#shootWheel(27 * TILE_SIZE, 2 * TILE_SIZE, 600);
-				if (hits > 1 && this.world.plasmaBall.length === 0) this.#shootPlasma(400);
-				break;
-		}
-	}
+	attack() {}
 
 	/**
 	 * Get the direction from a point to the center of the player.
@@ -207,7 +151,7 @@ export class Boss {
 	 * @param {number} [speedX] The speed along x, if it differs from the speed.
 	 * @returns {void}
 	 */
-	#shootWheel(x, y, speed, speedX = speed) {
+	shootWheel(x, y, speed, speedX = speed) {
 		const [dx, dy] = this.#aimAtPlayer(x + TILE_SIZE / 2, y + TILE_SIZE / 2);
 		this.world.addProjectile(
 			new Projectile(this.world, toSubpixels(x), toSubpixels(y), Math.trunc(dx * speedX), Math.trunc(dy * speed)),
@@ -220,7 +164,7 @@ export class Boss {
 	 * @param {number} speed The speed in 1/256 pixels per tick.
 	 * @returns {void}
 	 */
-	#shootPlasma(speed) {
+	shootPlasma(speed) {
 		const [dx, dy] = this.#aimAtPlayer(
 			toPixels(this.world.plasmaX) + TILE_SIZE / 2,
 			toPixels(this.world.plasmaY) + TILE_SIZE / 2,
@@ -236,7 +180,7 @@ export class Boss {
 	 * @param {number} divisor The pixels of distance per unit of speed.
 	 * @returns {void}
 	 */
-	#throwCrate(row, divisor) {
+	throwCrate(row, divisor) {
 		const crate = new Crate(this.world, toSubpixels((MAP_WIDTH - 1) * TILE_SIZE), toSubpixels(row * TILE_SIZE));
 		this.world.addCrate(crate);
 		if (this.world.crates.length > 10) {
@@ -315,14 +259,14 @@ export class Boss {
 	}
 
 	/**
-	 * Take away a crate that hit the boss or a boss block. A boss that makes new crates removes it. Boss 2 makes no
-	 * crates, so its crate drops from the top again.
+	 * Take away a crate that hit the boss or a boss block. A boss that makes new crates removes it. A boss that makes
+	 * no crates lets the crate drop from the top again.
 	 *
 	 * @param {Crate} crate The crate.
 	 * @returns {void}
 	 */
 	useUpCrate(crate) {
-		if (this.makesCrates()) {
+		if (this.makesCrates) {
 			crate.needKill = true;
 		} else {
 			crate.x = toSubpixels(5 * TILE_SIZE);

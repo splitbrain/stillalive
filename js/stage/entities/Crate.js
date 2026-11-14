@@ -115,7 +115,7 @@ export class Crate extends Throwable {
 	 */
 	#hitBoss() {
 		const boss = this.world.boss;
-		if (boss.throwsCrates()) this.#shrinkInTube();
+		if (boss.throwsCrates) this.#shrinkInTube();
 
 		const block = this.world.map.atPixel(this.pixelX + this.width + 1, this.pixelY);
 		if (isTileKind(block, TileKind.BOSS_BLOCK)) {
@@ -230,13 +230,13 @@ export class Crate extends Throwable {
 	}
 
 	/**
-	 * Let the crate go away in the boss levels 1, 3 and 4. In the other levels, put the crate back to its start
-	 * without speed.
+	 * Let the crate go away in a level with a boss that makes crates. In the other levels, put the crate back to its
+	 * start without speed.
 	 *
 	 * @returns {boolean} True if the crate goes away.
 	 */
 	#destroyOrReset() {
-		if (this.world.boss?.makesCrates()) {
+		if (this.world.boss?.makesCrates) {
 			this.needKill = true;
 			return true;
 		}

@@ -94,3 +94,18 @@ test('removeCrate() changes nothing for a crate that is not in the list', () => 
 	world.removeCrate(new Crate(world, 200 << 8, 300 << 8));
 	assert.deepEqual(world.crates, [crate]);
 });
+
+test('each boss has the abilities of its number', () => {
+	// makesCrates, throwsCrates, shootsWheels, shootsPlasma
+	const abilities = {
+		1: [true, true, false, false],
+		2: [false, false, true, false],
+		3: [true, false, false, true],
+		4: [true, true, true, true],
+	};
+	for (const [number, expected] of Object.entries(abilities)) {
+		const boss = startWorld(floorTiles(), { boss: Number(number) }).boss;
+		assert.equal(boss.number, Number(number));
+		assert.deepEqual([boss.makesCrates, boss.throwsCrates, boss.shootsWheels, boss.shootsPlasma], expected, number);
+	}
+});

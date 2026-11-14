@@ -109,7 +109,7 @@ const TALL_OBJECTS = [Tile.PLAYER_START, Tile.TURRET_LEFT, Tile.TURRET_RIGHT, Ti
  * @param {TileMap} map The map. The function changes the logic layer.
  * @param {number} x The column.
  * @param {number} y The row.
- * @param {function(number): boolean} test The test of the tile id.
+ * @param {(id: number) => boolean} test The test of the tile id.
  * @returns {void}
  */
 function eraseIf(map, x, y, test) {

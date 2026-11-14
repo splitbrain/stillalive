@@ -68,8 +68,21 @@ const BOSS_MUSIC_DUCK = 0.5;
  * @property {string} mode The mode text: "play" or "test" for a PlaySession, "preview" for a PreviewSession and "edit"
  *     for the Editor.
  * @property {import('./World.js').World} world The World that the session shows.
- * @property {function(): void} tick The function that runs one tick of the session, with the input of the tick.
- * @property {function(Renderer): void} draw The function that draws the session with the methods of the Renderer.
+ * @property {() => void} tick The function that runs one tick of the session, with the input of the tick.
+ * @property {(renderer: Renderer) => void} draw The function that draws the session with the methods of the Renderer.
+ */
+
+/**
+ * The access of the tests to the stage and its internals.
+ *
+ * @typedef {object} TestHook
+ * @property {GameStage} stage The stage element.
+ * @property {() => import('./World.js').World|null} world Get the World of the session, or null for an idle stage.
+ * @property {() => import('./replay.js').Replay|undefined} replay Get the replay of the play session.
+ * @property {() => void} endReplay End the playback of a replay.
+ * @property {InputState} input The keys and the mouse.
+ * @property {() => void} tick Run the ticks of one tick of real time and publish the state.
+ * @property {() => void} render Draw a frame of the session.
  */
 
 /**
@@ -164,7 +177,8 @@ export class GameStage extends HTMLElement {
 	 *
 	 * @param {import('./level.js').Level} level The level.
 	 * @param {object} [options] The options.
-	 * @param {object|null} [options.replay] A replay in the file format to play, or null to let the player play.
+	 * @param {import('./replay.js').ReplayFile|null} [options.replay] A replay in the file format to play, or null to let
+	 *     the player play.
 	 * @param {boolean} [options.restart] True for a restart of the same level. The restart skips the waits of the events
 	 *     and the entrance of the boss.
 	 * @returns {void}
@@ -198,7 +212,8 @@ export class GameStage extends HTMLElement {
 	/**
 	 * Open the editor on a map. A new map starts a new undo list.
 	 *
-	 * @param {object} [level] The map in the map file format, or nothing to open the editor map from before.
+	 * @param {{tiles: number[], bg: number, format?: number}} [level] The map in the map file format, or nothing to open
+	 *     the editor map from before.
 	 * @returns {void}
 	 */
 	edit(level) {
@@ -302,7 +317,8 @@ export class GameStage extends HTMLElement {
 	/**
 	 * Get the editor map, also while the stage shows something else.
 	 *
-	 * @returns {object} The editor map in the map file format without the format property, with a copy of the tiles.
+	 * @returns {{tiles: number[], bg: number}} The editor map in the map file format without the format property, with
+	 *     a copy of the tiles.
 	 */
 	getMap() {
 		return this.#editor.getMap();
@@ -455,8 +471,8 @@ export class GameStage extends HTMLElement {
 	 * "brokenreplay" after the stage became idle.
 	 *
 	 * @param {string} type The event type.
-	 * @param {{time: number, replay: object}|null} detail The level time and the replay of the event "finished", else
-	 *     null.
+	 * @param {{time: number, replay: import('./replay.js').ReplayFile}|null} detail The level time and the replay of the
+	 *     event "finished", else null.
 	 * @returns {void}
 	 */
 	#onSessionEvent(type, detail) {

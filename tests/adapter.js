@@ -221,7 +221,8 @@ export function runWorld(page, data, { ticks, keys = 0 }) {
  *
  * @param {import('@playwright/test').Page} page The Playwright page.
  * @param {*} data The replay data. It must be serializable.
- * @returns {Promise<{result?: object, error?: string}>} The decoded replay or the message of the thrown error.
+ * @returns {Promise<{result?: import('../js/stage/replay.js').Replay, error?: string}>} The decoded replay or the
+ *     message of the thrown error.
  */
 export function decodeReplay(page, data) {
 	return page.evaluate(async (data) => {
@@ -413,7 +414,8 @@ export async function finishLevel(page) {
  * @param {number} options.seed The seed for Math.random().
  * @param {number[][]} [options.inputs] For each tick the key bitmask, the mouse x and the mouse y position. Without
  *     inputs, the run does not change the input state.
- * @param {object} [options.replay] A replay in the file format. The run plays the replay instead of using inputs.
+ * @param {import('../js/stage/replay.js').ReplayFile} [options.replay] A replay in the file format. The run plays the
+ *     replay instead of using inputs.
  * @param {boolean} [options.skipBossIntro] True to start the level as a restart, which skips the entrance of the boss
  *     and the waits of the events, as a replay does.
  * @returns {Promise<string>} One JSON line for each snapshot, and the line "finished" if the player reached the exit.
@@ -507,7 +509,8 @@ export async function runLevel(
  * Get the replay that the stage recorded in the last run.
  *
  * @param {import('@playwright/test').Page} page The Playwright page.
- * @returns {Promise<object>} The replay in the file format, after a round trip through JSON.
+ * @returns {Promise<import('../js/stage/replay.js').ReplayFile>} The replay in the file format, after a round trip
+ *     through JSON.
  */
 export async function recordedReplay(page) {
 	const data = await page.evaluate(async () => {
@@ -529,8 +532,9 @@ export async function recordedReplay(page) {
  * @param {object} scene The scene.
  * @param {number[][]} scene.portals For each portal the x and the y position of the shot and of its target, in
  *     playfield pixels.
- * @param {object} [scene.object] The object: type "crate", "turret" or "plasma", the position x and y in playfield
- *     pixels, and for a plasma ball the speed vx and vy in 1/256 pixels per tick.
+ * @param {{type: string, x: number, y: number, vx?: number, vy?: number}} [scene.object] The object: type "crate",
+ *     "turret" or "plasma", the position x and y in playfield pixels, and for a plasma ball the speed vx and vy in 1/256
+ *     pixels per tick.
  * @param {number[]} scene.player The x and the y position of the player in playfield pixels.
  * @param {number} scene.keys The key bitmask during the scene.
  * @param {number} scene.ticks The number of ticks to run.

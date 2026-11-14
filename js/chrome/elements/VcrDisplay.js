@@ -20,11 +20,11 @@ export class VcrDisplay extends ChromeScreen {
 	/**
 	 * Subscribe to the speed, the pause and the time of the stage.
 	 *
-	 * @returns {Array<function(): void>} The functions that remove the subscriptions.
+	 * @returns {Array<() => void>} The functions that remove the subscriptions.
 	 */
 	subscribe() {
 		const stage = this.stage;
-		const mode = this.querySelector('.mode');
+		const mode = /** @type {HTMLElement} */ (this.querySelector('.mode'));
 		const label = this.querySelector('.label');
 		const time = this.querySelector('.time');
 		const showMode = () => {

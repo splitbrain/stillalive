@@ -42,7 +42,7 @@ export class RobotHead extends ChromeScreen {
 	/**
 	 * Start the timer of the idle animation.
 	 *
-	 * @returns {Array<function(): void>} The function that stops the timer.
+	 * @returns {Array<() => void>} The function that stops the timer.
 	 */
 	subscribe() {
 		const timer = setInterval(() => this.#step(), ROBOT_STEP_TIME);
@@ -56,7 +56,8 @@ export class RobotHead extends ChromeScreen {
 	 */
 	render() {
 		const eye = this.getAttribute('eye') ?? '1';
-		this.querySelector('.eye').style.backgroundImage = `url("gfx/sprites/robotEye${eye}.svg")`;
+		/** @type {HTMLElement} */ (this.querySelector('.eye')).style.backgroundImage =
+			`url("gfx/sprites/robotEye${eye}.svg")`;
 	}
 
 	/**

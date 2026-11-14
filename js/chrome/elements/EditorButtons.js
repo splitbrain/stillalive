@@ -36,10 +36,10 @@ export class EditorButtons extends ChromeScreen {
 		this.querySelector('.import').addEventListener('click', () => {
 			this.#import().catch((error) => alertDialog(error.message, 'Import map'));
 		});
-		for (const button of this.querySelectorAll('[data-href]')) {
+		for (const button of /** @type {NodeListOf<HTMLElement>} */ (this.querySelectorAll('[data-href]'))) {
 			button.addEventListener('click', () => navigate(button.dataset.href));
 		}
-		for (const button of this.querySelectorAll('[data-up]')) {
+		for (const button of /** @type {NodeListOf<HTMLElement>} */ (this.querySelectorAll('[data-up]'))) {
 			button.addEventListener('click', () => up(button.dataset.up));
 		}
 	}
@@ -48,7 +48,7 @@ export class EditorButtons extends ChromeScreen {
 	 * Subscribe to the mode of the stage, to the route and to the confirmation screen, to label the Try button and to
 	 * disable the buttons.
 	 *
-	 * @returns {Array<function(): void>} The functions that remove the subscriptions.
+	 * @returns {Array<() => void>} The functions that remove the subscriptions.
 	 */
 	subscribe() {
 		const update = () => this.#updateButtons();

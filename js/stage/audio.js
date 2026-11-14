@@ -29,7 +29,7 @@ let done = 0;
 /** @type {string[]} The names of the sounds that could not be loaded. */
 const missing = [];
 
-/** @type {function(): void} Called each time a sound is loaded or failed. */
+/** @type {() => void} Called each time a sound is loaded or failed. */
 let onDone = () => {};
 
 /**
@@ -217,7 +217,7 @@ export function setSoundMuted(on) {
 /**
  * Set the function that is called each time a sound is loaded or failed.
  *
- * @param {function(): void} callback The function.
+ * @param {() => void} callback The function.
  * @returns {void}
  */
 export function onSoundDone(callback) {

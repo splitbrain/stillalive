@@ -33,7 +33,10 @@ export class SelectionScreen extends ChromeScreen {
 	setUp() {
 		const choices = this.querySelector('.choices');
 		choices.addEventListener('pointerover', (event) => {
-			const choice = event.target.closest('a[href][data-choice], button[data-choice]:enabled');
+			const target = /** @type {Element} */ (event.target);
+			const choice = /** @type {HTMLElement|null} */ (
+				target.closest('a[href][data-choice], button[data-choice]:enabled')
+			);
 			if (choice && !this.hidden) this.previewChoice(Number(choice.dataset.choice));
 		});
 		choices.addEventListener('pointerleave', () => {

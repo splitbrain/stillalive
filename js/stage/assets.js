@@ -11,7 +11,7 @@ let done = 0;
 /** @type {string[]} The paths of the images that could not be loaded. */
 const missing = [];
 
-/** @type {function(): void} Called each time an image is loaded or failed. */
+/** @type {() => void} Called each time an image is loaded or failed. */
 let onDone = () => {};
 
 /**
@@ -42,7 +42,7 @@ export function loadImage(src) {
 /**
  * Set the function that is called each time an image is loaded or failed.
  *
- * @param {function(): void} callback The function.
+ * @param {() => void} callback The function.
  * @returns {void}
  */
 export function onImageDone(callback) {

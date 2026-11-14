@@ -33,10 +33,10 @@ export class GameHud extends ChromeScreen {
 	/**
 	 * Subscribe to the HUD values of the stage, to show them and to color the life display by the level of the life.
 	 *
-	 * @returns {Array<function(): void>} The functions that remove the subscriptions.
+	 * @returns {Array<() => void>} The functions that remove the subscriptions.
 	 */
 	subscribe() {
-		const life = this.querySelector('.life');
+		const life = /** @type {HTMLElement} */ (this.querySelector('.life'));
 		return [
 			...HUD_VALUES.map((name) => {
 				const node = this.querySelector(`[data-value="${name}"]`);

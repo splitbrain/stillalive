@@ -160,7 +160,7 @@ export class EditorPalette extends ChromeScreen {
 			tray.append(bin);
 		}
 		this.addEventListener('click', (event) => {
-			const button = event.target.closest('button');
+			const button = /** @type {Element} */ (event.target).closest('button');
 			const stage = this.stage;
 			if (button?.dataset.tile) stage.setBrush(Number(button.dataset.tile));
 			else if (button?.dataset.bg) stage.setBackground(stage.getMap().bg + Number(button.dataset.bg));
@@ -171,7 +171,7 @@ export class EditorPalette extends ChromeScreen {
 	 * Subscribe to the brush of the stage, and to the route and the confirmation screen to make the palette inert while
 	 * the editor is locked.
 	 *
-	 * @returns {Array<function(): void>} The functions that remove the subscriptions.
+	 * @returns {Array<() => void>} The functions that remove the subscriptions.
 	 */
 	subscribe() {
 		const lock = () => {
@@ -187,7 +187,7 @@ export class EditorPalette extends ChromeScreen {
 	 */
 	render() {
 		const brush = this.stage.brush.get();
-		for (const button of this.querySelectorAll('button[data-tile]')) {
+		for (const button of /** @type {NodeListOf<HTMLButtonElement>} */ (this.querySelectorAll('button[data-tile]'))) {
 			button.classList.toggle('selected', Number(button.dataset.tile) === brush);
 		}
 	}

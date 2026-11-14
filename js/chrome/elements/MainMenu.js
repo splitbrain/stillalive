@@ -34,12 +34,12 @@ export class MainMenu extends ChromeScreen {
 	 * Subscribe to the loading of the campaigns, to the progress of all campaigns, to the best times, to the editor maps
 	 * of the slots and to the sound and the music settings.
 	 *
-	 * @returns {Array<function(): void>} The functions that remove the subscriptions.
+	 * @returns {Array<() => void>} The functions that remove the subscriptions.
 	 */
 	subscribe() {
 		const slots = Array.from({ length: LEVELS_PER_CAMPAIGN }, (_, i) => editorMap(i + 1));
-		const icon = this.querySelector('.sound img');
-		const musicIcon = this.querySelector('.music img');
+		const icon = /** @type {HTMLImageElement} */ (this.querySelector('.sound img'));
+		const musicIcon = /** @type {HTMLImageElement} */ (this.querySelector('.music img'));
 		return [
 			this.stage.sound.subscribe((on) => {
 				icon.src = on ? 'gfx/ui/sound-on.svg' : 'gfx/ui/sound-off.svg';

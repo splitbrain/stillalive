@@ -104,7 +104,8 @@ export class Editor {
 	 * Open the editor on a new map, or on the editor map from before, e.g. after a test run. A new map starts a new
 	 * undo list. The editor creates the objects of the map again.
 	 *
-	 * @param {object} [map] The new map in the map file format, or nothing for the editor map from before.
+	 * @param {{tiles: number[], bg: number, format?: number}} [map] The new map in the map file format, or nothing for
+	 *     the editor map from before.
 	 * @returns {void}
 	 */
 	open(map) {
@@ -130,7 +131,8 @@ export class Editor {
 	/**
 	 * Get the editor map.
 	 *
-	 * @returns {object} The editor map in the map file format without the format property, with a copy of the tiles.
+	 * @returns {{tiles: number[], bg: number}} The editor map in the map file format without the format property, with
+	 *     a copy of the tiles.
 	 */
 	getMap() {
 		return { ...this.#properties, bg: this.#background, tiles: [...this.#map.tiles] };

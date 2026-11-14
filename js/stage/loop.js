@@ -26,10 +26,10 @@ let fpsTime = null;
 /** @type {number} The measured number of frames per second. */
 let fps = 0;
 
-/** @type {function(): void} The function that runs one tick. */
+/** @type {() => void} The function that runs one tick. */
 let tickFunction = () => {};
 
-/** @type {function(): void} The function that draws the canvas. */
+/** @type {() => void} The function that draws the canvas. */
 let renderFunction = () => {};
 
 /**
@@ -99,8 +99,8 @@ function onVisibilityChange() {
 /**
  * Start the game loop.
  *
- * @param {function(): void} tick The function that runs one tick.
- * @param {function(): void} render The function that draws the canvas after the ticks of a frame.
+ * @param {() => void} tick The function that runs one tick.
+ * @param {() => void} render The function that draws the canvas after the ticks of a frame.
  * @returns {void}
  */
 export function startLoop(tick, render) {

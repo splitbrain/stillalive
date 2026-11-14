@@ -30,7 +30,7 @@ export function isEditorLocked() {
  * @returns {Promise<boolean>} Resolves when the player answers: true for Yes, false for No.
  */
 export function confirmOnScreen(message, title) {
-	return document.querySelector('confirm-screen').ask(message, title);
+	return /** @type {ConfirmScreen} */ (document.querySelector('confirm-screen')).ask(message, title);
 }
 
 /**
@@ -52,7 +52,7 @@ export class ConfirmScreen extends ChromeElement {
 	/** @type {HTMLTemplateElement|null} The markup of the confirmation screen. */
 	static template = TEMPLATE;
 
-	/** @type {(function(boolean): void)|null} The function that answers the open question, or null for none. */
+	/** @type {((answer: boolean) => void)|null} The function that answers the open question, or null for none. */
 	#answer = null;
 
 	/**
@@ -70,7 +70,7 @@ export class ConfirmScreen extends ChromeElement {
 	 * Subscribe to the route and listen to the keys, to answer the open question with No when the player leaves the
 	 * screen or releases the Escape key.
 	 *
-	 * @returns {Array<function(): void>} The functions that remove the subscriptions and the listener.
+	 * @returns {Array<() => void>} The functions that remove the subscriptions and the listener.
 	 */
 	subscribe() {
 		const onKeyUp = (event) => {

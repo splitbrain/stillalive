@@ -496,11 +496,15 @@ test.describe('chrome', () => {
 			// the app applies the route after the hashchange event, so the check polls
 			const result = () =>
 				page.evaluate((screen) => {
-					const parts = [...document.querySelectorAll('game-app .chrome-screen')];
+					const parts = [
+						.../** @type {NodeListOf<import('../js/chrome/element.js').ChromeScreen>} */ (
+							document.querySelectorAll('game-app .chrome-screen')
+						),
+					];
 					return {
 						parts: parts.length,
 						mismatches: parts.filter((part) => part.hidden !== !part.shouldShow(screen)).map((part) => part.localName),
-						stage: !document.querySelector('game-stage').hidden,
+						stage: !(/** @type {HTMLElement} */ (document.querySelector('game-stage')).hidden),
 					};
 				}, screen);
 			await expect.poll(result).toEqual({ parts: 14, mismatches: [], stage: screen !== 'main' });
@@ -521,7 +525,7 @@ test.describe('chrome', () => {
 			const reconnected = count();
 			// after the second connect, the element has one click handler, so a click changes the sound once
 			const sound = stage.sound.get();
-			menu.querySelector('.sound').click();
+			/** @type {HTMLElement} */ (menu.querySelector('.sound')).click();
 			const toggled = stage.sound.get() !== sound;
 			stage.setSound(sound);
 			menu.remove();

@@ -21,7 +21,7 @@ import {
  * Create a pseudo-random generator with the mulberry32 algorithm.
  *
  * @param {number} seed The 32-bit seed.
- * @returns {function(): number} A function that returns a number from 0 (inclusive) to 1 (exclusive).
+ * @returns {() => number} A function that returns a number from 0 (inclusive) to 1 (exclusive).
  */
 export function createRandom(seed) {
 	let state = seed >>> 0;

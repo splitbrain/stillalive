@@ -125,7 +125,7 @@ for (const type of ['popstate', 'hashchange']) {
 
 document.addEventListener('click', (event) => {
 	if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
-	const link = event.target.closest?.('a[href^="#/"]');
+	const link = /** @type {Element} */ (event.target).closest?.('a[href^="#/"]');
 	if (!link) return;
 	event.preventDefault();
 	const path = link.getAttribute('href');

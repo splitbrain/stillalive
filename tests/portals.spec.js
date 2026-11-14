@@ -18,7 +18,8 @@ const RIGHT_MIDDLE = [200, 200, 508, 200];
 /**
  * The portal scenes by name. In each scene, the player or an object moves through the portals.
  *
- * @type {Object<string, object>}
+ * @type {Object<string, {portals: number[][], player: number[], keys: number, ticks: number,
+ *     object?: {type: string, x: number, y: number, vx?: number, vy?: number}}>}
  */
 const SCENES = {
 	'player-floor-to-ceiling': { portals: [FLOOR, CEILING], player: [206, 250], keys: 0, ticks: 150 },

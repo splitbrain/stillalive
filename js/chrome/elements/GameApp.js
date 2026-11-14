@@ -22,6 +22,8 @@ import {
 import { toTime } from '../time.js';
 import { checkReady, ready } from '../../loader.js';
 
+/** @typedef {import('../../stage/replay.js').ReplayFile} ReplayFile */
+
 /** @type {string} The selector of the buttons that play the hover sound and the click sound. */
 const SOUND_BUTTONS = 'menu-button, .selection-screen a.back, main-menu .sound, main-menu .music, vcr-panel button';
 
@@ -46,13 +48,13 @@ export class GameApp extends ChromeElement {
 	/** @type {import('../../router.js').Route|null} The route that the element applied last, or null. */
 	#applied = null;
 
-	/** @type {object|null} The replay in the file format that the replay route plays, or null. */
+	/** @type {ReplayFile|null} The replay in the file format that the replay route plays, or null. */
 	#replay = null;
 
-	/** @type {object|null} The replay from watch() for the next replay route, or null. */
+	/** @type {ReplayFile|null} The replay from watch() for the next replay route, or null. */
 	#pendingReplay = null;
 
-	/** @type {object|null} The replay of the level that ended, for the Watch Replay button of the panel, or null. */
+	/** @type {ReplayFile|null} The replay of the level that ended, for the Watch Replay button of the panel, or null. */
 	#intermissionReplay = null;
 
 	/** @type {object|null} The attributes of the open intermission panel except the open attribute, or null. */
@@ -78,18 +80,19 @@ export class GameApp extends ChromeElement {
 		stage.setMusic(loadMusicSetting());
 		if (new URLSearchParams(location.search).has('unlock')) campaignsReady.subscribe((ready) => this.#unlockAll(ready));
 		window.addEventListener('click', (event) => {
-			if (!this.#start() && event.target.closest(SOUND_BUTTONS)) stage.playClickSound();
+			if (!this.#start() && /** @type {Element} */ (event.target).closest(SOUND_BUTTONS)) stage.playClickSound();
 		});
 		window.addEventListener('pointerover', (event) => {
-			const button = event.target.closest(SOUND_BUTTONS);
-			if (button && !button.contains(event.relatedTarget)) stage.playHoverSound();
+			const button = /** @type {Element} */ (event.target).closest(SOUND_BUTTONS);
+			if (button && !button.contains(/** @type {Node|null} */ (event.relatedTarget))) stage.playHoverSound();
 		});
 		window.addEventListener('focusin', (event) => {
-			if (event.target.closest(SOUND_BUTTONS) && event.target.matches(':focus-visible')) stage.playHoverSound();
+			const target = /** @type {Element} */ (event.target);
+			if (target.closest(SOUND_BUTTONS) && target.matches(':focus-visible')) stage.playHoverSound();
 		});
 		window.addEventListener('keydown', (event) => this.#onStartKey(event), { capture: true });
 		window.addEventListener('keyup', (event) => this.#onStartKey(event), { capture: true });
-		stage.addEventListener('finished', (event) => this.#onFinished(event.detail));
+		stage.addEventListener('finished', (event) => this.#onFinished(/** @type {CustomEvent} */ (event).detail));
 		stage.addEventListener('brokenreplay', () => this.#onBrokenReplay());
 		stage.addEventListener('replaystop', () => this.#leaveReplay());
 		stage.addEventListener('focuslost', () => stage.pause());
@@ -107,7 +110,7 @@ export class GameApp extends ChromeElement {
 	 * checks again if the game can start, because the game waits for the sounds only while the sound is on. The first
 	 * call of the route subscription shows the loading screen.
 	 *
-	 * @returns {Array<function(): void>} The functions that remove the subscriptions.
+	 * @returns {Array<() => void>} The functions that remove the subscriptions.
 	 */
 	subscribe() {
 		const stage = this.stage;
@@ -133,7 +136,7 @@ export class GameApp extends ChromeElement {
 	/**
 	 * Play a replay: go to the replay route of its level with this replay.
 	 *
-	 * @param {object} replay The replay in the file format.
+	 * @param {ReplayFile} replay The replay in the file format.
 	 * @param {{path: string, intermission: object|null}|null} [back] Where the replay goes back to, or null for the
 	 *     selection of its level.
 	 * @returns {void}
@@ -219,7 +222,10 @@ export class GameApp extends ChromeElement {
 	 */
 	#showScreen() {
 		const screen = this.#screen();
-		for (const part of this.querySelectorAll('.chrome-screen')) part.hidden = !part.shouldShow(screen);
+		const parts = /** @type {NodeListOf<import('../element.js').ChromeScreen>} */ (
+			this.querySelectorAll('.chrome-screen')
+		);
+		for (const part of parts) part.hidden = !part.shouldShow(screen);
 		this.stage.hidden = !STAGE_SCREENS.includes(screen);
 	}
 
@@ -346,7 +352,7 @@ export class GameApp extends ChromeElement {
 	 *
 	 * @param {import('../../router.js').Route} current The replay route.
 	 * @param {import('../../stage/level.js').Level} level The level.
-	 * @param {object|null|undefined} data The replay in the file format, or nothing.
+	 * @param {ReplayFile|null|undefined} data The replay in the file format, or nothing.
 	 * @param {boolean} restart True to skip the waits at the level start.
 	 * @returns {void}
 	 */
@@ -366,7 +372,7 @@ export class GameApp extends ChromeElement {
 	 *
 	 * @param {import('../../router.js').Route} current The route of the level.
 	 * @param {number} time The level time in ticks.
-	 * @param {object} replay The replay in the file format.
+	 * @param {ReplayFile} replay The replay in the file format.
 	 * @returns {Promise<string>} The message for the intermission panel. Resolves when the new best time is stored.
 	 *     The message is empty if the time cannot be stored.
 	 */
@@ -389,7 +395,7 @@ export class GameApp extends ChromeElement {
 	 * choice. The Continue link goes to the next level that can be played. The custom campaign has no progress. The end
 	 * of a replay goes back to where the replay started.
 	 *
-	 * @param {{time: number, replay: object}} detail The detail of the finished event of the stage.
+	 * @param {{time: number, replay: ReplayFile}} detail The detail of the finished event of the stage.
 	 * @returns {Promise<void>} Resolves when the next screen shows.
 	 */
 	async #onFinished({ time, replay }) {

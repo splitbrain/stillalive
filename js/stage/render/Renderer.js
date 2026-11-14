@@ -50,7 +50,7 @@ function isSameSource(cached, source) {
  *
  * @typedef {object} DrawnSession
  * @property {import('../World.js').World} world The World of the session, with the screen shake.
- * @property {function(Renderer): void} draw The function that draws the session with the methods of the Renderer.
+ * @property {(renderer: Renderer) => void} draw The function that draws the session with the methods of the Renderer.
  */
 
 /**

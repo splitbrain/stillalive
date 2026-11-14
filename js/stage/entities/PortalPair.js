@@ -128,7 +128,7 @@ export class PortalPair {
 	/**
 	 * Check if all points are on a wall or a platform that can hold a portal.
 	 *
-	 * @param {Array<[number, number]>} points The points in pixels.
+	 * @param {number[][]} points The points in pixels, each as [x, y].
 	 * @returns {boolean} True if each point is a wall tile or a platform.
 	 */
 	#allWall(points) {
@@ -141,7 +141,7 @@ export class PortalPair {
 	/**
 	 * Count the points that something solid blocks. Crates do not count.
 	 *
-	 * @param {Array<[number, number]>} points The points in pixels.
+	 * @param {number[][]} points The points in pixels, each as [x, y].
 	 * @returns {number} The number of blocked points.
 	 */
 	#countBlocked(points) {

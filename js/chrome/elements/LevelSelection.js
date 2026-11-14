@@ -30,7 +30,7 @@ export class LevelSelection extends SelectionScreen {
 	/**
 	 * Subscribe to the progress of all campaigns and to the best times.
 	 *
-	 * @returns {Array<function(): void>} The functions that remove the subscriptions.
+	 * @returns {Array<() => void>} The functions that remove the subscriptions.
 	 */
 	subscribe() {
 		return [bestTimes.subscribe(() => this.render()), ...maxLevel.map((value) => value.subscribe(() => this.render()))];
@@ -47,10 +47,10 @@ export class LevelSelection extends SelectionScreen {
 		const campaign = campaignByFolder(folder);
 		if (!campaign) return;
 		const level = Number(this.getAttribute('level') ?? 0);
-		const list = this.querySelector('level-list');
+		const list = /** @type {HTMLElement} */ (this.querySelector('level-list'));
 		list.hidden = level > 0;
 		list.setAttribute('campaign', folder);
-		this.querySelector('.details').hidden = level === 0;
+		/** @type {HTMLElement} */ (this.querySelector('.details')).hidden = level === 0;
 		this.querySelector('.back').setAttribute('href', level > 0 ? campaignPath(folder) : '#/');
 		if (level > 0) this.#renderDetails(campaign, level);
 	}
@@ -68,7 +68,7 @@ export class LevelSelection extends SelectionScreen {
 		const title = campaign.levels[level - 1]?.title ?? '';
 		const best = getBestTime(folder, level);
 		this.querySelector('.title').textContent = title || `Level ${level}`;
-		const number = this.querySelector('.number');
+		const number = /** @type {HTMLElement} */ (this.querySelector('.number'));
 		number.hidden = title === '';
 		number.textContent = `Level ${level}`;
 		this.querySelector('.best span').textContent = best === null ? '-' : toTime(best);

@@ -273,7 +273,7 @@ function updateLoading() {
  * missing level files and counts as done.
  *
  * @param {string} url The URL of the file.
- * @param {function(*)} callback Called with the parsed content of the file.
+ * @param {(content: any) => void} callback Called with the parsed content of the file.
  * @returns {void}
  */
 function loadLevelJsonFile(url, callback) {
@@ -287,8 +287,8 @@ function loadLevelJsonFile(url, callback) {
  * Load a JSON file.
  *
  * @param {string} url The URL of the file.
- * @param {function(*)} callback Called with the parsed content of the file.
- * @param {function(): void} [onError] Called if the file fails to load or the callback throws an error.
+ * @param {(content: any) => void} callback Called with the parsed content of the file.
+ * @param {() => void} [onError] Called if the file fails to load or the callback throws an error.
  * @returns {void}
  */
 function loadJsonFile(url, callback, onError = () => {}) {

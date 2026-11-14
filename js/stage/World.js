@@ -90,7 +90,7 @@ export class World {
 	platforms = [];
 	/** @type {import('./entities/GravPipe.js').GravPipe[]} The gravitational pipes. */
 	gravPipes = [];
-	/** @type {object[]} The fields of the gravitational pipes. */
+	/** @type {import('./entities/GravPipeField.js').GravPipeField[]} The fields of the gravitational pipes. */
 	gravPipeFields = [];
 	/** @type {import('./entities/AnimatedTile.js').AnimatedTile[]} The animated tiles. */
 	animatedTiles = [];
@@ -696,7 +696,7 @@ export class World {
 	 * @returns {number} The tile id, or Tile.EMPTY if nothing solid is there.
 	 */
 	getTileWithoutObjects(x, y) {
-		return this.#solidAt(x, y, false, false);
+		return /** @type {number} */ (this.#solidAt(x, y, false, false));
 	}
 
 	/**
@@ -815,7 +815,7 @@ export class World {
 	 * Find the pipe fields that an object overlaps.
 	 *
 	 * @param {import('./entities/Body.js').Body} obj The object.
-	 * @returns {object[]} The fields.
+	 * @returns {import('./entities/GravPipeField.js').GravPipeField[]} The fields.
 	 */
 	gravPipeFieldsAt(obj) {
 		return this.gravPipeFields.filter((field) => {

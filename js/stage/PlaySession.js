@@ -14,8 +14,8 @@ import { World } from './World.js';
  *
  * @callback SessionReport
  * @param {string} type The event type.
- * @param {{time: number, replay: object}|null} [detail] The level time and the replay of the event "finished", else
- *     null.
+ * @param {{time: number, replay: import('./replay.js').ReplayFile}|null} [detail] The level time and the replay of the
+ *     event "finished", else null.
  * @returns {void}
  */
 
@@ -159,7 +159,7 @@ export class PlaySession {
 	pause() {
 		if (!this.#canPause() || this.#paused) return false;
 		this.#paused = true;
-		if (this.replaying) this.source.pause(this.world, this.#input);
+		if (this.replaying) /** @type {ReplayPlayer} */ (this.source).pause(this.world, this.#input);
 		this.#updateMouseLock();
 		return true;
 	}
@@ -173,7 +173,7 @@ export class PlaySession {
 		if (!this.#paused) return false;
 		this.#paused = false;
 		this.#input.unclick();
-		if (this.replaying) this.source.resume(this.world, this.#input);
+		if (this.replaying) /** @type {ReplayPlayer} */ (this.source).resume(this.world, this.#input);
 		this.#updateMouseLock();
 		return true;
 	}
@@ -184,7 +184,7 @@ export class PlaySession {
 	 * @returns {void}
 	 */
 	endPlayback() {
-		if (this.replaying) this.source.stop();
+		if (this.replaying) /** @type {ReplayPlayer} */ (this.source).stop();
 		this.#updateMouseLock();
 	}
 

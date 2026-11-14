@@ -45,7 +45,7 @@ async function call(page, module, name, ...args) {
 /**
  * Create a valid replay in the file format.
  *
- * @returns {object} The replay data.
+ * @returns {import('../js/stage/replay.js').ReplayFile} The replay data.
  */
 function validReplay() {
 	return {
@@ -64,7 +64,7 @@ function validReplay() {
 /**
  * Create a valid map in the file format.
  *
- * @returns {object} The map data.
+ * @returns {{format: number, tiles: number[], bg: number}} The map data.
  */
 function validMap() {
 	return { format: 1, tiles: emptyTiles(), bg: 0 };
@@ -73,7 +73,7 @@ function validMap() {
 /**
  * Create a valid map in the file format with a floor and a player start, so that the player can stand in the level.
  *
- * @returns {object} The map data.
+ * @returns {{format: number, tiles: number[], bg: number}} The map data.
  */
 function floorMap() {
 	const tiles = validMap()

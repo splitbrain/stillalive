@@ -43,7 +43,7 @@ export class NarratorText extends ChromeScreen {
 	 * Subscribe to the message, the pause and the mode of the stage and to the Space key, and stop the typing on
 	 * disconnect.
 	 *
-	 * @returns {Array<function(): void>} The functions that remove the subscriptions and the function that stops the
+	 * @returns {Array<() => void>} The functions that remove the subscriptions and the function that stops the
 	 *     typing.
 	 */
 	subscribe() {

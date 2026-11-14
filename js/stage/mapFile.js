@@ -52,7 +52,7 @@ const ABILITIES = ['jump', 'portals'];
 /**
  * The triggers of the events, with the number properties that each trigger needs and the check of their type.
  *
- * @type {Object<string, Object<string, function(*): boolean>>}
+ * @type {Object<string, Object<string, (value: any) => boolean>>}
  */
 const EVENT_TRIGGERS = {
 	start: {},

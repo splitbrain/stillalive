@@ -152,7 +152,7 @@ function openDatabase() {
  * Run a request on the replay store.
  *
  * @param {IDBTransactionMode} mode The transaction mode.
- * @param {function(IDBObjectStore): IDBRequest} action Creates the request.
+ * @param {(store: IDBObjectStore) => IDBRequest} action Creates the request.
  * @returns {Promise<*>} The result of the request. Resolves when the transaction is complete.
  */
 async function replayRequest(mode, action) {
@@ -182,7 +182,7 @@ export function getBestTime(campaign, level) {
  * @param {string} campaign The folder name of the campaign.
  * @param {number} level The level number, starting at 1.
  * @param {number} ticks The time in ticks.
- * @param {object} replayData The replay in the file format.
+ * @param {import('../stage/replay.js').ReplayFile} replayData The replay in the file format.
  * @returns {Promise<void>} Resolves when the replay is stored.
  */
 export async function saveBestTime(campaign, level, ticks, replayData) {
@@ -197,7 +197,8 @@ export async function saveBestTime(campaign, level, ticks, replayData) {
  *
  * @param {string} campaign The folder name of the campaign.
  * @param {number} level The level number, starting at 1.
- * @returns {Promise<object|undefined>} The replay in the file format, or undefined if there is none.
+ * @returns {Promise<import('../stage/replay.js').ReplayFile|undefined>} The replay in the file format, or undefined if
+ *     there is none.
  */
 export function loadBestReplay(campaign, level) {
 	return replayRequest('readonly', (store) => store.get(levelKey(campaign, level)));

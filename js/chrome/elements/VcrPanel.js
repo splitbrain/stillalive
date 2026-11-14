@@ -43,10 +43,10 @@ export class VcrPanel extends ChromeScreen {
 	/**
 	 * Subscribe to the speed of the stage to light the lamp of the current speed.
 	 *
-	 * @returns {Array<function(): void>} The functions that remove the subscriptions.
+	 * @returns {Array<() => void>} The functions that remove the subscriptions.
 	 */
 	subscribe() {
-		const lamps = this.querySelectorAll('.lamp');
+		const lamps = /** @type {NodeListOf<HTMLElement>} */ (this.querySelectorAll('.lamp'));
 		return [
 			this.stage.speed.subscribe((speed) => {
 				for (const lamp of lamps) lamp.classList.toggle('on', Number(lamp.dataset.speed) === speed);

@@ -109,7 +109,7 @@ function onKeyUp(event, input, commands) {
  * @returns {void}
  */
 function onPointer(event, input) {
-	const canvas = event.currentTarget;
+	const canvas = /** @type {HTMLCanvasElement} */ (event.currentTarget);
 	if (event.type === 'pointerdown') {
 		canvas.setPointerCapture(event.pointerId);
 		event.preventDefault();
@@ -148,7 +148,7 @@ export function setupInput(canvas, stage, input, commands) {
 	});
 
 	for (const type of ['pointerdown', 'pointermove', 'pointerup', 'pointercancel']) {
-		canvas.addEventListener(type, (event) => onPointer(event, input));
+		canvas.addEventListener(type, (event) => onPointer(/** @type {PointerEvent} */ (event), input));
 	}
 	canvas.addEventListener('pointerenter', () => (input.mouseOver = true));
 	canvas.addEventListener('pointerleave', () => (input.mouseOver = false));

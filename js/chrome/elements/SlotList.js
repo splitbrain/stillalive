@@ -25,7 +25,8 @@ export class SlotList extends ChromeElement {
 	 */
 	setUp() {
 		this.addEventListener('click', (event) => {
-			const button = event.target.closest('button[data-choice]');
+			const target = /** @type {Element} */ (event.target);
+			const button = /** @type {HTMLButtonElement|null} */ (target.closest('button[data-choice]'));
 			if (button) dispatch(this, 'slot-select', { slot: Number(button.dataset.choice) });
 		});
 	}
@@ -33,7 +34,7 @@ export class SlotList extends ChromeElement {
 	/**
 	 * Subscribe to the stored maps of the slots.
 	 *
-	 * @returns {Array<function(): void>} The functions that remove the subscriptions.
+	 * @returns {Array<() => void>} The functions that remove the subscriptions.
 	 */
 	subscribe() {
 		const unsubscribe = [];

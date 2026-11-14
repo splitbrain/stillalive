@@ -36,7 +36,7 @@ export class PauseMenu extends ChromeScreen {
 	/**
 	 * Subscribe to the sound and the music settings.
 	 *
-	 * @returns {Array<function(): void>} The functions that remove the subscriptions.
+	 * @returns {Array<() => void>} The functions that remove the subscriptions.
 	 */
 	subscribe() {
 		const sound = this.querySelector('.sound');

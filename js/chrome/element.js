@@ -48,7 +48,7 @@ export class ChromeElement extends HTMLElement {
 	/** @type {HTMLTemplateElement|null} The template of the component, from loadMarkup(), or null for no markup. */
 	static template = null;
 
-	/** @type {Array<function(): void>} The functions that remove the subscriptions and stop the timers. */
+	/** @type {Array<() => void>} The functions that remove the subscriptions and stop the timers. */
 	#unsubscribe = [];
 
 	/** @type {boolean} True after the first connect, which builds the markup. */
@@ -101,7 +101,7 @@ export class ChromeElement extends HTMLElement {
 	/**
 	 * Hook that runs on every connect. It subscribes to the state and starts the timers of the element.
 	 *
-	 * @returns {Array<function(): void>} The functions that remove the subscriptions and stop the timers. The default
+	 * @returns {Array<() => void>} The functions that remove the subscriptions and stop the timers. The default
 	 *     is an empty list.
 	 */
 	subscribe() {

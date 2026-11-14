@@ -4,22 +4,24 @@
 
 /**
  * A value that calls its subscribers on each change.
+ *
+ * @template T
  */
 export class Value {
 	/**
-	 * @param {*} initial The first value.
+	 * @param {T} initial The first value.
 	 */
 	constructor(initial) {
-		/** @type {*} The current value. */
+		/** @type {T} The current value. */
 		this.value = initial;
-		/** @type {Set<function(*): void>} The functions that get each new value. */
+		/** @type {Set<(value: T) => void>} The functions that get each new value. */
 		this.subscribers = new Set();
 	}
 
 	/**
 	 * Get the current value.
 	 *
-	 * @returns {*} The value.
+	 * @returns {T} The value.
 	 */
 	get() {
 		return this.value;
@@ -28,7 +30,7 @@ export class Value {
 	/**
 	 * Store a new value and call the subscribers. A value that is the same as the current value changes nothing.
 	 *
-	 * @param {*} value The new value.
+	 * @param {T} value The new value.
 	 * @returns {void}
 	 */
 	set(value) {
@@ -40,8 +42,8 @@ export class Value {
 	/**
 	 * Call a function with the current value now and with each new value.
 	 *
-	 * @param {function(*): void} fn The function.
-	 * @returns {function(): void} A function that removes the subscription.
+	 * @param {(value: T) => void} fn The function.
+	 * @returns {() => void} A function that removes the subscription.
 	 */
 	subscribe(fn) {
 		this.subscribers.add(fn);

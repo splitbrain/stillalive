@@ -1,17 +1,21 @@
 /**
  * The replays: the conversion to and from the replay file format, and the input sources of a level, the Recorder and
  * the ReplayPlayer.
+ */
+
+/**
+ * A replay in the file format. A replay file is this object as JSON.
  *
- * A replay file is JSON with these properties:
- *
- * - format: the version of the file format, always 2
- * - campaign: the folder name of the campaign, e.g. "normal"
- * - level: the level number, starting at 1
- * - ticks: the number of recorded ticks
- * - inputs: a list of [count, keys, mouseX, mouseY] entries. Each entry stands for count ticks with the same key
- *   bitmask and mouse position. The mouse position is in playfield units.
- * - states: a list of [time, ...state] entries with the replay state from InputState.capture(). The game processes
- *   input while the level time stands still, e.g. in a pause. The playback restores the state when the time continues.
+ * @typedef {object} ReplayFile
+ * @property {number} format The version of the file format, always 2.
+ * @property {string} campaign The folder name of the campaign, e.g. "normal".
+ * @property {number} level The level number, starting at 1.
+ * @property {number} ticks The number of recorded ticks.
+ * @property {number[][]} inputs A list of [count, keys, mouseX, mouseY] entries. Each entry stands for count ticks
+ *     with the same key bitmask and mouse position. The mouse position is in playfield units.
+ * @property {number[][]} states A list of [time, ...state] entries with the replay state from InputState.capture().
+ *     The game processes input while the level time stands still, e.g. in a pause. The playback restores the state
+ *     when the time continues.
  */
 
 /** @type {number} The length of a replay state from InputState.capture(). */
@@ -26,7 +30,7 @@ const REPLAY_FORMAT = 2;
  * @param {Replay} replay The recorded replay of the game.
  * @param {string} campaign The folder name of the campaign.
  * @param {number} level The level number, starting at 1.
- * @returns {object} The replay in the file format.
+ * @returns {ReplayFile} The replay in the file format.
  */
 export function encodeReplay(replay, campaign, level) {
 	const inputs = [];
@@ -65,7 +69,7 @@ function isIntegerTable(list, length) {
 /**
  * Convert a replay in the file format into a replay for the game.
  *
- * @param {object} data The replay in the file format.
+ * @param {ReplayFile} data The replay in the file format.
  * @returns {Replay} The replay for the game.
  * @throws {Error} If the data is not a valid replay.
  */

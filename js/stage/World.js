@@ -452,7 +452,7 @@ export class World {
 					vy = 1;
 					break;
 			}
-			traceGravPipeField(this, pipe.pixelX, pipe.pixelY, vx, vy);
+			this.gravPipeFields.push(...traceGravPipeField(this, pipe.pixelX, pipe.pixelY, vx, vy));
 		}
 	}
 

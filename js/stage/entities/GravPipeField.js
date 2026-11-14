@@ -56,17 +56,19 @@ function fieldEndsAt(world, x, y, vx) {
 }
 
 /**
- * Find the end of a pipe field and add the field. At a portal, the trace continues from the other portal with a
- * second field. The trace leaves each portal only once, so the field between two facing portals ends.
+ * Find the end of a pipe field and create the field. At a portal, the trace continues from the other portal with a
+ * second field. The trace leaves each portal only once, so the field between two facing portals ends. The caller adds
+ * the fields to the World.
  *
  * @param {import('../World.js').World} world The World.
  * @param {number} sx The x coordinate of the gravitational pipe in pixels.
  * @param {number} sy The y coordinate of the gravitational pipe in pixels.
  * @param {number} vx The horizontal direction of the push, -1, 0 or 1.
  * @param {number} vy The vertical direction of the push, -1, 0 or 1.
- * @returns {void}
+ * @returns {GravPipeField[]} The fields of the trace, in the order of the trace.
  */
 export function traceGravPipeField(world, sx, sy, vx, vy) {
+	const fields = [];
 	const exits = [];
 	let y = sy;
 	let x = sx;
@@ -79,7 +81,7 @@ export function traceGravPipeField(world, sx, sy, vx, vy) {
 			x = (x >> TILE_SIZE_BITS) << TILE_SIZE_BITS;
 			y = (y >> TILE_SIZE_BITS) << TILE_SIZE_BITS;
 
-			addField(world, sx, sy, x, y, vx, vy);
+			addField(fields, sx, sy, x, y, vx, vy);
 			if (vx < 0) x += 13;
 
 			if (world.portals.list[0].used && world.portals.list[1].used) {
@@ -126,22 +128,23 @@ export function traceGravPipeField(world, sx, sy, vx, vy) {
 							break;
 					}
 				} else {
-					return;
+					return fields;
 				}
 			} else {
-				return;
+				return fields;
 			}
 		}
 		x += vx * TILE_SIZE;
 		y += vy * TILE_SIZE;
 	}
-	addField(world, sx, sy, x, y, vx, vy);
+	addField(fields, sx, sy, x, y, vx, vy);
+	return fields;
 }
 
 /**
- * Add the pipe field from a gravitational pipe to the end of its trace.
+ * Add the pipe field from a gravitational pipe to the end of its trace to the list of the fields.
  *
- * @param {import('../World.js').World} world The World.
+ * @param {GravPipeField[]} fields The list of the fields.
  * @param {number} sx The x coordinate of the gravitational pipe in pixels.
  * @param {number} sy The y coordinate of the gravitational pipe in pixels.
  * @param {number} nx The x coordinate where the field ends in pixels.
@@ -150,9 +153,9 @@ export function traceGravPipeField(world, sx, sy, vx, vy) {
  * @param {number} vy The vertical direction of the push, -1, 0 or 1.
  * @returns {void}
  */
-function addField(world, sx, sy, nx, ny, vx, vy) {
-	if (vx < 0) world.gravPipeFields.push(new GravPipeField(sx, sy, -(sx - nx - TILE_SIZE), 2 * TILE_SIZE, -1, 0));
-	else if (vx > 0) world.gravPipeFields.push(new GravPipeField(sx, sy, nx - sx, 2 * TILE_SIZE, 1, 0));
-	else if (vy < 0) world.gravPipeFields.push(new GravPipeField(sx, sy, 2 * TILE_SIZE, -(sy - ny - TILE_SIZE), 0, -1));
-	else if (vy > 0) world.gravPipeFields.push(new GravPipeField(sx, sy, 2 * TILE_SIZE, ny - sy, 0, 1));
+function addField(fields, sx, sy, nx, ny, vx, vy) {
+	if (vx < 0) fields.push(new GravPipeField(sx, sy, -(sx - nx - TILE_SIZE), 2 * TILE_SIZE, -1, 0));
+	else if (vx > 0) fields.push(new GravPipeField(sx, sy, nx - sx, 2 * TILE_SIZE, 1, 0));
+	else if (vy < 0) fields.push(new GravPipeField(sx, sy, 2 * TILE_SIZE, -(sy - ny - TILE_SIZE), 0, -1));
+	else if (vy > 0) fields.push(new GravPipeField(sx, sy, 2 * TILE_SIZE, ny - sy, 0, 1));
 }

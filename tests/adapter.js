@@ -291,7 +291,7 @@ export async function setMap(page, tiles) {
  */
 export function levelPortals(page) {
 	return page.evaluate(() =>
-		window.__test.game.portals.map(({ x, y, used, direction }) => ({ x, y, used, direction })),
+		window.__test.game.portals.list.map(({ x, y, used, direction }) => ({ x, y, used, direction })),
 	);
 }
 
@@ -305,7 +305,7 @@ export function levelPortals(page) {
  */
 export async function setPortals(page, placed) {
 	await page.evaluate((placed) => {
-		placed.forEach((values, i) => Object.assign(window.__test.game.portals[i], { used: true, ...values }));
+		placed.forEach((values, i) => Object.assign(window.__test.game.portals.list[i], { used: true, ...values }));
 	}, placed);
 }
 
@@ -421,7 +421,7 @@ export async function runLevel(
 					turrets: game.turrets.map((t) => pickNumbers(t, ['x', 'y', 'vx', 'vy', 'dead', 'carried'])),
 					plasma: game.plasmaBall.map((p) => pickNumbers(p, ['x', 'y', 'vx', 'vy', 'used'])),
 					platforms: game.platforms.map((p) => pick(p, ['x', 'y', 'vx'])),
-					portals: game.portals.map((p) => pick(p, ['x', 'y', 'used', 'direction'])),
+					portals: game.portals.list.map((p) => pick(p, ['x', 'y', 'used', 'direction'])),
 					cakesLeft: game.cakesLeft,
 					map: game.map.tiles.flatMap((tile, i) => (tile === startMap[i] ? [] : [[i, tile]])),
 				});
@@ -507,7 +507,6 @@ export async function runPortalScene(page, scene) {
 		const t = window.__test;
 		const { input, stage } = t;
 		const { campaigns } = await import('/js/chrome/campaigns.js');
-		const { launchPortal } = await import('/js/stage/portals.js');
 		const { Crate } = await import('/js/stage/entities/Crate.js');
 		const { Turret } = await import('/js/stage/entities/Turret.js');
 		const { Plasma } = await import('/js/stage/entities/Plasma.js');
@@ -550,7 +549,7 @@ export async function runPortalScene(page, scene) {
 			game.player.y = sy << 8;
 			input.mouseX = tx;
 			input.mouseY = ty;
-			launchPortal(p);
+			game.portals.launchPortal(p, input.mouseX, input.mouseY);
 		});
 		Object.assign(game.player, { x: scene.player[0] << 8, y: scene.player[1] << 8, vx: 0, vy: 0 });
 		const o = scene.object;
@@ -559,7 +558,7 @@ export async function runPortalScene(page, scene) {
 		else if (o?.type === 'turret') game.turrets.push((obj = new Turret(game, o.x << 8, o.y << 8, -1)));
 		else if (o?.type === 'plasma') game.plasmaBall.push((obj = new Plasma(game, o.x << 8, o.y << 8, o.vx, o.vy)));
 
-		const p = game.portals.map((portal) => [portal.used, portal.direction, portal.x >> 8, portal.y >> 8]);
+		const p = game.portals.list.map((portal) => [portal.used, portal.direction, portal.x >> 8, portal.y >> 8]);
 		const lines = [JSON.stringify({ portals: p })];
 		for (let tick = 1; tick <= scene.ticks; tick++) {
 			input.keys = scene.keys;

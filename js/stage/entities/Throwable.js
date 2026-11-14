@@ -4,7 +4,6 @@
 
 import { Body } from './Body.js';
 import { Direction, GRAVITY, TILE_SIZE } from '../constants.js';
-import { isInPortal, passPortal, portalAt } from '../portals.js';
 import { input } from '../state.js';
 import { getCos, getSin } from '../utils.js';
 
@@ -96,6 +95,7 @@ export class Throwable extends Body {
 	 */
 	place() {
 		let step;
+		const portals = this.world.portals;
 		const x = this.world.player.x + (this.world.player.pX << 7);
 		const y = this.world.player.y + (this.world.player.pY << 7);
 
@@ -113,10 +113,10 @@ export class Throwable extends Body {
 			this.y += this.vy >> 1;
 
 			if (
-				!passPortal(this, Direction.LEFT) &&
-				!passPortal(this, Direction.DOWN) &&
-				!passPortal(this, Direction.UP) &&
-				!passPortal(this, Direction.RIGHT)
+				!portals.passPortal(this, Direction.LEFT) &&
+				!portals.passPortal(this, Direction.DOWN) &&
+				!portals.passPortal(this, Direction.UP) &&
+				!portals.passPortal(this, Direction.RIGHT)
 			) {
 				this.checkCollisions();
 			}
@@ -133,11 +133,12 @@ export class Throwable extends Body {
 	 */
 	move() {
 		let col, i;
+		const portals = this.world.portals;
 		const fields = this.world.gravPipeFieldsAt(this);
 		for (i = 0; i < fields.length; i++) {
 			const field = fields[i];
 			if (field.vx != 0) {
-				if (portalAt(this, Direction.UP) || portalAt(this, Direction.DOWN)) {
+				if (portals.portalAt(this, Direction.UP) || portals.portalAt(this, Direction.DOWN)) {
 					if (this.y >> 8 < field.y) this.y += 768;
 					else if ((this.y >> 8) + this.pY > field.y + 2 * TILE_SIZE) this.y -= 768;
 				} else if (this.y >> 8 < field.y + (TILE_SIZE - (this.pY >> 1))) this.y += 512;
@@ -160,12 +161,12 @@ export class Throwable extends Body {
 		}
 		this.keepBeltSpeed(belt);
 
-		const inLeftPortal = portalAt(this, Direction.LEFT);
-		const inRightPortal = portalAt(this, Direction.RIGHT);
+		const inLeftPortal = portals.portalAt(this, Direction.LEFT);
+		const inRightPortal = portals.portalAt(this, Direction.RIGHT);
 
 		const ground = this.touchingGround();
 
-		if (!ground || portalAt(this, Direction.DOWN)) {
+		if (!ground || portals.portalAt(this, Direction.DOWN)) {
 			if (fields.length == 0) this.vy += GRAVITY;
 			if (this.vy > 10 << 8) this.vy = 10 << 8;
 		}
@@ -187,15 +188,19 @@ export class Throwable extends Body {
 
 		let j;
 		for (j = 0; j < 8; j++) {
-			if (!passPortal(this, Direction.DOWN) && !passPortal(this, Direction.UP)) this.x += this.vx >> 3;
-			if (!passPortal(this, Direction.LEFT) && !passPortal(this, Direction.RIGHT) && !this.landsOnPlayer())
+			if (!portals.passPortal(this, Direction.DOWN) && !portals.passPortal(this, Direction.UP)) this.x += this.vx >> 3;
+			if (
+				!portals.passPortal(this, Direction.LEFT) &&
+				!portals.passPortal(this, Direction.RIGHT) &&
+				!this.landsOnPlayer()
+			)
 				this.y += this.vy >> 3;
 
 			if (this.push()) break;
 		}
 
 		col = true;
-		while (col && !isInPortal(this)) {
+		while (col && !portals.isInPortal(this)) {
 			col = this.checkCollisions();
 		}
 	}

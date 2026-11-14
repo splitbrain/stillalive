@@ -165,7 +165,7 @@ export class LevelEvents {
  * @returns {void}
  */
 function placePortal(p, [column, row, side]) {
-	const portal = game.portals[p];
+	const portal = game.portals.list[p];
 	const { direction, dx, dy } = PORTAL_PLACEMENTS[side];
 	const x = column * TILE_SIZE + dx;
 	const y = row * TILE_SIZE + dy;

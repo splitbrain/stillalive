@@ -3,7 +3,6 @@
  */
 
 import { Direction, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, TILE_SIZE, TILE_SIZE_BITS } from '../constants.js';
-import { otherPortal, pointInPortal } from '../portals.js';
 import { Tile } from '../tiles.js';
 
 /**
@@ -96,16 +95,16 @@ function traceGravPipeField(world, sx, sy, vx, vy) {
 			addField(world, sx, sy, x, y, vx, vy);
 			if (vx < 0) x += 13;
 
-			if (world.portals[0].used && world.portals[1].used) {
+			if (world.portals.list[0].used && world.portals.list[1].used) {
 				if (vx != 0) {
-					p1 = pointInPortal(x, y + 4);
-					p2 = pointInPortal(x, y + 2 * TILE_SIZE - 4);
+					p1 = world.portals.pointInPortal(x, y + 4);
+					p2 = world.portals.pointInPortal(x, y + 2 * TILE_SIZE - 4);
 				} else if (vy != 0) {
 					const dy = vy < 0 ? 14 : 0;
-					p1 = pointInPortal(x + 4, y + dy);
-					p2 = pointInPortal(x + 2 * TILE_SIZE - 4, y + dy);
+					p1 = world.portals.pointInPortal(x + 4, y + dy);
+					p2 = world.portals.pointInPortal(x + 2 * TILE_SIZE - 4, y + dy);
 				}
-				const exit = p1 && p1 == p2 ? otherPortal(p1) : null;
+				const exit = p1 && p1 == p2 ? world.portals.other(p1) : null;
 				if (exit && !exits.includes(exit)) {
 					exits.push(exit);
 					if (exit.direction == Direction.RIGHT) {

@@ -41,7 +41,7 @@ export function manageDoors() {
 function clearDoorBlockers() {
 	const door = FIRST_OF_KIND[TileKind.SWITCH_DOOR];
 	for (let i = 0; i < 2; i++) {
-		const portal = game.portals[i];
+		const portal = game.portals.list[i];
 		if (!portal.used) continue;
 		let x = portal.x >> 8;
 		let y = portal.y >> 8;

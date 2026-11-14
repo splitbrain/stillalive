@@ -15,7 +15,6 @@ import {
 	PLAYFIELD_HEIGHT,
 	PLAYFIELD_WIDTH,
 } from './constants.js';
-import { isInPortal } from './portals.js';
 import { game, input, stageEvents, ui } from './state.js';
 
 /**
@@ -165,7 +164,7 @@ export function manageKeys() {
 		input.keys & KEY_JUMP &&
 		(ui.mode == 'test' || ui.mode == 'play') &&
 		game.abilities.jump &&
-		!isInPortal(game.player)
+		!game.portals.isInPortal(game.player)
 	) {
 		if (!(input.oldKeys & KEY_JUMP)) game.player.oldIsJump = game.player.isJump;
 		game.player.isJump = 1;

@@ -635,11 +635,11 @@ export function drawPlatform(x, y, dir) {
 function drawFrontTiles() {
 	let tx, ty, t, p, i;
 	if (game.objectInPortal) {
-		for (p = 0; p < game.portals.length; p++) {
-			if (!game.portals[p].platform) {
-				const x = game.portals[p].x >> 8;
-				const y = game.portals[p].y >> 8;
-				if (game.portals[p].direction == Direction.UP || game.portals[p].direction == Direction.DOWN) {
+		for (p = 0; p < game.portals.list.length; p++) {
+			if (!game.portals.list[p].platform) {
+				const x = game.portals.list[p].x >> 8;
+				const y = game.portals.list[p].y >> 8;
+				if (game.portals.list[p].direction == Direction.UP || game.portals.list[p].direction == Direction.DOWN) {
 					tx = x >> TILE_SIZE_BITS;
 					ty = y >> TILE_SIZE_BITS;
 					for (i = 0; i < 4; i++) {
@@ -650,7 +650,10 @@ function drawFrontTiles() {
 							}
 						}
 					}
-				} else if (game.portals[p].direction == Direction.LEFT || game.portals[p].direction == Direction.RIGHT) {
+				} else if (
+					game.portals.list[p].direction == Direction.LEFT ||
+					game.portals.list[p].direction == Direction.RIGHT
+				) {
 					tx = x >> TILE_SIZE_BITS;
 					ty = y >> TILE_SIZE_BITS;
 					for (i = 0; i < 4; i++) {
@@ -692,8 +695,8 @@ function drawCamera() {
  * @returns {void}
  */
 function drawPortals() {
-	for (let pi = 0; pi < game.portals.length; pi++) {
-		const p = game.portals[pi];
+	for (let pi = 0; pi < game.portals.list.length; pi++) {
+		const p = game.portals.list[pi];
 		if (!p.used) continue;
 		let dx = 0;
 		let dy = 0;

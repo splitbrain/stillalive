@@ -3,7 +3,7 @@
  */
 
 import { MAP_SIZE, MouseButton, TILE_SIZE_BITS } from './constants.js';
-import { Portal } from './entities/Portal.js';
+import { PortalPair } from './entities/PortalPair.js';
 import { bg } from './images.js';
 import { mouseOnPlayfield, unclick } from './inputState.js';
 import { loadLevel } from './level.js';
@@ -59,7 +59,7 @@ export class Editor {
 	 * @returns {void}
 	 */
 	stopTest(report = true) {
-		game.portals = [new Portal(), new Portal()];
+		game.portals = new PortalPair(game);
 		unclick();
 		ui.mode = 'edit';
 		game.map = new TileMap(game.oldMap);

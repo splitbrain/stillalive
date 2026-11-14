@@ -5,7 +5,6 @@
 import { Throwable } from './Throwable.js';
 import { playSound, sfx_crateLand, sfx_dissolve, sfx_wallBreak, sfx_wallCrack } from '../audio.js';
 import { PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, TILE_SIZE } from '../constants.js';
-import { inForceField, isInPortal } from '../portals.js';
 import { isTileKind, LAST_OF_KIND, Tile, TileKind } from '../tiles.js';
 
 /**
@@ -111,7 +110,7 @@ export class Crate extends Throwable {
 			if (this.shrink == 0 && this.#destroyOrReset()) return;
 		}
 
-		if (this.shrink == 0 && inForceField(this)) {
+		if (this.shrink == 0 && this.inForceField()) {
 			if (this.carried) this.world.player.carrying = null;
 			this.shrink = 60;
 			playSound(sfx_dissolve);
@@ -145,7 +144,7 @@ export class Crate extends Throwable {
 	 * @returns {boolean} True if the crate falls onto the player.
 	 */
 	landsOnPlayer() {
-		if (this.vy > 0 && !isInPortal(this)) {
+		if (this.vy > 0 && !this.world.portals.isInPortal(this)) {
 			let x = (this.x >> 8) + 3;
 			const y = (this.y >> 8) + this.pY;
 			const x2 = this.world.player.x >> 8;
@@ -184,10 +183,10 @@ export class Crate extends Throwable {
 			}
 		}
 
-		if (this.vx != 0 && !isInPortal(this)) {
+		if (this.vx != 0 && !this.world.portals.isInPortal(this)) {
 			for (c = 0; c < this.world.crates.length; c++) {
 				const ca = this.world.crates[c];
-				if (isInPortal(ca)) continue;
+				if (this.world.portals.isInPortal(ca)) continue;
 				if (this.x != ca.x || this.y != ca.y) {
 					const y = this.y >> 8;
 					let x = this.x >> 8;
@@ -262,7 +261,7 @@ export function updateCrates(world) {
 				ci--;
 				continue;
 			}
-			if (!world.objectInPortal) world.objectInPortal = isInPortal(c);
+			if (!world.objectInPortal) world.objectInPortal = world.portals.isInPortal(c);
 		}
 	}
 }

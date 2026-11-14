@@ -3,7 +3,7 @@
  */
 
 import { Direction, TILE_SIZE } from '../constants.js';
-import { isDeadlyTile, isTileKind, Tile, TileKind } from '../tiles.js';
+import { inForceFieldRange, isDeadlyTile, isTileKind, Tile, TileKind } from '../tiles.js';
 
 /**
  * An object with a position and a size in the playfield. The base of the objects that move and collide.
@@ -136,6 +136,19 @@ export class Body {
 		if (!hit) hit = this.#pointOnDeadlyTile(x + pX - 1, y + pY - 6);
 
 		return hit;
+	}
+
+	/**
+	 * Check if a force field tile is on the diagonal line through the object.
+	 *
+	 * @returns {boolean} True if the object touches a force field tile.
+	 */
+	inForceField() {
+		for (let j = 0; j <= this.pX - 1; j += 2) {
+			const t = this.world.map.atPixel((this.x >> 8) + j, (this.y >> 8) + j);
+			if (inForceFieldRange(t)) return true;
+		}
+		return false;
 	}
 
 	/**

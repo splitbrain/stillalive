@@ -1,5 +1,5 @@
 /**
- * The Portal object and its helper functions.
+ * The Portal object.
  */
 
 /**
@@ -54,19 +54,5 @@ export class Portal {
 		if (this.used && this.platform) {
 			this.x += this.platform.vx;
 		}
-	}
-}
-
-/**
- * Advance the opening animation of the placed portals and move them with their platforms.
- *
- * @param {import('../World.js').World} world The World.
- * @returns {void}
- */
-export function updatePortals(world) {
-	for (const p of world.portals) {
-		if (!p.used) continue;
-		p.animate();
-		p.move();
 	}
 }

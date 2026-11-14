@@ -23,10 +23,9 @@ import { GravPipe } from './entities/GravPipe.js';
 import { Plasma } from './entities/Plasma.js';
 import { Platform } from './entities/Platform.js';
 import { Player } from './entities/Player.js';
-import { Portal } from './entities/Portal.js';
+import { PortalPair } from './entities/PortalPair.js';
 import { Turret } from './entities/Turret.js';
 import { GRAVPIPE_DIRECTIONS, plasmaLaunch } from './level.js';
-import { isInPortal } from './portals.js';
 import { Replay } from './replay.js';
 import { TileMap } from './TileMap.js';
 import { FIRST_OF_KIND, LAST_OF_KIND, Tile, TileKind, inForceFieldRange, isDeadlyTile, isTileKind } from './tiles.js';
@@ -97,8 +96,8 @@ export class World {
 	sparkles = [];
 	/** @type {Player} The player. */
 	player;
-	/** @type {Portal[]} The two portals. */
-	portals = [new Portal(), new Portal()];
+	/** @type {PortalPair} The two portals. */
+	portals = new PortalPair(this);
 	/** @type {Boss|null} The boss of the level, or null for a level without a boss. */
 	boss = null;
 	/** @type {Camera|null} The security camera, or null for a preview or an editor map. */
@@ -136,8 +135,8 @@ export class World {
 	/** @type {number} 1 while the player or a crate holds a switch and the switch doors are open. */
 	switchPressed = 0;
 	/**
-	 * @type {Portal|null} The portal that an object is in during this tick, or null. The drawing then draws the tiles
-	 *     around the portals over the objects.
+	 * @type {import('./entities/Portal.js').Portal|null} The portal that an object is in during this tick, or null.
+	 *     The drawing then draws the tiles around the portals over the objects.
 	 */
 	objectInPortal = null;
 	/** @type {import('./LevelEvents.js').LevelEvents|null} The events of the level, or null outside a level. */
@@ -448,7 +447,7 @@ export class World {
 			const x2 = crate.x >> 8;
 			const y2 = crate.y >> 8;
 			if (
-				(any || (!crate.carried && !isInPortal(crate))) &&
+				(any || (!crate.carried && !this.portals.isInPortal(crate))) &&
 				x > x2 &&
 				x < x2 + TILE_SIZE - 1 &&
 				y > y2 &&
@@ -468,7 +467,8 @@ export class World {
 	movingCrateTouching(obj) {
 		for (let i = 0; i < this.crates.length; i++) {
 			const crate = this.crates[i];
-			if (!crate.carried && (crate.vx != 0 || crate.vy != 0) && !isInPortal(crate) && crate.overlaps(obj)) return crate;
+			if (!crate.carried && (crate.vx != 0 || crate.vy != 0) && !this.portals.isInPortal(crate) && crate.overlaps(obj))
+				return crate;
 		}
 		return null;
 	}
@@ -578,7 +578,7 @@ export class World {
 	 */
 	atExit() {
 		const p = this.player;
-		if (!isInPortal(p)) {
+		if (!this.portals.isInPortal(p)) {
 			const x = p.x >> 8;
 			const y = p.y >> 8;
 			// check each tile that the box of the player touches

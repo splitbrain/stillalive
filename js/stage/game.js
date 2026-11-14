@@ -10,13 +10,11 @@ import { updateCrates } from './entities/Crate.js';
 import { rebuildGravPipeFields } from './entities/GravPipeField.js';
 import { updatePlasma } from './entities/Plasma.js';
 import { updatePlatforms } from './entities/Platform.js';
-import { updatePortals } from './entities/Portal.js';
 import { updateProjectiles } from './entities/Projectile.js';
 import { updateSparkles } from './entities/Sparkle.js';
 import { updateTurrets } from './entities/Turret.js';
 import { manageKeys, unclick } from './inputState.js';
 import { loadLevel, manageDoors } from './level.js';
-import { isInPortal } from './portals.js';
 import { encodeReplay } from './replay.js';
 import { game, input, stageEvents, ui } from './state.js';
 import { random } from './utils.js';
@@ -47,7 +45,7 @@ function updateLevel(editor) {
 	game.objectInPortal = null;
 	if (!game.player.dead && game.isRunning()) {
 		game.player.move();
-		if (!game.objectInPortal) game.objectInPortal = isInPortal(game.player);
+		if (!game.objectInPortal) game.objectInPortal = game.portals.isInPortal(game.player);
 	}
 
 	manageDoors();
@@ -137,7 +135,7 @@ function updateObjects() {
 	}
 
 	updatePlatforms(game);
-	updatePortals(game);
+	game.portals.update();
 	game.camera.move();
 
 	if (game.player.dead) {

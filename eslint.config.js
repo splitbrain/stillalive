@@ -21,7 +21,7 @@ const LAYERS = [
 		name: 'logic',
 		files: [
 			'./js/stage/entities/*.js',
-			'./js/stage/{boss,inputState,level,LevelEvents,mapEdit,mapFile,portals,replay,UndoList,World}.js',
+			'./js/stage/{boss,inputState,level,LevelEvents,mapEdit,mapFile,replay,UndoList,World}.js',
 		],
 	},
 	{ name: 'drawing', files: ['./js/stage/render/*.js'] },

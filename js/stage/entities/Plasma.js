@@ -5,7 +5,6 @@
 import { Body } from './Body.js';
 import { playSound, setSoundVolume, sfx_bounce, sfx_plasmaField } from '../audio.js';
 import { Direction, MAP_SIZE, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, TILE_SIZE, TILE_SIZE_BITS } from '../constants.js';
-import { isInPortal, passPortals } from '../portals.js';
 import { Tile, TileKind, isTileKind } from '../tiles.js';
 import { getDistance, random } from '../utils.js';
 
@@ -83,7 +82,7 @@ export class Plasma extends Body {
 		const vx = this.vx;
 		const vy = this.vy;
 
-		if (!passPortals(this)) {
+		if (!this.world.portals.passPortals(this)) {
 			this.checkCollision();
 			if (this.homing) {
 				if (this.x < this.world.player.x) this.vx += 4;
@@ -337,7 +336,7 @@ export function updatePlasma(world) {
 		ball.animate();
 		if (world.isRunning()) {
 			ball.move();
-			if (!world.objectInPortal) world.objectInPortal = isInPortal(ball);
+			if (!world.objectInPortal) world.objectInPortal = world.portals.isInPortal(ball);
 			if (ball.needKill) {
 				world.plasmaBall.splice(pi, 1);
 				pi--;

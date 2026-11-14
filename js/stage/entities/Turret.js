@@ -5,7 +5,6 @@
 import { Throwable } from './Throwable.js';
 import { playSound, playSoundIfFinished, sfx_explode, sfx_pain, sfx_shoot } from '../audio.js';
 import { PLAYFIELD_WIDTH, SparkleType, TILE_SIZE } from '../constants.js';
-import { isInPortal } from '../portals.js';
 import { Platform } from './Platform.js';
 import { Sparkle, createCakeOrSmokeSparkles } from './Sparkle.js';
 import { Tile } from '../tiles.js';
@@ -247,6 +246,6 @@ export function updateTurrets(world) {
 	if (!world.isRunning()) return;
 	for (const t of world.turrets) {
 		t.update();
-		if (!world.objectInPortal) world.objectInPortal = isInPortal(t);
+		if (!world.objectInPortal) world.objectInPortal = world.portals.isInPortal(t);
 	}
 }

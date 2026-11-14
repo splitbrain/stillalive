@@ -23,7 +23,6 @@ import { Platform } from './Platform.js';
 import { Sparkle } from './Sparkle.js';
 import { reportBrokenReplay } from '../inputState.js';
 import { loadLevel } from '../level.js';
-import { clearPortals, clearPortalsAtForceField, isInPortal, launchPortal, passPortal, portalAt } from '../portals.js';
 import { input, ui } from '../state.js';
 import { isTileKind, TileKind } from '../tiles.js';
 import { getDistance, random } from '../utils.js';
@@ -155,7 +154,7 @@ export class Player extends Body {
 	 * @returns {void}
 	 */
 	teleported(entry, exit) {
-		this.teleportTime = entry == this.world.portals[0] ? 42 : -42;
+		this.teleportTime = entry == this.world.portals.list[0] ? 42 : -42;
 		super.teleported(entry, exit);
 	}
 
@@ -205,6 +204,7 @@ export class Player extends Body {
 	 */
 	move() {
 		let fi, i;
+		const portals = this.world.portals;
 		if (this.teleportTime < 0) {
 			if (++this.teleportTime < 0 && this.teleportTime % 6 == 0) this.#teleportSparkles(3, 200, 0);
 		} else if (this.teleportTime > 0) {
@@ -212,7 +212,7 @@ export class Player extends Body {
 		}
 
 		if (this.askClear) {
-			clearPortals();
+			portals.clearPortals();
 			this.askClear = false;
 		}
 
@@ -226,7 +226,7 @@ export class Player extends Body {
 			const field = fields[i];
 			if (fields.length == 1) {
 				if (field.vx != 0) {
-					if (portalAt(this, Direction.UP) || portalAt(this, Direction.DOWN)) {
+					if (portals.portalAt(this, Direction.UP) || portals.portalAt(this, Direction.DOWN)) {
 						if (this.y >> 8 < field.y) this.y += 768;
 						else if ((this.y >> 8) + this.pY > field.y + 2 * TILE_SIZE) this.y -= 768;
 					} else if (this.y >> 8 < field.y) this.y += 512;
@@ -320,7 +320,7 @@ export class Player extends Body {
 		let dir = (this.isRight - this.isLeft) * 128;
 
 		//jump handling
-		if (this.isJump && ground && !portalAt(this, Direction.DOWN) && fields.length == 0) {
+		if (this.isJump && ground && !portals.portalAt(this, Direction.DOWN) && fields.length == 0) {
 			this.vy = -1300;
 			playSound(sfx_jump);
 		} else if (!this.isJump && this.oldIsJump && this.vy < -200) {
@@ -328,7 +328,7 @@ export class Player extends Body {
 		}
 
 		if (this.vx > 0) {
-			if (ground == 1 && !portalAt(this, Direction.LEFT)) {
+			if (ground == 1 && !portals.portalAt(this, Direction.LEFT)) {
 				this.world.steps += this.vx >> 4;
 				this.vx -= 64;
 			} else {
@@ -336,7 +336,7 @@ export class Player extends Body {
 			}
 			if (this.vx < 0) this.vx = 0;
 		} else if (this.vx < 0) {
-			if (ground == 1 && !portalAt(this, Direction.RIGHT)) {
+			if (ground == 1 && !portals.portalAt(this, Direction.RIGHT)) {
 				this.world.steps -= this.vx >> 4;
 				this.vx += 64;
 			} else {
@@ -348,17 +348,37 @@ export class Player extends Body {
 		if (dir == 0 && ground) this.animationFrame = 0;
 
 		if (fields.length == 0) {
-			if (this.vx > 448 && ground == 1 && !portalAt(this, Direction.LEFT) && !portalAt(this, Direction.RIGHT))
+			if (
+				this.vx > 448 &&
+				ground == 1 &&
+				!portals.portalAt(this, Direction.LEFT) &&
+				!portals.portalAt(this, Direction.RIGHT)
+			)
 				this.vx = 448;
-			else if (this.vx < -448 && ground == 1 && !portalAt(this, Direction.LEFT) && !portalAt(this, Direction.RIGHT))
+			else if (
+				this.vx < -448 &&
+				ground == 1 &&
+				!portals.portalAt(this, Direction.LEFT) &&
+				!portals.portalAt(this, Direction.RIGHT)
+			)
 				this.vx = -448;
-			if (this.vx > 672 && ground > 1 && !portalAt(this, Direction.LEFT) && !portalAt(this, Direction.RIGHT))
+			if (
+				this.vx > 672 &&
+				ground > 1 &&
+				!portals.portalAt(this, Direction.LEFT) &&
+				!portals.portalAt(this, Direction.RIGHT)
+			)
 				this.vx = 672;
-			else if (this.vx < -672 && ground > 1 && !portalAt(this, Direction.LEFT) && !portalAt(this, Direction.RIGHT))
+			else if (
+				this.vx < -672 &&
+				ground > 1 &&
+				!portals.portalAt(this, Direction.LEFT) &&
+				!portals.portalAt(this, Direction.RIGHT)
+			)
 				this.vx = -672;
 		}
 
-		if (!ground || portalAt(this, Direction.DOWN)) {
+		if (!ground || portals.portalAt(this, Direction.DOWN)) {
 			if (fields.length == 0) this.vy += GRAVITY;
 			dir = Math.trunc(dir * 0.28);
 			if (this.vy > (10 << 8) + 128) this.vy = (10 << 8) + 128;
@@ -370,41 +390,42 @@ export class Player extends Body {
 		}
 
 		for (i = 0; i < 8; i++) {
-			if (!passPortal(this, Direction.DOWN) && !passPortal(this, Direction.UP)) this.x += this.vx >> 3;
-			if (!passPortal(this, Direction.LEFT) && !passPortal(this, Direction.RIGHT)) this.y += this.vy >> 3;
+			if (!portals.passPortal(this, Direction.DOWN) && !portals.passPortal(this, Direction.UP)) this.x += this.vx >> 3;
+			if (!portals.passPortal(this, Direction.LEFT) && !portals.passPortal(this, Direction.RIGHT))
+				this.y += this.vy >> 3;
 		}
 
 		const platform = this.world.onPlatform(this);
 		if (platform) this.x += platform.vx;
 
 		let col = true;
-		while (col && !isInPortal(this)) {
+		while (col && !portals.isInPortal(this)) {
 			col = this.checkCollisions();
 		}
 
-		if (portalAt(this, Direction.UP) && this.vy > 0) {
+		if (portals.portalAt(this, Direction.UP) && this.vy > 0) {
 			if (this.downCollision()) this.vy = -this.vy;
-		} else if (portalAt(this, Direction.DOWN) && this.vy < 0) {
+		} else if (portals.portalAt(this, Direction.DOWN) && this.vy < 0) {
 			if (this.upCollision()) this.vy = -this.vy;
 		}
 
 		collectCakes(this.world);
 		this.#grabObject();
-		clearPortalsAtForceField();
+		portals.clearPortalsAtForceField();
 
 		if (this.world.abilities.portals) {
-			if (input.mousePressed && this.portalCooldown == 25 && !isInPortal(this) && !this.carrying) {
+			if (input.mousePressed && this.portalCooldown == 25 && !portals.isInPortal(this) && !this.carrying) {
 				if (input.mouseButton == MouseButton.LEFT) {
-					launchPortal(0);
+					portals.launchPortal(0, input.mouseX, input.mouseY);
 				} else if (input.mouseButton == MouseButton.RIGHT) {
-					launchPortal(1);
+					portals.launchPortal(1, input.mouseX, input.mouseY);
 				}
 			}
 		}
 
 		const colLeft = this.leftCollision();
 		const colRight = this.rightCollision();
-		if (colLeft && colRight && !isInPortal(this)) {
+		if (colLeft && colRight && !portals.isInPortal(this)) {
 			if (colLeft instanceof Platform || colRight instanceof Platform) {
 				this.life = 0;
 			}

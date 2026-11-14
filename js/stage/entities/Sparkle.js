@@ -32,7 +32,7 @@ export function removeSparkles(world, p, type) {
  * @returns {void}
  */
 export function createPortalGlow(world, p) {
-	const portal = world.portals[p];
+	const portal = world.portals.list[p];
 	const onSideWall = portal.direction == Direction.LEFT || portal.direction == Direction.RIGHT;
 	removeSparkles(world, p, SparkleType.PORTAL_GLOW);
 	for (let i = 0; i < 13; i++) {
@@ -189,7 +189,7 @@ export class Sparkle {
 			} else if (this.vy != 0) {
 				d = Math.abs(this.yOrig - this.y) >> 8;
 				this.fading = 200 - 5 * d;
-				const platform = this.world.portals[this.portalNum].platform;
+				const platform = this.world.portals.list[this.portalNum].platform;
 				if (platform) {
 					this.x += platform.vx;
 					this.xOrig = this.x;

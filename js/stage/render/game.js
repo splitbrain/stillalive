@@ -2,7 +2,7 @@
  * Drawing of a level and of the preview of a map.
  */
 
-import { canvasGeneration, copyCanvas, ctx, drawCopy, drawImage } from '../canvas.js';
+import { ctx, drawImage } from '../canvas.js';
 import {
 	Direction,
 	MAP_HEIGHT,
@@ -37,7 +37,6 @@ import {
 } from '../images.js';
 import { drawBoss } from './boss.js';
 import { drawTransition } from './transitions.js';
-import { input, ui } from '../state.js';
 import { degToRad, getAngle, radToDeg, random } from '../utils.js';
 
 /**
@@ -62,10 +61,11 @@ const LABEL_MAX_TILT = 3;
 const LABEL_MAX_RISE = 1;
 
 /**
- * @type {WeakMap<import('../mapFile.js').MapLabel, {lines: string[], metrics: TextMetrics[], tilt: number}>} The
- *     layout of each label that was measured with the loaded label font.
+ * The layouts of the labels that were measured with the loaded label font.
+ *
+ * @typedef {WeakMap<import('../mapFile.js').MapLabel, {lines: string[], metrics: TextMetrics[], tilt: number}>}
+ *     LabelLayouts
  */
-const labelLayouts = new WeakMap();
 
 // the canvas does not load a font by itself before the first label needs it
 document.fonts.load(LABEL_FONT);
@@ -112,9 +112,10 @@ function triangle(x1, y1, x2, y2, x3, y3) {
  * Draw the portal gun of the player, turned towards the mouse.
  *
  * @param {import('../World.js').World} world The World.
+ * @param {import('../InputState.js').InputState} input The mouse position.
  * @returns {void}
  */
-function drawPortalGun(world) {
+function drawPortalGun(world, input) {
 	if (world.abilities.portals) {
 		const a = getAngle(world.player.midX(), world.player.midY(), input.mouseX, input.mouseY);
 		ctx.save();
@@ -129,10 +130,11 @@ function drawPortalGun(world) {
  * Draw the head of the player, turned towards the mouse.
  *
  * @param {import('../World.js').World} world The World.
+ * @param {import('../InputState.js').InputState} input The mouse position.
  * @param {number} flipDx 1 when the player faces left, else 0.
  * @returns {void}
  */
-function drawRotatedHead(world, flipDx) {
+function drawRotatedHead(world, input, flipDx) {
 	let a = getAngle(world.player.midX(), world.player.midY(), input.mouseX, input.mouseY);
 	ctx.save();
 	// facing left, the head image is mirrored around the pivot, so the pivot sits at the mirrored x of the neck
@@ -204,23 +206,23 @@ function drawSparkles(world) {
 }
 
 /**
- * Draw a level.
+ * Draw a level over its tile layer.
  *
  * @param {import('../World.js').World} world The World.
+ * @param {import('../InputState.js').InputState} input The mouse position.
+ * @param {LabelLayouts} labelLayouts The layouts of the labels for the next frames.
  * @returns {void}
  */
-export function drawLevel(world) {
-	if (!isSameSource(tileLayerSource, layerSource(world.map, world.background))) createBuff(world);
-	drawTileLayer();
+export function drawLevel(world, input, labelLayouts) {
 	drawAnimatedTiles(world);
 
 	drawGravPipes(world);
 
 	const flipDx = world.player.flip < 0 ? 1 : 0;
-	if (!flipDx) drawPortalGun(world);
-	drawRotatedHead(world, flipDx);
+	if (!flipDx) drawPortalGun(world, input);
+	drawRotatedHead(world, input, flipDx);
 	drawBody(world.player.x >> 8, world.player.y >> 8, world.player.animationFrame, world.player.flip);
-	if (flipDx) drawPortalGun(world);
+	if (flipDx) drawPortalGun(world, input);
 
 	drawCakes(world);
 	drawTurrets(world);
@@ -234,11 +236,11 @@ export function drawLevel(world) {
 		drawTube(world);
 	}
 
-	drawPlatforms(world);
+	drawPlatforms(world, false);
 	drawFrontTiles(world);
 	drawPortals(world);
 	drawCamera(world);
-	drawLabels(world);
+	drawLabels(world, labelLayouts);
 
 	if (world.player.dead) {
 		const a = -(world.player.life / 256);
@@ -255,15 +257,16 @@ export function drawLevel(world) {
  * Draw the labels of the level at their positions in the playfield.
  *
  * @param {import('../World.js').World} world The World.
+ * @param {LabelLayouts} labelLayouts The layouts of the labels for the next frames.
  * @returns {void}
  */
-function drawLabels(world) {
+function drawLabels(world, labelLayouts) {
 	if (!world.isRunning() && !world.isHalted()) return;
 	ctx.save();
 	ctx.font = LABEL_FONT;
 	ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
 	ctx.textAlign = 'center';
-	for (const label of world.labels) drawLabel(label);
+	for (const label of world.labels) drawLabel(label, labelLayouts);
 	ctx.restore();
 }
 
@@ -273,10 +276,11 @@ function drawLabels(world) {
  * Each line is centered on its letters, so a line without descenders does not look too high.
  *
  * @param {import('../mapFile.js').MapLabel} label The label.
+ * @param {LabelLayouts} labelLayouts The layouts of the labels for the next frames.
  * @returns {void}
  */
-function drawLabel(label) {
-	const { lines, metrics, tilt } = labelLayouts.get(label) ?? layoutLabel(label);
+function drawLabel(label, labelLayouts) {
+	const { lines, metrics, tilt } = labelLayouts.get(label) ?? layoutLabel(label, labelLayouts);
 
 	ctx.save();
 	ctx.translate(label.x * TILE_SIZE + TILE_SIZE / 2, label.y * TILE_SIZE + TILE_SIZE / 2);
@@ -296,10 +300,11 @@ function drawLabel(label) {
  * ends stay in the tile row.
  *
  * @param {import('../mapFile.js').MapLabel} label The label.
+ * @param {LabelLayouts} labelLayouts The layouts of the labels for the next frames.
  * @returns {{lines: string[], metrics: TextMetrics[], tilt: number}} The lines, their metrics and the tilt in
  *     radians.
  */
-function layoutLabel(label) {
+function layoutLabel(label, labelLayouts) {
 	const lines = label.text.split('\n');
 	const metrics = lines.map((line) => ctx.measureText(line));
 	const width = Math.max(...metrics.map((m) => m.width));
@@ -339,79 +344,14 @@ function drawAnimatedTiles(world) {
 }
 
 /**
- * The map, the version of the map, the background and the canvas generation that a cached layer shows.
- *
- * @typedef {object} LayerSource
- * @property {import('../TileMap.js').TileMap} map The map.
- * @property {number} version The version of the map.
- * @property {number} background The index of the background image.
- * @property {number} generation The generation of the canvas buffer.
- */
-
-/**
- * Get the source of a cached layer for a map, a background and the current canvas buffer.
- *
- * @param {import('../TileMap.js').TileMap} map The map.
- * @param {number} background The index of the background image.
- * @returns {LayerSource} The source.
- */
-export function layerSource(map, background) {
-	return { map, version: map.version, background, generation: canvasGeneration() };
-}
-
-/**
- * Check if two layer sources are the same, so a cached layer of one source can show the other.
- *
- * @param {LayerSource|null} a The first source, or null for no cached layer.
- * @param {LayerSource} b The second source.
- * @returns {boolean} True if the sources are the same.
- */
-export function isSameSource(a, b) {
-	return (
-		a != null &&
-		a.map === b.map &&
-		a.version == b.version &&
-		a.background == b.background &&
-		a.generation == b.generation
-	);
-}
-
-/** @type {OffscreenCanvas|null} The copy of the background and the tile layer from saveTileLayer(). */
-let tileLayer = null;
-
-/** @type {LayerSource|null} The source of tileLayer, or null before the first copy. */
-let tileLayerSource = null;
-
-/**
- * Keep a copy of the background and the tile layer, which are drawn in the playfield.
+ * Draw the background and the display layer of the map of a World.
  *
  * @param {import('../World.js').World} world The World.
  * @returns {void}
  */
-function saveTileLayer(world) {
-	tileLayer = copyCanvas(0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
-	tileLayerSource = layerSource(world.map, world.background);
-}
-
-/**
- * Draw the copy of the background and the tile layer into the playfield.
- *
- * @returns {void}
- */
-function drawTileLayer() {
-	drawCopy(tileLayer, 0, 0);
-}
-
-/**
- * Draw the background and the tile layer and keep a copy for the next frames.
- *
- * @param {import('../World.js').World} world The World.
- * @returns {void}
- */
-function createBuff(world) {
+export function drawTileLayer(world) {
 	drawImage(bg[world.background], 0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 	drawTiles(world.map);
-	saveTileLayer(world);
 }
 
 /**
@@ -623,23 +563,25 @@ function drawTube(world) {
  * Draw the platforms.
  *
  * @param {import('../World.js').World} world The World.
+ * @param {boolean} arrow True to show the direction of each platform with an arrow.
  * @returns {void}
  */
-export function drawPlatforms(world) {
-	for (const p of world.platforms) drawPlatform(p.x >> 8, p.y >> 8, p.dir);
+export function drawPlatforms(world, arrow) {
+	for (const p of world.platforms) drawPlatform(p.x >> 8, p.y >> 8, p.dir, arrow);
 }
 
 /**
- * Draw a platform. In the editor, an arrow shows the direction.
+ * Draw a platform.
  *
  * @param {number} x The x coordinate in canvas pixels.
  * @param {number} y The y coordinate in canvas pixels.
  * @param {number} dir The direction, -1 left or 1 right.
+ * @param {boolean} arrow True to show the direction with an arrow.
  * @returns {void}
  */
-export function drawPlatform(x, y, dir) {
+export function drawPlatform(x, y, dir, arrow) {
 	drawImage(platform, x, y);
-	if (ui.mode == 'edit') {
+	if (arrow) {
 		ctx.fillStyle = 'rgb(255, 0, 0)';
 		ctx.strokeStyle = 'rgb(255, 0, 0)';
 		drawArrow(x + 5, y + TILE_SIZE / 2, x + 15, y + TILE_SIZE / 2, 3, dir);
@@ -757,15 +699,13 @@ export function drawPlayer(x, y, flipX, frame = 0) {
 }
 
 /**
- * Draw the preview of a map with its objects.
+ * Draw the preview of a map with its objects over its tile layer.
  *
  * @param {import('../World.js').World} world The World.
+ * @param {import('../InputState.js').InputState} input The mouse position.
  * @returns {void}
  */
-export function drawPreviewMap(world) {
-	if (!isSameSource(tileLayerSource, layerSource(world.map, world.background))) createBuff(world);
-	drawTileLayer();
-
+export function drawPreviewMap(world, input) {
 	ctx.save();
 	ctx.translate(world.player.midX(), world.player.midY());
 	drawImage(portalGun, -5, -5);
@@ -776,7 +716,7 @@ export function drawPreviewMap(world) {
 	drawCakes(world);
 	drawTurrets(world);
 	drawCrates(world);
-	drawPlatforms(world);
+	drawPlatforms(world, false);
 	drawGravPipes(world);
 
 	if (world.boss) {

@@ -17,12 +17,12 @@ import {
 	sfx_hover,
 	sfx_tick,
 } from './audio.js';
-import { clearCanvas, ctx, setCanvas, watchCanvasSize } from './canvas.js';
+import { beginFrame, clearCanvas, ctx, setCanvas, watchCanvasSize } from './canvas.js';
 import { PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, Transition } from './constants.js';
 import { Editor } from './Editor.js';
 import { setupInput } from './input.js';
 import { getFps, startLoop } from './loop.js';
-import { render } from './render/frame.js';
+import { Renderer } from './render/Renderer.js';
 import { Recorder, ReplayPlayer, decodeReplay, encodeReplay } from './replay.js';
 import { input, stageEvents, ui } from './state.js';
 import { World } from './World.js';
@@ -101,6 +101,9 @@ export class GameStage extends HTMLElement {
 	/** @type {World|null} The World that the stage shows, or null before the first connection. */
 	#world = null;
 
+	/** @type {Renderer} The drawing of the stage. */
+	#renderer = new Renderer(input);
+
 	/** @type {Recorder|ReplayPlayer|null} The input source of the level in the mode "play", else null. */
 	#source = null;
 
@@ -137,7 +140,7 @@ export class GameStage extends HTMLElement {
 
 		startLoop(
 			() => this.#step(),
-			() => render(this.#world, this.#editor),
+			() => this.#render(),
 		);
 		this.#addTestHook();
 	}
@@ -557,6 +560,19 @@ export class GameStage extends HTMLElement {
 	}
 
 	/**
+	 * Draw the canvas after the ticks of a frame.
+	 *
+	 * @returns {void}
+	 */
+	#render() {
+		if (ui.mode == 'idle') return;
+		beginFrame(this.#world.shakeX, this.#world.shakeY);
+		if (ui.mode == 'edit') this.#renderer.drawEditor(this.#editor);
+		else if (ui.mode == 'play' || ui.mode == 'test') this.#renderer.drawLevel(this.#world);
+		else if (ui.mode == 'preview') this.#renderer.drawPreview(this.#world);
+	}
+
+	/**
 	 * Update the Value properties and dispatch the events of the tick. The speed and the volume of the music follow the
 	 * phase of the boss fight.
 	 *
@@ -597,7 +613,7 @@ export class GameStage extends HTMLElement {
 			endReplay: () => this.#endPlayback(),
 			input,
 			tick: () => this.#step(),
-			render: () => render(this.#world, this.#editor),
+			render: () => this.#render(),
 		};
 	}
 }

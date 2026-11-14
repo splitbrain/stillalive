@@ -2,11 +2,10 @@
  * Drawing of the level editor: the map with its objects.
  */
 
-import { copyCanvas, ctx, drawCopy, drawImage } from '../canvas.js';
+import { ctx, drawImage } from '../canvas.js';
 import { MAP_HEIGHT, MAP_WIDTH, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, TILE_SIZE, TILE_SIZE_BITS } from '../constants.js';
 import { bg, cake, crateImage, tileset, turretImages } from '../images.js';
 import { GRAVPIPE_DIRECTIONS, plasmaLaunch } from '../level.js';
-import { input } from '../state.js';
 import { Tile, isGravPipeTile, isObjectTile } from '../tiles.js';
 import {
 	drawCakes,
@@ -18,26 +17,18 @@ import {
 	drawPlayer,
 	drawTiles,
 	drawTurrets,
-	isSameSource,
-	layerSource,
 } from './game.js';
 
-/** @type {OffscreenCanvas|undefined} The copy of the background, the tiles and the objects of the editor map. */
-let tilesBuff;
-
-/** @type {import('./game.js').LayerSource|null} The source of tilesBuff, or null before the first copy. */
-let tilesBuffSource = null;
-
 /**
- * Draw the editor map and the cursor.
+ * Draw the cursor of the editor: the tile or the object that the editor paints, at the mouse.
  *
- * @param {import('../Editor.js').Editor} editor The editor.
+ * @param {number} brush The tile id or the object id that the editor paints.
+ * @param {import('../InputState.js').InputState} input The mouse.
  * @returns {void}
  */
-export function drawEditor(editor) {
-	drawTileMap(editor);
-	drawTileCursor(editor.brush);
-	drawSpriteCursor(editor.brush);
+export function drawCursor(brush, input) {
+	drawTileCursor(brush, input);
+	drawSpriteCursor(brush, input);
 }
 
 /**
@@ -50,57 +41,51 @@ function drawSprites(world) {
 	drawCakes(world);
 	drawTurrets(world);
 	drawCrates(world);
-	drawPlatforms(world);
+	drawPlatforms(world, true);
 	drawGravPipes(world);
 	drawPlayer(world.player.x >> 8, world.player.y >> 8, 0);
 }
 
 /**
- * Draw the tile layer of the editor with the plasma start markers and the objects, and keep a copy for the next
- * frames. The objects of the editor come from the map, so the copy stays valid while the map does not change.
+ * Draw the tile layer of the editor: the background, the plasma start markers, the tiles and the objects. The objects
+ * of the editor come from the map, so the layer changes only with the map and the background.
  *
  * @param {import('../Editor.js').Editor} editor The editor.
  * @returns {void}
  */
-function drawTileMap(editor) {
+export function drawEditorLayer(editor) {
 	let y, x, i;
 	const map = editor.map;
-	const source = layerSource(map, editor.background);
-	if (!isSameSource(tilesBuffSource, source)) {
-		drawImage(bg[editor.background], 0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
-		ctx.fillStyle = 'rgba(255, 0, 0, 0.7)';
-		for (i = 0; i < map.tiles.length; i++) {
-			if (map.tiles[i] == Tile.PLASMA_START) {
-				x = map.column(i);
-				y = map.row(i);
+	drawImage(bg[editor.background], 0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
+	ctx.fillStyle = 'rgba(255, 0, 0, 0.7)';
+	for (i = 0; i < map.tiles.length; i++) {
+		if (map.tiles[i] == Tile.PLASMA_START) {
+			x = map.column(i);
+			y = map.row(i);
 
-				if (!plasmaLaunch(map, x, y)) {
-					if (y - 1 >= 0) ctx.fillRect(x * TILE_SIZE, (y - 1) * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-					if (y + 1 < MAP_HEIGHT) ctx.fillRect(x * TILE_SIZE, (y + 1) * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-					if (x - 1 >= 0) ctx.fillRect((x - 1) * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-					if (x + 1 < MAP_WIDTH) ctx.fillRect((x + 1) * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-				}
-
-				break;
+			if (!plasmaLaunch(map, x, y)) {
+				if (y - 1 >= 0) ctx.fillRect(x * TILE_SIZE, (y - 1) * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+				if (y + 1 < MAP_HEIGHT) ctx.fillRect(x * TILE_SIZE, (y + 1) * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+				if (x - 1 >= 0) ctx.fillRect((x - 1) * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+				if (x + 1 < MAP_WIDTH) ctx.fillRect((x + 1) * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
 			}
-		}
 
-		drawTiles(map);
-		drawSprites(editor.world);
-		tilesBuff = copyCanvas(0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
-		tilesBuffSource = source;
-	} else {
-		drawCopy(tilesBuff, 0, 0);
+			break;
+		}
 	}
+
+	drawTiles(map);
+	drawSprites(editor.world);
 }
 
 /**
  * Draw the selected tile at the mouse while the pointer is over the canvas and the mouse is over the map.
  *
  * @param {number} brush The tile id that the editor paints.
+ * @param {import('../InputState.js').InputState} input The mouse.
  * @returns {void}
  */
-function drawTileCursor(brush) {
+function drawTileCursor(brush, input) {
 	if (!input.mouseOver || !input.mouseOnPlayfield() || isObjectTile(brush)) return;
 	const x = (input.mouseX >> TILE_SIZE_BITS) << TILE_SIZE_BITS;
 	const y = (input.mouseY >> TILE_SIZE_BITS) << TILE_SIZE_BITS;
@@ -114,9 +99,10 @@ function drawTileCursor(brush) {
  * Draw the selected object at the mouse while the pointer is over the canvas and the mouse is over the map.
  *
  * @param {number} sprite The object id that the editor paints.
+ * @param {import('../InputState.js').InputState} input The mouse.
  * @returns {void}
  */
-function drawSpriteCursor(sprite) {
+function drawSpriteCursor(sprite, input) {
 	if (!input.mouseOver || !input.mouseOnPlayfield() || !isObjectTile(sprite)) return;
 	const x = (input.mouseX >> TILE_SIZE_BITS) << TILE_SIZE_BITS;
 	const y = (input.mouseY >> TILE_SIZE_BITS) << TILE_SIZE_BITS;
@@ -126,8 +112,8 @@ function drawSpriteCursor(sprite) {
 		drawImage(turretImages[0], 0, 0, TILE_SIZE, 2 * TILE_SIZE, x, y, TILE_SIZE, 2 * TILE_SIZE);
 	else if (sprite == Tile.TURRET_RIGHT)
 		drawImage(turretImages[1], 0, 0, TILE_SIZE, 2 * TILE_SIZE, x, y, TILE_SIZE, 2 * TILE_SIZE);
-	else if (sprite == Tile.PLATFORM_RIGHT) drawPlatform(x, y, 1);
-	else if (sprite == Tile.PLATFORM_LEFT) drawPlatform(x, y, -1);
+	else if (sprite == Tile.PLATFORM_RIGHT) drawPlatform(x, y, 1, true);
+	else if (sprite == Tile.PLATFORM_LEFT) drawPlatform(x, y, -1, true);
 	else if (sprite == Tile.PLAYER_START) drawPlayer(x, y, 0);
 	else if (isGravPipeTile(sprite)) drawGravPipe(GRAVPIPE_DIRECTIONS[sprite], x, y);
 }

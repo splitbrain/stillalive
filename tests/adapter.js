@@ -543,7 +543,7 @@ export async function runPortalScene(page, scene) {
 		switch (spec?.type) {
 			case 'crate':
 				obj = new Crate(world, spec.x << 8, spec.y << 8);
-				world.crates.push(obj);
+				world.addCrate(obj);
 				break;
 			case 'turret':
 				obj = new Turret(world, spec.x << 8, spec.y << 8, -1);
@@ -551,7 +551,7 @@ export async function runPortalScene(page, scene) {
 				break;
 			case 'plasma':
 				obj = new Plasma(world, spec.x << 8, spec.y << 8, spec.vx, spec.vy);
-				world.plasmaBall.push(obj);
+				world.addPlasma(obj);
 				break;
 		}
 

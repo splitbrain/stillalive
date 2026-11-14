@@ -587,6 +587,56 @@ export class World {
 	}
 
 	/**
+	 * Add a crate.
+	 *
+	 * @param {Crate} crate The crate.
+	 * @returns {void}
+	 */
+	addCrate(crate) {
+		this.crates.push(crate);
+	}
+
+	/**
+	 * Remove a crate.
+	 *
+	 * @param {Crate} crate The crate.
+	 * @returns {void}
+	 */
+	removeCrate(crate) {
+		this.crates.splice(this.crates.indexOf(crate), 1);
+	}
+
+	/**
+	 * Add a razor wheel of the boss.
+	 *
+	 * @param {import('./entities/Projectile.js').Projectile} wheel The razor wheel.
+	 * @returns {void}
+	 */
+	addProjectile(wheel) {
+		this.projectiles.push(wheel);
+	}
+
+	/**
+	 * Add a plasma ball.
+	 *
+	 * @param {Plasma} ball The plasma ball.
+	 * @returns {void}
+	 */
+	addPlasma(ball) {
+		this.plasmaBall.push(ball);
+	}
+
+	/**
+	 * Remove the razor wheels and the plasma balls of the boss.
+	 *
+	 * @returns {void}
+	 */
+	clearBossAttacks() {
+		this.projectiles = [];
+		this.plasmaBall = [];
+	}
+
+	/**
 	 * Place the player below the bottom edge with a speed upward, so the player jumps into the level.
 	 *
 	 * @returns {void}

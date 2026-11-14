@@ -117,8 +117,7 @@ export class Boss {
 			return;
 		}
 		if (player.dead) {
-			this.world.projectiles = [];
-			this.world.plasmaBall = [];
+			this.world.clearBossAttacks();
 			return;
 		}
 		if (this.hits < BOSS_LIVES && this.world.phase.isRunning()) this.#attack();
@@ -173,7 +172,7 @@ export class Boss {
 					const crate = new Crate(this.world, toSubpixels((MAP_WIDTH - 1) * TILE_SIZE), toSubpixels(18 * TILE_SIZE));
 					crate.vx = -toSubpixels(12);
 					crate.vy = -toSubpixels(2);
-					this.world.crates.push(crate);
+					this.world.addCrate(crate);
 				}
 				break;
 			}
@@ -209,7 +208,7 @@ export class Boss {
 	 */
 	#shootWheel(x, y, speed, speedX = speed) {
 		const [dx, dy] = this.#aimAtPlayer(x + TILE_SIZE / 2, y + TILE_SIZE / 2);
-		this.world.projectiles.push(
+		this.world.addProjectile(
 			new Projectile(this.world, toSubpixels(x), toSubpixels(y), Math.trunc(dx * speedX), Math.trunc(dy * speed)),
 		);
 	}
@@ -225,9 +224,7 @@ export class Boss {
 			toPixels(this.world.plasmaX) + TILE_SIZE / 2,
 			toPixels(this.world.plasmaY) + TILE_SIZE / 2,
 		);
-		this.world.plasmaBall.push(
-			new Plasma(this.world, this.world.plasmaX, this.world.plasmaY, dx * speed, dy * speed, true),
-		);
+		this.world.addPlasma(new Plasma(this.world, this.world.plasmaX, this.world.plasmaY, dx * speed, dy * speed, true));
 	}
 
 	/**
@@ -240,14 +237,10 @@ export class Boss {
 	 */
 	#throwCrate(row, divisor) {
 		const crate = new Crate(this.world, toSubpixels((MAP_WIDTH - 1) * TILE_SIZE), toSubpixels(row * TILE_SIZE));
-		this.world.crates.push(crate);
+		this.world.addCrate(crate);
 		if (this.world.crates.length > 10) {
-			for (let i = 0; i < 10; i++) {
-				if (!this.world.crates[i].carried && this.world.crates[i].noRemove === 0) {
-					this.world.crates.splice(i, 1);
-					break;
-				}
-			}
+			const oldest = this.world.crates.slice(0, 10).find((old) => !old.carried && old.noRemove === 0);
+			if (oldest) this.world.removeCrate(oldest);
 		}
 		const distance = getDistance(this.world.player.pixelX, this.world.player.pixelY, crate.pixelX, crate.pixelY);
 		const speed = Math.min(Math.max(Math.trunc(distance / divisor), 3), 16);
@@ -320,8 +313,7 @@ export class Boss {
 					if (tile === block) this.world.map.set(i, block);
 				}
 			} else {
-				this.world.projectiles = [];
-				this.world.plasmaBall = [];
+				this.world.clearBossAttacks();
 				this.world.events.trigger('bossDied');
 			}
 		}

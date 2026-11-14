@@ -12,7 +12,7 @@ import { floorTiles, runTicks, runUntilRunning, seedRandom, startWorld } from '.
 function throwCrate(world) {
 	const crate = new Crate(world, 400 << 8, 170 << 8);
 	crate.vx = 4 << 8;
-	world.crates.push(crate);
+	world.addCrate(crate);
 	return crate;
 }
 

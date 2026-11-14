@@ -239,7 +239,7 @@ export class Boss {
 		const crate = new Crate(this.world, toSubpixels((MAP_WIDTH - 1) * TILE_SIZE), toSubpixels(row * TILE_SIZE));
 		this.world.addCrate(crate);
 		if (this.world.crates.length > 10) {
-			const oldest = this.world.crates.slice(0, 10).find((old) => !old.carried && old.noRemove === 0);
+			const oldest = this.world.crates.slice(0, 10).find((candidate) => !candidate.carried && candidate.noRemove === 0);
 			if (oldest) this.world.removeCrate(oldest);
 		}
 		const distance = getDistance(this.world.player.pixelX, this.world.player.pixelY, crate.pixelX, crate.pixelY);

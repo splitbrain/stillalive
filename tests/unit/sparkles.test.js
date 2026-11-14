@@ -104,3 +104,16 @@ test('a portal glow sparkle fades with its distance from the portal and starts a
 	assert.equal(sparkle.x, sparkle.startX);
 	assert.ok(world.sparkles.includes(sparkle));
 });
+
+test('removeSparkles() removes only the sparkles of the type and the color', () => {
+	const world = startWorld(floorTiles());
+	const kept = [
+		new Sparkle(world, SparkleType.PORTAL_GLOW, 0, 0, 0, 0, FADING, 1),
+		new Sparkle(world, SparkleType.PORTAL_SHOT, 0, 0, 0, 0, FADING, 0),
+	];
+	for (const sparkle of kept) world.addSparkle(sparkle);
+	world.addSparkle(new Sparkle(world, SparkleType.PORTAL_GLOW, 0, 0, 0, 0, FADING, 0));
+	world.addSparkle(new Sparkle(world, SparkleType.PORTAL_GLOW, 0, 0, 0, 0, FADING, 0));
+	world.removeSparkles(SparkleType.PORTAL_GLOW, 0);
+	assert.deepEqual(world.sparkles, kept);
+});

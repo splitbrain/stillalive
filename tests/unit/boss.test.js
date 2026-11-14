@@ -62,6 +62,31 @@ test('the third hit kills the boss', (context) => {
 	assert.deepEqual(world.projectiles, []);
 });
 
+test('the boss removes the oldest removable crate when more than ten crates exist', (context) => {
+	context.after(seedRandom(1));
+	const world = startWorld(floorTiles(), { boss: 1, restart: true });
+	runUntilRunning(world);
+	// the first crate of the boss flies out of the level, so the test takes it away at once
+	world.removeCrate(world.crates[0]);
+	const crates = [];
+	for (let i = 0; i < 10; i++) {
+		const crate = new Crate(world, (100 + 20 * i) << 8, 300 << 8);
+		world.addCrate(crate);
+		crates.push(crate);
+	}
+	crates[0].noRemove = 1000;
+	let ticks = 0;
+	while (world.crates.every((crate) => crates.includes(crate)) && ticks < 120) {
+		runTicks(world, 1);
+		ticks++;
+	}
+	assert.equal(world.crates.length, 10);
+	assert.equal(world.crates.includes(crates[0]), true);
+	assert.equal(world.crates.includes(crates[1]), false);
+	assert.deepEqual(world.crates.slice(1, 9), crates.slice(2));
+	assert.equal(crates.includes(world.crates[9]), false);
+});
+
 test('removeCrate() changes nothing for a crate that is not in the list', () => {
 	const world = startWorld(floorTiles());
 	const crate = new Crate(world, 100 << 8, 300 << 8);

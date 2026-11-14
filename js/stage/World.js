@@ -554,7 +554,7 @@ export class World {
 					sparkle.vy = random(128, 384);
 					break;
 			}
-			this.sparkles.push(sparkle);
+			this.addSparkle(sparkle);
 		}
 	}
 
@@ -571,7 +571,7 @@ export class World {
 	createCakeOrSmokeSparkles(x, y, type, number, size) {
 		const color = type === SparkleType.CAKE ? 2 : 3;
 		for (let i = 0; i < number; i++) {
-			this.sparkles.push(
+			this.addSparkle(
 				new Sparkle(
 					this,
 					type,

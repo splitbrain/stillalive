@@ -122,7 +122,7 @@ export class Boss {
 			this.world.plasmaBall = [];
 			return;
 		}
-		if (this.hits < BOSS_LIVES && this.world.isRunning()) this.#attack();
+		if (this.hits < BOSS_LIVES && this.world.phase.isRunning()) this.#attack();
 	}
 
 	/**

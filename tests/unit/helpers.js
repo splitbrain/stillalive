@@ -102,5 +102,5 @@ export function runTicks(world, count, keys = 0) {
  * @returns {void}
  */
 export function runUntilRunning(world) {
-	while (!world.isRunning()) runTicks(world, 1);
+	while (!world.phase.isRunning()) runTicks(world, 1);
 }

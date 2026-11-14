@@ -2,7 +2,7 @@
  * The events of a level and the message of the narrator.
  */
 
-import { Direction, LevelPhase, TILE_SIZE, TILE_SIZE_BITS } from './constants.js';
+import { Direction, TILE_SIZE, TILE_SIZE_BITS } from './constants.js';
 import { createPortalGlow } from './entities/Sparkle.js';
 import { keyLabels } from './keys.js';
 import { toSubpixels } from './utils.js';
@@ -94,7 +94,11 @@ export class LevelEvents {
 	 */
 	update() {
 		const input = this.#world.input;
-		if (this.#waiting !== null && (this.#world.isHalted() || this.#world.isExitWait()) && input.mouseNewPress) {
+		if (
+			this.#waiting !== null &&
+			(this.#world.phase.isHalted() || this.#world.phase.isExitWait()) &&
+			input.mouseNewPress
+		) {
 			this.#endWait();
 			input.unclick();
 		}
@@ -158,7 +162,7 @@ export class LevelEvents {
 		if (!event.wait) return;
 		this.#waiting = event;
 		// stop the level time from the next tick on
-		if (this.#world.isRunning()) this.#world.phase = LevelPhase.HALTED;
+		if (this.#world.phase.isRunning()) this.#world.phase.halt();
 	}
 }
 

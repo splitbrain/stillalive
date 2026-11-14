@@ -259,7 +259,7 @@ export function drawLevel(world, input, labelLayouts) {
 		ctx.fillRect(0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 	}
 
-	drawTransition(world);
+	drawTransition(world.phase);
 
 	drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);
 }
@@ -272,7 +272,7 @@ export function drawLevel(world, input, labelLayouts) {
  * @returns {void}
  */
 function drawLabels(world, labelLayouts) {
-	if (!world.isRunning() && !world.isHalted()) return;
+	if (!world.phase.isRunning() && !world.phase.isHalted()) return;
 	ctx.save();
 	ctx.font = LABEL_FONT;
 	ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
@@ -388,7 +388,7 @@ export function drawTiles(map) {
 export function drawCakes(world) {
 	for (const cake of world.cakes) {
 		if (!cake.used) continue;
-		const float = world.isRunning() ? cake.vy : 0;
+		const float = world.phase.isRunning() ? cake.vy : 0;
 		drawImage(cakeImage, cake.pixelX, toPixels(cake.y + float), TILE_SIZE, 12);
 	}
 }

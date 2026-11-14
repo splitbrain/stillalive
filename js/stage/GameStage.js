@@ -536,7 +536,7 @@ export class GameStage extends HTMLElement {
 			this.steps.set(toPixels(world.steps));
 			this.portals.set(world.portalShots);
 			const time = world.time;
-			this.time.set(world.isRunning() ? time - (time % TIME_UPDATE_INTERVAL) : time);
+			this.time.set(world.phase.isRunning() ? time - (time % TIME_UPDATE_INTERVAL) : time);
 		}
 		this.paused.set(this.#play?.paused ?? false);
 		this.message.set(world?.events?.message ?? null);

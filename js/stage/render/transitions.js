@@ -10,15 +10,15 @@ import { lineOrder } from '../images.js';
  * Draw the transition of the level phase with the progress of the fade. While an exit event waits and in the exit
  * freeze after the level end, the playfield is black.
  *
- * @param {import('../World.js').World} world The World.
+ * @param {import('../LevelPhase.js').LevelPhase} phase The phase of the level.
  * @returns {void}
  */
-export function drawTransition(world) {
-	if (world.isOpening()) {
-		drawOpeningTransition(world);
-	} else if (world.isClosing()) {
-		drawClosingTransition(world);
-	} else if (world.isExitWait() || world.isEnded()) {
+export function drawTransition(phase) {
+	if (phase.isOpening()) {
+		drawOpeningTransition(phase);
+	} else if (phase.isClosing()) {
+		drawClosingTransition(phase);
+	} else if (phase.isExitWait() || phase.isEnded()) {
 		ctx.fillStyle = 'rgb(0, 0, 0)';
 		ctx.fillRect(0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 	}
@@ -52,15 +52,15 @@ function drawColumns(scale) {
 /**
  * Draw the closing transition of the current effect.
  *
- * @param {import('../World.js').World} world The World.
+ * @param {import('../LevelPhase.js').LevelPhase} phase The phase of the level.
  * @returns {void}
  */
-function drawClosingTransition(world) {
+function drawClosingTransition(phase) {
 	ctx.fillStyle = 'rgb(0, 0, 0)';
-	const scale = 1 - world.fade / FADE_START;
+	const scale = 1 - phase.fade / FADE_START;
 	const width = Math.trunc(PLAYFIELD_WIDTH * scale);
 	const height = Math.trunc(PLAYFIELD_HEIGHT * scale);
-	switch (world.transition) {
+	switch (phase.transition) {
 		case Transition.TOP_LEFT:
 			ctx.fillRect(0, 0, width, height);
 			break;
@@ -85,19 +85,19 @@ function drawClosingTransition(world) {
 /**
  * Draw the opening transition of the current effect.
  *
- * @param {import('../World.js').World} world The World.
+ * @param {import('../LevelPhase.js').LevelPhase} phase The phase of the level.
  * @returns {void}
  */
-function drawOpeningTransition(world) {
+function drawOpeningTransition(phase) {
 	ctx.fillStyle = 'rgb(0, 0, 0)';
 	ctx.strokeStyle = 'rgb(0, 0, 0)';
-	const scale = world.fade / FADE_START;
+	const scale = phase.fade / FADE_START;
 	const width = Math.trunc(PLAYFIELD_WIDTH * scale);
 	const height = Math.trunc(PLAYFIELD_HEIGHT * scale);
 	const x = PLAYFIELD_WIDTH - width;
 	const y = PLAYFIELD_HEIGHT - height;
 
-	switch (world.transition) {
+	switch (phase.transition) {
 		case Transition.TOP_LEFT:
 			ctx.fillRect(x, y, width, height);
 			break;

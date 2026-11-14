@@ -110,20 +110,6 @@ export const CAMPAIGN_FOLDERS = ['normal', 'advanced', 'community', 'tutorial', 
 
 /** @type {number} The start value of the fade of a level transition. The fade counts down to 0 by 4 per tick. */
 export const FADE_START = 120;
-/**
- * @type {Object<string, number>} The phases of a level. OPENING is the opening transition. In RUNNING, the level time
- *     counts and the objects move. In HALTED, the level time stands still while an event waits for a click or the boss
- *     comes in. EXIT_WAIT starts when the player reaches the exit and an exit event waits for a click. CLOSING is the
- *     closing transition. ENDED is the exit freeze after the closing transition.
- */
-export const LevelPhase = {
-	OPENING: 0,
-	RUNNING: 1,
-	HALTED: 2,
-	EXIT_WAIT: 3,
-	CLOSING: 4,
-	ENDED: 5,
-};
 /** @type {Object<string, number>} The effects of the transitions at the end and the start of a level. */
 export const Transition = {
 	TOP_LEFT: 1,

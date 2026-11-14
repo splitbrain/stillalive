@@ -143,11 +143,11 @@ export class Recorder {
 	 * @returns {void}
 	 */
 	run(world, input, paused) {
-		const inGame = world.isRunning() && !paused;
+		const inGame = world.phase.isRunning() && !paused;
 		if (inGame && !this.lastTickInGame) this.replay.states[world.time] = input.capture(world.player);
 		this.lastTickInGame = inGame;
 
-		if (world.isRunning()) {
+		if (world.phase.isRunning()) {
 			input.mouseX = Math.round(input.mouseX);
 			input.mouseY = Math.round(input.mouseY);
 			this.replay.inputs[world.time] = input.keys;
@@ -187,7 +187,7 @@ export class ReplayPlayer {
 	 * @returns {void}
 	 */
 	run(world, input, paused) {
-		if (!this.playing || !world.isRunning() || paused) return;
+		if (!this.playing || !world.phase.isRunning() || paused) return;
 		const state = this.replay.states[world.time];
 		if (state) input.restore(world.player, state);
 

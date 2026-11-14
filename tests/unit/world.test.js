@@ -30,11 +30,11 @@ test('a World from a map runs ticks without the stage element', (context) => {
 test('the opening transition ends after FADE_START / 4 ticks', (context) => {
 	context.after(seedRandom(1));
 	const world = startWorld(floorTiles());
-	assert.ok(world.isOpening());
+	assert.ok(world.phase.isOpening());
 	runTicks(world, TRANSITION_TICKS - 1);
-	assert.ok(world.isOpening());
+	assert.ok(world.phase.isOpening());
 	runTicks(world, 1);
-	assert.ok(world.isRunning());
+	assert.ok(world.phase.isRunning());
 	assert.equal(world.time, 0);
 });
 
@@ -43,17 +43,17 @@ test('the level closes when the player reaches the exit and ends after the closi
 	const world = startWorld(floorTiles().with(at(8, 22), Tile.EXIT));
 	runUntilRunning(world);
 	let ticks = 0;
-	while (world.isRunning() && ticks < 300) {
+	while (world.phase.isRunning() && ticks < 300) {
 		runTicks(world, 1, KEY_RIGHT);
 		ticks++;
 	}
-	assert.ok(world.isClosing());
-	assert.ok(world.closingStarted());
-	assert.ok(world.reachedExit());
+	assert.ok(world.phase.isClosing());
+	assert.ok(world.phase.closingStarted());
+	assert.ok(world.phase.reachedExit());
 	runTicks(world, TRANSITION_TICKS - 1);
-	assert.ok(world.isClosing());
+	assert.ok(world.phase.isClosing());
 	assert.equal(world.outcome, null);
 	runTicks(world, 1);
-	assert.ok(world.isEnded());
+	assert.ok(world.phase.isEnded());
 	assert.equal(world.outcome, 'finished');
 });

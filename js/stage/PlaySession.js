@@ -110,8 +110,8 @@ export class PlaySession {
 
 		if (world.outcome !== 'brokenReplay') {
 			world.tick(input);
-			this.transition = world.transition;
-			if (world.closingStarted()) this.endPlayback();
+			this.transition = world.phase.transition;
+			if (world.phase.closingStarted()) this.endPlayback();
 		}
 		switch (world.outcome) {
 			case 'died':
@@ -148,7 +148,7 @@ export class PlaySession {
 	 * @returns {boolean} True outside a test run before the player reaches the exit.
 	 */
 	#canPause() {
-		return !this.testRun && !this.world.reachedExit();
+		return !this.testRun && !this.world.phase.reachedExit();
 	}
 
 	/**

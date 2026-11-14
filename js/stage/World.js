@@ -5,13 +5,11 @@
 import { playSound, sfx_exit, sfx_field, sfx_grabCake, sfx_transition } from './audio.js';
 import {
 	Direction,
-	FADE_START,
 	Ground,
 	KEY_DOWN,
 	KEY_JUMP,
 	KEY_LEFT,
 	KEY_RIGHT,
-	LevelPhase,
 	ORDERED,
 	PLAYFIELD_HEIGHT,
 	RANDOM,
@@ -35,6 +33,7 @@ import { createCakeOrSmokeSparkles, removeSparkles } from './entities/Sparkle.js
 import { Turret } from './entities/Turret.js';
 import { GRAVPIPE_DIRECTIONS, plasmaLaunch } from './level.js';
 import { LevelEvents } from './LevelEvents.js';
+import { LevelPhase } from './LevelPhase.js';
 import { TileMap } from './TileMap.js';
 import { FIRST_OF_KIND, LAST_OF_KIND, Tile, TileKind, inForceFieldRange, isDeadlyTile, isTileKind } from './tiles.js';
 import { inScreen, random, toPixels, toSubpixels } from './utils.js';
@@ -132,10 +131,8 @@ export class World {
 	shakeX = 0;
 	/** @type {number} The y shift of the drawing in playfield units: the screen shake of the boss levels, else 0. */
 	shakeY = 0;
-	/** @type {number} The phase of the level, a value of LevelPhase. */
-	phase;
-	/** @type {number} The progress of the opening and the closing transition, from FADE_START down to 0. */
-	fade;
+	/** @type {LevelPhase} The phase of the level with the progress and the effect of its transitions. */
+	phase = new LevelPhase();
 	/** @type {boolean} True while the player or a crate holds a switch and the switch doors are open. */
 	switchPressed = false;
 	/**
@@ -145,8 +142,6 @@ export class World {
 	objectInPortal = null;
 	/** @type {LevelEvents|null} The events of the level, or null outside a level. */
 	events = null;
-	/** @type {number} The effect of the opening and the closing transition, a value of Transition. */
-	transition = Transition.HORIZONTAL_LINES;
 	/**
 	 * @type {string|null} The result of the last tick: "finished" when the closing transition ended, "died" when the
 	 *     death fade ended, "brokenReplay" when the player died in a replay or when the replay has fewer inputs than
@@ -164,7 +159,6 @@ export class World {
 	constructor(map) {
 		this.map = map;
 		this.player = new Player(this);
-		this.resetPhase();
 	}
 
 	/**
@@ -192,7 +186,7 @@ export class World {
 		const world = new World(new TileMap(level.tiles));
 		world.level = level;
 		world.#replaying = replay;
-		world.transition = transition;
+		world.phase.transition = transition;
 		if (level.fromBelow) world.#jumpInFromBelow();
 		world.boss = level.boss ? new Boss(world, level.boss) : null;
 		world.#parse({ levelStart: true, boss: level.boss });
@@ -252,7 +246,7 @@ export class World {
 	createEditorObjects() {
 		this.player = new Player(this);
 		this.player.x = -toSubpixels(TILE_SIZE);
-		this.resetPhase();
+		this.phase.reset();
 		this.#parse({ editor: true });
 	}
 
@@ -289,14 +283,15 @@ export class World {
 	 * @returns {void}
 	 */
 	tick(input) {
+		const phase = this.phase;
 		this.input = input;
 		this.outcome = null;
-		if (this.isRunning()) {
+		if (phase.isRunning()) {
 			if (this.time === 0) input.unclick();
 			this.time++;
 		}
 		this.objectInPortal = null;
-		if (!this.player.dead && this.isRunning()) {
+		if (!this.player.dead && phase.isRunning()) {
 			this.player.move();
 			if (!this.objectInPortal) this.objectInPortal = this.portals.isInPortal(this.player);
 		}
@@ -304,21 +299,18 @@ export class World {
 		this.#manageDoors();
 		if (this.#atExit()) {
 			this.#updateLevelEnd();
-		} else if (this.isOpening()) {
-			this.fade -= 4;
-			if (this.fade <= 0) this.phase = LevelPhase.RUNNING;
-		} else if (this.isHalted()) {
-			this.phase = LevelPhase.RUNNING;
+		} else if (phase.isOpening()) {
+			phase.advanceOpening();
+		} else if (phase.isHalted()) {
+			phase.run();
 		}
 
-		if ((this.events.isWaiting() || this.boss?.entering) && this.isRunning()) {
-			this.phase = LevelPhase.HALTED;
-		}
+		if ((this.events.isWaiting() || this.boss?.entering) && phase.isRunning()) phase.halt();
 		this.#updateObjects();
 		// the caller starts the level again after this tick, so the boss and the events do not run in this tick
 		if (this.outcome === 'died') return;
 		this.boss?.update();
-		if (!this.reachedExit()) this.events.update();
+		if (!phase.reachedExit()) this.events.update();
 	}
 
 	/**
@@ -328,30 +320,22 @@ export class World {
 	 * @returns {void}
 	 */
 	#updateLevelEnd() {
+		const phase = this.phase;
 		this.boss = null;
 		this.shakeX = 0;
 		this.shakeY = 0;
 
 		// the player starts on the open exit: the opening transition continues as the closing transition
-		if (this.isOpening()) this.phase = LevelPhase.CLOSING;
-		if (this.isClosing()) {
-			this.fade -= 4;
-			if (this.fade <= 0) {
-				this.fade = 0;
-				this.phase = LevelPhase.ENDED;
-				this.outcome = 'finished';
-			}
-		}
-		if (this.isRunning() || this.events.isWaiting()) {
+		if (phase.isOpening()) phase.continueAsClosing();
+		if (phase.isClosing() && phase.advanceClosing()) this.outcome = 'finished';
+		if (phase.isRunning() || this.events.isWaiting()) {
 			this.events.trigger('exit');
 			this.events.update();
 			if (this.events.isWaiting()) {
-				this.phase = LevelPhase.EXIT_WAIT;
+				phase.waitAtExit();
 				return;
 			}
-			this.phase = LevelPhase.CLOSING;
-			this.fade = FADE_START;
-			this.transition = random(Transition.TOP_LEFT, Transition.SQUARE + 1);
+			phase.startClosing(random(Transition.TOP_LEFT, Transition.SQUARE + 1));
 			playSound(sfx_transition);
 			this.events.message = null;
 			this.input.unclick();
@@ -365,7 +349,7 @@ export class World {
 	 * @returns {void}
 	 */
 	#updateObjects() {
-		const running = this.isRunning();
+		const running = this.phase.isRunning();
 
 		for (const tile of this.animatedTiles) tile.animate();
 
@@ -1018,87 +1002,5 @@ export class World {
 			}
 		}
 		return false;
-	}
-
-	/**
-	 * Set the phase of a new level, a preview or the editor map: the start of the opening transition.
-	 *
-	 * @returns {void}
-	 */
-	resetPhase() {
-		this.phase = LevelPhase.OPENING;
-		this.fade = FADE_START;
-	}
-
-	/**
-	 * Check if the level runs. The level time counts and the objects move.
-	 *
-	 * @returns {boolean} True while the level runs.
-	 */
-	isRunning() {
-		return this.phase === LevelPhase.RUNNING;
-	}
-
-	/**
-	 * Check if the level time stands still while an event waits for a click or the boss comes in.
-	 *
-	 * @returns {boolean} True while the level is halted.
-	 */
-	isHalted() {
-		return this.phase === LevelPhase.HALTED;
-	}
-
-	/**
-	 * Check if the opening transition of the level runs.
-	 *
-	 * @returns {boolean} True during the opening transition.
-	 */
-	isOpening() {
-		return this.phase === LevelPhase.OPENING;
-	}
-
-	/**
-	 * Check if the player is on the exit and an exit event waits for a click.
-	 *
-	 * @returns {boolean} True while the exit event waits.
-	 */
-	isExitWait() {
-		return this.phase === LevelPhase.EXIT_WAIT;
-	}
-
-	/**
-	 * Check if the closing transition of the level runs.
-	 *
-	 * @returns {boolean} True during the closing transition.
-	 */
-	isClosing() {
-		return this.phase === LevelPhase.CLOSING;
-	}
-
-	/**
-	 * Check if the closing transition started in the last tick.
-	 *
-	 * @returns {boolean} True in the tick in which the closing transition started.
-	 */
-	closingStarted() {
-		return this.isClosing() && this.fade === FADE_START;
-	}
-
-	/**
-	 * Check if the level is in the exit freeze after the closing transition.
-	 *
-	 * @returns {boolean} True in the exit freeze.
-	 */
-	isEnded() {
-		return this.phase === LevelPhase.ENDED;
-	}
-
-	/**
-	 * Check if the player reached the exit and the level end runs.
-	 *
-	 * @returns {boolean} True in the phases EXIT_WAIT, CLOSING and ENDED.
-	 */
-	reachedExit() {
-		return this.isExitWait() || this.isClosing() || this.isEnded();
 	}
 }

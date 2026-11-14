@@ -15,7 +15,7 @@ const LAYERS = [
 		name: 'base',
 		files: [
 			'./js/value.js',
-			'./js/stage/{assets,audio,canvas,constants,images,InputState,keys,loop,TileMap,tiles,utils}.js',
+			'./js/stage/{assets,audio,canvas,constants,images,InputState,keys,LevelPhase,loop,TileMap,tiles,utils}.js',
 		],
 	},
 	{

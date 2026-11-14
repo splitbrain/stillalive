@@ -176,7 +176,7 @@ export async function playMap(page, data) {
 		const { parseMap } = await import('/js/stage/mapFile.js');
 		const hooks = window.__test;
 		hooks.stage.play({ ...parseMap(data), campaign: 'test', number: 1, fromBelow: false });
-		while (!hooks.world().isRunning()) hooks.tick();
+		while (!hooks.world().phase.isRunning()) hooks.tick();
 	}, data);
 }
 
@@ -417,8 +417,8 @@ export async function runLevel(
 			 */
 			const levelPhase = () => ({
 				run: hooks.world().player,
-				running: hooks.world().isRunning(),
-				closing: hooks.world().isClosing(),
+				running: hooks.world().phase.isRunning(),
+				closing: hooks.world().phase.isClosing(),
 			});
 			/**
 			 * Check if a tick ended the level.

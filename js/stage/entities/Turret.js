@@ -2,7 +2,7 @@
  * The Turret object and its helper functions.
  */
 
-import { Body } from './Body.js';
+import { Throwable } from './Throwable.js';
 import { playSound, playSoundIfFinished, sfx_explode, sfx_pain, sfx_shoot } from '../audio.js';
 import { PLAYFIELD_WIDTH, SparkleType, TILE_SIZE } from '../constants.js';
 import { isInPortal } from '../portals.js';
@@ -11,15 +11,7 @@ import { gravPipeFieldsAt } from './GravPipeField.js';
 import { plasmaTouching } from './Plasma.js';
 import { onPlatform, Platform } from './Platform.js';
 import { Sparkle, createCakeOrSmokeSparkles } from './Sparkle.js';
-import {
-	getTile,
-	leftCollision,
-	moveObject,
-	placeObject,
-	rightCollision,
-	touchesDeadlyTile,
-	touchingGround,
-} from '../physics.js';
+import { getTile, leftCollision, rightCollision, touchesDeadlyTile, touchingGround } from '../physics.js';
 import { game } from '../state.js';
 import { Tile } from '../tiles.js';
 import { random } from '../utils.js';
@@ -30,7 +22,7 @@ const COOL_TIME = 3;
 /**
  * A turret. It shoots at the player in its line of sight, and the player can carry and throw it.
  */
-export class Turret extends Body {
+export class Turret extends Throwable {
 	/**
 	 * @param {number} x The x position in 1/256 pixels.
 	 * @param {number} y The y position in 1/256 pixels.
@@ -38,12 +30,6 @@ export class Turret extends Body {
 	 */
 	constructor(x, y, dir) {
 		super(x, y, TILE_SIZE, 2 * TILE_SIZE);
-		/** @type {number} The horizontal speed in 1/256 pixels per tick. */
-		this.vx = 0;
-		/** @type {number} The vertical speed in 1/256 pixels per tick. */
-		this.vy = 0;
-		/** @type {number} The rotation in degrees while the turret flies. */
-		this.angle = 0;
 		/** @type {number} The direction that the turret faces, -1 left or 1 right. */
 		this.dir = dir;
 		/** @type {number} Ticks until the next shot. */
@@ -52,8 +38,6 @@ export class Turret extends Body {
 		this.rotation = 10;
 		/** @type {boolean} True when the turret is destroyed. */
 		this.dead = false;
-		/** @type {boolean} True while the player carries the turret. */
-		this.carried = false;
 		/** @type {number} The frame of the turret image. Frame 1 is the shot flash, frames 2 to 10 show the destruction. */
 		this.animFrame = 0;
 		/** @type {boolean} True after a throw, a portal or a pipe field moved the turret. A hard landing then destroys it. */
@@ -77,12 +61,39 @@ export class Turret extends Body {
 	}
 
 	/**
-	 * Move the turret for one tick and shoot at the player. A hard landing, a deadly tile, a moving crate, a plasma ball
-	 * or a platform destroys the turret.
+	 * Check if the player can pick up the turret.
+	 *
+	 * @returns {boolean} True if the turret is not destroyed.
+	 */
+	canGrab() {
+		return !this.dead;
+	}
+
+	/**
+	 * Let a hard landing destroy the turret after the throw.
 	 *
 	 * @returns {void}
 	 */
-	move() {
+	thrown() {
+		this.canExplode = true;
+	}
+
+	/**
+	 * Let a hard landing destroy the turret after a pipe field moved it.
+	 *
+	 * @returns {void}
+	 */
+	enterPipeField() {
+		this.canExplode = true;
+	}
+
+	/**
+	 * Update the turret for one tick and shoot at the player. A hard landing, a deadly tile, a moving crate, a plasma
+	 * ball or a platform destroys the turret.
+	 *
+	 * @returns {void}
+	 */
+	update() {
 		if (!this.carried) {
 			if (!touchingGround(this)) this.angle += (this.vx >> 8) << 1;
 			else this.angle = 0;
@@ -91,7 +102,7 @@ export class Turret extends Body {
 			const oldVx = this.vx;
 			const oldVy = this.vy;
 
-			moveObject(this);
+			this.move();
 
 			if (!this.dead) {
 				if (this.vx == 0 && Math.abs(oldVx) > 3 << 8 && this.canExplode && gravPipeFieldsAt(this).length == 0)
@@ -113,7 +124,7 @@ export class Turret extends Body {
 			const colRight = rightCollision(this);
 			if (!this.dead && (colLeft instanceof Platform || colRight instanceof Platform)) this.#explode();
 		} else {
-			placeObject(this);
+			this.place();
 		}
 		if (!this.dead) this.shoot();
 	}
@@ -217,7 +228,7 @@ export class Turret extends Body {
 export function updateTurrets() {
 	if (!game.isRunning()) return;
 	for (const t of game.turrets) {
-		t.move();
+		t.update();
 		if (!game.objectInPortal) game.objectInPortal = isInPortal(t);
 	}
 }

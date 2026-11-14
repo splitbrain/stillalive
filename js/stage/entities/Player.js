@@ -12,7 +12,9 @@ import {
 	sfx_iceStep,
 	sfx_jump,
 	sfx_land,
+	sfx_pickUp,
 	sfx_step,
+	sfx_throwObject,
 } from '../audio.js';
 import { Direction, GRAVITY, MouseButton, PLAYFIELD_HEIGHT, SparkleType, TILE_SIZE } from '../constants.js';
 import { Body } from './Body.js';
@@ -24,10 +26,8 @@ import { Sparkle } from './Sparkle.js';
 import { reportBrokenReplay } from '../inputState.js';
 import { loadLevel } from '../level.js';
 import {
-	carriesObject,
 	checkCollisions,
 	downCollision,
-	grabObject,
 	leftCollision,
 	rightCollision,
 	touchesDeadlyTile,
@@ -37,7 +37,7 @@ import {
 import { clearPortals, clearPortalsAtForceField, isInPortal, launchPortal, passPortal, portalAt } from '../portals.js';
 import { game, input, ui } from '../state.js';
 import { isTileKind, TileKind } from '../tiles.js';
-import { random } from '../utils.js';
+import { getDistance, random } from '../utils.js';
 
 /**
  * The player.
@@ -87,6 +87,8 @@ export class Player extends Body {
 		this.recoveryTime = 0;
 		/** @type {string} The entity type, used by the shared object functions. */
 		this.type = 'player';
+		/** @type {import('./Throwable.js').Throwable|null} The crate or turret that the player carries, or null. */
+		this.carrying = null;
 		/** @type {boolean} True when the player pressed the clear key and the portals must go away in the next tick. */
 		this.askClear = false;
 	}
@@ -152,6 +154,45 @@ export class Player extends Body {
 			if (random(0, 2) == 0) s.vy = -s.vy;
 			game.sparkles.push(s);
 		}
+	}
+
+	/**
+	 * Pick up a crate or turret under the mouse while the left button is pressed, and throw the carried object when the
+	 * button is released. A grab searches the crates first and then the turrets.
+	 *
+	 * @returns {void}
+	 */
+	#grabObject() {
+		if (!this.carrying) {
+			if (input.mousePressed && input.mouseButton == MouseButton.LEFT) {
+				this.carrying = this.#grabbableIn(game.crates) ?? this.#grabbableIn(game.turrets);
+				if (this.carrying) playSound(sfx_pickUp);
+			}
+		} else if (!input.mousePressed) {
+			this.carrying.thrown();
+			this.carrying = null;
+			playSound(sfx_throwObject);
+		}
+	}
+
+	/**
+	 * Find the object under the mouse that the player can pick up.
+	 *
+	 * @param {import('./Throwable.js').Throwable[]} objects The objects to search.
+	 * @returns {import('./Throwable.js').Throwable|null} The first object near the player under the mouse, or null.
+	 */
+	#grabbableIn(objects) {
+		const x = this.midX();
+		const y = this.midY();
+		for (const obj of objects) {
+			if (
+				obj.canGrab() &&
+				getDistance(obj.midX(), obj.midY(), x, y) < 2 * TILE_SIZE &&
+				obj.contains(input.mouseX, input.mouseY)
+			)
+				return obj;
+		}
+		return null;
 	}
 
 	/**
@@ -348,11 +389,11 @@ export class Player extends Body {
 		}
 
 		collectCakes();
-		grabObject();
+		this.#grabObject();
 		clearPortalsAtForceField();
 
 		if (game.abilities.portals) {
-			if (input.mousePressed && this.portalCooldown == 25 && !isInPortal(this) && !carriesObject()) {
+			if (input.mousePressed && this.portalCooldown == 25 && !isInPortal(this) && !this.carrying) {
 				if (input.mouseButton == MouseButton.LEFT) {
 					launchPortal(0);
 				} else if (input.mouseButton == MouseButton.RIGHT) {

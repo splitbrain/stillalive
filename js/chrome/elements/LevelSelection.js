@@ -4,6 +4,7 @@
 
 import { campaignPath, RouteMode } from '../../router.js';
 import { campaignByFolder } from '../campaigns.js';
+import { dispatch } from '../dom.js';
 import { loadMarkup, Screen } from '../element.js';
 import { bestTimes, getBestTime, maxLevel } from '../storage.js';
 import { toTime } from '../time.js';
@@ -18,7 +19,8 @@ const TEMPLATE = await loadMarkup(import.meta.url);
  * The attribute campaign is the folder name of the campaign, and the attribute level is the selected level number, or
  * 0 for none. Without a selected level, the element shows the level list. With a selected level, the element shows
  * the details of the level. The back link goes up from the details to the level list, and from the level list to the
- * main menu.
+ * main menu. The pointer on a level of the list dispatches the bubbling event level-shown with the level number in
+ * detail.level, or with 0 when the pointer leaves the list.
  */
 export class LevelSelection extends SelectionScreen {
 	/** @type {HTMLTemplateElement|null} The markup of the level selection. */
@@ -79,17 +81,15 @@ export class LevelSelection extends SelectionScreen {
 	}
 
 	/**
-	 * Show the preview of a level on the stage. Only the level list changes the preview.
+	 * Dispatch the bubbling event level-shown with the level for the preview in detail.level. Only the level list
+	 * changes the preview.
 	 *
-	 * @param {number} level The level number, or 0 for the highest unlocked level. If that level is not there, the
-	 *     stage shows nothing.
+	 * @param {number} level The level number, or 0 for the highest unlocked level.
 	 * @returns {void}
 	 */
 	previewChoice(level) {
 		if (Number(this.getAttribute('level') ?? 0) > 0) return;
-		const shown = campaignByFolder(this.getAttribute('campaign')).shownLevel(level);
-		if (shown) this.stage.preview(shown);
-		else this.stage.stop();
+		dispatch(this, 'level-shown', { level });
 	}
 
 	/**

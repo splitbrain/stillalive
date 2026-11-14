@@ -97,7 +97,8 @@ export class GameApp extends ChromeElement {
 	};
 
 	/**
-	 * Set the sound and the music from the storage, and add the event handlers of the page and the stage.
+	 * Set the sound and the music from the storage, and add the event handlers of the page and the stage. The level
+	 * selection asks for the preview of a level with the event level-shown.
 	 *
 	 * @returns {void}
 	 */
@@ -126,6 +127,12 @@ export class GameApp extends ChromeElement {
 		stage.addEventListener('replaystop', () => this.#leaveReplay());
 		stage.addEventListener('focuslost', () => stage.pause());
 		this.addEventListener('replay-stop', () => this.#leaveReplay());
+		this.addEventListener('level-shown', (event) => {
+			const current = route.get();
+			if (current.name !== RouteName.SELECT) return;
+			const { level } = /** @type {CustomEvent<{level: number}>} */ (event).detail;
+			this.#previewLevel(campaignByFolder(current.campaign), level);
+		});
 		this.addEventListener('replay-watch', () => {
 			const current = route.get();
 			const path = campaignPath(current.campaign, current.level, current.mode);
@@ -321,16 +328,28 @@ export class GameApp extends ChromeElement {
 	}
 
 	/**
-	 * Show the preview of the level that the selection shows. If no level shows, stop the stage.
+	 * Show the preview of the level that the selection shows.
 	 *
 	 * @param {RouteContext} context The route and its state.
 	 * @returns {boolean} True, because the route stays.
 	 */
 	#showSelection({ current, campaign }) {
-		const shown = campaign.shownLevel(current.level);
+		this.#previewLevel(campaign, current.level);
+		return true;
+	}
+
+	/**
+	 * Show the preview of a level of a campaign on the stage. If the campaign does not show a level for the number, stop
+	 * the stage.
+	 *
+	 * @param {import('../campaigns.js').Campaign} campaign The campaign.
+	 * @param {number} level The level number, or 0 for the highest unlocked level.
+	 * @returns {void}
+	 */
+	#previewLevel(campaign, level) {
+		const shown = campaign.shownLevel(level);
 		if (shown) this.stage.preview(shown);
 		else this.stage.stop();
-		return true;
 	}
 
 	/**

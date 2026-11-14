@@ -3,7 +3,6 @@
  */
 
 import { campaignsReady, loadCampaigns } from './chrome/campaigns.js';
-import { loadSoundSetting } from './chrome/storage.js';
 import { allImagesLoaded, imageProgress, missingImages, onImageDone } from './stage/assets.js';
 import {
 	allSoundsLoaded,
@@ -11,7 +10,6 @@ import {
 	loadSfx,
 	missingSounds,
 	onSoundDone,
-	setSoundOn,
 	soundProgress,
 	watchAudioUnlock,
 } from './stage/audio.js';
@@ -104,12 +102,11 @@ function defineElements(elements, modules) {
 
 /**
  * Start to load the images, the sounds, the campaigns and the key labels, and start to wait for the first input that
- * unlocks the audio. The sound setting is read first, because the game waits for the sounds only while the sound is on.
+ * unlocks the audio.
  *
  * @returns {void}
  */
 function startFiles() {
-	setSoundOn(loadSoundSetting());
 	watchAudioUnlock();
 	onImageDone(update);
 	onSoundDone(update);
@@ -122,6 +119,9 @@ function startFiles() {
 
 /**
  * Check if the game can start, and set ready when it can. Call it again when the sound setting changes.
+ *
+ * The game waits for the sounds only while the sound is on. The app element sets the stored sound setting when it is
+ * defined. The game cannot be ready before that, because the app element is not in the last group of element modules.
  *
  * @returns {void}
  */

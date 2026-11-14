@@ -6,6 +6,7 @@ import { Throwable } from './Throwable.js';
 import { playSound, sfx_crateLand, sfx_dissolve, sfx_wallBreak, sfx_wallCrack } from '../audio.js';
 import { BELT_SPEED, Ground, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, TILE_SIZE } from '../constants.js';
 import { isTileKind, LAST_OF_KIND, Tile, TileKind } from '../tiles.js';
+import { toPixels, toSubpixels } from '../utils.js';
 
 /**
  * A crate. The player can carry and throw it, and it can press switches and stop turret shots.
@@ -86,16 +87,16 @@ export class Crate extends Throwable {
 			else if (platform.vx > 0 && this.rightCollision()) this.x -= platform.vx;
 		}
 
-		this.angle = this.touchingGround() === Ground.AIR ? this.angle + ((this.vx >> 8) << 1) : 0;
+		this.angle = this.touchingGround() === Ground.AIR ? this.angle + (toPixels(this.vx) << 1) : 0;
 		if (this.angle >= 360) this.angle -= 360;
 		if (this.landsOnPlayer()) {
-			while (this.landsOnPlayer()) this.y -= 256;
+			while (this.landsOnPlayer()) this.y -= toSubpixels(1);
 			this.vy = 0;
 			this.angle = 0;
 		}
 
-		const x = this.x >> 8;
-		const y = this.y >> 8;
+		const x = this.pixelX;
+		const y = this.pixelY;
 		const lost =
 			x < -TILE_SIZE ||
 			x > PLAYFIELD_WIDTH ||
@@ -116,7 +117,7 @@ export class Crate extends Throwable {
 		const boss = this.world.boss;
 		if (boss.throwsCrates()) this.#shrinkInTube();
 
-		const t = this.world.map.atPixel((this.x >> 8) + this.pX + 1, this.y >> 8);
+		const t = this.world.map.atPixel(this.pixelX + this.width + 1, this.pixelY);
 		if (isTileKind(t, TileKind.BOSS_BLOCK)) {
 			playSound(t < LAST_OF_KIND[TileKind.BOSS_BLOCK] ? sfx_wallCrack : sfx_wallBreak);
 			this.world.map.replaceAll(t, t < LAST_OF_KIND[TileKind.BOSS_BLOCK] ? t + 1 : Tile.EMPTY);
@@ -157,13 +158,13 @@ export class Crate extends Throwable {
 	 */
 	landsOnPlayer() {
 		if (this.vy <= 0 || this.world.portals.isInPortal(this)) return false;
-		const y = (this.y >> 8) + this.pY;
-		const x2 = this.world.player.x >> 8;
-		const y2 = this.world.player.y >> 8;
+		const y = this.pixelY + this.height;
+		const x2 = this.world.player.pixelX;
+		const y2 = this.world.player.pixelY;
 		if (y < y2 || y >= y2 + 4) return false;
 		// two test points below the crate
 		return [3, 12].some((dx) => {
-			const x = (this.x >> 8) + dx;
+			const x = this.pixelX + dx;
 			return x >= x2 && x < x2 + 16;
 		});
 	}
@@ -181,8 +182,8 @@ export class Crate extends Throwable {
 		const portals = this.world.portals;
 		if (this.vx === 0 || portals.isInPortal(this)) return false;
 		// the test points lie in front of the crate in the direction of its move
-		const x = (this.x >> 8) + (this.vx > 0 ? TILE_SIZE : -1);
-		const y = this.y >> 8;
+		const x = this.pixelX + (this.vx > 0 ? TILE_SIZE : -1);
+		const y = this.pixelY;
 		for (const ca of this.world.crates) {
 			if (portals.isInPortal(ca) || (this.x === ca.x && this.y === ca.y)) continue;
 			if (ca.contains(x, y + 1) || ca.contains(x, y + TILE_SIZE / 2) || ca.contains(x, y + 13)) {
@@ -221,7 +222,7 @@ export class Crate extends Throwable {
 	#shrinkInTube() {
 		if (this.vx < 0) return;
 
-		if (this.overlapsBox(this.world.tubeX >> 8, this.world.tubeY >> 8, 4 * TILE_SIZE, 3 * TILE_SIZE)) {
+		if (this.overlapsBox(toPixels(this.world.tubeX), toPixels(this.world.tubeY), 4 * TILE_SIZE, 3 * TILE_SIZE)) {
 			this.shrink = 60;
 		}
 	}

@@ -6,7 +6,7 @@ import { Body } from './Body.js';
 import { playSound, setSoundVolume, sfx_bounce, sfx_plasmaField } from '../audio.js';
 import { Direction, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, TILE_SIZE, TILE_SIZE_BITS } from '../constants.js';
 import { Tile, TileKind, isTileKind } from '../tiles.js';
-import { getDistance, random } from '../utils.js';
+import { getDistance, random, toSubpixels } from '../utils.js';
 
 /**
  * A plasma ball. It bounces off walls and fills the plasma slots. It kills the player and the turrets.
@@ -92,10 +92,10 @@ export class Plasma extends Body {
 
 				const maxSpeed = 3;
 
-				if (this.vx > maxSpeed << 8) this.vx = maxSpeed << 8;
-				else if (this.vx < -(maxSpeed << 8)) this.vx = -(maxSpeed << 8);
-				if (this.vy > maxSpeed << 8) this.vy = maxSpeed << 8;
-				else if (this.vy < -(maxSpeed << 8)) this.vy = -(maxSpeed << 8);
+				if (this.vx > toSubpixels(maxSpeed)) this.vx = toSubpixels(maxSpeed);
+				else if (this.vx < -toSubpixels(maxSpeed)) this.vx = -toSubpixels(maxSpeed);
+				if (this.vy > toSubpixels(maxSpeed)) this.vy = toSubpixels(maxSpeed);
+				else if (this.vy < -toSubpixels(maxSpeed)) this.vy = -toSubpixels(maxSpeed);
 
 				if (this.x > this.world.tubeX) this.needKill = true;
 			}
@@ -111,14 +111,14 @@ export class Plasma extends Body {
 		}
 
 		if (
-			this.y >> 8 > PLAYFIELD_HEIGHT ||
-			this.y >> 8 <= -TILE_SIZE ||
-			this.x >> 8 > PLAYFIELD_WIDTH ||
-			this.x >> 8 < -TILE_SIZE
+			this.pixelY > PLAYFIELD_HEIGHT ||
+			this.pixelY <= -TILE_SIZE ||
+			this.pixelX > PLAYFIELD_WIDTH ||
+			this.pixelX < -TILE_SIZE
 		) {
 			this.reset();
 		} else {
-			const t = this.world.map.atPixel((this.x >> 8) + TILE_SIZE / 2, (this.y >> 8) + TILE_SIZE / 2);
+			const t = this.world.map.atPixel(this.pixelX + TILE_SIZE / 2, this.pixelY + TILE_SIZE / 2);
 			if (isTileKind(t, TileKind.ACID, TileKind.ACIDPOOL)) {
 				this.reset();
 			}
@@ -286,7 +286,7 @@ export class Plasma extends Body {
 	 */
 	checkCollision() {
 		const dist = Math.min(
-			getDistance(this.x >> 8, this.y >> 8, this.world.player.x >> 8, this.world.player.y >> 8),
+			getDistance(this.pixelX, this.pixelY, this.world.player.pixelX, this.world.player.pixelY),
 			PLAYFIELD_HEIGHT,
 		);
 		setSoundVolume(sfx_bounce, 1 - dist / PLAYFIELD_HEIGHT);
@@ -299,7 +299,7 @@ export class Plasma extends Body {
 				} while (this.getCollision() === Direction.LEFT);
 				this.vx = -this.vx;
 
-				this.#fillSlotInColumn((this.x >> 8) - 1, this.y >> 8);
+				this.#fillSlotInColumn(this.pixelX - 1, this.pixelY);
 				break;
 			case Direction.RIGHT:
 				playSound(sfx_bounce);
@@ -308,7 +308,7 @@ export class Plasma extends Body {
 				} while (this.getCollision() === Direction.RIGHT);
 				this.vx = -this.vx;
 
-				this.#fillSlotInColumn((this.x >> 8) + TILE_SIZE, this.y >> 8);
+				this.#fillSlotInColumn(this.pixelX + TILE_SIZE, this.pixelY);
 				break;
 			case Direction.UP:
 				playSound(sfx_bounce);
@@ -317,7 +317,7 @@ export class Plasma extends Body {
 				} while (this.getCollision() === Direction.UP);
 				this.vy = -this.vy;
 
-				this.#fillSlotInRow(this.x >> 8, (this.y >> 8) - 1);
+				this.#fillSlotInRow(this.pixelX, this.pixelY - 1);
 				break;
 			case Direction.DOWN:
 				playSound(sfx_bounce);
@@ -326,7 +326,7 @@ export class Plasma extends Body {
 				} while (this.getCollision() === Direction.DOWN);
 				this.vy = -this.vy;
 
-				this.#fillSlotInRow(this.x >> 8, (this.y >> 8) + TILE_SIZE);
+				this.#fillSlotInRow(this.pixelX, this.pixelY + TILE_SIZE);
 				break;
 		}
 	}

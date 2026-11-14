@@ -33,7 +33,7 @@ export class Platform extends Body {
 	 */
 	move() {
 		this.x += this.vx;
-		const x = this.x >> 8;
+		const x = this.pixelX;
 		if (
 			x < 0 ||
 			x > PLAYFIELD_WIDTH - 3 * TILE_SIZE ||

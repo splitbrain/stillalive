@@ -4,16 +4,17 @@
 
 import { Direction, Ground, TILE_SIZE } from '../constants.js';
 import { inForceFieldRange, isDeadlyTile, isTileKind, Tile, TileKind } from '../tiles.js';
+import { toPixels, toSubpixels } from '../utils.js';
 
 /**
  * @type {Array<{side: number, opposite: number, dx: number, dy: number}>} The sides in the order in which
- *     checkCollisions() resolves them, with the step that moves the object away from the side.
+ *     checkCollisions() resolves them, with the step of one pixel that moves the object away from the side.
  */
 const PUSH_OUT = [
-	{ side: Direction.UP, opposite: Direction.DOWN, dx: 0, dy: 256 },
-	{ side: Direction.DOWN, opposite: Direction.UP, dx: 0, dy: -256 },
-	{ side: Direction.LEFT, opposite: Direction.RIGHT, dx: 256, dy: 0 },
-	{ side: Direction.RIGHT, opposite: Direction.LEFT, dx: -256, dy: 0 },
+	{ side: Direction.UP, opposite: Direction.DOWN, dx: 0, dy: toSubpixels(1) },
+	{ side: Direction.DOWN, opposite: Direction.UP, dx: 0, dy: toSubpixels(-1) },
+	{ side: Direction.LEFT, opposite: Direction.RIGHT, dx: toSubpixels(1), dy: 0 },
+	{ side: Direction.RIGHT, opposite: Direction.LEFT, dx: toSubpixels(-1), dy: 0 },
 ];
 
 /**
@@ -24,10 +25,10 @@ export class Body {
 	 * @param {import('../World.js').World} world The World of the object.
 	 * @param {number} x The x position in 1/256 pixels.
 	 * @param {number} y The y position in 1/256 pixels.
-	 * @param {number} pX The width in pixels.
-	 * @param {number} pY The height in pixels.
+	 * @param {number} width The width in pixels.
+	 * @param {number} height The height in pixels.
 	 */
-	constructor(world, x, y, pX, pY) {
+	constructor(world, x, y, width, height) {
 		/** @type {import('../World.js').World} The World of the object. */
 		this.world = world;
 		/** @type {number} The x position in 1/256 pixels. */
@@ -35,9 +36,27 @@ export class Body {
 		/** @type {number} The y position in 1/256 pixels. */
 		this.y = y;
 		/** @type {number} The width in pixels. */
-		this.pX = pX;
+		this.width = width;
 		/** @type {number} The height in pixels. */
-		this.pY = pY;
+		this.height = height;
+	}
+
+	/**
+	 * Get the x position in whole pixels.
+	 *
+	 * @returns {number} The left edge in pixels.
+	 */
+	get pixelX() {
+		return toPixels(this.x);
+	}
+
+	/**
+	 * Get the y position in whole pixels.
+	 *
+	 * @returns {number} The top edge in pixels.
+	 */
+	get pixelY() {
+		return toPixels(this.y);
 	}
 
 	/**
@@ -46,7 +65,7 @@ export class Body {
 	 * @returns {number} The x coordinate of the center in pixels.
 	 */
 	midX() {
-		return (this.x >> 8) + (this.pX >> 1);
+		return this.pixelX + (this.width >> 1);
 	}
 
 	/**
@@ -55,7 +74,7 @@ export class Body {
 	 * @returns {number} The y coordinate of the center in pixels.
 	 */
 	midY() {
-		return (this.y >> 8) + (this.pY >> 1);
+		return this.pixelY + (this.height >> 1);
 	}
 
 	/**
@@ -66,9 +85,9 @@ export class Body {
 	 * @returns {boolean} True if the point is inside the object.
 	 */
 	contains(x, y) {
-		const left = this.x >> 8;
-		const top = this.y >> 8;
-		return x >= left && x < left + this.pX && y >= top && y < top + this.pY;
+		const left = this.pixelX;
+		const top = this.pixelY;
+		return x >= left && x < left + this.width && y >= top && y < top + this.height;
 	}
 
 	/**
@@ -81,9 +100,9 @@ export class Body {
 	 * @returns {boolean} True if the object and the box overlap.
 	 */
 	overlapsBox(x, y, w, h) {
-		const left = this.x >> 8;
-		const top = this.y >> 8;
-		return left + this.pX > x && x + w > left && top + this.pY > y && y + h > top;
+		const left = this.pixelX;
+		const top = this.pixelY;
+		return left + this.width > x && x + w > left && top + this.height > y && y + h > top;
 	}
 
 	/**
@@ -93,7 +112,7 @@ export class Body {
 	 * @returns {boolean} True if the two objects overlap.
 	 */
 	overlaps(other) {
-		return this.overlapsBox(other.x >> 8, other.y >> 8, other.pX, other.pY);
+		return this.overlapsBox(other.pixelX, other.pixelY, other.width, other.height);
 	}
 
 	/**
@@ -103,9 +122,9 @@ export class Body {
 	 */
 	touchingGround() {
 		if (this.vy < 0) return Ground.AIR;
-		const y = (this.y >> 8) + this.pY;
-		const hit = this.world.getTile((this.x >> 8) + 1, y);
-		const hit2 = this.world.getTile((this.x >> 8) + this.pX - 1, y);
+		const y = this.pixelY + this.height;
+		const hit = this.world.getTile(this.pixelX + 1, y);
+		const hit2 = this.world.getTile(this.pixelX + this.width - 1, y);
 
 		if (isTileKind(hit, TileKind.BELT_RIGHT) || isTileKind(hit2, TileKind.BELT_RIGHT)) return Ground.BELT_RIGHT;
 		if (isTileKind(hit, TileKind.BELT_LEFT) || isTileKind(hit2, TileKind.BELT_LEFT)) return Ground.BELT_LEFT;
@@ -131,18 +150,18 @@ export class Body {
 	 * @returns {number} The id of the deadly tile that the object touches, or 0.
 	 */
 	touchesDeadlyTile() {
-		const x = this.x >> 8;
-		const y = this.y >> 8;
-		const pX = this.pX;
-		const pY = this.pY;
+		const x = this.pixelX;
+		const y = this.pixelY;
+		const width = this.width;
+		const height = this.height;
 
 		return (
 			this.#pointOnDeadlyTile(x, y) ||
-			this.#pointOnDeadlyTile(x + pX - 1, y) ||
-			this.#pointOnDeadlyTile(x, y + (pY >> 1)) ||
-			this.#pointOnDeadlyTile(x, y + pY - 6) ||
-			this.#pointOnDeadlyTile(x + pX - 1, y + (pY >> 1)) ||
-			this.#pointOnDeadlyTile(x + pX - 1, y + pY - 6)
+			this.#pointOnDeadlyTile(x + width - 1, y) ||
+			this.#pointOnDeadlyTile(x, y + (height >> 1)) ||
+			this.#pointOnDeadlyTile(x, y + height - 6) ||
+			this.#pointOnDeadlyTile(x + width - 1, y + (height >> 1)) ||
+			this.#pointOnDeadlyTile(x + width - 1, y + height - 6)
 		);
 	}
 
@@ -152,8 +171,8 @@ export class Body {
 	 * @returns {boolean} True if the object touches a force field tile.
 	 */
 	inForceField() {
-		for (let j = 0; j <= this.pX - 1; j += 2) {
-			const t = this.world.map.atPixel((this.x >> 8) + j, (this.y >> 8) + j);
+		for (let j = 0; j <= this.width - 1; j += 2) {
+			const t = this.world.map.atPixel(this.pixelX + j, this.pixelY + j);
 			if (inForceFieldRange(t)) return true;
 		}
 		return false;
@@ -167,7 +186,7 @@ export class Body {
 	 * @returns {import('../World.js').Solid} The tile id or the object of the first solid point, else Tile.EMPTY.
 	 */
 	#firstSolidInRow(x, y) {
-		for (let i = x; i < x + this.pX; i++) {
+		for (let i = x; i < x + this.width; i++) {
 			const tile = this.world.getTile(i, y);
 			if (tile) return tile;
 		}
@@ -182,7 +201,7 @@ export class Body {
 	 * @returns {import('../World.js').Solid} The tile id or the object of the first solid point, else Tile.EMPTY.
 	 */
 	#firstSolidInColumn(x, y) {
-		for (let i = y; i < y + this.pY; i++) {
+		for (let i = y; i < y + this.height; i++) {
 			const tile = this.world.getTile(x, i);
 			if (tile) return tile;
 		}
@@ -228,7 +247,7 @@ export class Body {
 	 *     else Tile.EMPTY.
 	 */
 	downCollision() {
-		return this.#firstSolidInRow(this.x >> 8, (this.y >> 8) + this.pY - 1);
+		return this.#firstSolidInRow(this.pixelX, this.pixelY + this.height - 1);
 	}
 
 	/**
@@ -238,7 +257,7 @@ export class Body {
 	 *     else Tile.EMPTY.
 	 */
 	upCollision() {
-		return this.#firstSolidInRow(this.x >> 8, this.y >> 8);
+		return this.#firstSolidInRow(this.pixelX, this.pixelY);
 	}
 
 	/**
@@ -248,7 +267,7 @@ export class Body {
 	 *     else Tile.EMPTY.
 	 */
 	leftCollision() {
-		return this.#firstSolidInColumn((this.x >> 8) - 1, this.y >> 8);
+		return this.#firstSolidInColumn(this.pixelX - 1, this.pixelY);
 	}
 
 	/**
@@ -258,7 +277,7 @@ export class Body {
 	 *     else Tile.EMPTY.
 	 */
 	rightCollision() {
-		return this.#firstSolidInColumn((this.x >> 8) + this.pX, this.y >> 8);
+		return this.#firstSolidInColumn(this.pixelX + this.width, this.pixelY);
 	}
 
 	/**
@@ -269,14 +288,14 @@ export class Body {
 	 *     nothing.
 	 */
 	getCollision() {
-		const x = this.x >> 8;
-		const y = this.y >> 8;
+		const x = this.pixelX;
+		const y = this.pixelY;
 		// the points of the sides by direction: top, bottom, left, right
 		const hits = [
-			this.#countSolidInRow(x, x + this.pX, y),
-			this.#countSolidInRow(x + 1, x + this.pX - 1, y + this.pY - 1),
-			this.#countSolidInColumn(x, y, y + this.pY),
-			this.#countSolidInColumn(x + this.pX - 1, y, y + this.pY),
+			this.#countSolidInRow(x, x + this.width, y),
+			this.#countSolidInRow(x + 1, x + this.width - 1, y + this.height - 1),
+			this.#countSolidInColumn(x, y, y + this.height),
+			this.#countSolidInColumn(x + this.width - 1, y, y + this.height),
 		];
 		const most = Math.max(...hits);
 		return most === 0 ? -1 : hits.indexOf(most);
@@ -367,11 +386,11 @@ export class Body {
 	 */
 	alignToPortal(portal, side) {
 		if (side === Direction.LEFT || side === Direction.RIGHT) {
-			const gap = (2 * TILE_SIZE - this.pY) >> 1;
-			this.y = ((portal.y >> 8) + gap) << 8;
+			const gap = (2 * TILE_SIZE - this.height) >> 1;
+			this.y = toSubpixels(toPixels(portal.y) + gap);
 			this.vy = 0;
 		} else {
-			this.x = ((portal.x >> 8) + TILE_SIZE / 2) << 8;
+			this.x = toSubpixels(toPixels(portal.x) + TILE_SIZE / 2);
 		}
 	}
 

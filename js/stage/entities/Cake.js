@@ -4,7 +4,7 @@
 
 import { Body } from './Body.js';
 import { TILE_SIZE } from '../constants.js';
-import { random } from '../utils.js';
+import { random, toSubpixels } from '../utils.js';
 
 /**
  * A cake that the player collects. The cake floats up and down.
@@ -20,7 +20,7 @@ export class Cake extends Body {
 		/** @type {number} The direction of the float, 1 down or -1 up. */
 		this.mDir = random(0, 2) === 0 ? -1 : 1;
 		/** @type {number} The vertical offset of the float in 1/256 pixels. */
-		this.vy = random(-3 << 8, 3 << 8);
+		this.vy = random(toSubpixels(-3), toSubpixels(3));
 		/** @type {boolean} True until the player collects the cake. */
 		this.used = true;
 	}
@@ -32,7 +32,7 @@ export class Cake extends Body {
 	 */
 	move() {
 		this.vy += 32 * this.mDir;
-		if (this.vy < -3 << 8) this.mDir = -this.mDir;
-		else if (this.vy > 3 << 8) this.mDir = -this.mDir;
+		if (this.vy < toSubpixels(-3)) this.mDir = -this.mDir;
+		else if (this.vy > toSubpixels(3)) this.mDir = -this.mDir;
 	}
 }

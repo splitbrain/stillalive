@@ -5,6 +5,7 @@
 import { Direction, LevelPhase, TILE_SIZE, TILE_SIZE_BITS } from './constants.js';
 import { createPortalGlow } from './entities/Sparkle.js';
 import { keyLabels } from './keys.js';
+import { toSubpixels } from './utils.js';
 
 /**
  * The sides that a portal of the level file opens to, with the Direction of the portal and the pixel offset of the
@@ -182,8 +183,8 @@ function placePortal(world, p, [column, row, side]) {
 		scaleX: 1,
 		scaleY: 1,
 		used: true,
-		x: x << 8,
-		y: y << 8,
+		x: toSubpixels(x),
+		y: toSubpixels(y),
 	});
 
 	createPortalGlow(world, p);

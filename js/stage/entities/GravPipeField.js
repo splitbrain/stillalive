@@ -4,6 +4,7 @@
 
 import { Direction, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, TILE_SIZE, TILE_SIZE_BITS } from '../constants.js';
 import { Tile } from '../tiles.js';
+import { toPixels } from '../utils.js';
 
 /**
  * The area in front of a gravitational pipe that moves objects. The World builds the fields again in each tick.
@@ -92,32 +93,32 @@ export function traceGravPipeField(world, sx, sy, vx, vy) {
 					exits.push(exit);
 					switch (exit.direction) {
 						case Direction.RIGHT:
-							sx = exit.x >> 8;
-							sy = exit.y >> 8;
+							sx = toPixels(exit.x);
+							sy = toPixels(exit.y);
 							vx = -1;
 							vy = 0;
 							y = sy;
 							x = sx;
 							break;
 						case Direction.LEFT:
-							sx = (exit.x >> 8) + 3;
-							sy = exit.y >> 8;
+							sx = toPixels(exit.x) + 3;
+							sy = toPixels(exit.y);
 							vx = 1;
 							vy = 0;
 							y = sy;
 							x = sx;
 							break;
 						case Direction.UP:
-							sx = exit.x >> 8;
-							sy = exit.y >> 8;
+							sx = toPixels(exit.x);
+							sy = toPixels(exit.y);
 							vx = 0;
 							vy = 1;
 							y = sy + 3;
 							x = sx;
 							break;
 						case Direction.DOWN:
-							sx = exit.x >> 8;
-							sy = exit.y >> 8;
+							sx = toPixels(exit.x);
+							sy = toPixels(exit.y);
 							vx = 0;
 							vy = -1;
 							y = sy;

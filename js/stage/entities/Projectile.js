@@ -49,7 +49,7 @@ export class Projectile extends Body {
 			this.img = FIRST_OF_KIND[TileKind.WHEEL];
 		}
 
-		const t = this.world.getTile((this.x >> 8) + TILE_SIZE / 2, (this.y >> 8) + TILE_SIZE / 2);
+		const t = this.world.getTile(this.pixelX + TILE_SIZE / 2, this.pixelY + TILE_SIZE / 2);
 		if (t) {
 			// a wheel sticks in a wall for a while, and goes away at once at an object
 			this.needKill = true;
@@ -63,8 +63,8 @@ export class Projectile extends Body {
 		}
 
 		// a crate at a corner of the wheel stops it
-		const x = this.x >> 8;
-		const y = this.y >> 8;
+		const x = this.pixelX;
+		const y = this.pixelY;
 		const corners = [
 			[x, y],
 			[x + TILE_SIZE, y],

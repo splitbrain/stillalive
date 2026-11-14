@@ -43,7 +43,7 @@ function drawSprites(world) {
 	drawCrates(world);
 	drawPlatforms(world, true);
 	drawGravPipes(world);
-	drawPlayer(world.player.x >> 8, world.player.y >> 8, 0);
+	drawPlayer(world.player.pixelX, world.player.pixelY, 0);
 }
 
 /**

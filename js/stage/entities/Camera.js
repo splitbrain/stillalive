@@ -2,6 +2,8 @@
  * The Camera object.
  */
 
+import { toSubpixels } from '../utils.js';
+
 /**
  * The security camera that follows the player.
  */
@@ -38,8 +40,8 @@ export class Camera {
 		this.y += this.vy;
 
 		const angle = this.world.player.flip === -1 ? 335 : 185;
-		const dx = this.world.player.x + Math.cos((angle / 180) * Math.PI) * (40 << 8);
-		const dy = this.world.player.y + Math.sin((angle / 180) * Math.PI) * (40 << 8);
+		const dx = this.world.player.x + Math.cos((angle / 180) * Math.PI) * toSubpixels(40);
+		const dy = this.world.player.y + Math.sin((angle / 180) * Math.PI) * toSubpixels(40);
 
 		this.vx = (dx - this.x) >> 4;
 		this.vy = (dy - this.y) >> 4;

@@ -5,6 +5,26 @@
 import { PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH } from './constants.js';
 
 /**
+ * Convert a position, a size or a speed from 1/256 pixels to whole pixels. The value is rounded down.
+ *
+ * @param {number} value The value in 1/256 pixels.
+ * @returns {number} The value in pixels.
+ */
+export function toPixels(value) {
+	return value >> 8;
+}
+
+/**
+ * Convert a position, a size or a speed from pixels to 1/256 pixels. A fraction of a pixel is cut off first.
+ *
+ * @param {number} pixels The value in pixels.
+ * @returns {number} The value in 1/256 pixels.
+ */
+export function toSubpixels(pixels) {
+	return pixels << 8;
+}
+
+/**
  * Convert degrees to radians.
  *
  * @param {number} d The angle in degrees.

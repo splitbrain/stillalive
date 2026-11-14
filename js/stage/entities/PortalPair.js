@@ -9,7 +9,7 @@ import { Platform } from './Platform.js';
 import { Portal } from './Portal.js';
 import { Sparkle, createPortalGlow, removeSparkles } from './Sparkle.js';
 import { isTileKind, Tile, TileKind } from '../tiles.js';
-import { getCos, getSin, inScreen, random } from '../utils.js';
+import { getCos, getSin, inScreen, random, toPixels, toSubpixels } from '../utils.js';
 
 /** @type {number[]} The sides of the walls with portals, in the order of the portal checks. */
 const PORTAL_CHECK_SIDES = [Direction.DOWN, Direction.UP, Direction.LEFT, Direction.RIGHT];
@@ -45,17 +45,17 @@ export class PortalPair {
 		const portal = this.list[p];
 		this.world.player.portalCooldown = 0;
 
-		let x = this.world.player.x + ((this.world.player.pX >> 1) << 8);
-		let y = this.world.player.y + ((this.world.player.pY >> 1) << 8);
+		let x = this.world.player.x + toSubpixels(this.world.player.width >> 1);
+		let y = this.world.player.y + toSubpixels(this.world.player.height >> 1);
 
 		// A click on the start point gives no direction
-		if (targetX === x >> 8 && targetY === y >> 8) {
+		if (targetX === toPixels(x) && targetY === toPixels(y)) {
 			playSound(sfx_noPortal);
 			return;
 		}
 
-		portal.vx = getCos(targetX, targetY, x >> 8, y >> 8) * 256;
-		portal.vy = getSin(targetX, targetY, x >> 8, y >> 8) * 256;
+		portal.vx = getCos(targetX, targetY, toPixels(x), toPixels(y)) * 256;
+		portal.vy = getSin(targetX, targetY, toPixels(x), toPixels(y)) * 256;
 
 		removeSparkles(this.world, p, SparkleType.PORTAL_SHOT);
 
@@ -67,13 +67,13 @@ export class PortalPair {
 			steps++;
 			x += portal.vx;
 			y += portal.vy;
-			tile = this.world.getTilePortal(x >> 8, y >> 8);
+			tile = this.world.getTilePortal(toPixels(x), toPixels(y));
 
 			if (tile === Tile.ICYWALL) {
-				const up = this.world.getTilePortal(x >> 8, (y >> 8) - 1);
-				const down = this.world.getTilePortal(x >> 8, (y >> 8) + 1);
-				const left = this.world.getTilePortal((x >> 8) - 1, y >> 8);
-				const right = this.world.getTilePortal((x >> 8) + 1, y >> 8);
+				const up = this.world.getTilePortal(toPixels(x), toPixels(y) - 1);
+				const down = this.world.getTilePortal(toPixels(x), toPixels(y) + 1);
+				const left = this.world.getTilePortal(toPixels(x) - 1, toPixels(y));
+				const right = this.world.getTilePortal(toPixels(x) + 1, toPixels(y));
 				if ((!down || !up) && left && right) {
 					portal.vy = -portal.vy;
 				} else if ((!left || !right) && up && down) {
@@ -87,8 +87,8 @@ export class PortalPair {
 				const s = new Sparkle(
 					this.world,
 					SparkleType.PORTAL_SHOT,
-					x + random(-5 << 8, 5 << 8) - (8 << 8),
-					y + random(-5 << 8, 5 << 8) - (8 << 8),
+					x + random(toSubpixels(-5), toSubpixels(5)) - toSubpixels(8),
+					y + random(toSubpixels(-5), toSubpixels(5)) - toSubpixels(8),
 					random(96, 192),
 					random(96, 192),
 					255,
@@ -99,11 +99,11 @@ export class PortalPair {
 				this.world.sparkles.push(s);
 			}
 			// a shot above the playfield continues if it flies down
-			inScreenOK = inScreen(x >> 8, y >> 8) || (y >> 8 < 0 && portal.vy > 0);
+			inScreenOK = inScreen(toPixels(x), toPixels(y)) || (toPixels(y) < 0 && portal.vy > 0);
 		} while (tile === Tile.EMPTY && inScreenOK && bounces < 5);
 
 		if (isTileKind(tile, TileKind.WALL) || tile instanceof Platform) {
-			if (this.#placePortal(p, x >> 8, y >> 8)) {
+			if (this.#placePortal(p, toPixels(x), toPixels(y))) {
 				if (portal.direction === Direction.RIGHT || portal.direction === Direction.LEFT) {
 					portal.scaleX = 1;
 					portal.scaleY = 0;
@@ -111,7 +111,7 @@ export class PortalPair {
 				} else {
 					portal.scaleX = 0;
 					portal.scaleY = 1;
-					const hit = this.world.getTilePortal(x >> 8, y >> 8);
+					const hit = this.world.getTilePortal(toPixels(x), toPixels(y));
 					portal.platform = hit instanceof Platform ? hit : null;
 				}
 				playSound(sfx_portal[random(0, 2)]);
@@ -199,15 +199,15 @@ export class PortalPair {
 		const portal = this.list[p];
 		const other = this.list[1 - p];
 		const onSideWall = direction === Direction.LEFT || direction === Direction.RIGHT;
-		const [line, otherLine] = onSideWall ? [x, other.x >> 8] : [y, other.y >> 8];
-		const [pos, otherPos] = onSideWall ? [y, other.y >> 8] : [x, other.x >> 8];
+		const [line, otherLine] = onSideWall ? [x, toPixels(other.x)] : [y, toPixels(other.y)];
+		const [pos, otherPos] = onSideWall ? [y, toPixels(other.y)] : [x, toPixels(other.x)];
 		if (other.used && line === otherLine && Math.abs(otherPos - pos) < 2 * TILE_SIZE) return false;
 
 		portal.direction = direction;
 		// the portal image has one frame for floors and ceilings and one frame for side walls
 		portal.frame = onSideWall ? 1 : 0;
-		portal.x = x << 8;
-		portal.y = y << 8;
+		portal.x = toSubpixels(x);
+		portal.y = toSubpixels(y);
 		portal.used = true;
 		createPortalGlow(this.world, p);
 		return true;
@@ -223,33 +223,33 @@ export class PortalPair {
 	 *     the portal far enough for a teleport, or null if the object touches no portal on this side.
 	 */
 	#findPortal(obj, side) {
-		const x = obj.x >> 8;
-		const y = obj.y >> 8;
+		const x = obj.pixelX;
+		const y = obj.pixelY;
 		if (!obj.canEnterPortal(side)) return null;
 
 		for (const [index, portal] of this.list.entries()) {
 			if (!portal.used || portal.direction !== side || !this.other(portal).used) continue;
-			const px = portal.x >> 8;
-			const py = portal.y >> 8;
+			const px = toPixels(portal.x);
+			const py = toPixels(portal.y);
 			switch (side) {
 				case Direction.LEFT: {
 					const tx = px + 3;
 					const edge = x - 1;
-					if (y >= py - 6 && y + obj.pY <= py + 2 * TILE_SIZE + 6 && edge < tx && tx - edge <= 20) {
-						return { index, deep: tx - edge >= obj.pX >> 1 && obj.vx < 0 };
+					if (y >= py - 6 && y + obj.height <= py + 2 * TILE_SIZE + 6 && edge < tx && tx - edge <= 20) {
+						return { index, deep: tx - edge >= obj.width >> 1 && obj.vx < 0 };
 					}
 					break;
 				}
 				case Direction.RIGHT: {
-					const edge = x + obj.pX;
-					if (y >= py - 6 && y + obj.pY <= py + 2 * TILE_SIZE + 6 && edge > px && edge - px <= 20) {
-						return { index, deep: edge - px >= obj.pX >> 1 && obj.vx > 0 };
+					const edge = x + obj.width;
+					if (y >= py - 6 && y + obj.height <= py + 2 * TILE_SIZE + 6 && edge > px && edge - px <= 20) {
+						return { index, deep: edge - px >= obj.width >> 1 && obj.vx > 0 };
 					}
 					break;
 				}
 				case Direction.DOWN: {
-					const edge = y + obj.pY;
-					if (x >= px - 4 && x + obj.pX < px + 2 * TILE_SIZE + 4 && edge >= py && edge - py <= 20) {
+					const edge = y + obj.height;
+					if (x >= px - 4 && x + obj.width < px + 2 * TILE_SIZE + 4 && edge >= py && edge - py <= 20) {
 						return { index, deep: edge - py >= 16 && obj.vy > 0 };
 					}
 					break;
@@ -257,7 +257,7 @@ export class PortalPair {
 				case Direction.UP: {
 					const ty = py + 4;
 					const edge = y - 1;
-					if (x >= px - 4 && x + obj.pX < px + 2 * TILE_SIZE + 4 && edge < ty && ty - edge <= 20) {
+					if (x >= px - 4 && x + obj.width < px + 2 * TILE_SIZE + 4 && edge < ty && ty - edge <= 20) {
 						return { index, deep: ty - edge >= 16 && obj.vy < 0 };
 					}
 					break;
@@ -338,18 +338,18 @@ export class PortalPair {
 		switch (exit.direction) {
 			case Direction.RIGHT:
 			case Direction.LEFT: {
-				const gap = (2 * TILE_SIZE - obj.pY) >> 1;
-				obj.x = exit.x - ((obj.pX >> 1) << 8);
-				obj.y = exit.y + (gap << 8);
+				const gap = (2 * TILE_SIZE - obj.height) >> 1;
+				obj.x = exit.x - toSubpixels(obj.width >> 1);
+				obj.y = exit.y + toSubpixels(gap);
 				break;
 			}
 			case Direction.UP:
-				obj.x = exit.x + ((TILE_SIZE / 2) << 8);
-				obj.y = exit.y - ((obj.pY >> 1) << 8) + (4 << 8);
+				obj.x = exit.x + toSubpixels(TILE_SIZE / 2);
+				obj.y = exit.y - toSubpixels(obj.height >> 1) + toSubpixels(4);
 				break;
 			case Direction.DOWN:
-				obj.x = exit.x + ((TILE_SIZE / 2) << 8);
-				obj.y = exit.y - ((obj.pY >> 1) << 8);
+				obj.x = exit.x + toSubpixels(TILE_SIZE / 2);
+				obj.y = exit.y - toSubpixels(obj.height >> 1);
 				break;
 		}
 
@@ -405,8 +405,8 @@ export class PortalPair {
 	pointInPortal(x, y) {
 		return (
 			this.list.find((portal) => {
-				const xp = portal.x >> 8;
-				const yp = portal.y >> 8;
+				const xp = toPixels(portal.x);
+				const yp = toPixels(portal.y);
 				switch (portal.direction) {
 					case Direction.LEFT:
 					case Direction.RIGHT:

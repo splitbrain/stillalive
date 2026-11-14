@@ -4,6 +4,7 @@
 
 import { Direction, MAP_HEIGHT, MAP_WIDTH, TILE_SIZE } from './constants.js';
 import { Tile } from './tiles.js';
+import { toSubpixels } from './utils.js';
 
 /**
  * A level as the stage plays it: the data of a map file and where the level comes from.
@@ -29,6 +30,9 @@ export const GRAVPIPE_DIRECTIONS = {
 	[Tile.GRAVPIPE_DOWN]: Direction.DOWN,
 };
 
+/** @type {number} The start speed of the plasma ball in 1/256 pixels per tick. */
+const PLASMA_SPEED = 424;
+
 /**
  * Get the launch of the plasma ball from a plasma start in a map. Three sides of the start must be closed, and the
  * ball flies out of the open side. Each tile that is not empty closes a side, and so does the edge of the map.
@@ -47,9 +51,16 @@ export function plasmaLaunch(map, x, y) {
 	const left = closed(x - 1, y);
 	const right = closed(x + 1, y);
 
-	if (up && down && left) return { x: ((x + 1) * TILE_SIZE) << 8, y: (y * TILE_SIZE) << 8, vx: 424, vy: 0 };
-	if (up && down && right) return { x: ((x - 1) * TILE_SIZE) << 8, y: (y * TILE_SIZE) << 8, vx: -424, vy: 0 };
-	if (right && down && left) return { x: (x * TILE_SIZE) << 8, y: ((y - 1) * TILE_SIZE) << 8, vx: 0, vy: -424 };
-	if (left && right && up) return { x: (x * TILE_SIZE) << 8, y: ((y + 1) * TILE_SIZE) << 8, vx: 0, vy: 424 };
+	// the ball starts on the tile in front of the open side
+	const launch = (column, row, vx, vy) => ({
+		x: toSubpixels(column * TILE_SIZE),
+		y: toSubpixels(row * TILE_SIZE),
+		vx,
+		vy,
+	});
+	if (up && down && left) return launch(x + 1, y, PLASMA_SPEED, 0);
+	if (up && down && right) return launch(x - 1, y, -PLASMA_SPEED, 0);
+	if (right && down && left) return launch(x, y - 1, 0, -PLASMA_SPEED);
+	if (left && right && up) return launch(x, y + 1, 0, PLASMA_SPEED);
 	return null;
 }

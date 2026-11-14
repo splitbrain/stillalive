@@ -37,7 +37,7 @@ import { GRAVPIPE_DIRECTIONS, plasmaLaunch } from './level.js';
 import { LevelEvents } from './LevelEvents.js';
 import { TileMap } from './TileMap.js';
 import { FIRST_OF_KIND, LAST_OF_KIND, Tile, TileKind, inForceFieldRange, isDeadlyTile, isTileKind } from './tiles.js';
-import { inScreen, random } from './utils.js';
+import { inScreen, random, toPixels, toSubpixels } from './utils.js';
 
 /** @type {{kind: string, type: number, speed: number}[]} The tile kinds that become animated tiles in a level. */
 const ANIMATED_KINDS = [
@@ -251,7 +251,7 @@ export class World {
 	 */
 	createEditorObjects() {
 		this.player = new Player(this);
-		this.player.x = -(TILE_SIZE << 8);
+		this.player.x = -toSubpixels(TILE_SIZE);
 		this.resetPhase();
 		this.#parse({ editor: true });
 	}
@@ -481,7 +481,7 @@ export class World {
 					vy = 1;
 					break;
 			}
-			traceGravPipeField(this, t.x >> 8, t.y >> 8, vx, vy);
+			traceGravPipeField(this, t.pixelX, t.pixelY, vx, vy);
 		}
 	}
 
@@ -520,8 +520,8 @@ export class World {
 	 */
 	#jumpInFromBelow() {
 		this.player.vy = -2400;
-		this.player.x = (8 * TILE_SIZE) << 8;
-		this.player.y = PLAYFIELD_HEIGHT << 8;
+		this.player.x = toSubpixels(8 * TILE_SIZE);
+		this.player.y = toSubpixels(PLAYFIELD_HEIGHT);
 	}
 
 	/**
@@ -554,7 +554,7 @@ export class World {
 
 			if (tile in GRAVPIPE_DIRECTIONS) {
 				const dir = GRAVPIPE_DIRECTIONS[tile];
-				this.gravPipes.push(new GravPipe(this, (x * TILE_SIZE) << 8, (y * TILE_SIZE) << 8, dir));
+				this.gravPipes.push(new GravPipe(this, toSubpixels(x * TILE_SIZE), toSubpixels(y * TILE_SIZE), dir));
 				if (levelStart) {
 					// a gravitational pipe covers two tiles
 					const next = dir === Direction.RIGHT || dir === Direction.LEFT ? map.index(x, y + 1) : map.index(x + 1, y);
@@ -587,8 +587,8 @@ export class World {
 				continue;
 			}
 
-			const px = (x * TILE_SIZE) << 8;
-			const py = (y * TILE_SIZE) << 8;
+			const px = toSubpixels(x * TILE_SIZE);
+			const py = toSubpixels(y * TILE_SIZE);
 			switch (tile) {
 				case Tile.CAKE:
 					this.cakes.push(new Cake(this, px, py));
@@ -753,8 +753,8 @@ export class World {
 	#findCrate(x, y, any) {
 		return (
 			this.crates.find((crate) => {
-				const x2 = crate.x >> 8;
-				const y2 = crate.y >> 8;
+				const x2 = crate.pixelX;
+				const y2 = crate.pixelY;
 				return (
 					(any || (!crate.carried && !this.portals.isInPortal(crate))) &&
 					x > x2 &&
@@ -794,8 +794,8 @@ export class World {
 	platformAt(x, y) {
 		return (
 			this.platforms.find((platform) => {
-				const x2 = platform.x >> 8;
-				const y2 = platform.y >> 8;
+				const x2 = platform.pixelX;
+				const y2 = platform.pixelY;
 				return x > x2 && x < x2 + 3 * TILE_SIZE && y >= y2 && y < y2 + TILE_SIZE - 1;
 			}) ?? null
 		);
@@ -841,8 +841,8 @@ export class World {
 		const ground = obj.touchingGround();
 		if (ground === Ground.BELT_RIGHT) return 1;
 		if (ground === Ground.BELT_LEFT) return -1;
-		const y = (obj.y >> 8) + obj.pY;
-		const crate = this.crateAt(obj.x >> 8, y) || this.crateAt((obj.x >> 8) + obj.pX - 1, y);
+		const y = obj.pixelY + obj.height;
+		const crate = this.crateAt(obj.pixelX, y) || this.crateAt(obj.pixelX + obj.width - 1, y);
 		return crate ? crate.belt : 0;
 	}
 
@@ -854,12 +854,12 @@ export class World {
 	 * @returns {Platform|null} The platform, or null.
 	 */
 	onPlatform(obj) {
-		const x = obj.x >> 8;
-		const y = (obj.y >> 8) + obj.pY;
+		const x = obj.pixelX;
+		const y = obj.pixelY + obj.height;
 		return (
 			this.platformAt(x, y) ||
-			this.platformAt(x + obj.pX - 1, y) ||
-			((this.crateAt(x, y) || this.crateAt(x + obj.pX - 1, y))?.platform ?? null)
+			this.platformAt(x + obj.width - 1, y) ||
+			((this.crateAt(x, y) || this.crateAt(x + obj.width - 1, y))?.platform ?? null)
 		);
 	}
 
@@ -869,7 +869,7 @@ export class World {
 	 * @returns {void}
 	 */
 	#manageDoors() {
-		const held = this.#playerOnSwitch(this.player.x >> 8, this.player.y >> 8) || this.#crateOnSwitch();
+		const held = this.#playerOnSwitch(this.player.pixelX, this.player.pixelY) || this.#crateOnSwitch();
 		if (held === this.switchPressed) return;
 		this.switchPressed = held;
 		if (held) this.#openSwitchDoors();
@@ -886,8 +886,8 @@ export class World {
 		const door = FIRST_OF_KIND[TileKind.SWITCH_DOOR];
 		for (const [i, portal] of this.portals.list.entries()) {
 			if (!portal.used) continue;
-			let x = portal.x >> 8;
-			let y = portal.y >> 8;
+			let x = toPixels(portal.x);
+			let y = toPixels(portal.y);
 			switch (portal.direction) {
 				case Direction.UP:
 					y += 6;
@@ -934,8 +934,8 @@ export class World {
 	 */
 	#touchesSwitchDoor(obj) {
 		const door = FIRST_OF_KIND[TileKind.SWITCH_DOOR];
-		const x = obj.x >> 8;
-		const y = obj.y >> 8;
+		const x = obj.pixelX;
+		const y = obj.pixelY;
 		const corners = [
 			[x, y],
 			[x + TILE_SIZE - 1, y],
@@ -984,7 +984,7 @@ export class World {
 	 * @returns {boolean} True if a switch tile is below the player.
 	 */
 	#playerOnSwitch(x, y) {
-		const below = y + this.player.pY + 5;
+		const below = y + this.player.height + 5;
 		return this.map.atPixel(x, below) === Tile.SWITCH || this.map.atPixel(x + 15, below) === Tile.SWITCH;
 	}
 
@@ -995,8 +995,8 @@ export class World {
 	 */
 	#crateOnSwitch() {
 		return this.crates.some((crate) => {
-			const x = crate.x >> 8;
-			const y = (crate.y >> 8) + crate.pY + 3;
+			const x = crate.pixelX;
+			const y = crate.pixelY + crate.height + 3;
 			return this.map.atPixel(x, y) === Tile.SWITCH || this.map.atPixel(x + TILE_SIZE - 1, y) === Tile.SWITCH;
 		});
 	}
@@ -1009,11 +1009,11 @@ export class World {
 	#atExit() {
 		const p = this.player;
 		if (!this.portals.isInPortal(p)) {
-			const x = p.x >> 8;
-			const y = p.y >> 8;
+			const x = p.pixelX;
+			const y = p.pixelY;
 			// check each tile that the box of the player touches
-			for (let ty = y >> TILE_SIZE_BITS; ty <= (y + p.pY - 1) >> TILE_SIZE_BITS; ty++) {
-				for (let tx = x >> TILE_SIZE_BITS; tx <= (x + p.pX - 1) >> TILE_SIZE_BITS; tx++) {
+			for (let ty = y >> TILE_SIZE_BITS; ty <= (y + p.height - 1) >> TILE_SIZE_BITS; ty++) {
+				for (let tx = x >> TILE_SIZE_BITS; tx <= (x + p.width - 1) >> TILE_SIZE_BITS; tx++) {
 					if (this.map.atPixel(tx << TILE_SIZE_BITS, ty << TILE_SIZE_BITS) === Tile.EXIT) return true;
 				}
 			}

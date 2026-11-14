@@ -38,7 +38,7 @@ import {
 } from '../images.js';
 import { drawBoss } from './boss.js';
 import { drawTransition } from './transitions.js';
-import { degToRad, getAngle, radToDeg, random } from '../utils.js';
+import { degToRad, getAngle, radToDeg, random, toPixels } from '../utils.js';
 
 /**
  * @type {number[]} The vertical offset of the head for each frame of the body, in canvas pixels. The head follows the
@@ -154,8 +154,8 @@ function drawRotatedHead(world, input, flipDx) {
 	// facing left, the head image is mirrored around the pivot, so the pivot sits at the mirrored x of the neck
 	const [pivotX, pivotY] = HEAD_PIVOT;
 	ctx.translate(
-		(world.player.x >> 8) + (flipDx ? 16 - pivotX : pivotX),
-		(world.player.y >> 8) + pivotY + HEAD_BOB[world.player.animationFrame],
+		world.player.pixelX + (flipDx ? 16 - pivotX : pivotX),
+		world.player.pixelY + pivotY + HEAD_BOB[world.player.animationFrame],
 	);
 	ctx.rotate(degToRad(limitHeadAngle(radToDeg(a), flipDx)));
 	if (flipDx) ctx.scale(-1, 1);
@@ -202,7 +202,7 @@ function drawSparkles(world) {
 		const sc = s.fading / 255;
 		let dt = 9 - sc * 9;
 		if (s.type === SparkleType.LOW_LIFE || s.type === SparkleType.SHOT_HIT) dt -= 8;
-		drawImage(sparkle, 0, s.color * 9, 9, 9, (s.x >> 8) + dt, (s.y >> 8) + dt, 16 * sc, 16 * sc);
+		drawImage(sparkle, 0, s.color * 9, 9, 9, toPixels(s.x) + dt, toPixels(s.y) + dt, 16 * sc, 16 * sc);
 	}
 }
 
@@ -222,7 +222,7 @@ export function drawLevel(world, input, labelLayouts) {
 	const flipDx = world.player.flip < 0 ? 1 : 0;
 	if (!flipDx) drawPortalGun(world, input);
 	drawRotatedHead(world, input, flipDx);
-	drawBody(world.player.x >> 8, world.player.y >> 8, world.player.animationFrame, world.player.flip);
+	drawBody(world.player.pixelX, world.player.pixelY, world.player.animationFrame, world.player.flip);
 	if (flipDx) drawPortalGun(world, input);
 
 	drawCakes(world);
@@ -378,7 +378,7 @@ export function drawCakes(world) {
 	for (const c of world.cakes) {
 		if (!c.used) continue;
 		const float = world.isRunning() ? c.vy : 0;
-		drawImage(cake, c.x >> 8, (c.y + float) >> 8, TILE_SIZE, 12);
+		drawImage(cake, c.pixelX, toPixels(c.y + float), TILE_SIZE, 12);
 	}
 }
 
@@ -391,8 +391,8 @@ export function drawCakes(world) {
 export function drawTurrets(world) {
 	for (const t of world.turrets) {
 		const side = t.dir < 0 ? 0 : 1;
-		const x = t.x >> 8;
-		const y = t.y >> 8;
+		const x = t.pixelX;
+		const y = t.pixelY;
 		ctx.save();
 		ctx.translate(t.midX(), t.midY());
 		ctx.rotate(degToRad(t.angle));
@@ -402,23 +402,23 @@ export function drawTurrets(world) {
 			t.animFrame * 2 * TILE_SIZE,
 			TILE_SIZE,
 			2 * TILE_SIZE,
-			-(t.pX >> 1),
-			-(t.pY >> 1),
+			-(t.width >> 1),
+			-(t.height >> 1),
 			TILE_SIZE,
 			2 * TILE_SIZE,
 		);
 		ctx.restore();
-		const dx = t.dir < 0 ? 0 : t.pX;
+		const dx = t.dir < 0 ? 0 : t.width;
 		const playerY = world.player.midY();
 		if (t.animFrame === 1 && !t.dead) {
 			ctx.strokeStyle = 'rgb(255, 255, 0)';
 			ctx.lineWidth = 3;
 			const dy = random(-16, 16);
-			line(x + dx, y + 13, world.player.x >> 8, playerY + dy);
+			line(x + dx, y + 13, world.player.pixelX, playerY + dy);
 		} else if (t.rotation < 10 && !t.dead) {
 			ctx.strokeStyle = 'rgb(255, 0, 0)';
 			ctx.lineWidth = 1;
-			line(x + dx, y + 13, t.ex >> 8, playerY);
+			line(x + dx, y + 13, toPixels(t.ex), playerY);
 		}
 	}
 }
@@ -442,8 +442,8 @@ function drawPlasma(world) {
 			ball.animFrame * TILE_SIZE,
 			TILE_SIZE,
 			TILE_SIZE,
-			(ball.x >> 8) + vx,
-			(ball.y >> 8) + vy,
+			ball.pixelX + vx,
+			ball.pixelY + vy,
 			TILE_SIZE,
 			TILE_SIZE,
 		);
@@ -461,12 +461,12 @@ function drawProjectiles(world) {
 		const image = tileset[p.img];
 		if (!p.needKill) {
 			ctx.globalAlpha = 0.5;
-			drawImage(image, (p.x - p.vx * 4) >> 8, (p.y - p.vy * 4) >> 8, TILE_SIZE, TILE_SIZE);
+			drawImage(image, toPixels(p.x - p.vx * 4), toPixels(p.y - p.vy * 4), TILE_SIZE, TILE_SIZE);
 			ctx.globalAlpha = 0.75;
-			drawImage(image, (p.x - p.vx * 2) >> 8, (p.y - p.vy * 2) >> 8, TILE_SIZE, TILE_SIZE);
+			drawImage(image, toPixels(p.x - p.vx * 2), toPixels(p.y - p.vy * 2), TILE_SIZE, TILE_SIZE);
 			ctx.globalAlpha = 1;
 		}
-		drawImage(image, p.x >> 8, p.y >> 8, TILE_SIZE, TILE_SIZE);
+		drawImage(image, p.pixelX, p.pixelY, TILE_SIZE, TILE_SIZE);
 	}
 }
 
@@ -482,7 +482,17 @@ export function drawCrates(world) {
 		ctx.save();
 		ctx.translate(c.midX(), c.midY());
 		ctx.rotate(degToRad(c.angle));
-		drawImage(crateImage, 0, 0, TILE_SIZE, TILE_SIZE, -(c.pX >> 1), -(c.pY >> 1), TILE_SIZE * sc, TILE_SIZE * sc);
+		drawImage(
+			crateImage,
+			0,
+			0,
+			TILE_SIZE,
+			TILE_SIZE,
+			-(c.width >> 1),
+			-(c.height >> 1),
+			TILE_SIZE * sc,
+			TILE_SIZE * sc,
+		);
 		ctx.restore();
 	}
 }
@@ -529,7 +539,7 @@ function drawGravPipeFields(world) {
  */
 export function drawGravPipes(world) {
 	drawGravPipeFields(world);
-	for (const t of world.gravPipes) drawGravPipe(t.dir, t.x >> 8, t.y >> 8);
+	for (const t of world.gravPipes) drawGravPipe(t.dir, t.pixelX, t.pixelY);
 }
 
 /**
@@ -564,7 +574,7 @@ export function drawGravPipe(dir, x, y) {
  * @returns {void}
  */
 function drawTube(world) {
-	drawImage(world.boss.number === 2 ? tube2 : tube, world.tubeX >> 8, world.tubeY >> 8);
+	drawImage(world.boss.number === 2 ? tube2 : tube, toPixels(world.tubeX), toPixels(world.tubeY));
 }
 
 /**
@@ -575,7 +585,7 @@ function drawTube(world) {
  * @returns {void}
  */
 export function drawPlatforms(world, arrow) {
-	for (const p of world.platforms) drawPlatform(p.x >> 8, p.y >> 8, p.dir, arrow);
+	for (const p of world.platforms) drawPlatform(p.pixelX, p.pixelY, p.dir, arrow);
 }
 
 /**
@@ -609,8 +619,8 @@ function drawFrontTiles(world) {
 		const onFloor = portal.direction === Direction.UP || portal.direction === Direction.DOWN;
 		const onWall = portal.direction === Direction.LEFT || portal.direction === Direction.RIGHT;
 		if (!onFloor && !onWall) continue;
-		const tx = (portal.x >> 8) >> TILE_SIZE_BITS;
-		const ty = (portal.y >> 8) >> TILE_SIZE_BITS;
+		const tx = toPixels(portal.x) >> TILE_SIZE_BITS;
+		const ty = toPixels(portal.y) >> TILE_SIZE_BITS;
 		for (let i = 0; i < 4; i++) {
 			const column = onFloor ? tx + i : tx;
 			const row = onFloor ? ty : ty + i;
@@ -630,12 +640,12 @@ function drawFrontTiles(world) {
 function drawCamera(world) {
 	const a = getAngle(
 		world.player.midX(),
-		(world.player.y >> 8) + 8,
-		(world.camera.x >> 8) + TILE_SIZE / 2,
-		(world.camera.y >> 8) + TILE_SIZE / 2,
+		world.player.pixelY + 8,
+		toPixels(world.camera.x) + TILE_SIZE / 2,
+		toPixels(world.camera.y) + TILE_SIZE / 2,
 	);
 	ctx.save();
-	ctx.translate((world.camera.x >> 8) + TILE_SIZE / 2, (world.camera.y >> 8) + TILE_SIZE / 2);
+	ctx.translate(toPixels(world.camera.x) + TILE_SIZE / 2, toPixels(world.camera.y) + TILE_SIZE / 2);
 	ctx.rotate(a);
 	drawImage(cameraFollow, 0, 0);
 	ctx.restore();
@@ -660,8 +670,8 @@ function drawPortals(world) {
 			2 * TILE_SIZE * p.frame,
 			2 * TILE_SIZE,
 			2 * TILE_SIZE,
-			(p.x >> 8) + dx,
-			(p.y >> 8) + dy,
+			toPixels(p.x) + dx,
+			toPixels(p.y) + dy,
 			2 * TILE_SIZE * p.scaleX,
 			2 * TILE_SIZE * p.scaleY,
 		);
@@ -699,7 +709,7 @@ export function drawPreviewMap(world, input) {
 	drawImage(portalGun, -5, -5);
 	ctx.restore();
 
-	drawPlayer(world.player.x >> 8, world.player.y >> 8, world.player.flip, world.player.animationFrame);
+	drawPlayer(world.player.pixelX, world.player.pixelY, world.player.flip, world.player.animationFrame);
 
 	drawCakes(world);
 	drawTurrets(world);

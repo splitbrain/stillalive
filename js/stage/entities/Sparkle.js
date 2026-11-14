@@ -4,7 +4,7 @@
 
 import { Direction, GRAVITY, SparkleType } from '../constants.js';
 import { Tile } from '../tiles.js';
-import { random } from '../utils.js';
+import { random, toPixels, toSubpixels } from '../utils.js';
 
 /**
  * Remove the sparkles of one type and color.
@@ -30,8 +30,8 @@ export function createPortalGlow(world, p) {
 	const onSideWall = portal.direction === Direction.LEFT || portal.direction === Direction.RIGHT;
 	removeSparkles(world, p, SparkleType.PORTAL_GLOW);
 	for (let i = 0; i < 13; i++) {
-		const x = portal.x + (onSideWall ? 0 : (i * 2) << 8);
-		const y = portal.y + (onSideWall ? (i * 2) << 8 : 0);
+		const x = portal.x + (onSideWall ? 0 : toSubpixels(i * 2));
+		const y = portal.y + (onSideWall ? toSubpixels(i * 2) : 0);
 		const s = new Sparkle(world, SparkleType.PORTAL_GLOW, x, y, 0, 0, 200, p);
 		s.xOrig = x;
 		s.yOrig = y;
@@ -39,14 +39,14 @@ export function createPortalGlow(world, p) {
 		switch (portal.direction) {
 			case Direction.RIGHT:
 				s.vx = -random(128, 384);
-				s.xOrig -= 7 << 8;
+				s.xOrig -= toSubpixels(7);
 				break;
 			case Direction.LEFT:
 				s.vx = random(128, 384);
 				break;
 			case Direction.DOWN:
 				s.vy = -random(128, 384);
-				s.yOrig -= 8 << 8;
+				s.yOrig -= toSubpixels(8);
 				break;
 			default:
 				s.vy = random(128, 384);
@@ -74,8 +74,8 @@ export function createCakeOrSmokeSparkles(world, x, y, type, number, size) {
 			new Sparkle(
 				world,
 				type,
-				x + random(-8 << 8, 8 << 8),
-				y + random(-8 << 8, 8 << 8),
+				x + random(toSubpixels(-8), toSubpixels(8)),
+				y + random(toSubpixels(-8), toSubpixels(8)),
 				random(-192, 192),
 				random(-192, -96),
 				size,
@@ -134,9 +134,9 @@ export class Sparkle {
 	 */
 	#glow() {
 		if (this.vx !== 0) {
-			this.fading = 200 - 5 * (Math.abs(this.xOrig - this.x) >> 8);
+			this.fading = 200 - 5 * toPixels(Math.abs(this.xOrig - this.x));
 		} else if (this.vy !== 0) {
-			this.fading = 200 - 5 * (Math.abs(this.yOrig - this.y) >> 8);
+			this.fading = 200 - 5 * toPixels(Math.abs(this.yOrig - this.y));
 			const platform = this.world.portals.list[this.portalNum].platform;
 			if (platform) {
 				this.x += platform.vx;
@@ -166,7 +166,8 @@ export class Sparkle {
 		if (this.type === SparkleType.SHOT_HIT || this.type === SparkleType.DEATH || this.type === SparkleType.LOW_LIFE) {
 			const scale = this.fading / 255;
 			const onFloor =
-				this.world.getTile((this.x >> 8) + ((16 * scale) >> 1), (this.y >> 8) + ((16 * scale) >> 1)) !== Tile.EMPTY;
+				this.world.getTile(toPixels(this.x) + ((16 * scale) >> 1), toPixels(this.y) + ((16 * scale) >> 1)) !==
+				Tile.EMPTY;
 			// blood stays on the floor for a while, the other sparkles go away
 			if (onFloor && this.floorTime < 0) {
 				if (this.type === SparkleType.LOW_LIFE || this.type === SparkleType.SHOT_HIT) this.floorTime = 0;
@@ -178,7 +179,7 @@ export class Sparkle {
 			case SparkleType.PORTAL_SHOT:
 			case SparkleType.TELEPORT:
 				this.fading -= 8;
-				if (this.world.getTile((this.x >> 8) + 4, (this.y >> 8) + 4) !== Tile.EMPTY) this.fading = 0;
+				if (this.world.getTile(toPixels(this.x) + 4, toPixels(this.y) + 4) !== Tile.EMPTY) this.fading = 0;
 				break;
 			case SparkleType.PORTAL_GLOW:
 				this.#glow();

@@ -9,7 +9,7 @@ import { Plasma } from './Plasma.js';
 import { Projectile } from './Projectile.js';
 import { createCakeOrSmokeSparkles } from './Sparkle.js';
 import { FIRST_OF_KIND, TileKind } from '../tiles.js';
-import { getCos, getDistance, getSin, random } from '../utils.js';
+import { getCos, getDistance, getSin, random, toPixels, toSubpixels } from '../utils.js';
 
 /** @type {number} The x position of the boss in pixels while it fights. */
 const BOSS_X = 449;
@@ -136,7 +136,7 @@ export class Boss {
 		playLoop(sfx_bossAlarm);
 		this.entryDistance += 32;
 		this.entryTicks++;
-		this.x = BOSS_X + BOSS_ENTRY_DISTANCE - (this.entryDistance >> 8);
+		this.x = BOSS_X + BOSS_ENTRY_DISTANCE - toPixels(this.entryDistance);
 		if (this.x === BOSS_X) {
 			this.entering = false;
 			this.world.shakeX = 0;
@@ -171,9 +171,9 @@ export class Boss {
 				const due = time % (90 - 30 * hits) === 0;
 				if (due && this.world.plasmaBall.length < hits + 1) this.#shootPlasma(800);
 				if (due && this.world.crates.length === 0) {
-					const crate = new Crate(this.world, ((MAP_WIDTH - 1) * TILE_SIZE) << 8, (18 * TILE_SIZE) << 8);
-					crate.vx = -(12 << 8);
-					crate.vy = -(2 << 8);
+					const crate = new Crate(this.world, toSubpixels((MAP_WIDTH - 1) * TILE_SIZE), toSubpixels(18 * TILE_SIZE));
+					crate.vx = -toSubpixels(12);
+					crate.vy = -toSubpixels(2);
 					this.world.crates.push(crate);
 				}
 				break;
@@ -211,7 +211,7 @@ export class Boss {
 	#shootWheel(x, y, speed, speedX = speed) {
 		const [dx, dy] = this.#aimAtPlayer(x + TILE_SIZE / 2, y + TILE_SIZE / 2);
 		this.world.projectiles.push(
-			new Projectile(this.world, x << 8, y << 8, Math.trunc(dx * speedX), Math.trunc(dy * speed)),
+			new Projectile(this.world, toSubpixels(x), toSubpixels(y), Math.trunc(dx * speedX), Math.trunc(dy * speed)),
 		);
 	}
 
@@ -223,8 +223,8 @@ export class Boss {
 	 */
 	#shootPlasma(speed) {
 		const [dx, dy] = this.#aimAtPlayer(
-			(this.world.plasmaX >> 8) + TILE_SIZE / 2,
-			(this.world.plasmaY >> 8) + TILE_SIZE / 2,
+			toPixels(this.world.plasmaX) + TILE_SIZE / 2,
+			toPixels(this.world.plasmaY) + TILE_SIZE / 2,
 		);
 		this.world.plasmaBall.push(
 			new Plasma(this.world, this.world.plasmaX, this.world.plasmaY, dx * speed, dy * speed, true),
@@ -240,7 +240,7 @@ export class Boss {
 	 * @returns {void}
 	 */
 	#throwCrate(row, divisor) {
-		const crate = new Crate(this.world, ((MAP_WIDTH - 1) * TILE_SIZE) << 8, (row * TILE_SIZE) << 8);
+		const crate = new Crate(this.world, toSubpixels((MAP_WIDTH - 1) * TILE_SIZE), toSubpixels(row * TILE_SIZE));
 		this.world.crates.push(crate);
 		if (this.world.crates.length > 10) {
 			for (let i = 0; i < 10; i++) {
@@ -250,11 +250,11 @@ export class Boss {
 				}
 			}
 		}
-		let d = getDistance(this.world.player.x >> 8, this.world.player.y >> 8, crate.x >> 8, crate.y >> 8);
+		let d = getDistance(this.world.player.pixelX, this.world.player.pixelY, crate.pixelX, crate.pixelY);
 		d = Math.trunc(d / divisor);
 		if (d > 16) d = 16;
 		if (d < 3) d = 3;
-		crate.vx = -(d << 8);
+		crate.vx = -toSubpixels(d);
 	}
 
 	/**
@@ -267,7 +267,14 @@ export class Boss {
 		playLoop(sfx_bossRumble);
 		this.#shakeScreen();
 		if (this.world.time % 10 === 0) {
-			createCakeOrSmokeSparkles(this.world, (this.x + 14) << 8, (this.y + 18) << 8, SparkleType.SMOKE, 3, 300);
+			createCakeOrSmokeSparkles(
+				this.world,
+				toSubpixels(this.x + 14),
+				toSubpixels(this.y + 18),
+				SparkleType.SMOKE,
+				3,
+				300,
+			);
 			this.x += 1;
 		}
 		if (this.x >= BOSS_GONE_X) {
@@ -294,7 +301,7 @@ export class Boss {
 	 * @returns {boolean} True if the player touches the boss.
 	 */
 	#touchesPlayer() {
-		const x = (this.world.player.x >> 8) + this.world.player.pX;
+		const x = this.world.player.pixelX + this.world.player.width;
 		const y = this.world.player.midY();
 		const x2 = this.x + 15;
 		const y2 = this.y;
@@ -339,8 +346,8 @@ export class Boss {
 		if (this.makesCrates()) {
 			crate.needKill = true;
 		} else {
-			crate.x = (5 * TILE_SIZE) << 8;
-			crate.y = -TILE_SIZE << 8;
+			crate.x = toSubpixels(5 * TILE_SIZE);
+			crate.y = toSubpixels(-TILE_SIZE);
 			crate.vx = 0;
 			crate.vy = 0;
 		}

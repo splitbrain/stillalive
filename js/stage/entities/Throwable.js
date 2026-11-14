@@ -4,7 +4,7 @@
 
 import { Body } from './Body.js';
 import { BELT_SPEED, Direction, GRAVITY, Ground, PIPE_SPEED, TILE_SIZE } from '../constants.js';
-import { getCos, getSin } from '../utils.js';
+import { getCos, getSin, toPixels, toSubpixels } from '../utils.js';
 
 /**
  * An object that the player can pick up and throw. The base of Crate and Turret.
@@ -14,11 +14,11 @@ export class Throwable extends Body {
 	 * @param {import('../World.js').World} world The World of the object.
 	 * @param {number} x The x position in 1/256 pixels.
 	 * @param {number} y The y position in 1/256 pixels.
-	 * @param {number} pX The width in pixels.
-	 * @param {number} pY The height in pixels.
+	 * @param {number} width The width in pixels.
+	 * @param {number} height The height in pixels.
 	 */
-	constructor(world, x, y, pX, pY) {
-		super(world, x, y, pX, pY);
+	constructor(world, x, y, width, height) {
+		super(world, x, y, width, height);
 		/** @type {number} The horizontal speed in 1/256 pixels per tick. */
 		this.vx = 0;
 		/** @type {number} The vertical speed in 1/256 pixels per tick. */
@@ -95,18 +95,18 @@ export class Throwable extends Body {
 	 */
 	place() {
 		const portals = this.world.portals;
-		const x = this.world.player.x + (this.world.player.pX << 7);
-		const y = this.world.player.y + (this.world.player.pY << 7);
+		const x = this.world.player.x + (toSubpixels(this.world.player.width) >> 1);
+		const y = this.world.player.y + (toSubpixels(this.world.player.height) >> 1);
 
-		this.x = x - (this.pX << 7);
-		this.y = y - (this.pY << 7);
+		this.x = x - (toSubpixels(this.width) >> 1);
+		this.y = y - (toSubpixels(this.height) >> 1);
 
 		const { mouseX, mouseY } = this.world.input;
-		const cos = getCos(mouseX, mouseY, x >> 8, y >> 8);
-		const sin = getSin(mouseX, mouseY, x >> 8, y >> 8);
+		const cos = getCos(mouseX, mouseY, toPixels(x), toPixels(y));
+		const sin = getSin(mouseX, mouseY, toPixels(x), toPixels(y));
 
-		this.vx = cos * (TILE_SIZE << 8);
-		this.vy = sin * (TILE_SIZE << 8);
+		this.vx = cos * toSubpixels(TILE_SIZE);
+		this.vy = sin * toSubpixels(TILE_SIZE);
 
 		for (let step = 0; step < 2; step++) {
 			this.x += this.vx >> 1;
@@ -122,8 +122,8 @@ export class Throwable extends Body {
 			}
 		}
 
-		this.vx = (cos * (30 << 8)) >> 2;
-		this.vy = (sin * (30 << 8)) >> 2;
+		this.vx = (cos * toSubpixels(30)) >> 2;
+		this.vy = (sin * toSubpixels(30)) >> 2;
 	}
 
 	/**
@@ -136,17 +136,17 @@ export class Throwable extends Body {
 		const portals = this.world.portals;
 		if (field.vx !== 0) {
 			if (portals.portalAt(this, Direction.UP) || portals.portalAt(this, Direction.DOWN)) {
-				if (this.y >> 8 < field.y) this.y += 768;
-				else if ((this.y >> 8) + this.pY > field.y + 2 * TILE_SIZE) this.y -= 768;
+				if (this.pixelY < field.y) this.y += toSubpixels(3);
+				else if (this.pixelY + this.height > field.y + 2 * TILE_SIZE) this.y -= toSubpixels(3);
 			} else {
-				const margin = TILE_SIZE - (this.pY >> 1);
-				if (this.y >> 8 < field.y + margin) this.y += 512;
-				else if ((this.y >> 8) + this.pY > field.y + 2 * TILE_SIZE - margin) this.y -= 512;
+				const margin = TILE_SIZE - (this.height >> 1);
+				if (this.pixelY < field.y + margin) this.y += toSubpixels(2);
+				else if (this.pixelY + this.height > field.y + 2 * TILE_SIZE - margin) this.y -= toSubpixels(2);
 			}
 		} else if (field.vy !== 0) {
-			const margin = TILE_SIZE - (this.pX >> 1);
-			if (this.x >> 8 < field.x + margin) this.x += 256;
-			else if ((this.x >> 8) + this.pX > field.x + 2 * TILE_SIZE - margin) this.x -= 256;
+			const margin = TILE_SIZE - (this.width >> 1);
+			if (this.pixelX < field.x + margin) this.x += toSubpixels(1);
+			else if (this.pixelX + this.width > field.x + 2 * TILE_SIZE - margin) this.x -= toSubpixels(1);
 		}
 	}
 
@@ -180,7 +180,7 @@ export class Throwable extends Body {
 
 		if (ground === Ground.AIR || portals.portalAt(this, Direction.DOWN)) {
 			if (fields.length === 0) this.vy += GRAVITY;
-			this.vy = Math.min(this.vy, 10 << 8);
+			this.vy = Math.min(this.vy, toSubpixels(10));
 		}
 
 		if (this.vy === 0 && this.vx === 0) return;

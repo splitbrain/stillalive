@@ -28,6 +28,7 @@ import { PlaySession } from './PlaySession.js';
 import { PreviewSession } from './PreviewSession.js';
 import { decodeReplay } from './replay.js';
 import { Value } from '../value.js';
+import { toPixels } from './utils.js';
 
 /** @type {number} The number of ticks between two updates of the level time. */
 const TIME_UPDATE_INTERVAL = 30;
@@ -514,9 +515,9 @@ export class GameStage extends HTMLElement {
 		const world = session?.world;
 		this.mode.set(session?.mode ?? 'idle');
 		if (world) {
-			this.life.set(Math.max(world.player.life >> 8, 0));
+			this.life.set(Math.max(world.player.lifePoints, 0));
 			this.cakes.set(world.cakesLeft);
-			this.steps.set(world.steps >> 8);
+			this.steps.set(toPixels(world.steps));
 			this.portals.set(world.portalShots);
 			const time = world.time;
 			this.time.set(world.isRunning() ? time - (time % TIME_UPDATE_INTERVAL) : time);

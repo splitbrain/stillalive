@@ -8,7 +8,7 @@ import { Ground, PLAYFIELD_WIDTH, SparkleType, TILE_SIZE } from '../constants.js
 import { Platform } from './Platform.js';
 import { Sparkle, createCakeOrSmokeSparkles } from './Sparkle.js';
 import { Tile } from '../tiles.js';
-import { random } from '../utils.js';
+import { random, toPixels, toSubpixels } from '../utils.js';
 
 /** @type {number} The number of ticks between two shots. */
 const COOL_TIME = 3;
@@ -111,7 +111,7 @@ export class Turret extends Throwable {
 	 * @returns {void}
 	 */
 	#fall() {
-		this.angle = this.touchingGround() === Ground.AIR ? this.angle + ((this.vx >> 8) << 1) : 0;
+		this.angle = this.touchingGround() === Ground.AIR ? this.angle + (toPixels(this.vx) << 1) : 0;
 		if (this.angle >= 360) this.angle -= 360;
 
 		const oldVx = this.vx;
@@ -142,7 +142,8 @@ export class Turret extends Throwable {
 	 * @returns {boolean} True if the turret breaks.
 	 */
 	#isDestroyed(oldVx, oldVy) {
-		const hardLanding = (this.vx === 0 && Math.abs(oldVx) > 3 << 8) || (this.vy === 0 && Math.abs(oldVy) > 4 << 8);
+		const hardLanding =
+			(this.vx === 0 && Math.abs(oldVx) > toSubpixels(3)) || (this.vy === 0 && Math.abs(oldVy) > toSubpixels(4));
 		return (
 			(hardLanding && this.canExplode && this.world.gravPipeFieldsAt(this).length === 0) ||
 			this.touchesDeadlyTile() ||
@@ -158,8 +159,8 @@ export class Turret extends Throwable {
 	 *     the playfield, and the x coordinate of the hit in pixels.
 	 */
 	#traceBeam() {
-		const y = (this.y >> 8) + 12;
-		let x = this.dir === 1 ? (this.x >> 8) + TILE_SIZE : this.x >> 8;
+		const y = this.pixelY + 12;
+		let x = this.dir === 1 ? this.pixelX + TILE_SIZE : this.pixelX;
 		while (x >= 0 && x < PLAYFIELD_WIDTH) {
 			if (this.world.getTile(x, y) !== Tile.EMPTY) break;
 			if (this.world.anyCrateAt(x, y)) return { target: 'crate', x };
@@ -177,7 +178,7 @@ export class Turret extends Throwable {
 	shoot() {
 		const player = this.world.player;
 		const facesPlayer = (this.dir === -1 && this.x > player.x) || (this.dir === 1 && this.x < player.x);
-		const inLine = Math.abs((this.y >> 8) + 13 - ((player.y >> 8) + 16)) <= this.pY;
+		const inLine = Math.abs(this.pixelY + 13 - (player.pixelY + 16)) <= this.height;
 
 		if (this.dead || !facesPlayer || !inLine || player.dead) {
 			if (!this.dead) {
@@ -199,14 +200,14 @@ export class Turret extends Throwable {
 			return;
 		}
 
-		this.ex = beam.x << 8;
+		this.ex = toSubpixels(beam.x);
 		this.rotation = Math.max(this.rotation - 1, 0);
 		if (beam.target !== 'player' || this.rotation > 0) return;
 
 		this.animFrame = 1 - this.animFrame;
 		player.life -= 640; // 2.5 life points
 		player.recoveryTime = 300;
-		player.vx += this.dir << 8;
+		player.vx += toSubpixels(this.dir);
 		this.coolTime = COOL_TIME;
 		playSound(sfx_shoot);
 		playSoundIfFinished(sfx_pain);
@@ -216,10 +217,10 @@ export class Turret extends Throwable {
 				new Sparkle(
 					this.world,
 					SparkleType.SHOT_HIT,
-					player.x + (this.pX << 7) + random(-8 << 8, 8 << 8),
-					player.y + (this.pY << 6),
+					player.x + (toSubpixels(this.width) >> 1) + random(toSubpixels(-8), toSubpixels(8)),
+					player.y + (toSubpixels(this.height) >> 2),
 					random(512, 1024) * this.dir,
-					random(-3 << 8, 0),
+					random(toSubpixels(-3), 0),
 					50,
 					4,
 				),

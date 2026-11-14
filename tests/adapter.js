@@ -242,8 +242,8 @@ export function decodeReplay(page, data) {
  */
 export function playerValues(page) {
 	return page.evaluate(() => {
-		const { x, y, vx, vy, life, dead, pX } = window.__test.world().player;
-		return { x, y, vx, vy, life, dead, width: pX };
+		const { x, y, vx, vy, life, dead, width } = window.__test.world().player;
+		return { x, y, vx, vy, life, dead, width };
 	});
 }
 

@@ -32,10 +32,10 @@ import { Body } from './Body.js';
 import { Platform } from './Platform.js';
 import { Sparkle } from './Sparkle.js';
 import { isTileKind, TileKind } from '../tiles.js';
-import { getDistance, random } from '../utils.js';
+import { getDistance, random, toSubpixels } from '../utils.js';
 
 /** @type {number} The full life in 1/256 life points. */
-const MAX_LIFE = 100 << 8;
+const MAX_LIFE = 100 * 256;
 /** @type {number} The ticks from one portal shot until the next shot is possible. */
 const PORTAL_COOLDOWN = 25;
 
@@ -114,21 +114,30 @@ export class Player extends Body {
 		this.life = -DEATH_FADE;
 		playSound(this.inAcid ? sfx_acid : sfx_die);
 		// below the playfield, the death shows no blood
-		if (this.y >> 8 >= PLAYFIELD_HEIGHT) return;
+		if (this.pixelY >= PLAYFIELD_HEIGHT) return;
 		for (let i = 0; i < 20; i++) {
 			this.world.sparkles.push(
 				new Sparkle(
 					this.world,
 					SparkleType.DEATH,
-					this.x + (this.pX << 7) + random(-14 << 8, 8 << 8),
-					this.y + (this.pY << 6),
+					this.x + (toSubpixels(this.width) >> 1) + random(toSubpixels(-14), toSubpixels(8)),
+					this.y + (toSubpixels(this.height) >> 2),
 					0,
-					random(-2 << 8, 0),
+					random(toSubpixels(-2), 0),
 					150,
 					4,
 				),
 			);
 		}
+	}
+
+	/**
+	 * Get the life in whole points.
+	 *
+	 * @returns {number} The life points, rounded down. A dead player has a negative value.
+	 */
+	get lifePoints() {
+		return this.life >> 8;
 	}
 
 	/**
@@ -154,8 +163,8 @@ export class Player extends Body {
 			const s = new Sparkle(
 				this.world,
 				SparkleType.TELEPORT,
-				this.x + (this.pX << 7) + random(-8 << 8, 8 << 8),
-				this.y + (this.pY << 7) + random(-16 << 8, 16 << 8),
+				this.x + (toSubpixels(this.width) >> 1) + random(toSubpixels(-8), toSubpixels(8)),
+				this.y + (toSubpixels(this.height) >> 1) + random(toSubpixels(-16), toSubpixels(16)),
 				random(32, 64),
 				random(32, 64),
 				fading,
@@ -253,14 +262,17 @@ export class Player extends Body {
 	#centerInField(field) {
 		const portals = this.world.portals;
 		if (field.vx !== 0) {
-			const step = portals.portalAt(this, Direction.UP) || portals.portalAt(this, Direction.DOWN) ? 768 : 512;
-			if (this.y >> 8 < field.y) this.y += step;
-			else if ((this.y >> 8) + this.pY > field.y + 2 * TILE_SIZE) this.y -= step;
+			const step =
+				portals.portalAt(this, Direction.UP) || portals.portalAt(this, Direction.DOWN)
+					? toSubpixels(3)
+					: toSubpixels(2);
+			if (this.pixelY < field.y) this.y += step;
+			else if (this.pixelY + this.height > field.y + 2 * TILE_SIZE) this.y -= step;
 		} else if (field.vy !== 0) {
-			// the height pY centers the player on the x axis, in the same way as moveObject()
-			const margin = TILE_SIZE - (this.pY >> 1);
-			if (this.x >> 8 < field.x + margin) this.x += 256;
-			else if ((this.x >> 8) + this.pX > field.x + 2 * TILE_SIZE - margin) this.x -= 256;
+			// the height centers the player on the x axis, in the same way as moveObject()
+			const margin = TILE_SIZE - (this.height >> 1);
+			if (this.pixelX < field.x + margin) this.x += toSubpixels(1);
+			else if (this.pixelX + this.width > field.x + 2 * TILE_SIZE - margin) this.x -= toSubpixels(1);
 		}
 	}
 
@@ -280,22 +292,22 @@ export class Player extends Body {
 
 		if (field.vx !== 0) {
 			if (this.jump) {
-				this.y -= 3 << 8;
+				this.y -= toSubpixels(3);
 				if (this.#outOfFields()) {
 					this.vy = -800;
 					this.vx = field.vx << 9;
 				}
 			}
-			if (this.down) this.y += 3 << 8;
+			if (this.down) this.y += toSubpixels(3);
 		}
 
 		if (field.vy !== 0) {
 			if (this.left) {
-				this.x -= 3 << 8;
+				this.x -= toSubpixels(3);
 				if (this.#outOfFields()) this.vx = -PIPE_SPEED;
 			}
 			if (this.right) {
-				this.x += 3 << 8;
+				this.x += toSubpixels(3);
 				if (this.#outOfFields()) this.vx = PIPE_SPEED;
 			}
 		}
@@ -329,14 +341,14 @@ export class Player extends Body {
 		if (this.recoveryTime === 0 && this.life < MAX_LIFE) this.life = Math.min(this.life + 256, MAX_LIFE);
 
 		// below half of the life, the player bleeds
-		if (this.life > MAX_LIFE >> 1 || this.world.time % (this.life >> 8) !== 0) return;
+		if (this.life > MAX_LIFE >> 1 || this.world.time % this.lifePoints !== 0) return;
 		for (let i = 0; i < 3; i++) {
 			this.world.sparkles.push(
 				new Sparkle(
 					this.world,
 					SparkleType.LOW_LIFE,
-					this.x + (this.pX << 5) + random(-5 << 8, 5 << 8),
-					this.y + (this.pY << 6) + random(-5 << 8, 5 << 8),
+					this.x + (toSubpixels(this.width) >> 3) + random(toSubpixels(-5), toSubpixels(5)),
+					this.y + (toSubpixels(this.height) >> 2) + random(toSubpixels(-5), toSubpixels(5)),
 					0,
 					0,
 					100,
@@ -470,7 +482,7 @@ export class Player extends Body {
 			if (!floating) this.vy += GRAVITY;
 			// in the air, the keys steer less
 			dir = Math.trunc(dir * 0.28);
-			this.vy = Math.min(this.vy, (10 << 8) + 128);
+			this.vy = Math.min(this.vy, toSubpixels(10) + 128);
 		}
 
 		// on ice, the keys steer less
@@ -508,7 +520,7 @@ export class Player extends Body {
 		this.inAcid = isTileKind(deadly, TileKind.ACID, TileKind.ACIDPOOL);
 		if (this.world.plasmaTouching(this) || deadly) this.life = 0;
 
-		if (this.y > (PLAYFIELD_HEIGHT + 40) << 8) this.life = 0;
+		if (this.y > toSubpixels(PLAYFIELD_HEIGHT + 40)) this.life = 0;
 		this.oldJump = this.jump;
 		this.checkDeath();
 	}

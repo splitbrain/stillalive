@@ -1,13 +1,12 @@
 /**
- * The start of a level and of a preview, and the doors of a level.
+ * The Level type, the switch doors of a level and the launch of the plasma balls.
  */
 
 import { playSound, sfx_field } from './audio.js';
 import { Direction, MAP_HEIGHT, MAP_WIDTH, SparkleType, TILE_SIZE } from './constants.js';
 import { removeSparkles } from './entities/Sparkle.js';
-import { game, input, setGame, ui } from './state.js';
+import { game } from './state.js';
 import { FIRST_OF_KIND, Tile, TileKind, isTileKind } from './tiles.js';
-import { World } from './World.js';
 
 /**
  * Open or close the switch doors when the player or a crate steps on or off a switch.
@@ -204,30 +203,4 @@ export function plasmaLaunch(map, x, y) {
 	if (right && down && left) return { x: (x * TILE_SIZE) << 8, y: ((y - 1) * TILE_SIZE) << 8, vx: 0, vy: -424 };
 	if (left && right && up) return { x: (x * TILE_SIZE) << 8, y: ((y + 1) * TILE_SIZE) << 8, vx: 0, vy: 424 };
 	return null;
-}
-
-/**
- * Start a level. Outside a replay, the World starts a new replay recording. A restart skips the waits of the events
- * and the entrance of the boss.
- *
- * @param {Level} level The level.
- * @param {boolean} [restart] True for a restart of the same level, for example after a death.
- * @param {import('./replay.js').Replay|null} [replay] The replay that plays, or null to let the player play.
- * @returns {void}
- */
-export function loadLevel(level, restart = false, replay = null) {
-	setGame(World.forLevel(level, { restart, replay }));
-	ui.paused = false;
-	input.keys = 0;
-	input.oldKeys = 0;
-}
-
-/**
- * Show a map in a preview. The objects stand at their start positions, and a map without cakes shows the open exit.
- *
- * @param {{tiles: number[], bg: number, boss?: number, fromBelow?: boolean}} level The level or the editor map.
- * @returns {void}
- */
-export function loadPreviewMap(level) {
-	setGame(World.forPreview(level));
 }

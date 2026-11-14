@@ -22,8 +22,7 @@ import { collectCakes } from './Cake.js';
 import { Platform } from './Platform.js';
 import { Sparkle } from './Sparkle.js';
 import { reportBrokenReplay } from '../inputState.js';
-import { loadLevel } from '../level.js';
-import { input, ui } from '../state.js';
+import { input } from '../state.js';
 import { isTileKind, TileKind } from '../tiles.js';
 import { getDistance, random } from '../utils.js';
 
@@ -82,8 +81,8 @@ export class Player extends Body {
 	}
 
 	/**
-	 * Kill the player when the life is used up. Restart the level when the death fade is complete. During a replay, a
-	 * death ends the replay as broken.
+	 * Kill the player when the life is used up. The outcome "died" asks for a restart when the death fade is complete.
+	 * During a replay, a death ends the replay as broken.
 	 *
 	 * @returns {void}
 	 */
@@ -114,9 +113,7 @@ export class Player extends Body {
 				}
 			}
 		} else if (this.dead) {
-			if (this.life >= 0) {
-				if (ui.mode == 'play' || ui.mode == 'test') loadLevel(this.world.level, true);
-			}
+			if (this.life >= 0) this.world.outcome = 'died';
 		}
 	}
 

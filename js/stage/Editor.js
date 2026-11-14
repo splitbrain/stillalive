@@ -6,10 +6,9 @@ import { MAP_SIZE, MouseButton, TILE_SIZE_BITS } from './constants.js';
 import { PortalPair } from './entities/PortalPair.js';
 import { bg } from './images.js';
 import { mouseOnPlayfield, unclick } from './inputState.js';
-import { loadLevel } from './level.js';
 import { allowTile, build, eraseSprites, fill } from './mapEdit.js';
 import { MAP_FORMAT, parseMap } from './mapFile.js';
-import { game, input, setGame, stageEvents, ui } from './state.js';
+import { game, input, stageEvents, ui } from './state.js';
 import { TileMap } from './TileMap.js';
 import { Tile, isGravPipeTile, isObjectTile } from './tiles.js';
 import { UndoList } from './UndoList.js';
@@ -28,7 +27,7 @@ export class Editor {
 	 */
 	#properties = {};
 
-	/** @type {{tiles: number[], bg: number}} The editor map while the stage shows something else. */
+	/** @type {{tiles: number[], bg: number}} The editor map while the stage shows something else or runs the test. */
 	#storedMap = { tiles: new Array(MAP_SIZE).fill(Tile.EMPTY), bg: 0 };
 
 	/** @type {UndoList|null} The maps after each change, or null before the editor opens for the first time. */
@@ -41,15 +40,20 @@ export class Editor {
 	#objectsChanged = false;
 
 	/**
-	 * Start the test run of the map.
+	 * Start the test run of the map, with the pause and the keys released.
 	 *
-	 * @returns {void}
+	 * @returns {World} The World of the test run.
 	 */
 	startTest() {
 		const level = { ...parseMap({ format: MAP_FORMAT, ...this.getMap() }), campaign: '', number: 0, fromBelow: false };
+		this.leave();
 		ui.mode = 'test';
-		loadLevel(level);
+		const world = World.forLevel(level);
+		ui.paused = false;
+		input.keys = 0;
+		input.oldKeys = 0;
 		unclick();
+		return world;
 	}
 
 	/**
@@ -62,7 +66,7 @@ export class Editor {
 		game.portals = new PortalPair(game);
 		unclick();
 		ui.mode = 'edit';
-		game.map = new TileMap(game.oldMap);
+		game.map = new TileMap(this.#storedMap.tiles);
 		game.events.message = null;
 		this.#rebuildObjects();
 		if (report) stageEvents.push({ type: 'died', detail: null });
@@ -72,7 +76,7 @@ export class Editor {
 	 * Open the editor on a new map, or on the editor map from before. A new map starts a new undo list.
 	 *
 	 * @param {object} [map] The new map in the map file format, or nothing for the editor map from before.
-	 * @returns {void}
+	 * @returns {World} The World of the editor map.
 	 */
 	open(map) {
 		if (map) {
@@ -82,15 +86,16 @@ export class Editor {
 			this.#properties = rest;
 		}
 		ui.mode = 'edit';
-		setGame(World.forEditor(new TileMap(this.#storedMap.tiles)));
-		game.background = this.#storedMap.bg;
+		const world = World.forEditor(new TileMap(this.#storedMap.tiles));
+		world.background = this.#storedMap.bg;
 		if (map || !this.#undoList) {
 			this.#undoList = new UndoList();
-			this.#addUndo();
+			this.#addUndo(world);
 		}
 
 		unclick();
 		this.#objectsChanged = false;
+		return world;
 	}
 
 	/**
@@ -109,7 +114,6 @@ export class Editor {
 	 */
 	getMap() {
 		if (ui.mode == 'edit') return { ...this.#properties, bg: game.background, tiles: game.map.tiles.slice() };
-		if (ui.mode == 'test') return { ...this.#properties, bg: game.background, tiles: game.oldMap.slice() };
 		return { ...this.#properties, bg: this.#storedMap.bg, tiles: this.#storedMap.tiles.slice() };
 	}
 
@@ -220,10 +224,11 @@ export class Editor {
 	/**
 	 * Add the current map to the undo list.
 	 *
+	 * @param {World} [world] The World of the editor map.
 	 * @returns {void}
 	 */
-	#addUndo() {
-		this.#undoList.add({ tiles: game.map.tiles.slice(), properties: this.#properties });
+	#addUndo(world = game) {
+		this.#undoList.add({ tiles: world.map.tiles.slice(), properties: this.#properties });
 	}
 
 	/**

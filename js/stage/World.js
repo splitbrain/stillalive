@@ -69,8 +69,6 @@ export class World {
 	map;
 	/** @type {import('./level.js').Level|null} The level that runs, or null for a preview or an editor map. */
 	level = null;
-	/** @type {number[]|null} The tile ids of the level at the level start, or null for a preview or an editor map. */
-	oldMap = null;
 	/** @type {Replay|null} The recording of the level, or the replay that plays. Null for a preview or an editor map. */
 	replay = null;
 	/** @type {boolean} True while a replay plays. */
@@ -142,6 +140,8 @@ export class World {
 	objectInPortal = null;
 	/** @type {LevelEvents|null} The events of the level, or null outside a level. */
 	events = null;
+	/** @type {string|null} The result of the last tick: "died" when the death fade ended, else null. */
+	outcome = null;
 
 	/**
 	 * Create a World without objects at the start of the opening transition.
@@ -168,7 +168,6 @@ export class World {
 	static forLevel(level, { restart = false, replay = null } = {}) {
 		const world = new World(new TileMap(level.tiles));
 		world.level = level;
-		world.oldMap = level.tiles.slice();
 		world.replayMode = replay !== null;
 		world.replay = replay ?? new Replay();
 		if (level.fromBelow) world.#jumpInFromBelow();

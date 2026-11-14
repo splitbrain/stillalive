@@ -20,14 +20,13 @@ import {
 import { clearCanvas, ctx, setCanvas, watchCanvasSize } from './canvas.js';
 import { PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH } from './constants.js';
 import { Editor } from './Editor.js';
-import { startLevel, tick } from './game.js';
+import { tick } from './game.js';
 import { canPause, setupInput } from './input.js';
 import { captureInput, unclick } from './inputState.js';
-import { loadLevel, loadPreviewMap } from './level.js';
 import { getFps, startLoop } from './loop.js';
 import { render } from './render/frame.js';
 import { decodeReplay, resumeReplay } from './replay.js';
-import { game, input, setGame, stageEvents, ui } from './state.js';
+import { input, setGame, stageEvents, ui } from './state.js';
 import { World } from './World.js';
 import { Value } from '../value.js';
 
@@ -101,6 +100,9 @@ export class GameStage extends HTMLElement {
 	/** @type {number} The number of ticks that the stage runs for each tick of real time. */
 	#speed = 1;
 
+	/** @type {World|null} The World that the stage shows, or null before the first connection. */
+	#world = null;
+
 	/**
 	 * Set up the canvas, the input and the game loop when the element is first connected to the page.
 	 *
@@ -123,7 +125,7 @@ export class GameStage extends HTMLElement {
 		watchCanvasSize();
 		setupInput(canvas, this, this.#editor);
 
-		setGame(new World()); // the input reads the player before the first level starts
+		this.#setWorld(new World()); // the input reads the player before the first level starts
 
 		startLoop(
 			() => this.#step(),
@@ -146,7 +148,9 @@ export class GameStage extends HTMLElement {
 	play(level, { replay = null, restart = false } = {}) {
 		const recorded = replay === null ? null : decodeReplay(replay);
 		this.#leave();
-		startLevel(level, recorded, restart);
+		ui.mode = 'play';
+		this.#startLevel(level, restart, recorded);
+		unclick();
 		this.#publish();
 	}
 
@@ -159,7 +163,7 @@ export class GameStage extends HTMLElement {
 	preview(level) {
 		this.#leave();
 		ui.mode = 'preview';
-		loadPreviewMap(level);
+		this.#setWorld(World.forPreview(level));
 		this.#publish();
 	}
 
@@ -171,7 +175,7 @@ export class GameStage extends HTMLElement {
 	 */
 	edit(level) {
 		this.#leave();
-		this.#editor.open(level);
+		this.#setWorld(this.#editor.open(level));
 		this.#publish();
 	}
 
@@ -183,7 +187,7 @@ export class GameStage extends HTMLElement {
 	 */
 	test() {
 		if (ui.mode != 'edit') return;
-		this.#editor.startTest();
+		this.#setWorld(this.#editor.startTest());
 		this.#publish();
 	}
 
@@ -206,7 +210,7 @@ export class GameStage extends HTMLElement {
 	pause() {
 		if (!canPause() || ui.paused) return;
 		ui.paused = true;
-		if (game.replayMode) {
+		if (this.#world.replayMode) {
 			input.replayPauseInput = captureInput();
 			unclick();
 			input.keys = 0;
@@ -223,7 +227,7 @@ export class GameStage extends HTMLElement {
 		if (!ui.paused) return;
 		ui.paused = false;
 		unclick();
-		if (game.replayMode) resumeReplay();
+		if (this.#world.replayMode) resumeReplay();
 		this.#publish();
 	}
 
@@ -235,7 +239,7 @@ export class GameStage extends HTMLElement {
 	 * @returns {void}
 	 */
 	setSpeed(speed) {
-		if (!game.replayMode) return;
+		if (!this.#world.replayMode) return;
 		this.#speed = speed;
 		this.#publish();
 	}
@@ -370,6 +374,33 @@ export class GameStage extends HTMLElement {
 	}
 
 	/**
+	 * Show a World. The other modules reach the World through the binding in state.js.
+	 *
+	 * @param {World} world The World.
+	 * @returns {void}
+	 */
+	#setWorld(world) {
+		this.#world = world;
+		setGame(world);
+	}
+
+	/**
+	 * Start a level, or the playback of a replay of the level, with the pause and the keys released.
+	 *
+	 * @param {import('./level.js').Level} level The level.
+	 * @param {boolean} restart True for a restart of the same level. A restart skips the waits of the events and the
+	 *     entrance of the boss.
+	 * @param {import('./replay.js').Replay|null} replay The replay to play, or null to let the player play.
+	 * @returns {void}
+	 */
+	#startLevel(level, restart, replay) {
+		this.#setWorld(World.forLevel(level, { restart, replay }));
+		ui.paused = false;
+		input.keys = 0;
+		input.oldKeys = 0;
+	}
+
+	/**
 	 * Leave the current mode before a new command. A test run ends without the event "died".
 	 *
 	 * @returns {void}
@@ -380,11 +411,11 @@ export class GameStage extends HTMLElement {
 		}
 		if (ui.mode == 'edit') this.#editor.leave();
 		ui.paused = false;
-		game.replayMode = false;
+		this.#world.replayMode = false;
 		this.#speed = 1;
-		game.events = null;
-		game.shakeX = 0;
-		game.shakeY = 0;
+		this.#world.events = null;
+		this.#world.shakeX = 0;
+		this.#world.shakeY = 0;
 	}
 
 	/**
@@ -394,7 +425,10 @@ export class GameStage extends HTMLElement {
 	 */
 	#step() {
 		setSoundMuted(this.#speed > 1);
-		for (let i = 0; i < this.#speed; i++) tick(this.#editor);
+		for (let i = 0; i < this.#speed; i++) {
+			tick(this.#editor);
+			if (this.#world.outcome == 'died') this.#startLevel(this.#world.level, true, null);
+		}
 		setSoundMuted(false);
 		this.#publish();
 	}
@@ -406,20 +440,20 @@ export class GameStage extends HTMLElement {
 	 * @returns {void}
 	 */
 	#publish() {
-		const player = game.player;
+		const world = this.#world;
 		this.mode.set(ui.mode);
-		this.life.set(Math.max(player.life >> 8, 0));
-		this.cakes.set(game.cakesLeft ?? 0);
-		this.steps.set((game.steps ?? 0) >> 8);
-		this.portals.set(game.portalShots ?? 0);
-		const time = game.time ?? 0;
-		this.time.set(game.isRunning() ? time - (time % TIME_UPDATE_INTERVAL) : time);
+		this.life.set(Math.max(world.player.life >> 8, 0));
+		this.cakes.set(world.cakesLeft ?? 0);
+		this.steps.set((world.steps ?? 0) >> 8);
+		this.portals.set(world.portalShots ?? 0);
+		const time = world.time ?? 0;
+		this.time.set(world.isRunning() ? time - (time % TIME_UPDATE_INTERVAL) : time);
 		this.paused.set(ui.paused);
-		this.message.set(game.events?.message ?? null);
+		this.message.set(world.events?.message ?? null);
 		this.speed.set(this.#speed);
 		this.brush.set(this.#editor.brush);
 		this.fps.set(getFps());
-		const phase = ui.mode == 'play' ? (game.boss?.phase() ?? null) : null;
+		const phase = ui.mode == 'play' ? (world.boss?.phase() ?? null) : null;
 		setMusicMood(phase == 'fight' ? BOSS_MUSIC_RATE : 1, phase == 'coming' || phase == 'leaving' ? BOSS_MUSIC_DUCK : 1);
 
 		const events = stageEvents.splice(0);
@@ -435,14 +469,10 @@ export class GameStage extends HTMLElement {
 		if (!new URLSearchParams(location.search).has('test')) return;
 		window.__test = {
 			stage: this,
-			get game() {
-				return game;
-			},
+			world: () => this.#world,
 			input,
 			tick: () => this.#step(),
 			render: () => render(this.#editor),
-			loadLevel,
-			loadPreviewMap,
 		};
 	}
 }

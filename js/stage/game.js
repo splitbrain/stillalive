@@ -14,7 +14,7 @@ import { updateProjectiles } from './entities/Projectile.js';
 import { updateSparkles } from './entities/Sparkle.js';
 import { updateTurrets } from './entities/Turret.js';
 import { manageKeys, unclick } from './inputState.js';
-import { loadLevel, manageDoors } from './level.js';
+import { manageDoors } from './level.js';
 import { encodeReplay } from './replay.js';
 import { game, input, stageEvents, ui } from './state.js';
 import { random } from './utils.js';
@@ -38,6 +38,7 @@ export function tick(editor) {
  * @returns {void}
  */
 function updateLevel(editor) {
+	game.outcome = null;
 	if (game.isRunning()) {
 		if (game.time == 0) unclick();
 		game.time++;
@@ -62,6 +63,8 @@ function updateLevel(editor) {
 		game.phase = LevelPhase.HALTED;
 	}
 	updateObjects();
+	// the stage restarts the level after this tick, so the boss and the events of the dead player stop here
+	if (game.outcome == 'died') return;
 	game.boss?.update();
 	if (!game.reachedExit()) game.events.update();
 }
@@ -142,19 +145,4 @@ function updateObjects() {
 		game.player.life += 6;
 		game.player.checkDeath();
 	}
-}
-
-/**
- * Start a level, or the playback of a replay of the level.
- *
- * @param {import('./level.js').Level} level The level.
- * @param {import('./replay.js').Replay|null} [replay] The replay to play, or null to let the player play.
- * @param {boolean} [restart] True for a restart of the same level. A restart skips the waits of the events and the
- *     entrance of the boss.
- * @returns {void}
- */
-export function startLevel(level, replay = null, restart = false) {
-	ui.mode = 'play';
-	loadLevel(level, restart, replay);
-	unclick();
 }

@@ -133,7 +133,7 @@ export async function waitForNarrator(page) {
 export function runTicks(page, count) {
 	return page.evaluate((count) => {
 		for (let tick = 0; tick < count; tick++) window.__test.tick();
-		return window.__test.game.events?.message ?? null;
+		return window.__test.world().events?.message ?? null;
 	}, count);
 }
 
@@ -147,8 +147,8 @@ export function runTicks(page, count) {
 export function runTicksUntilMessage(page, maxTime) {
 	return page.evaluate((maxTime) => {
 		const t = window.__test;
-		while (!t.game.events?.message && t.game.time < maxTime) t.tick();
-		return t.game.time;
+		while (!t.world().events?.message && t.world().time < maxTime) t.tick();
+		return t.world().time;
 	}, maxTime);
 }
 
@@ -160,7 +160,7 @@ export function runTicksUntilMessage(page, maxTime) {
  * @returns {Promise<void>}
  */
 export async function waitForLevelTime(page) {
-	await page.waitForFunction(() => window.__test.game.time > 0);
+	await page.waitForFunction(() => window.__test.world().time > 0);
 }
 
 /**
@@ -175,7 +175,7 @@ export async function playMap(page, data) {
 		const { parseMap } = await import('/js/stage/mapFile.js');
 		const t = window.__test;
 		t.stage.play({ ...parseMap(data), campaign: 'test', number: 1, fromBelow: false });
-		while (!t.game.isRunning()) t.tick();
+		while (!t.world().isRunning()) t.tick();
 	}, data);
 }
 
@@ -206,7 +206,7 @@ export function decodeReplay(page, data) {
  */
 export function playerValues(page) {
 	return page.evaluate(() => {
-		const { x, y, vx, vy, life, dead, pX } = window.__test.game.player;
+		const { x, y, vx, vy, life, dead, pX } = window.__test.world().player;
 		return { x, y, vx, vy, life, dead, width: pX };
 	});
 }
@@ -221,7 +221,7 @@ export function playerValues(page) {
  */
 export async function setPlayer(page, values) {
 	await page.evaluate((values) => {
-		Object.assign(window.__test.game.player, values);
+		Object.assign(window.__test.world().player, values);
 	}, values);
 }
 
@@ -234,7 +234,7 @@ export async function setPlayer(page, values) {
  */
 export async function rememberLevelRun(page) {
 	await page.evaluate(() => {
-		window.__rememberedLevelRun = window.__test.game.player;
+		window.__rememberedLevelRun = window.__test.world().player;
 	});
 }
 
@@ -245,7 +245,7 @@ export async function rememberLevelRun(page) {
  * @returns {Promise<boolean>} False after a restart or after the start of a level.
  */
 export function isSameLevelRun(page) {
-	return page.evaluate(() => window.__test.game.player === window.__rememberedLevelRun);
+	return page.evaluate(() => window.__test.world().player === window.__rememberedLevelRun);
 }
 
 /**
@@ -255,7 +255,7 @@ export function isSameLevelRun(page) {
  * @returns {Promise<{x: number, y: number, text: string}[]>} The labels in the map file format.
  */
 export function levelLabels(page) {
-	return page.evaluate(() => window.__test.game.labels);
+	return page.evaluate(() => window.__test.world().labels);
 }
 
 /**
@@ -265,7 +265,7 @@ export function levelLabels(page) {
  * @returns {Promise<{jump: boolean, portals: boolean}>} The abilities.
  */
 export function levelAbilities(page) {
-	return page.evaluate(() => window.__test.game.abilities);
+	return page.evaluate(() => window.__test.world().abilities);
 }
 
 /**
@@ -277,8 +277,8 @@ export function levelAbilities(page) {
  */
 export async function setMap(page, tiles) {
 	await page.evaluate((tiles) => {
-		const { game } = window.__test;
-		game.map.replace(tiles);
+		const world = window.__test.world();
+		world.map.replace(tiles);
 	}, tiles);
 }
 
@@ -291,7 +291,7 @@ export async function setMap(page, tiles) {
  */
 export function levelPortals(page) {
 	return page.evaluate(() =>
-		window.__test.game.portals.list.map(({ x, y, used, direction }) => ({ x, y, used, direction })),
+		window.__test.world().portals.list.map(({ x, y, used, direction }) => ({ x, y, used, direction })),
 	);
 }
 
@@ -305,7 +305,7 @@ export function levelPortals(page) {
  */
 export async function setPortals(page, placed) {
 	await page.evaluate((placed) => {
-		placed.forEach((values, i) => Object.assign(window.__test.game.portals.list[i], { used: true, ...values }));
+		placed.forEach((values, i) => Object.assign(window.__test.world().portals.list[i], { used: true, ...values }));
 	}, placed);
 }
 
@@ -320,8 +320,8 @@ export async function setPortals(page, placed) {
 export async function setGravPipes(page, pipes) {
 	await page.evaluate(async (pipes) => {
 		const { GravPipe } = await import('/js/stage/entities/GravPipe.js');
-		const { game } = window.__test;
-		game.gravPipes = pipes.map(({ x, y, direction }) => new GravPipe(game, x, y, direction));
+		const world = window.__test.world();
+		world.gravPipes = pipes.map(({ x, y, direction }) => new GravPipe(world, x, y, direction));
 	}, pipes);
 }
 
@@ -332,7 +332,7 @@ export async function setGravPipes(page, pipes) {
  * @returns {Promise<number>} The number of fields.
  */
 export function gravPipeFieldCount(page) {
-	return page.evaluate(() => window.__test.game.gravPipeFields.length);
+	return page.evaluate(() => window.__test.world().gravPipeFields.length);
 }
 
 /**
@@ -349,15 +349,15 @@ export async function finishLevel(page) {
 	await page.evaluate(async () => {
 		const { openExit } = await import('/js/stage/entities/Cake.js');
 		const { Tile } = await import('/js/stage/tiles.js');
-		const { game } = window.__test;
-		openExit(game);
+		const world = window.__test.world();
+		openExit(world);
 		// a tile is 16 pixels, and the player position is in 1/256 pixels
-		const exit = game.map.tiles.indexOf(Tile.EXIT);
+		const exit = world.map.tiles.indexOf(Tile.EXIT);
 		if (exit < 0) throw new Error('The level has no exit tile.');
-		game.player.x = game.map.column(exit) << 12;
-		game.player.y = game.map.row(exit) << 12;
-		game.player.vx = 0;
-		game.player.vy = 0;
+		world.player.x = world.map.column(exit) << 12;
+		world.player.y = world.map.row(exit) << 12;
+		world.player.vx = 0;
+		world.player.vy = 0;
 	});
 }
 
@@ -401,29 +401,27 @@ export async function runLevel(
 				return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
 			};
 
-			t.game.shakeX = 0;
-			t.game.shakeY = 0;
 			// the level selection shows the preview before the level
 			stage.preview(levelData);
 			stage.play(levelData, { replay: replayData, restart: skipBossIntro });
-			const startMap = t.game.map.tiles.slice();
+			const startMap = t.world().map.tiles.slice();
 
 			const pick = (obj, fields) => fields.map((field) => obj[field]);
 			// the snapshots store the flags of the player, the crates, the turrets and the plasma balls as 0 and 1
 			const pickNumbers = (obj, fields) => pick(obj, fields).map((v) => (typeof v === 'boolean' ? Number(v) : v));
 			// a restart creates a new World, so the snapshot reads the current one
-			const snapshot = (tick, game = t.game) =>
+			const snapshot = (tick, world = t.world()) =>
 				JSON.stringify({
 					tick,
-					time: game.time,
-					player: pickNumbers(game.player, ['x', 'y', 'vx', 'vy', 'life', 'dead']),
-					crates: game.crates.map((c) => pickNumbers(c, ['x', 'y', 'vx', 'vy', 'carried'])),
-					turrets: game.turrets.map((t) => pickNumbers(t, ['x', 'y', 'vx', 'vy', 'dead', 'carried'])),
-					plasma: game.plasmaBall.map((p) => pickNumbers(p, ['x', 'y', 'vx', 'vy', 'used'])),
-					platforms: game.platforms.map((p) => pick(p, ['x', 'y', 'vx'])),
-					portals: game.portals.list.map((p) => pick(p, ['x', 'y', 'used', 'direction'])),
-					cakesLeft: game.cakesLeft,
-					map: game.map.tiles.flatMap((tile, i) => (tile === startMap[i] ? [] : [[i, tile]])),
+					time: world.time,
+					player: pickNumbers(world.player, ['x', 'y', 'vx', 'vy', 'life', 'dead']),
+					crates: world.crates.map((c) => pickNumbers(c, ['x', 'y', 'vx', 'vy', 'carried'])),
+					turrets: world.turrets.map((t) => pickNumbers(t, ['x', 'y', 'vx', 'vy', 'dead', 'carried'])),
+					plasma: world.plasmaBall.map((p) => pickNumbers(p, ['x', 'y', 'vx', 'vy', 'used'])),
+					platforms: world.platforms.map((p) => pick(p, ['x', 'y', 'vx'])),
+					portals: world.portals.list.map((p) => pick(p, ['x', 'y', 'used', 'direction'])),
+					cakesLeft: world.cakesLeft,
+					map: world.map.tiles.flatMap((tile, i) => (tile === startMap[i] ? [] : [[i, tile]])),
 				});
 
 			/**
@@ -434,9 +432,9 @@ export async function runLevel(
 			 *     flags for the running level and for the closing transition.
 			 */
 			const levelPhase = () => ({
-				run: t.game.player,
-				running: t.game.isRunning(),
-				closing: t.game.isClosing(),
+				run: t.world().player,
+				running: t.world().isRunning(),
+				closing: t.world().isClosing(),
 			});
 			/**
 			 * Check if a tick ended the level.
@@ -461,7 +459,7 @@ export async function runLevel(
 					break;
 				}
 			}
-			t.game.replayMode = false;
+			t.world().replayMode = false;
 			return lines.join('\n') + '\n';
 		},
 		{ campaign, level, ticks, seed, inputs, replay, skipBossIntro, interval: SNAPSHOT_INTERVAL },
@@ -477,8 +475,8 @@ export async function runLevel(
 export async function recordedReplay(page) {
 	const data = await page.evaluate(async () => {
 		const { encodeReplay } = await import('/js/stage/replay.js');
-		const { game } = window.__test;
-		return JSON.stringify(encodeReplay(game.replay, game.level.campaign, game.level.number));
+		const world = window.__test.world();
+		return JSON.stringify(encodeReplay(world.replay, world.level.campaign, world.level.number));
 	});
 	return JSON.parse(data);
 }
@@ -522,11 +520,11 @@ export async function runPortalScene(page, scene) {
 		};
 
 		stage.play(campaigns[0].levels[0]);
-		const game = t.game;
-		game.map.replace(
-			game.map.tiles.map((tile, i) => {
-				const x = game.map.column(i);
-				const y = game.map.row(i);
+		const world = t.world();
+		world.map.replace(
+			world.map.tiles.map((tile, i) => {
+				const x = world.map.column(i);
+				const y = world.map.row(i);
 				return x === 0 || y === 0 || x === MAP_WIDTH - 1 || y === MAP_HEIGHT - 1 ? Tile.WALL : Tile.EMPTY;
 			}),
 		);
@@ -540,31 +538,31 @@ export async function runPortalScene(page, scene) {
 			'gravPipeFields',
 			'animatedTiles',
 		])
-			game[list] = [];
+			world[list] = [];
 		input.keys = 0;
 		for (let i = 0; i < 40; i++) t.tick();
 
 		scene.portals.forEach(([sx, sy, tx, ty], p) => {
-			game.player.x = sx << 8;
-			game.player.y = sy << 8;
+			world.player.x = sx << 8;
+			world.player.y = sy << 8;
 			input.mouseX = tx;
 			input.mouseY = ty;
-			game.portals.launchPortal(p, input.mouseX, input.mouseY);
+			world.portals.launchPortal(p, input.mouseX, input.mouseY);
 		});
-		Object.assign(game.player, { x: scene.player[0] << 8, y: scene.player[1] << 8, vx: 0, vy: 0 });
+		Object.assign(world.player, { x: scene.player[0] << 8, y: scene.player[1] << 8, vx: 0, vy: 0 });
 		const o = scene.object;
 		let obj = null;
-		if (o?.type === 'crate') game.crates.push((obj = new Crate(game, o.x << 8, o.y << 8)));
-		else if (o?.type === 'turret') game.turrets.push((obj = new Turret(game, o.x << 8, o.y << 8, -1)));
-		else if (o?.type === 'plasma') game.plasmaBall.push((obj = new Plasma(game, o.x << 8, o.y << 8, o.vx, o.vy)));
+		if (o?.type === 'crate') world.crates.push((obj = new Crate(world, o.x << 8, o.y << 8)));
+		else if (o?.type === 'turret') world.turrets.push((obj = new Turret(world, o.x << 8, o.y << 8, -1)));
+		else if (o?.type === 'plasma') world.plasmaBall.push((obj = new Plasma(world, o.x << 8, o.y << 8, o.vx, o.vy)));
 
-		const p = game.portals.list.map((portal) => [portal.used, portal.direction, portal.x >> 8, portal.y >> 8]);
+		const p = world.portals.list.map((portal) => [portal.used, portal.direction, portal.x >> 8, portal.y >> 8]);
 		const lines = [JSON.stringify({ portals: p })];
 		for (let tick = 1; tick <= scene.ticks; tick++) {
 			input.keys = scene.keys;
 			t.tick();
 			const pick = (e) => (e ? [e.x, e.y, e.vx, e.vy] : null);
-			lines.push(JSON.stringify([tick, pick(obj), pick(t.game.player)]));
+			lines.push(JSON.stringify([tick, pick(obj), pick(t.world().player)]));
 		}
 		return lines.join('\n') + '\n';
 	}, scene);

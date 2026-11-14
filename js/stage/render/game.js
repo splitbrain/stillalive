@@ -6,6 +6,7 @@ import { ctx, drawImage } from '../canvas.js';
 import {
 	DEATH_FADE,
 	Direction,
+	DIRECTIONS,
 	MAP_HEIGHT,
 	MAP_WIDTH,
 	NUM_TILES,
@@ -60,6 +61,18 @@ const LABEL_MAX_TILT = 3;
 
 /** @type {number} The largest distance in canvas pixels that the tilt moves the ends of a label up or down. */
 const LABEL_MAX_RISE = 1;
+
+/**
+ * @type {Object<number, number[]>} The position [x, y] of the frame of a gravitational pipe in its image, by the
+ *     direction of the push. The pipes that push left or right are in one image, the pipes that push up or down in a
+ *     second image.
+ */
+const GRAVPIPE_FRAMES = {
+	[Direction.UP]: [0, 0],
+	[Direction.DOWN]: [2 * TILE_SIZE, 0],
+	[Direction.LEFT]: [0, 2 * TILE_SIZE],
+	[Direction.RIGHT]: [0, 0],
+};
 
 /**
  * The layouts of the labels that were measured with the loaded label font.
@@ -562,20 +575,10 @@ export function drawGravPipes(world) {
  * @returns {void}
  */
 export function drawGravPipe(dir, x, y) {
-	switch (dir) {
-		case Direction.RIGHT:
-			drawImage(gravPipe, 0, 0, TILE_SIZE, 2 * TILE_SIZE, x, y, TILE_SIZE, 2 * TILE_SIZE);
-			break;
-		case Direction.LEFT:
-			drawImage(gravPipe, 0, 2 * TILE_SIZE, TILE_SIZE, 2 * TILE_SIZE, x, y, TILE_SIZE, 2 * TILE_SIZE);
-			break;
-		case Direction.UP:
-			drawImage(gravPipe2, 0, 0, 2 * TILE_SIZE, TILE_SIZE, x, y, 2 * TILE_SIZE, TILE_SIZE);
-			break;
-		case Direction.DOWN:
-			drawImage(gravPipe2, 2 * TILE_SIZE, 0, 2 * TILE_SIZE, TILE_SIZE, x, y, 2 * TILE_SIZE, TILE_SIZE);
-			break;
-	}
+	const horizontal = DIRECTIONS[dir].horizontal;
+	const [width, height] = horizontal ? [TILE_SIZE, 2 * TILE_SIZE] : [2 * TILE_SIZE, TILE_SIZE];
+	const [sx, sy] = GRAVPIPE_FRAMES[dir];
+	drawImage(horizontal ? gravPipe : gravPipe2, sx, sy, width, height, x, y, width, height);
 }
 
 /**
@@ -627,9 +630,7 @@ function drawFrontTiles(world) {
 	if (!world.objectInPortal) return;
 	for (const portal of world.portals.list) {
 		if (portal.platform) continue;
-		const onFloor = portal.direction === Direction.UP || portal.direction === Direction.DOWN;
-		const onWall = portal.direction === Direction.LEFT || portal.direction === Direction.RIGHT;
-		if (!onFloor && !onWall) continue;
+		const onFloor = !DIRECTIONS[portal.direction].horizontal;
 		const tx = toPixels(portal.x) >> TILE_SIZE_BITS;
 		const ty = toPixels(portal.y) >> TILE_SIZE_BITS;
 		for (let i = 0; i < 4; i++) {
@@ -672,9 +673,8 @@ function drawPortals(world) {
 	for (const [index, portal] of world.portals.list.entries()) {
 		if (!portal.used) continue;
 		// an opening portal grows from its middle
-		const onSideWall = portal.direction === Direction.LEFT || portal.direction === Direction.RIGHT;
-		const onFloor = portal.direction === Direction.UP || portal.direction === Direction.DOWN;
-		const dx = onFloor ? TILE_SIZE - portal.scaleX * TILE_SIZE : 0;
+		const onSideWall = DIRECTIONS[portal.direction].horizontal;
+		const dx = onSideWall ? 0 : TILE_SIZE - portal.scaleX * TILE_SIZE;
 		const dy = onSideWall ? TILE_SIZE - portal.scaleY * TILE_SIZE : 0;
 		drawImage(
 			index === 0 ? bluePortal : redPortal,

@@ -2,11 +2,43 @@
  * The Plasma object.
  */
 
-import { Body } from './Body.js';
+import { Body, KEEP_SPEED } from './Body.js';
 import { playSound, setSoundVolume, sfx_bounce } from '../audio.js';
-import { Direction, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, TILE_SIZE, TILE_SIZE_BITS } from '../constants.js';
+import { Direction, DIRECTIONS, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, TILE_SIZE, TILE_SIZE_BITS } from '../constants.js';
 import { Tile, TileKind, isTileKind } from '../tiles.js';
 import { getDistance, random, toSubpixels } from '../utils.js';
+
+/**
+ * @type {Object<number, Object<number, import('./Body.js').SpeedTurn>>} The turns of the speed of a homing ball after a
+ *     teleport, by the direction of the entry portal and then by the direction of the exit portal. The ball turns its
+ *     speed with the angle between the two portals.
+ */
+const HOMING_TURNS = {
+	[Direction.UP]: {
+		[Direction.UP]: (vx, vy) => [vx, -vy],
+		[Direction.DOWN]: KEEP_SPEED,
+		[Direction.LEFT]: (vx, vy) => [-vy, vx],
+		[Direction.RIGHT]: (vx, vy) => [vy, vx],
+	},
+	[Direction.DOWN]: {
+		[Direction.UP]: KEEP_SPEED,
+		[Direction.DOWN]: (vx, vy) => [vx, -vy],
+		[Direction.LEFT]: (vx, vy) => [vy, vx],
+		[Direction.RIGHT]: (vx, vy) => [-vy, vx],
+	},
+	[Direction.LEFT]: {
+		[Direction.UP]: (vx, vy) => [vy, -vx],
+		[Direction.DOWN]: (vx, vy) => [vy, vx],
+		[Direction.LEFT]: (vx, vy) => [-vx, vy],
+		[Direction.RIGHT]: KEEP_SPEED,
+	},
+	[Direction.RIGHT]: {
+		[Direction.UP]: (vx, vy) => [vy, vx],
+		[Direction.DOWN]: (vx, vy) => [vy, -vx],
+		[Direction.LEFT]: KEEP_SPEED,
+		[Direction.RIGHT]: (vx, vy) => [-vx, vy],
+	},
+};
 
 /**
  * A plasma ball. It bounces off walls and fills the plasma slots. It kills the player and the turrets.
@@ -127,7 +159,7 @@ export class Plasma extends Body {
 	 * @returns {boolean} True if the ball can go into the portal.
 	 */
 	canEnterPortal(side) {
-		return (side !== Direction.DOWN && side !== Direction.UP) || this.vy !== 0;
+		return DIRECTIONS[side].horizontal || this.vy !== 0;
 	}
 
 	/**
@@ -156,33 +188,7 @@ export class Plasma extends Body {
 			super.teleported(entry, exit);
 			return;
 		}
-		const from = entry.direction;
-		const to = exit.direction;
-		if ((from === Direction.DOWN && to === Direction.DOWN) || (from === Direction.UP && to === Direction.UP)) {
-			this.vy = -this.vy;
-		} else if (
-			(from === Direction.DOWN && to === Direction.LEFT) ||
-			(from === Direction.UP && to === Direction.RIGHT) ||
-			(from === Direction.LEFT && to === Direction.DOWN) ||
-			(from === Direction.RIGHT && to === Direction.UP)
-		) {
-			[this.vx, this.vy] = [this.vy, this.vx];
-		} else if (
-			(from === Direction.DOWN && to === Direction.RIGHT) ||
-			(from === Direction.UP && to === Direction.LEFT)
-		) {
-			[this.vx, this.vy] = [-this.vy, this.vx];
-		} else if (
-			(from === Direction.RIGHT && to === Direction.DOWN) ||
-			(from === Direction.LEFT && to === Direction.UP)
-		) {
-			[this.vx, this.vy] = [this.vy, -this.vx];
-		} else if (
-			(from === Direction.RIGHT && to === Direction.RIGHT) ||
-			(from === Direction.LEFT && to === Direction.LEFT)
-		) {
-			this.vx = -this.vx;
-		}
+		[this.vx, this.vy] = HOMING_TURNS[entry.direction][exit.direction](this.vx, this.vy);
 	}
 
 	/**
@@ -270,43 +276,21 @@ export class Plasma extends Body {
 		);
 		setSoundVolume(sfx_bounce, 1 - dist / PLAYFIELD_HEIGHT);
 
-		switch (this.getCollision()) {
-			case Direction.LEFT:
-				playSound(sfx_bounce);
-				do {
-					this.x += 128;
-				} while (this.getCollision() === Direction.LEFT);
-				this.vx = -this.vx;
-
-				this.#fillSlotInColumn(this.pixelX - 1, this.pixelY);
-				break;
-			case Direction.RIGHT:
-				playSound(sfx_bounce);
-				do {
-					this.x -= 128;
-				} while (this.getCollision() === Direction.RIGHT);
-				this.vx = -this.vx;
-
-				this.#fillSlotInColumn(this.pixelX + TILE_SIZE, this.pixelY);
-				break;
-			case Direction.UP:
-				playSound(sfx_bounce);
-				do {
-					this.y += 128;
-				} while (this.getCollision() === Direction.UP);
-				this.vy = -this.vy;
-
-				this.#fillSlotInRow(this.pixelX, this.pixelY - 1);
-				break;
-			case Direction.DOWN:
-				playSound(sfx_bounce);
-				do {
-					this.y -= 128;
-				} while (this.getCollision() === Direction.DOWN);
-				this.vy = -this.vy;
-
-				this.#fillSlotInRow(this.pixelX, this.pixelY + TILE_SIZE);
-				break;
+		const side = this.getCollision();
+		if (side < 0) return;
+		playSound(sfx_bounce);
+		// move the ball away from the wall in steps of half a pixel
+		const { dx, dy } = DIRECTIONS[DIRECTIONS[side].opposite];
+		do {
+			this.x += dx * 128;
+			this.y += dy * 128;
+		} while (this.getCollision() === side);
+		if (DIRECTIONS[side].horizontal) {
+			this.vx = -this.vx;
+			this.#fillSlotInColumn(dx > 0 ? this.pixelX - 1 : this.pixelX + TILE_SIZE, this.pixelY);
+		} else {
+			this.vy = -this.vy;
+			this.#fillSlotInRow(this.pixelX, dy > 0 ? this.pixelY - 1 : this.pixelY + TILE_SIZE);
 		}
 	}
 }

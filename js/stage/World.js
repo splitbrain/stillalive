@@ -5,6 +5,7 @@
 import { playSound, sfx_exit, sfx_field, sfx_grabCake, sfx_plasmaField, sfx_transition } from './audio.js';
 import {
 	Direction,
+	DIRECTIONS,
 	Ground,
 	KEY_DOWN,
 	KEY_JUMP,
@@ -33,6 +34,17 @@ import { inScreen, random, toSubpixels } from './utils.js';
 
 /** @type {Object<string, typeof sfx_field>} The sound of the opening and the closing doors, by door kind. */
 const DOOR_SOUNDS = { [TileKind.SWITCH_DOOR]: sfx_field, [TileKind.PLASMA_DOOR]: sfx_plasmaField };
+
+/**
+ * @type {Object<number, {x: number, y: number}>} The pixel offsets of the restart point of a portal glow sparkle, by the
+ *     direction of the portal.
+ */
+const GLOW_START_OFFSETS = {
+	[Direction.UP]: { x: 0, y: 0 },
+	[Direction.DOWN]: { x: 0, y: -8 },
+	[Direction.LEFT]: { x: 0, y: 0 },
+	[Direction.RIGHT]: { x: -7, y: 0 },
+};
 
 /** @typedef {import('./entities/Crate.js').Crate} Crate */
 /** @typedef {import('./entities/Platform.js').Platform} Platform */
@@ -436,23 +448,8 @@ export class World {
 		if (this.gravPipes.length === 0) return;
 		this.gravPipeFields = [];
 		for (const pipe of this.gravPipes) {
-			let vx = 0;
-			let vy = 0;
-			switch (pipe.dir) {
-				case Direction.RIGHT:
-					vx = 1;
-					break;
-				case Direction.LEFT:
-					vx = -1;
-					break;
-				case Direction.UP:
-					vy = -1;
-					break;
-				case Direction.DOWN:
-					vy = 1;
-					break;
-			}
-			this.gravPipeFields.push(...traceGravPipeField(this, pipe.pixelX, pipe.pixelY, vx, vy));
+			const { dx, dy } = DIRECTIONS[pipe.dir];
+			this.gravPipeFields.push(...traceGravPipeField(this, pipe.pixelX, pipe.pixelY, dx, dy));
 		}
 	}
 
@@ -529,31 +526,21 @@ export class World {
 	 */
 	createPortalGlow(index) {
 		const portal = this.portals.list[index];
-		const onSideWall = portal.direction === Direction.LEFT || portal.direction === Direction.RIGHT;
+		const onSideWall = DIRECTIONS[portal.direction].horizontal;
+		// the glow moves away from the wall
+		const { dx, dy } = DIRECTIONS[DIRECTIONS[portal.direction].opposite];
+		const offset = GLOW_START_OFFSETS[portal.direction];
 		this.removeSparkles(SparkleType.PORTAL_GLOW, index);
 		for (let i = 0; i < 13; i++) {
 			const x = portal.x + (onSideWall ? 0 : toSubpixels(i * 2));
 			const y = portal.y + (onSideWall ? toSubpixels(i * 2) : 0);
 			const sparkle = new Sparkle(this, SparkleType.PORTAL_GLOW, x, y, 0, 0, 200, index);
-			sparkle.startX = x;
-			sparkle.startY = y;
+			sparkle.startX = x + toSubpixels(offset.x);
+			sparkle.startY = y + toSubpixels(offset.y);
 			sparkle.portalIndex = index;
-			switch (portal.direction) {
-				case Direction.RIGHT:
-					sparkle.vx = -random(128, 384);
-					sparkle.startX -= toSubpixels(7);
-					break;
-				case Direction.LEFT:
-					sparkle.vx = random(128, 384);
-					break;
-				case Direction.DOWN:
-					sparkle.vy = -random(128, 384);
-					sparkle.startY -= toSubpixels(8);
-					break;
-				default:
-					sparkle.vy = random(128, 384);
-					break;
-			}
+			const speed = random(128, 384);
+			sparkle.vx = dx * speed;
+			sparkle.vy = dy * speed;
 			this.addSparkle(sparkle);
 		}
 	}

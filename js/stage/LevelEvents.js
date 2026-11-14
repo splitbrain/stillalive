@@ -2,7 +2,7 @@
  * The events of a level and the message of the narrator.
  */
 
-import { Direction, TILE_SIZE, TILE_SIZE_BITS } from './constants.js';
+import { Direction, DIRECTIONS, TILE_SIZE, TILE_SIZE_BITS } from './constants.js';
 import { keyLabels } from './keys.js';
 import { toSubpixels } from './utils.js';
 
@@ -178,7 +178,7 @@ function placePortal(world, index, [column, row, side]) {
 	const { direction, dx, dy } = PORTAL_PLACEMENTS[side];
 	const x = column * TILE_SIZE + dx;
 	const y = row * TILE_SIZE + dy;
-	const onSideWall = direction === Direction.LEFT || direction === Direction.RIGHT;
+	const onSideWall = DIRECTIONS[direction].horizontal;
 	Object.assign(portal, {
 		direction,
 		frame: onSideWall ? 1 : 0,

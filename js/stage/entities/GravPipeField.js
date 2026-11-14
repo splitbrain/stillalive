@@ -2,7 +2,7 @@
  * The GravPipeField object and its helper functions.
  */
 
-import { Direction, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, TILE_SIZE, TILE_SIZE_BITS } from '../constants.js';
+import { Direction, DIRECTIONS, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, TILE_SIZE, TILE_SIZE_BITS } from '../constants.js';
 import { Tile } from '../tiles.js';
 import { toPixels } from '../utils.js';
 
@@ -33,6 +33,18 @@ export class GravPipeField {
 		this.vy = vy;
 	}
 }
+
+/**
+ * @type {Object<number, {startX: number, traceY: number}>} The pixel offsets of a pipe field that continues from an exit
+ *     portal, by the direction of the exit portal: startX moves the start of the field, traceY moves the first test
+ *     point of the trace.
+ */
+const EXIT_OFFSETS = {
+	[Direction.UP]: { startX: 0, traceY: 3 },
+	[Direction.DOWN]: { startX: 0, traceY: 0 },
+	[Direction.LEFT]: { startX: 3, traceY: 0 },
+	[Direction.RIGHT]: { startX: 0, traceY: 0 },
+};
 
 /** @type {number[]} The offsets of the test points across a pipe field, from its edge in pixels. */
 const ACROSS_FIELD = [0, TILE_SIZE / 2, TILE_SIZE, 2 * TILE_SIZE - 1];
@@ -93,40 +105,15 @@ export function traceGravPipeField(world, sx, sy, vx, vy) {
 				const exit = p1 && p1 === p2 ? world.portals.other(p1) : null;
 				if (exit && !exits.includes(exit)) {
 					exits.push(exit);
-					switch (exit.direction) {
-						case Direction.RIGHT:
-							sx = toPixels(exit.x);
-							sy = toPixels(exit.y);
-							vx = -1;
-							vy = 0;
-							y = sy;
-							x = sx;
-							break;
-						case Direction.LEFT:
-							sx = toPixels(exit.x) + 3;
-							sy = toPixels(exit.y);
-							vx = 1;
-							vy = 0;
-							y = sy;
-							x = sx;
-							break;
-						case Direction.UP:
-							sx = toPixels(exit.x);
-							sy = toPixels(exit.y);
-							vx = 0;
-							vy = 1;
-							y = sy + 3;
-							x = sx;
-							break;
-						case Direction.DOWN:
-							sx = toPixels(exit.x);
-							sy = toPixels(exit.y);
-							vx = 0;
-							vy = -1;
-							y = sy;
-							x = sx;
-							break;
-					}
+					const { startX, traceY } = EXIT_OFFSETS[exit.direction];
+					// the field leaves the exit portal towards the opposite side
+					const step = DIRECTIONS[DIRECTIONS[exit.direction].opposite];
+					vx = step.dx;
+					vy = step.dy;
+					sx = toPixels(exit.x) + startX;
+					sy = toPixels(exit.y);
+					x = sx;
+					y = sy + traceY;
 				} else {
 					return fields;
 				}

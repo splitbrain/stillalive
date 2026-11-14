@@ -30,6 +30,22 @@ export const Direction = {
 	RIGHT: 3,
 };
 
+/**
+ * @typedef {object} DirectionInfo
+ * @property {number} dx The horizontal unit step towards the direction: -1, 0 or 1.
+ * @property {number} dy The vertical unit step towards the direction: -1, 0 or 1.
+ * @property {number} opposite The opposite direction, a value of Direction.
+ * @property {boolean} horizontal True for LEFT and RIGHT. A portal with a horizontal direction is on a side wall.
+ */
+
+/** @type {Object<number, DirectionInfo>} The step, the opposite and the orientation of each direction. */
+export const DIRECTIONS = {
+	[Direction.UP]: { dx: 0, dy: -1, opposite: Direction.DOWN, horizontal: false },
+	[Direction.DOWN]: { dx: 0, dy: 1, opposite: Direction.UP, horizontal: false },
+	[Direction.LEFT]: { dx: -1, dy: 0, opposite: Direction.RIGHT, horizontal: true },
+	[Direction.RIGHT]: { dx: 1, dy: 0, opposite: Direction.LEFT, horizontal: true },
+};
+
 /** @type {Object<string, number>} The mouse buttons, as values of input.mouseButton. */
 export const MouseButton = {
 	LEFT: 0,

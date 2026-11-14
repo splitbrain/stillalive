@@ -3,7 +3,7 @@
  */
 
 import { playSound, sfx_cancelPortals, sfx_enterPortal, sfx_noPortal, sfx_portal } from '../audio.js';
-import { Direction, SparkleType, TILE_SIZE } from '../constants.js';
+import { Direction, DIRECTIONS, SparkleType, TILE_SIZE } from '../constants.js';
 import { Crate } from './Crate.js';
 import { Platform } from './Platform.js';
 import { Portal } from './Portal.js';
@@ -109,7 +109,7 @@ export class PortalPair {
 
 		if (isTileKind(tile, TileKind.WALL) || tile instanceof Platform) {
 			if (this.#placePortal(index, toPixels(x), toPixels(y))) {
-				if (portal.direction === Direction.RIGHT || portal.direction === Direction.LEFT) {
+				if (DIRECTIONS[portal.direction].horizontal) {
 					portal.scaleX = 1;
 					portal.scaleY = 0;
 					portal.platform = null;
@@ -203,7 +203,7 @@ export class PortalPair {
 	#setPortal(index, x, y, direction) {
 		const portal = this.list[index];
 		const other = this.list[1 - index];
-		const onSideWall = direction === Direction.LEFT || direction === Direction.RIGHT;
+		const onSideWall = DIRECTIONS[direction].horizontal;
 		const [line, otherLine] = onSideWall ? [x, toPixels(other.x)] : [y, toPixels(other.y)];
 		const [pos, otherPos] = onSideWall ? [y, toPixels(other.y)] : [x, toPixels(other.x)];
 		if (other.used && line === otherLine && Math.abs(otherPos - pos) < 2 * TILE_SIZE) return false;
@@ -340,22 +340,15 @@ export class PortalPair {
 	#teleport(entry, exit, obj) {
 		playSound(sfx_enterPortal);
 
-		switch (exit.direction) {
-			case Direction.RIGHT:
-			case Direction.LEFT: {
-				const gap = (2 * TILE_SIZE - obj.height) >> 1;
-				obj.x = exit.x - toSubpixels(obj.width >> 1);
-				obj.y = exit.y + toSubpixels(gap);
-				break;
-			}
-			case Direction.UP:
-				obj.x = exit.x + toSubpixels(TILE_SIZE / 2);
-				obj.y = exit.y - toSubpixels(obj.height >> 1) + toSubpixels(4);
-				break;
-			case Direction.DOWN:
-				obj.x = exit.x + toSubpixels(TILE_SIZE / 2);
-				obj.y = exit.y - toSubpixels(obj.height >> 1);
-				break;
+		if (DIRECTIONS[exit.direction].horizontal) {
+			const gap = (2 * TILE_SIZE - obj.height) >> 1;
+			obj.x = exit.x - toSubpixels(obj.width >> 1);
+			obj.y = exit.y + toSubpixels(gap);
+		} else {
+			// an object that comes out of a ceiling starts 4 pixels lower
+			const drop = exit.direction === Direction.UP ? toSubpixels(4) : 0;
+			obj.x = exit.x + toSubpixels(TILE_SIZE / 2);
+			obj.y = exit.y - toSubpixels(obj.height >> 1) + drop;
 		}
 
 		obj.teleported(entry, exit);
@@ -412,15 +405,8 @@ export class PortalPair {
 			this.list.find((portal) => {
 				const xp = toPixels(portal.x);
 				const yp = toPixels(portal.y);
-				switch (portal.direction) {
-					case Direction.LEFT:
-					case Direction.RIGHT:
-						return x >= xp && x <= xp + 3 && y >= yp && y <= yp + 2 * TILE_SIZE;
-					case Direction.UP:
-					case Direction.DOWN:
-						return x >= xp && x <= xp + 2 * TILE_SIZE && y >= yp && y <= yp + 3;
-				}
-				return false;
+				const [width, height] = DIRECTIONS[portal.direction].horizontal ? [3, 2 * TILE_SIZE] : [2 * TILE_SIZE, 3];
+				return x >= xp && x <= xp + width && y >= yp && y <= yp + height;
 			}) ?? null
 		);
 	}

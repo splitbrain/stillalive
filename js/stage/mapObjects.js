@@ -2,7 +2,7 @@
  * The creation of the objects of a map.
  */
 
-import { Direction, ORDERED, RANDOM, TILE_SIZE } from './constants.js';
+import { DIRECTIONS, ORDERED, RANDOM, TILE_SIZE } from './constants.js';
 import { AnimatedTile } from './entities/AnimatedTile.js';
 import { Cake } from './entities/Cake.js';
 import { Crate } from './entities/Crate.js';
@@ -85,7 +85,7 @@ export function createObjects(world, { levelStart = false, editor = false } = {}
 			objects.gravPipes.push(new GravPipe(world, toSubpixels(x * TILE_SIZE), toSubpixels(y * TILE_SIZE), dir));
 			if (levelStart) {
 				// a gravitational pipe covers two tiles
-				const next = dir === Direction.RIGHT || dir === Direction.LEFT ? map.index(x, y + 1) : map.index(x + 1, y);
+				const next = DIRECTIONS[dir].horizontal ? map.index(x, y + 1) : map.index(x + 1, y);
 				map.setTile(i, Tile.GRAVPIPE_BLOCK);
 				map.setTile(next, Tile.GRAVPIPE_BLOCK);
 				map.setDisplay(i, Tile.EMPTY);

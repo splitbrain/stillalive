@@ -2,9 +2,20 @@
  * The SwitchDoors object.
  */
 
-import { Direction, SparkleType, TILE_SIZE } from './constants.js';
+import { Direction, DIRECTIONS, SparkleType, TILE_SIZE } from './constants.js';
 import { FIRST_OF_KIND, Tile, TileKind } from './tiles.js';
 import { toPixels } from './utils.js';
+
+/**
+ * @type {Object<number, {x: number, y: number}>} The pixel offsets from the position of a portal to the line of test
+ *     points for a switch door under the portal, by the direction of the portal.
+ */
+const DOOR_TEST_OFFSETS = {
+	[Direction.UP]: { x: 0, y: 6 },
+	[Direction.DOWN]: { x: 0, y: -2 },
+	[Direction.LEFT]: { x: 6, y: 0 },
+	[Direction.RIGHT]: { x: -2, y: 0 },
+};
 
 /**
  * The switches and the switch doors of a level. The switch doors are open while the player or a crate stands on a
@@ -47,23 +58,10 @@ export class SwitchDoors {
 		const door = FIRST_OF_KIND[TileKind.SWITCH_DOOR];
 		for (const [i, portal] of world.portals.list.entries()) {
 			if (!portal.used) continue;
-			let x = toPixels(portal.x);
-			let y = toPixels(portal.y);
-			switch (portal.direction) {
-				case Direction.UP:
-					y += 6;
-					break;
-				case Direction.LEFT:
-					x += 6;
-					break;
-				case Direction.RIGHT:
-					x -= 2;
-					break;
-				case Direction.DOWN:
-					y -= 2;
-					break;
-			}
-			const onSideWall = portal.direction === Direction.LEFT || portal.direction === Direction.RIGHT;
+			const offset = DOOR_TEST_OFFSETS[portal.direction];
+			const x = toPixels(portal.x) + offset.x;
+			const y = toPixels(portal.y) + offset.y;
+			const onSideWall = DIRECTIONS[portal.direction].horizontal;
 			for (let j = 0; j < 2 * TILE_SIZE; j++) {
 				if (world.map.atPixel(onSideWall ? x : x + j, onSideWall ? y + j : y) === door) {
 					portal.used = false;

@@ -2,7 +2,7 @@
  * The Body object and its helper functions.
  */
 
-import { Direction, Ground, TILE_SIZE } from '../constants.js';
+import { Direction, DIRECTIONS, Ground, TILE_SIZE } from '../constants.js';
 import { inForceFieldRange, isDeadlyTile, isTileKind, Tile, TileKind } from '../tiles.js';
 import { toPixels, toSubpixels } from '../utils.js';
 
@@ -10,12 +10,49 @@ import { toPixels, toSubpixels } from '../utils.js';
  * @type {Array<{side: number, opposite: number, dx: number, dy: number}>} The sides in the order in which
  *     checkCollisions() resolves them, with the step of one pixel that moves the object away from the side.
  */
-const PUSH_OUT = [
-	{ side: Direction.UP, opposite: Direction.DOWN, dx: 0, dy: toSubpixels(1) },
-	{ side: Direction.DOWN, opposite: Direction.UP, dx: 0, dy: toSubpixels(-1) },
-	{ side: Direction.LEFT, opposite: Direction.RIGHT, dx: toSubpixels(1), dy: 0 },
-	{ side: Direction.RIGHT, opposite: Direction.LEFT, dx: toSubpixels(-1), dy: 0 },
-];
+const PUSH_OUT = [Direction.UP, Direction.DOWN, Direction.LEFT, Direction.RIGHT].map((side) => {
+	const opposite = DIRECTIONS[side].opposite;
+	return { side, opposite, dx: toSubpixels(DIRECTIONS[opposite].dx), dy: toSubpixels(DIRECTIONS[opposite].dy) };
+});
+
+/**
+ * @typedef {(vx: number, vy: number) => number[]} SpeedTurn A function that gets the speeds of an object before a
+ *     teleport and returns the speeds [vx, vy] after the teleport.
+ */
+
+/** @type {SpeedTurn} The turn that keeps the speeds. */
+export const KEEP_SPEED = (vx, vy) => [vx, vy];
+
+/**
+ * @type {Object<number, Object<number, SpeedTurn>>} The turns of the speed after a teleport, by the direction of the
+ *     entry portal and then by the direction of the exit portal.
+ */
+const TELEPORT_TURNS = {
+	[Direction.UP]: {
+		[Direction.UP]: (vx) => [vx, 650],
+		[Direction.DOWN]: (vx) => [vx, -1000],
+		[Direction.LEFT]: (vx, vy) => [650, vy],
+		[Direction.RIGHT]: (vx, vy) => [-650, vy],
+	},
+	[Direction.DOWN]: {
+		[Direction.UP]: KEEP_SPEED,
+		[Direction.DOWN]: (vx, vy) => [vx, Math.min(-vy, -1100)],
+		[Direction.LEFT]: (vx, vy) => [vy, vx],
+		[Direction.RIGHT]: (vx, vy) => [-vy, vx],
+	},
+	[Direction.LEFT]: {
+		[Direction.UP]: (vx) => [vx, 650],
+		[Direction.DOWN]: (vx) => [vx, -1000],
+		[Direction.LEFT]: (vx, vy) => [1000, vy],
+		[Direction.RIGHT]: (vx, vy) => [-650, vy],
+	},
+	[Direction.RIGHT]: {
+		[Direction.UP]: (vx) => [vx, 650],
+		[Direction.DOWN]: (vx) => [vx, -1000],
+		[Direction.LEFT]: (vx, vy) => [650, vy],
+		[Direction.RIGHT]: (vx, vy) => [-1000, vy],
+	},
+};
 
 /**
  * An object with a position and a size in the playfield. The base of the objects that move and collide.
@@ -324,22 +361,12 @@ export class Body {
 	 * @returns {void}
 	 */
 	#stopAgainst(side) {
-		switch (side) {
-			case Direction.UP:
-				if (this.vy < 0) {
-					this.vx >>= 1;
-					this.vy = 0;
-				}
-				break;
-			case Direction.DOWN:
-				if (this.vy > 0) this.vy = 0;
-				break;
-			case Direction.LEFT:
-				if (this.vx < 0) this.vx = 0;
-				break;
-			case Direction.RIGHT:
-				if (this.vx > 0) this.vx = 0;
-				break;
+		const { dx, dy, horizontal } = DIRECTIONS[side];
+		if (horizontal) {
+			if (this.vx * dx > 0) this.vx = 0;
+		} else if (this.vy * dy > 0) {
+			if (side === Direction.UP) this.vx >>= 1;
+			this.vy = 0;
 		}
 	}
 
@@ -385,7 +412,7 @@ export class Body {
 	 * @returns {void}
 	 */
 	alignToPortal(portal, side) {
-		if (side === Direction.LEFT || side === Direction.RIGHT) {
+		if (DIRECTIONS[side].horizontal) {
 			const gap = (2 * TILE_SIZE - this.height) >> 1;
 			this.y = toSubpixels(toPixels(portal.y) + gap);
 			this.vy = 0;
@@ -403,39 +430,6 @@ export class Body {
 	 * @returns {void}
 	 */
 	teleported(entry, exit) {
-		const from = entry.direction;
-		const to = exit.direction;
-		if (from === Direction.DOWN && to === Direction.DOWN) {
-			this.vy = -this.vy;
-			if (this.vy > -1100) this.vy = -1100;
-		} else if (from === Direction.DOWN && to === Direction.LEFT) {
-			[this.vx, this.vy] = [this.vy, this.vx];
-		} else if (from === Direction.DOWN && to === Direction.RIGHT) {
-			[this.vx, this.vy] = [-this.vy, this.vx];
-		} else if (from === Direction.LEFT && to === Direction.DOWN) {
-			this.vy = -1000;
-		} else if (from === Direction.RIGHT && to === Direction.DOWN) {
-			this.vy = -1000;
-		} else if (from === Direction.RIGHT && to === Direction.RIGHT) {
-			this.vx = -1000;
-		} else if (from === Direction.LEFT && to === Direction.LEFT) {
-			this.vx = 1000;
-		} else if (from === Direction.UP && to === Direction.UP) {
-			this.vy = 650;
-		} else if (from === Direction.LEFT && to === Direction.RIGHT) {
-			this.vx = -650;
-		} else if (from === Direction.RIGHT && to === Direction.LEFT) {
-			this.vx = 650;
-		} else if (from === Direction.RIGHT && to === Direction.UP) {
-			this.vy = 650;
-		} else if (from === Direction.LEFT && to === Direction.UP) {
-			this.vy = 650;
-		} else if (from === Direction.UP && to === Direction.LEFT) {
-			this.vx = 650;
-		} else if (from === Direction.UP && to === Direction.RIGHT) {
-			this.vx = -650;
-		} else if (from === Direction.UP && to === Direction.DOWN) {
-			this.vy = -1000;
-		}
+		[this.vx, this.vy] = TELEPORT_TURNS[entry.direction][exit.direction](this.vx, this.vy);
 	}
 }

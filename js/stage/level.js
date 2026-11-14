@@ -451,28 +451,3 @@ export function loadEditorObjects() {
 	game.resetPhase();
 	parseObjects('editor');
 }
-
-/**
- * Check if a map position holds a wall.
- *
- * @param {TileMap} map The map. The function reads the logic layer.
- * @param {number} index The index in the map.
- * @returns {boolean} True for a wall tile.
- */
-export function isWallAt(map, index) {
-	return isTileKind(map.tiles[index], TileKind.WALL);
-}
-
-/**
- * Check if a map position is solid for the edges of the walls. Positions outside the map count as solid.
- *
- * @param {TileMap} map The map. The function reads the logic layer.
- * @param {number} x The column.
- * @param {number} y The row.
- * @returns {number} 1 for a wall, a decor tile or a conveyor belt, else 0.
- */
-export function isTileHere(map, x, y) {
-	if (x < 0 || x > MAP_WIDTH - 1 || y < 0 || y > MAP_HEIGHT - 1) return 1;
-	if (isTileKind(map.tiles[map.index(x, y)], TileKind.BELT_RIGHT, TileKind.BELT_LEFT)) return 1;
-	return isTileKind(map.tiles[map.index(x, y)], TileKind.WALL, TileKind.DECOR) ? 1 : 0;
-}

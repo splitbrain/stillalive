@@ -2,11 +2,12 @@
  * The level editor and the test run of the editor map.
  */
 
-import { MAP_HEIGHT, MAP_SIZE, MAP_WIDTH, MouseButton, TILE_SIZE_BITS } from './constants.js';
+import { MAP_SIZE, MouseButton, TILE_SIZE_BITS } from './constants.js';
 import { Portal } from './entities/Portal.js';
 import { bg } from './images.js';
 import { mouseOnPlayfield, unclick } from './inputState.js';
-import { isTileHere, isWallAt, loadEditorObjects, loadLevel } from './level.js';
+import { loadEditorObjects, loadLevel } from './level.js';
+import { allowTile, build, eraseSprites, fill } from './mapEdit.js';
 import { MAP_FORMAT, parseMap } from './mapFile.js';
 import { game, input, stageEvents, ui } from './state.js';
 import { TileMap } from './TileMap.js';
@@ -251,127 +252,21 @@ function updateDrawSprite() {
 					}
 				}
 
-				eraseSprites(brush, xt, yt);
+				eraseSprites(map, brush, xt, yt);
 
-				if (allowTile(brush)) {
+				if (allowTile(map, brush)) {
 					map.setTile(tile, brush);
 				}
 			} else if (input.mouseButton == MouseButton.RIGHT) {
 				map.setTile(tile, Tile.EMPTY);
-				eraseSprites(brush, xt, yt);
+				eraseSprites(map, brush, xt, yt);
 			}
-			build();
+			build(map);
 			mapChangedSince(version);
 		} else if (input.mouseReleased) {
 			input.mouseReleased = 0;
 			addUndo();
 			mapChanged();
-		}
-	}
-}
-
-/**
- * Check if the map can take one more object of a type. Each type has a limit.
- *
- * @param {number} tile The object id.
- * @returns {boolean} True if the object can be placed.
- */
-function allowTile(tile) {
-	if (tile == Tile.PLAYER_START) return true;
-
-	if (tile == Tile.CAKE) {
-		return countTile(tile) < 30;
-	} else if (tile == Tile.CRATE) {
-		return countTile(tile) < 15;
-	} else if (tile == Tile.TURRET_LEFT || tile == Tile.TURRET_RIGHT) {
-		return countTile(Tile.TURRET_LEFT) + countTile(Tile.TURRET_RIGHT) < 15;
-	} else if (tile == Tile.PLATFORM_RIGHT || tile == Tile.PLATFORM_LEFT) {
-		return countTile(Tile.PLATFORM_RIGHT) + countTile(Tile.PLATFORM_LEFT) < 8;
-	} else if (isGravPipeTile(tile)) {
-		return (
-			countTile(Tile.GRAVPIPE_RIGHT) +
-				countTile(Tile.GRAVPIPE_LEFT) +
-				countTile(Tile.GRAVPIPE_UP) +
-				countTile(Tile.GRAVPIPE_DOWN) <
-			8
-		);
-	}
-
-	return false;
-}
-
-/**
- * Count the tiles of an id in the map.
- *
- * @param {number} tile The tile id.
- * @returns {number} The count.
- */
-function countTile(tile) {
-	let i;
-	let c = 0;
-	for (i = 0; i < game.map.tiles.length; i++) {
-		if (game.map.tiles[i] == tile) c++;
-	}
-
-	return c;
-}
-
-/**
- * Remove the objects that overlap a new object, because an object covers more than one tile.
- *
- * @param {number} til The id of the new object.
- * @param {number} xt The column of the new object.
- * @param {number} yt The row of the new object.
- * @returns {void}
- */
-function eraseSprites(til, xt, yt) {
-	const map = game.map;
-	let h, t;
-	if (til == Tile.PLATFORM_RIGHT || til == Tile.PLATFORM_LEFT || til == Tile.GRAVPIPE_UP || til == Tile.GRAVPIPE_DOWN) {
-		// objects wider than one tile
-		for (h = 1; h < 3; h++) {
-			if (h == 2 && til >= Tile.GRAVPIPE_UP) continue;
-			if (xt + h < MAP_WIDTH) {
-				map.setTile(map.index(xt + h, yt), Tile.EMPTY);
-				if (yt - 1 >= 0) {
-					t = map.tiles[map.index(xt + h, yt - 1)];
-					if (t == Tile.PLAYER_START || t == Tile.TURRET_LEFT || t == Tile.TURRET_RIGHT || isGravPipeTile(t))
-						map.setTile(map.index(xt + h, yt - 1), Tile.EMPTY);
-				}
-			}
-		}
-	}
-	if (
-		til == Tile.PLAYER_START ||
-		til == Tile.TURRET_LEFT ||
-		til == Tile.TURRET_RIGHT ||
-		til == Tile.GRAVPIPE_RIGHT ||
-		til == Tile.GRAVPIPE_LEFT
-	) {
-		// objects taller than one tile
-		if (yt + 1 < MAP_HEIGHT) {
-			map.setTile(map.index(xt, yt + 1), Tile.EMPTY);
-			for (h = 1; h < 3; h++) {
-				if (xt - h >= 0) {
-					t = map.tiles[map.index(xt - h, yt + 1)];
-					if (t == Tile.PLATFORM_RIGHT || t == Tile.PLATFORM_LEFT || t == Tile.GRAVPIPE_UP || t == Tile.GRAVPIPE_DOWN)
-						map.setTile(map.index(xt - h, yt + 1), Tile.EMPTY);
-				}
-			}
-		}
-	}
-
-	if (yt - 1 >= 0) {
-		t = map.tiles[map.index(xt, yt - 1)];
-		if (t == Tile.PLAYER_START || t == Tile.TURRET_LEFT || t == Tile.TURRET_RIGHT || isGravPipeTile(t))
-			map.setTile(map.index(xt, yt - 1), Tile.EMPTY);
-	}
-	for (h = 1; h < 3; h++) {
-		if (xt - h >= 0) {
-			t = map.tiles[map.index(xt - h, yt)];
-			if (t == Tile.PLATFORM_RIGHT || t == Tile.PLATFORM_LEFT) map.setTile(map.index(xt - h, yt), Tile.EMPTY);
-			else if ((t == Tile.GRAVPIPE_UP || t == Tile.GRAVPIPE_DOWN) && h < 2)
-				map.setTile(map.index(xt - h, yt), Tile.EMPTY);
 		}
 	}
 }
@@ -404,7 +299,7 @@ function updateDrawTile() {
 			} else if (input.mouseButton == MouseButton.RIGHT) map.setTile(tile, Tile.EMPTY);
 			// a map has one plasma start, so it does not fill
 			else if (input.mouseButton == MouseButton.MIDDLE && brush != Tile.PLASMA_START)
-				fill(brush, map.tiles[tile], x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS);
+				fill(map, brush, map.tiles[tile], x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS);
 
 			const xt = x >> TILE_SIZE_BITS;
 			const yt = y >> TILE_SIZE_BITS;
@@ -415,7 +310,7 @@ function updateDrawTile() {
 					map.setTile(map.index(xt, yt - 1), Tile.EMPTY);
 			}
 
-			build();
+			build(map);
 			mapChangedSince(version);
 		} else if (input.mouseReleased) {
 			input.mouseReleased = 0;
@@ -441,88 +336,5 @@ function addUndo() {
 	if (undoIndex < undoMap.length - 1) {
 		const r = undoMap.length - 1 - undoIndex;
 		for (i = 0; i < r; i++) undoMap.pop();
-	}
-}
-
-/**
- * @type {number[]} The wall tile id for each combination of neighbor walls, indexed by the flags up (8), down (4),
- *     left (2) and right (1). A wall tile draws an edge on each side without a neighbor wall.
- */
-const WALL_TILES = [16, 15, 14, 10, 13, 8, 9, 3, 12, 7, 6, 5, 11, 2, 4, 1];
-
-/**
- * Choose the wall tile of each wall from its neighbors.
- *
- * @returns {void}
- */
-function build() {
-	const map = game.map;
-	for (let i = 0; i < MAP_SIZE; i++) {
-		if (!isWallAt(map, i)) continue;
-		const x = map.column(i);
-		const y = map.row(i);
-		const up = isTileHere(map, x, y - 1);
-		const down = isTileHere(map, x, y + 1);
-		const left = isTileHere(map, x - 1, y);
-		const right = isTileHere(map, x + 1, y);
-		map.setTile(i, WALL_TILES[(up << 3) | (down << 2) | (left << 1) | right]);
-	}
-}
-
-/**
- * Fill a connected area of one tile id with another tile id.
- *
- * @param {number} tile The new tile id.
- * @param {number} toFill The tile id to replace.
- * @param {number} x The column of the start.
- * @param {number} y The row of the start.
- * @returns {void}
- */
-function fill(tile, toFill, x, y) {
-	const map = game.map;
-	let j, k, i;
-	const tmpMap = new Array();
-	for (i = 0; i < MAP_SIZE; i++) {
-		tmpMap.push(-1);
-	}
-
-	let current = 0;
-	let count = 1;
-	tmpMap[current] = map.index(x, y);
-
-	while (current < MAP_SIZE && tmpMap[current] != -1) {
-		const t = tmpMap[current];
-		y = map.row(t);
-		x = map.column(t);
-		map.setTile(t, tile);
-		if (x < MAP_WIDTH - 1 && map.tiles[map.index(x + 1, y)] == toFill) {
-			j = true;
-			for (k = 0; k < count; k++) {
-				if (tmpMap[k] == map.index(x + 1, y)) j = false;
-			}
-			if (j) tmpMap[count++] = map.index(x + 1, y);
-		}
-		if (x > 0 && map.tiles[map.index(x - 1, y)] == toFill) {
-			j = true;
-			for (k = 0; k < count; k++) {
-				if (tmpMap[k] == map.index(x - 1, y)) j = false;
-			}
-			if (j) tmpMap[count++] = map.index(x - 1, y);
-		}
-		if (y < MAP_HEIGHT - 1 && map.tiles[map.index(x, y + 1)] == toFill) {
-			j = true;
-			for (k = 0; k < count; k++) {
-				if (tmpMap[k] == map.index(x, y + 1)) j = false;
-			}
-			if (j) tmpMap[count++] = map.index(x, y + 1);
-		}
-		if (y > 0 && map.tiles[map.index(x, y - 1)] == toFill) {
-			j = true;
-			for (k = 0; k < count; k++) {
-				if (tmpMap[k] == map.index(x, y - 1)) j = false;
-			}
-			if (j) tmpMap[count++] = map.index(x, y - 1);
-		}
-		current++;
 	}
 }

@@ -3,10 +3,11 @@
  */
 
 import { playLoop, playSound, sfx_bossAlarm, sfx_bossHit, sfx_bossRumble } from '../audio.js';
-import { MAP_WIDTH, SparkleType, TILE_SIZE } from '../constants.js';
+import { MAP_WIDTH, TILE_SIZE } from '../constants.js';
 import { Crate } from './Crate.js';
 import { Plasma } from './Plasma.js';
 import { Projectile } from './Projectile.js';
+import { PuffSparkle } from './sparkles.js';
 import { FIRST_OF_KIND, TileKind } from '../tiles.js';
 import { getCos, getDistance, getSin, random, toPixels, toSubpixels } from '../utils.js';
 
@@ -257,13 +258,7 @@ export class Boss {
 		playLoop(sfx_bossRumble);
 		this.#shakeScreen();
 		if (this.world.time % 10 === 0) {
-			this.world.createCakeOrSmokeSparkles(
-				toSubpixels(this.x + 14),
-				toSubpixels(this.y + 18),
-				SparkleType.SMOKE,
-				3,
-				300,
-			);
+			this.world.addPuffSparkles(toSubpixels(this.x + 14), toSubpixels(this.y + 18), PuffSparkle.SMOKE, 3, 300);
 			this.x += 1;
 		}
 		if (this.x >= BOSS_GONE_X) {

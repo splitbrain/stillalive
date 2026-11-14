@@ -95,18 +95,6 @@ export const PLAYFIELD_HEIGHT = MAP_HEIGHT * TILE_SIZE;
 /** @type {number} The number of level backgrounds. A map selects one by its index. */
 export const BACKGROUND_COUNT = 11;
 
-/** @type {Object<string, number>} The types of the sparkles, which select their movement, their fade and their size. */
-export const SparkleType = {
-	PORTAL_SHOT: 1,
-	PORTAL_GLOW: 3,
-	TELEPORT: 4,
-	SHOT_HIT: 5,
-	DEATH: 6,
-	LOW_LIFE: 7,
-	CAKE: 8,
-	SMOKE: 9,
-};
-
 /** @type {Object<string, number>} The campaigns and their index in the campaigns list. */
 export const CampaignId = {
 	NORMAL: 0,

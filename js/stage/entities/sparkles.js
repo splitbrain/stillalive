@@ -2,9 +2,9 @@
  * The kinds of sparkles.
  */
 
-import { GRAVITY } from '../constants.js';
+import { Direction, DIRECTIONS, GRAVITY } from '../constants.js';
 import { Tile } from '../tiles.js';
-import { toPixels } from '../utils.js';
+import { random, toPixels, toSubpixels } from '../utils.js';
 import { Sparkle } from './Sparkle.js';
 
 /** @type {number} The row of the blood drop in the sparkle image. */
@@ -15,6 +15,19 @@ const FADE_STEP = 8;
 const BLOOD_FADE_STEP = 0.7;
 /** @type {number} The fade of a portal glow sparkle at its start position. */
 const GLOW_FADING = 200;
+/** @type {number} The number of glow sparkles along a portal. */
+const GLOW_COUNT = 13;
+
+/**
+ * @type {Object<number, {x: number, y: number}>} The pixel offsets of the restart point of a portal glow sparkle, by the
+ *     direction of the portal.
+ */
+const GLOW_START_OFFSETS = {
+	[Direction.UP]: { x: 0, y: 0 },
+	[Direction.DOWN]: { x: 0, y: -8 },
+	[Direction.LEFT]: { x: 0, y: 0 },
+	[Direction.RIGHT]: { x: -7, y: 0 },
+};
 
 /**
  * Check if a falling sparkle touches a solid tile or object with its middle. The size of the sparkle follows its fade.
@@ -62,6 +75,35 @@ export class PuffSparkle extends Sparkle {
 	static CAKE = 2;
 	/** @type {number} The color of a smoke puff. */
 	static SMOKE = 3;
+
+	/**
+	 * Create puffs around a point, for example for a collected cake or for smoke.
+	 *
+	 * @param {import('../World.js').World} world The World of the puffs.
+	 * @param {number} x The x position in 1/256 pixels.
+	 * @param {number} y The y position in 1/256 pixels.
+	 * @param {number} color The color: PuffSparkle.CAKE or PuffSparkle.SMOKE.
+	 * @param {number} number The number of puffs.
+	 * @param {number} size The start value of the fade, which also sets the size.
+	 * @returns {PuffSparkle[]} The puffs.
+	 */
+	static around(world, x, y, color, number, size) {
+		const puffs = [];
+		for (let i = 0; i < number; i++) {
+			puffs.push(
+				new PuffSparkle(
+					world,
+					x + random(toSubpixels(-8), toSubpixels(8)),
+					y + random(toSubpixels(-8), toSubpixels(8)),
+					random(-192, 192),
+					random(-192, -96),
+					size,
+					color,
+				),
+			);
+		}
+		return puffs;
+	}
 
 	/**
 	 * Move and fade the puff.
@@ -201,6 +243,39 @@ export class PortalGlow extends Sparkle {
 		this.startY = startY;
 		/** @type {number} The index of the portal, 0 for blue and 1 for red. */
 		this.portalIndex = portalIndex;
+	}
+
+	/**
+	 * Create the glow sparkles along a portal. The sparkles move away from the wall of the portal.
+	 *
+	 * @param {import('../World.js').World} world The World of the sparkles.
+	 * @param {import('./Portal.js').Portal} portal The portal.
+	 * @param {number} index The index of the portal, 0 for blue and 1 for red.
+	 * @returns {PortalGlow[]} The glow sparkles.
+	 */
+	static along(world, portal, index) {
+		const onSideWall = DIRECTIONS[portal.direction].horizontal;
+		const { dx, dy } = DIRECTIONS[DIRECTIONS[portal.direction].opposite];
+		const offset = GLOW_START_OFFSETS[portal.direction];
+		const sparkles = [];
+		for (let i = 0; i < GLOW_COUNT; i++) {
+			const x = portal.x + (onSideWall ? 0 : toSubpixels(i * 2));
+			const y = portal.y + (onSideWall ? toSubpixels(i * 2) : 0);
+			const speed = random(128, 384);
+			sparkles.push(
+				new PortalGlow(
+					world,
+					x,
+					y,
+					dx * speed,
+					dy * speed,
+					x + toSubpixels(offset.x),
+					y + toSubpixels(offset.y),
+					index,
+				),
+			);
+		}
+		return sparkles;
 	}
 
 	/**

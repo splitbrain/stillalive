@@ -4,7 +4,6 @@
 
 import { playSound, sfx_exit, sfx_field, sfx_grabCake, sfx_plasmaField, sfx_transition } from './audio.js';
 import {
-	Direction,
 	DIRECTIONS,
 	Ground,
 	KEY_DOWN,
@@ -12,7 +11,6 @@ import {
 	KEY_LEFT,
 	KEY_RIGHT,
 	PLAYFIELD_HEIGHT,
-	SparkleType,
 	TILE_SIZE,
 	TILE_SIZE_BITS,
 	Transition,
@@ -34,17 +32,6 @@ import { inScreen, random, toSubpixels } from './utils.js';
 
 /** @type {Object<string, typeof sfx_field>} The sound of the opening and the closing doors, by door kind. */
 const DOOR_SOUNDS = { [TileKind.SWITCH_DOOR]: sfx_field, [TileKind.PLASMA_DOOR]: sfx_plasmaField };
-
-/**
- * @type {Object<number, {x: number, y: number}>} The pixel offsets of the restart point of a portal glow sparkle, by the
- *     direction of the portal.
- */
-const GLOW_START_OFFSETS = {
-	[Direction.UP]: { x: 0, y: 0 },
-	[Direction.DOWN]: { x: 0, y: -8 },
-	[Direction.LEFT]: { x: 0, y: 0 },
-	[Direction.RIGHT]: { x: -7, y: 0 },
-};
 
 /** @typedef {import('./entities/Crate.js').Crate} Crate */
 /** @typedef {import('./entities/Platform.js').Platform} Platform */
@@ -464,7 +451,7 @@ export class World {
 			if (!cake.used || !this.player.overlaps(cake)) continue;
 			cake.used = false;
 			this.cakesLeft--;
-			this.createCakeOrSmokeSparkles(cake.x, cake.y, SparkleType.CAKE, 2, 180);
+			this.addPuffSparkles(cake.x, cake.y, PuffSparkle.CAKE, 2, 180);
 			playSound(sfx_grabCake);
 			if (this.cakesLeft === 0) {
 				this.openExit();
@@ -526,47 +513,22 @@ export class World {
 	 * @returns {void}
 	 */
 	createPortalGlow(index) {
-		const portal = this.portals.list[index];
-		const onSideWall = DIRECTIONS[portal.direction].horizontal;
-		// the glow moves away from the wall
-		const { dx, dy } = DIRECTIONS[DIRECTIONS[portal.direction].opposite];
-		const offset = GLOW_START_OFFSETS[portal.direction];
 		this.removeSparkles(PortalGlow, index);
-		for (let i = 0; i < 13; i++) {
-			const x = portal.x + (onSideWall ? 0 : toSubpixels(i * 2));
-			const y = portal.y + (onSideWall ? toSubpixels(i * 2) : 0);
-			const speed = random(128, 384);
-			this.addSparkle(
-				new PortalGlow(this, x, y, dx * speed, dy * speed, x + toSubpixels(offset.x), y + toSubpixels(offset.y), index),
-			);
-		}
+		for (const sparkle of PortalGlow.along(this, this.portals.list[index], index)) this.addSparkle(sparkle);
 	}
 
 	/**
-	 * Create sparkles around a point, for example for a collected cake or for smoke.
+	 * Add cake crumbs or smoke puffs around a point.
 	 *
 	 * @param {number} x The x position in 1/256 pixels.
 	 * @param {number} y The y position in 1/256 pixels.
-	 * @param {number} type SparkleType.CAKE or SparkleType.SMOKE, which also selects the color.
+	 * @param {number} color The color: PuffSparkle.CAKE or PuffSparkle.SMOKE.
 	 * @param {number} number The number of sparkles.
 	 * @param {number} size The start value of the fade, which also sets the size.
 	 * @returns {void}
 	 */
-	createCakeOrSmokeSparkles(x, y, type, number, size) {
-		const color = type === SparkleType.CAKE ? PuffSparkle.CAKE : PuffSparkle.SMOKE;
-		for (let i = 0; i < number; i++) {
-			this.addSparkle(
-				new PuffSparkle(
-					this,
-					x + random(toSubpixels(-8), toSubpixels(8)),
-					y + random(toSubpixels(-8), toSubpixels(8)),
-					random(-192, 192),
-					random(-192, -96),
-					size,
-					color,
-				),
-			);
-		}
+	addPuffSparkles(x, y, color, number, size) {
+		for (const sparkle of PuffSparkle.around(this, x, y, color, number, size)) this.addSparkle(sparkle);
 	}
 
 	/**

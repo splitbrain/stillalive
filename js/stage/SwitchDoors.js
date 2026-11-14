@@ -8,7 +8,7 @@ import { toPixels } from './utils.js';
 
 /**
  * @type {Object<number, {x: number, y: number}>} The pixel offsets from the position of a portal to the line of test
- *     points for a switch door under the portal, by the direction of the portal.
+ *     points for a switch door in the wall of the portal, by the direction of the portal.
  */
 const DOOR_TEST_OFFSETS = {
 	[Direction.UP]: { x: 0, y: 6 },

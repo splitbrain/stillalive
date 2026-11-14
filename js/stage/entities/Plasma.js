@@ -10,8 +10,8 @@ import { getDistance, random, toSubpixels } from '../utils.js';
 
 /**
  * @type {Object<number, Object<number, import('./Body.js').SpeedTurn>>} The turns of the speed of a homing ball after a
- *     teleport, by the direction of the entry portal and then by the direction of the exit portal. The ball turns its
- *     speed with the angle between the two portals.
+ *     teleport, by the direction of the entry portal and then by the direction of the exit portal. The ball keeps the
+ *     size of its speed: a turn swaps vx and vy, changes their signs, or keeps them.
  */
 const HOMING_TURNS = {
 	[Direction.UP]: {
@@ -285,6 +285,7 @@ export class Plasma extends Body {
 			this.x += dx * 128;
 			this.y += dy * 128;
 		} while (this.getCollision() === side);
+		// the slot is in the wall that the ball hit, one pixel behind the side of the ball
 		if (DIRECTIONS[side].horizontal) {
 			this.vx = -this.vx;
 			this.#fillSlotInColumn(dx > 0 ? this.pixelX - 1 : this.pixelX + TILE_SIZE, this.pixelY);

@@ -223,7 +223,7 @@ test('a plasma ball that is not homing turns its speed like a body', () => {
 	);
 });
 
-test('a homing plasma ball turns its speed with the angle between the portals', () => {
+test('a homing plasma ball swaps or mirrors its speed for each pair of portal directions', () => {
 	assert.deepEqual(
 		teleportAll(() => new Plasma(null, 0, 0, 0, 0, true)),
 		HOMING_TURNS,

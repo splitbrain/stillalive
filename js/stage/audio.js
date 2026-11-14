@@ -37,7 +37,7 @@ let onDone = () => {};
  */
 class Sound {
 	/**
-	 * Create a sound that is not loaded yet.
+	 * Create a sound that is not loaded yet, and add it to the list of all sounds.
 	 *
 	 * @param {string} name The file name of the sound without extension.
 	 */
@@ -58,6 +58,7 @@ class Sound {
 		this.loopUntil = 0;
 		/** @type {boolean} True if the loop plays to the end of the sound when it stops, false if it stops at once. */
 		this.finishLoop = false;
+		sounds.push(this);
 	}
 }
 
@@ -73,17 +74,14 @@ function decode(data) {
 }
 
 /**
- * Start to load a sound.
+ * Start to load a sound from the sounds folder. The sound plays nothing until it is loaded.
  *
- * @param {string} name The file name of the sound in the sounds folder, without extension.
- * @returns {Sound} The sound. It plays nothing until it is loaded.
+ * @param {Sound} sound The sound.
+ * @returns {void}
  */
-function loadSound(name) {
-	const sound = new Sound(name);
-	sounds.push(sound);
-	if (context) connectSound(sound);
+function fetchSound(sound) {
 	requested++;
-	fetch(`sounds/${name}.ogg`)
+	fetch(`sounds/${sound.name}.ogg`)
 		.then((response) => {
 			if (!response.ok) throw new Error(`${response.status}`);
 			return response.arrayBuffer();
@@ -93,14 +91,13 @@ function loadSound(name) {
 			sound.buffer = buffer;
 		})
 		.catch((error) => {
-			missing.push(name);
-			console.error(`Could not load the sound ${name}`, error);
+			missing.push(sound.name);
+			console.error(`Could not load the sound ${sound.name}`, error);
 		})
 		.finally(() => {
 			done++;
 			onDone();
 		});
-	return sound;
 }
 
 /**
@@ -519,6 +516,7 @@ function rampTo(param, value, time) {
 
 /**
  * Create the audio context on the first click or key press of the player, and resume it if the browser suspended it.
+ * The creation also starts the timer that stops the old loops.
  *
  * @returns {void}
  */
@@ -536,126 +534,96 @@ function resumeAudio() {
 }
 
 /**
- * Start to wait for the first click or key press of the player, which creates the audio context.
+ * Start to wait for the first click or key press of the player, which creates the audio context. Each later click or
+ * key press resumes the audio context if the browser suspended it.
  *
  * @returns {void}
  */
 export function watchAudioUnlock() {
-	// the capture phase lets the handler run before other handlers can stop the event
+	// The capture phase lets the handler run before other handlers can stop the event.
 	window.addEventListener('pointerdown', resumeAudio, { capture: true });
 	window.addEventListener('keydown', resumeAudio, { capture: true });
 }
 
-/** @type {Sound} An object enters a portal. */
-export let sfx_enterPortal;
-/** @type {Sound} The player dies. */
-export let sfx_die;
-/** @type {Sound} The player dies in acid. */
-export let sfx_acid;
-/** @type {Sound} A portal shot hits an invalid wall. */
-export let sfx_noPortal;
-/** @type {Sound} The portals are removed. */
-export let sfx_cancelPortals;
-/** @type {Sound} A turret shoots. */
-export let sfx_shoot;
-/** @type {Sound} The player is hit by a shot. */
-export let sfx_pain;
 /** @type {Sound} A turret explodes. */
-export let sfx_explode;
-/** @type {Sound} The player jumps. */
-export let sfx_jump;
-/** @type {Sound} The player lands after a jump or a fall. */
-export let sfx_land;
-/** @type {Sound[]} The player makes a step, thirteen variants. */
-export let sfx_step;
-/** @type {Sound[]} The player makes a step on ice, four variants. */
-export let sfx_iceStep;
-/** @type {Sound} The player floats in the field of a gravitational pipe, as a loop. */
-export let sfx_float;
+export const sfx_explode = new Sound('explode');
 /** @type {Sound} A plasma ball bounces. */
-export let sfx_bounce;
+export const sfx_bounce = new Sound('bounce');
 /** @type {Sound} The player collects a cake. */
-export let sfx_grabCake;
+export const sfx_grabCake = new Sound('grabCake');
 /** @type {Sound} The exit opens. */
-export let sfx_exit;
+export const sfx_exit = new Sound('exit');
+/** @type {Sound} The player jumps. */
+export const sfx_jump = new Sound('jump');
+/** @type {Sound} The player lands after a jump or a fall. */
+export const sfx_land = new Sound('land');
+/** @type {Sound[]} The player makes a step, thirteen variants. */
+export const sfx_step = Array.from({ length: 13 }, (_, i) => new Sound(`step${i + 1}`));
+/** @type {Sound[]} The player makes a step on ice, four variants. */
+export const sfx_iceStep = Array.from({ length: 4 }, (_, i) => new Sound(`iceStep${i + 1}`));
+/** @type {Sound} The player floats in the field of a gravitational pipe, as a loop. */
+export const sfx_float = new Sound('float');
 /** @type {Sound} The player picks up an object. */
-export let sfx_pickUp;
+export const sfx_pickUp = new Sound('pickUp');
 /** @type {Sound} The player throws an object. */
-export let sfx_throwObject;
+export const sfx_throwObject = new Sound('throwObject');
 /** @type {Sound} A crate lands. */
-export let sfx_crateLand;
+export const sfx_crateLand = new Sound('crateLand');
 /** @type {Sound} A crate dissolves in a force field. */
-export let sfx_dissolve;
-/** @type {Sound} A switch force field goes on or off. */
-export let sfx_field;
-/** @type {Sound} A plasma force field goes off. */
-export let sfx_plasmaField;
-/** @type {Sound} The screen shakes while the boss comes in or after its death, as a loop. */
-export let sfx_bossRumble;
-/** @type {Sound} The alarm while the boss comes in, as a loop on top of the rumble. */
-export let sfx_bossAlarm;
-/** @type {Sound} An object hits the boss. */
-export let sfx_bossHit;
-/** @type {Sound} A crate hits the yellow wall of a boss level, and the wall cracks. */
-export let sfx_wallCrack;
-/** @type {Sound} A crate hits the yellow wall of a boss level, and the wall falls apart. */
-export let sfx_wallBreak;
-/** @type {Sound} A razor wheel of the boss sticks in a wall or the floor. */
-export let sfx_bladeStick;
+export const sfx_dissolve = new Sound('dissolve');
+/** @type {Sound} An object enters a portal. */
+export const sfx_enterPortal = new Sound('enterPortal');
 /** @type {Sound} A level ends. */
-export let sfx_transition;
+export const sfx_transition = new Sound('transition');
+/** @type {Sound} A switch force field goes on or off. */
+export const sfx_field = new Sound('field');
+/** @type {Sound} A plasma force field goes off. */
+export const sfx_plasmaField = new Sound('plasmaField');
+/** @type {Sound} The player dies. */
+export const sfx_die = new Sound('die');
+/** @type {Sound} The player dies in acid. */
+export const sfx_acid = new Sound('acid');
+/** @type {Sound} A portal shot hits an invalid wall. */
+export const sfx_noPortal = new Sound('noPortal');
+/** @type {Sound} The portals are removed. */
+export const sfx_cancelPortals = new Sound('cancelPortals');
+/** @type {Sound} An object hits the boss. */
+export const sfx_bossHit = new Sound('bossHit');
+/** @type {Sound} The screen shakes while the boss comes in or after its death, as a loop. */
+export const sfx_bossRumble = new Sound('bossRumble');
+/** @type {Sound} The alarm while the boss comes in, as a loop on top of the rumble. */
+export const sfx_bossAlarm = new Sound('bossAlarm');
+/** @type {Sound} A crate hits the yellow wall of a boss level, and the wall cracks. */
+export const sfx_wallCrack = new Sound('wallCrack');
+/** @type {Sound} A crate hits the yellow wall of a boss level, and the wall falls apart. */
+export const sfx_wallBreak = new Sound('wallBreak');
+/** @type {Sound} A razor wheel of the boss sticks in a wall or the floor. */
+export const sfx_bladeStick = new Sound('bladeStick');
+/** @type {Sound} A turret shoots. */
+export const sfx_shoot = new Sound('shoot');
+/** @type {Sound} The player is hit by a shot. */
+export const sfx_pain = new Sound('pain');
 /** @type {Sound} The player clicks a menu button. */
-export let sfx_click;
+export const sfx_click = new Sound('click');
 /** @type {Sound} The pointer or the keyboard focus moves onto a menu button. */
-export let sfx_hover;
+export const sfx_hover = new Sound('hover');
 /** @type {Sound} The narrator types a character. */
-export let sfx_tick;
+export const sfx_tick = new Sound('tick');
 /** @type {Sound[]} A portal is placed, two variants. */
-export let sfx_portal;
+export const sfx_portal = [new Sound('portal1'), new Sound('portal2')];
+
+for (const sound of [...sfx_step, ...sfx_iceStep]) setSoundVolume(sound, 0.25);
+setSoundVolume(sfx_jump, 0.2);
+setSoundVolume(sfx_land, 0.35);
+setSoundVolume(sfx_tick, 0.2);
+setSoundVolume(sfx_wallBreak, 0.25);
+sfx_bossAlarm.finishLoop = true;
 
 /**
- * Start to load all sounds of the game, and set the volume of the quiet sounds.
+ * Start to load all sounds of the game.
  *
  * @returns {void}
  */
 export function loadSfx() {
-	sfx_explode = loadSound('explode');
-	sfx_bounce = loadSound('bounce');
-	sfx_grabCake = loadSound('grabCake');
-	sfx_exit = loadSound('exit');
-	sfx_jump = loadSound('jump');
-	sfx_land = loadSound('land');
-	sfx_step = Array.from({ length: 13 }, (_, i) => loadSound(`step${i + 1}`));
-	sfx_iceStep = Array.from({ length: 4 }, (_, i) => loadSound(`iceStep${i + 1}`));
-	sfx_float = loadSound('float');
-	sfx_pickUp = loadSound('pickUp');
-	sfx_throwObject = loadSound('throwObject');
-	sfx_crateLand = loadSound('crateLand');
-	sfx_dissolve = loadSound('dissolve');
-	sfx_enterPortal = loadSound('enterPortal');
-	sfx_transition = loadSound('transition');
-	sfx_field = loadSound('field');
-	sfx_plasmaField = loadSound('plasmaField');
-	sfx_die = loadSound('die');
-	sfx_acid = loadSound('acid');
-	sfx_noPortal = loadSound('noPortal');
-	sfx_cancelPortals = loadSound('cancelPortals');
-	sfx_bossHit = loadSound('bossHit');
-	sfx_bossRumble = loadSound('bossRumble');
-	sfx_bossAlarm = loadSound('bossAlarm');
-	sfx_wallCrack = loadSound('wallCrack');
-	sfx_wallBreak = loadSound('wallBreak');
-	sfx_bladeStick = loadSound('bladeStick');
-	sfx_shoot = loadSound('shoot');
-	sfx_pain = loadSound('pain');
-	sfx_click = loadSound('click');
-	sfx_hover = loadSound('hover');
-	sfx_tick = loadSound('tick');
-	sfx_portal = [loadSound('portal1'), loadSound('portal2')];
-	for (const sound of [...sfx_step, ...sfx_iceStep]) setSoundVolume(sound, 0.25);
-	setSoundVolume(sfx_jump, 0.2);
-	setSoundVolume(sfx_land, 0.35);
-	setSoundVolume(sfx_tick, 0.2);
-	setSoundVolume(sfx_wallBreak, 0.25);
-	sfx_bossAlarm.finishLoop = true;
+	for (const sound of sounds) fetchSound(sound);
 }

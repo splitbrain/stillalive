@@ -2,29 +2,12 @@
  * Helpers for the unit tests, which run the logic layer of the stage in Node.
  */
 
-import { loadSfx } from '../../js/stage/audio.js';
 import { MAP_SIZE, MAP_WIDTH } from '../../js/stage/constants.js';
 import { InputState } from '../../js/stage/InputState.js';
 import { parseMap } from '../../js/stage/mapFile.js';
 import { emptyTiles } from '../../js/stage/TileMap.js';
 import { Tile } from '../../js/stage/tiles.js';
 import { World } from '../../js/stage/World.js';
-
-/** @type {boolean} True after the sound objects of the game exist. */
-let soundsCreated = false;
-
-/**
- * Create the sound objects of the game, so that the code that plays a sound can run. fetch() gets a replacement that
- * never answers, so the sound files do not load.
- *
- * @returns {void}
- */
-function createSounds() {
-	if (soundsCreated) return;
-	soundsCreated = true;
-	globalThis.fetch = () => new Promise(() => {});
-	loadSfx();
-}
 
 /**
  * Replace Math.random() with a pseudo-random generator, so that a test gives the same result in each run.
@@ -90,7 +73,6 @@ export function testLevel(tiles, boss = 0) {
  * @returns {World} The World at the start of the opening transition.
  */
 export function startWorld(tiles, { boss = 0, restart = false } = {}) {
-	createSounds();
 	return World.forLevel(testLevel(tiles, boss), { restart });
 }
 

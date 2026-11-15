@@ -1,0 +1,43 @@
+<template>
+	<a class="back" data-up><img src="gfx/ui/back.svg" alt="Back" /></a>
+	<ui-level-list class="choices"></ui-level-list>
+	<div class="details">
+		<h2 class="title"></h2>
+		<p class="number"></p>
+		<p class="best">Best time: <span></span></p>
+		<ui-button><a class="play">Play</a></ui-button>
+		<ui-button><a class="replay">Replay</a></ui-button>
+	</div>
+</template>
+
+<style>
+	/* the details of the selected level */
+	ui-level-selection {
+		.details {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			gap: 1.8cqw;
+			text-shadow: 0.1em 0.1em 0 #000;
+		}
+
+		h2,
+		p {
+			margin: 0;
+		}
+
+		.title {
+			font-size: 6cqw;
+		}
+
+		.number {
+			font: var(--font-title);
+			font-size: 3cqw;
+		}
+
+		.best {
+			margin-bottom: 1.8cqw;
+			font-size: 2.4cqw;
+		}
+	}
+</style>

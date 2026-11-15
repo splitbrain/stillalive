@@ -1,0 +1,261 @@
+<template>
+	<div class="plate">
+		<div class="display life">
+			<span class="label">Life</span>
+			<div class="window">
+				<div class="glass"><span class="off">888</span><span class="on" data-value="life">100</span></div>
+			</div>
+		</div>
+		<div class="display">
+			<span class="label">Cakes</span>
+			<div class="window">
+				<div class="glass"><span class="off">88</span><span class="on" data-value="cakes">0</span></div>
+			</div>
+		</div>
+		<div class="display">
+			<span class="label">Steps</span>
+			<div class="window">
+				<div class="glass"><span class="off">8888</span><span class="on" data-value="steps">0</span></div>
+			</div>
+		</div>
+		<div class="display">
+			<span class="label">Portals</span>
+			<div class="window">
+				<div class="glass"><span class="off">888</span><span class="on" data-value="portals">0</span></div>
+			</div>
+		</div>
+		<div class="display fps">
+			<span class="label">FPS</span>
+			<div class="window">
+				<div class="glass"><span class="off">888</span><span class="on" data-value="fps">0</span></div>
+			</div>
+		</div>
+	</div>
+</template>
+
+<style>
+	/* the font of the displays of the HUD */
+	@font-face {
+		font-family: dseg7;
+		src: url('fonts/DSEG7Classic-Bold.woff2');
+	}
+
+	/*
+	 * The HUD is a crooked control panel, and its default shape is a wide panel. The host is a size container. All sizes
+	 * are in --hud-unit, which grows with both sides, so the panel looks the same when it is wide, square or tall.
+	 *
+	 * The displays go in rows of --hud-cols cells. The number of columns follows the aspect ratio of the panel, from one
+	 * row on a wide panel to one column on a tall panel. The font size is the largest one at which --hud-rows rows of the
+	 * widest display fit on the plate.
+	 */
+	ui-hud {
+		--hud-unit: calc(0.6cqmin + 0.2cqmax);
+		--hud-frame: calc(var(--hud-unit) * 6);
+		--hud-screw: calc(var(--hud-unit) * 4.6);
+		--hud-plate-screw: calc(var(--hud-unit) * 3.4);
+		--hud-bezel: color-mix(in srgb, color-mix(in srgb, var(--color-page) 60%, var(--color-chrome)), black 20%);
+		--hud-plate: color-mix(in srgb, var(--color-chrome) 85%, var(--color-page));
+		--hud-glass: color-mix(in srgb, var(--color-page), black 70%);
+		--hud-teal: color-mix(in srgb, var(--color-screen), white 20%);
+		display: block;
+		position: relative;
+		isolation: isolate;
+		container-type: size;
+		aspect-ratio: 6 / 1;
+
+		/* the light frame with a screw in each corner; the screws differ in angle and place */
+		&::before {
+			--u: var(--hud-unit);
+			content: '';
+			position: absolute;
+			inset: 0;
+			z-index: -1;
+			background:
+				url('gfx/ui/screw.svg#a') left calc(var(--u) * 0.9) top calc(var(--u) * 6.6) / var(--hud-screw) var(--hud-screw)
+					no-repeat,
+				url('gfx/ui/screw.svg#b') right calc(var(--u) * 1) top calc(var(--u) * 1) / var(--hud-screw) var(--hud-screw)
+					no-repeat,
+				url('gfx/ui/screw.svg#c') right calc(var(--u) * 2.8) bottom calc(var(--u) * 5.4) / var(--hud-screw)
+					var(--hud-screw) no-repeat,
+				url('gfx/ui/screw.svg#d') left calc(var(--u) * 2.2) bottom calc(var(--u) * 1.1) / var(--hud-screw)
+					var(--hud-screw) no-repeat,
+				var(--color-chrome);
+			clip-path: polygon(
+				0 calc(var(--u) * 5.5),
+				100% 0,
+				calc(100% - var(--u) * 2) calc(100% - var(--u) * 4.5),
+				calc(var(--u) * 1.4) 100%
+			);
+		}
+
+		/* the bezel lies behind the plate and shows about 2 units around it, a little more at the top */
+		&::after {
+			--u: var(--hud-unit);
+			content: '';
+			position: absolute;
+			inset: var(--hud-frame);
+			z-index: -1;
+			background: var(--hud-bezel);
+			clip-path: polygon(
+				0 calc(var(--u) * 4),
+				100% 0,
+				calc(100% - var(--u) * 1.8) calc(100% - var(--u) * 4.2),
+				calc(var(--u) * 1.6) 100%
+			);
+		}
+
+		/*
+		 * The plate lies on the bezel, with a small screw near each corner. A flat shadow of the bezel falls on its top
+		 * edge.
+		 */
+		.plate {
+			--u: var(--hud-unit);
+			--hud-cols: 5;
+			--hud-rows: 1;
+			display: flex;
+			flex-wrap: wrap;
+			place-content: space-evenly center;
+			position: absolute;
+			inset: calc(var(--hud-frame) + var(--u) * 2) calc(var(--hud-frame) + var(--u) * 1.8);
+			padding: calc(var(--u) * 2) calc(var(--u) * 3);
+			background:
+				url('gfx/ui/screw.svg#c') left calc(var(--u) * 1.6) top calc(var(--u) * 4.4) / var(--hud-plate-screw)
+					var(--hud-plate-screw) no-repeat,
+				url('gfx/ui/screw.svg#a') right calc(var(--u) * 1.2) top calc(var(--u) * 1.2) / var(--hud-plate-screw)
+					var(--hud-plate-screw) no-repeat,
+				url('gfx/ui/screw.svg#d') right calc(var(--u) * 2.8) bottom calc(var(--u) * 4) / var(--hud-plate-screw)
+					var(--hud-plate-screw) no-repeat,
+				url('gfx/ui/screw.svg#b') left calc(var(--u) * 2.4) bottom calc(var(--u) * 1.2) / var(--hud-plate-screw)
+					var(--hud-plate-screw) no-repeat,
+				linear-gradient(
+					-0.6deg,
+					transparent calc(100% - var(--u) * 5.2),
+					color-mix(in srgb, var(--hud-plate), var(--hud-bezel) 35%) calc(100% - var(--u) * 5.2 + 0.5px)
+				),
+				var(--hud-plate);
+			clip-path: shape(
+				from calc(var(--u) * 0.4) calc(var(--u) * 4.6),
+				curve to calc(var(--u) * 1.6) calc(var(--u) * 3.6) with calc(var(--u) * 0.4) calc(var(--u) * 3.6),
+				line to calc(100% - var(--u) * 1.4) 0,
+				curve to 100% calc(var(--u) * 1.3) with 100% 0,
+				line to calc(100% - var(--u) * 1.6) calc(100% - var(--u) * 5),
+				curve to calc(100% - var(--u) * 3) calc(100% - var(--u) * 3.8) with calc(100% - var(--u) * 1.8)
+					calc(100% - var(--u) * 3.8),
+				line to calc(var(--u) * 2.6) 100%,
+				curve to calc(var(--u) * 1.4) calc(100% - var(--u) * 1.2) with calc(var(--u) * 1.4) 100%,
+				close
+			);
+			font-size: min(
+				(100cqw - 2 * var(--hud-frame)) / var(--hud-cols) / 4.6,
+				(100cqh - 2 * var(--hud-frame)) / var(--hud-rows) / 2.9
+			);
+
+			@container (aspect-ratio <= 4 / 1) {
+				--hud-cols: 3;
+				--hud-rows: 2;
+			}
+
+			@container (aspect-ratio <= 7 / 4) {
+				--hud-cols: 2;
+				--hud-rows: 3;
+			}
+
+			@container (aspect-ratio <= 5 / 8) {
+				--hud-cols: 1;
+				--hud-rows: 5;
+			}
+		}
+
+		/* a display fills its share of a row and is turned by its own small angle */
+		.display {
+			--led: var(--hud-teal);
+			width: calc(100% / var(--hud-cols));
+			rotate: var(--turn);
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+
+			&:nth-child(1) {
+				--turn: -1.5deg;
+			}
+
+			&:nth-child(2) {
+				--turn: 1deg;
+			}
+
+			&:nth-child(3) {
+				--turn: -0.6deg;
+			}
+
+			&:nth-child(4) {
+				--turn: 1.4deg;
+			}
+
+			&:nth-child(5) {
+				--turn: -1deg;
+			}
+		}
+
+		.label {
+			font-family: Arial, sans-serif;
+			font-size: 0.55em;
+			font-weight: bold;
+			line-height: 1.3;
+			letter-spacing: 0.04em;
+			text-transform: uppercase;
+			color: var(--hud-bezel);
+		}
+
+		/* the window holds the glass and casts a flat shadow to the bottom right */
+		.window {
+			filter: drop-shadow(0.07em 0.09em 0 rgb(0 0 0 / 0.2));
+		}
+
+		/*
+		 * The glass is an uneven quadrangle in a dark blue rim, with a soft shadow at its top. The unlit segments of all
+		 * digits lie behind the lit digits, which align to the right.
+		 */
+		.glass {
+			display: grid;
+			justify-items: end;
+			padding: 0.3em 0.32em 0.24em;
+			background: var(--hud-glass);
+			box-shadow:
+				inset 0 0 0 0.12em var(--hud-bezel),
+				inset 0.04em 0.16em 0.2em rgb(0 0 0 / 0.7);
+			clip-path: polygon(0.04em 0.08em, 100% 0, calc(100% - 0.06em) 100%, 0 calc(100% - 0.04em));
+			font-family: dseg7, monospace;
+			line-height: 1;
+
+			> span {
+				grid-area: 1 / 1;
+			}
+		}
+
+		.off {
+			color: color-mix(in srgb, var(--led) 12%, transparent);
+		}
+
+		.on {
+			color: var(--led);
+			text-shadow: 0 0 0.15em color-mix(in srgb, var(--led) 60%, transparent);
+		}
+
+		/* the life display turns from green over yellow to red as the life drops */
+		.life {
+			--led: var(--color-selected);
+
+			&[data-level='mid'] {
+				--led: var(--color-accent);
+			}
+
+			&[data-level='low'] {
+				--led: var(--color-danger);
+			}
+		}
+
+		.fps {
+			--led: var(--color-selected);
+		}
+	}
+</style>

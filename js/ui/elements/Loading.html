@@ -1,0 +1,131 @@
+<template>
+	<h2 class="title">Warming up the test equipment...</h2>
+	<ui-button><button class="start" disabled>Loading...</button></ui-button>
+	<div class="devices">
+		<h3>Play with keyboard and mouse</h3>
+		<figure class="keyboard">
+			<div class="picture">
+				<img src="gfx/ui/keyboard.svg" alt="Keyboard" />
+				<span data-key="KeyW" style="--x: 21.73%; --y: 33.85%"></span>
+				<span data-key="KeyE" style="--x: 27.68%; --y: 33.85%"></span>
+				<span data-key="KeyA" style="--x: 17.56%; --y: 49.23%"></span>
+				<span data-key="KeyS" style="--x: 23.51%; --y: 49.23%"></span>
+				<span data-key="KeyD" style="--x: 29.46%; --y: 49.23%"></span>
+			</div>
+			<figcaption>
+				<span data-key="KeyW"></span> <span data-key="KeyA"></span> <span data-key="KeyS"></span>
+				<span data-key="KeyD"></span> or arrow keys: move and jump<br /><span data-key="KeyE"></span> or right Shift:
+				clear portals
+			</figcaption>
+		</figure>
+		<figure class="mouse">
+			<img src="gfx/ui/mouse.svg" alt="Mouse" />
+			<figcaption>Aim and<br />shoot portals</figcaption>
+		</figure>
+		<p>Touch screens and gamepads do not work.</p>
+	</div>
+	<p data-missing="code" hidden></p>
+	<p data-missing="images" hidden></p>
+	<p data-missing="sounds" hidden></p>
+	<p data-missing="campaigns" hidden></p>
+</template>
+
+<style>
+	/* the loading element shows its content in a centered column; all sizes scale with the CRT */
+	ui-loading {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 4cqw;
+		text-align: center;
+
+		> .title {
+			margin: 0;
+			font: var(--font-title);
+			font-size: 3.6cqw;
+			color: var(--color-accent);
+			text-shadow: 0.1em 0.1em 0 #000;
+		}
+
+		/* while the files load, the disabled start button shows a progress bar that fills from the left up to --progress */
+		.start:disabled {
+			filter: none;
+			color: var(--color-text);
+			background: linear-gradient(
+				90deg,
+				rgb(2 108 103 / 85%) var(--progress, 0%),
+				rgb(0 60 70 / 25%) var(--progress, 0%)
+			);
+		}
+
+		/* the controls with the keyboard and the mouse side by side, and the heading and the note across both columns */
+		> .devices {
+			display: grid;
+			grid-template-columns: auto auto;
+			align-items: end;
+			justify-content: center;
+			gap: 1.6cqw 3cqw;
+			margin-top: 6cqw;
+
+			> h3 {
+				grid-column: 1 / -1;
+				margin: 0;
+				font: var(--font-title);
+				font-size: 3cqw;
+				color: var(--color-accent);
+				text-shadow: 0.1em 0.1em 0 #000;
+			}
+
+			> figure {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				gap: 0.8cqw;
+				margin: 0;
+				font-size: 1.7cqw;
+				line-height: 1.4;
+			}
+
+			img {
+				filter: drop-shadow(0.35cqw 0.35cqw 0 #000);
+			}
+
+			.keyboard img {
+				display: block;
+				width: 36cqw;
+			}
+
+			/* the letters of the keyboard layout of the player sit on the centers of their keys in the picture */
+			.picture {
+				position: relative;
+
+				> span {
+					position: absolute;
+					left: var(--x);
+					top: var(--y);
+					translate: -50% -50%;
+					font:
+						bold 1.07cqw Arial,
+						sans-serif;
+					color: #0d3440;
+				}
+			}
+
+			.mouse img {
+				width: 9cqw;
+			}
+
+			> p {
+				grid-column: 1 / -1;
+				opacity: 0.85;
+			}
+		}
+
+		> p,
+		> .devices > p {
+			margin: 0;
+			font-size: 1.6cqw;
+		}
+	}
+</style>

@@ -1,0 +1,141 @@
+<template>
+	<p></p>
+</template>
+
+<style>
+	/*
+	 * The narrator text is a small glass in a light panel. The edges have fixed sizes in pixels. The left edges of the
+	 * bezel and the glass slant in towards the bottom, and --narrator-lean is their shift to the right per pixel of
+	 * height. The right edges of the panel, the bezel and the glass slant in towards the bottom, and --narrator-tilt is
+	 * their shift to the left per pixel of height. The page sets the height of the panel in --narrator-height.
+	 */
+	ui-narrator-text {
+		--narrator-bezel: color-mix(in srgb, color-mix(in srgb, var(--color-page) 60%, var(--color-chrome)), black 20%);
+		--narrator-lean: 0.05;
+		--narrator-tilt: 0.09;
+		--narrator-glass: calc(var(--narrator-height) - 17px);
+		display: block;
+		height: var(--narrator-height);
+		position: relative;
+		isolation: isolate;
+		padding: 10px 70px 7px 26px;
+		line-height: 1.5;
+		/* the red LED at the bottom left, with a white spot of light */
+		background:
+			radial-gradient(circle closest-side, white 65%, transparent) left 9.5px bottom 9.5px / 6.5px 6.5px no-repeat,
+			radial-gradient(
+					circle closest-side,
+					var(--color-danger) 65%,
+					color-mix(in srgb, var(--color-danger), black 45%) 85% calc(100% - 0.5px),
+					transparent
+				)
+				left 7px bottom 5px / 13px 13px no-repeat,
+			var(--color-chrome);
+		clip-path: polygon(0 0, 100% 0, calc(100% - var(--narrator-tilt) * (var(--narrator-glass) + 17px)) 100%, 0 100%);
+
+		/* the bezel lies behind the glass and shows 6 pixels around it */
+		&::before {
+			content: '';
+			position: absolute;
+			inset: 4px 64px 1px 20px;
+			z-index: -1;
+			background: var(--narrator-bezel);
+			clip-path: polygon(
+				0 1px,
+				100% 0,
+				calc(100% - var(--narrator-tilt) * (var(--narrator-glass) + 12px)) 100%,
+				calc(var(--narrator-lean) * (var(--narrator-glass) + 12px)) 100%
+			);
+		}
+
+		/*
+		 * The speaker grille lies between the bezel and the right edge of the panel. It is a column of horizontal slots
+		 * with round ends and a dark top edge. The column is skewed at the angle of the right edges, so its middle moves
+		 * in by half of the slant of the panel.
+		 */
+		&::after {
+			--slot: 5px;
+			--pitch: 9px;
+			content: '';
+			position: absolute;
+			top: 14px;
+			bottom: 12px;
+			right: calc(14px + var(--narrator-tilt) * (var(--narrator-glass) + 17px) / 2);
+			width: 36px;
+			background: repeating-linear-gradient(
+				var(--narrator-bezel) 0 2px,
+				color-mix(in srgb, var(--narrator-bezel), var(--color-chrome) 30%) 2px var(--pitch)
+			);
+			mask:
+				radial-gradient(circle at calc(var(--slot) / 2) calc(var(--slot) / 2), black 2px, transparent 3px) left top /
+					var(--slot) var(--pitch) repeat-y,
+				radial-gradient(circle at calc(var(--slot) / 2) calc(var(--slot) / 2), black 2px, transparent 3px) right top /
+					var(--slot) var(--pitch) repeat-y,
+				linear-gradient(black var(--slot), transparent var(--slot)) center top / calc(100% - var(--slot)) var(--pitch)
+					repeat-y;
+			transform: skewX(atan(calc(-1 * var(--narrator-tilt))));
+		}
+
+		/*
+		 * The glass has rounder corners at the top than at the bottom. Two small reflections lie at the bottom right, and
+		 * the bottom edge is darker. A long text scrolls without a scrollbar.
+		 */
+		p {
+			height: var(--narrator-glass);
+			overflow-y: auto;
+			scrollbar-width: none;
+			margin: 0;
+			padding: 22px 28px 14px 16px;
+			background:
+				radial-gradient(
+					ellipse 22px 6px at calc(100% - 60px) calc(100% - 11px),
+					color-mix(in srgb, var(--color-screen), white 15%) 60%,
+					transparent
+				),
+				radial-gradient(
+					ellipse 8px 3px at calc(100% - 90px) calc(100% - 7px),
+					color-mix(in srgb, var(--color-screen), white 15%) 60%,
+					transparent
+				),
+				linear-gradient(to top, color-mix(in srgb, var(--color-screen), black 15%) 3px, transparent 4px),
+				var(--color-screen);
+			clip-path: shape(
+				from calc(var(--narrator-lean) * 16px) 16px,
+				curve to 18px 0 with 0 0,
+				line to calc(100% - 16px) 0,
+				curve to calc(100% - var(--narrator-tilt) * 14px) 14px with 100% 0,
+				line to calc(100% - var(--narrator-tilt) * (var(--narrator-glass) - 12px)) calc(100% - 12px),
+				curve to calc(100% - var(--narrator-tilt) * var(--narrator-glass) - 12px) 100% with
+					calc(100% - var(--narrator-tilt) * var(--narrator-glass)) 100%,
+				line to calc(var(--narrator-lean) * var(--narrator-glass) + 12px) 100%,
+				curve to calc(var(--narrator-lean) * (var(--narrator-glass) - 12px)) calc(100% - 12px) with
+					calc(var(--narrator-lean) * var(--narrator-glass)) 100%,
+				close
+			);
+
+			/*
+			 * A dark band runs along the top of the glass. It is a narrow wedge with a pointed bottom left corner, and a
+			 * thin line continues it along the top. The band is placed in the panel, so it stays when the text scrolls.
+			 * The glass clips it.
+			 */
+			&::before {
+				content: '';
+				position: absolute;
+				top: 13px;
+				left: 35px;
+				width: 35%;
+				height: 16px;
+				z-index: -1;
+				background: color-mix(in srgb, var(--color-screen) 80%, var(--color-page));
+				clip-path: shape(
+					from 0 0,
+					line to 100% 0,
+					line to 100% 2px,
+					line to 35% 2px,
+					curve to 0 100% with 10% 6px,
+					close
+				);
+			}
+		}
+	}
+</style>

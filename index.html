@@ -15,32 +15,32 @@
 		<link rel="stylesheet" type="text/css" href="style.css" />
 	</head>
 	<body>
-		<game-app>
+		<ui-root>
 			<div class="top">
 				<img class="logo" src="gfx/site/logo.svg" alt="Still Alive (revived)" />
-				<robot-head hidden></robot-head>
-				<narrator-text hidden></narrator-text>
+				<ui-robot-head hidden></ui-robot-head>
+				<ui-narrator-text hidden></ui-narrator-text>
 				<p class="tagline"><span>Shoot portals.</span> <span>Solve puzzles.</span> <span>Stay alive.</span></p>
 				<img class="mascot" src="gfx/site/character.svg" alt="" />
 			</div>
 			<div class="side-deco"></div>
-			<crt-screen>
+			<ui-crt>
 				<game-stage hidden></game-stage>
-				<vcr-display hidden></vcr-display>
-				<loading-screen></loading-screen>
-				<credits-screen hidden></credits-screen>
-				<main-menu hidden></main-menu>
-				<pause-menu hidden></pause-menu>
-				<intermission-panel hidden></intermission-panel>
-				<level-selection hidden></level-selection>
-				<editor-files hidden></editor-files>
-				<confirm-screen hidden></confirm-screen>
-			</crt-screen>
-			<game-hud hidden></game-hud>
-			<vcr-panel hidden></vcr-panel>
-			<editor-palette hidden></editor-palette>
-			<editor-buttons hidden></editor-buttons>
-		</game-app>
+				<ui-vcr-display hidden></ui-vcr-display>
+				<ui-loading></ui-loading>
+				<ui-credits hidden></ui-credits>
+				<ui-main-menu hidden></ui-main-menu>
+				<ui-pause-menu hidden></ui-pause-menu>
+				<ui-intermission hidden></ui-intermission>
+				<ui-level-selection hidden></ui-level-selection>
+				<ui-editor-files hidden></ui-editor-files>
+				<ui-confirm hidden></ui-confirm>
+			</ui-crt>
+			<ui-hud hidden></ui-hud>
+			<ui-vcr-panel hidden></ui-vcr-panel>
+			<ui-editor-palette hidden></ui-editor-palette>
+			<ui-editor-buttons hidden></ui-editor-buttons>
+		</ui-root>
 		<footer>
 			<div>
 				All code licensed under <a href="https://www.gnu.org/licenses/agpl-3.0.html">AGPL</a><br />

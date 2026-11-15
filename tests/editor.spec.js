@@ -39,7 +39,7 @@ function editorMap(page) {
  */
 async function clickButton(page, name) {
 	await waitForNarrator(page);
-	await page.locator('editor-buttons').getByRole('button', { name, exact: true }).click();
+	await page.locator('ui-editor-buttons').getByRole('button', { name, exact: true }).click();
 }
 
 /**
@@ -87,12 +87,12 @@ test.describe('editor', () => {
 	test('keeps the properties in a save slot', async ({ page }) => {
 		await openMap(page, MAP);
 		await clickButton(page, 'Save');
-		await page.locator('slot-list button[data-choice="1"]').click();
+		await page.locator('ui-slot-list button[data-choice="1"]').click();
 		await expect.poll(() => page.evaluate(() => location.hash)).toBe('#/editor');
 
 		await clickButton(page, 'Clear');
 		await clickButton(page, 'Load');
-		await page.locator('slot-list button[data-choice="1"]').click();
+		await page.locator('ui-slot-list button[data-choice="1"]').click();
 		await expect.poll(() => page.evaluate(() => location.hash)).toBe('#/editor');
 		expect(await editorMap(page)).toEqual(MAP);
 	});

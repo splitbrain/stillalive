@@ -2,7 +2,7 @@
  * The loading of the game code and files, and the loading progress.
  */
 
-import { campaignsReady, loadCampaigns } from './chrome/campaigns.js';
+import { campaignsReady, loadCampaigns } from './data/campaigns.js';
 import { allImagesLoaded, imageProgress, missingImages, onImageDone } from './stage/assets.js';
 import {
 	allSoundsLoaded,
@@ -120,8 +120,8 @@ function startFiles() {
 /**
  * Check if the game can start, and set ready when it can. Call it again when the sound setting changes.
  *
- * The game waits for the sounds only while the sound is on. The app element sets the stored sound setting when it is
- * defined. The game cannot be ready before that, because the app element is not in the last group of element modules.
+ * The game waits for the sounds only while the sound is on. The root element sets the stored sound setting when it is
+ * defined. The game cannot be ready before that, because the root element is not in the last group of element modules.
  *
  * @returns {void}
  */

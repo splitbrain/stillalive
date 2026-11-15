@@ -56,7 +56,7 @@ test.describe('units', () => {
 		test.setTimeout(10000);
 		await page.evaluate(async () => {
 			const { CampaignId } = await import('/js/stage/constants.js');
-			const { campaigns } = await import('/js/chrome/campaigns.js');
+			const { campaigns } = await import('/js/data/campaigns.js');
 			window.__test.stage.play(campaigns[CampaignId.STORY].levels[3]);
 		});
 		// an empty map with walls on the left and the right side, and a floor that keeps the player alive

@@ -5,8 +5,8 @@ import unicorn from 'eslint-plugin-unicorn';
 
 /**
  * The layers of the game modules as glob patterns, from the bottom to the top. A module can import from its own layer
- * and from the layers below it. The stage is the base, the logic, the drawing and the flow layer. The page around the
- * stage is the top layer.
+ * and from the layers below it. The stage is the base, the logic, the drawing and the flow layer. The data layer holds
+ * the player data and the level data. The UI around the stage is the top layer.
  *
  * @type {{name: string, files: string[]}[]}
  */
@@ -27,7 +27,8 @@ const LAYERS = [
 	},
 	{ name: 'drawing', files: ['./js/stage/render/*.js'] },
 	{ name: 'flow', files: ['./js/stage/{Editor,GameStage,input,PlaySession,PreviewSession}.js'] },
-	{ name: 'page', files: ['./js/[m]ain.js', './js/[l]oader.js', './js/chrome/**/*.js', './js/[r]outer.js'] },
+	{ name: 'data', files: ['./js/data/*.js'] },
+	{ name: 'ui', files: ['./js/[m]ain.js', './js/[l]oader.js', './js/ui/**/*.js', './js/[r]outer.js'] },
 ];
 
 /** @type {object[]} The zones of import-x/no-restricted-paths: each layer must not import from a higher layer. */
@@ -37,19 +38,37 @@ const LAYER_ZONES = LAYERS.slice(0, -1).map((layer, i) => ({
 	message: `The ${layer.name} layer must not import from a higher layer.`,
 }));
 
+/** @type {string[]} The modules of the stage with data and pure functions, relative to the stage folder. */
+const STAGE_DATA_MODULES = ['./constants.js', './keys.js', './mapFile.js', './replay.js', './tiles.js'];
+
 /**
- * The zones of import-x/no-restricted-paths for the page. The page uses the stage through the stage element. From the
- * stage, the page can import only the modules with data and pure functions, and the start code only the element class.
+ * The zone of import-x/no-restricted-paths for the data layer. From the stage, the data layer can import only the
+ * modules with data and pure functions.
+ *
+ * @type {object[]}
+ */
+const DATA_ZONES = [
+	{
+		target: './js/data/*.js',
+		from: './js/stage',
+		except: STAGE_DATA_MODULES,
+		message: 'The data layer can import only the data and the pure functions of the stage.',
+	},
+];
+
+/**
+ * The zones of import-x/no-restricted-paths for the UI. The UI uses the stage through the stage element. From the
+ * stage, the UI can import only the modules with data and pure functions, and the start code only the element class.
  * The loader also imports the modules that load the images and the sounds.
  *
  * @type {object[]}
  */
-const PAGE_ZONES = [
+const UI_ZONES = [
 	{
-		target: ['./js/chrome/**/*.js', './js/[r]outer.js'],
+		target: ['./js/ui/**/*.js', './js/[r]outer.js'],
 		from: './js/stage',
-		except: ['./constants.js', './keys.js', './mapFile.js', './replay.js', './tiles.js'],
-		message: 'The page must use the stage through the stage element.',
+		except: STAGE_DATA_MODULES,
+		message: 'The UI must use the stage through the stage element.',
 	},
 	{
 		target: './js/[m]ain.js',
@@ -66,16 +85,16 @@ const PAGE_ZONES = [
 ];
 
 /**
- * The zone of import-x/no-restricted-paths for the stage: a module in the stage folder must not import from the page.
- * The zone also covers a module that is in no layer.
+ * The zone of import-x/no-restricted-paths for the stage: a module in the stage folder must not import from the data
+ * layer or the UI. The zone also covers a module that is in no layer.
  *
  * @type {object[]}
  */
 const STAGE_ZONES = [
 	{
 		target: './js/stage/**/*.js',
-		from: LAYERS.at(-1).files,
-		message: 'The stage must not import from the page.',
+		from: LAYERS.slice(-2).flatMap((layer) => layer.files),
+		message: 'The stage must not import from the data layer or the UI.',
 	},
 ];
 
@@ -115,7 +134,10 @@ export default [
 			'no-var': 'error',
 			'guard-for-in': 'error',
 			'import-x/no-cycle': 'warn',
-			'import-x/no-restricted-paths': ['error', { zones: [...LAYER_ZONES, ...PAGE_ZONES, ...STAGE_ZONES] }],
+			'import-x/no-restricted-paths': [
+				'error',
+				{ zones: [...LAYER_ZONES, ...DATA_ZONES, ...UI_ZONES, ...STAGE_ZONES] },
+			],
 		},
 	},
 	{

@@ -1,5 +1,5 @@
 /**
- * Constants of the game and the page.
+ * Constants of the game and the UI.
  */
 
 /** @type {number} Key bit for the jump key. */

@@ -1,7 +1,7 @@
 /**
  * The stage element <game-stage>, which shows the game on a canvas.
  *
- * The page controls the stage with its methods and reads the state from the Value properties. The stage dispatches
+ * The UI controls the stage with its methods and reads the state from the Value properties. The stage dispatches
  * the events "finished", "died", "focuslost", "brokenreplay" and "replaystop".
  */
 
@@ -466,8 +466,8 @@ export class GameStage extends HTMLElement {
 	}
 
 	/**
-	 * Act on an event of a play session. The events "replaystop" and "focuslost" go to the page at once. The other
-	 * events go to the page with the next publication: "died" after the stage went back to the editor, and
+	 * Act on an event of a play session. The events "replaystop" and "focuslost" go to the UI at once. The other
+	 * events go to the UI with the next publication: "died" after the stage went back to the editor, and
 	 * "brokenreplay" after the stage became idle.
 	 *
 	 * @param {string} type The event type.

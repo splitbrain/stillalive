@@ -1,0 +1,37 @@
+<template>
+	<p class="time"></p>
+	<p class="message"></p>
+	<ui-button><a class="next" data-replace>Continue</a></ui-button>
+	<ui-button><a class="restart">Restart</a></ui-button>
+	<ui-button><button class="replay">Watch Replay</button></ui-button>
+	<ui-button><a class="exit" data-up>Exit</a></ui-button>
+</template>
+
+<style>
+	/* the intermission panel shows its content in a centered column; all sizes scale with the CRT */
+	ui-intermission {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 1.8cqw;
+		text-shadow: 0.1em 0.1em 0 #000;
+
+		p {
+			margin: 0;
+		}
+
+		.time {
+			font: var(--font-title);
+			font-size: 4.8cqw;
+			color: var(--color-accent);
+		}
+
+		.message {
+			max-width: 70cqw;
+			margin-bottom: 1.8cqw;
+			font-size: 2.4cqw;
+			text-align: center;
+		}
+	}
+</style>

@@ -60,12 +60,12 @@ a {
 }
 
 /*
- * The app is a grid that is centered horizontally in the window. Its first two rows and columns are a block of four
- * cells, with a narrow top row and a narrow side column around a large main cell. The size of the block follows the
- * window up to a maximum width. The main cell is at most as high as the aspect ratio of the playfield allows. The other
- * parts go in rows below the block, each in the full width.
+ * The root element is a grid that is centered horizontally in the window. Its first two rows and columns are a block of
+ * four cells, with a narrow top row and a narrow side column around a large main cell. The size of the block follows
+ * the window up to a maximum width. The main cell is at most as high as the aspect ratio of the playfield allows. The
+ * other parts go in rows below the block, each in the full width.
  */
-game-app {
+ui-root {
 	/* the top row is at least as high as the narrator text with four lines of text */
 	--grid-row-top-min: 149px;
 	--grid-gap: 1rem;
@@ -100,7 +100,7 @@ game-app {
 	}
 
 	/* the block leaves room for the row of the editor buttons while they show */
-	&:has(> editor-buttons:not([hidden])) {
+	&:has(> ui-editor-buttons:not([hidden])) {
 		--grid-row-bottom: calc(var(--editor-buttons-height) + var(--grid-gap));
 	}
 
@@ -115,11 +115,11 @@ game-app {
 		display: flex;
 		gap: var(--grid-gap);
 
-		> robot-head {
+		> ui-robot-head {
 			aspect-ratio: 108 / 92;
 		}
 
-		> narrator-text {
+		> ui-narrator-text {
 			flex: 1;
 			--narrator-height: var(--grid-row-top);
 		}
@@ -157,18 +157,18 @@ game-app {
 			height: 100%;
 		}
 
-		&:has(> robot-head:not([hidden]), > narrator-text:not([hidden])) > :is(.logo, .tagline, .mascot) {
+		&:has(> ui-robot-head:not([hidden]), > ui-narrator-text:not([hidden])) > :is(.logo, .tagline, .mascot) {
 			display: none;
 		}
 	}
 
 	/* the HUD, the VCR panel and the editor palette fill the side cell */
-	> game-hud {
+	> ui-hud {
 		grid-area: side;
 		aspect-ratio: auto;
 	}
 
-	> :is(vcr-panel, editor-palette) {
+	> :is(ui-vcr-panel, ui-editor-palette) {
 		grid-area: side;
 	}
 
@@ -217,19 +217,19 @@ game-app {
 		}
 	}
 
-	&:has(> game-hud:not([hidden]), > vcr-panel:not([hidden]), > editor-palette:not([hidden])) > .side-deco {
+	&:has(> ui-hud:not([hidden]), > ui-vcr-panel:not([hidden]), > ui-editor-palette:not([hidden])) > .side-deco {
 		display: none;
 	}
 
 	/*
-	 * The CRT screen shows the stage and the parts that show in its place. Its content has the aspect ratio of the
+	 * The CRT shows the stage and the parts that show in its place. Its content has the aspect ratio of the
 	 * playfield, so the stage fills the glass.
 	 */
-	> crt-screen {
+	> ui-crt {
 		--crt-aspect: 4 / 3;
 		grid-area: main;
 
-		/* the parts in the CRT screen lie on top of each other in one cell */
+		/* the parts in the CRT lie on top of each other in one cell */
 		> * {
 			grid-area: 1 / 1;
 			min-width: 0;

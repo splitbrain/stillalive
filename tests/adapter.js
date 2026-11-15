@@ -101,8 +101,8 @@ export function stageValue(page, name) {
  */
 export async function startGame(page) {
 	await openGame(page);
-	await page.locator('loading-screen .start').click();
-	await page.locator('main-menu').waitFor();
+	await page.locator('ui-loading .start').click();
+	await page.locator('ui-main-menu').waitFor();
 }
 
 /**
@@ -116,7 +116,7 @@ export async function startGame(page) {
  */
 export async function waitForNarrator(page) {
 	await page.waitForFunction(() => {
-		const narrator = document.querySelector('narrator-text');
+		const narrator = document.querySelector('ui-narrator-text');
 		const testing = window.__test.stage.mode.get() === 'test';
 		const text = (testing ? null : narrator.getAttribute('text')) ?? window.__test.stage.message.get()?.text ?? '';
 		return narrator.querySelector('p').textContent === text;
@@ -371,7 +371,7 @@ export async function runLevel(
 ) {
 	return page.evaluate(
 		async ({ campaign, level, ticks, seed, inputs, replay: replayData, skipBossIntro, interval }) => {
-			const { campaigns } = await import('/js/chrome/campaigns.js');
+			const { campaigns } = await import('/js/data/campaigns.js');
 			const hooks = window.__test;
 			const { input, stage } = hooks;
 			const levelData = campaigns[campaign].levels[level - 1];
@@ -491,7 +491,7 @@ export async function runPortalScene(page, scene) {
 	return page.evaluate(async (scene) => {
 		const hooks = window.__test;
 		const { input, stage } = hooks;
-		const { campaigns } = await import('/js/chrome/campaigns.js');
+		const { campaigns } = await import('/js/data/campaigns.js');
 		const { Crate } = await import('/js/stage/entities/Crate.js');
 		const { Turret } = await import('/js/stage/entities/Turret.js');
 		const { Plasma } = await import('/js/stage/entities/Plasma.js');

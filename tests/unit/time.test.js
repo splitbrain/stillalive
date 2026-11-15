@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { toTime } from '../../js/chrome/time.js';
+import { toTime } from '../../js/ui/time.js';
 
 test('toTime() shows minutes, seconds and three digits for the milliseconds', () => {
 	const cases = {

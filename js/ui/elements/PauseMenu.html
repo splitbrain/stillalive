@@ -1,0 +1,27 @@
+<template>
+	<ui-button><button class="resume">Resume</button></ui-button>
+	<ui-button><a class="restart">Restart</a></ui-button>
+	<ui-button><a class="exit" data-up>Exit</a></ui-button>
+	<ui-button small><button class="sound">Sounds: On</button></ui-button>
+	<ui-button small><button class="music">Music: On</button></ui-button>
+</template>
+
+<style>
+	/*
+	 * The pause menu covers the whole cell of the CRT. It shows the paused level behind it in black and white and
+	 * darker, and the buttons in a centered column on top.
+	 */
+	ui-pause-menu {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 1.8cqw;
+		backdrop-filter: grayscale(1) brightness(0.6);
+
+		/* the sound and music buttons are set apart from the buttons that leave the pause */
+		> :has(.sound) {
+			margin-top: 1.8cqw;
+		}
+	}
+</style>

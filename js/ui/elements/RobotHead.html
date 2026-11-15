@@ -1,0 +1,120 @@
+<template>
+	<div class="window">
+		<div class="glass">
+			<img class="head" src="gfx/sprites/robotHead.svg" alt="" />
+			<div class="eye"></div>
+		</div>
+	</div>
+</template>
+
+<style>
+	/*
+	 * The robot head sits behind the glass of a small window in a light frame. The window has the aspect ratio of a
+	 * panel of 108 by 92 units, and all sizes are in these units. The window is as large as the element allows and
+	 * centered in it. The outer edge of the frame and the dark blue bezel are uneven quadrangles. The glass covers the
+	 * whole panel, so the head and the eye use the coordinates of the panel. The shape of the glass cuts them off at the
+	 * bezel.
+	 *
+	 * The idle animation sets --head-x, --eye-x and --eye-y to -1, 0 or 1. The head moves 17 units to a side. The eye
+	 * moves with the head, and also 9 units to a side and 10 units up or down.
+	 */
+	ui-robot-head {
+		--robot-bezel: color-mix(in srgb, color-mix(in srgb, var(--color-page) 60%, var(--color-chrome)), black 20%);
+		--robot-glass: color-mix(in srgb, var(--color-chrome) 75%, var(--color-page));
+		display: grid;
+		place-items: center;
+		container-type: size;
+
+		/* an absent robot leaves the window empty */
+		&[absent] :is(.head, .eye) {
+			visibility: hidden;
+		}
+
+		.window {
+			position: relative;
+			width: min(100cqw, 100cqh * 108 / 92);
+			container-type: inline-size;
+			aspect-ratio: 108 / 92;
+			background: var(--color-chrome);
+			clip-path: polygon(1.9% 10.3%, 99.1% 1.1%, 99.1% 98.9%, 5.6% 98.9%);
+
+			/* the bezel lies behind the glass and shows about 2 units around it */
+			&::before {
+				content: '';
+				position: absolute;
+				inset: 0;
+				background: var(--robot-bezel);
+				clip-path: polygon(5.6% 16.8%, 94.4% 7.6%, 94.4% 93.5%, 9.3% 93.5%);
+			}
+		}
+
+		.glass {
+			position: absolute;
+			inset: 0;
+			background:
+				url('gfx/site/robotScene.svg') 0 0 / 100% 100% no-repeat,
+				var(--robot-glass);
+			box-shadow: inset 0 0 calc(100cqw * 6 / 108) rgb(0 0 0 / 0.25);
+			clip-path: shape(
+				from 10.2% 19.3%,
+				line to 88.9% 11.2%,
+				curve to 91.7% 14.1% with 91.7% 10.9%,
+				line to 91.7% 88%,
+				curve to 88.9% 91.3% with 91.7% 91.3%,
+				line to 13.9% 91.3%,
+				curve to 10.9% 88% with 11.1% 91.3%,
+				line to 7.6% 22.8%,
+				curve to 10.2% 19.3% with 7.4% 19.6%,
+				close
+			);
+		}
+
+		.head {
+			position: absolute;
+			left: calc(100% * 18 / 108);
+			top: calc(100% * 28 / 92);
+			width: calc(100% * 74 / 108);
+			transform: translateX(calc(var(--head-x, 0) * 100% * 17 / 74));
+			transition: transform 0.5s;
+		}
+
+		.eye {
+			position: absolute;
+			left: calc(100% * 47 / 108);
+			top: calc(100% * 54 / 92);
+			width: calc(100% * 19 / 108);
+			aspect-ratio: 1;
+			background-size: 100% 400%;
+			background-repeat: no-repeat;
+			transform: translate(
+				calc((var(--head-x, 0) * 17 + var(--eye-x, 0) * 9) * 100% / 19),
+				calc(var(--eye-y, 0) * 10 * 100% / 19)
+			);
+			transition: transform 0.5s;
+
+			/* the eye image has four frames from open to closed */
+			&.blink {
+				animation: robot-blink 0.2s step-end;
+			}
+		}
+	}
+
+	@keyframes robot-blink {
+		0% {
+			background-position-y: 33.333%;
+		}
+		20% {
+			background-position-y: 66.667%;
+		}
+		40% {
+			background-position-y: 100%;
+		}
+		60% {
+			background-position-y: 66.667%;
+		}
+		80%,
+		100% {
+			background-position-y: 33.333%;
+		}
+	}
+</style>

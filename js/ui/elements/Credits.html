@@ -1,0 +1,89 @@
+<template>
+	<a href="#/" data-up>
+		<div class="scroll">
+			<p>Well done, my friend, you passed every test successfully and the Ultimate campaign is now over.</p>
+			<p>
+				However, your adventure doesn't have to end here! You can still create your own maps or play other campaigns. Or
+				why not try to beat your personal highscore?
+			</p>
+
+			<h3>Still Alive JS (2011)</h3>
+			<p>
+				Thank you for playing Still Alive<br />
+				I hope you had as much fun playing the game as I had making it
+			</p>
+			<p>
+				Game created by t4ils<br />
+				Gfx by ZeBlackos (thanks!!!)
+			</p>
+			<p>Original idea by Valve Software</p>
+			<p>
+				Thanks to my life partner, who let me create my game during these past 2 months, when I spent most of my time on
+				the computer (sorry about that!)
+			</p>
+			<p>Big thanks to Braynor and LordYu for their thorough beta testing during the whole development phase.</p>
+			<p>Thanks to EvilTroopa and dev-fr.org for their support during development and for testing the game.</p>
+			<p>Thanks to the Trackmania and StillAliveDS forum members for testing the game when it was almost complete.</p>
+			<p>t4ils - 2011</p>
+
+			<h3>Still Alive Revived (2026)</h3>
+			<p>Code and graphics modernized by splitbrain and Claude</p>
+			<p>
+				Sound effects by Kenney, Juhani Junkala and the Freesound users cartchaos, unfa, Xcallono, michael_grinnell,
+				Raclure, vestibule-door, Blankened, tonsil5, spookymodem, chestnutjam, Foxfire-, qubodup, NovaSoundTechnology,
+				jameswrowles, Sheyvan, NeoSpica, 317wurst, GameAudio and mrrap4food
+			</p>
+			<p>
+				Music: "Relaxed Robot Theme" by Nikke, and "Phantom from Space" by Kevin MacLeod (incompetech.com), licensed
+				under Creative Commons: By Attribution 4.0
+			</p>
+			<p>
+				Many thanks to t4ils for creating the original game for NDS homebrew and later releasing the Javascript version
+				as OpenSource. This modernized version would not exist without the original game.
+			</p>
+			<p>splitbrain - 2026</p>
+		</div>
+	</a>
+</template>
+
+<style>
+	ui-credits {
+		display: block;
+		overflow: hidden;
+		container-type: size;
+
+		a {
+			display: block;
+			height: 100%;
+			text-align: center;
+			text-decoration: none;
+		}
+
+		.scroll {
+			max-width: 80cqw;
+			margin-inline: auto;
+			font-size: 2.4cqw;
+			line-height: 1.5;
+			animation: credits-scroll 90s linear;
+
+			> :first-child {
+				margin-top: 0;
+			}
+
+			h3 {
+				margin-top: 2em;
+				font-size: 1.2em;
+			}
+		}
+	}
+
+	/* the credits scroll in at the bottom edge and out at the top edge */
+	@keyframes credits-scroll {
+		from {
+			transform: translateY(100cqh);
+		}
+		to {
+			transform: translateY(-100%);
+		}
+	}
+</style>

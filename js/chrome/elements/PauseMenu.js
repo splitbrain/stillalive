@@ -2,7 +2,6 @@
  * The pause menu element.
  */
 
-import { isReplayRoute } from '../../router.js';
 import { setLink, settingLabel } from '../dom.js';
 import { ChromeScreen, loadMarkup, Screen } from '../element.js';
 
@@ -65,9 +64,9 @@ export class PauseMenu extends ChromeScreen {
 	 * Tell if the pause menu shows on a screen of the app.
 	 *
 	 * @param {string} screen The screen, a value of Screen.
-	 * @returns {boolean} True on the play screen while the stage is paused, except on a replay route.
+	 * @returns {boolean} True on the play screen and on the test run screen while the stage is paused.
 	 */
 	shouldShow(screen) {
-		return screen === Screen.PLAY && this.stage.paused.get() && !isReplayRoute();
+		return (screen === Screen.PLAY || screen === Screen.TEST) && this.stage.paused.get();
 	}
 }

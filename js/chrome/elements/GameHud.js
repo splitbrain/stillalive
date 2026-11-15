@@ -2,7 +2,6 @@
  * The HUD element.
  */
 
-import { isReplayRoute } from '../../router.js';
 import { ChromeScreen, loadMarkup, Screen } from '../element.js';
 
 /** @type {HTMLTemplateElement|null} The markup of the HUD. */
@@ -54,9 +53,9 @@ export class GameHud extends ChromeScreen {
 	 * Tell if the HUD shows on a screen of the app.
 	 *
 	 * @param {string} screen The screen, a value of Screen.
-	 * @returns {boolean} True on the play screen, except on a replay route.
+	 * @returns {boolean} True on the play screen and on the test run screen.
 	 */
 	shouldShow(screen) {
-		return screen === Screen.PLAY && !isReplayRoute();
+		return screen === Screen.PLAY || screen === Screen.TEST;
 	}
 }

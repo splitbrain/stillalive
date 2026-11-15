@@ -2,6 +2,8 @@
  * The base of the chrome elements.
  */
 
+import { RouteName } from '../router.js';
+
 /**
  * Load the HTML file of a component. The file is next to the module and has the name of the module with ".html" in
  * place of ".js". The style of the file goes into the head of the document.
@@ -25,20 +27,11 @@ export async function loadMarkup(moduleUrl) {
 }
 
 /**
- * The names of the screens of the app: the route names and the loading screen.
+ * The names of the screens of the app: the loading screen and the route names.
  *
- * @type {Readonly<{LOADING: string, MAIN: string, SELECT: string, PLAY: string, EDITOR: string, EDITOR_FILE: string,
- *     CREDITS: string}>}
+ * @type {Readonly<{LOADING: string} & typeof RouteName>}
  */
-export const Screen = Object.freeze({
-	LOADING: 'loading',
-	MAIN: 'main',
-	SELECT: 'select',
-	PLAY: 'play',
-	EDITOR: 'editor',
-	EDITOR_FILE: 'editor-file',
-	CREDITS: 'credits',
-});
+export const Screen = Object.freeze({ LOADING: 'loading', ...RouteName });
 
 /**
  * The base class of the chrome elements. The markup of an element is a copy of the template of its class, in the light

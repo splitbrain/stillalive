@@ -2,7 +2,7 @@
  * The main menu element.
  */
 
-import { campaignPath } from '../../router.js';
+import { routePath, RouteName } from '../../router.js';
 import { CampaignId, LEVELS_PER_CAMPAIGN } from '../../stage/constants.js';
 import { campaigns, campaignsReady, listCampaigns } from '../campaigns.js';
 import { settingLabel } from '../dom.js';
@@ -98,7 +98,7 @@ export class MainMenu extends ChromeScreen {
 		const count = document.createElement('span');
 		count.textContent = `${campaign.completed}/${campaign.levelCount}`;
 		const link = document.createElement('a');
-		link.href = campaignPath(campaign.folder);
+		link.href = routePath(RouteName.SELECT, campaign.folder);
 		link.append(campaign.title, ' ', count);
 		const button = document.createElement('menu-button');
 		button.toggleAttribute('small', small || campaign.parent !== '');

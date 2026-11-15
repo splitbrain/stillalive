@@ -2,7 +2,7 @@
  * The element of the save and load screen of the editor.
  */
 
-import { RouteMode, up } from '../../router.js';
+import { RouteName, up } from '../../router.js';
 import { alertDialog } from '../dialog.js';
 import { setAttributes } from '../dom.js';
 import { loadMarkup, Screen } from '../element.js';
@@ -15,7 +15,7 @@ const TEMPLATE = await loadMarkup(import.meta.url);
 
 /**
  * The custom element <editor-files>. It is the save and load screen of the editor. The attribute mode is save for the
- * save screen and load for the load screen, a value of RouteMode.
+ * save screen and load for the load screen, a value of RouteName.
  */
 export class EditorFiles extends SelectionScreen {
 	/** @type {HTMLTemplateElement|null} The markup of the save and load screen. */
@@ -57,7 +57,7 @@ export class EditorFiles extends SelectionScreen {
 	render() {
 		const mode = this.getAttribute('mode');
 		setAttributes(this.querySelector('slot-list'), {
-			mode: mode === RouteMode.SAVE || mode === RouteMode.LOAD ? mode : null,
+			mode: mode === RouteName.SAVE || mode === RouteName.LOAD ? mode : null,
 		});
 	}
 
@@ -83,9 +83,9 @@ export class EditorFiles extends SelectionScreen {
 		if (this.#leaving) return;
 		const mode = this.getAttribute('mode');
 		const stored = editorMap(slot).get();
-		if (mode === RouteMode.LOAD) {
+		if (mode === RouteName.LOAD) {
 			if (stored == null || !(await confirmReplaceMap(this.stage))) return;
-		} else if (mode === RouteMode.SAVE) {
+		} else if (mode === RouteName.SAVE) {
 			const question = `Slot ${slot} contains a map. Do you want to overwrite it?`;
 			if (stored != null && !(await confirmOnScreen(question, 'Save map'))) return;
 		} else {
@@ -93,7 +93,7 @@ export class EditorFiles extends SelectionScreen {
 		}
 		if (this.#leaving || this.getAttribute('mode') !== mode) return;
 
-		if (mode === RouteMode.LOAD) {
+		if (mode === RouteName.LOAD) {
 			this.stage.edit(editorMap(slot).get());
 		} else {
 			if (!saveEditorMap(slot, this.stage.getMap())) {
@@ -122,9 +122,9 @@ export class EditorFiles extends SelectionScreen {
 	 * Tell if the save and load screen shows on a screen of the app.
 	 *
 	 * @param {string} screen The screen, a value of Screen.
-	 * @returns {boolean} True on the save and load screen only.
+	 * @returns {boolean} True on the save and the load screen.
 	 */
 	shouldShow(screen) {
-		return screen === Screen.EDITOR_FILE;
+		return screen === Screen.SAVE || screen === Screen.LOAD;
 	}
 }

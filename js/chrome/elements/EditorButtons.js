@@ -27,7 +27,7 @@ export class EditorButtons extends ChromeScreen {
 	setUp() {
 		this.querySelector('.test').addEventListener('click', () => {
 			if (this.stage.mode.get() === 'test') up('#/editor');
-			else navigate('#/editor/test');
+			else navigate('#/test');
 		});
 		this.querySelector('.undo').addEventListener('click', () => this.stage.undo());
 		this.querySelector('.redo').addEventListener('click', () => this.stage.redo());
@@ -97,14 +97,9 @@ export class EditorButtons extends ChromeScreen {
 	 * Tell if the editor buttons show on a screen of the app.
 	 *
 	 * @param {string} screen The screen, a value of Screen.
-	 * @returns {boolean} True on the editor screen and on the save and load screen, and on the play screen during the
-	 *     test run of the editor map.
+	 * @returns {boolean} True on the editor, the save, the load and the test run screen.
 	 */
 	shouldShow(screen) {
-		return (
-			screen === Screen.EDITOR ||
-			screen === Screen.EDITOR_FILE ||
-			(screen === Screen.PLAY && this.stage.mode.get() === 'test')
-		);
+		return [Screen.EDITOR, Screen.SAVE, Screen.LOAD, Screen.TEST].includes(screen);
 	}
 }

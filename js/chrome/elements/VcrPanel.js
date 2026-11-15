@@ -2,7 +2,6 @@
  * The VCR panel element.
  */
 
-import { isReplayRoute } from '../../router.js';
 import { dispatch } from '../dom.js';
 import { ChromeScreen, loadMarkup, Screen } from '../element.js';
 
@@ -58,9 +57,9 @@ export class VcrPanel extends ChromeScreen {
 	 * Tell if the VCR panel shows on a screen of the app.
 	 *
 	 * @param {string} screen The screen, a value of Screen.
-	 * @returns {boolean} True on the play screen of a replay route.
+	 * @returns {boolean} True on the replay screen only.
 	 */
 	shouldShow(screen) {
-		return screen === Screen.PLAY && isReplayRoute();
+		return screen === Screen.REPLAY;
 	}
 }

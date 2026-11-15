@@ -1,7 +1,8 @@
 /**
  * The hash router of the page.
  *
- * The hash of the URL holds the navigation state: the screen, the campaign, the level and the sub screen of the editor.
+ * The hash of the URL holds the navigation state: the route name, the campaign and the level. The route name is also
+ * the name of the screen.
  *
  * The history follows the tree of the screens. A step down to a child screen adds an entry, a step to the side
  * replaces the entry, and a step up goes back in the history to the entry of the parent screen. If the parent screen is
@@ -16,28 +17,19 @@ import { CAMPAIGN_FOLDERS } from './stage/constants.js';
 import { Value } from './value.js';
 
 /**
- * The names of the routes. A route name is also the name of the screen that the route shows, except the editor route
- * while the stage runs a test, which shows the play screen.
+ * The names of the routes. A route name is also the name of the screen that the route shows, except the test route
+ * after the stage has stopped the test run, which shows the editor screen.
  *
- * @type {Readonly<{MAIN: string, SELECT: string, PLAY: string, EDITOR: string, EDITOR_FILE: string, CREDITS: string}>}
+ * @type {Readonly<{MAIN: string, CREDITS: string, SELECT: string, PLAY: string, REPLAY: string, EDITOR: string,
+ *     TEST: string, SAVE: string, LOAD: string}>}
  */
 export const RouteName = Object.freeze({
 	MAIN: 'main',
+	CREDITS: 'credits',
 	SELECT: 'select',
 	PLAY: 'play',
-	EDITOR: 'editor',
-	EDITOR_FILE: 'editor-file',
-	CREDITS: 'credits',
-});
-
-/**
- * The modes of the routes. A mode is also the last part of the path of its route, e.g. "#/editor/test".
- *
- * @type {Readonly<{PLAY: string, REPLAY: string, TEST: string, SAVE: string, LOAD: string}>}
- */
-export const RouteMode = Object.freeze({
-	PLAY: 'play',
 	REPLAY: 'replay',
+	EDITOR: 'editor',
 	TEST: 'test',
 	SAVE: 'save',
 	LOAD: 'load',
@@ -47,60 +39,54 @@ export const RouteMode = Object.freeze({
  * A route: the parsed hash.
  *
  * @typedef {object} Route
- * @property {string} name The screen, a value of RouteName.
+ * @property {string} name The name of the route, a value of RouteName.
  * @property {string|null} campaign The folder name of the campaign, or null if the route has no campaign.
  * @property {number} level The level number, starting at 1, or 0 if the route has no level.
- * @property {string|null} mode The mode, a value of RouteMode: play or replay for the play route, test for the test
- *     run on the editor route, save or load for the editor-file route, else null.
  */
 
-/** @type {RegExp} The pattern of the campaign routes: the campaign, the level and the play mode. */
-const CAMPAIGN_PATTERN = /^#\/campaign\/([a-z]+)(?:\/([1-9]\d*)(?:\/(play|replay))?)?$/;
+/**
+ * @type {string[]} The routes with a campaign. The select route can have a level, and the other routes must have a
+ *     level.
+ */
+const CAMPAIGN_ROUTES = [RouteName.SELECT, RouteName.PLAY, RouteName.REPLAY];
 
-/** @type {RegExp} The pattern of the editor routes: the mode of the test run or of the save and load screen. */
-const EDITOR_PATTERN = /^#\/editor(?:\/(save|load|test))?$/;
+/** @type {RegExp} The pattern of a hash: the route name, the campaign and the level. */
+const HASH_PATTERN = /^#\/([a-z]+)(?:\/([a-z]+)(?:\/([1-9]\d*))?)?$/;
 
 /**
  * Create a route.
  *
- * @param {string} name The screen.
+ * @param {string} name The name of the route.
  * @param {string|null} [campaign] The folder name of the campaign.
  * @param {number} [level] The level number.
- * @param {string|null} [mode] The mode.
  * @returns {Route} The route.
  */
-function createRoute(name, campaign = null, level = 0, mode = null) {
-	return { name, campaign, level, mode };
+function createRoute(name, campaign = null, level = 0) {
+	return { name, campaign, level };
 }
 
 /**
- * Parse a hash. The campaign is the folder name of a known campaign, and the level can be any number from 1.
+ * Parse a hash of the form #/name/campaign/level. The campaign is the folder name of a known campaign, and the level
+ * can be any number from 1.
  *
- * The hash #/ or an empty hash is the main route, and #/credits is the credits route. The hash #/campaign/normal is the
- * select route, and #/campaign/normal/5 selects level 5. The hashes #/campaign/normal/5/play and
- * #/campaign/normal/5/replay are the play route with mode play or replay. The hash #/editor is the editor route, and
- * #/editor/test adds mode test. The hashes #/editor/save and #/editor/load are the editor-file route.
+ * The hash #/ or an empty hash is the main route. The hashes #/credits, #/editor, #/test, #/save and #/load have no
+ * campaign and no level. The hash #/select/normal is the select route, and #/select/normal/5 selects level 5. The
+ * hashes #/play/normal/5 and #/replay/normal/5 play level 5 or its replay.
  *
  * @param {string} hash The hash of the URL, with the leading "#", or an empty text.
  * @returns {Route|null} The route, or null for an unknown hash.
  */
 function parseHash(hash) {
 	if (hash === '' || hash === '#' || hash === '#/') return createRoute(RouteName.MAIN);
-	if (hash === '#/credits') return createRoute(RouteName.CREDITS);
-
-	const campaign = CAMPAIGN_PATTERN.exec(hash);
-	if (campaign && CAMPAIGN_FOLDERS.includes(campaign[1])) {
-		const level = Number(campaign[2] ?? 0);
-		const mode = campaign[3] ?? null;
-		return createRoute(mode ? RouteName.PLAY : RouteName.SELECT, campaign[1], level, mode);
+	const match = HASH_PATTERN.exec(hash);
+	if (!match) return null;
+	const [, name, campaign, level] = match;
+	if (!campaign) {
+		return Object.values(RouteName).includes(name) && !CAMPAIGN_ROUTES.includes(name) ? createRoute(name) : null;
 	}
-
-	const editor = EDITOR_PATTERN.exec(hash);
-	if (!editor) return null;
-	const mode = editor[1] ?? null;
-	return mode === RouteMode.SAVE || mode === RouteMode.LOAD
-		? createRoute(RouteName.EDITOR_FILE, null, 0, mode)
-		: createRoute(RouteName.EDITOR, null, 0, mode);
+	if (!CAMPAIGN_ROUTES.includes(name) || !CAMPAIGN_FOLDERS.includes(campaign)) return null;
+	if (!level && name !== RouteName.SELECT) return null;
+	return createRoute(name, campaign, Number(level ?? 0));
 }
 
 /**
@@ -162,16 +148,15 @@ document.addEventListener('click', (event) => {
 });
 
 /**
- * Get the path of a campaign route.
+ * Get the path of a route.
  *
- * @param {string} campaign The folder name of the campaign.
- * @param {number} [level] The level number, or 0 for the selection without a level.
- * @param {string|null} [mode] RouteMode.PLAY or RouteMode.REPLAY for the play route, or null for the selection.
- * @returns {string} The path, e.g. "#/campaign/normal/5/play".
+ * @param {string} name The name of the route, a value of RouteName.
+ * @param {string|null} [campaign] The folder name of the campaign, or null for a route without a campaign.
+ * @param {number} [level] The level number, or 0 for a route without a level.
+ * @returns {string} The path, e.g. "#/play/normal/5", or "#/" for the main route.
  */
-export function campaignPath(campaign, level = 0, mode = null) {
-	const parts = level > 0 ? [campaign, level, mode] : [campaign];
-	return ['#/campaign', ...parts.filter(Boolean)].join('/');
+export function routePath(name, campaign = null, level = 0) {
+	return name === RouteName.MAIN ? '#/' : ['#', name, campaign, level].filter(Boolean).join('/');
 }
 
 /**
@@ -202,13 +187,4 @@ export function up(path) {
 	const index = below.lastIndexOf(path);
 	if (location.hash === path || index < 0) navigate(path, true);
 	else history.go(index - below.length);
-}
-
-/**
- * Check if the route plays a replay.
- *
- * @returns {boolean} True on a replay route.
- */
-export function isReplayRoute() {
-	return route.get().mode === RouteMode.REPLAY;
 }

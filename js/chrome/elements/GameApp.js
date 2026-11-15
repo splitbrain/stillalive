@@ -2,7 +2,7 @@
  * The app element: it shows the screen of the route and drives the stage.
  */
 
-import { campaignPath, navigate, route, RouteMode, RouteName, up } from '../../router.js';
+import { navigate, route, RouteName, routePath, up } from '../../router.js';
 import { CampaignId, LEVELS_PER_CAMPAIGN } from '../../stage/constants.js';
 import { campaignByFolder, campaigns, campaignsReady } from '../campaigns.js';
 import { alertDialog } from '../dialog.js';
@@ -33,7 +33,7 @@ import { checkReady, ready } from '../../loader.js';
  * @property {import('../campaigns.js').Campaign|null} campaign The campaign of the route, or null for no campaign.
  * @property {import('../../stage/level.js').Level|null} level The level of the route, or null for no level.
  * @property {boolean} sameLevel True if the previous route played the same level of the same campaign.
- * @property {boolean} again True if the previous route played the same level in the same mode.
+ * @property {boolean} again True if the previous route was the same route of the same level.
  * @property {object|null} reopen The attributes of the intermission panel to open again, or null.
  */
 
@@ -41,7 +41,13 @@ import { checkReady, ready } from '../../loader.js';
 const SOUND_BUTTONS = 'menu-button, .selection-screen a.back, main-menu .sound, main-menu .music, vcr-panel button';
 
 /** @type {string[]} The screens that show the stage. */
-const STAGE_SCREENS = [Screen.SELECT, Screen.PLAY, Screen.EDITOR, Screen.EDITOR_FILE];
+const STAGE_SCREENS = [Screen.SELECT, Screen.PLAY, Screen.REPLAY, Screen.EDITOR, Screen.TEST, Screen.SAVE, Screen.LOAD];
+
+/** @type {string[]} The routes that run a level: the play route and the replay route. */
+const LEVEL_ROUTES = [RouteName.PLAY, RouteName.REPLAY];
+
+/** @type {string[]} The routes of the editor: the editor, its test run and its save and load screen. */
+const EDITOR_ROUTES = [RouteName.EDITOR, RouteName.TEST, RouteName.SAVE, RouteName.LOAD];
 
 /** @type {string} The narrator text of the editor and of its save and load screen. */
 const EDITOR_TEXT =
@@ -83,20 +89,6 @@ export class GameApp extends ChromeElement {
 	#pendingReturn = null;
 
 	/**
-	 * @type {Record<string, (context: RouteContext) => void>} The handlers of the routes, by the route name and the
-	 *     mode, e.g. "play/replay", or by the route name alone. A handler applies the route to the stage. A handler can
-	 *     go on to another route; then the apply of the new route sets the parts.
-	 */
-	#routeHandlers = {
-		[RouteName.SELECT]: (context) => this.#showSelection(context),
-		[`${RouteName.PLAY}/${RouteMode.PLAY}`]: (context) => this.#playLevel(context),
-		[`${RouteName.PLAY}/${RouteMode.REPLAY}`]: (context) => this.#watchReplay(context),
-		[RouteName.EDITOR]: (context) => this.#openEditor(context),
-		[`${RouteName.EDITOR}/${RouteMode.TEST}`]: () => this.#testMap(),
-		[RouteName.EDITOR_FILE]: () => this.#previewEditorMap(),
-	};
-
-	/**
 	 * Set the sound and the music from the storage, and add the event handlers of the page and the stage. The level
 	 * selection asks for the preview of a level with the event level-shown.
 	 *
@@ -135,7 +127,7 @@ export class GameApp extends ChromeElement {
 		});
 		this.addEventListener('replay-watch', () => {
 			const current = route.get();
-			const path = campaignPath(current.campaign, current.level, current.mode);
+			const path = routePath(current.name, current.campaign, current.level);
 			this.watch(this.#intermissionReplay, { path, intermission: this.#intermission });
 		});
 	}
@@ -154,8 +146,7 @@ export class GameApp extends ChromeElement {
 			route.subscribe(() => this.#applyRoute()),
 			ready.subscribe(() => this.#applyRoute()),
 			stage.mode.subscribe((mode) => {
-				const current = route.get();
-				if (mode !== 'test' && current.name === RouteName.EDITOR && current.mode === RouteMode.TEST) up('#/editor');
+				if (mode !== 'test' && route.get().name === RouteName.TEST) up('#/editor');
 				this.#showScreen();
 			}),
 			stage.paused.subscribe(() => this.#showScreen()),
@@ -180,19 +171,19 @@ export class GameApp extends ChromeElement {
 	watch(replay, back = null) {
 		this.#pendingReplay = replay;
 		this.#pendingReturn = back;
-		navigate(campaignPath(replay.campaign, replay.level, RouteMode.REPLAY));
+		navigate(routePath(RouteName.REPLAY, replay.campaign, replay.level));
 	}
 
 	/**
-	 * End the replay on a replay route and go up to where the replay started. A replay from the intermission panel goes
+	 * End the replay on the replay route and go up to where the replay started. A replay from the intermission panel goes
 	 * back to the panel, and any other replay goes to the selection of its level.
 	 *
 	 * @returns {void}
 	 */
 	#leaveReplay() {
 		const current = route.get();
-		if (current.name !== RouteName.PLAY || current.mode !== RouteMode.REPLAY) return;
-		up(this.#replayReturn?.path ?? campaignPath(current.campaign, current.level));
+		if (current.name !== RouteName.REPLAY) return;
+		up(this.#replayReturn?.path ?? routePath(RouteName.SELECT, current.campaign, current.level));
 	}
 
 	/**
@@ -240,16 +231,16 @@ export class GameApp extends ChromeElement {
 	}
 
 	/**
-	 * Get the screen to show. Before the start, it is the loading screen. The test run of the editor map shows the play
-	 * screen. Every other route shows the screen with the name of the route: each value of RouteName is also a value of
-	 * Screen.
+	 * Get the screen to show. Before the start, it is the loading screen. After the start, it is the screen with the
+	 * name of the route: each value of RouteName is also a value of Screen. The test route shows the editor screen when
+	 * the stage has stopped the test run, until the step up to the editor route arrives.
 	 *
 	 * @returns {string} The screen, a value of Screen.
 	 */
 	#screen() {
 		if (!this.#started) return Screen.LOADING;
 		const name = route.get().name;
-		return name === RouteName.EDITOR && this.stage.mode.get() === 'test' ? Screen.PLAY : name;
+		return name === RouteName.TEST && this.stage.mode.get() !== 'test' ? Screen.EDITOR : name;
 	}
 
 	/**
@@ -267,10 +258,10 @@ export class GameApp extends ChromeElement {
 	}
 
 	/**
-	 * Apply the route to the stage and the parts, and show the screen. The handler of the route from the table applies
-	 * the route to the stage.
+	 * Apply the route to the stage and the parts, and show the screen. The handler of the route name applies the route
+	 * to the stage.
 	 *
-	 * A route to a missing or locked level goes to the selection of its campaign. A replay route needs only an existing
+	 * A route to a missing or locked level goes to the selection of its campaign. The replay route needs only an existing
 	 * level. A selection of another level of the campaign that was played last goes to the selection of the level that
 	 * the player left. A play route of the level that was played last starts as a restart. The play route where a replay
 	 * started opens the intermission panel of the replay again.
@@ -286,47 +277,67 @@ export class GameApp extends ChromeElement {
 		const campaign = campaignByFolder(current.campaign);
 		if (current.level > 0) {
 			const usable =
-				current.mode === RouteMode.REPLAY ? campaign.levels[current.level - 1] != null : campaign.isOpen(current.level);
+				current.name === RouteName.REPLAY ? campaign.levels[current.level - 1] != null : campaign.isOpen(current.level);
 			if (!usable) {
-				navigate(campaignPath(current.campaign), true);
+				navigate(routePath(RouteName.SELECT, current.campaign), true);
 				return;
 			}
 		}
 
 		const previous = this.#applied;
 		const otherLevel =
-			previous?.name === RouteName.PLAY && previous.campaign === current.campaign && previous.level !== current.level;
+			LEVEL_ROUTES.includes(previous?.name) &&
+			previous.campaign === current.campaign &&
+			previous.level !== current.level;
 		if (current.name === RouteName.SELECT && current.level > 0 && otherLevel) {
-			navigate(campaignPath(current.campaign, previous.level), true);
+			navigate(routePath(RouteName.SELECT, current.campaign, previous.level), true);
 			return;
 		}
 		const sameLevel =
-			previous?.name === RouteName.PLAY && previous.campaign === current.campaign && previous.level === current.level;
-		const again = sameLevel && previous.mode === current.mode;
-		const path = current.name === RouteName.PLAY ? campaignPath(current.campaign, current.level, current.mode) : null;
-		const replayLeft = previous?.mode === RouteMode.REPLAY && !again;
+			LEVEL_ROUTES.includes(previous?.name) &&
+			previous.campaign === current.campaign &&
+			previous.level === current.level;
+		const again = sameLevel && previous.name === current.name;
+		const path = LEVEL_ROUTES.includes(current.name) ? routePath(current.name, current.campaign, current.level) : null;
+		const replayLeft = previous?.name === RouteName.REPLAY && !again;
 		const reopen = replayLeft && this.#replayReturn?.path === path ? this.#replayReturn.intermission : null;
 		this.#applied = current;
 		const level = current.level > 0 ? campaign.levels[current.level - 1] : null;
 
 		const context = { current, previous, campaign, level, sameLevel, again, reopen };
-		this.#routeHandler(current)(context);
+		this.#applyToStage(context);
 		// a handler that went on to another route leaves the parts to the apply of that route
 		if (route.get() !== current) return;
-		this.stage.playMusic(current.name === RouteName.PLAY && current.mode === RouteMode.PLAY ? 'level' : 'menu');
+		this.stage.playMusic(current.name === RouteName.PLAY ? 'level' : 'menu');
 		this.#updateParts(context);
 		this.#showScreen();
 	}
 
 	/**
-	 * Get the handler of a route from the table: the handler of the route name and the mode, else the handler of the
-	 * route name, else the handler that stops the stage.
+	 * Apply the route to the stage with the handler of the route name. A route without a handler stops the stage. A
+	 * handler can go on to another route; then the apply of the new route sets the parts.
 	 *
-	 * @param {import('../../router.js').Route} current The route.
-	 * @returns {(context: RouteContext) => void} The handler.
+	 * @param {RouteContext} context The route and its state.
+	 * @returns {void}
 	 */
-	#routeHandler({ name, mode }) {
-		return this.#routeHandlers[`${name}/${mode}`] ?? this.#routeHandlers[name] ?? (() => this.#stopStage());
+	#applyToStage(context) {
+		switch (context.current.name) {
+			case RouteName.SELECT:
+				return this.#showSelection(context);
+			case RouteName.PLAY:
+				return this.#playLevel(context);
+			case RouteName.REPLAY:
+				return this.#watchReplay(context);
+			case RouteName.EDITOR:
+				return this.#openEditor(context);
+			case RouteName.TEST:
+				return this.#testMap();
+			case RouteName.SAVE:
+			case RouteName.LOAD:
+				return this.#previewEditorMap();
+			default:
+				return this.#stopStage();
+		}
 	}
 
 	/**
@@ -399,7 +410,7 @@ export class GameApp extends ChromeElement {
 			this.stage.stopTest();
 		} else {
 			this.stage.edit();
-			if (previous?.name !== RouteName.EDITOR_FILE && previous?.name !== RouteName.EDITOR) this.stage.setBrush(1);
+			if (!EDITOR_ROUTES.includes(previous?.name)) this.stage.setBrush(1);
 		}
 	}
 
@@ -430,10 +441,10 @@ export class GameApp extends ChromeElement {
 	 */
 	#updateParts({ current, campaign, level, reopen }) {
 		setAttributes(this.querySelector('level-selection'), { campaign: current.campaign, level: current.level });
-		const play = current.name === RouteName.PLAY;
+		const play = LEVEL_ROUTES.includes(current.name);
 		const exit = play ? '#/' : null;
 		setAttributes(this.querySelector('pause-menu'), {
-			restart: play ? campaignPath(current.campaign, current.level, current.mode) : null,
+			restart: play ? routePath(current.name, current.campaign, current.level) : null,
 			exit,
 		});
 		this.#intermission = play ? reopen : null;
@@ -443,10 +454,10 @@ export class GameApp extends ChromeElement {
 			absent: play && level.boss > 0 ? '' : null, // the boss is the robot
 		});
 		setAttributes(this.querySelector('narrator-text'), {
-			text: current.name === RouteName.EDITOR || current.name === RouteName.EDITOR_FILE ? EDITOR_TEXT : null,
+			text: EDITOR_ROUTES.includes(current.name) ? EDITOR_TEXT : null,
 		});
 		setAttributes(this.querySelector('editor-files'), {
-			mode: current.name === RouteName.EDITOR_FILE ? current.mode : null,
+			mode: current.name === RouteName.SAVE || current.name === RouteName.LOAD ? current.name : null,
 		});
 	}
 
@@ -493,7 +504,7 @@ export class GameApp extends ChromeElement {
 			this.#replay = data;
 		} catch (error) {
 			alertDialog(error.message, 'Replay');
-			up(campaignPath(current.campaign, current.level));
+			up(routePath(RouteName.SELECT, current.campaign, current.level));
 		}
 	}
 
@@ -530,20 +541,15 @@ export class GameApp extends ChromeElement {
 	 */
 	async #onFinished({ time, replay }) {
 		const current = route.get();
-		if (!this.#started || current.name !== RouteName.PLAY) return;
-		if (current.mode === RouteMode.REPLAY) {
+		if (!this.#started || !LEVEL_ROUTES.includes(current.name)) return;
+		if (current.name === RouteName.REPLAY) {
 			this.#leaveReplay();
 			return;
 		}
 		const campaign = campaignByFolder(current.campaign);
-		let message = '';
 		let credits = false;
-		if (current.mode === RouteMode.PLAY) message = await this.#checkBestTime(current, time, replay);
-		if (
-			current.mode === RouteMode.PLAY &&
-			campaign.id !== CampaignId.CUSTOM &&
-			maxLevel[campaign.id].get() < current.level + 1
-		) {
+		const message = await this.#checkBestTime(current, time, replay);
+		if (campaign.id !== CampaignId.CUSTOM && maxLevel[campaign.id].get() < current.level + 1) {
 			credits = campaign.id === CampaignId.STORY && maxLevel[campaign.id].get() === LEVELS_PER_CAMPAIGN;
 			saveProgress(campaign.id, current.level + 1);
 		}
@@ -556,8 +562,8 @@ export class GameApp extends ChromeElement {
 			this.#intermission = {
 				time,
 				message,
-				next: next > 0 ? campaignPath(current.campaign, next, RouteMode.PLAY) : null,
-				restart: campaign.isOpen(current.level) ? campaignPath(current.campaign, current.level, RouteMode.PLAY) : null,
+				next: next > 0 ? routePath(RouteName.PLAY, current.campaign, next) : null,
+				restart: campaign.isOpen(current.level) ? routePath(RouteName.PLAY, current.campaign, current.level) : null,
 			};
 			setAttributes(this.querySelector('intermission-panel'), { ...this.#intermission, open: '' });
 			this.#showScreen();
@@ -571,11 +577,11 @@ export class GameApp extends ChromeElement {
 	 */
 	#onBrokenReplay() {
 		const current = route.get();
-		if (current.name !== RouteName.PLAY) return;
+		if (current.name !== RouteName.REPLAY) return;
 		alertDialog(
 			"The replay you're watching seems to be broken -_-;\nSorry for the inconvenience.",
 			'An error occurred',
 		);
-		up(campaignPath(current.campaign, current.level));
+		up(routePath(RouteName.SELECT, current.campaign, current.level));
 	}
 }

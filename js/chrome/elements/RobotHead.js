@@ -90,9 +90,9 @@ export class RobotHead extends ChromeScreen {
 	 * Tell if the robot head shows on a screen of the app.
 	 *
 	 * @param {string} screen The screen, a value of Screen.
-	 * @returns {boolean} True on the play screen only.
+	 * @returns {boolean} True on the play, the replay and the test run screen.
 	 */
 	shouldShow(screen) {
-		return screen === Screen.PLAY;
+		return [Screen.PLAY, Screen.REPLAY, Screen.TEST].includes(screen);
 	}
 }

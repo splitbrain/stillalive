@@ -196,9 +196,9 @@ export class EditorPalette extends ChromeScreen {
 	 * Tell if the editor palette shows on a screen of the app.
 	 *
 	 * @param {string} screen The screen, a value of Screen.
-	 * @returns {boolean} True on the editor screen and on the save and load screen.
+	 * @returns {boolean} True on the editor, the save and the load screen.
 	 */
 	shouldShow(screen) {
-		return screen === Screen.EDITOR || screen === Screen.EDITOR_FILE;
+		return [Screen.EDITOR, Screen.SAVE, Screen.LOAD].includes(screen);
 	}
 }

@@ -123,7 +123,7 @@ test.describe('chrome', () => {
 		await expect(page.locator('main-menu .custom')).toBeHidden();
 
 		await page.getByRole('link', { name: 'Classic Mode' }).click();
-		await expectScreen(page, '#/campaign/normal', SELECT_PARTS);
+		await expectScreen(page, '#/select/normal', SELECT_PARTS);
 		await expect(page.locator('level-list')).toBeVisible();
 		await expect(page.locator('level-selection .details')).toBeHidden();
 		await expect.poll(() => stageValue(page, 'mode')).toBe('preview');
@@ -131,7 +131,7 @@ test.describe('chrome', () => {
 		// a locked level is a link without a target
 		await expect(page.locator('level-list a:not([href])')).toHaveCount(27);
 		await page.locator('level-list').getByRole('link', { name: 'Level 1', exact: true }).click();
-		await expectScreen(page, '#/campaign/normal/1', SELECT_PARTS);
+		await expectScreen(page, '#/select/normal/1', SELECT_PARTS);
 		await expect(page.locator('level-list')).toBeHidden();
 		await expect(page.locator('level-selection .title')).toHaveText('Holes in One');
 		await expect(page.locator('level-selection .number')).toHaveText('Level 1');
@@ -139,7 +139,7 @@ test.describe('chrome', () => {
 		await expect.poll(() => stageValue(page, 'mode')).toBe('preview');
 
 		await page.locator('level-selection .play').click();
-		await expectScreen(page, '#/campaign/normal/1/play', PLAY_PARTS);
+		await expectScreen(page, '#/play/normal/1', PLAY_PARTS);
 		await expect.poll(() => stageValue(page, 'mode')).toBe('play');
 		await expect(page.locator('game-hud [data-value="life"]')).toHaveText('100');
 		await expect(page.locator('game-hud [data-value="cakes"]')).toHaveText(/^\d+$/);
@@ -162,11 +162,11 @@ test.describe('chrome', () => {
 
 		await page.getByRole('link', { name: 'Classic Mode' }).click();
 		await page.locator('level-list').getByRole('link', { name: 'Level 1', exact: true }).click();
-		await expectScreen(page, '#/campaign/normal/1', SELECT_PARTS);
-		await expectTrail(page, ['#/', '#/campaign/normal']);
+		await expectScreen(page, '#/select/normal/1', SELECT_PARTS);
+		await expectTrail(page, ['#/', '#/select/normal']);
 
 		await page.locator('level-selection .back').click();
-		await expectScreen(page, '#/campaign/normal', SELECT_PARTS);
+		await expectScreen(page, '#/select/normal', SELECT_PARTS);
 		await expect(page.locator('level-list')).toBeVisible();
 		await expect.poll(() => stageValue(page, 'mode')).toBe('preview');
 		await expectTrail(page, ['#/']);
@@ -191,7 +191,7 @@ test.describe('chrome', () => {
 
 		await waitForNarrator(page);
 		await page.locator('editor-buttons').getByRole('button', { name: 'Save' }).click();
-		await expectScreen(page, '#/editor/save', FILE_PARTS);
+		await expectScreen(page, '#/save', FILE_PARTS);
 		await expect(page.locator('slot-list')).toBeVisible();
 		await expect(page.locator('slot-list button').first()).toBeVisible();
 		await expect(page.locator('editor-palette')).toHaveAttribute('inert');
@@ -204,7 +204,7 @@ test.describe('chrome', () => {
 		await expect.poll(() => stageValue(page, 'mode')).toBe('edit');
 
 		await page.locator('editor-buttons').getByRole('button', { name: 'Save' }).click();
-		await expectScreen(page, '#/editor/save', FILE_PARTS);
+		await expectScreen(page, '#/save', FILE_PARTS);
 		await page.locator('editor-files .back').click();
 		await expectScreen(page, '#/editor', EDITOR_PARTS);
 		await expect(page.locator('editor-palette')).toBeVisible();
@@ -225,7 +225,7 @@ test.describe('chrome', () => {
 		await page.getByRole('link', { name: 'Classic Mode' }).click();
 		await page.locator('level-list').getByRole('link', { name: 'Level 1', exact: true }).click();
 		await page.locator('level-selection .play').click();
-		await expectScreen(page, '#/campaign/normal/1/play', PLAY_PARTS);
+		await expectScreen(page, '#/play/normal/1', PLAY_PARTS);
 		await waitForLevelTime(page);
 		// a replay ends when its inputs end, so the level runs for 20 seconds to give the replay time for the checks
 		await runTicks(page, 1200);
@@ -233,31 +233,31 @@ test.describe('chrome', () => {
 		await expect(page.locator('intermission-panel')).toBeVisible();
 
 		// the Stop button and the back button both end the replay and open the panel again
-		const below = ['#/', '#/campaign/normal', '#/campaign/normal/1'];
+		const below = ['#/', '#/select/normal', '#/select/normal/1'];
 		await page.locator('intermission-panel .replay').click();
-		await expectHash(page, '#/campaign/normal/1/replay');
+		await expectHash(page, '#/replay/normal/1');
 		await expect(page.locator('vcr-panel')).toBeVisible();
-		await expectTrail(page, [...below, '#/campaign/normal/1/play']);
+		await expectTrail(page, [...below, '#/play/normal/1']);
 		await page.locator('vcr-panel .stop').click();
-		await expectHash(page, '#/campaign/normal/1/play');
+		await expectHash(page, '#/play/normal/1');
 		await expect(page.locator('intermission-panel')).toBeVisible();
 		await expectTrail(page, below);
 
 		await page.locator('intermission-panel .replay').click();
-		await expectHash(page, '#/campaign/normal/1/replay');
+		await expectHash(page, '#/replay/normal/1');
 		await expect(page.locator('vcr-panel')).toBeVisible();
 		await page.goBack();
-		await expectHash(page, '#/campaign/normal/1/play');
+		await expectHash(page, '#/play/normal/1');
 		await expect(page.locator('intermission-panel')).toBeVisible();
 		await expectTrail(page, below);
 
 		// Continue replaces the level, and the back button goes to the selection of the level that the player left
 		await page.locator('intermission-panel .next').click();
-		await expectScreen(page, '#/campaign/normal/2/play', PLAY_PARTS);
+		await expectScreen(page, '#/play/normal/2', PLAY_PARTS);
 		await expectTrail(page, below);
 		await page.goBack();
-		await expectScreen(page, '#/campaign/normal/2', SELECT_PARTS);
-		await expectTrail(page, ['#/', '#/campaign/normal']);
+		await expectScreen(page, '#/select/normal/2', SELECT_PARTS);
+		await expectTrail(page, ['#/', '#/select/normal']);
 	});
 
 	test('runs the test of the editor map on its own route', async ({ page }) => {
@@ -267,7 +267,7 @@ test.describe('chrome', () => {
 
 		const tryButton = page.locator('editor-buttons .test');
 		await tryButton.click();
-		await expectHash(page, '#/editor/test');
+		await expectHash(page, '#/test');
 		await expect.poll(() => stageValue(page, 'mode')).toBe('test');
 		await expectTrail(page, ['#/editor']);
 		await page.goBack();
@@ -293,7 +293,7 @@ test.describe('chrome', () => {
 		// without an open editor, the editor route replaces the test run
 		await setHash(page, '#/');
 		await expectScreen(page, '#/', ['main-menu']);
-		await setHash(page, '#/editor/test');
+		await setHash(page, '#/test');
 		await expectScreen(page, '#/editor', EDITOR_PARTS);
 	});
 
@@ -312,7 +312,7 @@ test.describe('chrome', () => {
 
 		// an empty slot saves at once and then shows its number
 		await buttons.getByRole('button', { name: 'Save' }).click();
-		await expectScreen(page, '#/editor/save', FILE_PARTS);
+		await expectScreen(page, '#/save', FILE_PARTS);
 		await expect(slot).toHaveText('Empty');
 		await slot.click();
 		await expectScreen(page, '#/editor', EDITOR_PARTS);
@@ -327,7 +327,7 @@ test.describe('chrome', () => {
 
 		// an empty map loads at once
 		await buttons.getByRole('button', { name: 'Load' }).click();
-		await expectScreen(page, '#/editor/load', FILE_PARTS);
+		await expectScreen(page, '#/load', FILE_PARTS);
 		await slot.click();
 		await expectScreen(page, '#/editor', EDITOR_PARTS);
 		expect(await map()).toEqual({ tiles, bg: 2 });
@@ -336,7 +336,7 @@ test.describe('chrome', () => {
 		await buttons.getByRole('button', { name: 'Load' }).click();
 		await slot.click();
 		await confirm.getByRole('button', { name: 'No' }).click();
-		await expectScreen(page, '#/editor/load', FILE_PARTS);
+		await expectScreen(page, '#/load', FILE_PARTS);
 		await slot.click();
 		await confirm.getByRole('button', { name: 'Yes' }).click();
 		await expectScreen(page, '#/editor', EDITOR_PARTS);
@@ -388,19 +388,19 @@ test.describe('chrome', () => {
 
 		// all levels are unlocked, and the empty slots are disabled
 		await page.getByRole('link', { name: 'My Levels' }).click();
-		await expectScreen(page, '#/campaign/custom', SELECT_PARTS);
+		await expectScreen(page, '#/select/custom', SELECT_PARTS);
 		const list = page.locator('level-list');
 		await expect(list.locator('a[href]')).toHaveText(['Level 1', 'Level 3']);
 
 		// Continue skips the empty slot, and the last stored slot has no Continue
 		await list.getByRole('link', { name: 'Level 1', exact: true }).click();
 		await page.locator('level-selection .play').click();
-		await expectScreen(page, '#/campaign/custom/1/play', PLAY_PARTS);
+		await expectScreen(page, '#/play/custom/1', PLAY_PARTS);
 		await waitForLevelTime(page);
 		await finishLevel(page);
 		await expect(page.locator('intermission-panel')).toBeVisible();
 		await page.locator('intermission-panel .next').click();
-		await expectScreen(page, '#/campaign/custom/3/play', PLAY_PARTS);
+		await expectScreen(page, '#/play/custom/3', PLAY_PARTS);
 		await waitForLevelTime(page);
 		await finishLevel(page);
 		await expect(page.locator('intermission-panel')).toBeVisible();
@@ -410,7 +410,7 @@ test.describe('chrome', () => {
 		// a save into a slot deletes its best time
 		await setHash(page, '#/');
 		await expect(page.locator('main-menu .custom')).toHaveText('My Levels 2/2');
-		await setHash(page, '#/editor/save');
+		await setHash(page, '#/save');
 		await page.locator('slot-list button').nth(2).click();
 		await page.locator('confirm-screen').getByRole('button', { name: 'Yes' }).click();
 		await expectScreen(page, '#/editor', EDITOR_PARTS);
@@ -425,14 +425,14 @@ test.describe('chrome', () => {
 		await startGame(page);
 		await setHash(page, '#/');
 		await page.getByRole('link', { name: 'Tutorial' }).click();
-		await expectScreen(page, '#/campaign/tutorial', SELECT_PARTS);
+		await expectScreen(page, '#/select/tutorial', SELECT_PARTS);
 		await expect(page.locator('level-list menu-button')).toHaveCount(8);
 	});
 
 	test('holds the level end for the exit text until a click', async ({ page }) => {
 		await page.addInitScript(() => localStorage.setItem('stillalive_progress', JSON.stringify({ tutorial: 8 })));
 		await startGame(page);
-		await setHash(page, '#/campaign/tutorial/8/play');
+		await setHash(page, '#/play/tutorial/8');
 		await waitForLevelTime(page);
 		await finishLevel(page);
 		await expect.poll(() => stageValue(page, 'message')).toMatchObject({ text: /^Congratulations/, wait: true });
@@ -454,8 +454,8 @@ test.describe('chrome', () => {
 		await setHash(page, '#/unknown/route');
 		await expectScreen(page, '#/', ['main-menu']);
 
-		await setHash(page, '#/campaign/normal/5');
-		await expectScreen(page, '#/campaign/normal', SELECT_PARTS);
+		await setHash(page, '#/select/normal/5');
+		await expectScreen(page, '#/select/normal', SELECT_PARTS);
 	});
 
 	test('shows the credits after the last story level', async ({ page }) => {
@@ -466,11 +466,11 @@ test.describe('chrome', () => {
 			last,
 		);
 		await startGame(page);
-		await setHash(page, `#/campaign/story/${last}`);
-		await expectScreen(page, `#/campaign/story/${last}`, SELECT_PARTS);
+		await setHash(page, `#/select/story/${last}`);
+		await expectScreen(page, `#/select/story/${last}`, SELECT_PARTS);
 
 		await page.locator('level-selection .play').click();
-		await expectScreen(page, `#/campaign/story/${last}/play`, PLAY_PARTS);
+		await expectScreen(page, `#/play/story/${last}`, PLAY_PARTS);
 		// the boss is the robot, so its window stays empty
 		await expect(page.locator('robot-head .window')).toBeVisible();
 		await expect(page.locator('robot-head .head')).toBeHidden();
@@ -490,7 +490,7 @@ test.describe('chrome', () => {
 
 	test('shows the parts of the app that shouldShow() selects', async ({ page }) => {
 		await startGame(page);
-		const screens = { '#/': 'main', '#/campaign/normal': 'select', '#/editor': 'editor' };
+		const screens = { '#/': 'main', '#/select/normal': 'select', '#/editor': 'editor' };
 		for (const [hash, screen] of Object.entries(screens)) {
 			await setHash(page, hash);
 			// the app applies the route after the hashchange event, so the check polls

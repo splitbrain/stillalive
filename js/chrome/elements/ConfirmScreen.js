@@ -19,7 +19,7 @@ export const confirmShown = new Value(false);
  * @returns {boolean} True while the controls are locked.
  */
 export function isEditorLocked() {
-	return route.get().name === RouteName.EDITOR_FILE || confirmShown.get();
+	return [RouteName.SAVE, RouteName.LOAD].includes(route.get().name) || confirmShown.get();
 }
 
 /**

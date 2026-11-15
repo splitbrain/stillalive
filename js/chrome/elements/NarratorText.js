@@ -2,7 +2,7 @@
  * The narrator text element.
  */
 
-import { isReplayRoute } from '../../router.js';
+import { route, RouteName } from '../../router.js';
 import { ChromeScreen, loadMarkup, Screen } from '../element.js';
 
 /** @type {HTMLTemplateElement|null} The markup of the narrator text. */
@@ -14,7 +14,7 @@ const TYPE_TIME = 1000 / 45;
 /**
  * The custom element <narrator-text>. It types a text one character after the other. The typing starts again for each
  * new text and for each new message of the stage, also when the message has the same text. The typing stops while the
- * stage is paused. On a replay route, each text shows in full at once, because the playback can run faster than the
+ * stage is paused. On the replay route, each text shows in full at once, because the playback can run faster than the
  * typing.
  *
  * During the test run of the editor map, the text is the message of the stage. Else the text is the attribute text,
@@ -59,7 +59,7 @@ export class NarratorText extends ChromeScreen {
 	}
 
 	/**
-	 * Start a new text from its first character, or in full on a replay route, and run the typing while the stage is
+	 * Start a new text from its first character, or in full on the replay route, and run the typing while the stage is
 	 * not paused and characters are left to type.
 	 *
 	 * @returns {void}
@@ -70,7 +70,7 @@ export class NarratorText extends ChromeScreen {
 		if (source !== this.#source) {
 			this.#source = source;
 			this.#text = typeof source === 'string' ? source : (source?.text ?? '');
-			this.#shown = isReplayRoute() ? this.#text.length : 0;
+			this.#shown = route.get().name === RouteName.REPLAY ? this.#text.length : 0;
 			this.#show();
 		}
 		if (this.stage.paused.get() || this.#shown >= this.#text.length) this.#stopTyping();
@@ -81,10 +81,11 @@ export class NarratorText extends ChromeScreen {
 	 * Tell if the narrator text shows on a screen of the app.
 	 *
 	 * @param {string} screen The screen, a value of Screen.
-	 * @returns {boolean} True on the play, the editor and the editor-file screen.
+	 * @returns {boolean} True on the play, the replay and the test run screen, and on the editor, the save and the
+	 *     load screen.
 	 */
 	shouldShow(screen) {
-		return [Screen.PLAY, Screen.EDITOR, Screen.EDITOR_FILE].includes(screen);
+		return [Screen.PLAY, Screen.REPLAY, Screen.TEST, Screen.EDITOR, Screen.SAVE, Screen.LOAD].includes(screen);
 	}
 
 	/**

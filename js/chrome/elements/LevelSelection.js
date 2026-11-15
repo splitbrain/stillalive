@@ -2,7 +2,7 @@
  * The level selection element.
  */
 
-import { campaignPath, RouteMode } from '../../router.js';
+import { routePath, RouteName } from '../../router.js';
 import { campaignByFolder } from '../campaigns.js';
 import { dispatch } from '../dom.js';
 import { loadMarkup, Screen } from '../element.js';
@@ -53,7 +53,7 @@ export class LevelSelection extends SelectionScreen {
 		list.hidden = level > 0;
 		list.setAttribute('campaign', folder);
 		/** @type {HTMLElement} */ (this.querySelector('.details')).hidden = level === 0;
-		this.querySelector('.back').setAttribute('href', level > 0 ? campaignPath(folder) : '#/');
+		this.querySelector('.back').setAttribute('href', level > 0 ? routePath(RouteName.SELECT, folder) : '#/');
 		if (level > 0) this.#renderDetails(campaign, level);
 	}
 
@@ -74,10 +74,10 @@ export class LevelSelection extends SelectionScreen {
 		number.hidden = title === '';
 		number.textContent = `Level ${level}`;
 		this.querySelector('.best span').textContent = best === null ? '-' : toTime(best);
-		this.querySelector('.play').setAttribute('href', campaignPath(folder, level, RouteMode.PLAY));
+		this.querySelector('.play').setAttribute('href', routePath(RouteName.PLAY, folder, level));
 		const replay = this.querySelector('.replay');
 		if (best === null) replay.removeAttribute('href');
-		else replay.setAttribute('href', campaignPath(folder, level, RouteMode.REPLAY));
+		else replay.setAttribute('href', routePath(RouteName.REPLAY, folder, level));
 	}
 
 	/**

@@ -2,7 +2,7 @@
  * The level list element.
  */
 
-import { campaignPath } from '../../router.js';
+import { routePath, RouteName } from '../../router.js';
 import { campaignByFolder } from '../campaigns.js';
 import { ChromeElement } from '../element.js';
 
@@ -30,7 +30,7 @@ export class LevelList extends ChromeElement {
 			const link = document.createElement('a');
 			link.textContent = `Level ${level}`;
 			link.dataset.choice = String(level);
-			if (campaign.isOpen(level)) link.setAttribute('href', campaignPath(folder, level));
+			if (campaign.isOpen(level)) link.setAttribute('href', routePath(RouteName.SELECT, folder, level));
 			const button = document.createElement('menu-button');
 			button.append(link);
 			buttons.push(button);

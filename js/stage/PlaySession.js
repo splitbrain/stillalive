@@ -8,8 +8,8 @@ import { World } from './World.js';
 /**
  * The function that gets the events of a play session.
  *
- * The events are "finished" with the level time and the recorded replay at the end of a level, "died" at the end of a
- * test run, "brokenreplay" when a replay cannot continue, "replaystop" for the Escape key during a replay, and
+ * The events are "finished" with the level time and the recorded replay at the end of a level, "testend" at the end of
+ * a test run, "brokenreplay" when a replay cannot continue, "replaystop" for the Escape key during a replay, and
  * "focuslost" when a level that can pause loses the focus.
  *
  * @callback SessionReport
@@ -123,7 +123,7 @@ export class PlaySession {
 				break;
 			case 'finished':
 				if (this.testRun) {
-					this.#report('died', null);
+					this.#report('testend', null);
 				} else {
 					const replay = encodeReplay(this.source.replay, this.level.campaign, this.level.number);
 					this.#report('finished', { time: world.time, replay });
@@ -189,12 +189,12 @@ export class PlaySession {
 	}
 
 	/**
-	 * End a test run with the event "died".
+	 * End a test run with the event "testend".
 	 *
 	 * @returns {void}
 	 */
 	endTest() {
-		if (this.testRun) this.#report('died', null);
+		if (this.testRun) this.#report('testend', null);
 	}
 
 	/**

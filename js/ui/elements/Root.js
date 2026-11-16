@@ -91,8 +91,9 @@ export class Root extends UiElement {
 	#pendingReturn = null;
 
 	/**
-	 * Set the sound and the music from the storage, and add the event handlers of the page and the stage. The level
-	 * selection asks for the preview of a level with the event level-shown.
+	 * Set the sound and the music from the storage, and add the event handlers of the page and the stage. The event
+	 * testend of the stage goes up to the editor. The level selection asks for the preview of a level with the event
+	 * level-shown.
 	 *
 	 * @returns {void}
 	 */
@@ -117,6 +118,7 @@ export class Root extends UiElement {
 		stage.addEventListener('finished', (event) =>
 			this.#onFinished(/** @type {CustomEvent<{time: number, replay: ReplayFile}>} */ (event).detail),
 		);
+		stage.addEventListener('testend', () => this.#onTestEnd());
 		stage.addEventListener('brokenreplay', () => this.#onBrokenReplay());
 		stage.addEventListener('replaystop', () => this.#leaveReplay());
 		stage.addEventListener('focuslost', () => stage.pause());
@@ -135,8 +137,8 @@ export class Root extends UiElement {
 	}
 
 	/**
-	 * Subscribe to the route, to the loading, to the stage and to the settings. The end of the test run on the stage goes
-	 * up to the editor. The sound and music settings are stored after the game starts. A change of the sound setting
+	 * Subscribe to the route, to the loading, to the stage and to the settings. A change of the mode of the stage shows
+	 * the screen again. The sound and music settings are stored after the game starts. A change of the sound setting
 	 * checks again if the game can start, because the game waits for the sounds only while the sound is on. The first
 	 * call of the route subscription shows the loading screen.
 	 *
@@ -147,10 +149,7 @@ export class Root extends UiElement {
 		return [
 			route.subscribe(() => this.#applyRoute()),
 			ready.subscribe(() => this.#applyRoute()),
-			stage.mode.subscribe((mode) => {
-				if (mode !== 'test' && route.get().name === RouteName.TEST) up('#/editor');
-				this.#showScreen();
-			}),
+			stage.mode.subscribe(() => this.#showScreen()),
 			stage.paused.subscribe(() => this.#showScreen()),
 			confirmShown.subscribe(() => this.#showScreen()),
 			stage.sound.subscribe((on) => {
@@ -573,6 +572,16 @@ export class Root extends UiElement {
 			setAttributes(this.querySelector('ui-intermission'), { ...this.#intermission, open: '' });
 			this.#showScreen();
 		}
+	}
+
+	/**
+	 * Go up to the editor after the end of the test run. A test run that ends because the route left the test route
+	 * also reports its end, so only the test route goes up.
+	 *
+	 * @returns {void}
+	 */
+	#onTestEnd() {
+		if (route.get().name === RouteName.TEST) up('#/editor');
 	}
 
 	/**

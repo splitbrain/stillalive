@@ -2,7 +2,7 @@
  * The stage element <game-stage>, which shows the game on a canvas.
  *
  * The UI controls the stage with its methods and reads the state from the Value properties. The stage dispatches
- * the events "finished", "died", "focuslost", "brokenreplay" and "replaystop".
+ * the events "finished", "testend", "focuslost", "brokenreplay" and "replaystop".
  */
 
 import {
@@ -241,7 +241,7 @@ export class GameStage extends HTMLElement {
 	}
 
 	/**
-	 * End the test run and go back to the editor.
+	 * End the test run and go back to the editor. The event "testend" goes to the UI at once.
 	 *
 	 * @returns {void}
 	 */
@@ -421,7 +421,7 @@ export class GameStage extends HTMLElement {
 	}
 
 	/**
-	 * Leave the current session before a new command. A test run ends without the event "died", and the editor
+	 * Leave the current session before a new command. A test run ends without the event "testend", and the editor
 	 * continues with its own map.
 	 *
 	 * @returns {void}
@@ -467,7 +467,7 @@ export class GameStage extends HTMLElement {
 
 	/**
 	 * Act on an event of a play session. The events "replaystop" and "focuslost" go to the UI at once. The other
-	 * events go to the UI with the next publication: "died" after the stage went back to the editor, and
+	 * events go to the UI with the next publication: "testend" after the stage went back to the editor, and
 	 * "brokenreplay" after the stage became idle.
 	 *
 	 * @param {string} type The event type.
@@ -480,7 +480,7 @@ export class GameStage extends HTMLElement {
 			this.dispatchEvent(new Event(type));
 			return;
 		}
-		if (type === 'died') {
+		if (type === 'testend') {
 			this.#editor.open();
 			this.#session = this.#editor;
 		} else if (type === 'brokenreplay') {

@@ -113,6 +113,20 @@ export const CampaignId = {
 export const CAMPAIGN_FOLDERS = ['normal', 'advanced', 'community', 'tutorial', 'story', 'test', 'custom'];
 
 /**
+ * The modes of the stage: what the stage shows. The stage is idle without a session. A play session plays a level or
+ * runs a test of the editor map, a preview session shows the preview of a level, and the editor edits a map.
+ *
+ * @type {Readonly<{IDLE: string, PLAY: string, PREVIEW: string, EDIT: string, TEST: string}>}
+ */
+export const StageMode = Object.freeze({
+	IDLE: 'idle',
+	PLAY: 'play',
+	PREVIEW: 'preview',
+	EDIT: 'edit',
+	TEST: 'test',
+});
+
+/**
  * @type {number} The start value of the fade of a level transition. The fade counts down to 0 by FADE_STEP per tick.
  */
 export const FADE_START = 120;

@@ -2,7 +2,7 @@
  * The level editor, the session of the mode "edit". It also provides the level for the test run of the editor map.
  */
 
-import { BACKGROUND_COUNT, MouseButton, TILE_SIZE_BITS } from './constants.js';
+import { BACKGROUND_COUNT, MouseButton, StageMode, TILE_SIZE_BITS } from './constants.js';
 import { allowTile, build, eraseObjectAbove, eraseSprites, fill } from './mapEdit.js';
 import { MAP_FORMAT, parseMap } from './mapFile.js';
 import { emptyTiles, TileMap } from './TileMap.js';
@@ -55,12 +55,12 @@ export class Editor {
 	}
 
 	/**
-	 * Get the mode text of the session.
+	 * Get the mode of the stage for the session.
 	 *
-	 * @returns {string} "edit".
+	 * @returns {string} StageMode.EDIT.
 	 */
 	get mode() {
-		return 'edit';
+		return StageMode.EDIT;
 	}
 
 	/**

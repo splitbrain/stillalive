@@ -3,7 +3,7 @@
  */
 
 import { navigate, route, RouteName, routePath, up } from '../../router.js';
-import { CampaignId, LEVELS_PER_CAMPAIGN } from '../../stage/constants.js';
+import { CampaignId, LEVELS_PER_CAMPAIGN, StageMode } from '../../stage/constants.js';
 import { campaignByFolder, campaigns, campaignsReady } from '../../data/campaigns.js';
 import { alertDialog } from '../dialog.js';
 import { setAttributes } from '../dom.js';
@@ -242,7 +242,7 @@ export class Root extends UiElement {
 	#screen() {
 		if (!this.#started) return Screen.LOADING;
 		const name = route.get().name;
-		return name === RouteName.TEST && this.stage.mode.get() !== 'test' ? Screen.EDITOR : name;
+		return name === RouteName.TEST && this.stage.mode.get() !== StageMode.TEST ? Screen.EDITOR : name;
 	}
 
 	/**
@@ -399,7 +399,7 @@ export class Root extends UiElement {
 	 */
 	#testMap() {
 		this.stage.test();
-		if (this.stage.mode.get() !== 'test') navigate('#/editor', true);
+		if (this.stage.mode.get() !== StageMode.TEST) navigate('#/editor', true);
 	}
 
 	/**
@@ -410,7 +410,7 @@ export class Root extends UiElement {
 	 * @returns {void}
 	 */
 	#openEditor({ previous }) {
-		if (this.stage.mode.get() === 'test') {
+		if (this.stage.mode.get() === StageMode.TEST) {
 			this.stage.stopTest();
 		} else {
 			this.stage.edit();

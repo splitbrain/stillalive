@@ -18,7 +18,7 @@ import {
 	sfx_tick,
 } from './audio.js';
 import { clearCanvas, ctx, setCanvas, watchCanvasSize } from './canvas.js';
-import { PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, Transition } from './constants.js';
+import { PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, StageMode, Transition } from './constants.js';
 import { Editor } from './Editor.js';
 import { InputState } from './InputState.js';
 import { setupInput } from './input.js';
@@ -90,8 +90,8 @@ const BOSS_MUSIC_DUCK = 0.5;
  * session: a PlaySession, a PreviewSession or the Editor. Without a session, the stage is idle.
  */
 export class GameStage extends HTMLElement {
-	/** @type {Value<string>} What the stage shows: "idle", "play", "preview", "edit" or "test". */
-	mode = new Value('idle');
+	/** @type {Value<string>} What the stage shows, a value of StageMode. */
+	mode = new Value(StageMode.IDLE);
 	/** @type {Value<number>} The life of the player in points. */
 	life = new Value(0);
 	/** @type {Value<number>} The number of cakes that are left in the level. */
@@ -529,7 +529,7 @@ export class GameStage extends HTMLElement {
 	#publish() {
 		const session = this.#session;
 		const world = session?.world;
-		this.mode.set(session?.mode ?? 'idle');
+		this.mode.set(session?.mode ?? StageMode.IDLE);
 		if (world) {
 			this.life.set(Math.max(world.player.lifePoints, 0));
 			this.cakes.set(world.cakesLeft);
@@ -543,7 +543,7 @@ export class GameStage extends HTMLElement {
 		this.speed.set(this.#speed);
 		this.brush.set(this.#editor.brush);
 		this.fps.set(getFps());
-		const phase = session?.mode === 'play' ? (world.boss?.phase() ?? null) : null;
+		const phase = session?.mode === StageMode.PLAY ? (world.boss?.phase() ?? null) : null;
 		setMusicMood(
 			phase === 'fight' ? BOSS_MUSIC_RATE : 1,
 			phase === 'coming' || phase === 'leaving' ? BOSS_MUSIC_DUCK : 1,

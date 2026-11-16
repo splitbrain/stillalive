@@ -2,6 +2,7 @@
  * The PlaySession object.
  */
 
+import { StageMode } from './constants.js';
 import { Recorder, ReplayPlayer, encodeReplay } from './replay.js';
 import { World } from './World.js';
 
@@ -66,12 +67,12 @@ export class PlaySession {
 	}
 
 	/**
-	 * Get the mode text of the session.
+	 * Get the mode of the stage for the session.
 	 *
-	 * @returns {string} "test" for a test run, else "play".
+	 * @returns {string} StageMode.TEST for a test run, else StageMode.PLAY.
 	 */
 	get mode() {
-		return this.testRun ? 'test' : 'play';
+		return this.testRun ? StageMode.TEST : StageMode.PLAY;
 	}
 
 	/**

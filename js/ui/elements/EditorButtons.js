@@ -3,6 +3,7 @@
  */
 
 import { navigate, route, up } from '../../router.js';
+import { StageMode } from '../../stage/constants.js';
 import { MAP_FORMAT, parseMap } from '../../stage/mapFile.js';
 import { alertDialog } from '../dialog.js';
 import { loadMarkup, Screen, UiElement } from '../element.js';
@@ -26,7 +27,7 @@ export class EditorButtons extends UiElement {
 	 */
 	setUp() {
 		this.querySelector('.test').addEventListener('click', () => {
-			if (this.stage.mode.get() === 'test') up('#/editor');
+			if (this.stage.mode.get() === StageMode.TEST) up('#/editor');
 			else navigate('#/test');
 		});
 		this.querySelector('.undo').addEventListener('click', () => this.stage.undo());
@@ -63,7 +64,7 @@ export class EditorButtons extends UiElement {
 	 */
 	#updateButtons() {
 		const test = this.querySelector('.test');
-		const testing = this.stage.mode.get() === 'test';
+		const testing = this.stage.mode.get() === StageMode.TEST;
 		const locked = isEditorLocked();
 		test.textContent = testing ? 'Stop' : 'Try';
 		for (const button of this.querySelectorAll('button')) button.disabled = locked || (testing && button !== test);
@@ -88,7 +89,7 @@ export class EditorButtons extends UiElement {
 	async #import() {
 		if (!(await confirmReplaceMap(this.stage))) return;
 		const data = await pickJsonFile();
-		if (data === null || this.stage.mode.get() !== 'edit') return;
+		if (data === null || this.stage.mode.get() !== StageMode.EDIT) return;
 		if (parseMap(data).boss > 0) throw new Error('The editor does not support boss levels.');
 		this.stage.edit(data);
 	}

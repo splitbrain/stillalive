@@ -3,6 +3,7 @@
  */
 
 import { route, RouteName } from '../../router.js';
+import { StageMode } from '../../stage/constants.js';
 import { loadMarkup, Screen, UiElement } from '../element.js';
 
 /** @type {HTMLTemplateElement|null} The markup of the narrator text. */
@@ -65,7 +66,7 @@ export class NarratorText extends UiElement {
 	 * @returns {void}
 	 */
 	render() {
-		const testing = this.stage.mode.get() === 'test';
+		const testing = this.stage.mode.get() === StageMode.TEST;
 		const source = (testing ? null : this.getAttribute('text')) ?? this.stage.message.get();
 		if (source !== this.#source) {
 			this.#source = source;

@@ -2,6 +2,7 @@
  * The PreviewSession object.
  */
 
+import { StageMode } from './constants.js';
 import { World } from './World.js';
 
 /**
@@ -26,12 +27,12 @@ export class PreviewSession {
 	}
 
 	/**
-	 * Get the mode text of the session.
+	 * Get the mode of the stage for the session.
 	 *
-	 * @returns {string} "preview".
+	 * @returns {string} StageMode.PREVIEW.
 	 */
 	get mode() {
-		return 'preview';
+		return StageMode.PREVIEW;
 	}
 
 	/**

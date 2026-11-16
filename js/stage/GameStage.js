@@ -2,7 +2,7 @@
  * The stage element <game-stage>, which shows the game on a canvas.
  *
  * The UI controls the stage with its methods and reads the state from the Value properties. The stage dispatches
- * the events "finished", "testend", "focuslost", "brokenreplay" and "replaystop".
+ * the events "finished", "testend", "brokenreplay" and "replaystop".
  */
 
 import {
@@ -466,7 +466,7 @@ export class GameStage extends HTMLElement {
 	}
 
 	/**
-	 * Act on an event of a play session. The events "replaystop" and "focuslost" go to the UI at once. The other
+	 * Act on an event of a play session. The event "replaystop" goes to the UI at once. The other
 	 * events go to the UI with the next publication: "testend" after the stage went back to the editor, and
 	 * "brokenreplay" after the stage became idle.
 	 *
@@ -476,7 +476,7 @@ export class GameStage extends HTMLElement {
 	 * @returns {void}
 	 */
 	#onSessionEvent(type, detail) {
-		if (type === 'replaystop' || type === 'focuslost') {
+		if (type === 'replaystop') {
 			this.dispatchEvent(new Event(type));
 			return;
 		}
@@ -510,13 +510,14 @@ export class GameStage extends HTMLElement {
 
 	/**
 	 * Release all keys and mouse buttons when the game loses the focus. The release events of these keys do not reach
-	 * the game. A play session decides itself, because a replay keeps the keys of the recording.
+	 * the game. A play session decides itself, because a replay keeps the keys of the recording, and it pauses the
+	 * level. A change of the pause shows at once.
 	 *
 	 * @returns {void}
 	 */
 	#onFocusLost() {
-		if (this.#play) this.#play.onFocusLost();
-		else this.#input.keys = 0;
+		if (!this.#play) this.#input.keys = 0;
+		else if (this.#play.onFocusLost()) this.#publish();
 	}
 
 	/**

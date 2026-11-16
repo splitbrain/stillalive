@@ -121,7 +121,6 @@ export class Root extends UiElement {
 		stage.addEventListener('testend', () => this.#onTestEnd());
 		stage.addEventListener('brokenreplay', () => this.#onBrokenReplay());
 		stage.addEventListener('replaystop', () => this.#leaveReplay());
-		stage.addEventListener('focuslost', () => stage.pause());
 		this.addEventListener('replay-stop', () => this.#leaveReplay());
 		this.addEventListener('level-shown', (event) => {
 			const current = route.get();

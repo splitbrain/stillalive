@@ -10,8 +10,7 @@ import { World } from './World.js';
  * The function that gets the events of a play session.
  *
  * The events are "finished" with the level time and the recorded replay at the end of a level, "testend" at the end of
- * a test run, "brokenreplay" when a replay cannot continue, "replaystop" for the Escape key during a replay, and
- * "focuslost" when a level that can pause loses the focus.
+ * a test run, "brokenreplay" when a replay cannot continue, and "replaystop" for the Escape key during a replay.
  *
  * @callback SessionReport
  * @param {string} type The event type.
@@ -213,15 +212,15 @@ export class PlaySession {
 	}
 
 	/**
-	 * Release all keys after the loss of the focus, and report "focuslost" if the level can pause. A replay ignores
-	 * the lost focus, because the replay sets the keys from the recording.
+	 * Release all keys after the loss of the focus, and pause the level if it can pause. A replay ignores the lost
+	 * focus, because the replay sets the keys from the recording.
 	 *
-	 * @returns {void}
+	 * @returns {boolean} True if the pause started.
 	 */
 	onFocusLost() {
-		if (this.replaying) return;
+		if (this.replaying) return false;
 		this.#input.keys = 0;
-		if (this.#canPause() && !this.#paused) this.#report('focuslost', null);
+		return this.pause();
 	}
 
 	/**

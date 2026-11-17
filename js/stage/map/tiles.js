@@ -2,7 +2,9 @@
  * The tile ids of the maps and the checks of their kinds.
  *
  * A map is a list of 768 tile ids. The ids below 100 are tiles of the tile set, and tileset[id] is their image. The
- * ids from 100 to 111 mark objects in a level file. The level loader replaces them with entities.
+ * ids from 100 to 110 mark objects in a level file. The level loader replaces them with entities. The id 120 marks
+ * the tube of the boss in a boss level. The id 199 is never in a file: it exists only in the logic layer of a running
+ * level.
  */
 
 import { NUM_TILES } from '../constants.js';
@@ -44,7 +46,11 @@ export const Tile = {
 	GRAVPIPE_LEFT: 108,
 	GRAVPIPE_UP: 109,
 	GRAVPIPE_DOWN: 110,
-	TUBE: 111,
+	TUBE: 120,
+	/**
+	 * A solid tile without an image on the two tiles of a gravitational pipe. The level start writes it into the logic
+	 * layer of a running level. It is never in a map file and never in the editor.
+	 */
 	GRAVPIPE_BLOCK: 199,
 };
 
@@ -149,10 +155,10 @@ export function isDeadlyTile(id) {
  * Check if a tile id marks an object in a level file.
  *
  * @param {number} id The tile id.
- * @returns {boolean} True for the ids from the left turret to the tube.
+ * @returns {boolean} True for the ids from the left turret to the down gravitational pipe.
  */
 export function isObjectTile(id) {
-	return id >= Tile.TURRET_LEFT && id <= Tile.TUBE;
+	return id >= Tile.TURRET_LEFT && id <= Tile.GRAVPIPE_DOWN;
 }
 
 /**

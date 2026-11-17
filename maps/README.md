@@ -28,6 +28,9 @@ A map file is a JSON object with these properties:
 All positions in a map file are tile positions. The columns go from 0 at the left to 31 at the right, and the rows go
 from 0 at the top to 23 at the bottom.
 
+The tile ids in a map file are in three ranges: the tiles from 0 to 60, the objects from 100 to 110, and the tube of
+the boss with the id 120. The game rejects a map file with an id outside these ranges.
+
 ### Tiles
 
 The ids from 0 to 60 are the tiles of the tile set. The maps use these ids:
@@ -72,9 +75,9 @@ warning stripes or a conveyor belt. The edge of the playfield counts as a closed
 
 ### Objects
 
-The ids from 100 to 111 are objects. At the level start, the game removes them from the map and creates the objects.
+The ids from 100 to 110 are objects. At the level start, the game removes them from the map and creates the objects.
 Some objects are larger than one tile. The id of an object goes on its top left tile, and the other tiles that the
-object covers are empty (0). The tube of the boss is an exception, because it is an image over the tiles of the map.
+object covers are empty (0).
 
 | Id  | Object                                                                              | Tiles (w x h) |
 |-----|-------------------------------------------------------------------------------------|---------------|
@@ -89,7 +92,12 @@ object covers are empty (0). The tube of the boss is an exception, because it is
 | 108 | Gravitational pipe that carries the player and objects to the left                  | 1 x 2         |
 | 109 | Gravitational pipe that carries the player and objects up                           | 2 x 1         |
 | 110 | Gravitational pipe that carries the player and objects down                         | 2 x 1         |
-| 111 | Tube of the boss, only in boss levels                                               | 4 x 3         |
+
+### Tube of the boss
+
+The id 120 is the tube of the boss. It is valid only in a boss level. The tube is an image of 4 x 3 tiles over the
+tiles of the map. Its id goes on its top left tile, and the other tiles under the tube are empty (0). At the level
+start, the game removes the id from the map and shows the image.
 
 ### Abilities
 
@@ -170,7 +178,7 @@ A boss level has the property `boss` with the number of the boss from 1 to 4. Th
 level. Each boss has its own attacks and a fixed place at the right side of the playfield, so the map must fit the
 boss. The boss levels of the story campaign are the levels 7, 14, 21 and 28 in `maps/story`.
 
-A boss level can contain the tube of the boss (object 111) and boss blocks (tile 58). The boss blocks protect the boss.
+A boss level can contain the tube of the boss (id 120) and boss blocks (tile 58). The boss blocks protect the boss.
 A crate that hits a boss block cracks all boss blocks, and the third hit removes them. After the boss takes a hit, the
 boss blocks come back.
 

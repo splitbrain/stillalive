@@ -85,6 +85,8 @@ test('parseMap() rejects a damaged map', () => {
 		'negative tile id': { ...validMap(), tiles: tiles(5, -1) },
 		'unknown tile id': { ...validMap(), tiles: tiles(5, 99) },
 		'unknown object id': { ...validMap(), tiles: tiles(5, 112) },
+		'id between the objects and the tube in a boss level': { ...validMap(), boss: 1, tiles: tiles(5, 111) },
+		'logic tile of a gravitational pipe': { ...validMap(), tiles: tiles(5, Tile.GRAVPIPE_BLOCK) },
 		'tile id as text': { ...validMap(), tiles: tiles(5, '1') },
 		'negative background': { ...validMap(), bg: -1 },
 		'background out of range': { ...validMap(), bg: 1000 },

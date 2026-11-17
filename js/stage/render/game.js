@@ -209,7 +209,7 @@ function drawBody(x, y, frame, flipX) {
  * @returns {void}
  */
 function drawSparkles(world) {
-	for (const sparkle of world.sparkles) {
+	for (const sparkle of world.effects.sparkles) {
 		if (sparkle.fading <= 0) continue;
 		const scale = sparkle.fading / 255;
 		// a fading sparkle shrinks around its middle
@@ -651,11 +651,11 @@ function drawCamera(world) {
 	const angle = getAngle(
 		world.player.midX(),
 		world.player.pixelY + 8,
-		toPixels(world.camera.x) + TILE_SIZE / 2,
-		toPixels(world.camera.y) + TILE_SIZE / 2,
+		toPixels(world.effects.camera.x) + TILE_SIZE / 2,
+		toPixels(world.effects.camera.y) + TILE_SIZE / 2,
 	);
 	ctx.save();
-	ctx.translate(toPixels(world.camera.x) + TILE_SIZE / 2, toPixels(world.camera.y) + TILE_SIZE / 2);
+	ctx.translate(toPixels(world.effects.camera.x) + TILE_SIZE / 2, toPixels(world.effects.camera.y) + TILE_SIZE / 2);
 	ctx.rotate(angle);
 	drawImage(cameraFollow, 0, 0);
 	ctx.restore();

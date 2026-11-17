@@ -50,7 +50,7 @@ export class Turret extends Throwable {
 		this.dead = true;
 		this.animFrame = 2;
 		playSound(sfx_explode);
-		this.world.addPuffSparkles(this.x, this.y, PuffSparkle.SMOKE, 4, 255);
+		this.world.effects.addPuffSparkles(this.x, this.y, PuffSparkle.SMOKE, 4, 255);
 	}
 
 	/**
@@ -213,7 +213,7 @@ export class Turret extends Throwable {
 		playSoundIfFinished(sfx_pain);
 
 		for (let i = 0; i < 5; i++) {
-			this.world.addSparkle(
+			this.world.effects.addSparkle(
 				new ShotHitSparkle(
 					this.world,
 					player.x + (toSubpixels(this.width) >> 1) + random(toSubpixels(-8), toSubpixels(8)),

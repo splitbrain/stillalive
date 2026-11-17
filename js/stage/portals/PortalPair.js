@@ -60,7 +60,7 @@ export class PortalPair {
 		portal.vx = getCos(targetX, targetY, startX, startY) * 256;
 		portal.vy = getSin(targetX, targetY, startX, startY) * 256;
 
-		this.world.removeSparkles(PortalShotSparkle, index);
+		this.world.effects.removeSparkles(PortalShotSparkle, index);
 
 		let steps = 0;
 		let bounces = 0;
@@ -100,7 +100,7 @@ export class PortalPair {
 				);
 				if (random(0, 2) === 0) sparkle.vx = -sparkle.vx;
 				if (random(0, 2) === 0) sparkle.vy = -sparkle.vy;
-				this.world.addSparkle(sparkle);
+				this.world.effects.addSparkle(sparkle);
 			}
 			// a shot above the playfield continues if it flies down
 			inScreenOK = inScreen(pixelX, pixelY) || (pixelY < 0 && portal.vy > 0);
@@ -213,7 +213,7 @@ export class PortalPair {
 		portal.x = toSubpixels(x);
 		portal.y = toSubpixels(y);
 		portal.used = true;
-		this.world.createPortalGlow(index);
+		this.world.effects.createPortalGlow(index);
 		return true;
 	}
 
@@ -371,7 +371,7 @@ export class PortalPair {
 		if (!this.list[0].used && !this.list[1].used) return;
 		for (const [i, portal] of this.list.entries()) {
 			portal.used = false;
-			this.world.removeSparkles(PortalGlow, i);
+			this.world.effects.removeSparkles(PortalGlow, i);
 		}
 		playSound(sfx_cancelPortals);
 	}

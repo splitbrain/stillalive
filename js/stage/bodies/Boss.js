@@ -111,13 +111,11 @@ export class Boss {
 		this.x = BOSS_X + BOSS_ENTRY_DISTANCE - toPixels(this.entryDistance);
 		if (this.x === BOSS_X) {
 			this.entering = false;
-			this.world.shakeX = 0;
-			this.world.shakeY = 0;
+			this.world.effects.stopShake();
 			this.world.events.trigger('bossArrived');
 		}
 		if (this.entryTicks % 3 === 0) {
-			this.world.shakeX = random(-3, 3);
-			this.world.shakeY = random(-3, 3);
+			this.world.effects.shake(random(-3, 3), random(-3, 3));
 		}
 	}
 
@@ -202,13 +200,10 @@ export class Boss {
 		playLoop(sfx_bossRumble);
 		this.#shakeScreen();
 		if (this.world.time % 10 === 0) {
-			this.world.addPuffSparkles(toSubpixels(this.x + 14), toSubpixels(this.y + 18), PuffSparkle.SMOKE, 3, 300);
+			this.world.effects.addPuffSparkles(toSubpixels(this.x + 14), toSubpixels(this.y + 18), PuffSparkle.SMOKE, 3, 300);
 			this.x += 1;
 		}
-		if (this.x >= BOSS_GONE_X) {
-			this.world.shakeX = 0;
-			this.world.shakeY = 0;
-		}
+		if (this.x >= BOSS_GONE_X) this.world.effects.stopShake();
 	}
 
 	/**
@@ -286,8 +281,7 @@ export class Boss {
 	 */
 	#shakeScreen() {
 		const step = Math.floor(this.world.time / 3);
-		this.world.shakeX = Boss.#shakeOffset(step * 2);
-		this.world.shakeY = Boss.#shakeOffset(step * 2 + 1);
+		this.world.effects.shake(Boss.#shakeOffset(step * 2), Boss.#shakeOffset(step * 2 + 1));
 	}
 
 	/**

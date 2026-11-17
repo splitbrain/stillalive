@@ -16,12 +16,12 @@ import {
 	Transition,
 } from '../constants.js';
 import { createBoss } from '../bodies/bosses.js';
-import { Camera } from '../effects/Camera.js';
+import { Effects } from '../effects/Effects.js';
 import { traceGravPipeField } from '../bodies/GravPipeField.js';
 import { Plasma } from '../bodies/Plasma.js';
 import { Player } from '../bodies/Player.js';
 import { PortalPair } from '../portals/PortalPair.js';
-import { PortalGlow, PuffSparkle } from '../effects/sparkles.js';
+import { PuffSparkle } from '../effects/sparkles.js';
 import { LevelEvents } from './LevelEvents.js';
 import { LevelPhase } from './LevelPhase.js';
 import { createObjects } from './mapObjects.js';
@@ -36,7 +36,6 @@ const DOOR_SOUNDS = { [TileKind.SWITCH_DOOR]: sfx_field, [TileKind.PLASMA_DOOR]:
 /** @typedef {import('../bodies/Boss.js').Boss} Boss */
 /** @typedef {import('../bodies/Crate.js').Crate} Crate */
 /** @typedef {import('../bodies/Platform.js').Platform} Platform */
-/** @typedef {import('../effects/Sparkle.js').Sparkle} Sparkle */
 
 /**
  * A solid thing at a point: a tile id, a crate or a platform. The tile id Tile.EMPTY means that nothing solid is there.
@@ -83,16 +82,14 @@ export class World {
 	animatedTiles = [];
 	/** @type {import('../bodies/Projectile.js').Projectile[]} The projectiles of the boss. */
 	projectiles = [];
-	/** @type {Sparkle[]} The sparkles. */
-	sparkles = [];
 	/** @type {Player} The player. */
 	player;
 	/** @type {PortalPair} The two portals. */
 	portals = new PortalPair(this);
+	/** @type {Effects} The visual effects: the sparkles, the security camera and the screen shake. */
+	effects = new Effects(this);
 	/** @type {Boss|null} The boss of the level, or null for a level without a boss. */
 	boss = null;
-	/** @type {Camera|null} The security camera, or null for a preview or an editor map. */
-	camera = null;
 	/** @type {number} The x position of the tube in 1/256 pixels, or -1 for a level without a tube. */
 	tubeX = -1;
 	/** @type {number} The y position of the tube in 1/256 pixels, or -1 for a level without a tube. */
@@ -115,10 +112,6 @@ export class World {
 	labels = [];
 	/** @type {number} The index of the background image. */
 	background = 0;
-	/** @type {number} The x shift of the drawing in playfield units: the screen shake of the boss levels, else 0. */
-	shakeX = 0;
-	/** @type {number} The y shift of the drawing in playfield units: the screen shake of the boss levels, else 0. */
-	shakeY = 0;
 	/** @type {LevelPhase} The phase of the level with the progress and the effect of its transitions. */
 	phase = new LevelPhase();
 	/** @type {SwitchDoors} The switches and the switch doors. */
@@ -178,7 +171,7 @@ export class World {
 		if (level.fromBelow) world.#jumpInFromBelow();
 		world.boss = level.boss ? createBoss(world, level.boss) : null;
 		world.#loadObjects({ levelStart: true });
-		world.camera = new Camera(world, world.player.x, world.player.y);
+		world.effects.startCamera(world.player.x, world.player.y);
 		world.cakesLeft = world.cakes.length;
 		if (world.cakesLeft === 0) world.openExit();
 		world.background = level.bg;
@@ -310,8 +303,7 @@ export class World {
 	#updateLevelEnd() {
 		const phase = this.phase;
 		this.boss = null;
-		this.shakeX = 0;
-		this.shakeY = 0;
+		this.effects.stopShake();
 
 		// the player starts on the open exit: the opening transition continues as the closing transition
 		if (phase.isOpening()) phase.continueAsClosing();
@@ -331,7 +323,7 @@ export class World {
 	}
 
 	/**
-	 * Update the objects, the camera and the death fade for one tick. No object moves while the level time stands
+	 * Update the objects, the effects and the death fade for one tick. No object moves while the level time stands
 	 * still.
 	 *
 	 * @returns {void}
@@ -365,8 +357,7 @@ export class World {
 		}
 		if (running) this.plasmaBall = this.plasmaBall.filter((ball) => !ball.needKill);
 
-		for (const sparkle of this.sparkles) sparkle.move();
-		this.sparkles = this.sparkles.filter((sparkle) => sparkle.fading > 0);
+		this.effects.updateSparkles();
 
 		// an update can add crates, and the other crates must not see a removed crate, so the loop removes it at once
 		for (let i = 0; i < this.crates.length; i++) {
@@ -397,7 +388,7 @@ export class World {
 			for (const platform of this.platforms) platform.move();
 		}
 		this.portals.update();
-		this.camera.move();
+		this.effects.moveCamera();
 
 		if (this.player.dead) {
 			this.player.life += 6;
@@ -452,7 +443,7 @@ export class World {
 			if (!cake.used || !this.player.overlaps(cake)) continue;
 			cake.used = false;
 			this.cakesLeft--;
-			this.addPuffSparkles(cake.x, cake.y, PuffSparkle.CAKE, 2, 180);
+			this.effects.addPuffSparkles(cake.x, cake.y, PuffSparkle.CAKE, 2, 180);
 			playSound(sfx_grabCake);
 			if (this.cakesLeft === 0) {
 				this.openExit();
@@ -484,52 +475,6 @@ export class World {
 			door.used = !open;
 			this.map.setTile(door.place, open ? Tile.EMPTY : door.min);
 		}
-	}
-
-	/**
-	 * Add a sparkle.
-	 *
-	 * @param {Sparkle} sparkle The sparkle.
-	 * @returns {void}
-	 */
-	addSparkle(sparkle) {
-		this.sparkles.push(sparkle);
-	}
-
-	/**
-	 * Remove the sparkles of one kind and color.
-	 *
-	 * @param {new (...args: any[]) => Sparkle} kind The class of the sparkles, for example PortalGlow.
-	 * @param {number} color The color index.
-	 * @returns {void}
-	 */
-	removeSparkles(kind, color) {
-		this.sparkles = this.sparkles.filter((sparkle) => !(sparkle instanceof kind) || sparkle.color !== color);
-	}
-
-	/**
-	 * Create the glow sparkles along a portal. The glow sparkles of the earlier portal with the same index go away.
-	 *
-	 * @param {number} index The portal index, 0 for blue and 1 for red.
-	 * @returns {void}
-	 */
-	createPortalGlow(index) {
-		this.removeSparkles(PortalGlow, index);
-		for (const sparkle of PortalGlow.along(this, this.portals.list[index], index)) this.addSparkle(sparkle);
-	}
-
-	/**
-	 * Add cake crumbs or smoke puffs around a point.
-	 *
-	 * @param {number} x The x position in 1/256 pixels.
-	 * @param {number} y The y position in 1/256 pixels.
-	 * @param {number} color The color: PuffSparkle.CAKE or PuffSparkle.SMOKE.
-	 * @param {number} number The number of sparkles.
-	 * @param {number} size The start value of the fade, which also sets the size.
-	 * @returns {void}
-	 */
-	addPuffSparkles(x, y, color, number, size) {
-		for (const sparkle of PuffSparkle.around(this, x, y, color, number, size)) this.addSparkle(sparkle);
 	}
 
 	/**

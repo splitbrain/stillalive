@@ -190,5 +190,5 @@ function placePortal(world, index, [column, row, side]) {
 		y: toSubpixels(y),
 	});
 
-	world.createPortalGlow(index);
+	world.effects.createPortalGlow(index);
 }

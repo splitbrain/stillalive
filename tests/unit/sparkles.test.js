@@ -45,10 +45,10 @@ const KINDS = {
 function followSparkle(name, tiles = floorTiles()) {
 	const world = startWorld(tiles);
 	const sparkle = KINDS[name](world);
-	world.addSparkle(sparkle);
+	world.effects.addSparkle(sparkle);
 	const fading = [];
 	let landed = -1;
-	while (world.sparkles.includes(sparkle) && fading.length < 1000) {
+	while (world.effects.sparkles.includes(sparkle) && fading.length < 1000) {
 		runTicks(world, 1);
 		fading.push(sparkle.fading);
 		if (landed < 0 && sparkle instanceof BloodSparkle && sparkle.floorTime >= 0) landed = fading.length;
@@ -106,14 +106,14 @@ test('a portal glow sparkle fades with its distance from the portal and starts a
 	context.after(seedRandom(1));
 	const world = startWorld(floorTiles());
 	const sparkle = new PortalGlow(world, START_X, START_Y, 1 << 8, 0, START_X, START_Y, 0);
-	world.addSparkle(sparkle);
+	world.effects.addSparkle(sparkle);
 	runTicks(world, 39);
 	assert.equal(sparkle.fading, FADING - 5 * 39);
 	assert.equal(sparkle.x, (100 + 39) << 8);
 	runTicks(world, 1);
 	assert.equal(sparkle.fading, FADING);
 	assert.equal(sparkle.x, sparkle.startX);
-	assert.ok(world.sparkles.includes(sparkle));
+	assert.ok(world.effects.sparkles.includes(sparkle));
 });
 
 test('removeSparkles() removes only the sparkles of the kind and the color', () => {
@@ -123,11 +123,11 @@ test('removeSparkles() removes only the sparkles of the kind and the color', () 
 		new PortalShotSparkle(world, 0, 0, 0, 0, FADING, 0),
 		new TeleportSparkle(world, 0, 0, 0, 0, FADING, 0),
 	];
-	for (const sparkle of kept) world.addSparkle(sparkle);
-	world.addSparkle(new PortalGlow(world, 0, 0, 0, 0, 0, 0, 0));
-	world.addSparkle(new PortalGlow(world, 0, 0, 0, 0, 0, 0, 0));
-	world.removeSparkles(PortalGlow, 0);
-	assert.deepEqual(world.sparkles, kept);
-	world.removeSparkles(PortalShotSparkle, 0);
-	assert.deepEqual(world.sparkles, [kept[0], kept[2]]);
+	for (const sparkle of kept) world.effects.addSparkle(sparkle);
+	world.effects.addSparkle(new PortalGlow(world, 0, 0, 0, 0, 0, 0, 0));
+	world.effects.addSparkle(new PortalGlow(world, 0, 0, 0, 0, 0, 0, 0));
+	world.effects.removeSparkles(PortalGlow, 0);
+	assert.deepEqual(world.effects.sparkles, kept);
+	world.effects.removeSparkles(PortalShotSparkle, 0);
+	assert.deepEqual(world.effects.sparkles, [kept[0], kept[2]]);
 });

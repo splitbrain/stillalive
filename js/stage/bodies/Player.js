@@ -115,7 +115,7 @@ export class Player extends Body {
 		// below the playfield, the death shows no blood
 		if (this.pixelY >= PLAYFIELD_HEIGHT) return;
 		for (let i = 0; i < 20; i++) {
-			this.world.addSparkle(
+			this.world.effects.addSparkle(
 				new DeathSparkle(
 					this.world,
 					this.x + (toSubpixels(this.width) >> 1) + random(toSubpixels(-14), toSubpixels(8)),
@@ -168,7 +168,7 @@ export class Player extends Body {
 			);
 			if (random(0, 2) === 0) sparkle.vx = -sparkle.vx;
 			if (random(0, 2) === 0) sparkle.vy = -sparkle.vy;
-			this.world.addSparkle(sparkle);
+			this.world.effects.addSparkle(sparkle);
 		}
 	}
 
@@ -339,7 +339,7 @@ export class Player extends Body {
 		// below half of the life, the player bleeds
 		if (this.life > MAX_LIFE >> 1 || this.world.time % this.lifePoints !== 0) return;
 		for (let i = 0; i < 3; i++) {
-			this.world.addSparkle(
+			this.world.effects.addSparkle(
 				new LowLifeSparkle(
 					this.world,
 					this.x + (toSubpixels(this.width) >> 3) + random(toSubpixels(-5), toSubpixels(5)),

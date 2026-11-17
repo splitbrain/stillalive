@@ -66,7 +66,7 @@ export class SwitchDoors {
 			for (let j = 0; j < 2 * TILE_SIZE; j++) {
 				if (world.map.atPixel(onSideWall ? x : x + j, onSideWall ? y + j : y) === door) {
 					portal.used = false;
-					world.removeSparkles(PortalGlow, i);
+					world.effects.removeSparkles(PortalGlow, i);
 					break;
 				}
 			}

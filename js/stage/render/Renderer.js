@@ -92,7 +92,7 @@ export class Renderer {
 	 */
 	render(session) {
 		if (!session) return;
-		beginFrame(session.world.shakeX, session.world.shakeY);
+		beginFrame(session.world.effects.shakeX, session.world.effects.shakeY);
 		session.draw(this);
 	}
 

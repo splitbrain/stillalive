@@ -17,7 +17,7 @@ import {
 } from '../constants.js';
 import { createBoss } from '../bodies/bosses.js';
 import { Effects } from '../effects/Effects.js';
-import { traceGravPipeField } from '../bodies/GravPipeField.js';
+import { traceGravPipeField } from '../bodies/GravPipe.js';
 import { Plasma } from '../bodies/Plasma.js';
 import { Player } from '../bodies/Player.js';
 import { PortalPair } from '../portals/PortalPair.js';
@@ -76,7 +76,7 @@ export class World {
 	platforms = [];
 	/** @type {import('../bodies/GravPipe.js').GravPipe[]} The gravitational pipes. */
 	gravPipes = [];
-	/** @type {import('../bodies/GravPipeField.js').GravPipeField[]} The fields of the gravitational pipes. */
+	/** @type {import('../bodies/GravPipe.js').GravPipeField[]} The fields of the gravitational pipes. */
 	gravPipeFields = [];
 	/** @type {import('./AnimatedTile.js').AnimatedTile[]} The animated tiles. */
 	animatedTiles = [];
@@ -287,7 +287,7 @@ export class World {
 		}
 
 		if ((this.events.isWaiting() || this.boss?.entering) && phase.isRunning()) phase.halt();
-		this.#updateBodiesAndEffects();
+		this.#updateContents();
 		// the caller starts the level again after this tick, so the boss and the events do not run in this tick
 		if (this.outcome === 'died') return;
 		this.boss?.update();
@@ -323,12 +323,12 @@ export class World {
 	}
 
 	/**
-	 * Update the bodies, the effects and the death fade for one tick. No body moves while the level time stands
-	 * still.
+	 * Update the contents of the World for one tick: the animated tiles, the bodies, the fields of the gravitational
+	 * pipes, the portals, the effects and the death fade. No body moves while the level time stands still.
 	 *
 	 * @returns {void}
 	 */
-	#updateBodiesAndEffects() {
+	#updateContents() {
 		const running = this.phase.isRunning();
 
 		for (const tile of this.animatedTiles) tile.animate();
@@ -748,7 +748,7 @@ export class World {
 	 * Find the pipe fields that a body overlaps.
 	 *
 	 * @param {import('../bodies/Body.js').Body} body The body.
-	 * @returns {import('../bodies/GravPipeField.js').GravPipeField[]} The fields.
+	 * @returns {import('../bodies/GravPipe.js').GravPipeField[]} The fields.
 	 */
 	gravPipeFieldsAt(body) {
 		return this.gravPipeFields.filter((field) => {

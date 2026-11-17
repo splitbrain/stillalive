@@ -252,7 +252,7 @@ export class Player extends Body {
 	/**
 	 * Move the player towards the middle of a pipe field. In a floor or ceiling portal, the player moves faster.
 	 *
-	 * @param {import('./GravPipeField.js').GravPipeField} field The pipe field.
+	 * @param {import('./GravPipe.js').GravPipeField} field The pipe field.
 	 * @returns {void}
 	 */
 	#centerInField(field) {
@@ -276,7 +276,7 @@ export class Player extends Body {
 	 * Push the player with a pipe field. In a horizontal field, the jump key jumps out and the down key moves down. In
 	 * a vertical field, the left and right keys move the player out to the side.
 	 *
-	 * @param {import('./GravPipeField.js').GravPipeField} field The pipe field.
+	 * @param {import('./GravPipe.js').GravPipeField} field The pipe field.
 	 * @param {boolean} alone True if this is the only field that holds the player.
 	 * @returns {void}
 	 */

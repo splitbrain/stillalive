@@ -129,7 +129,7 @@ export class Throwable extends Body {
 	/**
 	 * Move the body towards the middle of a pipe field. In a floor or ceiling portal, the body moves faster.
 	 *
-	 * @param {import('./GravPipeField.js').GravPipeField} field The pipe field.
+	 * @param {import('./GravPipe.js').GravPipeField} field The pipe field.
 	 * @returns {void}
 	 */
 	#centerInField(field) {

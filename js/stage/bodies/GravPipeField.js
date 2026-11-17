@@ -63,7 +63,7 @@ function fieldEndsAt(world, x, y, vx) {
 	return ACROSS_FIELD.some((offset) =>
 		vx === 0
 			? world.getTileWithoutCrates(x + offset, y) !== Tile.EMPTY
-			: world.getTileWithoutObjects(x, y + offset) !== Tile.EMPTY,
+			: world.getTileWithoutBodies(x, y + offset) !== Tile.EMPTY,
 	);
 }
 

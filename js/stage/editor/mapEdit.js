@@ -98,10 +98,10 @@ function isTileHere(map, x, y) {
 }
 
 /** @type {number[]} The objects that are wider than one tile: two tiles for a pipe, three for a platform. */
-const WIDE_OBJECTS = [Tile.PLATFORM_RIGHT, Tile.PLATFORM_LEFT, Tile.GRAVPIPE_UP, Tile.GRAVPIPE_DOWN];
+const WIDE_BODIES = [Tile.PLATFORM_RIGHT, Tile.PLATFORM_LEFT, Tile.GRAVPIPE_UP, Tile.GRAVPIPE_DOWN];
 
 /** @type {number[]} The objects that are two tiles high. */
-const TALL_OBJECTS = [Tile.PLAYER_START, Tile.TURRET_LEFT, Tile.TURRET_RIGHT, Tile.GRAVPIPE_RIGHT, Tile.GRAVPIPE_LEFT];
+const TALL_BODIES = [Tile.PLAYER_START, Tile.TURRET_LEFT, Tile.TURRET_RIGHT, Tile.GRAVPIPE_RIGHT, Tile.GRAVPIPE_LEFT];
 
 /**
  * Remove the logic tile at a map position if the position is in the map and the tile passes a test.
@@ -127,7 +127,7 @@ function eraseIf(map, x, y, test) {
  * @param {number} y The row.
  * @returns {void}
  */
-export function eraseObjectAbove(map, x, y) {
+export function eraseBodyAbove(map, x, y) {
 	eraseIf(
 		map,
 		x,
@@ -141,29 +141,29 @@ export function eraseObjectAbove(map, x, y) {
  * Remove the objects that overlap a new object, because an object covers more than one tile.
  *
  * @param {TileMap} map The map. The function changes the logic layer.
- * @param {number} object The id of the new object.
+ * @param {number} body The id of the new object.
  * @param {number} column The column of the new object.
  * @param {number} row The row of the new object.
  * @returns {void}
  */
-export function eraseSprites(map, object, column, row) {
-	if (WIDE_OBJECTS.includes(object)) {
-		const width = object >= Tile.GRAVPIPE_UP ? 2 : 3;
+export function eraseBodies(map, body, column, row) {
+	if (WIDE_BODIES.includes(body)) {
+		const width = body >= Tile.GRAVPIPE_UP ? 2 : 3;
 		for (let offset = 1; offset < width && column + offset < MAP_WIDTH; offset++) {
 			map.setTile(map.index(column + offset, row), Tile.EMPTY);
-			eraseObjectAbove(map, column + offset, row);
+			eraseBodyAbove(map, column + offset, row);
 		}
 	}
-	if (TALL_OBJECTS.includes(object) && row + 1 < MAP_HEIGHT) {
+	if (TALL_BODIES.includes(body) && row + 1 < MAP_HEIGHT) {
 		map.setTile(map.index(column, row + 1), Tile.EMPTY);
 		for (let offset = 1; offset < 3; offset++) {
-			eraseIf(map, column - offset, row + 1, (tile) => WIDE_OBJECTS.includes(tile));
+			eraseIf(map, column - offset, row + 1, (tile) => WIDE_BODIES.includes(tile));
 		}
 	}
 
-	eraseObjectAbove(map, column, row);
+	eraseBodyAbove(map, column, row);
 	// the wide objects to the left reach into the position
-	eraseIf(map, column - 1, row, (tile) => WIDE_OBJECTS.includes(tile));
+	eraseIf(map, column - 1, row, (tile) => WIDE_BODIES.includes(tile));
 	eraseIf(map, column - 2, row, (tile) => tile === Tile.PLATFORM_RIGHT || tile === Tile.PLATFORM_LEFT);
 }
 

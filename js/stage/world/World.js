@@ -24,7 +24,7 @@ import { PortalPair } from '../portals/PortalPair.js';
 import { PuffSparkle } from '../effects/sparkles.js';
 import { LevelEvents } from './LevelEvents.js';
 import { LevelPhase } from './LevelPhase.js';
-import { createObjects } from './mapObjects.js';
+import { createBodies } from './mapBodies.js';
 import { SwitchDoors } from './SwitchDoors.js';
 import { TileMap } from './TileMap.js';
 import { FIRST_OF_KIND, Tile, TileKind, inForceFieldRange, isDeadlyTile, isTileKind } from '../map/tiles.js';
@@ -118,9 +118,9 @@ export class World {
 	switches = new SwitchDoors(this);
 	/**
 	 * @type {import('../portals/Portal.js').Portal|null} The portal that an object is in during this tick, or null.
-	 *     The drawing then draws the tiles around the portals over the objects.
+	 *     The drawing then draws the tiles around the portals over the bodies.
 	 */
-	objectInPortal = null;
+	bodyInPortal = null;
 	/** @type {LevelEvents|null} The events of the level, or null outside a level. */
 	events = null;
 	/**
@@ -170,7 +170,7 @@ export class World {
 		world.phase.transition = transition;
 		if (level.fromBelow) world.#jumpInFromBelow();
 		world.boss = level.boss ? createBoss(world, level.boss) : null;
-		world.#loadObjects({ levelStart: true });
+		world.#loadBodies({ levelStart: true });
 		world.effects.startCamera(world.player.x, world.player.y);
 		world.cakesLeft = world.cakes.length;
 		if (world.cakesLeft === 0) world.openExit();
@@ -192,7 +192,7 @@ export class World {
 	 */
 	static forPreview(level) {
 		const world = new World(new TileMap(level.tiles));
-		world.#loadObjects();
+		world.#loadBodies();
 		if (level.fromBelow) world.#jumpInFromBelow();
 		world.boss = level.boss ? createBoss(world, level.boss) : null;
 		world.cakesLeft = world.cakes.length;
@@ -214,7 +214,7 @@ export class World {
 	 */
 	static forEditor(map) {
 		const world = new World(map);
-		world.createEditorObjects();
+		world.createEditorBodies();
 		return world;
 	}
 
@@ -224,11 +224,11 @@ export class World {
 	 *
 	 * @returns {void}
 	 */
-	createEditorObjects() {
+	createEditorBodies() {
 		this.player = new Player(this);
 		this.player.x = -toSubpixels(TILE_SIZE);
 		this.phase.reset();
-		this.#loadObjects({ editor: true });
+		this.#loadBodies({ editor: true });
 	}
 
 	/**
@@ -271,10 +271,10 @@ export class World {
 			if (this.time === 0) input.unclick();
 			this.time++;
 		}
-		this.objectInPortal = null;
+		this.bodyInPortal = null;
 		if (!this.player.dead && phase.isRunning()) {
 			this.player.move();
-			if (!this.objectInPortal) this.objectInPortal = this.portals.isInPortal(this.player);
+			if (!this.bodyInPortal) this.bodyInPortal = this.portals.isInPortal(this.player);
 		}
 
 		this.switches.update();
@@ -287,7 +287,7 @@ export class World {
 		}
 
 		if ((this.events.isWaiting() || this.boss?.entering) && phase.isRunning()) phase.halt();
-		this.#updateObjects();
+		this.#updateBodiesAndEffects();
 		// the caller starts the level again after this tick, so the boss and the events do not run in this tick
 		if (this.outcome === 'died') return;
 		this.boss?.update();
@@ -328,7 +328,7 @@ export class World {
 	 *
 	 * @returns {void}
 	 */
-	#updateObjects() {
+	#updateBodiesAndEffects() {
 		const running = this.phase.isRunning();
 
 		for (const tile of this.animatedTiles) tile.animate();
@@ -343,7 +343,7 @@ export class World {
 			}
 			for (const turret of this.turrets) {
 				turret.update();
-				if (!this.objectInPortal) this.objectInPortal = this.portals.isInPortal(turret);
+				if (!this.bodyInPortal) this.bodyInPortal = this.portals.isInPortal(turret);
 			}
 		}
 
@@ -352,7 +352,7 @@ export class World {
 			ball.animate();
 			if (running) {
 				ball.move();
-				if (!this.objectInPortal) this.objectInPortal = this.portals.isInPortal(ball);
+				if (!this.bodyInPortal) this.bodyInPortal = this.portals.isInPortal(ball);
 			}
 		}
 		if (running) this.plasmaBall = this.plasmaBall.filter((ball) => !ball.needKill);
@@ -375,7 +375,7 @@ export class World {
 					i--;
 					continue;
 				}
-				if (!this.objectInPortal) this.objectInPortal = this.portals.isInPortal(crate);
+				if (!this.bodyInPortal) this.bodyInPortal = this.portals.isInPortal(crate);
 			}
 		}
 
@@ -546,29 +546,29 @@ export class World {
 	 * reads the boss, so the caller creates the boss first.
 	 *
 	 * @param {object} [options] The options.
-	 * @param {boolean} [options.levelStart] True for a level start, see createObjects().
-	 * @param {boolean} [options.editor] True for the editor map, see createObjects().
+	 * @param {boolean} [options.levelStart] True for a level start, see createBodies().
+	 * @param {boolean} [options.editor] True for the editor map, see createBodies().
 	 * @returns {void}
 	 */
-	#loadObjects({ levelStart = false, editor = false } = {}) {
-		const objects = createObjects(this, { levelStart, editor });
-		this.cakes = objects.cakes;
-		this.turrets = objects.turrets;
-		this.crates = objects.crates;
-		this.gravPipes = objects.gravPipes;
+	#loadBodies({ levelStart = false, editor = false } = {}) {
+		const bodies = createBodies(this, { levelStart, editor });
+		this.cakes = bodies.cakes;
+		this.turrets = bodies.turrets;
+		this.crates = bodies.crates;
+		this.gravPipes = bodies.gravPipes;
 		this.gravPipeFields = [];
-		this.platforms = objects.platforms;
-		this.animatedTiles = objects.animatedTiles;
-		if (objects.playerStart) {
-			this.player.x = objects.playerStart.x;
-			this.player.y = objects.playerStart.y;
+		this.platforms = bodies.platforms;
+		this.animatedTiles = bodies.animatedTiles;
+		if (bodies.playerStart) {
+			this.player.x = bodies.playerStart.x;
+			this.player.y = bodies.playerStart.y;
 		}
-		if (objects.tube) {
-			this.tubeX = objects.tube.x;
-			this.tubeY = objects.tube.y;
+		if (bodies.tube) {
+			this.tubeX = bodies.tube.x;
+			this.tubeY = bodies.tube.y;
 		}
 
-		for (const launch of objects.plasmaLaunches) {
+		for (const launch of bodies.plasmaLaunches) {
 			if (!this.boss) {
 				this.plasmaBall.push(new Plasma(this, launch.x, launch.y, launch.vx, launch.vy));
 			} else if (this.boss.shootsPlasma) {
@@ -627,7 +627,7 @@ export class World {
 	 * @param {number} y The y coordinate in pixels.
 	 * @returns {number} The tile id, or Tile.EMPTY if nothing solid is there.
 	 */
-	getTileWithoutObjects(x, y) {
+	getTileWithoutBodies(x, y) {
 		return /** @type {number} */ (this.#solidAt(x, y, false, false));
 	}
 
@@ -701,17 +701,17 @@ export class World {
 	/**
 	 * Find a moving crate that overlaps an object.
 	 *
-	 * @param {import('../bodies/Body.js').Body} obj The object.
+	 * @param {import('../bodies/Body.js').Body} body The object.
 	 * @returns {Crate|null} The crate, or null if no moving crate overlaps the object.
 	 */
-	movingCrateTouching(obj) {
+	movingCrateTouching(body) {
 		return (
 			this.crates.find(
 				(crate) =>
 					!crate.carried &&
 					(crate.vx !== 0 || crate.vy !== 0) &&
 					!this.portals.isInPortal(crate) &&
-					crate.overlaps(obj),
+					crate.overlaps(body),
 			) ?? null
 		);
 	}
@@ -736,20 +736,20 @@ export class World {
 	/**
 	 * Check if a plasma ball overlaps an object.
 	 *
-	 * @param {import('../bodies/Body.js').Body} obj The object.
+	 * @param {import('../bodies/Body.js').Body} body The object.
 	 * @returns {boolean} True if a ball overlaps the object.
 	 */
-	plasmaTouching(obj) {
-		return this.plasmaBall.some((ball) => ball.used && ball.overlaps(obj));
+	plasmaTouching(body) {
+		return this.plasmaBall.some((ball) => ball.used && ball.overlaps(body));
 	}
 
 	/**
 	 * Find the pipe fields that an object overlaps.
 	 *
-	 * @param {import('../bodies/Body.js').Body} obj The object.
+	 * @param {import('../bodies/Body.js').Body} body The object.
 	 * @returns {import('../bodies/GravPipeField.js').GravPipeField[]} The fields.
 	 */
-	gravPipeFieldsAt(obj) {
+	gravPipeFieldsAt(body) {
 		return this.gravPipeFields.filter((field) => {
 			let { x, y, width, height } = field;
 			if (width < 0) {
@@ -759,22 +759,22 @@ export class World {
 				height = -height;
 				y -= height;
 			}
-			return obj.overlapsBox(x, y, width, height);
+			return body.overlapsBox(x, y, width, height);
 		});
 	}
 
 	/**
 	 * Get the conveyor belt that moves an object, directly or through the crate that the object stands on.
 	 *
-	 * @param {import('../bodies/Body.js').Body} obj The object. It must also have the vertical speed vy.
+	 * @param {import('../bodies/Body.js').Body} body The object. It must also have the vertical speed vy.
 	 * @returns {number} The direction of the belt: 1 to the right, -1 to the left, 0 for no belt.
 	 */
-	beltUnder(obj) {
-		const ground = obj.touchingGround();
+	beltUnder(body) {
+		const ground = body.touchingGround();
 		if (ground === Ground.BELT_RIGHT) return 1;
 		if (ground === Ground.BELT_LEFT) return -1;
-		const y = obj.pixelY + obj.height;
-		const crate = this.crateAt(obj.pixelX, y) || this.crateAt(obj.pixelX + obj.width - 1, y);
+		const y = body.pixelY + body.height;
+		const crate = this.crateAt(body.pixelX, y) || this.crateAt(body.pixelX + body.width - 1, y);
 		return crate ? crate.belt : 0;
 	}
 
@@ -782,16 +782,16 @@ export class World {
 	 * Get the platform that carries an object, directly or through the crate that the object stands on. The search
 	 * looks below the left edge of the object first, then below the right edge.
 	 *
-	 * @param {import('../bodies/Body.js').Body} obj The object.
+	 * @param {import('../bodies/Body.js').Body} body The object.
 	 * @returns {Platform|null} The platform, or null.
 	 */
-	onPlatform(obj) {
-		const x = obj.pixelX;
-		const y = obj.pixelY + obj.height;
+	onPlatform(body) {
+		const x = body.pixelX;
+		const y = body.pixelY + body.height;
 		return (
 			this.platformAt(x, y) ||
-			this.platformAt(x + obj.width - 1, y) ||
-			((this.crateAt(x, y) || this.crateAt(x + obj.width - 1, y))?.platform ?? null)
+			this.platformAt(x + body.width - 1, y) ||
+			((this.crateAt(x, y) || this.crateAt(x + body.width - 1, y))?.platform ?? null)
 		);
 	}
 

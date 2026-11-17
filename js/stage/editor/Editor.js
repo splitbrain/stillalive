@@ -3,10 +3,10 @@
  */
 
 import { BACKGROUND_COUNT, MouseButton, StageMode, TILE_SIZE_BITS } from '../constants.js';
-import { allowTile, build, eraseObjectAbove, eraseSprites, fill } from './mapEdit.js';
+import { allowTile, build, eraseBodyAbove, eraseBodies, fill } from './mapEdit.js';
 import { MAP_FORMAT, parseMap } from '../map/mapFile.js';
 import { emptyTiles, TileMap } from '../world/TileMap.js';
-import { Tile, isObjectTile } from '../map/tiles.js';
+import { Tile, isBodyTile } from '../map/tiles.js';
 import { UndoList } from './UndoList.js';
 import { World } from '../world/World.js';
 
@@ -40,7 +40,7 @@ export class Editor {
 	#oldMouseReleased = false;
 
 	/** @type {boolean} True when the objects of the editor map must be created again. */
-	#objectsChanged = false;
+	#bodiesChanged = false;
 
 	/** @type {import('../browser/InputState.js').InputState} The keys and the mouse. */
 	#input;
@@ -116,7 +116,7 @@ export class Editor {
 			this.#background = bg;
 			this.#properties = rest;
 		} else {
-			this.#world.createEditorObjects();
+			this.#world.createEditorBodies();
 		}
 		if (map || !this.#undoList) {
 			this.#undoList = new UndoList();
@@ -124,7 +124,7 @@ export class Editor {
 		}
 
 		this.#input.unclick();
-		this.#objectsChanged = false;
+		this.#bodiesChanged = false;
 	}
 
 	/**
@@ -166,13 +166,13 @@ export class Editor {
 	 */
 	#edit() {
 		this.#updateDrawTile();
-		this.#updateDrawSprite();
+		this.#updateDrawBody();
 		this.#manageUndoRedo();
 
 		if (this.#oldMouseReleased && this.#input.mouseReleased) this.#input.mouseReleased = false;
 		this.#oldMouseReleased = this.#input.mouseReleased;
 
-		if (this.#objectsChanged) this.#rebuildObjects();
+		if (this.#bodiesChanged) this.#rebuildBodies();
 	}
 
 	/**
@@ -235,7 +235,7 @@ export class Editor {
 	 * @returns {void}
 	 */
 	#mapChanged() {
-		this.#objectsChanged = true;
+		this.#bodiesChanged = true;
 	}
 
 	/**
@@ -258,9 +258,9 @@ export class Editor {
 	 *
 	 * @returns {void}
 	 */
-	#rebuildObjects() {
-		this.#world.createEditorObjects();
-		this.#objectsChanged = false;
+	#rebuildBodies() {
+		this.#world.createEditorBodies();
+		this.#bodiesChanged = false;
 	}
 
 	/**
@@ -289,11 +289,11 @@ export class Editor {
 	 *
 	 * @returns {void}
 	 */
-	#updateDrawSprite() {
+	#updateDrawBody() {
 		const input = this.#input;
 		const brush = this.brush;
 		const map = this.#map;
-		if (!input.mouseOnPlayfield() || !isObjectTile(brush)) return;
+		if (!input.mouseOnPlayfield() || !isBodyTile(brush)) return;
 		if (!input.mousePressed) {
 			if (input.mouseReleased) {
 				input.mouseReleased = false;
@@ -315,12 +315,12 @@ export class Editor {
 						if (id === Tile.PLAYER_START) map.setTile(i, Tile.EMPTY);
 					}
 				}
-				eraseSprites(map, brush, column, row);
+				eraseBodies(map, brush, column, row);
 				if (allowTile(map, brush)) map.setTile(tile, brush);
 				break;
 			case MouseButton.RIGHT:
 				map.setTile(tile, Tile.EMPTY);
-				eraseSprites(map, brush, column, row);
+				eraseBodies(map, brush, column, row);
 				break;
 		}
 		build(map);
@@ -336,7 +336,7 @@ export class Editor {
 		const input = this.#input;
 		const brush = this.brush;
 		const map = this.#map;
-		if (!input.mouseOnPlayfield() || isObjectTile(brush)) return;
+		if (!input.mouseOnPlayfield() || isBodyTile(brush)) return;
 		if (!input.mousePressed) {
 			if (input.mouseReleased) {
 				input.mouseReleased = false;
@@ -367,7 +367,7 @@ export class Editor {
 				break;
 		}
 
-		eraseObjectAbove(map, column, row);
+		eraseBodyAbove(map, column, row);
 
 		build(map);
 		this.#mapChangedSince(version);

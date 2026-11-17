@@ -157,7 +157,7 @@ export function isDeadlyTile(id) {
  * @param {number} id The tile id.
  * @returns {boolean} True for the ids from the left turret to the down gravitational pipe.
  */
-export function isObjectTile(id) {
+export function isBodyTile(id) {
 	return id >= Tile.TURRET_LEFT && id <= Tile.GRAVPIPE_DOWN;
 }
 

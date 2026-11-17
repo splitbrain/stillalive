@@ -18,7 +18,7 @@ import {
 import {
 	bg,
 	bluePortal,
-	body,
+	playerBody,
 	cakeImage,
 	cameraFollow,
 	crateImage,
@@ -195,10 +195,10 @@ function mirrorAround(x) {
  * @param {number} flipX The direction, 1 right or -1 left.
  * @returns {void}
  */
-function drawBody(x, y, frame, flipX) {
+function drawPlayerBody(x, y, frame, flipX) {
 	ctx.save();
 	if (flipX < 0) mirrorAround(x + TILE_SIZE / 2);
-	drawImage(body, frame * TILE_SIZE, 0, TILE_SIZE, 27, x, y, TILE_SIZE, 27);
+	drawImage(playerBody, frame * TILE_SIZE, 0, TILE_SIZE, 27, x, y, TILE_SIZE, 27);
 	ctx.restore();
 }
 
@@ -244,7 +244,7 @@ export function drawLevel(world, input, labelLayouts) {
 	const flipDx = world.player.flip < 0 ? 1 : 0;
 	if (!flipDx) drawPortalGun(world, input);
 	drawRotatedHead(world, input, flipDx);
-	drawBody(world.player.pixelX, world.player.pixelY, world.player.animationFrame, world.player.flip);
+	drawPlayerBody(world.player.pixelX, world.player.pixelY, world.player.animationFrame, world.player.flip);
 	if (flipDx) drawPortalGun(world, input);
 
 	drawCakes(world);
@@ -625,7 +625,7 @@ export function drawPlatform(x, y, dir, arrow) {
  * @returns {void}
  */
 function drawFrontTiles(world) {
-	if (!world.objectInPortal) return;
+	if (!world.bodyInPortal) return;
 	for (const portal of world.portals.list) {
 		if (portal.platform) continue;
 		const onFloor = !DIRECTIONS[portal.direction].horizontal;
@@ -703,7 +703,7 @@ export function drawPlayer(x, y, flipX, frame = 0) {
 	if (flipX < 0) mirrorAround(x + TILE_SIZE / 2);
 	drawImage(head, x, y + HEAD_BOB[frame], 16, 14);
 	ctx.restore();
-	drawBody(x, y, frame, flipX);
+	drawPlayerBody(x, y, frame, flipX);
 }
 
 /**

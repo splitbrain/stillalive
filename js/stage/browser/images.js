@@ -19,7 +19,7 @@ export let platformImage;
 /** @type {HTMLImageElement} The head of the player, facing right. */
 export let head;
 /** @type {HTMLImageElement} The body of the player facing right, with the standing frame and 4 walk frames. */
-export let body;
+export let playerBody;
 /** @type {HTMLImageElement} The gravitational pipes that push to the left and to the right. */
 export let gravPipe;
 /** @type {HTMLImageElement} The gravitational pipes that push up and down. */
@@ -59,7 +59,7 @@ export let tileset;
 export function loadGfx() {
 	const sprite = (name) => loadImage(`gfx/sprites/${name}.svg`);
 
-	body = sprite('body');
+	playerBody = sprite('body');
 	head = sprite('head');
 	crosshair = sprite('crosshair');
 	bluePortal = sprite('bluePortal');

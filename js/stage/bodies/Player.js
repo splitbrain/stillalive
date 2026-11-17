@@ -190,7 +190,7 @@ export class Player extends Body {
 	 *
 	 * @returns {void}
 	 */
-	#grabObject() {
+	#grabBody() {
 		const input = this.world.input;
 		if (this.carrying) {
 			if (input.mousePressed) return;
@@ -207,19 +207,19 @@ export class Player extends Body {
 	/**
 	 * Find the object under the mouse that the player can pick up.
 	 *
-	 * @param {import('./Throwable.js').Throwable[]} objects The objects to search.
+	 * @param {import('./Throwable.js').Throwable[]} bodies The objects to search.
 	 * @returns {import('./Throwable.js').Throwable|null} The first object near the player under the mouse, or null.
 	 */
-	#grabbableIn(objects) {
+	#grabbableIn(bodies) {
 		const input = this.world.input;
 		const x = this.midX();
 		const y = this.midY();
 		return (
-			objects.find(
-				(obj) =>
-					obj.canGrab() &&
-					getDistance(obj.midX(), obj.midY(), x, y) < 2 * TILE_SIZE &&
-					obj.contains(input.mouseX, input.mouseY),
+			bodies.find(
+				(body) =>
+					body.canGrab() &&
+					getDistance(body.midX(), body.midY(), x, y) < 2 * TILE_SIZE &&
+					body.contains(input.mouseX, input.mouseY),
 			) ?? null
 		);
 	}
@@ -504,7 +504,7 @@ export class Player extends Body {
 		}
 
 		this.world.collectCakes();
-		this.#grabObject();
+		this.#grabBody();
 		portals.clearPortalsAtForceField();
 		this.#shootPortal();
 

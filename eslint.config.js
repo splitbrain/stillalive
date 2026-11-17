@@ -25,7 +25,7 @@ const LAYERS = [
 		name: 'logic',
 		files: [
 			'./js/stage/{bodies,effects,portals}/*.js',
-			'./js/stage/world/{AnimatedTile,level,LevelEvents,mapObjects,SwitchDoors,World}.js',
+			'./js/stage/world/{AnimatedTile,level,LevelEvents,mapBodies,SwitchDoors,World}.js',
 			'./js/stage/editor/{mapEdit,UndoList}.js',
 			'./js/stage/map/[m]apFile.js',
 			'./js/stage/sessions/[r]eplay.js',

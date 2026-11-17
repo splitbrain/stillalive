@@ -476,7 +476,7 @@ export async function recordedReplay(page) {
  * @param {object} scene The scene.
  * @param {number[][]} scene.portals For each portal the x and the y position of the shot and of its target, in
  *     playfield pixels.
- * @param {{type: string, x: number, y: number, vx?: number, vy?: number}} [scene.object] The object: type "crate",
+ * @param {{type: string, x: number, y: number, vx?: number, vy?: number}} [scene.body] The object: type "crate",
  *     "turret" or "plasma", the position x and y in playfield pixels, and for a plasma ball the speed vx and vy in 1/256
  *     pixels per tick.
  * @param {number[]} scene.player The x and the y position of the player in playfield pixels.
@@ -537,20 +537,20 @@ export async function runPortalScene(page, scene) {
 			world.portals.launchPortal(index, input.mouseX, input.mouseY);
 		}
 		Object.assign(world.player, { x: scene.player[0] << 8, y: scene.player[1] << 8, vx: 0, vy: 0 });
-		const spec = scene.object;
-		let obj = null;
+		const spec = scene.body;
+		let body = null;
 		switch (spec?.type) {
 			case 'crate':
-				obj = new Crate(world, spec.x << 8, spec.y << 8);
-				world.addCrate(obj);
+				body = new Crate(world, spec.x << 8, spec.y << 8);
+				world.addCrate(body);
 				break;
 			case 'turret':
-				obj = new Turret(world, spec.x << 8, spec.y << 8, -1);
-				world.turrets.push(obj);
+				body = new Turret(world, spec.x << 8, spec.y << 8, -1);
+				world.turrets.push(body);
 				break;
 			case 'plasma':
-				obj = new Plasma(world, spec.x << 8, spec.y << 8, spec.vx, spec.vy);
-				world.addPlasma(obj);
+				body = new Plasma(world, spec.x << 8, spec.y << 8, spec.vx, spec.vy);
+				world.addPlasma(body);
 				break;
 		}
 
@@ -559,8 +559,8 @@ export async function runPortalScene(page, scene) {
 		for (let tick = 1; tick <= scene.ticks; tick++) {
 			input.keys = scene.keys;
 			hooks.tick();
-			const pick = (body) => (body ? [body.x, body.y, body.vx, body.vy] : null);
-			lines.push(JSON.stringify([tick, pick(obj), pick(hooks.world().player)]));
+			const pick = (target) => (target ? [target.x, target.y, target.vx, target.vy] : null);
+			lines.push(JSON.stringify([tick, pick(body), pick(hooks.world().player)]));
 		}
 		return `${lines.join('\n')}\n`;
 	}, scene);

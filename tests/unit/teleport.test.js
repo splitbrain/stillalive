@@ -198,11 +198,11 @@ function teleportAll(create) {
 	for (const [fromName, from] of Object.entries(Direction)) {
 		for (const [toName, to] of Object.entries(Direction)) {
 			result[`${fromName}_${toName}`] = SPEEDS.map(([vx, vy]) => {
-				const obj = create();
-				obj.vx = vx;
-				obj.vy = vy;
-				obj.teleported(portalAt(from), portalAt(to));
-				return [obj.vx, obj.vy];
+				const body = create();
+				body.vx = vx;
+				body.vy = vy;
+				body.teleported(portalAt(from), portalAt(to));
+				return [body.vx, body.vy];
 			});
 		}
 	}

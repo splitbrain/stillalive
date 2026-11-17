@@ -34,7 +34,7 @@ const ANIMATED_KINDS = [
 /**
  * The objects of a map at their start positions.
  *
- * @typedef {object} MapObjects
+ * @typedef {object} MapBodies
  * @property {Cake[]} cakes The cakes.
  * @property {Turret[]} turrets The turrets.
  * @property {Crate[]} crates The crates.
@@ -52,17 +52,17 @@ const ANIMATED_KINDS = [
  * preview: the logic layer stays the same, the display layer shows the closed exits, and the tube tile is the tube of
  * the boss.
  *
- * @param {import('./World.js').World} world The World of the objects. The function changes the map of the World.
+ * @param {import('./World.js').World} world The World of the bodies. The function changes the map of the World.
  * @param {object} [options] The options.
  * @param {boolean} [options.levelStart] True for a level start: the object tiles leave the map, the gravitational
  *     pipes block their tiles, the exits close, and the animated tiles and the plasma launches start.
  * @param {boolean} [options.editor] True for the editor map: both layers stay the same, and the tube tile is a tile of
  *     the map.
- * @returns {MapObjects} The objects.
+ * @returns {MapBodies} The bodies.
  */
-export function createObjects(world, { levelStart = false, editor = false } = {}) {
-	/** @type {MapObjects} */
-	const objects = {
+export function createBodies(world, { levelStart = false, editor = false } = {}) {
+	/** @type {MapBodies} */
+	const bodies = {
 		cakes: [],
 		turrets: [],
 		crates: [],
@@ -82,7 +82,7 @@ export function createObjects(world, { levelStart = false, editor = false } = {}
 
 		if (tile in GRAVPIPE_DIRECTIONS) {
 			const dir = GRAVPIPE_DIRECTIONS[tile];
-			objects.gravPipes.push(new GravPipe(world, toSubpixels(x * TILE_SIZE), toSubpixels(y * TILE_SIZE), dir));
+			bodies.gravPipes.push(new GravPipe(world, toSubpixels(x * TILE_SIZE), toSubpixels(y * TILE_SIZE), dir));
 			if (levelStart) {
 				// a gravitational pipe covers two tiles
 				const next = DIRECTIONS[dir].horizontal ? map.index(x, y + 1) : map.index(x + 1, y);
@@ -100,7 +100,7 @@ export function createObjects(world, { levelStart = false, editor = false } = {}
 		}
 		if (animated) {
 			map.setDisplay(i, Tile.EMPTY);
-			objects.animatedTiles.push(
+			bodies.animatedTiles.push(
 				new AnimatedTile(
 					world,
 					x,
@@ -119,40 +119,40 @@ export function createObjects(world, { levelStart = false, editor = false } = {}
 		const py = toSubpixels(y * TILE_SIZE);
 		switch (tile) {
 			case Tile.CAKE:
-				objects.cakes.push(new Cake(world, px, py));
+				bodies.cakes.push(new Cake(world, px, py));
 				if (levelStart) map.setTile(i, Tile.EMPTY);
 				break;
 			case Tile.TURRET_LEFT:
 			case Tile.TURRET_RIGHT:
 				if (levelStart) map.set(i, Tile.EMPTY);
-				objects.turrets.push(new Turret(world, px, py, tile === Tile.TURRET_LEFT ? -1 : 1));
+				bodies.turrets.push(new Turret(world, px, py, tile === Tile.TURRET_LEFT ? -1 : 1));
 				break;
 			case Tile.CRATE:
 				if (levelStart) map.set(i, Tile.EMPTY);
-				objects.crates.push(new Crate(world, px, py));
+				bodies.crates.push(new Crate(world, px, py));
 				break;
 			case Tile.PLAYER_START:
-				objects.playerStart = { x: px, y: py };
+				bodies.playerStart = { x: px, y: py };
 				if (levelStart) map.setTile(i, Tile.EMPTY);
 				break;
 			case Tile.PLATFORM_RIGHT:
 			case Tile.PLATFORM_LEFT:
-				objects.platforms.push(new Platform(world, px, py, tile === Tile.PLATFORM_RIGHT ? 256 : -256, 0));
+				bodies.platforms.push(new Platform(world, px, py, tile === Tile.PLATFORM_RIGHT ? 256 : -256, 0));
 				if (levelStart) map.setTile(i, Tile.EMPTY);
 				break;
 			case Tile.TUBE:
 				if (editor) break;
-				objects.tube = { x: px, y: py };
+				bodies.tube = { x: px, y: py };
 				if (levelStart) map.set(i, Tile.EMPTY);
 				break;
 			case Tile.PLASMA_START: {
 				if (!levelStart) break;
 				// the launch depends on the tiles around the start, as the loop left them so far
 				const launch = plasmaLaunch(map, x, y);
-				if (launch) objects.plasmaLaunches.push(launch);
+				if (launch) bodies.plasmaLaunches.push(launch);
 				break;
 			}
 		}
 	}
-	return objects;
+	return bodies;
 }

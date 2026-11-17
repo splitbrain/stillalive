@@ -6,7 +6,7 @@ import { ctx, drawImage } from '../browser/canvas.js';
 import { MAP_HEIGHT, MAP_WIDTH, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, TILE_SIZE, TILE_SIZE_BITS } from '../constants.js';
 import { bg, cakeImage, crateImage, tileset, turretImages } from '../browser/images.js';
 import { GRAVPIPE_DIRECTIONS, plasmaLaunch } from '../world/level.js';
-import { Tile, isObjectTile } from '../map/tiles.js';
+import { Tile, isBodyTile } from '../map/tiles.js';
 import {
 	drawCakes,
 	drawCrates,
@@ -28,7 +28,7 @@ import {
  */
 export function drawCursor(brush, input) {
 	drawTileCursor(brush, input);
-	drawSpriteCursor(brush, input);
+	drawBodyCursor(brush, input);
 }
 
 /**
@@ -37,7 +37,7 @@ export function drawCursor(brush, input) {
  * @param {import('../world/World.js').World} world The World.
  * @returns {void}
  */
-function drawSprites(world) {
+function drawBodies(world) {
 	drawCakes(world);
 	drawTurrets(world);
 	drawCrates(world);
@@ -70,7 +70,7 @@ export function drawEditorLayer(editor) {
 	}
 
 	drawTiles(map);
-	drawSprites(editor.world);
+	drawBodies(editor.world);
 }
 
 /**
@@ -81,7 +81,7 @@ export function drawEditorLayer(editor) {
  * @returns {void}
  */
 function drawTileCursor(brush, input) {
-	if (!input.mouseOver || !input.mouseOnPlayfield() || isObjectTile(brush)) return;
+	if (!input.mouseOver || !input.mouseOnPlayfield() || isBodyTile(brush)) return;
 	const x = (input.mouseX >> TILE_SIZE_BITS) << TILE_SIZE_BITS;
 	const y = (input.mouseY >> TILE_SIZE_BITS) << TILE_SIZE_BITS;
 	drawImage(tileset[brush], x, y);
@@ -93,15 +93,15 @@ function drawTileCursor(brush, input) {
 /**
  * Draw the selected object at the mouse while the pointer is over the canvas and the mouse is over the map.
  *
- * @param {number} sprite The object id that the editor paints.
+ * @param {number} body The object id that the editor paints.
  * @param {import('../browser/InputState.js').InputState} input The mouse.
  * @returns {void}
  */
-function drawSpriteCursor(sprite, input) {
-	if (!input.mouseOver || !input.mouseOnPlayfield() || !isObjectTile(sprite)) return;
+function drawBodyCursor(body, input) {
+	if (!input.mouseOver || !input.mouseOnPlayfield() || !isBodyTile(body)) return;
 	const x = (input.mouseX >> TILE_SIZE_BITS) << TILE_SIZE_BITS;
 	const y = (input.mouseY >> TILE_SIZE_BITS) << TILE_SIZE_BITS;
-	switch (sprite) {
+	switch (body) {
 		case Tile.CAKE:
 			drawImage(cakeImage, x, y);
 			break;
@@ -127,7 +127,7 @@ function drawSpriteCursor(sprite, input) {
 		case Tile.GRAVPIPE_LEFT:
 		case Tile.GRAVPIPE_UP:
 		case Tile.GRAVPIPE_DOWN:
-			drawGravPipe(GRAVPIPE_DIRECTIONS[sprite], x, y);
+			drawGravPipe(GRAVPIPE_DIRECTIONS[body], x, y);
 			break;
 	}
 }

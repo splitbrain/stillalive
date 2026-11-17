@@ -3,7 +3,7 @@
  */
 
 import { BACKGROUND_COUNT, MAP_SIZE, NUM_TILES } from '../constants.js';
-import { Tile, isObjectTile } from './tiles.js';
+import { Tile, isBodyTile } from './tiles.js';
 
 /** @type {number} The version of the map file format. */
 export const MAP_FORMAT = 1;
@@ -106,7 +106,7 @@ const PORTAL_SIDES = ['up', 'down', 'left', 'right'];
 function isValidTile(tile, isBossLevel) {
 	return (
 		Number.isInteger(tile) &&
-		((tile >= 0 && tile < NUM_TILES) || isObjectTile(tile) || (tile === Tile.TUBE && isBossLevel))
+		((tile >= 0 && tile < NUM_TILES) || isBodyTile(tile) || (tile === Tile.TUBE && isBossLevel))
 	);
 }
 

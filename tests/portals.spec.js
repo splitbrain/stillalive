@@ -19,7 +19,7 @@ const RIGHT_MIDDLE = [200, 200, 508, 200];
  * The portal scenes by name. In each scene, the player or an object moves through the portals.
  *
  * @type {Object<string, {portals: number[][], player: number[], keys: number, ticks: number,
- *     object?: {type: string, x: number, y: number, vx?: number, vy?: number}}>}
+ *     body?: {type: string, x: number, y: number, vx?: number, vy?: number}}>}
  */
 const SCENES = {
 	'player-floor-to-ceiling': { portals: [FLOOR, CEILING], player: [206, 250], keys: 0, ticks: 150 },
@@ -28,35 +28,35 @@ const SCENES = {
 	'crate-floor-to-wall': {
 		portals: [FLOOR, RIGHT_MIDDLE],
 		player: [60, 340],
-		object: { type: 'crate', x: 199, y: 250 },
+		body: { type: 'crate', x: 199, y: 250 },
 		keys: 0,
 		ticks: 150,
 	},
 	'crate-floor-to-ceiling': {
 		portals: [FLOOR, CEILING],
 		player: [60, 340],
-		object: { type: 'crate', x: 199, y: 250 },
+		body: { type: 'crate', x: 199, y: 250 },
 		keys: 0,
 		ticks: 150,
 	},
 	'turret-floor-to-wall': {
 		portals: [FLOOR, LEFT_MIDDLE],
 		player: [400, 340],
-		object: { type: 'turret', x: 199, y: 250 },
+		body: { type: 'turret', x: 199, y: 250 },
 		keys: 0,
 		ticks: 150,
 	},
 	'plasma-wall-to-floor': {
 		portals: [RIGHT_MIDDLE, FLOOR],
 		player: [60, 340],
-		object: { type: 'plasma', x: 300, y: 200, vx: 424, vy: 0 },
+		body: { type: 'plasma', x: 300, y: 200, vx: 424, vy: 0 },
 		keys: 0,
 		ticks: 200,
 	},
 	'plasma-wall-to-wall': {
 		portals: [RIGHT_MIDDLE, LEFT_LOW],
 		player: [400, 100],
-		object: { type: 'plasma', x: 300, y: 200, vx: 424, vy: 0 },
+		body: { type: 'plasma', x: 300, y: 200, vx: 424, vy: 0 },
 		keys: 0,
 		ticks: 200,
 	},

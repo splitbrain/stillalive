@@ -220,16 +220,16 @@ export class PortalPair {
 	/**
 	 * Find the portal on one side that an object touches. The method does not change the object.
 	 *
-	 * @param {import('../bodies/Body.js').Body} obj The object. It must also have the speeds vx and vy.
+	 * @param {import('../bodies/Body.js').Body} body The object. It must also have the speeds vx and vy.
 	 * @param {number} side The side of the wall with the portal: Direction.LEFT, Direction.RIGHT, Direction.DOWN for a
 	 *     floor or Direction.UP for a ceiling.
 	 * @returns {{index: number, deep: boolean}|null} The index of the portal, and true in deep if the object moves into
 	 *     the portal far enough for a teleport, or null if the object touches no portal on this side.
 	 */
-	#findPortal(obj, side) {
-		const x = obj.pixelX;
-		const y = obj.pixelY;
-		if (!obj.canEnterPortal(side)) return null;
+	#findPortal(body, side) {
+		const x = body.pixelX;
+		const y = body.pixelY;
+		if (!body.canEnterPortal(side)) return null;
 
 		for (const [index, portal] of this.list.entries()) {
 			if (!portal.used || portal.direction !== side || !this.other(portal).used) continue;
@@ -239,30 +239,30 @@ export class PortalPair {
 				case Direction.LEFT: {
 					const tx = px + 3;
 					const edge = x - 1;
-					if (y >= py - 6 && y + obj.height <= py + 2 * TILE_SIZE + 6 && edge < tx && tx - edge <= 20) {
-						return { index, deep: tx - edge >= obj.width >> 1 && obj.vx < 0 };
+					if (y >= py - 6 && y + body.height <= py + 2 * TILE_SIZE + 6 && edge < tx && tx - edge <= 20) {
+						return { index, deep: tx - edge >= body.width >> 1 && body.vx < 0 };
 					}
 					break;
 				}
 				case Direction.RIGHT: {
-					const edge = x + obj.width;
-					if (y >= py - 6 && y + obj.height <= py + 2 * TILE_SIZE + 6 && edge > px && edge - px <= 20) {
-						return { index, deep: edge - px >= obj.width >> 1 && obj.vx > 0 };
+					const edge = x + body.width;
+					if (y >= py - 6 && y + body.height <= py + 2 * TILE_SIZE + 6 && edge > px && edge - px <= 20) {
+						return { index, deep: edge - px >= body.width >> 1 && body.vx > 0 };
 					}
 					break;
 				}
 				case Direction.DOWN: {
-					const edge = y + obj.height;
-					if (x >= px - 4 && x + obj.width < px + 2 * TILE_SIZE + 4 && edge >= py && edge - py <= 20) {
-						return { index, deep: edge - py >= 16 && obj.vy > 0 };
+					const edge = y + body.height;
+					if (x >= px - 4 && x + body.width < px + 2 * TILE_SIZE + 4 && edge >= py && edge - py <= 20) {
+						return { index, deep: edge - py >= 16 && body.vy > 0 };
 					}
 					break;
 				}
 				case Direction.UP: {
 					const ty = py + 4;
 					const edge = y - 1;
-					if (x >= px - 4 && x + obj.width < px + 2 * TILE_SIZE + 4 && edge < ty && ty - edge <= 20) {
-						return { index, deep: ty - edge >= 16 && obj.vy < 0 };
+					if (x >= px - 4 && x + body.width < px + 2 * TILE_SIZE + 4 && edge < ty && ty - edge <= 20) {
+						return { index, deep: ty - edge >= 16 && body.vy < 0 };
 					}
 					break;
 				}
@@ -274,24 +274,24 @@ export class PortalPair {
 	/**
 	 * Check if an object touches a portal on one side. The method does not change the object.
 	 *
-	 * @param {import('../bodies/Body.js').Body} obj The object. It must also have the speeds vx and vy.
+	 * @param {import('../bodies/Body.js').Body} body The object. It must also have the speeds vx and vy.
 	 * @param {number} side The side of the wall with the portal, a value of Direction.
 	 * @returns {Portal|null} The portal, or null if the object touches no portal on this side.
 	 */
-	portalAt(obj, side) {
-		const found = this.#findPortal(obj, side);
+	portalAt(body, side) {
+		const found = this.#findPortal(body, side);
 		return found ? this.list[found.index] : null;
 	}
 
 	/**
 	 * Check if an object touches a portal. The method does not change the object.
 	 *
-	 * @param {import('../bodies/Body.js').Body} obj The object. It must also have the speeds vx and vy.
+	 * @param {import('../bodies/Body.js').Body} body The object. It must also have the speeds vx and vy.
 	 * @returns {Portal|null} The portal, or null if the object touches no portal.
 	 */
-	isInPortal(obj) {
+	isInPortal(body) {
 		for (const side of PORTAL_CHECK_SIDES) {
-			const index = this.portalAt(obj, side);
+			const index = this.portalAt(body, side);
 			if (index) return index;
 		}
 		return null;
@@ -301,28 +301,28 @@ export class PortalPair {
 	 * Move an object through a portal on one side. An object in the portal moves to the middle of the portal. The object
 	 * teleports to the other portal when it moves into the portal far enough.
 	 *
-	 * @param {import('../bodies/Body.js').Body} obj The object. It must also have the speeds vx and vy.
+	 * @param {import('../bodies/Body.js').Body} body The object. It must also have the speeds vx and vy.
 	 * @param {number} side The side of the wall with the portal, a value of Direction.
 	 * @returns {Portal|null} The portal, or null if the object touches no portal on this side.
 	 */
-	passPortal(obj, side) {
-		const found = this.#findPortal(obj, side);
+	passPortal(body, side) {
+		const found = this.#findPortal(body, side);
 		if (!found) return null;
 		const portal = this.list[found.index];
-		obj.alignToPortal(portal, side);
-		if (found.deep) this.#teleport(portal, this.list[1 - found.index], obj);
+		body.alignToPortal(portal, side);
+		if (found.deep) this.#teleport(portal, this.list[1 - found.index], body);
 		return portal;
 	}
 
 	/**
 	 * Move an object through a portal on any side.
 	 *
-	 * @param {import('../bodies/Body.js').Body} obj The object. It must also have the speeds vx and vy.
+	 * @param {import('../bodies/Body.js').Body} body The object. It must also have the speeds vx and vy.
 	 * @returns {Portal|null} The portal, or null if the object touches no portal.
 	 */
-	passPortals(obj) {
+	passPortals(body) {
 		for (const side of PORTAL_CHECK_SIDES) {
-			const index = this.passPortal(obj, side);
+			const index = this.passPortal(body, side);
 			if (index) return index;
 		}
 		return null;
@@ -333,24 +333,24 @@ export class PortalPair {
 	 *
 	 * @param {Portal} entry The portal that the object enters.
 	 * @param {Portal} exit The other portal.
-	 * @param {import('../bodies/Body.js').Body} obj The object.
+	 * @param {import('../bodies/Body.js').Body} body The object.
 	 * @returns {void}
 	 */
-	#teleport(entry, exit, obj) {
+	#teleport(entry, exit, body) {
 		playSound(sfx_enterPortal);
 
 		if (DIRECTIONS[exit.direction].horizontal) {
-			const gap = (2 * TILE_SIZE - obj.height) >> 1;
-			obj.x = exit.x - toSubpixels(obj.width >> 1);
-			obj.y = exit.y + toSubpixels(gap);
+			const gap = (2 * TILE_SIZE - body.height) >> 1;
+			body.x = exit.x - toSubpixels(body.width >> 1);
+			body.y = exit.y + toSubpixels(gap);
 		} else {
 			// an object that comes out of a ceiling starts 4 pixels lower
 			const drop = exit.direction === Direction.UP ? toSubpixels(4) : 0;
-			obj.x = exit.x + toSubpixels(TILE_SIZE / 2);
-			obj.y = exit.y - toSubpixels(obj.height >> 1) + drop;
+			body.x = exit.x + toSubpixels(TILE_SIZE / 2);
+			body.y = exit.y - toSubpixels(body.height >> 1) + drop;
 		}
 
-		obj.teleported(entry, exit);
+		body.teleported(entry, exit);
 	}
 
 	/**
@@ -383,13 +383,13 @@ export class PortalPair {
 	 */
 	clearPortals() {
 		const world = this.world;
-		const objects = [
+		const bodies = [
 			...world.crates.filter((crate) => crate.shrink === 0),
 			...world.turrets.filter((turret) => !turret.dead),
 			...world.plasmaBall.slice(0, 1),
 			world.player,
 		];
-		if (!objects.some((obj) => this.isInPortal(obj))) this.#removePortals();
+		if (!bodies.some((body) => this.isInPortal(body))) this.#removePortals();
 	}
 
 	/**

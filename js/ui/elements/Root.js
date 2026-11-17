@@ -4,7 +4,7 @@
 
 import { navigate, route, RouteName, routePath, up } from '../../router.js';
 import { CampaignId, LEVELS_PER_CAMPAIGN, StageMode } from '../../stage/constants.js';
-import { campaignByFolder, campaigns, campaignsReady } from '../../data/campaigns.js';
+import { campaignById, campaigns, campaignsReady } from '../../data/campaigns.js';
 import { alertDialog } from '../dialog.js';
 import { setAttributes } from '../dom.js';
 import { Screen, UiElement } from '../element.js';
@@ -126,7 +126,7 @@ export class Root extends UiElement {
 			const current = route.get();
 			if (current.name !== RouteName.SELECT) return;
 			const { level } = /** @type {CustomEvent<{level: number}>} */ (event).detail;
-			this.#previewLevel(campaignByFolder(current.campaign), level);
+			this.#previewLevel(campaignById(current.campaign), level);
 		});
 		this.addEventListener('replay-watch', () => {
 			const current = route.get();
@@ -277,7 +277,7 @@ export class Root extends UiElement {
 			return;
 		}
 		const current = route.get();
-		const campaign = campaignByFolder(current.campaign);
+		const campaign = campaignById(current.campaign);
 		if (current.level > 0) {
 			const usable =
 				current.name === RouteName.REPLAY ? campaign.levels[current.level - 1] != null : campaign.isOpen(current.level);
@@ -549,7 +549,7 @@ export class Root extends UiElement {
 			this.#leaveReplay();
 			return;
 		}
-		const campaign = campaignByFolder(current.campaign);
+		const campaign = campaignById(current.campaign);
 		let credits = false;
 		const message = await this.#checkBestTime(current, time, replay);
 		if (campaign.id !== CampaignId.CUSTOM && maxLevel[campaign.id].get() < current.level + 1) {

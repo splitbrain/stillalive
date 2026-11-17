@@ -3,7 +3,7 @@
  */
 
 import { routePath, RouteName } from '../../router.js';
-import { campaignByFolder } from '../../data/campaigns.js';
+import { campaignById } from '../../data/campaigns.js';
 import { dispatch } from '../dom.js';
 import { loadMarkup, Screen } from '../element.js';
 import { bestTimes, getBestTime, maxLevel } from '../../data/storage.js';
@@ -17,7 +17,7 @@ const TEMPLATE = await loadMarkup(import.meta.url);
  * The custom element <ui-level-selection>. It shows the levels of a campaign on the select screen, on top of the
  * preview of a level.
  *
- * The attribute campaign is the folder name of the campaign, and the attribute level is the selected level number, or
+ * The attribute campaign is the campaign id, and the attribute level is the selected level number, or
  * 0 for none. Without a selected level, the element shows the level list. With a selected level, the element shows
  * the details of the level. The back link goes up from the details to the level list, and from the level list to the
  * main menu. The pointer on a level of the list dispatches the bubbling event level-shown with the level number in
@@ -36,7 +36,10 @@ export class LevelSelection extends Selection {
 	 * @returns {Array<() => void>} The functions that remove the subscriptions.
 	 */
 	subscribe() {
-		return [bestTimes.subscribe(() => this.render()), ...maxLevel.map((value) => value.subscribe(() => this.render()))];
+		return [
+			bestTimes.subscribe(() => this.render()),
+			...Object.values(maxLevel).map((value) => value.subscribe(() => this.render())),
+		];
 	}
 
 	/**
@@ -46,15 +49,15 @@ export class LevelSelection extends Selection {
 	 * @returns {void}
 	 */
 	render() {
-		const folder = this.getAttribute('campaign');
-		const campaign = campaignByFolder(folder);
+		const id = this.getAttribute('campaign');
+		const campaign = campaignById(id);
 		if (!campaign) return;
 		const level = Number(this.getAttribute('level') ?? 0);
 		const list = /** @type {HTMLElement} */ (this.querySelector('ui-level-list'));
 		list.hidden = level > 0;
-		list.setAttribute('campaign', folder);
+		list.setAttribute('campaign', id);
 		/** @type {HTMLElement} */ (this.querySelector('.details')).hidden = level === 0;
-		this.querySelector('.back').setAttribute('href', level > 0 ? routePath(RouteName.SELECT, folder) : '#/');
+		this.querySelector('.back').setAttribute('href', level > 0 ? routePath(RouteName.SELECT, id) : '#/');
 		if (level > 0) this.#renderDetails(campaign, level);
 	}
 
@@ -67,18 +70,18 @@ export class LevelSelection extends Selection {
 	 * @returns {void}
 	 */
 	#renderDetails(campaign, level) {
-		const folder = campaign.folder;
+		const id = campaign.id;
 		const title = campaign.levels[level - 1]?.title ?? '';
-		const best = getBestTime(folder, level);
+		const best = getBestTime(id, level);
 		this.querySelector('.title').textContent = title || `Level ${level}`;
 		const number = /** @type {HTMLElement} */ (this.querySelector('.number'));
 		number.hidden = title === '';
 		number.textContent = `Level ${level}`;
 		this.querySelector('.best span').textContent = best === null ? '-' : toTime(best);
-		this.querySelector('.play').setAttribute('href', routePath(RouteName.PLAY, folder, level));
+		this.querySelector('.play').setAttribute('href', routePath(RouteName.PLAY, id, level));
 		const replay = this.querySelector('.replay');
 		if (best === null) replay.removeAttribute('href');
-		else replay.setAttribute('href', routePath(RouteName.REPLAY, folder, level));
+		else replay.setAttribute('href', routePath(RouteName.REPLAY, id, level));
 	}
 
 	/**

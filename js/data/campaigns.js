@@ -7,7 +7,7 @@ import { MAP_FORMAT, parseMap } from '../stage/mapFile.js';
 import { Value } from '../value.js';
 import { editorMap, getBestTime, maxLevel } from './storage.js';
 
-/** @type {Campaign[]} The loaded campaigns, by campaign id. */
+/** @type {Campaign[]} The loaded campaigns, in the order of CAMPAIGN_FOLDERS. */
 export let campaigns;
 /** @type {number} The number of loaded or failed campaign and level files. */
 let levelsLoaded = 0;
@@ -33,16 +33,13 @@ export const campaignsReady = new Value(false);
  */
 export class Campaign {
 	/**
-	 * @param {number} id The campaign id, the index in the campaigns list.
-	 * @param {string} folder The folder name of the campaign below maps/.
+	 * @param {string} id The campaign id, the folder name of the campaign below maps/.
 	 */
-	constructor(id, folder) {
-		/** @type {number} The campaign id, the index in the campaigns list. */
+	constructor(id) {
+		/** @type {string} The campaign id, the folder name of the campaign below maps/. */
 		this.id = id;
-		/** @type {string} The folder name of the campaign below maps/. */
-		this.folder = folder;
 		/** @type {string} The name of the campaign in the main menu. */
-		this.title = folder;
+		this.title = id;
 		/** @type {number} The position of the campaign in the main menu, low numbers first. */
 		this.sort = 0;
 		/** @type {string} The folder of the campaign that the main menu shows this campaign under, or empty for none. */
@@ -124,11 +121,10 @@ class CustomCampaign extends Campaign {
 	/**
 	 * Make the levels from the editor maps, and make them again when a slot changes.
 	 *
-	 * @param {number} id The campaign id, the index in the campaigns list.
-	 * @param {string} folder The name of the campaign in the routes and in the storage keys.
+	 * @param {string} id The campaign id, the name of the campaign in the routes and in the storage keys.
 	 */
-	constructor(id, folder) {
-		super(id, folder);
+	constructor(id) {
+		super(id);
 		this.title = 'My Levels';
 		for (let slot = 1; slot <= LEVELS_PER_CAMPAIGN; slot++) {
 			editorMap(slot).subscribe((map) => (this.levels[slot - 1] = this.#createLevel(slot, map)));
@@ -145,7 +141,7 @@ class CustomCampaign extends Campaign {
 	#createLevel(slot, map) {
 		if (map == null) return null;
 		try {
-			return { ...parseMap({ format: MAP_FORMAT, ...map }), campaign: this.folder, number: slot, fromBelow: false };
+			return { ...parseMap({ format: MAP_FORMAT, ...map }), campaign: this.id, number: slot, fromBelow: false };
 		} catch {
 			return null;
 		}
@@ -157,7 +153,7 @@ class CustomCampaign extends Campaign {
 	 * @returns {number} The number of finished levels.
 	 */
 	get completed() {
-		return this.levels.filter((level) => level != null && getBestTime(this.folder, level.number) !== null).length;
+		return this.levels.filter((level) => level != null && getBestTime(this.id, level.number) !== null).length;
 	}
 
 	/**
@@ -176,22 +172,20 @@ class CustomCampaign extends Campaign {
  * @returns {void}
  */
 export function loadCampaigns() {
-	campaigns = CAMPAIGN_FOLDERS.map((folder, id) =>
-		id === CampaignId.CUSTOM ? new CustomCampaign(id, folder) : new Campaign(id, folder),
-	);
+	campaigns = CAMPAIGN_FOLDERS.map((id) => (id === CampaignId.CUSTOM ? new CustomCampaign(id) : new Campaign(id)));
 	for (const campaign of campaigns) {
-		if (campaign.id !== CampaignId.CUSTOM) loadCampaignFiles(campaign.id);
+		if (campaign.id !== CampaignId.CUSTOM) loadCampaignFiles(campaign);
 	}
 }
 
 /**
- * Get a campaign by its folder name.
+ * Get a campaign by its id.
  *
- * @param {string} folder The folder name of the campaign.
+ * @param {string} id The campaign id, the folder name of the campaign.
  * @returns {Campaign|null} The campaign, or null if there is none or the campaigns are not loaded.
  */
-export function campaignByFolder(folder) {
-	return campaigns?.[CAMPAIGN_FOLDERS.indexOf(folder)] ?? null;
+export function campaignById(id) {
+	return campaigns?.find((campaign) => campaign.id === id) ?? null;
 }
 
 /**
@@ -212,17 +206,17 @@ export function listCampaigns() {
  * - sort: the position in the main menu, low numbers first. The default is 0.
  * - parent: the folder name of the campaign that the main menu shows this campaign under. The default is none.
  *
- * @param {number} camp The index of the campaign.
+ * @param {Campaign} campaign The campaign.
  * @returns {void}
  */
-function loadCampaignFiles(camp) {
-	const folder = `maps/${campaigns[camp].folder}`;
+function loadCampaignFiles(campaign) {
+	const folder = `maps/${campaign.id}`;
 	loadLevelJsonFile(`${folder}/campaign.json`, function (data) {
-		if (typeof data.title === 'string') campaigns[camp].title = data.title;
-		campaigns[camp].sort = Number.isFinite(data.sort) ? data.sort : 0;
-		campaigns[camp].parent = typeof data.parent === 'string' ? data.parent : '';
+		if (typeof data.title === 'string') campaign.title = data.title;
+		campaign.sort = Number.isFinite(data.sort) ? data.sort : 0;
+		campaign.parent = typeof data.parent === 'string' ? data.parent : '';
 		levelsToLoad += data.levels.length;
-		for (const [i, file] of data.levels.entries()) loadLevelFile(camp, i, `${folder}/${file}`);
+		for (const [i, file] of data.levels.entries()) loadLevelFile(campaign, i, `${folder}/${file}`);
 		fileLoaded();
 	});
 }
@@ -231,18 +225,18 @@ function loadCampaignFiles(camp) {
  * Load a level file of a campaign. In level 8 of the normal and the advanced campaign, the player jumps into the level
  * from below the bottom edge.
  *
- * @param {number} camp The index of the campaign.
+ * @param {Campaign} campaign The campaign.
  * @param {number} index The index of the level in the campaign, starting at 0.
  * @param {string} url The URL of the level file.
  * @returns {void}
  */
-function loadLevelFile(camp, index, url) {
+function loadLevelFile(campaign, index, url) {
 	loadLevelJsonFile(url, function (data) {
-		campaigns[camp].levels[index] = {
+		campaign.levels[index] = {
 			...parseMap(data),
-			campaign: campaigns[camp].folder,
+			campaign: campaign.id,
 			number: index + 1,
-			fromBelow: index === 7 && camp <= CampaignId.ADVANCED,
+			fromBelow: index === 7 && [CampaignId.NORMAL, CampaignId.ADVANCED].includes(campaign.id),
 		};
 		fileLoaded();
 	});

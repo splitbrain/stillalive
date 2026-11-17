@@ -9,17 +9,16 @@ import { readFileSync } from 'node:fs';
 import { CAMPAIGN_FOLDERS, CampaignId } from '../js/stage/constants.js';
 
 /**
- * The campaigns with their index in the campaigns array of the game and their number of levels from the campaign
- * file. The custom campaign has no campaign file, so it is not in the list.
+ * The campaigns with their id, which is the folder name, and their number of levels from the campaign file. The custom
+ * campaign has no campaign file, so it is not in the list.
  *
- * @type {{name: string, index: number, levels: number}[]}
+ * @type {{name: string, levels: number}[]}
  */
-export const CAMPAIGNS = CAMPAIGN_FOLDERS.flatMap((name, index) =>
-	index === CampaignId.CUSTOM
+export const CAMPAIGNS = CAMPAIGN_FOLDERS.flatMap((name) =>
+	name === CampaignId.CUSTOM
 		? []
 		: {
 				name,
-				index,
 				levels: JSON.parse(readFileSync(new URL(`../maps/${name}/campaign.json`, import.meta.url), 'utf8')).levels
 					.length,
 			},
@@ -35,7 +34,7 @@ export const SNAPSHOT_INTERVAL = 60;
 /**
  * Get the levels of a campaign.
  *
- * @param {{name: string, index: number, levels: number}} campaign The campaign.
+ * @param {{name: string, levels: number}} campaign The campaign.
  * @returns {{level: number, id: string, boss: number}[]} One entry for each level. The id is the campaign name and the
  *     level number with two digits, e.g. "normal-07". The boss comes from the level file, 0 for a level without a boss.
  */
@@ -353,7 +352,7 @@ export async function finishLevel(page) {
  *
  * @param {import('@playwright/test').Page} page The Playwright page.
  * @param {object} options The run options.
- * @param {number} options.campaign The index of the campaign.
+ * @param {string} options.campaign The campaign id.
  * @param {number} options.level The level number, starting at 1.
  * @param {number} options.ticks The number of ticks to run.
  * @param {number} options.seed The seed for Math.random().
@@ -371,10 +370,10 @@ export async function runLevel(
 ) {
 	return page.evaluate(
 		async ({ campaign, level, ticks, seed, inputs, replay: replayData, skipBossIntro, interval }) => {
-			const { campaigns } = await import('/js/data/campaigns.js');
+			const { campaignById } = await import('/js/data/campaigns.js');
 			const hooks = window.__test;
 			const { input, stage } = hooks;
-			const levelData = campaigns[campaign].levels[level - 1];
+			const levelData = campaignById(campaign).levels[level - 1];
 			let state = seed >>> 0;
 			Math.random = () => {
 				state = (state + 0x6d2b79f5) >>> 0;
@@ -491,11 +490,11 @@ export async function runPortalScene(page, scene) {
 	return page.evaluate(async (scene) => {
 		const hooks = window.__test;
 		const { input, stage } = hooks;
-		const { campaigns } = await import('/js/data/campaigns.js');
+		const { campaignById } = await import('/js/data/campaigns.js');
 		const { Crate } = await import('/js/stage/entities/Crate.js');
 		const { Turret } = await import('/js/stage/entities/Turret.js');
 		const { Plasma } = await import('/js/stage/entities/Plasma.js');
-		const { MAP_HEIGHT, MAP_WIDTH } = await import('/js/stage/constants.js');
+		const { CampaignId, MAP_HEIGHT, MAP_WIDTH } = await import('/js/stage/constants.js');
 		const { Tile } = await import('/js/stage/tiles.js');
 		let state = scene.seed >>> 0;
 		Math.random = () => {
@@ -506,7 +505,7 @@ export async function runPortalScene(page, scene) {
 			return ((mixed ^ (mixed >>> 14)) >>> 0) / 4294967296;
 		};
 
-		stage.play(campaigns[0].levels[0]);
+		stage.play(campaignById(CampaignId.NORMAL).levels[0]);
 		const world = hooks.world();
 		world.map.replace(
 			world.map.tiles.map((tile, i) => {

@@ -35,7 +35,7 @@ for (const campaign of CAMPAIGNS) {
 			let played = null;
 			for (let attempt = 0; attempt < (isBoss ? BOSS_ATTEMPTS : 1) && played === null; attempt++) {
 				const run = await runLevel(page, {
-					campaign: campaign.index,
+					campaign: campaign.name,
 					level,
 					ticks: TICKS,
 					seed: hashString(`replay ${id}`),
@@ -53,7 +53,7 @@ for (const campaign of CAMPAIGNS) {
 
 			const replay = await recordedReplay(page);
 			const replayed = await runLevel(page, {
-				campaign: campaign.index,
+				campaign: campaign.name,
 				level,
 				ticks: TICKS,
 				seed: hashString(`replay playback ${id}`),

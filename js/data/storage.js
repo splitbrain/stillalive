@@ -37,7 +37,7 @@ let database = null;
 /**
  * Get the storage key of a level.
  *
- * @param {string} campaign The folder name of the campaign, e.g. "normal".
+ * @param {string} campaign The campaign id, e.g. "normal".
  * @param {number} level The level number, starting at 1.
  * @returns {string} The key, e.g. "normal-7".
  */
@@ -102,11 +102,11 @@ function readBestTimes() {
 /**
  * Read the highest unlocked level of each campaign.
  *
- * @returns {number[]} The highest unlocked level of each campaign, by campaign index.
+ * @returns {Object<string, number>} The highest unlocked level of each campaign, by campaign id.
  */
 function readProgress() {
 	const stored = readJsonItem(PROGRESS_KEY) ?? {};
-	return CAMPAIGN_FOLDERS.map((folder) => (Number.isInteger(stored[folder]) ? stored[folder] : 1));
+	return Object.fromEntries(CAMPAIGN_FOLDERS.map((id) => [id, Number.isInteger(stored[id]) ? stored[id] : 1]));
 }
 
 /**
@@ -118,12 +118,14 @@ function readProgress() {
 export const bestTimes = new Value(readBestTimes());
 
 /**
- * The highest unlocked level of each campaign, by campaign index. After the last level, it is the number of levels
- * plus one.
+ * The highest unlocked level of each campaign, by campaign id. After the last level, it is the number of levels plus
+ * one.
  *
- * @type {Value<number>[]}
+ * @type {Readonly<Object<string, Value<number>>>}
  */
-export const maxLevel = readProgress().map((level) => new Value(level));
+export const maxLevel = Object.freeze(
+	Object.fromEntries(Object.entries(readProgress()).map(([id, level]) => [id, new Value(level)])),
+);
 
 /** @type {Map<number, Value<MapFile|null>>} The editor map of each slot that the page has read, by slot number. */
 const editorMaps = new Map();
@@ -131,7 +133,7 @@ const editorMaps = new Map();
 // a different browser tab changed the storage
 window.addEventListener('storage', () => {
 	bestTimes.set(readBestTimes());
-	readProgress().forEach((level, i) => maxLevel[i].set(level));
+	for (const [id, level] of Object.entries(readProgress())) maxLevel[id].set(level);
 	for (const [slot, map] of editorMaps) map.set(readJsonItem(EDITOR_MAP_PREFIX + slot));
 });
 
@@ -170,7 +172,7 @@ async function replayRequest(mode, action) {
 /**
  * Get the best time of a level.
  *
- * @param {string} campaign The folder name of the campaign.
+ * @param {string} campaign The campaign id.
  * @param {number} level The level number, starting at 1.
  * @returns {number|null} The best time in ticks, or null if the player has not finished the level.
  */
@@ -181,7 +183,7 @@ export function getBestTime(campaign, level) {
 /**
  * Store a new best time and its replay. The time is only stored after the replay, so each stored time has a replay.
  *
- * @param {string} campaign The folder name of the campaign.
+ * @param {string} campaign The campaign id.
  * @param {number} level The level number, starting at 1.
  * @param {number} ticks The time in ticks.
  * @param {import('../stage/replay.js').ReplayFile} replayData The replay in the file format.
@@ -197,7 +199,7 @@ export async function saveBestTime(campaign, level, ticks, replayData) {
 /**
  * Get the replay of the best time of a level.
  *
- * @param {string} campaign The folder name of the campaign.
+ * @param {string} campaign The campaign id.
  * @param {number} level The level number, starting at 1.
  * @returns {Promise<import('../stage/replay.js').ReplayFile|undefined>} The replay in the file format, or undefined if
  *     there is none.
@@ -227,7 +229,7 @@ export function editorMap(slot) {
  */
 export function saveEditorMap(slot, map) {
 	if (!writeItem(EDITOR_MAP_PREFIX + slot, JSON.stringify(map))) return false;
-	deleteBestTime(CAMPAIGN_FOLDERS[CampaignId.CUSTOM], slot);
+	deleteBestTime(CampaignId.CUSTOM, slot);
 	editorMap(slot).set(map);
 	return true;
 }
@@ -235,7 +237,7 @@ export function saveEditorMap(slot, map) {
 /**
  * Delete the best time and the replay of a level. The time goes first, so each stored time keeps its replay.
  *
- * @param {string} campaign The folder name of the campaign.
+ * @param {string} campaign The campaign id.
  * @param {number} level The level number, starting at 1.
  * @returns {void}
  */
@@ -251,13 +253,13 @@ function deleteBestTime(campaign, level) {
 /**
  * Store a new highest unlocked level of a campaign.
  *
- * @param {number} campaign The campaign index.
+ * @param {string} campaign The campaign id.
  * @param {number} level The highest unlocked level.
  * @returns {void}
  */
 export function saveProgress(campaign, level) {
 	maxLevel[campaign].set(level);
-	const progress = Object.fromEntries(CAMPAIGN_FOLDERS.map((folder, i) => [folder, maxLevel[i].get()]));
+	const progress = Object.fromEntries(CAMPAIGN_FOLDERS.map((id) => [id, maxLevel[id].get()]));
 	writeItem(PROGRESS_KEY, JSON.stringify(progress));
 }
 

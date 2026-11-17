@@ -13,7 +13,7 @@ for (const campaign of CAMPAIGNS) {
 		await openGame(page);
 		for (const { level, id } of campaignLevels(campaign)) {
 			const result = await runLevel(page, {
-				campaign: campaign.index,
+				campaign: campaign.name,
 				level,
 				ticks: TICKS,
 				seed: hashString(`idle ${id}`),

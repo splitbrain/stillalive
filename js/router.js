@@ -40,7 +40,7 @@ export const RouteName = Object.freeze({
  *
  * @typedef {object} Route
  * @property {string} name The name of the route, a value of RouteName.
- * @property {string|null} campaign The folder name of the campaign, or null if the route has no campaign.
+ * @property {string|null} campaign The campaign id, or null if the route has no campaign.
  * @property {number} level The level number, starting at 1, or 0 if the route has no level.
  */
 
@@ -57,7 +57,7 @@ const HASH_PATTERN = /^#\/([a-z]+)(?:\/([a-z]+)(?:\/([1-9]\d*))?)?$/;
  * Create a route.
  *
  * @param {string} name The name of the route.
- * @param {string|null} [campaign] The folder name of the campaign.
+ * @param {string|null} [campaign] The campaign id.
  * @param {number} [level] The level number.
  * @returns {Route} The route.
  */
@@ -66,7 +66,7 @@ function createRoute(name, campaign = null, level = 0) {
 }
 
 /**
- * Parse a hash of the form #/name/campaign/level. The campaign is the folder name of a known campaign, and the level
+ * Parse a hash of the form #/name/campaign/level. The campaign is the id of a known campaign, and the level
  * can be any number from 1.
  *
  * The hash #/ or an empty hash is the main route. The hashes #/credits, #/editor, #/test, #/save and #/load have no
@@ -151,7 +151,7 @@ document.addEventListener('click', (event) => {
  * Get the path of a route.
  *
  * @param {string} name The name of the route, a value of RouteName.
- * @param {string|null} [campaign] The folder name of the campaign, or null for a route without a campaign.
+ * @param {string|null} [campaign] The campaign id, or null for a route without a campaign.
  * @param {number} [level] The level number, or 0 for a route without a level.
  * @returns {string} The path, e.g. "#/play/normal/5", or "#/" for the main route.
  */

@@ -4,7 +4,7 @@
 
 import { routePath, RouteName } from '../../router.js';
 import { CampaignId, LEVELS_PER_CAMPAIGN } from '../../stage/constants.js';
-import { campaigns, campaignsReady, listCampaigns } from '../../data/campaigns.js';
+import { campaignById, campaignsReady, listCampaigns } from '../../data/campaigns.js';
 import { settingLabel } from '../dom.js';
 import { loadMarkup, Screen, UiElement } from '../element.js';
 import { bestTimes, editorMap, maxLevel } from '../../data/storage.js';
@@ -50,7 +50,7 @@ export class MainMenu extends UiElement {
 				musicIcon.alt = settingLabel('Music', on);
 			}),
 			campaignsReady.subscribe(() => this.render()),
-			...maxLevel.map((value) => value.subscribe(() => this.render())),
+			...Object.values(maxLevel).map((value) => value.subscribe(() => this.render())),
 			bestTimes.subscribe(() => this.render()),
 			...slots.map((value) => value.subscribe(() => this.render())),
 		];
@@ -71,7 +71,7 @@ export class MainMenu extends UiElement {
 		for (const campaign of listCampaigns()) {
 			if (campaign.id === CampaignId.CUSTOM || (campaign.id === CampaignId.TEST && !showTest)) continue;
 			const item = this.#createItem(campaign);
-			items.set(campaign.folder, item);
+			items.set(campaign.id, item);
 			const parent = items.get(campaign.parent);
 			if (parent) {
 				let list = parent.querySelector('ul');
@@ -82,7 +82,7 @@ export class MainMenu extends UiElement {
 			}
 		}
 		this.querySelector('.campaigns').replaceChildren(...top);
-		const custom = campaigns[CampaignId.CUSTOM];
+		const custom = campaignById(CampaignId.CUSTOM);
 		this.querySelector('.custom').replaceChildren(...(custom.unlocked ? [this.#createItem(custom, true)] : []));
 	}
 
@@ -98,7 +98,7 @@ export class MainMenu extends UiElement {
 		const count = document.createElement('span');
 		count.textContent = `${campaign.completed}/${campaign.levelCount}`;
 		const link = document.createElement('a');
-		link.href = routePath(RouteName.SELECT, campaign.folder);
+		link.href = routePath(RouteName.SELECT, campaign.id);
 		link.append(campaign.title, ' ', count);
 		const button = document.createElement('ui-button');
 		button.toggleAttribute('small', small || campaign.parent !== '');

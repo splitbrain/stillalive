@@ -95,22 +95,25 @@ export const PLAYFIELD_HEIGHT = MAP_HEIGHT * TILE_SIZE;
 /** @type {number} The number of level backgrounds. A map selects one by its index. */
 export const BACKGROUND_COUNT = 11;
 
-/** @type {Object<string, number>} The campaigns and their index in the campaigns list. */
-export const CampaignId = {
-	NORMAL: 0,
-	ADVANCED: 1,
-	COMMUNITY: 2,
-	TUTORIAL: 3,
-	STORY: 4,
-	TEST: 5,
-	CUSTOM: 6,
-};
-
 /**
- * @type {string[]} The folder names of the campaigns in the maps folder, by campaign id. The custom campaign has no
- *     folder. Its levels are the editor maps in the slots.
+ * The ids of the campaigns. The id of a campaign is the name of its folder in the maps folder, and the routes and the
+ * storage keys use it. The custom campaign has no folder. Its levels are the editor maps in the slots.
+ *
+ * @type {Readonly<{NORMAL: string, ADVANCED: string, COMMUNITY: string, TUTORIAL: string, STORY: string, TEST: string,
+ *     CUSTOM: string}>}
  */
-export const CAMPAIGN_FOLDERS = ['normal', 'advanced', 'community', 'tutorial', 'story', 'test', 'custom'];
+export const CampaignId = Object.freeze({
+	NORMAL: 'normal',
+	ADVANCED: 'advanced',
+	COMMUNITY: 'community',
+	TUTORIAL: 'tutorial',
+	STORY: 'story',
+	TEST: 'test',
+	CUSTOM: 'custom',
+});
+
+/** @type {string[]} The folder names of all campaigns, which are their ids, in the order of the campaigns list. */
+export const CAMPAIGN_FOLDERS = Object.values(CampaignId);
 
 /**
  * The modes of the stage: what the stage shows. The stage is idle without a session. A play session plays a level or

@@ -1,5 +1,5 @@
 /**
- * The changes of the editor to a map: the wall shapes, the fill, the removal of overlapping objects and the object
+ * The changes of the editor to a map: the wall shapes, the fill, the removal of overlapping bodies and the body
  * limits.
  */
 
@@ -97,10 +97,10 @@ function isTileHere(map, x, y) {
 	return isTileKind(map.tiles[map.index(x, y)], TileKind.WALL, TileKind.DECOR) ? 1 : 0;
 }
 
-/** @type {number[]} The objects that are wider than one tile: two tiles for a pipe, three for a platform. */
+/** @type {number[]} The bodies that are wider than one tile: two tiles for a pipe, three for a platform. */
 const WIDE_BODIES = [Tile.PLATFORM_RIGHT, Tile.PLATFORM_LEFT, Tile.GRAVPIPE_UP, Tile.GRAVPIPE_DOWN];
 
-/** @type {number[]} The objects that are two tiles high. */
+/** @type {number[]} The bodies that are two tiles high. */
 const TALL_BODIES = [Tile.PLAYER_START, Tile.TURRET_LEFT, Tile.TURRET_RIGHT, Tile.GRAVPIPE_RIGHT, Tile.GRAVPIPE_LEFT];
 
 /**
@@ -119,7 +119,7 @@ function eraseIf(map, x, y, test) {
 }
 
 /**
- * Remove the object above a map position if the object reaches into the position: the player start, a turret or a
+ * Remove the body above a map position if the body reaches into the position: the player start, a turret or a
  * gravitational pipe.
  *
  * @param {TileMap} map The map. The function changes the logic layer.
@@ -138,12 +138,12 @@ export function eraseBodyAbove(map, x, y) {
 }
 
 /**
- * Remove the objects that overlap a new object, because an object covers more than one tile.
+ * Remove the bodies that overlap a new body, because a body covers more than one tile.
  *
  * @param {TileMap} map The map. The function changes the logic layer.
- * @param {number} body The id of the new object.
- * @param {number} column The column of the new object.
- * @param {number} row The row of the new object.
+ * @param {number} body The id of the new body.
+ * @param {number} column The column of the new body.
+ * @param {number} row The row of the new body.
  * @returns {void}
  */
 export function eraseBodies(map, body, column, row) {
@@ -162,17 +162,17 @@ export function eraseBodies(map, body, column, row) {
 	}
 
 	eraseBodyAbove(map, column, row);
-	// the wide objects to the left reach into the position
+	// the wide bodies to the left reach into the position
 	eraseIf(map, column - 1, row, (tile) => WIDE_BODIES.includes(tile));
 	eraseIf(map, column - 2, row, (tile) => tile === Tile.PLATFORM_RIGHT || tile === Tile.PLATFORM_LEFT);
 }
 
 /**
- * Check if the map can take one more object of a type. Each type has a limit.
+ * Check if the map can take one more body of a type. Each type has a limit.
  *
  * @param {TileMap} map The map. The function reads the logic layer.
- * @param {number} tile The object id.
- * @returns {boolean} True if the object can be placed.
+ * @param {number} tile The body id.
+ * @returns {boolean} True if the body can be placed.
  */
 export function allowTile(map, tile) {
 	switch (tile) {

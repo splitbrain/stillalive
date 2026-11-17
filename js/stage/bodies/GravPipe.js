@@ -6,11 +6,11 @@ import { Body } from './Body.js';
 import { TILE_SIZE } from '../constants.js';
 
 /**
- * A gravitational pipe that pushes objects in one direction.
+ * A gravitational pipe that pushes bodies in one direction.
  */
 export class GravPipe extends Body {
 	/**
-	 * @param {import('../world/World.js').World} world The World of the object.
+	 * @param {import('../world/World.js').World} world The World of the body.
 	 * @param {number} x The x position in 1/256 pixels.
 	 * @param {number} y The y position in 1/256 pixels.
 	 * @param {number} dir The direction of the push: Direction.UP, Direction.DOWN, Direction.LEFT or Direction.RIGHT.

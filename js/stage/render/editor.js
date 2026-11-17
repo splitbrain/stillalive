@@ -1,5 +1,5 @@
 /**
- * Drawing of the level editor: the map with its objects.
+ * Drawing of the level editor: the map with its bodies.
  */
 
 import { ctx, drawImage } from '../browser/canvas.js';
@@ -20,9 +20,9 @@ import {
 } from './game.js';
 
 /**
- * Draw the cursor of the editor: the tile or the object that the editor paints, at the mouse.
+ * Draw the cursor of the editor: the tile or the body that the editor paints, at the mouse.
  *
- * @param {number} brush The tile id or the object id that the editor paints.
+ * @param {number} brush The tile id or the body id that the editor paints.
  * @param {import('../browser/InputState.js').InputState} input The mouse.
  * @returns {void}
  */
@@ -32,7 +32,7 @@ export function drawCursor(brush, input) {
 }
 
 /**
- * Draw the objects of the map in the editor.
+ * Draw the bodies of the map in the editor.
  *
  * @param {import('../world/World.js').World} world The World.
  * @returns {void}
@@ -47,7 +47,7 @@ function drawBodies(world) {
 }
 
 /**
- * Draw the tile layer of the editor: the background, the plasma start markers, the tiles and the objects. The objects
+ * Draw the tile layer of the editor: the background, the plasma start markers, the tiles and the bodies. The bodies
  * of the editor come from the map, so the layer changes only with the map and the background.
  *
  * @param {import('../editor/Editor.js').Editor} editor The editor.
@@ -91,9 +91,9 @@ function drawTileCursor(brush, input) {
 }
 
 /**
- * Draw the selected object at the mouse while the pointer is over the canvas and the mouse is over the map.
+ * Draw the selected body at the mouse while the pointer is over the canvas and the mouse is over the map.
  *
- * @param {number} body The object id that the editor paints.
+ * @param {number} body The body id that the editor paints.
  * @param {import('../browser/InputState.js').InputState} input The mouse.
  * @returns {void}
  */

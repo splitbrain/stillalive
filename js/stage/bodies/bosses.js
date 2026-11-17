@@ -12,7 +12,7 @@ import { toSubpixels } from '../utils.js';
  */
 export class CrateBoss extends Boss {
 	/**
-	 * @param {import('../world/World.js').World} world The World of the object.
+	 * @param {import('../world/World.js').World} world The World of the body.
 	 */
 	constructor(world) {
 		super(world, 1);
@@ -35,7 +35,7 @@ export class CrateBoss extends Boss {
  */
 export class WheelBoss extends Boss {
 	/**
-	 * @param {import('../world/World.js').World} world The World of the object.
+	 * @param {import('../world/World.js').World} world The World of the body.
 	 */
 	constructor(world) {
 		super(world, 2);
@@ -61,7 +61,7 @@ export class WheelBoss extends Boss {
  */
 export class PlasmaBoss extends Boss {
 	/**
-	 * @param {import('../world/World.js').World} world The World of the object.
+	 * @param {import('../world/World.js').World} world The World of the body.
 	 */
 	constructor(world) {
 		super(world, 3);
@@ -93,7 +93,7 @@ export class PlasmaBoss extends Boss {
  */
 export class FinalBoss extends Boss {
 	/**
-	 * @param {import('../world/World.js').World} world The World of the object.
+	 * @param {import('../world/World.js').World} world The World of the body.
 	 */
 	constructor(world) {
 		super(world, 4);

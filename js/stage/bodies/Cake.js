@@ -11,7 +11,7 @@ import { random, toSubpixels } from '../utils.js';
  */
 export class Cake extends Body {
 	/**
-	 * @param {import('../world/World.js').World} world The World of the object.
+	 * @param {import('../world/World.js').World} world The World of the body.
 	 * @param {number} x The x position in 1/256 pixels.
 	 * @param {number} y The y position in 1/256 pixels.
 	 */

@@ -187,9 +187,9 @@ function portalAt(direction, x = 0, y = 0) {
 }
 
 /**
- * Teleport an object with each start speed of SPEEDS for each pair of portal directions.
+ * Teleport a body with each start speed of SPEEDS for each pair of portal directions.
  *
- * @param {() => Body} create A function that creates the object.
+ * @param {() => Body} create A function that creates the body.
  * @returns {Object<string, number[][]>} The speeds [vx, vy] after the teleport, by the directions of the entry portal
  *     and the exit portal.
  */

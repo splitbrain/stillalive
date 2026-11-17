@@ -45,7 +45,7 @@ export class Player extends Body {
 	/**
 	 * Create the player at the origin with full life.
 	 *
-	 * @param {import('../world/World.js').World} world The World of the object.
+	 * @param {import('../world/World.js').World} world The World of the body.
 	 */
 	constructor(world) {
 		super(world, 0, 0, 15, 27);
@@ -185,7 +185,7 @@ export class Player extends Body {
 	}
 
 	/**
-	 * Pick up a crate or turret under the mouse while the left button is pressed, and throw the carried object when the
+	 * Pick up a crate or turret under the mouse while the left button is pressed, and throw the carried body when the
 	 * button is released. A grab searches the crates first and then the turrets.
 	 *
 	 * @returns {void}
@@ -205,10 +205,10 @@ export class Player extends Body {
 	}
 
 	/**
-	 * Find the object under the mouse that the player can pick up.
+	 * Find the body under the mouse that the player can pick up.
 	 *
-	 * @param {import('./Throwable.js').Throwable[]} bodies The objects to search.
-	 * @returns {import('./Throwable.js').Throwable|null} The first object near the player under the mouse, or null.
+	 * @param {import('./Throwable.js').Throwable[]} bodies The bodies to search.
+	 * @returns {import('./Throwable.js').Throwable|null} The first body near the player under the mouse, or null.
 	 */
 	#grabbableIn(bodies) {
 		const input = this.world.input;
@@ -265,7 +265,7 @@ export class Player extends Body {
 			if (this.pixelY < field.y) this.y += step;
 			else if (this.pixelY + this.height > field.y + 2 * TILE_SIZE) this.y -= step;
 		} else if (field.vy !== 0) {
-			// the height centers the player on the x axis, in the same way as moveObject()
+			// the margin uses the height of the player also on the x axis; Throwable.#centerInField() uses the width
 			const margin = TILE_SIZE - (this.height >> 1);
 			if (this.pixelX < field.x + margin) this.x += toSubpixels(1);
 			else if (this.pixelX + this.width > field.x + 2 * TILE_SIZE - margin) this.x -= toSubpixels(1);
@@ -426,7 +426,7 @@ export class Player extends Body {
 	}
 
 	/**
-	 * Update the player for one tick from the input and the level objects.
+	 * Update the player for one tick from the input and the level bodies.
 	 *
 	 * @returns {void}
 	 */

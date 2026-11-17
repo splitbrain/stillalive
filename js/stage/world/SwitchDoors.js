@@ -87,10 +87,10 @@ export class SwitchDoors {
 	}
 
 	/**
-	 * Check if a 16 by 16 object touches a switch door with one of its corners.
+	 * Check if a 16 by 16 body touches a switch door with one of its corners.
 	 *
-	 * @param {import('../bodies/Body.js').Body} body The object.
-	 * @returns {boolean} True if a corner of the object is on a switch door tile.
+	 * @param {import('../bodies/Body.js').Body} body The body.
+	 * @returns {boolean} True if a corner of the body is on a switch door tile.
 	 */
 	#touchesDoor(body) {
 		const door = FIRST_OF_KIND[TileKind.SWITCH_DOOR];

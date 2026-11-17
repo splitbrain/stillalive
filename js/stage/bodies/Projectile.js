@@ -12,7 +12,7 @@ import { FIRST_OF_KIND, LAST_OF_KIND, TileKind } from '../map/tiles.js';
  */
 export class Projectile extends Body {
 	/**
-	 * @param {import('../world/World.js').World} world The World of the object.
+	 * @param {import('../world/World.js').World} world The World of the body.
 	 * @param {number} x The x position in 1/256 pixels.
 	 * @param {number} y The y position in 1/256 pixels.
 	 * @param {number} vx The horizontal speed in 1/256 pixels per tick.
@@ -51,7 +51,7 @@ export class Projectile extends Body {
 
 		const hit = this.world.getTile(this.pixelX + TILE_SIZE / 2, this.pixelY + TILE_SIZE / 2);
 		if (hit) {
-			// a wheel sticks in a wall for a while, and goes away at once at an object
+			// a wheel sticks in a wall for a while, and goes away at once at a body
 			this.needKill = true;
 			if (hit instanceof Body) {
 				this.timer = 0;

@@ -46,7 +46,7 @@ export class Boss extends Body {
 	/**
 	 * Create the boss outside of the playfield. It comes in after the waits of the start events.
 	 *
-	 * @param {import('../world/World.js').World} world The World of the object.
+	 * @param {import('../world/World.js').World} world The World of the body.
 	 * @param {number} number The number of the boss, from 1 to 4. It selects the eye, the portrait and the tube image.
 	 */
 	constructor(world, number) {

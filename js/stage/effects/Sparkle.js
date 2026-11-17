@@ -7,7 +7,7 @@
  */
 export class Sparkle {
 	/**
-	 * @param {import('../world/World.js').World} world The World of the object.
+	 * @param {import('../world/World.js').World} world The World of the sparkle.
 	 * @param {number} x The x position in 1/256 pixels.
 	 * @param {number} y The y position in 1/256 pixels.
 	 * @param {number} vx The horizontal speed in 1/256 pixels per tick.
@@ -16,7 +16,7 @@ export class Sparkle {
 	 * @param {number} color The row of the sparkle image: 0 blue star, 1 red star, 2 cake crumb, 3 smoke, 4 blood.
 	 */
 	constructor(world, x, y, vx, vy, fading, color) {
-		/** @type {import('../world/World.js').World} The World of the object. */
+		/** @type {import('../world/World.js').World} The World of the sparkle. */
 		this.world = world;
 		/** @type {number} The x position in 1/256 pixels. */
 		this.x = x;

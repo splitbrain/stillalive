@@ -9,12 +9,12 @@ import { toSubpixels } from '../utils.js';
  */
 export class Camera {
 	/**
-	 * @param {import('../world/World.js').World} world The World of the object.
+	 * @param {import('../world/World.js').World} world The World of the camera.
 	 * @param {number} x The x position in 1/256 pixels.
 	 * @param {number} y The y position in 1/256 pixels.
 	 */
 	constructor(world, x, y) {
-		/** @type {import('../world/World.js').World} The World of the object. */
+		/** @type {import('../world/World.js').World} The World of the camera. */
 		this.world = world;
 		/** @type {number} The x position in 1/256 pixels. */
 		this.x = x;

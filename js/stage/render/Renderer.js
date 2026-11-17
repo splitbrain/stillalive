@@ -66,7 +66,7 @@ export class Renderer {
 	/** @type {LayerSource|null} The source of the tile layer, or null before the first copy. */
 	#tileLayerSource = null;
 
-	/** @type {OffscreenCanvas|null} The copy of the background, the tiles and the objects of the editor map. */
+	/** @type {OffscreenCanvas|null} The copy of the background, the tiles and the bodies of the editor map. */
 	#editorLayer = null;
 
 	/** @type {LayerSource|null} The source of the editor layer, or null before the first copy. */
@@ -119,7 +119,7 @@ export class Renderer {
 	}
 
 	/**
-	 * Draw the editor map and the cursor. The cached editor layer holds the background, the tiles and the objects.
+	 * Draw the editor map and the cursor. The cached editor layer holds the background, the tiles and the bodies.
 	 *
 	 * @param {import('../editor/Editor.js').Editor} editor The editor.
 	 * @returns {void}

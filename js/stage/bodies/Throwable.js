@@ -7,11 +7,11 @@ import { BELT_SPEED, Direction, GRAVITY, Ground, PIPE_SPEED, TILE_SIZE } from '.
 import { getCos, getSin, toPixels, toSubpixels } from '../utils.js';
 
 /**
- * An object that the player can pick up and throw. The base of Crate and Turret.
+ * A body that the player can pick up and throw. The base of Crate and Turret.
  */
 export class Throwable extends Body {
 	/**
-	 * @param {import('../world/World.js').World} world The World of the object.
+	 * @param {import('../world/World.js').World} world The World of the body.
 	 * @param {number} x The x position in 1/256 pixels.
 	 * @param {number} y The y position in 1/256 pixels.
 	 * @param {number} width The width in pixels.
@@ -23,12 +23,12 @@ export class Throwable extends Body {
 		this.vx = 0;
 		/** @type {number} The vertical speed in 1/256 pixels per tick. */
 		this.vy = 0;
-		/** @type {number} The rotation in degrees while the object flies. */
+		/** @type {number} The rotation in degrees while the body flies. */
 		this.angle = 0;
 	}
 
 	/**
-	 * True while the player carries the object.
+	 * True while the player carries the body.
 	 *
 	 * @type {boolean}
 	 */
@@ -37,32 +37,32 @@ export class Throwable extends Body {
 	}
 
 	/**
-	 * Check if the player can pick up the object.
+	 * Check if the player can pick up the body.
 	 *
-	 * @returns {boolean} True if the object can go into the hands of the player.
+	 * @returns {boolean} True if the body can go into the hands of the player.
 	 */
 	canGrab() {
 		return true;
 	}
 
 	/**
-	 * Set the state of the object after the player throws it. The base object has no such state.
+	 * Set the state of the body after the player throws it. The base class has no such state.
 	 *
 	 * @returns {void}
 	 */
 	thrown() {}
 
 	/**
-	 * Set the state of the object when a pipe field moves it. The base object has no such state.
+	 * Set the state of the body when a pipe field moves it. The base class has no such state.
 	 *
 	 * @returns {void}
 	 */
 	enterPipeField() {}
 
 	/**
-	 * Give the object the speed of the conveyor belt that it left. The base object keeps its speed.
+	 * Give the body the speed of the conveyor belt that it left. The base class keeps the speed.
 	 *
-	 * @param {number} belt The direction of the conveyor belt under the object: 1 to the right, -1 to the left, 0 for
+	 * @param {number} belt The direction of the conveyor belt under the body: 1 to the right, -1 to the left, 0 for
 	 *     none.
 	 * @returns {void}
 	 */
@@ -70,16 +70,16 @@ export class Throwable extends Body {
 	keepBeltSpeed(belt) {}
 
 	/**
-	 * Check if the object falls onto the head of the player.
+	 * Check if the body falls onto the head of the player.
 	 *
-	 * @returns {boolean} True if the object must stop above the player.
+	 * @returns {boolean} True if the body must stop above the player.
 	 */
 	landsOnPlayer() {
 		return false;
 	}
 
 	/**
-	 * Push the player and other objects in one step of the movement.
+	 * Push the player and other bodies in one step of the movement.
 	 *
 	 * @returns {boolean} True if the push ends the movement of this tick.
 	 */
@@ -88,7 +88,7 @@ export class Throwable extends Body {
 	}
 
 	/**
-	 * Hold the object in front of the player, in the direction of the mouse. The object also gets the speed for the
+	 * Hold the body in front of the player, in the direction of the mouse. The body also gets the speed for the
 	 * throw.
 	 *
 	 * @returns {void}
@@ -127,7 +127,7 @@ export class Throwable extends Body {
 	}
 
 	/**
-	 * Move the object towards the middle of a pipe field. In a floor or ceiling portal, the object moves faster.
+	 * Move the body towards the middle of a pipe field. In a floor or ceiling portal, the body moves faster.
 	 *
 	 * @param {import('./GravPipeField.js').GravPipeField} field The pipe field.
 	 * @returns {void}
@@ -151,7 +151,7 @@ export class Throwable extends Body {
 	}
 
 	/**
-	 * Move the object for one tick with the pipe fields, the conveyor belts, the gravity, the friction and the portals.
+	 * Move the body for one tick with the pipe fields, the conveyor belts, the gravity, the friction and the portals.
 	 *
 	 * @returns {void}
 	 */

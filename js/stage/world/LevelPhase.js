@@ -6,7 +6,7 @@ import { FADE_START, FADE_STEP, Transition } from '../constants.js';
 
 /**
  * The phase of a level with the progress and the effect of its transitions. OPENING is the opening transition. In
- * RUNNING, the level time counts and the objects move. In HALTED, the level time stands still while an event waits for
+ * RUNNING, the level time counts and the bodies move. In HALTED, the level time stands still while an event waits for
  * a click or the boss comes in. EXIT_WAIT starts when the player reaches the exit and an exit event waits for a click.
  * CLOSING is the closing transition. ENDED is the exit freeze after the closing transition.
  */
@@ -51,7 +51,7 @@ export class LevelPhase {
 	}
 
 	/**
-	 * Check if the level runs. The level time counts and the objects move.
+	 * Check if the level runs. The level time counts and the bodies move.
 	 *
 	 * @returns {boolean} True while the level runs.
 	 */

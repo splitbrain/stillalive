@@ -30,10 +30,10 @@ const GLOW_START_OFFSETS = {
 };
 
 /**
- * Check if a falling sparkle touches a solid tile or object with its middle. The size of the sparkle follows its fade.
+ * Check if a falling sparkle touches a solid tile or body with its middle. The size of the sparkle follows its fade.
  *
  * @param {Sparkle} sparkle The sparkle.
- * @returns {boolean} True if the middle of the sparkle is on a solid tile or object.
+ * @returns {boolean} True if the middle of the sparkle is on a solid tile or body.
  */
 function touchesFloor(sparkle) {
 	const scale = sparkle.fading / 255;
@@ -42,11 +42,11 @@ function touchesFloor(sparkle) {
 }
 
 /**
- * A star that fades by 8 in each tick and goes away on a solid tile or object.
+ * A star that fades by 8 in each tick and goes away on a solid tile or body.
  */
 export class FadingSparkle extends Sparkle {
 	/**
-	 * Move the star, fade it, and remove it on a solid tile or object.
+	 * Move the star, fade it, and remove it on a solid tile or body.
 	 *
 	 * @returns {void}
 	 */
@@ -122,7 +122,7 @@ export class PuffSparkle extends Sparkle {
  */
 export class BloodSparkle extends Sparkle {
 	/**
-	 * @param {import('../world/World.js').World} world The World of the object.
+	 * @param {import('../world/World.js').World} world The World of the sparkle.
 	 * @param {number} x The x position in 1/256 pixels.
 	 * @param {number} y The y position in 1/256 pixels.
 	 * @param {number} vx The horizontal speed in 1/256 pixels per tick.
@@ -163,7 +163,7 @@ export class BloodSparkle extends Sparkle {
  */
 export class ShotHitSparkle extends BloodSparkle {
 	/**
-	 * @param {import('../world/World.js').World} world The World of the object.
+	 * @param {import('../world/World.js').World} world The World of the sparkle.
 	 * @param {number} x The x position in 1/256 pixels.
 	 * @param {number} y The y position in 1/256 pixels.
 	 * @param {number} vx The horizontal speed in 1/256 pixels per tick.
@@ -180,7 +180,7 @@ export class ShotHitSparkle extends BloodSparkle {
  */
 export class LowLifeSparkle extends BloodSparkle {
 	/**
-	 * @param {import('../world/World.js').World} world The World of the object.
+	 * @param {import('../world/World.js').World} world The World of the sparkle.
 	 * @param {number} x The x position in 1/256 pixels.
 	 * @param {number} y The y position in 1/256 pixels.
 	 * @param {number} vx The horizontal speed in 1/256 pixels per tick.
@@ -197,7 +197,7 @@ export class LowLifeSparkle extends BloodSparkle {
  */
 export class DeathSparkle extends Sparkle {
 	/**
-	 * @param {import('../world/World.js').World} world The World of the object.
+	 * @param {import('../world/World.js').World} world The World of the sparkle.
 	 * @param {number} x The x position in 1/256 pixels.
 	 * @param {number} y The y position in 1/256 pixels.
 	 * @param {number} vx The horizontal speed in 1/256 pixels per tick.
@@ -226,7 +226,7 @@ export class DeathSparkle extends Sparkle {
  */
 export class PortalGlow extends Sparkle {
 	/**
-	 * @param {import('../world/World.js').World} world The World of the object.
+	 * @param {import('../world/World.js').World} world The World of the sparkle.
 	 * @param {number} x The x position in 1/256 pixels.
 	 * @param {number} y The y position in 1/256 pixels.
 	 * @param {number} vx The horizontal speed in 1/256 pixels per tick.

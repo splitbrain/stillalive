@@ -10,7 +10,7 @@ import { random } from '../utils.js';
  */
 export class AnimatedTile {
 	/**
-	 * @param {import('./World.js').World} world The World of the object.
+	 * @param {import('./World.js').World} world The World of the tile.
 	 * @param {number} x The column of the tile in the map.
 	 * @param {number} y The row of the tile in the map.
 	 * @param {number} min The first frame, as a tile id.
@@ -20,7 +20,7 @@ export class AnimatedTile {
 	 * @param {number} speed The number of ticks between two frames.
 	 */
 	constructor(world, x, y, min, max, type, place, speed) {
-		/** @type {import('./World.js').World} The World of the object. */
+		/** @type {import('./World.js').World} The World of the tile. */
 		this.world = world;
 		/** @type {number} The column of the tile in the map. */
 		this.x = x;

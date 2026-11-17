@@ -44,11 +44,11 @@ const DOOR_SOUNDS = { [TileKind.SWITCH_DOOR]: sfx_field, [TileKind.PLASMA_DOOR]:
  */
 
 /**
- * Check if objects pass through a tile. The exit, the deadly tiles, the player start and the force fields are not
+ * Check if bodies pass through a tile. The exit, the deadly tiles, the player start and the force fields are not
  * solid.
  *
  * @param {number} tile The tile id.
- * @returns {boolean} True if objects pass the tile.
+ * @returns {boolean} True if bodies pass the tile.
  */
 function isPassable(tile) {
 	return tile === Tile.EXIT || isDeadlyTile(tile) || tile === Tile.PLAYER_START || inForceFieldRange(tile);
@@ -117,7 +117,7 @@ export class World {
 	/** @type {SwitchDoors} The switches and the switch doors. */
 	switches = new SwitchDoors(this);
 	/**
-	 * @type {import('../portals/Portal.js').Portal|null} The portal that an object is in during this tick, or null.
+	 * @type {import('../portals/Portal.js').Portal|null} The portal that a body is in during this tick, or null.
 	 *     The drawing then draws the tiles around the portals over the bodies.
 	 */
 	bodyInPortal = null;
@@ -133,7 +133,7 @@ export class World {
 	input = null;
 
 	/**
-	 * Create a World without objects at the start of the opening transition.
+	 * Create a World without bodies at the start of the opening transition.
 	 *
 	 * @param {TileMap} map The map. The World uses the object and does not copy it.
 	 */
@@ -152,7 +152,7 @@ export class World {
 	}
 
 	/**
-	 * Create the World of a level start. The object tiles leave the map, the exits close, and the animated tiles and
+	 * Create the World of a level start. The body tiles leave the map, the exits close, and the animated tiles and
 	 * the plasma balls start.
 	 *
 	 * @param {import('./level.js').Level} level The level.
@@ -184,7 +184,7 @@ export class World {
 	}
 
 	/**
-	 * Create the World of a preview of a level or of a map. The objects stand at their start positions, and a map
+	 * Create the World of a preview of a level or of a map. The bodies stand at their start positions, and a map
 	 * without cakes shows the open exit.
 	 *
 	 * @param {{tiles: number[], bg: number, boss?: number, fromBelow?: boolean}} level The level or the editor map.
@@ -207,7 +207,7 @@ export class World {
 	}
 
 	/**
-	 * Create the World of the editor map with the objects of the map.
+	 * Create the World of the editor map with the bodies of the map.
 	 *
 	 * @param {TileMap} map The editor map. The World uses the object and does not copy it.
 	 * @returns {World} The World.
@@ -219,7 +219,7 @@ export class World {
 	}
 
 	/**
-	 * Create the objects of the editor map again. The player stays outside the playfield if the map has no player
+	 * Create the bodies of the editor map again. The player stays outside the playfield if the map has no player
 	 * start tile.
 	 *
 	 * @returns {void}
@@ -323,7 +323,7 @@ export class World {
 	}
 
 	/**
-	 * Update the objects, the effects and the death fade for one tick. No object moves while the level time stands
+	 * Update the bodies, the effects and the death fade for one tick. No body moves while the level time stands
 	 * still.
 	 *
 	 * @returns {void}
@@ -540,10 +540,11 @@ export class World {
 	}
 
 	/**
-	 * Create the objects of the map at their start positions and put them into the World. The method sets the position
+	 * Create the bodies of the map at their start positions and put them into the World. The method sets the position
 	 * of the player and of the tube when the map has their tiles. Each plasma launch starts a plasma ball when the World
-	 * has no boss. For a boss that shoots plasma balls, the plasma launch is the start point of its shots. The method
-	 * reads the boss, so the caller creates the boss first.
+	 * has no boss. For a boss that shoots plasma balls, the plasma launch is the start point of its shots. Only a level
+	 * start has plasma launches, so forLevel() creates the boss first. A preview and the editor map have no plasma
+	 * launches, and the order of the boss does not matter there.
 	 *
 	 * @param {object} [options] The options.
 	 * @param {boolean} [options.levelStart] True for a level start, see createBodies().
@@ -579,13 +580,13 @@ export class World {
 	}
 
 	/**
-	 * Get the solid tile at a point, or the object at the point where the map is empty.
+	 * Get the solid tile at a point, or the body at the point where the map is empty.
 	 *
 	 * @param {number} x The x coordinate in pixels.
 	 * @param {number} y The y coordinate in pixels.
 	 * @param {boolean} crates True if the crates count.
 	 * @param {boolean} platforms True if the platforms count.
-	 * @returns {Solid} The tile id or the object, or Tile.EMPTY if nothing solid is there or the point is outside the
+	 * @returns {Solid} The tile id or the body, or Tile.EMPTY if nothing solid is there or the point is outside the
 	 *     playfield.
 	 */
 	#solidAt(x, y, crates, platforms) {
@@ -699,10 +700,10 @@ export class World {
 	}
 
 	/**
-	 * Find a moving crate that overlaps an object.
+	 * Find a moving crate that overlaps a body.
 	 *
-	 * @param {import('../bodies/Body.js').Body} body The object.
-	 * @returns {Crate|null} The crate, or null if no moving crate overlaps the object.
+	 * @param {import('../bodies/Body.js').Body} body The body.
+	 * @returns {Crate|null} The crate, or null if no moving crate overlaps the body.
 	 */
 	movingCrateTouching(body) {
 		return (
@@ -734,19 +735,19 @@ export class World {
 	}
 
 	/**
-	 * Check if a plasma ball overlaps an object.
+	 * Check if a plasma ball overlaps a body.
 	 *
-	 * @param {import('../bodies/Body.js').Body} body The object.
-	 * @returns {boolean} True if a ball overlaps the object.
+	 * @param {import('../bodies/Body.js').Body} body The body.
+	 * @returns {boolean} True if a ball overlaps the body.
 	 */
 	plasmaTouching(body) {
 		return this.plasmaBall.some((ball) => ball.used && ball.overlaps(body));
 	}
 
 	/**
-	 * Find the pipe fields that an object overlaps.
+	 * Find the pipe fields that a body overlaps.
 	 *
-	 * @param {import('../bodies/Body.js').Body} body The object.
+	 * @param {import('../bodies/Body.js').Body} body The body.
 	 * @returns {import('../bodies/GravPipeField.js').GravPipeField[]} The fields.
 	 */
 	gravPipeFieldsAt(body) {
@@ -764,9 +765,9 @@ export class World {
 	}
 
 	/**
-	 * Get the conveyor belt that moves an object, directly or through the crate that the object stands on.
+	 * Get the conveyor belt that moves a body, directly or through the crate that the body stands on.
 	 *
-	 * @param {import('../bodies/Body.js').Body} body The object. It must also have the vertical speed vy.
+	 * @param {import('../bodies/Body.js').Body} body The body. It must also have the vertical speed vy.
 	 * @returns {number} The direction of the belt: 1 to the right, -1 to the left, 0 for no belt.
 	 */
 	beltUnder(body) {
@@ -779,10 +780,10 @@ export class World {
 	}
 
 	/**
-	 * Get the platform that carries an object, directly or through the crate that the object stands on. The search
-	 * looks below the left edge of the object first, then below the right edge.
+	 * Get the platform that carries a body, directly or through the crate that the body stands on. The search
+	 * looks below the left edge of the body first, then below the right edge.
 	 *
-	 * @param {import('../bodies/Body.js').Body} body The object.
+	 * @param {import('../bodies/Body.js').Body} body The body.
 	 * @returns {Platform|null} The platform, or null.
 	 */
 	onPlatform(body) {

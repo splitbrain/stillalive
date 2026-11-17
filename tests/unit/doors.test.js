@@ -24,7 +24,7 @@ function switchTiles() {
  * Check if the switch door is open.
  *
  * @param {import('../../js/stage/world/World.js').World} world The World.
- * @returns {boolean} True if the objects pass the lower switch door tile.
+ * @returns {boolean} True if the bodies pass the lower switch door tile.
  */
 function switchDoorOpen(world) {
 	return world.map.tiles[SWITCH_DOOR] === Tile.EMPTY;

@@ -11,11 +11,11 @@ import { UndoList } from './UndoList.js';
 import { World } from '../world/World.js';
 
 /**
- * The level editor, the session of the mode "edit". It holds the editor map, its objects and its undo list as long as
+ * The level editor, the session of the mode "edit". It holds the editor map, its bodies and its undo list as long as
  * the stage exists.
  */
 export class Editor {
-	/** @type {number} The tile id or the object id that the editor paints. */
+	/** @type {number} The tile id or the body id that the editor paints. */
 	brush = Tile.WALL;
 
 	/**
@@ -30,7 +30,7 @@ export class Editor {
 	/** @type {number} The index of the background image of the editor map. */
 	#background = 0;
 
-	/** @type {World} The World with the objects of the editor map. It uses the TileMap of the editor. */
+	/** @type {World} The World with the bodies of the editor map. It uses the TileMap of the editor. */
 	#world = World.forEditor(this.#map);
 
 	/** @type {UndoList|null} The maps after each change, or null before the editor opens for the first time. */
@@ -39,7 +39,7 @@ export class Editor {
 	/** @type {boolean} The mouse release state of the previous tick. */
 	#oldMouseReleased = false;
 
-	/** @type {boolean} True when the objects of the editor map must be created again. */
+	/** @type {boolean} True when the bodies of the editor map must be created again. */
 	#bodiesChanged = false;
 
 	/** @type {import('../browser/InputState.js').InputState} The keys and the mouse. */
@@ -82,7 +82,7 @@ export class Editor {
 	}
 
 	/**
-	 * Get the World with the objects of the editor map.
+	 * Get the World with the bodies of the editor map.
 	 *
 	 * @returns {World} The World of the editor.
 	 */
@@ -101,7 +101,7 @@ export class Editor {
 
 	/**
 	 * Open the editor on a new map, or on the editor map from before, e.g. after a test run. A new map starts a new
-	 * undo list. The editor creates the objects of the map again.
+	 * undo list. The editor creates the bodies of the map again.
 	 *
 	 * @param {import('../map/mapFile.js').MapFile} [map] The new map in the map file format, or nothing for the editor map
 	 *     from before.
@@ -138,7 +138,7 @@ export class Editor {
 	}
 
 	/**
-	 * Run one tick: the input of the tick and the edit at the mouse. When the map of the editor changed, its objects
+	 * Run one tick: the input of the tick and the edit at the mouse. When the map of the editor changed, its bodies
 	 * are created again.
 	 *
 	 * @returns {void}
@@ -160,7 +160,7 @@ export class Editor {
 	}
 
 	/**
-	 * Change the map at the mouse, undo or redo a change, and create the objects again after a change.
+	 * Change the map at the mouse, undo or redo a change, and create the bodies again after a change.
 	 *
 	 * @returns {void}
 	 */
@@ -176,7 +176,7 @@ export class Editor {
 	}
 
 	/**
-	 * Remove all tiles, objects and other properties of the editor map.
+	 * Remove all tiles, bodies and other properties of the editor map.
 	 *
 	 * @returns {void}
 	 */
@@ -230,7 +230,7 @@ export class Editor {
 	}
 
 	/**
-	 * Mark the map as changed, so the update creates the objects again.
+	 * Mark the map as changed, so the update creates the bodies again.
 	 *
 	 * @returns {void}
 	 */
@@ -254,7 +254,7 @@ export class Editor {
 	}
 
 	/**
-	 * Create the objects of the editor map again.
+	 * Create the bodies of the editor map again.
 	 *
 	 * @returns {void}
 	 */
@@ -285,7 +285,7 @@ export class Editor {
 	}
 
 	/**
-	 * Place or remove an object at the mouse while a button is pressed.
+	 * Place or remove a body at the mouse while a button is pressed.
 	 *
 	 * @returns {void}
 	 */

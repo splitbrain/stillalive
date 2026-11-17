@@ -45,7 +45,7 @@ const HOMING_TURNS = {
  */
 export class Plasma extends Body {
 	/**
-	 * @param {import('../world/World.js').World} world The World of the object.
+	 * @param {import('../world/World.js').World} world The World of the body.
 	 * @param {number} x The x position in 1/256 pixels.
 	 * @param {number} y The y position in 1/256 pixels.
 	 * @param {number} vx The horizontal speed in 1/256 pixels per tick.

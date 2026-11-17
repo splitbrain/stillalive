@@ -16,7 +16,7 @@ const LEFT_MIDDLE = [200, 200, 4, 200];
 const RIGHT_MIDDLE = [200, 200, 508, 200];
 
 /**
- * The portal scenes by name. In each scene, the player or an object moves through the portals.
+ * The portal scenes by name. In each scene, the player or a body moves through the portals.
  *
  * @type {Object<string, {portals: number[][], player: number[], keys: number, ticks: number,
  *     body?: {type: string, x: number, y: number, vx?: number, vy?: number}}>}

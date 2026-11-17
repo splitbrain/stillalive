@@ -111,7 +111,7 @@ export class GameStage extends HTMLElement {
 	#input = new InputState();
 	/** @type {Editor} The level editor. It keeps the editor map while the stage shows something else. */
 	#editor = new Editor(this.#input);
-	/** @type {Value<number>} The tile id or the object id that the editor paints. */
+	/** @type {Value<number>} The tile id or the body id that the editor paints. */
 	brush = new Value(this.#editor.brush);
 	/** @type {Value<number>} The measured number of frames per second. */
 	fps = new Value(0);
@@ -295,7 +295,7 @@ export class GameStage extends HTMLElement {
 	/**
 	 * Select what the editor paints.
 	 *
-	 * @param {number} tile The tile id or the object id.
+	 * @param {number} tile The tile id or the body id.
 	 * @returns {void}
 	 */
 	setBrush(tile) {
@@ -324,7 +324,7 @@ export class GameStage extends HTMLElement {
 	}
 
 	/**
-	 * Remove all tiles, objects and other properties of the editor map.
+	 * Remove all tiles, bodies and other properties of the editor map.
 	 *
 	 * @returns {void}
 	 */

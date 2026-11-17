@@ -18,7 +18,7 @@ const COOL_TIME = 3;
  */
 export class Turret extends Throwable {
 	/**
-	 * @param {import('../world/World.js').World} world The World of the object.
+	 * @param {import('../world/World.js').World} world The World of the body.
 	 * @param {number} x The x position in 1/256 pixels.
 	 * @param {number} y The y position in 1/256 pixels.
 	 * @param {number} dir The direction that the turret faces, -1 left or 1 right.

@@ -4,7 +4,7 @@ A level is a JSON map file. A campaign is a folder in `maps` with a campaign fil
 
 ## Level editor
 
-The level editor sets the tiles, the objects and the background of a map, and it chooses the wall images from the
+The level editor sets the tiles, the bodies and the background of a map, and it chooses the wall images from the
 neighbors of each wall. The editor cannot set `title`, `text`, `abilities`, `events`, `labels` and `boss`, so these
 properties come from a text editor. The editor keeps these properties unchanged in the save slots, in the export and in
 the test run. The Clear button removes them.
@@ -28,7 +28,7 @@ A map file is a JSON object with these properties:
 All positions in a map file are tile positions. The columns go from 0 at the left to 31 at the right, and the rows go
 from 0 at the top to 23 at the bottom.
 
-The tile ids in a map file are in three ranges: the tiles from 0 to 60, the objects from 100 to 110, and the tube of
+The tile ids in a map file are in three ranges: the tiles from 0 to 60, the bodies from 100 to 110, and the tube of
 the boss with the id 120. The game rejects a map file with an id outside these ranges.
 
 ### Tiles
@@ -47,14 +47,14 @@ The ids from 0 to 60 are the tiles of the tile set. The maps use these ids:
 | 22      | Exit. It opens when the player has eaten all cakes. A level without cakes has an open exit.       |
 | 23      | Switch door. It is solid until a switch opens it.                                                 |
 | 29      | Plasma door. It is solid until a plasma ball hits the receiver.                                   |
-| 36      | Razor wheel. It kills the player and destroys objects. Portal shots go through it.                |
-| 38      | Acid surface. It kills the player, destroys objects and sends plasma balls back.                  |
+| 36      | Razor wheel. It kills the player, breaks turrets and sends crates back. Portal shots go through it. |
+| 38      | Acid surface. It kills the player, breaks turrets and sends crates and plasma balls back.         |
 | 40      | Red energy wall. It is solid, and portal shots go through it.                                     |
 | 46      | Icy wall. It reflects portal shots, and the player slips on it.                                   |
 | 47      | Acid pool. It goes below the acid surface and acts the same as the acid surface.                  |
 | 49      | Force field. It removes the portals when the player goes through it, and it destroys crates.      |
-| 55      | Conveyor belt. It moves the player and objects to the right.                                      |
-| 57      | Conveyor belt. It moves the player and objects to the left.                                       |
+| 55      | Conveyor belt. It moves the player, crates and turrets to the right.                              |
+| 57      | Conveyor belt. It moves the player, crates and turrets to the left.                               |
 | 58      | Boss block, only in boss levels                                                                   |
 
 The other ids from 0 to 60 are animation frames, cracked boss blocks and the closed exit. The game sets them itself.
@@ -73,13 +73,14 @@ warning stripes or a conveyor belt. The edge of the playfield counts as a closed
 | 7  | left and bottom          | 15 | top, left and bottom       |
 | 8  | left and top             | 16 | all four sides             |
 
-### Objects
+### Bodies
 
-The ids from 100 to 110 are objects. At the level start, the game removes them from the map and creates the objects.
-Some objects are larger than one tile. The id of an object goes on its top left tile, and the other tiles that the
-object covers are empty (0).
+A body is a thing with a position and a size that is not part of the tile grid, e.g. the player, a crate or a platform.
+The ids from 100 to 110 are bodies. At the level start, the game removes them from the map and creates the bodies.
+Some bodies are larger than one tile. The id of a body goes on its top left tile, and the other tiles that the body
+covers are empty (0).
 
-| Id  | Object                                                                              | Tiles (w x h) |
+| Id  | Body                                                                                | Tiles (w x h) |
 |-----|-------------------------------------------------------------------------------------|---------------|
 | 100 | Turret that faces left. It shoots the player in its line of sight, and the player can carry it. | 1 x 2 |
 | 101 | Turret that faces right                                                             | 1 x 2         |
@@ -88,10 +89,10 @@ object covers are empty (0).
 | 104 | Player start. A map has one player start.                                           | 1 x 2         |
 | 105 | Platform that moves to the right. A platform turns around at walls and at the playfield edges. | 3 x 1 |
 | 106 | Platform that moves to the left                                                     | 3 x 1         |
-| 107 | Gravitational pipe that carries the player and objects to the right                 | 1 x 2         |
-| 108 | Gravitational pipe that carries the player and objects to the left                  | 1 x 2         |
-| 109 | Gravitational pipe that carries the player and objects up                           | 2 x 1         |
-| 110 | Gravitational pipe that carries the player and objects down                         | 2 x 1         |
+| 107 | Gravitational pipe that carries the player, crates and turrets to the right        | 1 x 2         |
+| 108 | Gravitational pipe that carries the player, crates and turrets to the left         | 1 x 2         |
+| 109 | Gravitational pipe that carries the player, crates and turrets up                  | 2 x 1         |
+| 110 | Gravitational pipe that carries the player, crates and turrets down                | 2 x 1         |
 
 ### Tube of the boss
 

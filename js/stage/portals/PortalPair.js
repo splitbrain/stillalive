@@ -15,7 +15,7 @@ import { getCos, getSin, inScreen, random, toPixels, toSubpixels } from '../util
 const PORTAL_CHECK_SIDES = [Direction.DOWN, Direction.UP, Direction.LEFT, Direction.RIGHT];
 
 /**
- * The two portals of a level, the portal shots and the teleport of objects through the portals.
+ * The two portals of a level, the portal shots and the teleport of bodies through the portals.
  */
 export class PortalPair {
 	/**
@@ -218,13 +218,13 @@ export class PortalPair {
 	}
 
 	/**
-	 * Find the portal on one side that an object touches. The method does not change the object.
+	 * Find the portal on one side that a body touches. The method does not change the body.
 	 *
-	 * @param {import('../bodies/Body.js').Body} body The object. It must also have the speeds vx and vy.
+	 * @param {import('../bodies/Body.js').Body} body The body. It must also have the speeds vx and vy.
 	 * @param {number} side The side of the wall with the portal: Direction.LEFT, Direction.RIGHT, Direction.DOWN for a
 	 *     floor or Direction.UP for a ceiling.
-	 * @returns {{index: number, deep: boolean}|null} The index of the portal, and true in deep if the object moves into
-	 *     the portal far enough for a teleport, or null if the object touches no portal on this side.
+	 * @returns {{index: number, deep: boolean}|null} The index of the portal, and true in deep if the body moves into
+	 *     the portal far enough for a teleport, or null if the body touches no portal on this side.
 	 */
 	#findPortal(body, side) {
 		const x = body.pixelX;
@@ -272,11 +272,11 @@ export class PortalPair {
 	}
 
 	/**
-	 * Check if an object touches a portal on one side. The method does not change the object.
+	 * Check if a body touches a portal on one side. The method does not change the body.
 	 *
-	 * @param {import('../bodies/Body.js').Body} body The object. It must also have the speeds vx and vy.
+	 * @param {import('../bodies/Body.js').Body} body The body. It must also have the speeds vx and vy.
 	 * @param {number} side The side of the wall with the portal, a value of Direction.
-	 * @returns {Portal|null} The portal, or null if the object touches no portal on this side.
+	 * @returns {Portal|null} The portal, or null if the body touches no portal on this side.
 	 */
 	portalAt(body, side) {
 		const found = this.#findPortal(body, side);
@@ -284,10 +284,10 @@ export class PortalPair {
 	}
 
 	/**
-	 * Check if an object touches a portal. The method does not change the object.
+	 * Check if a body touches a portal. The method does not change the body.
 	 *
-	 * @param {import('../bodies/Body.js').Body} body The object. It must also have the speeds vx and vy.
-	 * @returns {Portal|null} The portal, or null if the object touches no portal.
+	 * @param {import('../bodies/Body.js').Body} body The body. It must also have the speeds vx and vy.
+	 * @returns {Portal|null} The portal, or null if the body touches no portal.
 	 */
 	isInPortal(body) {
 		for (const side of PORTAL_CHECK_SIDES) {
@@ -298,12 +298,12 @@ export class PortalPair {
 	}
 
 	/**
-	 * Move an object through a portal on one side. An object in the portal moves to the middle of the portal. The object
+	 * Move a body through a portal on one side. A body in the portal moves to the middle of the portal. The body
 	 * teleports to the other portal when it moves into the portal far enough.
 	 *
-	 * @param {import('../bodies/Body.js').Body} body The object. It must also have the speeds vx and vy.
+	 * @param {import('../bodies/Body.js').Body} body The body. It must also have the speeds vx and vy.
 	 * @param {number} side The side of the wall with the portal, a value of Direction.
-	 * @returns {Portal|null} The portal, or null if the object touches no portal on this side.
+	 * @returns {Portal|null} The portal, or null if the body touches no portal on this side.
 	 */
 	passPortal(body, side) {
 		const found = this.#findPortal(body, side);
@@ -315,10 +315,10 @@ export class PortalPair {
 	}
 
 	/**
-	 * Move an object through a portal on any side.
+	 * Move a body through a portal on any side.
 	 *
-	 * @param {import('../bodies/Body.js').Body} body The object. It must also have the speeds vx and vy.
-	 * @returns {Portal|null} The portal, or null if the object touches no portal.
+	 * @param {import('../bodies/Body.js').Body} body The body. It must also have the speeds vx and vy.
+	 * @returns {Portal|null} The portal, or null if the body touches no portal.
 	 */
 	passPortals(body) {
 		for (const side of PORTAL_CHECK_SIDES) {
@@ -329,11 +329,11 @@ export class PortalPair {
 	}
 
 	/**
-	 * Move an object from one portal to the other. The object then turns its speed to the direction of the exit portal.
+	 * Move a body from one portal to the other. The body then turns its speed to the direction of the exit portal.
 	 *
-	 * @param {Portal} entry The portal that the object enters.
+	 * @param {Portal} entry The portal that the body enters.
 	 * @param {Portal} exit The other portal.
-	 * @param {import('../bodies/Body.js').Body} body The object.
+	 * @param {import('../bodies/Body.js').Body} body The body.
 	 * @returns {void}
 	 */
 	#teleport(entry, exit, body) {
@@ -344,7 +344,7 @@ export class PortalPair {
 			body.x = exit.x - toSubpixels(body.width >> 1);
 			body.y = exit.y + toSubpixels(gap);
 		} else {
-			// an object that comes out of a ceiling starts 4 pixels lower
+			// a body that comes out of a ceiling starts 4 pixels lower
 			const drop = exit.direction === Direction.UP ? toSubpixels(4) : 0;
 			body.x = exit.x + toSubpixels(TILE_SIZE / 2);
 			body.y = exit.y - toSubpixels(body.height >> 1) + drop;
@@ -377,7 +377,7 @@ export class PortalPair {
 	}
 
 	/**
-	 * Remove both portals, unless an object is in a portal.
+	 * Remove both portals, unless a body is in a portal.
 	 *
 	 * @returns {void}
 	 */

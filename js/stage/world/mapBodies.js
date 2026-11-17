@@ -1,5 +1,5 @@
 /**
- * The creation of the objects of a map.
+ * The creation of the bodies of a map.
  */
 
 import { DIRECTIONS, ORDERED, RANDOM, TILE_SIZE } from '../constants.js';
@@ -32,7 +32,7 @@ const ANIMATED_KINDS = [
  */
 
 /**
- * The objects of a map at their start positions.
+ * The bodies of a map at their start positions.
  *
  * @typedef {object} MapBodies
  * @property {Cake[]} cakes The cakes.
@@ -48,13 +48,13 @@ const ANIMATED_KINDS = [
  */
 
 /**
- * Create the objects of a map at their start positions, in map order. Without options, the function prepares a
+ * Create the bodies of a map at their start positions, in map order. Without options, the function prepares a
  * preview: the logic layer stays the same, the display layer shows the closed exits, and the tube tile is the tube of
  * the boss.
  *
  * @param {import('./World.js').World} world The World of the bodies. The function changes the map of the World.
  * @param {object} [options] The options.
- * @param {boolean} [options.levelStart] True for a level start: the object tiles leave the map, the gravitational
+ * @param {boolean} [options.levelStart] True for a level start: the body tiles leave the map, the gravitational
  *     pipes block their tiles, the exits close, and the animated tiles and the plasma launches start.
  * @param {boolean} [options.editor] True for the editor map: both layers stay the same, and the tube tile is a tile of
  *     the map.

@@ -8,7 +8,7 @@ import { toPixels, toSubpixels } from '../utils.js';
 
 /**
  * @type {Array<{side: number, opposite: number, dx: number, dy: number}>} The sides in the order in which
- *     checkCollisions() resolves them, with the step of one pixel that moves the object away from the side.
+ *     checkCollisions() resolves them, with the step of one pixel that moves the body away from the side.
  */
 const PUSH_OUT = [Direction.UP, Direction.DOWN, Direction.LEFT, Direction.RIGHT].map((side) => {
 	const opposite = DIRECTIONS[side].opposite;
@@ -16,7 +16,7 @@ const PUSH_OUT = [Direction.UP, Direction.DOWN, Direction.LEFT, Direction.RIGHT]
 });
 
 /**
- * @typedef {(vx: number, vy: number) => number[]} SpeedTurn A function that gets the speeds of an object before a
+ * @typedef {(vx: number, vy: number) => number[]} SpeedTurn A function that gets the speeds of a body before a
  *     teleport and returns the speeds [vx, vy] after the teleport.
  */
 
@@ -55,18 +55,20 @@ const TELEPORT_TURNS = {
 };
 
 /**
- * An object with a position and a size in the playfield. The base of the objects that move and collide.
+ * A body is a thing in the playfield with a position and a size that takes part in the physics of the level. Most
+ * bodies move and collide with the tiles. A static body, e.g. a gravitational pipe, stays at its place, and the box of
+ * the boss is the hit box for the crates. The methods that need a speed say so.
  */
 export class Body {
 	/**
-	 * @param {import('../world/World.js').World} world The World of the object.
+	 * @param {import('../world/World.js').World} world The World of the body.
 	 * @param {number} x The x position in 1/256 pixels.
 	 * @param {number} y The y position in 1/256 pixels.
 	 * @param {number} width The width in pixels.
 	 * @param {number} height The height in pixels.
 	 */
 	constructor(world, x, y, width, height) {
-		/** @type {import('../world/World.js').World} The World of the object. */
+		/** @type {import('../world/World.js').World} The World of the body. */
 		this.world = world;
 		/** @type {number} The x position in 1/256 pixels. */
 		this.x = x;
@@ -97,7 +99,7 @@ export class Body {
 	}
 
 	/**
-	 * Get the horizontal center of the object.
+	 * Get the horizontal center of the body.
 	 *
 	 * @returns {number} The x coordinate of the center in pixels.
 	 */
@@ -106,7 +108,7 @@ export class Body {
 	}
 
 	/**
-	 * Get the vertical center of the object.
+	 * Get the vertical center of the body.
 	 *
 	 * @returns {number} The y coordinate of the center in pixels.
 	 */
@@ -115,11 +117,11 @@ export class Body {
 	}
 
 	/**
-	 * Check if a point is inside the object.
+	 * Check if a point is inside the body.
 	 *
 	 * @param {number} x The x coordinate in pixels.
 	 * @param {number} y The y coordinate in pixels.
-	 * @returns {boolean} True if the point is inside the object.
+	 * @returns {boolean} True if the point is inside the body.
 	 */
 	contains(x, y) {
 		const left = this.pixelX;
@@ -128,13 +130,13 @@ export class Body {
 	}
 
 	/**
-	 * Check if the object overlaps a box.
+	 * Check if the body overlaps a box.
 	 *
 	 * @param {number} x The left edge of the box in pixels.
 	 * @param {number} y The top edge of the box in pixels.
 	 * @param {number} width The width of the box in pixels.
 	 * @param {number} height The height of the box in pixels.
-	 * @returns {boolean} True if the object and the box overlap.
+	 * @returns {boolean} True if the body and the box overlap.
 	 */
 	overlapsBox(x, y, width, height) {
 		const left = this.pixelX;
@@ -143,17 +145,17 @@ export class Body {
 	}
 
 	/**
-	 * Check if the object overlaps another object.
+	 * Check if the body overlaps another body.
 	 *
-	 * @param {Body} other The other object.
-	 * @returns {boolean} True if the two objects overlap.
+	 * @param {Body} other The other body.
+	 * @returns {boolean} True if the two bodies overlap.
 	 */
 	overlaps(other) {
 		return this.overlapsBox(other.pixelX, other.pixelY, other.width, other.height);
 	}
 
 	/**
-	 * Check what the object stands on. The object must have the vertical speed vy.
+	 * Check what the body stands on. The body must have the vertical speed vy.
 	 *
 	 * @returns {number} The ground, a value of Ground.
 	 */
@@ -182,9 +184,9 @@ export class Body {
 	}
 
 	/**
-	 * Check if the object touches a deadly tile at one of its six test points.
+	 * Check if the body touches a deadly tile at one of its six test points.
 	 *
-	 * @returns {number} The id of the deadly tile that the object touches, or 0.
+	 * @returns {number} The id of the deadly tile that the body touches, or 0.
 	 */
 	touchesDeadlyTile() {
 		const x = this.pixelX;
@@ -203,9 +205,9 @@ export class Body {
 	}
 
 	/**
-	 * Check if a force field tile is on the diagonal line through the object.
+	 * Check if a force field tile is on the diagonal line through the body.
 	 *
-	 * @returns {boolean} True if the object touches a force field tile.
+	 * @returns {boolean} True if the body touches a force field tile.
 	 */
 	inForceField() {
 		for (let j = 0; j <= this.width - 1; j += 2) {
@@ -216,11 +218,11 @@ export class Body {
 	}
 
 	/**
-	 * Get the first solid point in a row as wide as the object.
+	 * Get the first solid point in a row as wide as the body.
 	 *
 	 * @param {number} x The x coordinate of the first point in pixels.
 	 * @param {number} y The y coordinate of the row in pixels.
-	 * @returns {import('../world/World.js').Solid} The tile id or the object of the first solid point, else Tile.EMPTY.
+	 * @returns {import('../world/World.js').Solid} The tile id or the body of the first solid point, else Tile.EMPTY.
 	 */
 	#firstSolidInRow(x, y) {
 		for (let i = x; i < x + this.width; i++) {
@@ -231,11 +233,11 @@ export class Body {
 	}
 
 	/**
-	 * Get the first solid point in a column as high as the object.
+	 * Get the first solid point in a column as high as the body.
 	 *
 	 * @param {number} x The x coordinate of the column in pixels.
 	 * @param {number} y The y coordinate of the first point in pixels.
-	 * @returns {import('../world/World.js').Solid} The tile id or the object of the first solid point, else Tile.EMPTY.
+	 * @returns {import('../world/World.js').Solid} The tile id or the body of the first solid point, else Tile.EMPTY.
 	 */
 	#firstSolidInColumn(x, y) {
 		for (let i = y; i < y + this.height; i++) {
@@ -278,9 +280,9 @@ export class Body {
 	}
 
 	/**
-	 * Get the solid tile in the bottom row of the object.
+	 * Get the solid tile in the bottom row of the body.
 	 *
-	 * @returns {import('../world/World.js').Solid} The tile id or the object of the first solid point along the bottom edge,
+	 * @returns {import('../world/World.js').Solid} The tile id or the body of the first solid point along the bottom edge,
 	 *     else Tile.EMPTY.
 	 */
 	downCollision() {
@@ -288,9 +290,9 @@ export class Body {
 	}
 
 	/**
-	 * Get the solid tile in the top row of the object.
+	 * Get the solid tile in the top row of the body.
 	 *
-	 * @returns {import('../world/World.js').Solid} The tile id or the object of the first solid point along the top edge,
+	 * @returns {import('../world/World.js').Solid} The tile id or the body of the first solid point along the top edge,
 	 *     else Tile.EMPTY.
 	 */
 	upCollision() {
@@ -298,9 +300,9 @@ export class Body {
 	}
 
 	/**
-	 * Get the solid tile left of the object.
+	 * Get the solid tile left of the body.
 	 *
-	 * @returns {import('../world/World.js').Solid} The tile id or the object of the first solid point along the left edge,
+	 * @returns {import('../world/World.js').Solid} The tile id or the body of the first solid point along the left edge,
 	 *     else Tile.EMPTY.
 	 */
 	leftCollision() {
@@ -308,9 +310,9 @@ export class Body {
 	}
 
 	/**
-	 * Get the solid tile right of the object.
+	 * Get the solid tile right of the body.
 	 *
-	 * @returns {import('../world/World.js').Solid} The tile id or the object of the first solid point along the right edge,
+	 * @returns {import('../world/World.js').Solid} The tile id or the body of the first solid point along the right edge,
 	 *     else Tile.EMPTY.
 	 */
 	rightCollision() {
@@ -318,10 +320,10 @@ export class Body {
 	}
 
 	/**
-	 * Find the side of the object with the most points in solid tiles. If two sides have the same number of points,
+	 * Find the side of the body with the most points in solid tiles. If two sides have the same number of points,
 	 * the side with the lower direction wins.
 	 *
-	 * @returns {number} Direction.UP, Direction.DOWN, Direction.LEFT or Direction.RIGHT, or -1 if the object touches
+	 * @returns {number} Direction.UP, Direction.DOWN, Direction.LEFT or Direction.RIGHT, or -1 if the body touches
 	 *     nothing.
 	 */
 	getCollision() {
@@ -339,10 +341,10 @@ export class Body {
 	}
 
 	/**
-	 * Push the object out of the solid tiles and stop its speed in that direction. The object must have the speeds vx
+	 * Push the body out of the solid tiles and stop its speed in that direction. The body must have the speeds vx
 	 * and vy.
 	 *
-	 * @returns {boolean} True if a collision was resolved, false if there was none or the object is stuck between two
+	 * @returns {boolean} True if a collision was resolved, false if there was none or the body is stuck between two
 	 *     sides.
 	 */
 	checkCollisions() {
@@ -371,14 +373,14 @@ export class Body {
 	}
 
 	/**
-	 * Move the object away from a side in steps of one pixel until the side is free.
+	 * Move the body away from a side in steps of one pixel until the side is free.
 	 *
 	 * @param {number} side The side that touches a solid tile, a value of Direction.
 	 * @param {number} opposite The opposite side.
 	 * @param {number} dx The horizontal step in 1/256 pixels.
 	 * @param {number} dy The vertical step in 1/256 pixels.
-	 * @returns {boolean} True if the side is free, false if the object is stuck because the opposite side touches a
-	 *     solid tile. A stuck object between two side walls also stops falling.
+	 * @returns {boolean} True if the side is free, false if the body is stuck because the opposite side touches a
+	 *     solid tile. A stuck body between two side walls also stops falling.
 	 */
 	#pushOut(side, opposite, dx, dy) {
 		do {
@@ -393,10 +395,10 @@ export class Body {
 	}
 
 	/**
-	 * Check if the object can go into a portal on one side.
+	 * Check if the body can go into a portal on one side.
 	 *
 	 * @param {number} side The side of the wall with the portal, a value of Direction.
-	 * @returns {boolean} True if the object can go into the portal.
+	 * @returns {boolean} True if the body can go into the portal.
 	 */
 	// eslint-disable-next-line no-unused-vars
 	canEnterPortal(side) {
@@ -404,8 +406,8 @@ export class Body {
 	}
 
 	/**
-	 * Move the object to the middle of a portal that it goes into. At a portal in a side wall, the object loses its
-	 * vertical speed. The object must have the speeds vx and vy.
+	 * Move the body to the middle of a portal that it goes into. At a portal in a side wall, the body loses its
+	 * vertical speed. The body must have the speeds vx and vy.
 	 *
 	 * @param {import('../portals/Portal.js').Portal} portal The portal.
 	 * @param {number} side The side of the wall with the portal, a value of Direction.
@@ -422,11 +424,11 @@ export class Body {
 	}
 
 	/**
-	 * Turn the speed of the object to the direction of the exit portal after a teleport. The object must have the
+	 * Turn the speed of the body to the direction of the exit portal after a teleport. The body must have the
 	 * speeds vx and vy.
 	 *
-	 * @param {import('../portals/Portal.js').Portal} entry The portal that the object entered.
-	 * @param {import('../portals/Portal.js').Portal} exit The portal that the object came out of.
+	 * @param {import('../portals/Portal.js').Portal} entry The portal that the body entered.
+	 * @param {import('../portals/Portal.js').Portal} exit The portal that the body came out of.
 	 * @returns {void}
 	 */
 	teleported(entry, exit) {

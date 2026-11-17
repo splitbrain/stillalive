@@ -470,13 +470,13 @@ export async function recordedReplay(page) {
  * Run a scene with portals on an empty map with walls on all four borders.
  *
  * The scene starts the first level of the normal campaign and replaces its map. The player shoots each portal from a
- * position toward a target. Then the object of the scene goes on the map and the game runs.
+ * position toward a target. Then the body of the scene goes on the map and the game runs.
  *
  * @param {import('@playwright/test').Page} page The Playwright page.
  * @param {object} scene The scene.
  * @param {number[][]} scene.portals For each portal the x and the y position of the shot and of its target, in
  *     playfield pixels.
- * @param {{type: string, x: number, y: number, vx?: number, vy?: number}} [scene.body] The object: type "crate",
+ * @param {{type: string, x: number, y: number, vx?: number, vy?: number}} [scene.body] The body: type "crate",
  *     "turret" or "plasma", the position x and y in playfield pixels, and for a plasma ball the speed vx and vy in 1/256
  *     pixels per tick.
  * @param {number[]} scene.player The x and the y position of the player in playfield pixels.
@@ -484,7 +484,7 @@ export async function recordedReplay(page) {
  * @param {number} scene.ticks The number of ticks to run.
  * @param {number} scene.seed The seed for Math.random().
  * @returns {Promise<string>} One JSON line with the portals, then one JSON line for each tick with the position and
- *     the speed of the object and of the player.
+ *     the speed of the body and of the player.
  */
 export async function runPortalScene(page, scene) {
 	return page.evaluate(async (scene) => {

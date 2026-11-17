@@ -2,7 +2,7 @@
  * The tile ids of the maps and the checks of their kinds.
  *
  * A map is a list of 768 tile ids. The ids below 100 are tiles of the tile set, and tileset[id] is their image. The
- * ids from 100 to 110 mark objects in a level file. The level loader replaces them with entities. The id 120 marks
+ * ids from 100 to 110 mark bodies in a level file. The level loader creates the bodies from them. The id 120 marks
  * the tube of the boss in a boss level. The id 199 is never in a file: it exists only in the logic layer of a running
  * level.
  */
@@ -117,12 +117,12 @@ export const FIRST_OF_KIND = Object.fromEntries(TILE_RANGES.map(([first, , kind]
 export const LAST_OF_KIND = Object.fromEntries(TILE_RANGES.map(([, last, kind]) => [kind, last]));
 
 /**
- * Check if a tile has one of the given kinds. An object, e.g. the crate or the platform of a collision result, is not
+ * Check if a tile has one of the given kinds. A body, e.g. the crate or the platform of a collision result, is not
  * a tile and has no kind.
  *
- * @param {number|object} id The tile id, or an object.
+ * @param {number|object} id The tile id, or a body.
  * @param {...string} kinds The kinds to check.
- * @returns {boolean} True if the tile has one of the kinds, false for an object.
+ * @returns {boolean} True if the tile has one of the kinds, false for a body.
  */
 export function isTileKind(id, ...kinds) {
 	return typeof id === 'number' && kinds.includes(KIND_OF[id]);
@@ -142,7 +142,7 @@ export function inForceFieldRange(id) {
 }
 
 /**
- * Check if a tile kills the player and the objects.
+ * Check if a tile is deadly: it kills the player, breaks a turret and sends a crate back.
  *
  * @param {number} id The tile id.
  * @returns {boolean} True for the razor wheels, the acid surface and the acid pool.
@@ -152,7 +152,7 @@ export function isDeadlyTile(id) {
 }
 
 /**
- * Check if a tile id marks an object in a level file.
+ * Check if a tile id marks a body in a level file.
  *
  * @param {number} id The tile id.
  * @returns {boolean} True for the ids from the left turret to the down gravitational pipe.

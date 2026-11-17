@@ -619,7 +619,7 @@ export function drawPlatform(x, y, dir, arrow) {
 }
 
 /**
- * Draw the tiles around the portals over the objects that are half in a portal.
+ * Draw the tiles around the portals over the bodies that are half in a portal.
  *
  * @param {import('../world/World.js').World} world The World.
  * @returns {void}
@@ -707,7 +707,7 @@ export function drawPlayer(x, y, flipX, frame = 0) {
 }
 
 /**
- * Draw the preview of a map with its objects over its tile layer.
+ * Draw the preview of a map with its bodies over its tile layer.
  *
  * @param {import('../world/World.js').World} world The World.
  * @param {import('../browser/InputState.js').InputState} input The mouse position.

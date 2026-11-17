@@ -563,15 +563,15 @@ export const sfx_step = Array.from({ length: 13 }, (_, i) => new Sound(`step${i 
 export const sfx_iceStep = Array.from({ length: 4 }, (_, i) => new Sound(`iceStep${i + 1}`));
 /** @type {Sound} The player floats in the field of a gravitational pipe, as a loop. */
 export const sfx_float = new Sound('float');
-/** @type {Sound} The player picks up an object. */
+/** @type {Sound} The player picks up a crate or a turret. */
 export const sfx_pickUp = new Sound('pickUp');
-/** @type {Sound} The player throws an object. */
+/** @type {Sound} The player throws a crate or a turret. */
 export const sfx_throwObject = new Sound('throwObject');
 /** @type {Sound} A crate lands. */
 export const sfx_crateLand = new Sound('crateLand');
 /** @type {Sound} A crate dissolves in a force field. */
 export const sfx_dissolve = new Sound('dissolve');
-/** @type {Sound} An object enters a portal. */
+/** @type {Sound} A body enters a portal. */
 export const sfx_enterPortal = new Sound('enterPortal');
 /** @type {Sound} A level ends. */
 export const sfx_transition = new Sound('transition');
@@ -587,7 +587,7 @@ export const sfx_acid = new Sound('acid');
 export const sfx_noPortal = new Sound('noPortal');
 /** @type {Sound} The portals are removed. */
 export const sfx_cancelPortals = new Sound('cancelPortals');
-/** @type {Sound} An object hits the boss. */
+/** @type {Sound} A crate hits the boss. */
 export const sfx_bossHit = new Sound('bossHit');
 /** @type {Sound} The screen shakes while the boss comes in or after its death, as a loop. */
 export const sfx_bossRumble = new Sound('bossRumble');

@@ -7,7 +7,7 @@ import { Tile } from '../map/tiles.js';
 import { toPixels } from '../utils.js';
 
 /**
- * The area in front of a gravitational pipe that moves objects. The World builds the fields again in each tick.
+ * The area in front of a gravitational pipe that moves bodies. The World builds the fields again in each tick.
  */
 export class GravPipeField {
 	/**

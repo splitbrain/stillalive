@@ -11,12 +11,12 @@ import { confirmShown, isEditorLocked } from './Confirm.js';
 const TEMPLATE = await loadMarkup(import.meta.url);
 
 /**
- * An item of the tray: a tile or an object of the editor.
+ * An item of the tray: a tile or a body of the editor.
  *
  * @typedef {object} PaletteItem
- * @property {number} tile The tile id or the object id, the brush that the item sets.
+ * @property {number} tile The tile id or the body id, the brush that the item sets.
  * @property {string} title The tooltip of the item.
- * @property {string} [sprite] The class of the sprite of an object, or nothing for a tile, which shows its tile image.
+ * @property {string} [sprite] The class of the sprite of a body, or nothing for a tile, which shows its tile image.
  * @property {string} [arrow] The arrow on a platform that shows its direction.
  */
 
@@ -134,7 +134,7 @@ function createButton(item) {
 }
 
 /**
- * The custom element <ui-editor-palette>. It shows a parts tray with a button for each tile and each object of the
+ * The custom element <ui-editor-palette>. It shows a parts tray with a button for each tile and each body of the
  * editor, and a panel with the buttons that change the background. A click on an item makes it the brush of the stage.
  */
 export class EditorPalette extends UiElement {
@@ -181,7 +181,7 @@ export class EditorPalette extends UiElement {
 	}
 
 	/**
-	 * Mark the button of the tile or object that is the brush of the stage.
+	 * Mark the button of the tile or body that is the brush of the stage.
 	 *
 	 * @returns {void}
 	 */

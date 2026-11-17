@@ -66,11 +66,15 @@ const BINS = [
 	],
 	[
 		[
-			{ tile: Tile.WHEEL, title: 'Razor wheel: kills the player and destroys objects, portal shots go through it' },
-			{ tile: Tile.ACID, title: 'Acid surface: kills the player and destroys objects, sends plasma balls back' },
+			{
+				tile: Tile.WHEEL,
+				title: 'Razor wheel: kills the player, breaks turrets and sends crates back, portal shots go through it',
+			},
+			{ tile: Tile.ACID, title: 'Acid surface: kills the player, breaks turrets, sends crates and plasma balls back' },
 			{
 				tile: Tile.ACIDPOOL,
-				title: 'Acid pool: goes below the acid surface, kills the player and destroys objects, sends plasma balls back',
+				title:
+					'Acid pool: goes below the acid surface, kills the player, breaks turrets, sends crates and plasma balls back',
 			},
 		],
 		[
@@ -81,24 +85,28 @@ const BINS = [
 	[
 		[
 			{ tile: Tile.PLATFORM_RIGHT, sprite: 'platform', arrow: '▶', title: 'Platform, moving right' },
-			{ tile: Tile.BELT_RIGHT, title: 'Conveyor belt: moves the player and objects to the right' },
+			{ tile: Tile.BELT_RIGHT, title: 'Conveyor belt: moves the player, crates and turrets to the right' },
 			{
 				tile: Tile.GRAVPIPE_RIGHT,
 				sprite: 'gravpipe-right',
-				title: 'Gravitational pipe: carries the player and objects to the right',
+				title: 'Gravitational pipe: carries the player, crates and turrets to the right',
 			},
 			{ tile: Tile.PLATFORM_LEFT, sprite: 'platform', arrow: '◀', title: 'Platform, moving left' },
-			{ tile: Tile.BELT_LEFT, title: 'Conveyor belt: moves the player and objects to the left' },
+			{ tile: Tile.BELT_LEFT, title: 'Conveyor belt: moves the player, crates and turrets to the left' },
 			{
 				tile: Tile.GRAVPIPE_LEFT,
 				sprite: 'gravpipe-left',
-				title: 'Gravitational pipe: carries the player and objects to the left',
+				title: 'Gravitational pipe: carries the player, crates and turrets to the left',
 			},
-			{ tile: Tile.GRAVPIPE_UP, sprite: 'gravpipe-up', title: 'Gravitational pipe: carries the player and objects up' },
+			{
+				tile: Tile.GRAVPIPE_UP,
+				sprite: 'gravpipe-up',
+				title: 'Gravitational pipe: carries the player, crates and turrets up',
+			},
 			{
 				tile: Tile.GRAVPIPE_DOWN,
 				sprite: 'gravpipe-down',
-				title: 'Gravitational pipe: carries the player and objects down',
+				title: 'Gravitational pipe: carries the player, crates and turrets down',
 			},
 		],
 	],

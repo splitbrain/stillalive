@@ -13,6 +13,6 @@ import { robotEye, robotHead } from '../browser/images.js';
  */
 export function drawBoss(world) {
 	const boss = world.boss;
-	drawImage(robotHead, boss.x, boss.y, 74, 58);
-	drawImage(robotEye[boss.number - 1], 0, 19 * boss.hits, 19, 19, boss.x + 15, boss.y + 22, 19, 19);
+	drawImage(robotHead, boss.imageX, boss.pixelY, boss.width, boss.height);
+	drawImage(robotEye[boss.number - 1], 0, 19 * boss.hits, 19, 19, boss.imageX + 15, boss.pixelY + 22, 19, 19);
 }

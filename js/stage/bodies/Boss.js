@@ -4,6 +4,7 @@
 
 import { playLoop, playSound, sfx_bossAlarm, sfx_bossHit, sfx_bossRumble } from '../browser/audio.js';
 import { MAP_WIDTH, TILE_SIZE } from '../constants.js';
+import { Body } from './Body.js';
 import { Crate } from './Crate.js';
 import { Plasma } from './Plasma.js';
 import { Projectile } from './Projectile.js';
@@ -11,22 +12,37 @@ import { PuffSparkle } from '../effects/sparkles.js';
 import { FIRST_OF_KIND, TileKind } from '../map/tiles.js';
 import { getCos, getDistance, getSin, random, toPixels, toSubpixels } from '../utils.js';
 
-/** @type {number} The x position of the boss in pixels while it fights. */
+/** @type {number} The x position of the boss image in pixels while the boss fights. */
 const BOSS_X = 449;
-/** @type {number} The y position of the boss in pixels. */
+/** @type {number} The y position of the boss image and of the hit box in pixels. */
 const BOSS_Y = 150;
 /** @type {number} The distance in pixels that the boss moves to the left while it comes in. */
 const BOSS_ENTRY_DISTANCE = 50;
-/** @type {number} The x position in pixels where the boss is out of the playfield after its death. */
+/** @type {number} The x position of the boss image in pixels where the boss is out of the playfield after its death. */
 const BOSS_GONE_X = 530;
+/** @type {number} The distance in pixels from the left edge of the boss image to the left edge of the hit box. */
+const HIT_BOX_OFFSET = 16;
+/** @type {number} The width in pixels of the hit box. The boss image has the same width. */
+const BOSS_WIDTH = 74;
+/** @type {number} The height in pixels of the hit box. The boss image has the same height. */
+const BOSS_HEIGHT = 58;
+/** @type {number} The x offset in pixels from the left edge of the boss image to the front edge for the player. */
+const CONTACT_OFFSET = 15;
+/** @type {number} The x offset in pixels of the smoke puffs from the left edge of the boss image. */
+const SMOKE_OFFSET_X = 14;
+/** @type {number} The y offset in pixels of the smoke puffs from the top edge of the boss image. */
+const SMOKE_OFFSET_Y = 18;
 /** @type {number} The number of crate hits that destroy the boss. */
 const BOSS_LIVES = 3;
 
 /**
  * The boss of a boss level. It comes in from the right, attacks the player and dies after three hits with a crate.
  * The subclasses in bosses.js define the attacks and set the abilities.
+ *
+ * The position and the size of the body are the hit box for the crates. The boss image is HIT_BOX_OFFSET pixels to the
+ * left of the hit box, at imageX.
  */
-export class Boss {
+export class Boss extends Body {
 	/**
 	 * Create the boss outside of the playfield. It comes in after the waits of the start events.
 	 *
@@ -34,14 +50,15 @@ export class Boss {
 	 * @param {number} number The number of the boss, from 1 to 4. It selects the eye, the portrait and the tube image.
 	 */
 	constructor(world, number) {
-		/** @type {import('../world/World.js').World} The World of the object. */
-		this.world = world;
+		super(
+			world,
+			toSubpixels(BOSS_X + BOSS_ENTRY_DISTANCE + HIT_BOX_OFFSET),
+			toSubpixels(BOSS_Y),
+			BOSS_WIDTH,
+			BOSS_HEIGHT,
+		);
 		/** @type {number} The number of the boss, from 1 to 4. It selects the eye, the portrait and the tube image. */
 		this.number = number;
-		/** @type {number} The x position in pixels. */
-		this.x = BOSS_X + BOSS_ENTRY_DISTANCE;
-		/** @type {number} The y position in pixels. */
-		this.y = BOSS_Y;
 		/** @type {number} The number of hits that the boss took, from 0 to BOSS_LIVES. */
 		this.hits = 0;
 		/** @type {boolean} True while the boss comes in. */
@@ -68,7 +85,7 @@ export class Boss {
 	skipEntry() {
 		this.entering = false;
 		this.entryDistance = 0;
-		this.x = BOSS_X;
+		this.x = toSubpixels(BOSS_X + HIT_BOX_OFFSET);
 		this.entryTicks = 0;
 		this.world.events.trigger('bossArrived');
 	}
@@ -108,8 +125,9 @@ export class Boss {
 		playLoop(sfx_bossAlarm);
 		this.entryDistance += 32;
 		this.entryTicks++;
-		this.x = BOSS_X + BOSS_ENTRY_DISTANCE - toPixels(this.entryDistance);
-		if (this.x === BOSS_X) {
+		// the boss moves in whole pixels, one pixel for each whole pixel of the entry distance
+		this.x = toSubpixels(BOSS_X + BOSS_ENTRY_DISTANCE + HIT_BOX_OFFSET - toPixels(this.entryDistance));
+		if (this.imageX === BOSS_X) {
 			this.entering = false;
 			this.world.effects.stopShake();
 			this.world.events.trigger('bossArrived');
@@ -196,14 +214,16 @@ export class Boss {
 	 * @returns {void}
 	 */
 	updateRumble() {
-		if (this.hits !== BOSS_LIVES || this.x >= BOSS_GONE_X) return;
+		if (this.hits !== BOSS_LIVES || this.imageX >= BOSS_GONE_X) return;
 		playLoop(sfx_bossRumble);
 		this.#shakeScreen();
 		if (this.world.time % 10 === 0) {
-			this.world.effects.addPuffSparkles(toSubpixels(this.x + 14), toSubpixels(this.y + 18), PuffSparkle.SMOKE, 3, 300);
-			this.x += 1;
+			const smokeX = toSubpixels(this.imageX + SMOKE_OFFSET_X);
+			const smokeY = toSubpixels(this.pixelY + SMOKE_OFFSET_Y);
+			this.world.effects.addPuffSparkles(smokeX, smokeY, PuffSparkle.SMOKE, 3, 300);
+			this.x += toSubpixels(1);
 		}
-		if (this.x >= BOSS_GONE_X) this.world.effects.stopShake();
+		if (this.imageX >= BOSS_GONE_X) this.world.effects.stopShake();
 	}
 
 	/**
@@ -215,7 +235,16 @@ export class Boss {
 	phase() {
 		if (this.entering) return this.world.events.isWaiting() ? null : 'coming';
 		if (this.hits < BOSS_LIVES) return 'fight';
-		return this.x < BOSS_GONE_X ? 'leaving' : null;
+		return this.imageX < BOSS_GONE_X ? 'leaving' : null;
+	}
+
+	/**
+	 * Get the x position of the boss image, which is HIT_BOX_OFFSET pixels to the left of the hit box.
+	 *
+	 * @returns {number} The left edge of the boss image in pixels.
+	 */
+	get imageX() {
+		return this.pixelX - HIT_BOX_OFFSET;
 	}
 
 	/**
@@ -224,10 +253,10 @@ export class Boss {
 	 * @returns {boolean} True if the player touches the boss.
 	 */
 	#touchesPlayer() {
-		// the right edge and the middle of the player against the front of the boss
+		// the right edge and the middle of the player against the front of the boss, which is not the hit box
 		const right = this.world.player.pixelX + this.world.player.width;
 		const middle = this.world.player.midY();
-		return right > this.x + 15 && middle > this.y && middle < this.y + 58;
+		return right > this.imageX + CONTACT_OFFSET && middle > this.pixelY && middle < this.pixelY + this.height;
 	}
 
 	/**
@@ -237,7 +266,7 @@ export class Boss {
 	 * @returns {void}
 	 */
 	hit(crate) {
-		if (this.hits < BOSS_LIVES && crate.overlapsBox(this.x + 16, this.y, 74, 58)) {
+		if (this.hits < BOSS_LIVES && crate.overlaps(this)) {
 			this.useUpCrate(crate);
 			this.hits++;
 			playSound(sfx_bossHit);

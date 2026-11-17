@@ -104,15 +104,15 @@ export class NarratorText extends UiElement {
 
 	/**
 	 * Show the full text on a press of the Space key while the element types. The key then does not press the focused
-	 * button. While the element shows, the Space key does not scroll the page. A Space key in a text field or a dialog
-	 * keeps its normal effect.
+	 * button. While the element shows, the Space key does not scroll the page. A Space key in a text field keeps its
+	 * normal effect.
 	 *
 	 * @param {KeyboardEvent} event The keydown event.
 	 * @returns {void}
 	 */
 	#onKeyDown(event) {
 		if (event.code !== 'Space' || this.hidden) return;
-		if (event.target instanceof Element && event.target.closest('input, textarea, select, dialog')) return;
+		if (event.target instanceof Element && event.target.closest('input, textarea, select')) return;
 		if (this.#timer === 0 && event.target !== document.body) return;
 		event.preventDefault();
 		if (this.#timer === 0) return;

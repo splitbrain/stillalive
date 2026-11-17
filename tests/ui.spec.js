@@ -308,7 +308,7 @@ test.describe('ui', () => {
 		const map = () => page.evaluate(() => window.__test.stage.getMap());
 		const buttons = page.locator('ui-editor-buttons');
 		const slot = page.locator('ui-slot-list button').first();
-		const confirm = page.locator('ui-confirm');
+		const dialog = page.locator('ui-dialog');
 
 		// an empty slot saves at once and then shows its number
 		await buttons.getByRole('button', { name: 'Save' }).click();
@@ -335,26 +335,26 @@ test.describe('ui', () => {
 		// a map that is not empty is replaced only after the confirmation
 		await buttons.getByRole('button', { name: 'Load' }).click();
 		await slot.click();
-		await confirm.getByRole('button', { name: 'No' }).click();
+		await dialog.getByRole('button', { name: 'No' }).click();
 		await expectScreen(page, '#/load', FILE_PARTS);
 		await slot.click();
-		await confirm.getByRole('button', { name: 'Yes' }).click();
+		await dialog.getByRole('button', { name: 'Yes' }).click();
 		await expectScreen(page, '#/editor', EDITOR_PARTS);
 
 		// a stored slot is overwritten only after the confirmation
 		await buttons.getByRole('button', { name: 'Save' }).click();
 		await slot.click();
-		await expect(confirm).toContainText('Slot 1 contains a map');
-		await confirm.getByRole('button', { name: 'Yes' }).click();
+		await expect(dialog).toContainText('Slot 1 contains a map');
+		await dialog.getByRole('button', { name: 'Yes' }).click();
 		await expectScreen(page, '#/editor', EDITOR_PARTS);
 
 		// the import question disables the palette and the buttons until Escape selects No
 		await buttons.getByRole('button', { name: 'Import' }).click();
-		await expect(confirm).toBeVisible();
+		await expect(dialog).toBeVisible();
 		await expect(page.locator('ui-editor-palette')).toHaveAttribute('inert');
 		await expect(page.locator('ui-editor-buttons button:enabled')).toHaveCount(0);
 		await page.keyboard.press('Escape');
-		await expect(confirm).toBeHidden();
+		await expect(dialog).toBeHidden();
 		await expect(page.locator('ui-editor-palette')).not.toHaveAttribute('inert');
 		await expect(page.locator('ui-editor-buttons button:enabled')).toHaveCount(9);
 
@@ -412,7 +412,7 @@ test.describe('ui', () => {
 		await expect(page.locator('ui-main-menu .custom')).toHaveText('My Levels 2/2');
 		await setHash(page, '#/save');
 		await page.locator('ui-slot-list button').nth(2).click();
-		await page.locator('ui-confirm').getByRole('button', { name: 'Yes' }).click();
+		await page.locator('ui-dialog').getByRole('button', { name: 'Yes' }).click();
 		await expectScreen(page, '#/editor', EDITOR_PARTS);
 		await setHash(page, '#/');
 		await expect(page.locator('ui-main-menu .custom')).toHaveText('My Levels 1/2');
@@ -491,7 +491,7 @@ test.describe('ui', () => {
 	test('shows the screen parts that shouldShow() selects', async ({ page }) => {
 		await startGame(page);
 		const screens = { '#/': 'main', '#/select/normal': 'select', '#/editor': 'editor' };
-		const tags = [...SCREEN_PARTS.filter((tag) => tag !== 'game-stage'), 'ui-confirm'].sort();
+		const tags = [...SCREEN_PARTS.filter((tag) => tag !== 'game-stage'), 'ui-dialog'].sort();
 		for (const [hash, screen] of Object.entries(screens)) {
 			await setHash(page, hash);
 			// the root element applies the route after the hashchange event, so the check polls

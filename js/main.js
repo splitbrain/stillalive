@@ -32,7 +32,7 @@ loadGame(
 			{ tag: 'ui-editor-palette', url: './ui/elements/EditorPalette.js', name: 'EditorPalette' },
 			{ tag: 'ui-editor-buttons', url: './ui/elements/EditorButtons.js', name: 'EditorButtons' },
 			{ tag: 'ui-editor-files', url: './ui/elements/EditorFiles.js', name: 'EditorFiles' },
-			{ tag: 'ui-confirm', url: './ui/elements/Confirm.js', name: 'Confirm' },
+			{ tag: 'ui-dialog', url: './ui/elements/Dialog.js', name: 'Dialog' },
 		],
 	],
 );

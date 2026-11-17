@@ -5,10 +5,9 @@
 import { navigate, route, RouteName, routePath, up } from '../../router.js';
 import { CampaignId, LEVELS_PER_CAMPAIGN, StageMode } from '../../stage/constants.js';
 import { campaignById, campaigns, campaignsReady } from '../../data/campaigns.js';
-import { alertDialog } from '../dialog.js';
 import { setAttributes } from '../dom.js';
 import { Screen, UiElement } from '../element.js';
-import { confirmShown } from './Confirm.js';
+import { dialogShown, showAlert } from './Dialog.js';
 import {
 	getBestTime,
 	loadBestReplay,
@@ -150,7 +149,7 @@ export class Root extends UiElement {
 			ready.subscribe(() => this.#applyRoute()),
 			stage.mode.subscribe(() => this.#showScreen()),
 			stage.paused.subscribe(() => this.#showScreen()),
-			confirmShown.subscribe(() => this.#showScreen()),
+			dialogShown.subscribe(() => this.#showScreen()),
 			stage.sound.subscribe((on) => {
 				checkReady();
 				if (this.#started) saveSoundSetting(on);
@@ -506,7 +505,7 @@ export class Root extends UiElement {
 			this.stage.play(level, { replay: data, restart });
 			this.#replay = data;
 		} catch (error) {
-			alertDialog(error.message, 'Replay');
+			showAlert(error.message, 'Replay');
 			up(routePath(RouteName.SELECT, current.campaign, current.level));
 		}
 	}
@@ -591,10 +590,7 @@ export class Root extends UiElement {
 	#onBrokenReplay() {
 		const current = route.get();
 		if (current.name !== RouteName.REPLAY) return;
-		alertDialog(
-			"The replay you're watching seems to be broken -_-;\nSorry for the inconvenience.",
-			'An error occurred',
-		);
+		showAlert("The replay you're watching seems to be broken -_-;\nSorry for the inconvenience.", 'An error occurred');
 		up(routePath(RouteName.SELECT, current.campaign, current.level));
 	}
 }

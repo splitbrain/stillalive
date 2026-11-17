@@ -5,7 +5,7 @@
 import { route } from '../../router.js';
 import { Tile } from '../../stage/map/tiles.js';
 import { loadMarkup, Screen, UiElement } from '../element.js';
-import { confirmShown, isEditorLocked } from './Confirm.js';
+import { dialogShown, isEditorLocked } from './Dialog.js';
 
 /** @type {HTMLTemplateElement|null} The markup of the editor palette. */
 const TEMPLATE = await loadMarkup(import.meta.url);
@@ -176,7 +176,7 @@ export class EditorPalette extends UiElement {
 	}
 
 	/**
-	 * Subscribe to the brush of the stage, and to the route and the confirmation to make the palette inert while
+	 * Subscribe to the brush of the stage, and to the route and the dialog to make the palette inert while
 	 * the editor is locked.
 	 *
 	 * @returns {Array<() => void>} The functions that remove the subscriptions.
@@ -185,7 +185,7 @@ export class EditorPalette extends UiElement {
 		const lock = () => {
 			this.inert = isEditorLocked();
 		};
-		return [this.stage.brush.subscribe(() => this.render()), route.subscribe(lock), confirmShown.subscribe(lock)];
+		return [this.stage.brush.subscribe(() => this.render()), route.subscribe(lock), dialogShown.subscribe(lock)];
 	}
 
 	/**

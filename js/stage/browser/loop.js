@@ -46,8 +46,7 @@ function runTick() {
 }
 
 /**
- * Run the ticks for the real time since the previous frame, then draw the canvas once. While a dialog of the page is
- * open, the game stops.
+ * Run the ticks for the real time since the previous frame, then draw the canvas once.
  *
  * @param {DOMHighResTimeStamp} now The time of the frame.
  * @returns {void}
@@ -58,10 +57,7 @@ function frame(now) {
 	pendingTime += now - (lastFrameTime ?? now);
 	lastFrameTime = now;
 	let ticks = Math.floor(pendingTime / TICK_LENGTH);
-	if (document.querySelector('dialog[open]') !== null) {
-		ticks = 0;
-		pendingTime = 0;
-	} else if (ticks > MAX_TICKS_PER_FRAME) {
+	if (ticks > MAX_TICKS_PER_FRAME) {
 		ticks = MAX_TICKS_PER_FRAME;
 		pendingTime = 0;
 	} else {

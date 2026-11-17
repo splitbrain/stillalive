@@ -1,18 +1,21 @@
 <template>
 	<h2></h2>
 	<p></p>
-	<div class="buttons">
+	<div class="buttons question">
 		<ui-button><button class="yes">Yes</button></ui-button>
 		<ui-button><button class="no">No</button></ui-button>
+	</div>
+	<div class="buttons message" hidden>
+		<ui-button><button class="ok">OK</button></ui-button>
 	</div>
 </template>
 
 <style>
 	/*
-	 * The confirmation covers the content of the CRT. It shows the stage behind it darker and in black
+	 * The dialog covers the content of the CRT. It shows the stage behind it darker and in black
 	 * and white.
 	 */
-	ui-confirm {
+	ui-dialog {
 		display: flex;
 		flex-direction: column;
 		align-items: center;
@@ -35,11 +38,16 @@
 			max-width: 70cqw;
 			margin-bottom: 1.8cqw;
 			font-size: 2.4cqw;
+			white-space: pre-line;
 		}
 
 		.buttons {
 			display: flex;
 			gap: 2.4cqw;
+
+			&[hidden] {
+				display: none;
+			}
 
 			> ui-button {
 				width: 19cqw;
@@ -47,8 +55,8 @@
 		}
 	}
 
-	/* while a question shows, the CRT shows only the stage and the question */
-	ui-crt:has(> ui-confirm:not([hidden])) > :not(game-stage, ui-confirm) {
+	/* while the dialog shows, the CRT shows only the stage and the dialog */
+	ui-crt:has(> ui-dialog:not([hidden])) > :not(game-stage, ui-dialog) {
 		visibility: hidden;
 	}
 </style>

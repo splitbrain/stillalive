@@ -5,10 +5,9 @@
 import { navigate, route, up } from '../../router.js';
 import { StageMode } from '../../stage/constants.js';
 import { MAP_FORMAT, parseMap } from '../../stage/map/mapFile.js';
-import { alertDialog } from '../dialog.js';
 import { loadMarkup, Screen, UiElement } from '../element.js';
 import { downloadJson, pickJsonFile } from '../files.js';
-import { confirmReplaceMap, confirmShown, isEditorLocked } from './Confirm.js';
+import { confirmReplaceMap, dialogShown, isEditorLocked, showAlert } from './Dialog.js';
 
 /** @type {HTMLTemplateElement|null} The markup of the editor buttons. */
 const TEMPLATE = await loadMarkup(import.meta.url);
@@ -35,7 +34,7 @@ export class EditorButtons extends UiElement {
 		this.querySelector('.clear').addEventListener('click', () => this.stage.clearMap());
 		this.querySelector('.export').addEventListener('click', () => this.#export());
 		this.querySelector('.import').addEventListener('click', () => {
-			this.#import().catch((error) => alertDialog(error.message, 'Import map'));
+			this.#import().catch((error) => showAlert(error.message, 'Import map'));
 		});
 		for (const button of /** @type {NodeListOf<HTMLElement>} */ (this.querySelectorAll('[data-href]'))) {
 			button.addEventListener('click', () => navigate(button.dataset.href));
@@ -46,14 +45,14 @@ export class EditorButtons extends UiElement {
 	}
 
 	/**
-	 * Subscribe to the mode of the stage, to the route and to the confirmation, to label the Try button and to
+	 * Subscribe to the mode of the stage, to the route and to the dialog, to label the Try button and to
 	 * disable the buttons.
 	 *
 	 * @returns {Array<() => void>} The functions that remove the subscriptions.
 	 */
 	subscribe() {
 		const update = () => this.#updateButtons();
-		return [this.stage.mode.subscribe(update), route.subscribe(update), confirmShown.subscribe(update)];
+		return [this.stage.mode.subscribe(update), route.subscribe(update), dialogShown.subscribe(update)];
 	}
 
 	/**

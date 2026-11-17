@@ -3,11 +3,10 @@
  */
 
 import { RouteName, up } from '../../router.js';
-import { alertDialog } from '../dialog.js';
 import { setAttributes } from '../dom.js';
 import { loadMarkup, Screen } from '../element.js';
 import { editorMap, saveEditorMap } from '../../data/storage.js';
-import { askConfirmation, confirmReplaceMap } from './Confirm.js';
+import { askConfirmation, confirmReplaceMap, showAlert } from './Dialog.js';
 import { Selection } from './Selection.js';
 
 /** @type {HTMLTemplateElement|null} The markup of the editor files. */
@@ -98,7 +97,7 @@ export class EditorFiles extends Selection {
 			this.stage.edit(editorMap(slot).get());
 		} else {
 			if (!saveEditorMap(slot, this.stage.getMap())) {
-				alertDialog(
+				showAlert(
 					'The map could not be saved, because the browser blocks the storage or the storage is full. ' +
 						'Use Export to save the map as a file.',
 					'Save map',

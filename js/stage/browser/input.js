@@ -39,7 +39,7 @@ const KEY_BITS = {
 const MOUSE_BITS = MOUSE_LEFT | MOUSE_RIGHT | MOUSE_MIDDLE;
 
 /**
- * Check if a key event belongs to a text field or a dialog. The game ignores such events.
+ * Check if a key event belongs to a text field. The game ignores such events.
  *
  * @param {KeyboardEvent} event The key event.
  * @returns {boolean} True if the game must ignore the event.
@@ -48,8 +48,7 @@ function isForeignTarget(event) {
 	const target = event.target;
 	return (
 		target instanceof Element &&
-		((target instanceof HTMLElement && target.isContentEditable) ||
-			target.closest('input, textarea, select, dialog') !== null)
+		((target instanceof HTMLElement && target.isContentEditable) || target.closest('input, textarea, select') !== null)
 	);
 }
 

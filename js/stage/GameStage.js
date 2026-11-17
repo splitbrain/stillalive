@@ -65,8 +65,7 @@ const BOSS_MUSIC_DUCK = 0.5;
  * A mode of the stage: a PlaySession, a PreviewSession or the Editor.
  *
  * @typedef {object} Session
- * @property {string} mode The mode text: "play" or "test" for a PlaySession, "preview" for a PreviewSession and "edit"
- *     for the Editor.
+ * @property {string} mode The mode of the stage for the session, a value of StageMode.
  * @property {import('./World.js').World} world The World that the session shows.
  * @property {() => void} tick The function that runs one tick of the session, with the input of the tick.
  * @property {(renderer: Renderer) => void} draw The function that draws the session with the methods of the Renderer.

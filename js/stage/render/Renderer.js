@@ -2,7 +2,7 @@
  * The Renderer object.
  */
 
-import { beginFrame, canvasGeneration, copyCanvas, drawCopy } from '../canvas.js';
+import { beginFrame, canvasGeneration, copyCanvas, drawCopy } from '../browser/canvas.js';
 import { PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH } from '../constants.js';
 import { drawCursor, drawEditorLayer } from './editor.js';
 import { drawLevel, drawPreviewMap, drawTileLayer } from './game.js';
@@ -11,7 +11,7 @@ import { drawLevel, drawPreviewMap, drawTileLayer } from './game.js';
  * The map, the version of the map, the background and the canvas generation that a cached layer shows.
  *
  * @typedef {object} LayerSource
- * @property {import('../TileMap.js').TileMap} map The map.
+ * @property {import('../world/TileMap.js').TileMap} map The map.
  * @property {number} version The version of the map.
  * @property {number} background The index of the background image.
  * @property {number} generation The generation of the canvas buffer.
@@ -20,7 +20,7 @@ import { drawLevel, drawPreviewMap, drawTileLayer } from './game.js';
 /**
  * Get the source of a cached layer for a map, a background and the current canvas buffer.
  *
- * @param {import('../TileMap.js').TileMap} map The map.
+ * @param {import('../world/TileMap.js').TileMap} map The map.
  * @param {number} background The index of the background image.
  * @returns {LayerSource} The source.
  */
@@ -49,7 +49,7 @@ function isSameSource(cached, source) {
  * A session that the Renderer draws: a level, a preview or the editor.
  *
  * @typedef {object} DrawnSession
- * @property {import('../World.js').World} world The World of the session, with the screen shake.
+ * @property {import('../world/World.js').World} world The World of the session, with the screen shake.
  * @property {(renderer: Renderer) => void} draw The function that draws the session with the methods of the Renderer.
  */
 
@@ -57,7 +57,7 @@ function isSameSource(cached, source) {
  * The drawing of the stage. It keeps the cached layers and the label layouts for the next frames.
  */
 export class Renderer {
-	/** @type {import('../InputState.js').InputState} The keys and the mouse. */
+	/** @type {import('../browser/InputState.js').InputState} The keys and the mouse. */
 	#input;
 
 	/** @type {OffscreenCanvas|null} The copy of the background and the tiles of a level or a preview. */
@@ -78,7 +78,7 @@ export class Renderer {
 	/**
 	 * Create the drawing of the stage.
 	 *
-	 * @param {import('../InputState.js').InputState} input The keys and the mouse, for the crosshair and the cursor.
+	 * @param {import('../browser/InputState.js').InputState} input The keys and the mouse, for the crosshair and the cursor.
 	 */
 	constructor(input) {
 		this.#input = input;
@@ -99,7 +99,7 @@ export class Renderer {
 	/**
 	 * Draw a level.
 	 *
-	 * @param {import('../World.js').World} world The World of the level.
+	 * @param {import('../world/World.js').World} world The World of the level.
 	 * @returns {void}
 	 */
 	drawLevel(world) {
@@ -110,7 +110,7 @@ export class Renderer {
 	/**
 	 * Draw the preview of a level or of a map.
 	 *
-	 * @param {import('../World.js').World} world The World of the preview.
+	 * @param {import('../world/World.js').World} world The World of the preview.
 	 * @returns {void}
 	 */
 	drawPreview(world) {
@@ -121,7 +121,7 @@ export class Renderer {
 	/**
 	 * Draw the editor map and the cursor. The cached editor layer holds the background, the tiles and the objects.
 	 *
-	 * @param {import('../Editor.js').Editor} editor The editor.
+	 * @param {import('../editor/Editor.js').Editor} editor The editor.
 	 * @returns {void}
 	 */
 	drawEditor(editor) {
@@ -140,7 +140,7 @@ export class Renderer {
 	 * Draw the background and the tiles of a World from the cached tile layer. A new map, a change of the map or the
 	 * background and a new canvas buffer draw the layer again.
 	 *
-	 * @param {import('../World.js').World} world The World.
+	 * @param {import('../world/World.js').World} world The World.
 	 * @returns {void}
 	 */
 	#drawTileLayer(world) {

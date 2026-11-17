@@ -2,7 +2,7 @@
  * Drawing of a level and of the preview of a map.
  */
 
-import { ctx, drawImage } from '../canvas.js';
+import { ctx, drawImage } from '../browser/canvas.js';
 import {
 	DEATH_FADE,
 	Direction,
@@ -35,7 +35,7 @@ import {
 	gravPipe,
 	gravPipe2,
 	turretImages,
-} from '../images.js';
+} from '../browser/images.js';
 import { drawBoss } from './boss.js';
 import { drawTransition } from './transitions.js';
 import { degToRad, getAngle, radToDeg, random, toPixels } from '../utils.js';
@@ -76,7 +76,7 @@ const GRAVPIPE_FRAMES = {
 /**
  * The layouts of the labels that were measured with the loaded label font.
  *
- * @typedef {WeakMap<import('../mapFile.js').MapLabel, {lines: string[], metrics: TextMetrics[], tilt: number}>}
+ * @typedef {WeakMap<import('../map/mapFile.js').MapLabel, {lines: string[], metrics: TextMetrics[], tilt: number}>}
  *     LabelLayouts
  */
 
@@ -124,8 +124,8 @@ function triangle(x1, y1, x2, y2, x3, y3) {
 /**
  * Draw the portal gun of the player, turned towards the mouse.
  *
- * @param {import('../World.js').World} world The World.
- * @param {import('../InputState.js').InputState} input The mouse position.
+ * @param {import('../world/World.js').World} world The World.
+ * @param {import('../browser/InputState.js').InputState} input The mouse position.
  * @returns {void}
  */
 function drawPortalGun(world, input) {
@@ -155,8 +155,8 @@ function limitHeadAngle(angle, flipDx) {
 /**
  * Draw the head of the player, turned towards the mouse.
  *
- * @param {import('../World.js').World} world The World.
- * @param {import('../InputState.js').InputState} input The mouse position.
+ * @param {import('../world/World.js').World} world The World.
+ * @param {import('../browser/InputState.js').InputState} input The mouse position.
  * @param {number} flipDx 1 when the player faces left, else 0.
  * @returns {void}
  */
@@ -205,7 +205,7 @@ function drawBody(x, y, frame, flipX) {
 /**
  * Draw the sparkles. The size follows the fade.
  *
- * @param {import('../World.js').World} world The World.
+ * @param {import('../world/World.js').World} world The World.
  * @returns {void}
  */
 function drawSparkles(world) {
@@ -231,8 +231,8 @@ function drawSparkles(world) {
 /**
  * Draw a level over its tile layer.
  *
- * @param {import('../World.js').World} world The World.
- * @param {import('../InputState.js').InputState} input The mouse position.
+ * @param {import('../world/World.js').World} world The World.
+ * @param {import('../browser/InputState.js').InputState} input The mouse position.
  * @param {LabelLayouts} labelLayouts The layouts of the labels for the next frames.
  * @returns {void}
  */
@@ -278,7 +278,7 @@ export function drawLevel(world, input, labelLayouts) {
 /**
  * Draw the labels of the level at their positions in the playfield.
  *
- * @param {import('../World.js').World} world The World.
+ * @param {import('../world/World.js').World} world The World.
  * @param {LabelLayouts} labelLayouts The layouts of the labels for the next frames.
  * @returns {void}
  */
@@ -297,7 +297,7 @@ function drawLabels(world, labelLayouts) {
  *
  * Each line is centered on its letters, so a line without descenders does not look too high.
  *
- * @param {import('../mapFile.js').MapLabel} label The label.
+ * @param {import('../map/mapFile.js').MapLabel} label The label.
  * @param {LabelLayouts} labelLayouts The layouts of the labels for the next frames.
  * @returns {void}
  */
@@ -321,7 +321,7 @@ function drawLabel(label, labelLayouts) {
  * The hash of the text sets the tilt, so a label always has the same tilt. The tilt of a wide label is smaller, so its
  * ends stay in the tile row.
  *
- * @param {import('../mapFile.js').MapLabel} label The label.
+ * @param {import('../map/mapFile.js').MapLabel} label The label.
  * @param {LabelLayouts} labelLayouts The layouts of the labels for the next frames.
  * @returns {{lines: string[], metrics: TextMetrics[], tilt: number}} The lines, their metrics and the tilt in
  *     radians.
@@ -355,7 +355,7 @@ function hashText(text) {
 /**
  * Draw the current frames of the animated tiles.
  *
- * @param {import('../World.js').World} world The World.
+ * @param {import('../world/World.js').World} world The World.
  * @returns {void}
  */
 function drawAnimatedTiles(world) {
@@ -368,7 +368,7 @@ function drawAnimatedTiles(world) {
 /**
  * Draw the background and the display layer of the map of a World.
  *
- * @param {import('../World.js').World} world The World.
+ * @param {import('../world/World.js').World} world The World.
  * @returns {void}
  */
 export function drawTileLayer(world) {
@@ -379,7 +379,7 @@ export function drawTileLayer(world) {
 /**
  * Draw the display layer of a map.
  *
- * @param {import('../TileMap.js').TileMap} map The map.
+ * @param {import('../world/TileMap.js').TileMap} map The map.
  * @returns {void}
  */
 export function drawTiles(map) {
@@ -393,7 +393,7 @@ export function drawTiles(map) {
 /**
  * Draw the cakes. The cakes float only while the level time runs. Else they stand at their rest position.
  *
- * @param {import('../World.js').World} world The World.
+ * @param {import('../world/World.js').World} world The World.
  * @returns {void}
  */
 export function drawCakes(world) {
@@ -407,7 +407,7 @@ export function drawCakes(world) {
 /**
  * Draw the turrets with their laser sights.
  *
- * @param {import('../World.js').World} world The World.
+ * @param {import('../world/World.js').World} world The World.
  * @returns {void}
  */
 export function drawTurrets(world) {
@@ -448,7 +448,7 @@ export function drawTurrets(world) {
 /**
  * Draw the plasma balls with their pulse.
  *
- * @param {import('../World.js').World} world The World.
+ * @param {import('../world/World.js').World} world The World.
  * @returns {void}
  */
 function drawPlasma(world) {
@@ -475,7 +475,7 @@ function drawPlasma(world) {
 /**
  * Draw the razor wheels of the boss with their motion trail.
  *
- * @param {import('../World.js').World} world The World.
+ * @param {import('../world/World.js').World} world The World.
  * @returns {void}
  */
 function drawProjectiles(world) {
@@ -495,7 +495,7 @@ function drawProjectiles(world) {
 /**
  * Draw the crates. A destroyed crate shrinks.
  *
- * @param {import('../World.js').World} world The World.
+ * @param {import('../world/World.js').World} world The World.
  * @returns {void}
  */
 export function drawCrates(world) {
@@ -541,7 +541,7 @@ export function drawArrow(x1, y1, x2, y2, lineWidth, dir) {
 /**
  * Draw the pipe fields as half transparent areas.
  *
- * @param {import('../World.js').World} world The World.
+ * @param {import('../world/World.js').World} world The World.
  * @returns {void}
  */
 function drawGravPipeFields(world) {
@@ -556,7 +556,7 @@ function drawGravPipeFields(world) {
 /**
  * Draw the pipe fields and the gravitational pipes.
  *
- * @param {import('../World.js').World} world The World.
+ * @param {import('../world/World.js').World} world The World.
  * @returns {void}
  */
 export function drawGravPipes(world) {
@@ -582,7 +582,7 @@ export function drawGravPipe(dir, x, y) {
 /**
  * Draw the tube of the boss.
  *
- * @param {import('../World.js').World} world The World.
+ * @param {import('../world/World.js').World} world The World.
  * @returns {void}
  */
 function drawTube(world) {
@@ -592,7 +592,7 @@ function drawTube(world) {
 /**
  * Draw the platforms.
  *
- * @param {import('../World.js').World} world The World.
+ * @param {import('../world/World.js').World} world The World.
  * @param {boolean} arrow True to show the direction of each platform with an arrow.
  * @returns {void}
  */
@@ -621,7 +621,7 @@ export function drawPlatform(x, y, dir, arrow) {
 /**
  * Draw the tiles around the portals over the objects that are half in a portal.
  *
- * @param {import('../World.js').World} world The World.
+ * @param {import('../world/World.js').World} world The World.
  * @returns {void}
  */
 function drawFrontTiles(world) {
@@ -644,7 +644,7 @@ function drawFrontTiles(world) {
 /**
  * Draw the security camera turned towards the player.
  *
- * @param {import('../World.js').World} world The World.
+ * @param {import('../world/World.js').World} world The World.
  * @returns {void}
  */
 function drawCamera(world) {
@@ -664,7 +664,7 @@ function drawCamera(world) {
 /**
  * Draw the portals with their opening animation.
  *
- * @param {import('../World.js').World} world The World.
+ * @param {import('../world/World.js').World} world The World.
  * @returns {void}
  */
 function drawPortals(world) {
@@ -709,8 +709,8 @@ export function drawPlayer(x, y, flipX, frame = 0) {
 /**
  * Draw the preview of a map with its objects over its tile layer.
  *
- * @param {import('../World.js').World} world The World.
- * @param {import('../InputState.js').InputState} input The mouse position.
+ * @param {import('../world/World.js').World} world The World.
+ * @param {import('../browser/InputState.js').InputState} input The mouse position.
  * @returns {void}
  */
 export function drawPreviewMap(world, input) {

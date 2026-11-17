@@ -2,15 +2,15 @@
  * Drawing of the transitions between levels.
  */
 
-import { ctx } from '../canvas.js';
+import { ctx } from '../browser/canvas.js';
 import { FADE_START, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, Transition } from '../constants.js';
-import { lineOrder } from '../images.js';
+import { lineOrder } from '../browser/images.js';
 
 /**
  * Draw the transition of the level phase with the progress of the fade. While an exit event waits and in the exit
  * freeze after the level end, the playfield is black.
  *
- * @param {import('../LevelPhase.js').LevelPhase} phase The phase of the level.
+ * @param {import('../world/LevelPhase.js').LevelPhase} phase The phase of the level.
  * @returns {void}
  */
 export function drawTransition(phase) {
@@ -52,7 +52,7 @@ function drawColumns(scale) {
 /**
  * Draw the closing transition of the current effect.
  *
- * @param {import('../LevelPhase.js').LevelPhase} phase The phase of the level.
+ * @param {import('../world/LevelPhase.js').LevelPhase} phase The phase of the level.
  * @returns {void}
  */
 function drawClosingTransition(phase) {
@@ -85,7 +85,7 @@ function drawClosingTransition(phase) {
 /**
  * Draw the opening transition of the current effect.
  *
- * @param {import('../LevelPhase.js').LevelPhase} phase The phase of the level.
+ * @param {import('../world/LevelPhase.js').LevelPhase} phase The phase of the level.
  * @returns {void}
  */
 function drawOpeningTransition(phase) {

@@ -1,11 +1,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Direction, MAP_HEIGHT, MAP_WIDTH } from '../../js/stage/constants.js';
-import { Body } from '../../js/stage/entities/Body.js';
-import { traceGravPipeField } from '../../js/stage/entities/GravPipeField.js';
-import { Plasma } from '../../js/stage/entities/Plasma.js';
-import { Portal } from '../../js/stage/entities/Portal.js';
-import { Tile } from '../../js/stage/tiles.js';
+import { Body } from '../../js/stage/bodies/Body.js';
+import { traceGravPipeField } from '../../js/stage/bodies/GravPipeField.js';
+import { Plasma } from '../../js/stage/bodies/Plasma.js';
+import { Portal } from '../../js/stage/portals/Portal.js';
+import { Tile } from '../../js/stage/map/tiles.js';
 import { at, floorTiles, startWorld } from './helpers.js';
 
 /** @type {number[][]} The speeds [vx, vy] before a teleport, the same for each pair of portal directions. */

@@ -3,7 +3,7 @@
  */
 
 import { CAMPAIGN_FOLDERS, CampaignId, LEVELS_PER_CAMPAIGN } from '../stage/constants.js';
-import { MAP_FORMAT, parseMap } from '../stage/mapFile.js';
+import { MAP_FORMAT, parseMap } from '../stage/map/mapFile.js';
 import { Value } from '../value.js';
 import { editorMap, getBestTime, maxLevel } from './storage.js';
 
@@ -45,7 +45,7 @@ export class Campaign {
 		/** @type {string} The folder of the campaign that the main menu shows this campaign under, or empty for none. */
 		this.parent = '';
 		/**
-		 * @type {Array<import('../stage/level.js').Level|null>} The levels of the campaign, by level number minus one. A
+		 * @type {Array<import('../stage/world/level.js').Level|null>} The levels of the campaign, by level number minus one. A
 		 *     level that is not there is null.
 		 */
 		this.levels = [];
@@ -106,7 +106,7 @@ export class Campaign {
 	 * Get the level that the selection shows: the selected level, or else the highest unlocked level.
 	 *
 	 * @param {number} level The number of the selected level, or 0 for none.
-	 * @returns {import('../stage/level.js').Level|null} The level, or null if it is not there.
+	 * @returns {import('../stage/world/level.js').Level|null} The level, or null if it is not there.
 	 */
 	shownLevel(level) {
 		return this.levels[(level || this.unlocked) - 1] ?? null;
@@ -136,7 +136,7 @@ class CustomCampaign extends Campaign {
 	 *
 	 * @param {number} slot The slot number.
 	 * @param {object|null} map The editor map in the map file format without the format, or null for an empty slot.
-	 * @returns {import('../stage/level.js').Level|null} The level, or null if the slot is empty or the map is not valid.
+	 * @returns {import('../stage/world/level.js').Level|null} The level, or null if the slot is empty or the map is not valid.
 	 */
 	#createLevel(slot, map) {
 		if (map == null) return null;

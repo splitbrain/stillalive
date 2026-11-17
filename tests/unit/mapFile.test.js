@@ -1,8 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { parseMap } from '../../js/stage/mapFile.js';
-import { emptyTiles } from '../../js/stage/TileMap.js';
-import { Tile } from '../../js/stage/tiles.js';
+import { parseMap } from '../../js/stage/map/mapFile.js';
+import { emptyTiles } from '../../js/stage/world/TileMap.js';
+import { Tile } from '../../js/stage/map/tiles.js';
 
 /** @type {{message: string}} The error of a map that parseMap() rejects. */
 const INVALID = { message: 'This is not a valid Still Alive map file.' };
@@ -10,7 +10,7 @@ const INVALID = { message: 'This is not a valid Still Alive map file.' };
 /**
  * Create a valid map in the file format.
  *
- * @returns {import('../../js/stage/mapFile.js').MapFile} The map data.
+ * @returns {import('../../js/stage/map/mapFile.js').MapFile} The map data.
  */
 function validMap() {
 	return { format: 1, tiles: emptyTiles(), bg: 0 };

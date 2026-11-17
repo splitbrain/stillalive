@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { MAP_HEIGHT, MAP_SIZE, MAP_WIDTH } from '../js/stage/constants.js';
-import { emptyTiles } from '../js/stage/TileMap.js';
-import { Tile } from '../js/stage/tiles.js';
+import { emptyTiles } from '../js/stage/world/TileMap.js';
+import { Tile } from '../js/stage/map/tiles.js';
 import {
 	CAMPAIGNS,
 	finishLevel,

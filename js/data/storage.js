@@ -8,7 +8,7 @@
 import { CAMPAIGN_FOLDERS, CampaignId } from '../stage/constants.js';
 import { Value } from '../value.js';
 
-/** @typedef {import('../stage/mapFile.js').MapFile} MapFile */
+/** @typedef {import('../stage/map/mapFile.js').MapFile} MapFile */
 
 /** @type {string} The localStorage key of the highest unlocked level of each campaign. */
 const PROGRESS_KEY = 'stillalive_progress';
@@ -186,7 +186,7 @@ export function getBestTime(campaign, level) {
  * @param {string} campaign The campaign id.
  * @param {number} level The level number, starting at 1.
  * @param {number} ticks The time in ticks.
- * @param {import('../stage/replay.js').ReplayFile} replayData The replay in the file format.
+ * @param {import('../stage/sessions/replay.js').ReplayFile} replayData The replay in the file format.
  * @returns {Promise<void>} Resolves when the replay is stored.
  */
 export async function saveBestTime(campaign, level, ticks, replayData) {
@@ -201,7 +201,7 @@ export async function saveBestTime(campaign, level, ticks, replayData) {
  *
  * @param {string} campaign The campaign id.
  * @param {number} level The level number, starting at 1.
- * @returns {Promise<import('../stage/replay.js').ReplayFile|undefined>} The replay in the file format, or undefined if
+ * @returns {Promise<import('../stage/sessions/replay.js').ReplayFile|undefined>} The replay in the file format, or undefined if
  *     there is none.
  */
 export function loadBestReplay(campaign, level) {

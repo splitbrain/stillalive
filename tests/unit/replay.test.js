@@ -1,11 +1,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { decodeReplay } from '../../js/stage/replay.js';
+import { decodeReplay } from '../../js/stage/sessions/replay.js';
 
 /**
  * Create a valid replay in the file format.
  *
- * @returns {import('../../js/stage/replay.js').ReplayFile} The replay data.
+ * @returns {import('../../js/stage/sessions/replay.js').ReplayFile} The replay data.
  */
 function validReplay() {
 	return {

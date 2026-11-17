@@ -4,7 +4,7 @@
 
 import { navigate, route, up } from '../../router.js';
 import { StageMode } from '../../stage/constants.js';
-import { MAP_FORMAT, parseMap } from '../../stage/mapFile.js';
+import { MAP_FORMAT, parseMap } from '../../stage/map/mapFile.js';
 import { alertDialog } from '../dialog.js';
 import { loadMarkup, Screen, UiElement } from '../element.js';
 import { downloadJson, pickJsonFile } from '../files.js';

@@ -9,7 +9,7 @@ interface Window {
 	/** The ready value of the loader, set by the tests to wait for the end of the loading. */
 	__loaded: import('./js/value.js').Value<boolean>;
 	/** The player object of the level run that the tests remember. */
-	__rememberedLevelRun: import('./js/stage/entities/Player.js').Player;
+	__rememberedLevelRun: import('./js/stage/bodies/Player.js').Player;
 }
 
 interface Navigator {

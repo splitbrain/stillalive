@@ -1,12 +1,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { Crate } from '../../js/stage/entities/Crate.js';
+import { Crate } from '../../js/stage/bodies/Crate.js';
 import { floorTiles, runTicks, runUntilRunning, seedRandom, startWorld } from './helpers.js';
 
 /**
  * Throw a crate from a point in the air to the right, against the boss.
  *
- * @param {import('../../js/stage/World.js').World} world The World of a boss level.
+ * @param {import('../../js/stage/world/World.js').World} world The World of a boss level.
  * @returns {Crate} The crate.
  */
 function throwCrate(world) {

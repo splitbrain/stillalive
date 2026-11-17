@@ -2,7 +2,7 @@
  * The confirmation element.
  */
 
-import { Tile } from '../../stage/tiles.js';
+import { Tile } from '../../stage/map/tiles.js';
 import { route, RouteName } from '../../router.js';
 import { Value } from '../../value.js';
 import { loadMarkup, UiElement } from '../element.js';

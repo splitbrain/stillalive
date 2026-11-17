@@ -1,8 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { MAP_HEIGHT, MAP_WIDTH } from '../../js/stage/constants.js';
-import { emptyTiles } from '../../js/stage/TileMap.js';
-import { Tile } from '../../js/stage/tiles.js';
+import { emptyTiles } from '../../js/stage/world/TileMap.js';
+import { Tile } from '../../js/stage/map/tiles.js';
 import { at, floorTiles, runTicks, runUntilRunning, seedRandom, startWorld } from './helpers.js';
 
 /** @type {number} The map index of the switch, in the floor. */
@@ -23,7 +23,7 @@ function switchTiles() {
 /**
  * Check if the switch door is open.
  *
- * @param {import('../../js/stage/World.js').World} world The World.
+ * @param {import('../../js/stage/world/World.js').World} world The World.
  * @returns {boolean} True if the objects pass the lower switch door tile.
  */
 function switchDoorOpen(world) {

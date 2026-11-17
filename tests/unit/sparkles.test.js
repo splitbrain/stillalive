@@ -9,8 +9,8 @@ import {
 	PuffSparkle,
 	ShotHitSparkle,
 	TeleportSparkle,
-} from '../../js/stage/entities/sparkles.js';
-import { Tile } from '../../js/stage/tiles.js';
+} from '../../js/stage/effects/sparkles.js';
+import { Tile } from '../../js/stage/map/tiles.js';
 import { at, floorTiles, runTicks, seedRandom, startWorld } from './helpers.js';
 
 /** @type {number} The start value of the fade of the sparkles in the tests. */
@@ -21,7 +21,7 @@ const START_X = 100 << 8;
 const START_Y = 300 << 8;
 
 /**
- * @type {Object<string, (world: import('../../js/stage/World.js').World) => import('../../js/stage/entities/Sparkle.js').Sparkle>}
+ * @type {Object<string, (world: import('../../js/stage/world/World.js').World) => import('../../js/stage/effects/Sparkle.js').Sparkle>}
  *     The sparkle kinds of the tests, by name. Each function creates a sparkle without speed at the start position.
  */
 const KINDS = {

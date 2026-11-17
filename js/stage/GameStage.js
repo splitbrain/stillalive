@@ -16,17 +16,17 @@ import {
 	sfx_click,
 	sfx_hover,
 	sfx_tick,
-} from './audio.js';
-import { clearCanvas, ctx, setCanvas, watchCanvasSize } from './canvas.js';
+} from './browser/audio.js';
+import { clearCanvas, ctx, setCanvas, watchCanvasSize } from './browser/canvas.js';
 import { PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, StageMode, Transition } from './constants.js';
-import { Editor } from './Editor.js';
-import { InputState } from './InputState.js';
-import { setupInput } from './input.js';
-import { getFps, startLoop } from './loop.js';
+import { Editor } from './editor/Editor.js';
+import { InputState } from './browser/InputState.js';
+import { setupInput } from './browser/input.js';
+import { getFps, startLoop } from './browser/loop.js';
 import { Renderer } from './render/Renderer.js';
-import { PlaySession } from './PlaySession.js';
-import { PreviewSession } from './PreviewSession.js';
-import { decodeReplay } from './replay.js';
+import { PlaySession } from './sessions/PlaySession.js';
+import { PreviewSession } from './sessions/PreviewSession.js';
+import { decodeReplay } from './sessions/replay.js';
 import { Value } from '../value.js';
 import { toPixels } from './utils.js';
 
@@ -66,7 +66,7 @@ const BOSS_MUSIC_DUCK = 0.5;
  *
  * @typedef {object} Session
  * @property {string} mode The mode of the stage for the session, a value of StageMode.
- * @property {import('./World.js').World} world The World that the session shows.
+ * @property {import('./world/World.js').World} world The World that the session shows.
  * @property {() => void} tick The function that runs one tick of the session, with the input of the tick.
  * @property {(renderer: Renderer) => void} draw The function that draws the session with the methods of the Renderer.
  */
@@ -76,8 +76,8 @@ const BOSS_MUSIC_DUCK = 0.5;
  *
  * @typedef {object} TestHook
  * @property {GameStage} stage The stage element.
- * @property {() => import('./World.js').World|null} world Get the World of the session, or null for an idle stage.
- * @property {() => import('./replay.js').Replay|undefined} replay Get the replay of the play session.
+ * @property {() => import('./world/World.js').World|null} world Get the World of the session, or null for an idle stage.
+ * @property {() => import('./sessions/replay.js').Replay|undefined} replay Get the replay of the play session.
  * @property {() => void} endReplay End the playback of a replay.
  * @property {InputState} input The keys and the mouse.
  * @property {() => void} tick Run the ticks of one tick of real time and publish the state.
@@ -174,9 +174,9 @@ export class GameStage extends HTMLElement {
 	/**
 	 * Start a level, or the playback of a replay of the level.
 	 *
-	 * @param {import('./level.js').Level} level The level.
+	 * @param {import('./world/level.js').Level} level The level.
 	 * @param {object} [options] The options.
-	 * @param {import('./replay.js').ReplayFile|null} [options.replay] A replay in the file format to play, or null to let
+	 * @param {import('./sessions/replay.js').ReplayFile|null} [options.replay] A replay in the file format to play, or null to let
 	 *     the player play.
 	 * @param {boolean} [options.restart] True for a restart of the same level. The restart skips the waits of the events
 	 *     and the entrance of the boss.
@@ -211,7 +211,7 @@ export class GameStage extends HTMLElement {
 	/**
 	 * Open the editor on a map. A new map starts a new undo list.
 	 *
-	 * @param {import('./mapFile.js').MapFile} [level] The map in the map file format, or nothing to open the editor map
+	 * @param {import('./map/mapFile.js').MapFile} [level] The map in the map file format, or nothing to open the editor map
 	 *     from before.
 	 * @returns {void}
 	 */
@@ -316,7 +316,7 @@ export class GameStage extends HTMLElement {
 	/**
 	 * Get the editor map, also while the stage shows something else.
 	 *
-	 * @returns {import('./mapFile.js').MapFile} The editor map in the map file format without the format property, with
+	 * @returns {import('./map/mapFile.js').MapFile} The editor map in the map file format without the format property, with
 	 *     a copy of the tiles.
 	 */
 	getMap() {
@@ -470,7 +470,7 @@ export class GameStage extends HTMLElement {
 	 * "brokenreplay" after the stage became idle.
 	 *
 	 * @param {string} type The event type.
-	 * @param {{time: number, replay: import('./replay.js').ReplayFile}|null} detail The level time and the replay of the
+	 * @param {{time: number, replay: import('./sessions/replay.js').ReplayFile}|null} detail The level time and the replay of the
 	 *     event "finished", else null.
 	 * @returns {void}
 	 */

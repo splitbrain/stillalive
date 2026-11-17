@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { FADE_START, FADE_STEP, KEY_RIGHT } from '../../js/stage/constants.js';
-import { Tile } from '../../js/stage/tiles.js';
+import { Tile } from '../../js/stage/map/tiles.js';
 import { at, floorTiles, runTicks, runUntilRunning, seedRandom, startWorld } from './helpers.js';
 
 /** @type {number} The ticks of the opening and of the closing transition, which take 4 points of the fade per tick. */

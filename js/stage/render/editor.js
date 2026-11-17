@@ -2,11 +2,11 @@
  * Drawing of the level editor: the map with its objects.
  */
 
-import { ctx, drawImage } from '../canvas.js';
+import { ctx, drawImage } from '../browser/canvas.js';
 import { MAP_HEIGHT, MAP_WIDTH, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, TILE_SIZE, TILE_SIZE_BITS } from '../constants.js';
-import { bg, cakeImage, crateImage, tileset, turretImages } from '../images.js';
-import { GRAVPIPE_DIRECTIONS, plasmaLaunch } from '../level.js';
-import { Tile, isObjectTile } from '../tiles.js';
+import { bg, cakeImage, crateImage, tileset, turretImages } from '../browser/images.js';
+import { GRAVPIPE_DIRECTIONS, plasmaLaunch } from '../world/level.js';
+import { Tile, isObjectTile } from '../map/tiles.js';
 import {
 	drawCakes,
 	drawCrates,
@@ -23,7 +23,7 @@ import {
  * Draw the cursor of the editor: the tile or the object that the editor paints, at the mouse.
  *
  * @param {number} brush The tile id or the object id that the editor paints.
- * @param {import('../InputState.js').InputState} input The mouse.
+ * @param {import('../browser/InputState.js').InputState} input The mouse.
  * @returns {void}
  */
 export function drawCursor(brush, input) {
@@ -34,7 +34,7 @@ export function drawCursor(brush, input) {
 /**
  * Draw the objects of the map in the editor.
  *
- * @param {import('../World.js').World} world The World.
+ * @param {import('../world/World.js').World} world The World.
  * @returns {void}
  */
 function drawSprites(world) {
@@ -50,7 +50,7 @@ function drawSprites(world) {
  * Draw the tile layer of the editor: the background, the plasma start markers, the tiles and the objects. The objects
  * of the editor come from the map, so the layer changes only with the map and the background.
  *
- * @param {import('../Editor.js').Editor} editor The editor.
+ * @param {import('../editor/Editor.js').Editor} editor The editor.
  * @returns {void}
  */
 export function drawEditorLayer(editor) {
@@ -77,7 +77,7 @@ export function drawEditorLayer(editor) {
  * Draw the selected tile at the mouse while the pointer is over the canvas and the mouse is over the map.
  *
  * @param {number} brush The tile id that the editor paints.
- * @param {import('../InputState.js').InputState} input The mouse.
+ * @param {import('../browser/InputState.js').InputState} input The mouse.
  * @returns {void}
  */
 function drawTileCursor(brush, input) {
@@ -94,7 +94,7 @@ function drawTileCursor(brush, input) {
  * Draw the selected object at the mouse while the pointer is over the canvas and the mouse is over the map.
  *
  * @param {number} sprite The object id that the editor paints.
- * @param {import('../InputState.js').InputState} input The mouse.
+ * @param {import('../browser/InputState.js').InputState} input The mouse.
  * @returns {void}
  */
 function drawSpriteCursor(sprite, input) {

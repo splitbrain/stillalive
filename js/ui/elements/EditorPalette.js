@@ -3,7 +3,7 @@
  */
 
 import { route } from '../../router.js';
-import { Tile } from '../../stage/tiles.js';
+import { Tile } from '../../stage/map/tiles.js';
 import { loadMarkup, Screen, UiElement } from '../element.js';
 import { confirmShown, isEditorLocked } from './Confirm.js';
 

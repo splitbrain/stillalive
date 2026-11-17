@@ -3,7 +3,7 @@
  */
 
 import { loading, ready } from '../../loader.js';
-import { keyLabels } from '../../stage/keys.js';
+import { keyLabels } from '../../stage/browser/keys.js';
 import { campaignsLoading } from '../../data/campaigns.js';
 import { loadMarkup, Screen, UiElement } from '../element.js';
 

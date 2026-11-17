@@ -15,18 +15,32 @@ const LAYERS = [
 		name: 'base',
 		files: [
 			'./js/value.js',
-			'./js/stage/{assets,audio,canvas,constants,images,InputState,keys,LevelPhase,loop,TileMap,tiles,utils}.js',
+			'./js/stage/{constants,utils}.js',
+			'./js/stage/browser/{assets,audio,canvas,images,InputState,keys,loop}.js',
+			'./js/stage/world/{LevelPhase,TileMap}.js',
+			'./js/stage/map/[t]iles.js',
 		],
 	},
 	{
 		name: 'logic',
 		files: [
-			'./js/stage/entities/*.js',
-			'./js/stage/{level,LevelEvents,mapEdit,mapFile,mapObjects,replay,SwitchDoors,UndoList,World}.js',
+			'./js/stage/{bodies,effects,portals}/*.js',
+			'./js/stage/world/{AnimatedTile,level,LevelEvents,mapObjects,SwitchDoors,World}.js',
+			'./js/stage/editor/{mapEdit,UndoList}.js',
+			'./js/stage/map/[m]apFile.js',
+			'./js/stage/sessions/[r]eplay.js',
 		],
 	},
 	{ name: 'drawing', files: ['./js/stage/render/*.js'] },
-	{ name: 'flow', files: ['./js/stage/{Editor,GameStage,input,PlaySession,PreviewSession}.js'] },
+	{
+		name: 'flow',
+		files: [
+			'./js/stage/[G]ameStage.js',
+			'./js/stage/editor/[E]ditor.js',
+			'./js/stage/browser/[i]nput.js',
+			'./js/stage/sessions/{PlaySession,PreviewSession}.js',
+		],
+	},
 	{ name: 'data', files: ['./js/data/*.js'] },
 	{ name: 'ui', files: ['./js/[m]ain.js', './js/[l]oader.js', './js/ui/**/*.js', './js/[r]outer.js'] },
 ];
@@ -39,7 +53,13 @@ const LAYER_ZONES = LAYERS.slice(0, -1).map((layer, i) => ({
 }));
 
 /** @type {string[]} The modules of the stage with data and pure functions, relative to the stage folder. */
-const STAGE_DATA_MODULES = ['./constants.js', './keys.js', './mapFile.js', './replay.js', './tiles.js'];
+const STAGE_DATA_MODULES = [
+	'./constants.js',
+	'./browser/keys.js',
+	'./map/mapFile.js',
+	'./sessions/replay.js',
+	'./map/tiles.js',
+];
 
 /**
  * The zone of import-x/no-restricted-paths for the data layer. From the stage, the data layer can import only the
@@ -79,7 +99,7 @@ const UI_ZONES = [
 	{
 		target: './js/[l]oader.js',
 		from: './js/stage',
-		except: ['./assets.js', './audio.js', './images.js', './keys.js'],
+		except: ['./browser/assets.js', './browser/audio.js', './browser/images.js', './browser/keys.js'],
 		message: 'The loader only loads the files of the stage.',
 	},
 ];

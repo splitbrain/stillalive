@@ -172,7 +172,7 @@ export async function waitForLevelTime(page) {
  */
 export async function playMap(page, data) {
 	await page.evaluate(async (data) => {
-		const { parseMap } = await import('/js/stage/mapFile.js');
+		const { parseMap } = await import('/js/stage/map/mapFile.js');
 		const hooks = window.__test;
 		hooks.stage.play({ ...parseMap(data), campaign: 'test', number: 1, fromBelow: false });
 		while (!hooks.world().phase.isRunning()) hooks.tick();
@@ -301,7 +301,7 @@ export async function setPortals(page, placed) {
  */
 export async function setGravPipes(page, pipes) {
 	await page.evaluate(async (pipes) => {
-		const { GravPipe } = await import('/js/stage/entities/GravPipe.js');
+		const { GravPipe } = await import('/js/stage/bodies/GravPipe.js');
 		const world = window.__test.world();
 		world.gravPipes = pipes.map(({ x, y, direction }) => new GravPipe(world, x, y, direction));
 	}, pipes);
@@ -329,7 +329,7 @@ export function gravPipeFieldCount(page) {
  */
 export async function finishLevel(page) {
 	await page.evaluate(async () => {
-		const { Tile } = await import('/js/stage/tiles.js');
+		const { Tile } = await import('/js/stage/map/tiles.js');
 		const world = window.__test.world();
 		world.openExit();
 		// a tile is 16 pixels, and the player position is in 1/256 pixels
@@ -358,7 +358,7 @@ export async function finishLevel(page) {
  * @param {number} options.seed The seed for Math.random().
  * @param {number[][]} [options.inputs] For each tick the key bitmask, the mouse x and the mouse y position. Without
  *     inputs, the run does not change the input state.
- * @param {import('../js/stage/replay.js').ReplayFile} [options.replay] A replay in the file format. The run plays the
+ * @param {import('../js/stage/sessions/replay.js').ReplayFile} [options.replay] A replay in the file format. The run plays the
  *     replay instead of using inputs.
  * @param {boolean} [options.skipBossIntro] True to start the level as a restart, which skips the entrance of the boss
  *     and the waits of the events, as a replay does.
@@ -453,12 +453,12 @@ export async function runLevel(
  * Get the replay that the stage recorded in the last run.
  *
  * @param {import('@playwright/test').Page} page The Playwright page.
- * @returns {Promise<import('../js/stage/replay.js').ReplayFile>} The replay in the file format, after a round trip
+ * @returns {Promise<import('../js/stage/sessions/replay.js').ReplayFile>} The replay in the file format, after a round trip
  *     through JSON.
  */
 export async function recordedReplay(page) {
 	const data = await page.evaluate(async () => {
-		const { encodeReplay } = await import('/js/stage/replay.js');
+		const { encodeReplay } = await import('/js/stage/sessions/replay.js');
 		const hooks = window.__test;
 		const world = hooks.world();
 		return JSON.stringify(encodeReplay(hooks.replay(), world.level.campaign, world.level.number));
@@ -491,11 +491,11 @@ export async function runPortalScene(page, scene) {
 		const hooks = window.__test;
 		const { input, stage } = hooks;
 		const { campaignById } = await import('/js/data/campaigns.js');
-		const { Crate } = await import('/js/stage/entities/Crate.js');
-		const { Turret } = await import('/js/stage/entities/Turret.js');
-		const { Plasma } = await import('/js/stage/entities/Plasma.js');
+		const { Crate } = await import('/js/stage/bodies/Crate.js');
+		const { Turret } = await import('/js/stage/bodies/Turret.js');
+		const { Plasma } = await import('/js/stage/bodies/Plasma.js');
 		const { CampaignId, MAP_HEIGHT, MAP_WIDTH } = await import('/js/stage/constants.js');
-		const { Tile } = await import('/js/stage/tiles.js');
+		const { Tile } = await import('/js/stage/map/tiles.js');
 		let state = scene.seed >>> 0;
 		Math.random = () => {
 			state = (state + 0x6d2b79f5) >>> 0;

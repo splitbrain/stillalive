@@ -3,7 +3,7 @@
  */
 
 import { campaignsReady, loadCampaigns } from './data/campaigns.js';
-import { allImagesLoaded, imageProgress, missingImages, onImageDone } from './stage/assets.js';
+import { allImagesLoaded, imageProgress, missingImages, onImageDone } from './stage/browser/assets.js';
 import {
 	allSoundsLoaded,
 	isSoundOn,
@@ -12,9 +12,9 @@ import {
 	onSoundDone,
 	soundProgress,
 	watchAudioUnlock,
-} from './stage/audio.js';
-import { loadGfx } from './stage/images.js';
-import { loadKeyLabels } from './stage/keys.js';
+} from './stage/browser/audio.js';
+import { loadGfx } from './stage/browser/images.js';
+import { loadKeyLabels } from './stage/browser/keys.js';
 import { Value } from './value.js';
 
 /**

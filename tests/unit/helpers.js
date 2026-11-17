@@ -3,11 +3,11 @@
  */
 
 import { MAP_SIZE, MAP_WIDTH } from '../../js/stage/constants.js';
-import { InputState } from '../../js/stage/InputState.js';
-import { parseMap } from '../../js/stage/mapFile.js';
-import { emptyTiles } from '../../js/stage/TileMap.js';
-import { Tile } from '../../js/stage/tiles.js';
-import { World } from '../../js/stage/World.js';
+import { InputState } from '../../js/stage/browser/InputState.js';
+import { parseMap } from '../../js/stage/map/mapFile.js';
+import { emptyTiles } from '../../js/stage/world/TileMap.js';
+import { Tile } from '../../js/stage/map/tiles.js';
+import { World } from '../../js/stage/world/World.js';
 
 /**
  * Replace Math.random() with a pseudo-random generator, so that a test gives the same result in each run.
@@ -57,7 +57,7 @@ export function floorTiles() {
  *
  * @param {number[]} tiles The tile ids, one for each map position.
  * @param {number} [boss] The boss of the level, or 0 for a level without a boss.
- * @returns {import('../../js/stage/level.js').Level} The level.
+ * @returns {import('../../js/stage/world/level.js').Level} The level.
  */
 export function testLevel(tiles, boss = 0) {
 	return { ...parseMap({ format: 1, tiles, bg: 0, boss }), campaign: 'test', number: 1, fromBelow: false };

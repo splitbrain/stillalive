@@ -2,13 +2,13 @@
  * Drawing of the boss.
  */
 
-import { drawImage } from '../canvas.js';
-import { robotEye, robotHead } from '../images.js';
+import { drawImage } from '../browser/canvas.js';
+import { robotEye, robotHead } from '../browser/images.js';
 
 /**
  * Draw the boss with the eye of the current boss.
  *
- * @param {import('../World.js').World} world The World.
+ * @param {import('../world/World.js').World} world The World.
  * @returns {void}
  */
 export function drawBoss(world) {

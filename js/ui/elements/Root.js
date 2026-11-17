@@ -23,7 +23,7 @@ import {
 import { toTime } from '../time.js';
 import { checkReady, ready } from '../../loader.js';
 
-/** @typedef {import('../../stage/replay.js').ReplayFile} ReplayFile */
+/** @typedef {import('../../stage/sessions/replay.js').ReplayFile} ReplayFile */
 
 /**
  * A route that the root element applies, with the state that the route handlers need.
@@ -33,7 +33,7 @@ import { checkReady, ready } from '../../loader.js';
  * @property {import('../../router.js').Route|null} previous The route that the root element applied before, or null.
  * @property {import('../../data/campaigns.js').Campaign|null} campaign The campaign of the route, or null for no
  *     campaign.
- * @property {import('../../stage/level.js').Level|null} level The level of the route, or null for no level.
+ * @property {import('../../stage/world/level.js').Level|null} level The level of the route, or null for no level.
  * @property {boolean} sameLevel True if the previous route played the same level of the same campaign.
  * @property {boolean} again True if the previous route was the same route of the same level.
  * @property {object|null} reopen The attributes of the intermission panel to open again, or null.
@@ -469,7 +469,7 @@ export class Root extends UiElement {
 	 * stored replay of the best time.
 	 *
 	 * @param {import('../../router.js').Route} current The replay route.
-	 * @param {import('../../stage/level.js').Level} level The level.
+	 * @param {import('../../stage/world/level.js').Level} level The level.
 	 * @param {boolean} restart True if the route applies again.
 	 * @returns {void}
 	 */
@@ -495,7 +495,7 @@ export class Root extends UiElement {
 	 * goes up to the selection of the level.
 	 *
 	 * @param {import('../../router.js').Route} current The replay route.
-	 * @param {import('../../stage/level.js').Level} level The level.
+	 * @param {import('../../stage/world/level.js').Level} level The level.
 	 * @param {ReplayFile|null|undefined} data The replay in the file format, or nothing.
 	 * @param {boolean} restart True to skip the waits at the level start.
 	 * @returns {void}

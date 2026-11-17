@@ -17,14 +17,14 @@ import {
 	waitForNarrator,
 } from './adapter.js';
 
-/** @type {import('../js/stage/mapFile.js').MapFile} A map file with a title, abilities, events and labels. */
+/** @type {import('../js/stage/map/mapFile.js').MapFile} A map file with a title, abilities, events and labels. */
 const MAP = JSON.parse(readFileSync(new URL('../maps/tutorial/level04.json', import.meta.url), 'utf8'));
 
 /**
  * Get the editor map of the stage in the map file format.
  *
  * @param {import('@playwright/test').Page} page The Playwright page.
- * @returns {Promise<import('../js/stage/mapFile.js').MapFile>} The editor map with the format.
+ * @returns {Promise<import('../js/stage/map/mapFile.js').MapFile>} The editor map with the format.
  */
 function editorMap(page) {
 	return page.evaluate(() => ({ format: 1, ...window.__test.stage.getMap() }));
@@ -46,7 +46,7 @@ async function clickButton(page, name) {
  * Start the game and open the editor on an imported map file.
  *
  * @param {import('@playwright/test').Page} page The Playwright page.
- * @param {import('../js/stage/mapFile.js').MapFile} map The content of the map file.
+ * @param {import('../js/stage/map/mapFile.js').MapFile} map The content of the map file.
  * @returns {Promise<void>}
  */
 async function openMap(page, map) {

@@ -45,6 +45,22 @@ export const RouteName = Object.freeze({
  */
 
 /**
+ * A route with a campaign: a select, play or replay route.
+ *
+ * @typedef {Route & {campaign: string}} CampaignRoute
+ */
+
+/**
+ * Check if a route has a campaign.
+ *
+ * @param {Route} route The route.
+ * @returns {route is CampaignRoute} True for a route with a campaign.
+ */
+export function hasCampaign(route) {
+	return route.campaign !== null;
+}
+
+/**
  * @type {string[]} The routes with a campaign. The select route can have a level, and the other routes must have a
  *     level.
  */

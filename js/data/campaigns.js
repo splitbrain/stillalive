@@ -189,6 +189,19 @@ export function campaignById(id) {
 }
 
 /**
+ * Get a campaign that must exist: the campaign of a campaign route, or the custom campaign after the load.
+ *
+ * @param {string|null} id The campaign id, the folder name of the campaign.
+ * @returns {Campaign} The campaign.
+ * @throws {Error} If there is no campaign with the id.
+ */
+export function requireCampaign(id) {
+	const campaign = campaignById(id);
+	if (!campaign) throw new Error(`There is no campaign "${id}".`);
+	return campaign;
+}
+
+/**
  * Get the campaigns in the order of the main menu.
  *
  * @returns {Campaign[]} The campaigns, sorted by their sort number.

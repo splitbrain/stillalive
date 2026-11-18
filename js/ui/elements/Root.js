@@ -2,9 +2,9 @@
  * The root element: it shows the screen of the route and drives the stage.
  */
 
-import { navigate, route, RouteName, routePath, up } from '../../router.js';
+import { hasCampaign, navigate, route, RouteName, routePath, up } from '../../router.js';
 import { CampaignId, LEVELS_PER_CAMPAIGN, StageMode } from '../../stage/constants.js';
-import { campaignById, campaigns, campaignsReady } from '../../data/campaigns.js';
+import { campaignById, campaigns, campaignsReady, requireCampaign } from '../../data/campaigns.js';
 import { requireElement, setAttributes } from '../dom.js';
 import { Screen, UiElement } from '../element.js';
 import { dialogShown, showAlert } from './Dialog.js';
@@ -49,6 +49,16 @@ const LEVEL_ROUTES = [RouteName.PLAY, RouteName.REPLAY];
 
 /** @type {string[]} The routes of the editor: the editor, its test run, its save screen and its load screen. */
 const EDITOR_ROUTES = [RouteName.EDITOR, RouteName.TEST, RouteName.SAVE, RouteName.LOAD];
+
+/**
+ * Check if a route is a level route: a play or a replay route.
+ *
+ * @param {import('../../router.js').Route|null} route The route, or null.
+ * @returns {route is import('../../router.js').Route} True for a play or a replay route.
+ */
+function isLevelRoute(route) {
+	return route !== null && LEVEL_ROUTES.includes(route.name);
+}
 
 /** @type {string} The narrator text of the editor and of its save screen and load screen. */
 const EDITOR_TEXT =
@@ -125,12 +135,12 @@ export class Root extends UiElement {
 			const current = route.get();
 			if (current.name !== RouteName.SELECT) return;
 			const { level } = /** @type {CustomEvent<{level: number}>} */ (event).detail;
-			this.#previewLevel(campaignById(current.campaign), level);
+			this.#previewLevel(requireCampaign(current.campaign), level);
 		});
 		this.addEventListener('replay-watch', () => {
 			const current = route.get();
 			const path = routePath(current.name, current.campaign, current.level);
-			this.watch(this.#intermissionReplay, { path, intermission: this.#intermission });
+			if (this.#intermissionReplay) this.watch(this.#intermissionReplay, { path, intermission: this.#intermission });
 		});
 	}
 
@@ -277,7 +287,8 @@ export class Root extends UiElement {
 		}
 		const current = route.get();
 		const campaign = campaignById(current.campaign);
-		if (current.level > 0) {
+		// a level above 0 comes only with a campaign
+		if (campaign && current.level > 0) {
 			const usable =
 				current.name === RouteName.REPLAY ? campaign.levels[current.level - 1] != null : campaign.isOpen(current.level);
 			if (!usable) {
@@ -288,23 +299,19 @@ export class Root extends UiElement {
 
 		const previous = this.#applied;
 		const otherLevel =
-			LEVEL_ROUTES.includes(previous?.name) &&
-			previous.campaign === current.campaign &&
-			previous.level !== current.level;
+			isLevelRoute(previous) && previous.campaign === current.campaign && previous.level !== current.level;
 		if (current.name === RouteName.SELECT && current.level > 0 && otherLevel) {
 			navigate(routePath(RouteName.SELECT, current.campaign, previous.level), true);
 			return;
 		}
 		const sameLevel =
-			LEVEL_ROUTES.includes(previous?.name) &&
-			previous.campaign === current.campaign &&
-			previous.level === current.level;
+			isLevelRoute(previous) && previous.campaign === current.campaign && previous.level === current.level;
 		const again = sameLevel && previous.name === current.name;
 		const path = LEVEL_ROUTES.includes(current.name) ? routePath(current.name, current.campaign, current.level) : null;
 		const replayLeft = previous?.name === RouteName.REPLAY && !again;
 		const reopen = replayLeft && this.#replayReturn?.path === path ? this.#replayReturn.intermission : null;
 		this.#applied = current;
-		const level = current.level > 0 ? campaign.levels[current.level - 1] : null;
+		const level = campaign && current.level > 0 ? campaign.levels[current.level - 1] : null;
 
 		const context = { current, previous, campaign, level, sameLevel, again, reopen };
 		this.#applyToStage(context);
@@ -349,6 +356,7 @@ export class Root extends UiElement {
 	 * @returns {void}
 	 */
 	#showSelection({ current, campaign }) {
+		if (!campaign) throw new Error('A select route has a campaign.');
 		this.#previewLevel(campaign, current.level);
 	}
 
@@ -374,8 +382,12 @@ export class Root extends UiElement {
 	 * @returns {void}
 	 */
 	#playLevel({ level, sameLevel, reopen }) {
-		if (reopen) this.stage.stop();
-		else this.stage.play(level, { restart: sameLevel });
+		if (reopen) {
+			this.stage.stop();
+			return;
+		}
+		if (!level) throw new Error('A usable play route has a level.');
+		this.stage.play(level, { restart: sameLevel });
 	}
 
 	/**
@@ -385,6 +397,7 @@ export class Root extends UiElement {
 	 * @returns {void}
 	 */
 	#watchReplay({ current, level, again }) {
+		if (!level || !hasCampaign(current)) throw new Error('A usable replay route has a campaign and a level.');
 		this.#replayReturn = this.#pendingReturn;
 		this.#pendingReturn = null;
 		this.#playReplay(current, level, again);
@@ -412,7 +425,7 @@ export class Root extends UiElement {
 			this.stage.stopTest();
 		} else {
 			this.stage.edit();
-			if (!EDITOR_ROUTES.includes(previous?.name)) this.stage.setBrush(1);
+			if (!(previous && EDITOR_ROUTES.includes(previous.name))) this.stage.setBrush(1);
 		}
 	}
 
@@ -455,8 +468,11 @@ export class Root extends UiElement {
 		this.#intermission = play ? reopen : null;
 		setAttributes(requireElement(this, 'ui-intermission', HTMLElement), { exit, ...reopen, open: reopen ? '' : null });
 		setAttributes(requireElement(this, 'ui-robot-head', HTMLElement), {
-			eye: play && campaign.id === CampaignId.STORY ? Math.min(Math.floor((current.level - 1) / 7), 3) + 1 : null,
-			absent: play && level.boss > 0 ? '' : null, // the boss is the robot
+			eye:
+				play && campaign && campaign.id === CampaignId.STORY
+					? Math.min(Math.floor((current.level - 1) / 7), 3) + 1
+					: null,
+			absent: play && level && level.boss > 0 ? '' : null, // the boss is the robot
 		});
 		setAttributes(requireElement(this, 'ui-narrator-text', HTMLElement), {
 			text: EDITOR_ROUTES.includes(current.name) ? EDITOR_TEXT : null,
@@ -470,7 +486,7 @@ export class Root extends UiElement {
 	 * Play a replay on the replay route: the replay from watch(), the same replay again for a restart, or else the
 	 * stored replay of the best time.
 	 *
-	 * @param {import('../../router.js').Route} current The replay route.
+	 * @param {import('../../router.js').CampaignRoute} current The replay route.
 	 * @param {import('../../stage/world/level.js').Level} level The level.
 	 * @param {boolean} restart True if the route applies again.
 	 * @returns {void}
@@ -496,7 +512,7 @@ export class Root extends UiElement {
 	 * Start the playback of a replay. If there is no replay or the replay is not valid, a message shows and the player
 	 * goes up to the selection of the level.
 	 *
-	 * @param {import('../../router.js').Route} current The replay route.
+	 * @param {import('../../router.js').CampaignRoute} current The replay route.
 	 * @param {import('../../stage/world/level.js').Level} level The level.
 	 * @param {ReplayFile|null|undefined} data The replay in the file format, or nothing.
 	 * @param {boolean} restart True to skip the waits at the level start.
@@ -516,7 +532,7 @@ export class Root extends UiElement {
 	/**
 	 * Store the level time and the replay if the time is a new best time.
 	 *
-	 * @param {import('../../router.js').Route} current The route of the level.
+	 * @param {import('../../router.js').CampaignRoute} current The route of the level.
 	 * @param {number} time The level time in ticks.
 	 * @param {ReplayFile} replay The replay in the file format.
 	 * @returns {Promise<string>} The message for the intermission panel. Resolves when the new best time is stored.
@@ -546,12 +562,13 @@ export class Root extends UiElement {
 	 */
 	async #onFinished({ time, replay }) {
 		const current = route.get();
-		if (!this.#started || !LEVEL_ROUTES.includes(current.name)) return;
+		// a level route always has a campaign
+		if (!this.#started || !LEVEL_ROUTES.includes(current.name) || !hasCampaign(current)) return;
 		if (current.name === RouteName.REPLAY) {
 			this.#leaveReplay();
 			return;
 		}
-		const campaign = campaignById(current.campaign);
+		const campaign = requireCampaign(current.campaign);
 		let credits = false;
 		const message = await this.#checkBestTime(current, time, replay);
 		if (campaign.id !== CampaignId.CUSTOM && maxLevel[campaign.id].get() < current.level + 1) {

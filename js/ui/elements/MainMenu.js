@@ -4,7 +4,7 @@
 
 import { routePath, RouteName } from '../../router.js';
 import { CampaignId, LEVELS_PER_CAMPAIGN } from '../../stage/constants.js';
-import { campaignById, campaignsReady, listCampaigns } from '../../data/campaigns.js';
+import { campaignsReady, listCampaigns, requireCampaign } from '../../data/campaigns.js';
 import { requireElement, settingLabel } from '../dom.js';
 import { loadMarkup, Screen, UiElement } from '../element.js';
 import { bestTimes, editorMap, maxLevel } from '../../data/storage.js';
@@ -86,7 +86,7 @@ export class MainMenu extends UiElement {
 			}
 		}
 		requireElement(this, '.campaigns', HTMLElement).replaceChildren(...top);
-		const custom = campaignById(CampaignId.CUSTOM);
+		const custom = requireCampaign(CampaignId.CUSTOM);
 		requireElement(this, '.custom', HTMLElement).replaceChildren(
 			...(custom.unlocked ? [this.#createItem(custom, true)] : []),
 		);

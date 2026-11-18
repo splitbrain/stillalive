@@ -24,13 +24,16 @@ export class LevelList extends UiElement {
 	render() {
 		const id = this.getAttribute('campaign');
 		const campaign = campaignById(id);
-		const count = campaign?.levels.length ?? 0;
+		if (!campaign) {
+			this.replaceChildren();
+			return;
+		}
 		const buttons = [];
-		for (let level = 1; level <= count; level++) {
+		for (let level = 1; level <= campaign.levels.length; level++) {
 			const link = document.createElement('a');
 			link.textContent = `Level ${level}`;
 			link.dataset.choice = String(level);
-			if (campaign.isOpen(level)) link.setAttribute('href', routePath(RouteName.SELECT, id, level));
+			if (campaign.isOpen(level)) link.setAttribute('href', routePath(RouteName.SELECT, campaign.id, level));
 			const button = document.createElement('ui-button');
 			button.append(link);
 			buttons.push(button);

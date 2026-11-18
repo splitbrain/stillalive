@@ -88,13 +88,8 @@ export class Crate extends Throwable {
 			else if (platform.vx > 0 && this.rightCollision()) this.x -= platform.vx;
 		}
 
-		this.angle = this.touchingGround() === Ground.AIR ? this.angle + (toPixels(this.vx) << 1) : 0;
-		if (this.angle >= 360) this.angle -= 360;
-		if (this.landsOnPlayer()) {
-			while (this.landsOnPlayer()) this.y -= toSubpixels(1);
-			this.vy = 0;
-			this.angle = 0;
-		}
+		this.tumble();
+		if (this.landsOnPlayer()) this.#stopOnPlayer();
 
 		const x = this.pixelX;
 		const y = this.pixelY;
@@ -106,6 +101,18 @@ export class Crate extends Throwable {
 			this.touchesDeadlyTile() ||
 			this.world.plasmaTouching(this);
 		return lost && this.#destroyOrReset();
+	}
+
+	/**
+	 * Stop the crate on the head of the player: move it up until it no longer lands on the player, and stop its fall
+	 * and its turn.
+	 *
+	 * @returns {void}
+	 */
+	#stopOnPlayer() {
+		while (this.landsOnPlayer()) this.y -= toSubpixels(1);
+		this.vy = 0;
+		this.angle = 0;
 	}
 
 	/**

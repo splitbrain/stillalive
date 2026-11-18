@@ -269,6 +269,17 @@ export class Player extends MovingBody {
 	}
 
 	/**
+	 * Let the player jump up out of a horizontal pipe field, with a push in the direction of the field.
+	 *
+	 * @param {import('./GravPipe.js').GravPipeField} field The pipe field.
+	 * @returns {void}
+	 */
+	#jumpOutOfField(field) {
+		this.vy = -800;
+		this.vx = field.vx << 9;
+	}
+
+	/**
 	 * Push the player with a pipe field. In a horizontal field, the jump key jumps out and the down key moves down. In
 	 * a vertical field, the left and right keys move the player out to the side.
 	 *
@@ -285,10 +296,7 @@ export class Player extends MovingBody {
 		if (field.vx !== 0) {
 			if (this.jump) {
 				this.y -= toSubpixels(3);
-				if (this.#outOfFields()) {
-					this.vy = -800;
-					this.vx = field.vx << 9;
-				}
+				if (this.#outOfFields()) this.#jumpOutOfField(field);
 			}
 			if (this.down) this.y += toSubpixels(3);
 		}

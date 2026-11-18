@@ -4,11 +4,11 @@
 
 import { Throwable } from './Throwable.js';
 import { playSound, playSoundIfFinished, sfx_explode, sfx_pain, sfx_shoot } from '../browser/audio.js';
-import { Ground, PLAYFIELD_WIDTH, TILE_SIZE } from '../constants.js';
+import { PLAYFIELD_WIDTH, TILE_SIZE } from '../constants.js';
 import { Platform } from './Platform.js';
 import { PuffSparkle, ShotHitSparkle } from '../effects/sparkles.js';
 import { Tile } from '../map/tiles.js';
-import { random, toPixels, toSubpixels } from '../utils.js';
+import { random, toSubpixels } from '../utils.js';
 
 /** @type {number} The number of ticks between two shots. */
 const COOL_TIME = 3;
@@ -111,8 +111,7 @@ export class Turret extends Throwable {
 	 * @returns {void}
 	 */
 	#fall() {
-		this.angle = this.touchingGround() === Ground.AIR ? this.angle + (toPixels(this.vx) << 1) : 0;
-		if (this.angle >= 360) this.angle -= 360;
+		this.tumble();
 
 		const oldVx = this.vx;
 		const oldVy = this.vy;

@@ -43,4 +43,13 @@ export class Sparkle {
 		this.x += this.vx;
 		this.y += this.vy;
 	}
+
+	/**
+	 * End the sparkle. The World removes it after this tick.
+	 *
+	 * @returns {void}
+	 */
+	vanish() {
+		this.fading = 0;
+	}
 }

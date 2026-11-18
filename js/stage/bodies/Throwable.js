@@ -66,6 +66,16 @@ export class Throwable extends MovingBody {
 	keepBeltSpeed(belt) {}
 
 	/**
+	 * Turn the body while it flies, by its horizontal speed. On the ground, the body stands upright.
+	 *
+	 * @returns {void}
+	 */
+	tumble() {
+		this.angle = this.touchingGround() === Ground.AIR ? this.angle + (toPixels(this.vx) << 1) : 0;
+		if (this.angle >= 360) this.angle -= 360;
+	}
+
+	/**
 	 * Check if the body falls onto the head of the player.
 	 *
 	 * @returns {boolean} True if the body must stop above the player.

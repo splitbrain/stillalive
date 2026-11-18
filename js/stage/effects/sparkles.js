@@ -53,7 +53,7 @@ export class FadingSparkle extends Sparkle {
 	move() {
 		super.move();
 		this.fading -= FADE_STEP;
-		if (this.world.getTile(toPixels(this.x) + 4, toPixels(this.y) + 4) !== Tile.EMPTY) this.fading = 0;
+		if (this.world.getTile(toPixels(this.x) + 4, toPixels(this.y) + 4) !== Tile.EMPTY) this.vanish();
 	}
 }
 
@@ -216,7 +216,7 @@ export class DeathSparkle extends Sparkle {
 	move() {
 		this.vy += GRAVITY >> 1;
 		super.move();
-		if (touchesFloor(this)) this.fading = 0;
+		if (touchesFloor(this)) this.vanish();
 	}
 }
 
@@ -286,11 +286,18 @@ export class PortalGlow extends Sparkle {
 	move() {
 		super.move();
 		this.#glow();
-		if (this.fading <= 0) {
-			this.x = this.startX;
-			this.y = this.startY;
-			this.fading = GLOW_FADING;
-		}
+		if (this.fading <= 0) this.#restart();
+	}
+
+	/**
+	 * Put the sparkle back to its start position with the fade of the start.
+	 *
+	 * @returns {void}
+	 */
+	#restart() {
+		this.x = this.startX;
+		this.y = this.startY;
+		this.fading = GLOW_FADING;
 	}
 
 	/**

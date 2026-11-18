@@ -4,7 +4,7 @@
 
 import { routePath, RouteName } from '../../router.js';
 import { campaignById } from '../../data/campaigns.js';
-import { dispatch } from '../dom.js';
+import { dispatch, requireElement } from '../dom.js';
 import { loadMarkup, Screen } from '../element.js';
 import { bestTimes, getBestTime, maxLevel } from '../../data/storage.js';
 import { toTime } from '../time.js';
@@ -53,11 +53,11 @@ export class LevelSelection extends Selection {
 		const campaign = campaignById(id);
 		if (!campaign) return;
 		const level = Number(this.getAttribute('level') ?? 0);
-		const list = /** @type {HTMLElement} */ (this.querySelector('ui-level-list'));
+		const list = requireElement(this, 'ui-level-list', HTMLElement);
 		list.hidden = level > 0;
-		list.setAttribute('campaign', id);
-		/** @type {HTMLElement} */ (this.querySelector('.details')).hidden = level === 0;
-		this.querySelector('.back').setAttribute('href', level > 0 ? routePath(RouteName.SELECT, id) : '#/');
+		list.setAttribute('campaign', campaign.id);
+		requireElement(this, '.details', HTMLElement).hidden = level === 0;
+		requireElement(this, '.back', HTMLElement).setAttribute('href', level > 0 ? routePath(RouteName.SELECT, id) : '#/');
 		if (level > 0) this.#renderDetails(campaign, level);
 	}
 
@@ -73,13 +73,13 @@ export class LevelSelection extends Selection {
 		const id = campaign.id;
 		const title = campaign.levels[level - 1]?.title ?? '';
 		const best = getBestTime(id, level);
-		this.querySelector('.title').textContent = title || `Level ${level}`;
-		const number = /** @type {HTMLElement} */ (this.querySelector('.number'));
+		requireElement(this, '.title', HTMLElement).textContent = title || `Level ${level}`;
+		const number = requireElement(this, '.number', HTMLElement);
 		number.hidden = title === '';
 		number.textContent = `Level ${level}`;
-		this.querySelector('.best span').textContent = best === null ? '-' : toTime(best);
-		this.querySelector('.play').setAttribute('href', routePath(RouteName.PLAY, id, level));
-		const replay = this.querySelector('.replay');
+		requireElement(this, '.best span', HTMLElement).textContent = best === null ? '-' : toTime(best);
+		requireElement(this, '.play', HTMLElement).setAttribute('href', routePath(RouteName.PLAY, id, level));
+		const replay = requireElement(this, '.replay', HTMLElement);
 		if (best === null) replay.removeAttribute('href');
 		else replay.setAttribute('href', routePath(RouteName.REPLAY, id, level));
 	}

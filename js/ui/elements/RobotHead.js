@@ -2,6 +2,7 @@
  * The robot head element.
  */
 
+import { requireElement } from '../dom.js';
 import { loadMarkup, Screen, UiElement } from '../element.js';
 
 /** @type {HTMLTemplateElement|null} The markup of the robot head. */
@@ -33,7 +34,7 @@ export class RobotHead extends UiElement {
 	 * @returns {void}
 	 */
 	setUp() {
-		const eye = this.querySelector('.eye');
+		const eye = requireElement(this, '.eye', HTMLElement);
 		const endBlink = () => eye.classList.remove('blink');
 		eye.addEventListener('animationend', endBlink);
 		eye.addEventListener('animationcancel', endBlink);
@@ -56,8 +57,7 @@ export class RobotHead extends UiElement {
 	 */
 	render() {
 		const eye = this.getAttribute('eye') ?? '1';
-		/** @type {HTMLElement} */ (this.querySelector('.eye')).style.backgroundImage =
-			`url("gfx/sprites/robotEye${eye}.svg")`;
+		requireElement(this, '.eye', HTMLElement).style.backgroundImage = `url("gfx/sprites/robotEye${eye}.svg")`;
 	}
 
 	/**
@@ -66,12 +66,12 @@ export class RobotHead extends UiElement {
 	 * @returns {void}
 	 */
 	#step() {
-		if (!this.querySelector('.eye').checkVisibility({ visibilityProperty: true })) return;
+		if (!requireElement(this, '.eye', HTMLElement).checkVisibility({ visibilityProperty: true })) return;
 		const roll = Math.floor(Math.random() * 100);
 		if (roll < 2) this.#move('--eye-x', roll === 0 ? -1 : 1);
 		else if (roll < 4) this.#move('--eye-y', roll === 2 ? -1 : 1);
 		else if (roll < 6) this.#move('--head-x', roll === 4 ? -1 : 1);
-		else if (roll >= 90) this.querySelector('.eye').classList.add('blink');
+		else if (roll >= 90) requireElement(this, '.eye', HTMLElement).classList.add('blink');
 	}
 
 	/**

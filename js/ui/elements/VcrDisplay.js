@@ -2,6 +2,7 @@
  * The VCR display element.
  */
 
+import { requireElement } from '../dom.js';
 import { loadMarkup, Screen, UiElement } from '../element.js';
 import { toTimeCode } from '../time.js';
 
@@ -23,9 +24,9 @@ export class VcrDisplay extends UiElement {
 	 */
 	subscribe() {
 		const stage = this.stage;
-		const mode = /** @type {HTMLElement} */ (this.querySelector('.mode'));
-		const label = this.querySelector('.label');
-		const time = this.querySelector('.time');
+		const mode = requireElement(this, '.mode', HTMLElement);
+		const label = requireElement(this, '.label', HTMLElement);
+		const time = requireElement(this, '.time', HTMLElement);
 		const showMode = () => {
 			const speed = stage.speed.get();
 			if (stage.paused.get()) mode.dataset.mode = 'pause';

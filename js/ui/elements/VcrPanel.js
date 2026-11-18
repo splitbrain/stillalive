@@ -2,7 +2,7 @@
  * The VCR panel element.
  */
 
-import { dispatch } from '../dom.js';
+import { dispatch, requireElement } from '../dom.js';
 import { loadMarkup, Screen, UiElement } from '../element.js';
 
 /** @type {HTMLTemplateElement|null} The markup of the VCR panel. */
@@ -26,14 +26,14 @@ export class VcrPanel extends UiElement {
 	 */
 	setUp() {
 		const stage = this.stage;
-		this.querySelector('.stop').addEventListener('click', () => {
+		requireElement(this, '.stop', HTMLElement).addEventListener('click', () => {
 			dispatch(this, 'replay-stop');
 		});
-		this.querySelector('.play').addEventListener('click', () => {
+		requireElement(this, '.play', HTMLElement).addEventListener('click', () => {
 			if (stage.paused.get()) stage.resume();
 			else stage.pause();
 		});
-		this.querySelector('.fast').addEventListener('click', () => {
+		requireElement(this, '.fast', HTMLElement).addEventListener('click', () => {
 			const next = SPEEDS[(SPEEDS.indexOf(stage.speed.get()) + 1) % SPEEDS.length];
 			stage.setSpeed(next);
 		});

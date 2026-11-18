@@ -2,6 +2,7 @@
  * The HUD element.
  */
 
+import { requireElement } from '../dom.js';
 import { loadMarkup, Screen, UiElement } from '../element.js';
 
 /** @type {HTMLTemplateElement|null} The markup of the HUD. */
@@ -35,10 +36,10 @@ export class Hud extends UiElement {
 	 * @returns {Array<() => void>} The functions that remove the subscriptions.
 	 */
 	subscribe() {
-		const life = /** @type {HTMLElement} */ (this.querySelector('.life'));
+		const life = requireElement(this, '.life', HTMLElement);
 		return [
 			...HUD_VALUES.map((name) => {
-				const node = this.querySelector(`[data-value="${name}"]`);
+				const node = requireElement(this, `[data-value="${name}"]`, HTMLElement);
 				return this.stage[name].subscribe((value) => {
 					node.textContent = String(value);
 				});

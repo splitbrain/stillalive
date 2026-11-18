@@ -2,7 +2,7 @@
  * The pause menu element.
  */
 
-import { setLink, settingLabel } from '../dom.js';
+import { requireElement, setLink, settingLabel } from '../dom.js';
 import { loadMarkup, Screen, UiElement } from '../element.js';
 
 /** @type {HTMLTemplateElement|null} The markup of the pause menu. */
@@ -27,9 +27,13 @@ export class PauseMenu extends UiElement {
 	 * @returns {void}
 	 */
 	setUp() {
-		this.querySelector('.resume').addEventListener('click', () => this.stage.resume());
-		this.querySelector('.sound').addEventListener('click', () => this.stage.setSound(!this.stage.sound.get()));
-		this.querySelector('.music').addEventListener('click', () => this.stage.setMusic(!this.stage.music.get()));
+		requireElement(this, '.resume', HTMLElement).addEventListener('click', () => this.stage.resume());
+		requireElement(this, '.sound', HTMLElement).addEventListener('click', () =>
+			this.stage.setSound(!this.stage.sound.get()),
+		);
+		requireElement(this, '.music', HTMLElement).addEventListener('click', () =>
+			this.stage.setMusic(!this.stage.music.get()),
+		);
 	}
 
 	/**
@@ -38,8 +42,8 @@ export class PauseMenu extends UiElement {
 	 * @returns {Array<() => void>} The functions that remove the subscriptions.
 	 */
 	subscribe() {
-		const sound = this.querySelector('.sound');
-		const music = this.querySelector('.music');
+		const sound = requireElement(this, '.sound', HTMLElement);
+		const music = requireElement(this, '.music', HTMLElement);
 		return [
 			this.stage.sound.subscribe((on) => {
 				sound.textContent = settingLabel('Sounds', on);
@@ -56,8 +60,8 @@ export class PauseMenu extends UiElement {
 	 * @returns {void}
 	 */
 	render() {
-		setLink(this.querySelector('.restart'), this.getAttribute('restart'));
-		setLink(this.querySelector('.exit'), this.getAttribute('exit'));
+		setLink(requireElement(this, '.restart', HTMLAnchorElement), this.getAttribute('restart'));
+		setLink(requireElement(this, '.exit', HTMLAnchorElement), this.getAttribute('exit'));
 	}
 
 	/**

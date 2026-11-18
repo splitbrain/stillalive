@@ -4,6 +4,7 @@
 
 import { route, RouteName } from '../../router.js';
 import { StageMode } from '../../stage/constants.js';
+import { requireElement } from '../dom.js';
 import { loadMarkup, Screen, UiElement } from '../element.js';
 
 /** @type {HTMLTemplateElement|null} The markup of the narrator text. */
@@ -127,7 +128,7 @@ export class NarratorText extends UiElement {
 	 * @returns {void}
 	 */
 	#show() {
-		const paragraph = this.querySelector('p');
+		const paragraph = requireElement(this, 'p', HTMLElement);
 		paragraph.textContent = this.#text.slice(0, this.#shown);
 		paragraph.scrollTop = paragraph.scrollHeight;
 	}

@@ -2,6 +2,7 @@
  * The base of the selection elements.
  */
 
+import { requireElement } from '../dom.js';
 import { loadMarkup, UiElement } from '../element.js';
 
 // the file has only the shared style of the selection elements
@@ -31,7 +32,7 @@ export class Selection extends UiElement {
 	 * @returns {void}
 	 */
 	setUp() {
-		const choices = this.querySelector('.choices');
+		const choices = requireElement(this, '.choices', HTMLElement);
 		choices.addEventListener('pointerover', (event) => {
 			const target = /** @type {Element} */ (event.target);
 			const choice = /** @type {HTMLElement|null} */ (

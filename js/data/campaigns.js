@@ -181,8 +181,8 @@ export function loadCampaigns() {
 /**
  * Get a campaign by its id.
  *
- * @param {string} id The campaign id, the folder name of the campaign.
- * @returns {Campaign|null} The campaign, or null if there is none or the campaigns are not loaded.
+ * @param {string|null} id The campaign id, the folder name of the campaign, or null.
+ * @returns {Campaign|null} The campaign, or null for null, for an unknown id or before the campaigns are loaded.
  */
 export function campaignById(id) {
 	return campaigns?.find((campaign) => campaign.id === id) ?? null;

@@ -5,6 +5,7 @@
 import { loading, ready } from '../../loader.js';
 import { keyLabels } from '../../stage/browser/keys.js';
 import { campaignsLoading } from '../../data/campaigns.js';
+import { requireElement } from '../dom.js';
 import { loadMarkup, Screen, UiElement } from '../element.js';
 
 /** @type {HTMLTemplateElement|null} The markup of the loading element. */
@@ -39,7 +40,7 @@ export class Loading extends UiElement {
 			ready.subscribe(update),
 			keyLabels.subscribe((labels) => {
 				const spans = /** @type {NodeListOf<HTMLElement>} */ (this.querySelectorAll('[data-key]'));
-				for (const span of spans) span.textContent = labels[span.dataset.key];
+				for (const span of spans) span.textContent = labels[/** @type {string} */ (span.dataset.key)];
 			}),
 		];
 	}
@@ -65,11 +66,11 @@ export class Loading extends UiElement {
 		const { code, images, sounds } = loading.get();
 		const progress = code.progress + images.progress + sounds.progress + campaignsLoading.get().progress;
 		const percent = Math.floor((progress / 4) * 100);
-		const button = /** @type {HTMLButtonElement} */ (this.querySelector('.start'));
+		const button = requireElement(this, '.start', HTMLButtonElement);
 		button.disabled = !done;
 		button.style.setProperty('--progress', `${percent}%`);
 		button.textContent = done ? 'Begin testing' : `Loading... ${percent}%`;
-		this.querySelector('.title').textContent = done
+		requireElement(this, '.title', HTMLElement).textContent = done
 			? 'The test equipment is ready.'
 			: 'Warming up the test equipment...';
 	}
@@ -83,7 +84,7 @@ export class Loading extends UiElement {
 	 * @returns {void}
 	 */
 	#showMissing(kind, { missing }, prefix) {
-		const line = /** @type {HTMLElement} */ (this.querySelector(`[data-missing="${kind}"]`));
+		const line = requireElement(this, `[data-missing="${kind}"]`, HTMLElement);
 		line.hidden = missing.length === 0;
 		line.textContent = prefix + missing.join(', ');
 	}

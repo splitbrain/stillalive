@@ -142,7 +142,8 @@ document.addEventListener('click', (event) => {
 	const link = /** @type {Element} */ (event.target).closest?.('a[href^="#/"]');
 	if (!link) return;
 	event.preventDefault();
-	const path = link.getAttribute('href');
+	// the selector guarantees the attribute
+	const path = /** @type {string} */ (link.getAttribute('href'));
 	if (link.hasAttribute('data-up')) up(path);
 	else navigate(path, link.hasAttribute('data-replace'));
 });

@@ -32,7 +32,8 @@ export function pickJsonFile() {
 		input.addEventListener('cancel', () => resolve(null));
 		input.addEventListener('change', async () => {
 			try {
-				resolve(JSON.parse(await input.files[0].text()));
+				// a file input always has a file list
+				resolve(JSON.parse(await /** @type {FileList} */ (input.files)[0].text()));
 			} catch {
 				reject(new Error('The file is not a JSON file.'));
 			}

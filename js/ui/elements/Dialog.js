@@ -5,6 +5,7 @@
 import { Tile } from '../../stage/map/tiles.js';
 import { route, RouteName } from '../../router.js';
 import { Value } from '../../value.js';
+import { requireElement } from '../dom.js';
 import { loadMarkup, UiElement } from '../element.js';
 
 /** @type {HTMLTemplateElement|null} The markup of the dialog. */
@@ -29,7 +30,7 @@ export function isEditorLocked() {
  * @returns {Dialog} The dialog element.
  */
 function dialogElement() {
-	return /** @type {Dialog} */ (document.querySelector('ui-dialog'));
+	return requireElement(document, 'ui-dialog', Dialog);
 }
 
 /**
@@ -94,9 +95,9 @@ export class Dialog extends UiElement {
 	 * @returns {void}
 	 */
 	setUp() {
-		this.querySelector('.yes').addEventListener('click', () => this.#closeQuestion(true));
-		this.querySelector('.no').addEventListener('click', () => this.#closeQuestion(false));
-		this.querySelector('.ok').addEventListener('click', () => this.#closeMessage());
+		requireElement(this, '.yes', HTMLElement).addEventListener('click', () => this.#closeQuestion(true));
+		requireElement(this, '.no', HTMLElement).addEventListener('click', () => this.#closeQuestion(false));
+		requireElement(this, '.ok', HTMLButtonElement).addEventListener('click', () => this.#closeMessage());
 	}
 
 	/**
@@ -161,7 +162,7 @@ export class Dialog extends UiElement {
 		this.#closeMessage();
 		this.#fill(message, title, false);
 		dialogShown.set(true);
-		/** @type {HTMLButtonElement} */ (this.querySelector('.ok')).focus();
+		requireElement(this, '.ok', HTMLButtonElement).focus();
 		return new Promise((resolve) => {
 			this.#dismiss = resolve;
 		});
@@ -176,10 +177,10 @@ export class Dialog extends UiElement {
 	 * @returns {void}
 	 */
 	#fill(message, title, question) {
-		this.querySelector('h2').textContent = title;
-		this.querySelector('p').textContent = message;
-		/** @type {HTMLElement} */ (this.querySelector('.question')).hidden = !question;
-		/** @type {HTMLElement} */ (this.querySelector('.message')).hidden = question;
+		requireElement(this, 'h2', HTMLElement).textContent = title;
+		requireElement(this, 'p', HTMLElement).textContent = message;
+		requireElement(this, '.question', HTMLElement).hidden = !question;
+		requireElement(this, '.message', HTMLElement).hidden = question;
 	}
 
 	/**

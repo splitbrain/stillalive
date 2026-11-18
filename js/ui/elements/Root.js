@@ -5,7 +5,7 @@
 import { navigate, route, RouteName, routePath, up } from '../../router.js';
 import { CampaignId, LEVELS_PER_CAMPAIGN, StageMode } from '../../stage/constants.js';
 import { campaignById, campaigns, campaignsReady } from '../../data/campaigns.js';
-import { setAttributes } from '../dom.js';
+import { requireElement, setAttributes } from '../dom.js';
 import { Screen, UiElement } from '../element.js';
 import { dialogShown, showAlert } from './Dialog.js';
 import {
@@ -442,23 +442,26 @@ export class Root extends UiElement {
 	 * @returns {void}
 	 */
 	#updateParts({ current, campaign, level, reopen }) {
-		setAttributes(this.querySelector('ui-level-selection'), { campaign: current.campaign, level: current.level });
+		setAttributes(requireElement(this, 'ui-level-selection', HTMLElement), {
+			campaign: current.campaign,
+			level: current.level,
+		});
 		const play = LEVEL_ROUTES.includes(current.name);
 		const exit = play ? '#/' : null;
-		setAttributes(this.querySelector('ui-pause-menu'), {
+		setAttributes(requireElement(this, 'ui-pause-menu', HTMLElement), {
 			restart: play ? routePath(current.name, current.campaign, current.level) : null,
 			exit,
 		});
 		this.#intermission = play ? reopen : null;
-		setAttributes(this.querySelector('ui-intermission'), { exit, ...reopen, open: reopen ? '' : null });
-		setAttributes(this.querySelector('ui-robot-head'), {
+		setAttributes(requireElement(this, 'ui-intermission', HTMLElement), { exit, ...reopen, open: reopen ? '' : null });
+		setAttributes(requireElement(this, 'ui-robot-head', HTMLElement), {
 			eye: play && campaign.id === CampaignId.STORY ? Math.min(Math.floor((current.level - 1) / 7), 3) + 1 : null,
 			absent: play && level.boss > 0 ? '' : null, // the boss is the robot
 		});
-		setAttributes(this.querySelector('ui-narrator-text'), {
+		setAttributes(requireElement(this, 'ui-narrator-text', HTMLElement), {
 			text: EDITOR_ROUTES.includes(current.name) ? EDITOR_TEXT : null,
 		});
-		setAttributes(this.querySelector('ui-editor-files'), {
+		setAttributes(requireElement(this, 'ui-editor-files', HTMLElement), {
 			mode: current.name === RouteName.SAVE || current.name === RouteName.LOAD ? current.name : null,
 		});
 	}
@@ -567,7 +570,7 @@ export class Root extends UiElement {
 				next: next > 0 ? routePath(RouteName.PLAY, current.campaign, next) : null,
 				restart: campaign.isOpen(current.level) ? routePath(RouteName.PLAY, current.campaign, current.level) : null,
 			};
-			setAttributes(this.querySelector('ui-intermission'), { ...this.#intermission, open: '' });
+			setAttributes(requireElement(this, 'ui-intermission', HTMLElement), { ...this.#intermission, open: '' });
 			this.#showScreen();
 		}
 	}

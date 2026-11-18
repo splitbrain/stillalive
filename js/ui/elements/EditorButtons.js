@@ -5,6 +5,7 @@
 import { navigate, route, up } from '../../router.js';
 import { StageMode } from '../../stage/constants.js';
 import { MAP_FORMAT, parseMap } from '../../stage/map/mapFile.js';
+import { requireElement } from '../dom.js';
 import { loadMarkup, Screen, UiElement } from '../element.js';
 import { downloadJson, pickJsonFile } from '../files.js';
 import { confirmReplaceMap, dialogShown, isEditorLocked, showAlert } from './Dialog.js';
@@ -25,22 +26,22 @@ export class EditorButtons extends UiElement {
 	 * @returns {void}
 	 */
 	setUp() {
-		this.querySelector('.test').addEventListener('click', () => {
+		requireElement(this, '.test', HTMLButtonElement).addEventListener('click', () => {
 			if (this.stage.mode.get() === StageMode.TEST) up('#/editor');
 			else navigate('#/test');
 		});
-		this.querySelector('.undo').addEventListener('click', () => this.stage.undo());
-		this.querySelector('.redo').addEventListener('click', () => this.stage.redo());
-		this.querySelector('.clear').addEventListener('click', () => this.stage.clearMap());
-		this.querySelector('.export').addEventListener('click', () => this.#export());
-		this.querySelector('.import').addEventListener('click', () => {
+		requireElement(this, '.undo', HTMLElement).addEventListener('click', () => this.stage.undo());
+		requireElement(this, '.redo', HTMLElement).addEventListener('click', () => this.stage.redo());
+		requireElement(this, '.clear', HTMLElement).addEventListener('click', () => this.stage.clearMap());
+		requireElement(this, '.export', HTMLElement).addEventListener('click', () => this.#export());
+		requireElement(this, '.import', HTMLElement).addEventListener('click', () => {
 			this.#import().catch((error) => showAlert(error.message, 'Import map'));
 		});
 		for (const button of /** @type {NodeListOf<HTMLElement>} */ (this.querySelectorAll('[data-href]'))) {
-			button.addEventListener('click', () => navigate(button.dataset.href));
+			button.addEventListener('click', () => navigate(/** @type {string} */ (button.dataset.href)));
 		}
 		for (const button of /** @type {NodeListOf<HTMLElement>} */ (this.querySelectorAll('[data-up]'))) {
-			button.addEventListener('click', () => up(button.dataset.up));
+			button.addEventListener('click', () => up(/** @type {string} */ (button.dataset.up)));
 		}
 	}
 
@@ -62,7 +63,7 @@ export class EditorButtons extends UiElement {
 	 * @returns {void}
 	 */
 	#updateButtons() {
-		const test = this.querySelector('.test');
+		const test = requireElement(this, '.test', HTMLButtonElement);
 		const testing = this.stage.mode.get() === StageMode.TEST;
 		const locked = isEditorLocked();
 		test.textContent = testing ? 'Stop' : 'Try';

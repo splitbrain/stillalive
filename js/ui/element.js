@@ -3,6 +3,7 @@
  */
 
 import { RouteName } from '../router.js';
+import { requireElement } from './dom.js';
 
 /**
  * Load the HTML file of a component. The file is next to the module and has the name of the module with ".html" in
@@ -127,6 +128,9 @@ export class UiElement extends HTMLElement {
 	 * @returns {import('../stage/GameStage.js').GameStage} The <game-stage> element.
 	 */
 	get stage() {
-		return document.querySelector('game-stage');
+		// a cast and not the class, because an import of GameStage would load the stage modules into the UI base module
+		return /** @type {import('../stage/GameStage.js').GameStage} */ (
+			requireElement(document, 'game-stage', HTMLElement)
+		);
 	}
 }

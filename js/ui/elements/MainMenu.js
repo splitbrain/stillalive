@@ -5,7 +5,7 @@
 import { routePath, RouteName } from '../../router.js';
 import { CampaignId, LEVELS_PER_CAMPAIGN } from '../../stage/constants.js';
 import { campaignById, campaignsReady, listCampaigns } from '../../data/campaigns.js';
-import { settingLabel } from '../dom.js';
+import { requireElement, settingLabel } from '../dom.js';
 import { loadMarkup, Screen, UiElement } from '../element.js';
 import { bestTimes, editorMap, maxLevel } from '../../data/storage.js';
 
@@ -26,8 +26,12 @@ export class MainMenu extends UiElement {
 	 * @returns {void}
 	 */
 	setUp() {
-		this.querySelector('.sound').addEventListener('click', () => this.stage.setSound(!this.stage.sound.get()));
-		this.querySelector('.music').addEventListener('click', () => this.stage.setMusic(!this.stage.music.get()));
+		requireElement(this, '.sound', HTMLElement).addEventListener('click', () =>
+			this.stage.setSound(!this.stage.sound.get()),
+		);
+		requireElement(this, '.music', HTMLElement).addEventListener('click', () =>
+			this.stage.setMusic(!this.stage.music.get()),
+		);
 	}
 
 	/**
@@ -38,8 +42,8 @@ export class MainMenu extends UiElement {
 	 */
 	subscribe() {
 		const slots = Array.from({ length: LEVELS_PER_CAMPAIGN }, (_, i) => editorMap(i + 1));
-		const icon = /** @type {HTMLImageElement} */ (this.querySelector('.sound img'));
-		const musicIcon = /** @type {HTMLImageElement} */ (this.querySelector('.music img'));
+		const icon = requireElement(this, '.sound img', HTMLImageElement);
+		const musicIcon = requireElement(this, '.music img', HTMLImageElement);
 		return [
 			this.stage.sound.subscribe((on) => {
 				icon.src = on ? 'gfx/ui/sound-on.svg' : 'gfx/ui/sound-off.svg';
@@ -81,9 +85,11 @@ export class MainMenu extends UiElement {
 				top.push(item);
 			}
 		}
-		this.querySelector('.campaigns').replaceChildren(...top);
+		requireElement(this, '.campaigns', HTMLElement).replaceChildren(...top);
 		const custom = campaignById(CampaignId.CUSTOM);
-		this.querySelector('.custom').replaceChildren(...(custom.unlocked ? [this.#createItem(custom, true)] : []));
+		requireElement(this, '.custom', HTMLElement).replaceChildren(
+			...(custom.unlocked ? [this.#createItem(custom, true)] : []),
+		);
 	}
 
 	/**

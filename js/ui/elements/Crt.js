@@ -4,8 +4,8 @@
 
 import { loadMarkup, UiElement } from '../element.js';
 
-/** @type {HTMLTemplateElement|null} The markup of the shadow root of the CRT, with its style. */
-const SHADOW_TEMPLATE = await loadMarkup(import.meta.url);
+/** @type {HTMLTemplateElement} The markup of the shadow root of the CRT, with its style. Crt.html has a template. */
+const SHADOW_TEMPLATE = /** @type {HTMLTemplateElement} */ (await loadMarkup(import.meta.url));
 
 /**
  * The custom element <ui-crt>. It shows its content behind the glass of an old CRT monitor, in a crooked frame. The

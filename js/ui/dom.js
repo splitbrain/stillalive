@@ -50,3 +50,20 @@ export function settingLabel(name, on) {
 export function dispatch(element, type, detail = {}) {
 	element.dispatchEvent(new CustomEvent(type, { bubbles: true, detail }));
 }
+
+/**
+ * Find the first element below a root that matches a selector. The markup of the UI elements comes from their
+ * templates and from index.html, so a missing element is a fault in the markup or in the selector.
+ *
+ * @template {Element} T
+ * @param {ParentNode} root The element or the document to search.
+ * @param {string} selector The CSS selector.
+ * @param {new () => T} type The class that the element must have, e.g. HTMLElement or HTMLAnchorElement.
+ * @returns {T} The element.
+ * @throws {Error} If no element matches the selector, or if the element does not have the class.
+ */
+export function requireElement(root, selector, type) {
+	const element = root.querySelector(selector);
+	if (!(element instanceof type)) throw new Error(`No ${type.name} matches "${selector}".`);
+	return element;
+}

@@ -3,7 +3,7 @@
  */
 
 import { RouteName, up } from '../../router.js';
-import { setAttributes } from '../dom.js';
+import { requireElement, setAttributes } from '../dom.js';
 import { loadMarkup, Screen } from '../element.js';
 import { editorMap, saveEditorMap } from '../../data/storage.js';
 import { askConfirmation, confirmReplaceMap, showAlert } from './Dialog.js';
@@ -56,7 +56,7 @@ export class EditorFiles extends Selection {
 	 */
 	render() {
 		const mode = this.getAttribute('mode');
-		setAttributes(this.querySelector('ui-slot-list'), {
+		setAttributes(requireElement(this, 'ui-slot-list', HTMLElement), {
 			mode: mode === RouteName.SAVE || mode === RouteName.LOAD ? mode : null,
 		});
 	}

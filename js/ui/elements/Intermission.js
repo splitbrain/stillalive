@@ -2,7 +2,7 @@
  * The intermission panel element.
  */
 
-import { dispatch, setLink } from '../dom.js';
+import { dispatch, requireElement, setLink } from '../dom.js';
 import { loadMarkup, Screen, UiElement } from '../element.js';
 import { toTime } from '../time.js';
 
@@ -30,7 +30,7 @@ export class Intermission extends UiElement {
 	 * @returns {void}
 	 */
 	setUp() {
-		this.querySelector('.replay').addEventListener('click', () => {
+		requireElement(this, '.replay', HTMLElement).addEventListener('click', () => {
 			dispatch(this, 'replay-watch');
 		});
 	}
@@ -41,11 +41,12 @@ export class Intermission extends UiElement {
 	 * @returns {void}
 	 */
 	render() {
-		this.querySelector('.time').textContent = `Your time: ${toTime(Number(this.getAttribute('time') ?? 0))}`;
-		this.querySelector('.message').textContent = this.getAttribute('message') ?? '';
-		setLink(this.querySelector('.exit'), this.getAttribute('exit'));
-		setLink(this.querySelector('.restart'), this.getAttribute('restart'));
-		setLink(this.querySelector('.next'), this.getAttribute('next'));
+		requireElement(this, '.time', HTMLElement).textContent =
+			`Your time: ${toTime(Number(this.getAttribute('time') ?? 0))}`;
+		requireElement(this, '.message', HTMLElement).textContent = this.getAttribute('message') ?? '';
+		setLink(requireElement(this, '.exit', HTMLAnchorElement), this.getAttribute('exit'));
+		setLink(requireElement(this, '.restart', HTMLAnchorElement), this.getAttribute('restart'));
+		setLink(requireElement(this, '.next', HTMLAnchorElement), this.getAttribute('next'));
 	}
 
 	/**

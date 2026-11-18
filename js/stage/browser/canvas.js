@@ -101,7 +101,8 @@ export function canvasGeneration() {
  */
 export function setCanvas(element) {
 	canvas = element;
-	ctx = canvas.getContext('2d');
+	// the canvas has only 2d contexts, so getContext() never returns null here
+	ctx = /** @type {CanvasRenderingContext2D} */ (canvas.getContext('2d'));
 	wantedWidth = canvas.width;
 	wantedHeight = canvas.height;
 	document.addEventListener('visibilitychange', onVisibilityChange);
@@ -167,7 +168,13 @@ function scaledImage(image) {
 	const entry = scaledImages.get(image);
 	if (entry && entry.scale === scale) return entry.picture;
 	const picture = new OffscreenCanvas(Math.ceil(image.naturalWidth * scale), Math.ceil(image.naturalHeight * scale));
-	picture.getContext('2d').drawImage(image, 0, 0, picture.width, picture.height);
+	/** @type {OffscreenCanvasRenderingContext2D} */ (picture.getContext('2d')).drawImage(
+		image,
+		0,
+		0,
+		picture.width,
+		picture.height,
+	);
 	scaledImages.set(image, { scale, picture });
 	return picture;
 }
@@ -232,19 +239,17 @@ function snapSpan(start, size, factor, offset) {
  */
 export function copyCanvas(x, y, width, height) {
 	const copy = new OffscreenCanvas(Math.round(width * scale), Math.round(height * scale));
-	copy
-		.getContext('2d')
-		.drawImage(
-			canvas,
-			Math.round((x + shakeX) * scale),
-			Math.round((y + shakeY) * scale),
-			copy.width,
-			copy.height,
-			0,
-			0,
-			copy.width,
-			copy.height,
-		);
+	/** @type {OffscreenCanvasRenderingContext2D} */ (copy.getContext('2d')).drawImage(
+		canvas,
+		Math.round((x + shakeX) * scale),
+		Math.round((y + shakeY) * scale),
+		copy.width,
+		copy.height,
+		0,
+		0,
+		copy.width,
+		copy.height,
+	);
 	return copy;
 }
 

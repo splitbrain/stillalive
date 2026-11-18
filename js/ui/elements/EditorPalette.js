@@ -4,6 +4,7 @@
 
 import { route } from '../../router.js';
 import { Tile } from '../../stage/map/tiles.js';
+import { requireElement } from '../dom.js';
 import { loadMarkup, Screen, UiElement } from '../element.js';
 import { dialogShown, isEditorLocked } from './Dialog.js';
 
@@ -155,7 +156,7 @@ export class EditorPalette extends UiElement {
 	 * @returns {void}
 	 */
 	setUp() {
-		const tray = this.querySelector('.tray');
+		const tray = requireElement(this, '.tray', HTMLElement);
 		for (const rows of BINS) {
 			const bin = document.createElement('div');
 			bin.className = 'bin';

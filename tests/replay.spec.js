@@ -32,6 +32,7 @@ for (const campaign of CAMPAIGNS) {
 		const levels = campaignLevels(campaign).filter(({ level, boss }) => level % 2 === 1 || boss > 0);
 		for (const { level, id, boss } of levels) {
 			const isBoss = boss > 0;
+			/** @type {string|null} */
 			let played = null;
 			for (let attempt = 0; attempt < (isBoss ? BOSS_ATTEMPTS : 1) && played === null; attempt++) {
 				const run = await runLevel(page, {
@@ -45,7 +46,7 @@ for (const campaign of CAMPAIGNS) {
 				});
 
 				// the replay only holds the last attempt, so only a run without a death can be compared
-				const last = JSON.parse(run.trim().split('\n').at(-1));
+				const last = JSON.parse(run.trim().split('\n').at(-1) ?? '');
 				if (last.time === TICKS - INTRO_TICKS && !last.player[5]) played = run;
 			}
 			if (isBoss) expect.soft(played, `${id} has a run without a death`).not.toBeNull();

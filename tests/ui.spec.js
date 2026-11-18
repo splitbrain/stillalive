@@ -6,6 +6,7 @@ import {
 	CAMPAIGNS,
 	finishLevel,
 	runTicks,
+	stageBox,
 	stageValue,
 	startGame,
 	waitForLevelTime,
@@ -416,9 +417,9 @@ test.describe('ui', () => {
 		await expectScreen(page, '#/editor', EDITOR_PARTS);
 		await setHash(page, '#/');
 		await expect(page.locator('ui-main-menu .custom')).toHaveText('My Levels 1/2');
-		expect(await page.evaluate(() => Object.keys(JSON.parse(localStorage.getItem('stillalive_bestTimes'))))).toEqual([
-			'custom-1',
-		]);
+		expect(
+			await page.evaluate(() => Object.keys(JSON.parse(localStorage.getItem('stillalive_bestTimes') ?? 'null'))),
+		).toEqual(['custom-1']);
 	});
 
 	test('opens the tutorial with a button for each of its levels', async ({ page }) => {
@@ -440,7 +441,7 @@ test.describe('ui', () => {
 		await expect(page.locator('ui-intermission')).toBeHidden();
 
 		// the stage reads the mouse button once per tick, so the button stays down until the stage has ended the wait
-		const stage = await page.locator('game-stage').boundingBox();
+		const stage = await stageBox(page);
 		await page.mouse.move(stage.x + stage.width / 2, stage.y + stage.height / 2);
 		await page.mouse.down();
 		await expect.poll(() => stageValue(page, 'message')).toBeNull();
@@ -459,7 +460,9 @@ test.describe('ui', () => {
 	});
 
 	test('shows the credits after the last story level', async ({ page }) => {
-		const last = CAMPAIGNS.find((campaign) => campaign.name === 'story').levels;
+		const story = CAMPAIGNS.find((campaign) => campaign.name === 'story');
+		if (!story) throw new Error('There is no story campaign.');
+		const last = story.levels;
 		// the game reads the progress when the page loads, and this progress unlocks the last story level
 		await page.addInitScript(
 			(last) => localStorage.setItem('stillalive_progress', JSON.stringify({ story: last })),

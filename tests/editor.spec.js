@@ -11,6 +11,7 @@ import {
 	levelLabels,
 	rememberLevelRun,
 	setPlayer,
+	stageBox,
 	stageValue,
 	startGame,
 	waitForLevelTime,
@@ -68,7 +69,7 @@ async function openMap(page, map) {
  * @returns {Promise<void>}
  */
 async function clickThroughWait(page) {
-	const stage = await page.locator('game-stage').boundingBox();
+	const stage = await stageBox(page);
 	await page.mouse.move(stage.x + stage.width / 2, stage.y + stage.height / 2);
 	await page.mouse.down();
 	await expect.poll(() => page.evaluate(() => window.__test.stage.message.get()?.wait ?? false)).toBe(false);

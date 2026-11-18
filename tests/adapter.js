@@ -115,10 +115,11 @@ export async function startGame(page) {
  */
 export async function waitForNarrator(page) {
 	await page.waitForFunction(() => {
-		const narrator = document.querySelector('ui-narrator-text');
+		// the casts keep the failure of a missing element: the exception ends the wait at once
+		const narrator = /** @type {Element} */ (document.querySelector('ui-narrator-text'));
 		const testing = window.__test.stage.mode.get() === 'test';
 		const text = (testing ? null : narrator.getAttribute('text')) ?? window.__test.stage.message.get()?.text ?? '';
-		return narrator.querySelector('p').textContent === text;
+		return /** @type {Element} */ (narrator.querySelector('p')).textContent === text;
 	});
 }
 
@@ -343,6 +344,19 @@ export async function finishLevel(page) {
 }
 
 /**
+ * Get the box of the stage element on the page.
+ *
+ * @param {import('@playwright/test').Page} page The Playwright page.
+ * @returns {Promise<{x: number, y: number, width: number, height: number}>} The box in page pixels.
+ * @throws {Error} If the stage element is not visible.
+ */
+export async function stageBox(page) {
+	const box = await page.locator('game-stage').boundingBox();
+	if (!box) throw new Error('The stage element is not visible.');
+	return box;
+}
+
+/**
  * Start a level and run the game for a number of ticks.
  *
  * An event that waits for a click at the level start waits until the inputs click. Math.random() uses a pseudo-random
@@ -356,10 +370,10 @@ export async function finishLevel(page) {
  * @param {number} options.level The level number, starting at 1.
  * @param {number} options.ticks The number of ticks to run.
  * @param {number} options.seed The seed for Math.random().
- * @param {number[][]} [options.inputs] For each tick the key bitmask, the mouse x and the mouse y position. Without
+ * @param {number[][]|null} [options.inputs] For each tick the key bitmask, the mouse x and the mouse y position. Without
  *     inputs, the run does not change the input state.
- * @param {import('../js/stage/sessions/replay.js').ReplayFile} [options.replay] A replay in the file format. The run plays the
- *     replay instead of using inputs.
+ * @param {import('../js/stage/sessions/replay.js').ReplayFile|null} [options.replay] A replay in the file format. The run
+ *     plays the replay instead of using inputs.
  * @param {boolean} [options.skipBossIntro] True to start the level as a restart, which skips the entrance of the boss
  *     and the waits of the events, as a replay does.
  * @returns {Promise<string>} One JSON line for each snapshot, and the line "finished" if the player reached the exit.
@@ -370,10 +384,11 @@ export async function runLevel(
 ) {
 	return page.evaluate(
 		async ({ campaign, level, ticks, seed, inputs, replay: replayData, skipBossIntro, interval }) => {
-			const { campaignById } = await import('/js/data/campaigns.js');
+			const { requireCampaign } = await import('/js/data/campaigns.js');
 			const hooks = window.__test;
 			const { input, stage } = hooks;
-			const levelData = campaignById(campaign).levels[level - 1];
+			const levelData = requireCampaign(campaign).levels[level - 1];
+			if (!levelData) throw new Error(`The campaign ${campaign} has no level ${level}.`);
 			let state = seed >>> 0;
 			Math.random = () => {
 				state = (state + 0x6d2b79f5) >>> 0;
@@ -460,11 +475,19 @@ export async function recordedReplay(page) {
 	const data = await page.evaluate(async () => {
 		const { encodeReplay } = await import('/js/stage/sessions/replay.js');
 		const hooks = window.__test;
-		const world = hooks.world();
-		return JSON.stringify(encodeReplay(hooks.replay(), world.level.campaign, world.level.number));
+		const replay = hooks.replay();
+		const level = hooks.world().level;
+		if (!replay || !level) throw new Error('No level ran, so there is no recorded replay.');
+		return JSON.stringify(encodeReplay(replay, level.campaign, level.number));
 	});
 	return JSON.parse(data);
 }
+
+/**
+ * A body that a portal scene puts on the map.
+ *
+ * @typedef {import('../js/stage/bodies/Crate.js').Crate|import('../js/stage/bodies/Turret.js').Turret|import('../js/stage/bodies/Plasma.js').Plasma} SceneBody
+ */
 
 /**
  * Run a scene with portals on an empty map with walls on all four borders.
@@ -490,7 +513,7 @@ export async function runPortalScene(page, scene) {
 	return page.evaluate(async (scene) => {
 		const hooks = window.__test;
 		const { input, stage } = hooks;
-		const { campaignById } = await import('/js/data/campaigns.js');
+		const { requireCampaign } = await import('/js/data/campaigns.js');
 		const { Crate } = await import('/js/stage/bodies/Crate.js');
 		const { Turret } = await import('/js/stage/bodies/Turret.js');
 		const { Plasma } = await import('/js/stage/bodies/Plasma.js');
@@ -505,7 +528,9 @@ export async function runPortalScene(page, scene) {
 			return ((mixed ^ (mixed >>> 14)) >>> 0) / 4294967296;
 		};
 
-		stage.play(campaignById(CampaignId.NORMAL).levels[0]);
+		const firstLevel = requireCampaign(CampaignId.NORMAL).levels[0];
+		if (!firstLevel) throw new Error('The normal campaign has no level 1.');
+		stage.play(firstLevel);
 		const world = hooks.world();
 		world.map.replace(
 			world.map.tiles.map((tile, i) => {
@@ -538,6 +563,7 @@ export async function runPortalScene(page, scene) {
 		}
 		Object.assign(world.player, { x: scene.player[0] << 8, y: scene.player[1] << 8, vx: 0, vy: 0 });
 		const spec = scene.body;
+		/** @type {SceneBody|null} */
 		let body = null;
 		switch (spec?.type) {
 			case 'crate':
@@ -549,7 +575,14 @@ export async function runPortalScene(page, scene) {
 				world.turrets.push(body);
 				break;
 			case 'plasma':
-				body = new Plasma(world, spec.x << 8, spec.y << 8, spec.vx, spec.vy);
+				// a scene with a plasma ball gives its speed
+				body = new Plasma(
+					world,
+					spec.x << 8,
+					spec.y << 8,
+					/** @type {number} */ (spec.vx),
+					/** @type {number} */ (spec.vy),
+				);
 				world.addPlasma(body);
 				break;
 		}

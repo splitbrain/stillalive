@@ -18,6 +18,7 @@ test('a World from a map runs ticks without the stage element', (context) => {
 	}
 	const running = states.slice(TRANSITION_TICKS + 1);
 	const last = states.at(-1);
+	assert.ok(last);
 
 	// the level time and the player stand still during the opening transition
 	assert.deepEqual(states[TRANSITION_TICKS], states[0]);

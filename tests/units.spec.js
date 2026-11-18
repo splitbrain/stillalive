@@ -56,8 +56,10 @@ test.describe('units', () => {
 		test.setTimeout(10000);
 		await page.evaluate(async () => {
 			const { CampaignId } = await import('/js/stage/constants.js');
-			const { campaignById } = await import('/js/data/campaigns.js');
-			window.__test.stage.play(campaignById(CampaignId.STORY).levels[3]);
+			const { requireCampaign } = await import('/js/data/campaigns.js');
+			const level = requireCampaign(CampaignId.STORY).levels[3];
+			if (!level) throw new Error('The story campaign has no level 4.');
+			window.__test.stage.play(level);
 		});
 		// an empty map with walls on the left and the right side, and a floor that keeps the player alive
 		const tiles = Array.from({ length: MAP_SIZE }, (_, i) =>

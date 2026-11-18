@@ -76,7 +76,7 @@ const BOSS_MUSIC_DUCK = 0.5;
  *
  * @typedef {object} TestHook
  * @property {GameStage} stage The stage element.
- * @property {() => import('./world/World.js').World|null} world Get the World of the session, or null for an idle stage.
+ * @property {() => import('./world/World.js').World} world Get the World of the session. It throws for an idle stage.
  * @property {() => import('./sessions/replay.js').Replay|undefined} replay Get the replay of the play session.
  * @property {() => void} endReplay End the playback of a replay.
  * @property {InputState} input The keys and the mouse.
@@ -562,7 +562,10 @@ export class GameStage extends HTMLElement {
 		if (!new URLSearchParams(location.search).has('test')) return;
 		window.__test = {
 			stage: this,
-			world: () => this.#session?.world ?? null,
+			world: () => {
+				if (!this.#session) throw new Error('The stage is idle and has no World.');
+				return this.#session.world;
+			},
 			replay: () => this.#play?.source?.replay,
 			endReplay: () => this.#play?.endPlayback(),
 			input: this.#input,

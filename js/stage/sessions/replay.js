@@ -221,7 +221,8 @@ export class ReplayPlayer {
 	 * @returns {void}
 	 */
 	resume(world, input) {
-		input.restore(world.player, this.#pauseState);
+		// the play session resumes only after a pause, which captured the state
+		input.restore(world.player, /** @type {number[]} */ (this.#pauseState));
 		input.keys = this.replay.inputs[world.time];
 		input.mouseX = this.replay.mouseX[world.time];
 		input.mouseY = this.replay.mouseY[world.time];

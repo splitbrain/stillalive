@@ -14,7 +14,7 @@ import { World } from '../world/World.js';
  *
  * @callback SessionReport
  * @param {string} type The event type.
- * @param {{time: number, replay: import('./replay.js').ReplayFile}|null} [detail] The level time and the replay of the
+ * @param {{time: number, replay: import('./replay.js').ReplayFile}|null} detail The level time and the replay of the
  *     event "finished", else null.
  * @returns {void}
  */
@@ -125,7 +125,9 @@ export class PlaySession {
 				if (this.testRun) {
 					this.#report('testend', null);
 				} else {
-					const replay = encodeReplay(this.source.replay, this.level.campaign, this.level.number);
+					// only a test run has no input source
+					const source = /** @type {Recorder|ReplayPlayer} */ (this.source);
+					const replay = encodeReplay(source.replay, this.level.campaign, this.level.number);
 					this.#report('finished', { time: world.time, replay });
 				}
 				break;

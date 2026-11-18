@@ -68,7 +68,8 @@ function readItem(key) {
  */
 function readJsonItem(key) {
 	try {
-		return JSON.parse(readItem(key));
+		// JSON.parse() of the text null gives null, as for a missing key
+		return JSON.parse(readItem(key) ?? 'null');
 	} catch {
 		return null;
 	}
@@ -216,8 +217,12 @@ export function loadBestReplay(campaign, level) {
  *     null if the slot is empty.
  */
 export function editorMap(slot) {
-	if (!editorMaps.has(slot)) editorMaps.set(slot, new Value(readJsonItem(EDITOR_MAP_PREFIX + slot)));
-	return editorMaps.get(slot);
+	let map = editorMaps.get(slot);
+	if (!map) {
+		map = new Value(readJsonItem(EDITOR_MAP_PREFIX + slot));
+		editorMaps.set(slot, map);
+	}
+	return map;
 }
 
 /**

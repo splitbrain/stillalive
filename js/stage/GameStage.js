@@ -211,8 +211,8 @@ export class GameStage extends HTMLElement {
 	/**
 	 * Open the editor on a map. A new map starts a new undo list.
 	 *
-	 * @param {import('./map/mapFile.js').MapFile} [level] The map in the map file format, or nothing to open the editor map
-	 *     from before.
+	 * @param {import('./map/mapFile.js').MapFile|null} [level] The map in the map file format, or nothing or null to open
+	 *     the editor map from before.
 	 * @returns {void}
 	 */
 	edit(level) {
@@ -543,7 +543,7 @@ export class GameStage extends HTMLElement {
 		this.speed.set(this.#speed);
 		this.brush.set(this.#editor.brush);
 		this.fps.set(getFps());
-		const phase = session?.mode === StageMode.PLAY ? (world.boss?.phase() ?? null) : null;
+		const phase = session?.mode === StageMode.PLAY ? (session.world.boss?.phase() ?? null) : null;
 		setMusicMood(
 			phase === 'fight' ? BOSS_MUSIC_RATE : 1,
 			phase === 'coming' || phase === 'leaving' ? BOSS_MUSIC_DUCK : 1,

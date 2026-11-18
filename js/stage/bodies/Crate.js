@@ -98,7 +98,7 @@ export class Crate extends Throwable {
 			x > PLAYFIELD_WIDTH ||
 			y < -TILE_SIZE ||
 			y > PLAYFIELD_HEIGHT ||
-			this.touchesDeadlyTile() ||
+			this.touchesDeadlyTile() !== 0 ||
 			this.world.plasmaTouching(this);
 		return lost && this.#destroyOrReset();
 	}

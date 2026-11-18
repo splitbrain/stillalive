@@ -29,15 +29,22 @@ function layerSource(map, background) {
 }
 
 /**
+ * A cached layer: the copy of a part of the canvas and the source that it shows.
+ *
+ * @typedef {object} CachedLayer
+ * @property {LayerSource} source The source of the copy.
+ * @property {OffscreenCanvas} copy The copy.
+ */
+
+/**
  * Check if two layer sources are the same, so a cached layer of one source can show the other.
  *
- * @param {LayerSource|null} cached The source of the cached layer, or null for no cached layer.
+ * @param {LayerSource} cached The source of the cached layer.
  * @param {LayerSource} source The source to show.
  * @returns {boolean} True if the sources are the same.
  */
 function isSameSource(cached, source) {
 	return (
-		cached != null &&
 		cached.map === source.map &&
 		cached.version === source.version &&
 		cached.background === source.background &&
@@ -60,17 +67,14 @@ export class Renderer {
 	/** @type {import('../browser/InputState.js').InputState} The keys and the mouse. */
 	#input;
 
-	/** @type {OffscreenCanvas|null} The copy of the background and the tiles of a level or a preview. */
+	/** @type {CachedLayer|null} The copy of the background and the tiles of a level or a preview, or null before it. */
 	#tileLayer = null;
 
-	/** @type {LayerSource|null} The source of the tile layer, or null before the first copy. */
-	#tileLayerSource = null;
-
-	/** @type {OffscreenCanvas|null} The copy of the background, the tiles and the bodies of the editor map. */
+	/**
+	 * @type {CachedLayer|null} The copy of the background, the tiles and the bodies of the editor map, or null before
+	 *     it.
+	 */
 	#editorLayer = null;
-
-	/** @type {LayerSource|null} The source of the editor layer, or null before the first copy. */
-	#editorLayerSource = null;
 
 	/** @type {import('./game.js').LabelLayouts} The layouts of the labels that were measured with the label font. */
 	#labelLayouts = new WeakMap();
@@ -126,12 +130,12 @@ export class Renderer {
 	 */
 	drawEditor(editor) {
 		const source = layerSource(editor.map, editor.background);
-		if (isSameSource(this.#editorLayerSource, source)) {
-			drawCopy(this.#editorLayer, 0, 0);
+		const cached = this.#editorLayer;
+		if (cached && isSameSource(cached.source, source)) {
+			drawCopy(cached.copy, 0, 0);
 		} else {
 			drawEditorLayer(editor);
-			this.#editorLayer = copyCanvas(0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
-			this.#editorLayerSource = source;
+			this.#editorLayer = { source, copy: copyCanvas(0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT) };
 		}
 		drawCursor(editor.brush, this.#input);
 	}
@@ -145,11 +149,12 @@ export class Renderer {
 	 */
 	#drawTileLayer(world) {
 		const source = layerSource(world.map, world.background);
-		if (!isSameSource(this.#tileLayerSource, source)) {
+		let cached = this.#tileLayer;
+		if (!cached || !isSameSource(cached.source, source)) {
 			drawTileLayer(world);
-			this.#tileLayer = copyCanvas(0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
-			this.#tileLayerSource = source;
+			cached = { source, copy: copyCanvas(0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT) };
+			this.#tileLayer = cached;
 		}
-		drawCopy(this.#tileLayer, 0, 0);
+		drawCopy(cached.copy, 0, 0);
 	}
 }

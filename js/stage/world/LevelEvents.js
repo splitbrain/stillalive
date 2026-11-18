@@ -139,8 +139,9 @@ export class LevelEvents {
 	 * @returns {boolean} True if the event can fire.
 	 */
 	#hasHappened(event) {
-		if (event.on === 'playerX') return this.#world.player.midX() >> TILE_SIZE_BITS >= event.x;
-		if (event.on === 'time') return this.#world.time >= Math.round(event.seconds * 60);
+		// parseMap() requires the column for the trigger playerX and the seconds for the trigger time
+		if (event.on === 'playerX') return this.#world.player.midX() >> TILE_SIZE_BITS >= /** @type {number} */ (event.x);
+		if (event.on === 'time') return this.#world.time >= Math.round(/** @type {number} */ (event.seconds) * 60);
 		return this.#triggers.has(event.on);
 	}
 

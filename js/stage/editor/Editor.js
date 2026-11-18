@@ -33,8 +33,8 @@ export class Editor {
 	/** @type {World} The World with the bodies of the editor map. It uses the TileMap of the editor. */
 	#world = World.forEditor(this.#map);
 
-	/** @type {UndoList|null} The maps after each change, or null before the editor opens for the first time. */
-	#undoList = null;
+	/** @type {UndoList} The maps after each change. It starts with the empty map. */
+	#undoList = new UndoList();
 
 	/** @type {boolean} The mouse release state of the previous tick. */
 	#oldMouseReleased = false;
@@ -52,6 +52,7 @@ export class Editor {
 	 */
 	constructor(input) {
 		this.#input = input;
+		this.#addUndo();
 	}
 
 	/**
@@ -103,8 +104,8 @@ export class Editor {
 	 * Open the editor on a new map, or on the editor map from before, e.g. after a test run. A new map starts a new
 	 * undo list. The editor creates the bodies of the map again.
 	 *
-	 * @param {import('../map/mapFile.js').MapFile} [map] The new map in the map file format, or nothing for the editor map
-	 *     from before.
+	 * @param {import('../map/mapFile.js').MapFile|null} [map] The new map in the map file format, or nothing or null for
+	 *     the editor map from before.
 	 * @returns {void}
 	 */
 	open(map) {
@@ -118,7 +119,7 @@ export class Editor {
 		} else {
 			this.#world.createEditorBodies();
 		}
-		if (map || !this.#undoList) {
+		if (map) {
 			this.#undoList = new UndoList();
 			this.#addUndo();
 		}

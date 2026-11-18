@@ -109,7 +109,7 @@ function fetchSound(sound) {
  * @returns {void}
  */
 export function playSound(sound, rate = 1) {
-	if (!context || !isSoundOn() || muted || !sound.buffer) return;
+	if (!context || !isSoundOn() || muted || !sound.buffer || !sound.gain) return;
 	const source = context.createBufferSource();
 	source.buffer = sound.buffer;
 	source.playbackRate.value = rate;
@@ -143,7 +143,7 @@ const LOOP_HOLD = 100;
 export function playLoop(sound) {
 	if (muted) return;
 	sound.loopUntil = performance.now() + LOOP_HOLD;
-	if (sound.loop || !context || !isSoundOn() || !sound.buffer) return;
+	if (sound.loop || !context || !isSoundOn() || !sound.buffer || !sound.gain) return;
 	const source = context.createBufferSource();
 	source.buffer = sound.buffer;
 	source.loop = true;
@@ -270,12 +270,15 @@ function updateMasterVolume() {
  * Create the gain node of a sound and connect it to the master gain node.
  *
  * @param {Sound} sound The sound.
+ * @param {AudioContext} audio The audio context.
+ * @param {GainNode} output The master gain node.
  * @returns {void}
  */
-function connectSound(sound) {
-	sound.gain = context.createGain();
-	sound.gain.gain.value = sound.volume;
-	sound.gain.connect(master);
+function connectSound(sound, audio, output) {
+	const gain = audio.createGain();
+	gain.gain.value = sound.volume;
+	gain.connect(output);
+	sound.gain = gain;
 }
 
 /** @type {string} The file of the music of the levels, a loop. */
@@ -409,11 +412,11 @@ export function setMusicPlaying(track) {
 export function setMusicMood(rate, duck) {
 	if (rate !== musicRate) {
 		musicRate = rate;
-		if (levelPlayback) rampTo(levelPlayback.source.playbackRate, rate, MUSIC_GLIDE);
+		if (context && levelPlayback) rampTo(context, levelPlayback.source.playbackRate, rate, MUSIC_GLIDE);
 	}
 	if (duck !== musicDuck) {
 		musicDuck = duck;
-		if (musicGain) rampTo(musicGain.gain, MUSIC_VOLUME * duck, MUSIC_DUCK_FADE);
+		if (context && musicGain) rampTo(context, musicGain.gain, MUSIC_VOLUME * duck, MUSIC_DUCK_FADE);
 	}
 }
 
@@ -425,49 +428,50 @@ export function setMusicMood(rate, duck) {
 function updateMusic() {
 	if (!context) return;
 	const track = musicEnabled ? musicTrack : null;
-	updateLevelMusic(track === 'level');
-	updateMenuMusic(track === 'menu');
+	updateLevelMusic(context, track === 'level');
+	updateMenuMusic(context, track === 'menu');
 }
 
 /**
- * Start or stop the level music. Each start makes a new playback of the decoded music.
+ * Start or stop the level music. Each start makes a new playback of the decoded music. The music plays only after
+ * it is decoded; the music gain node exists together with the audio context.
  *
+ * @param {AudioContext} audio The audio context.
  * @param {boolean} play True if the level music should play.
  * @returns {void}
  */
-function updateLevelMusic(play) {
-	play = play && levelBuffer !== null;
-	if (play === (levelPlayback !== null)) return;
-	if (play) {
-		const source = context.createBufferSource();
+function updateLevelMusic(audio, play) {
+	if (play && levelBuffer && musicGain && !levelPlayback) {
+		const source = audio.createBufferSource();
 		source.buffer = levelBuffer;
 		source.loop = true;
 		// Chrome 152 does not go back to the start of a long buffer when the loop ends at the end of the buffer
 		source.loopEnd = (levelBuffer.length - 1) / levelBuffer.sampleRate;
 		source.playbackRate.value = musicRate;
-		const fade = context.createGain();
+		const fade = audio.createGain();
 		fade.gain.value = 0;
 		source.connect(fade);
 		fade.connect(musicGain);
 		source.start();
-		rampTo(fade.gain, 1, MUSIC_FADE);
+		rampTo(audio, fade.gain, 1, MUSIC_FADE);
 		levelPlayback = { source, fade };
-	} else {
-		rampTo(levelPlayback.fade.gain, 0, MUSIC_FADE);
-		levelPlayback.source.stop(context.currentTime + MUSIC_FADE);
+	} else if (!(play && levelBuffer) && levelPlayback) {
+		rampTo(audio, levelPlayback.fade.gain, 0, MUSIC_FADE);
+		levelPlayback.source.stop(audio.currentTime + MUSIC_FADE);
 		levelPlayback = null;
 	}
 }
 
 /**
  * Start or stop the menu music. The audio element pauses at the end of the fade out. A start during the fade out
- * fades the music in again where it is.
+ * fades the music in again where it is. The fade node exists together with the audio context.
  *
+ * @param {AudioContext} audio The audio context.
  * @param {boolean} play True if the menu music should play.
  * @returns {void}
  */
-function updateMenuMusic(play) {
-	if (play === menuPlaying) return;
+function updateMenuMusic(audio, play) {
+	if (play === menuPlaying || !menuFade) return;
 	menuPlaying = play;
 	clearTimeout(menuPauseTimer);
 	const element = menuMusic();
@@ -476,9 +480,9 @@ function updateMenuMusic(play) {
 			element.currentTime = 0;
 			element.play().catch((error) => console.error('Could not play the menu music', error));
 		}
-		rampTo(menuFade.gain, MENU_MUSIC_SHARE, MUSIC_FADE);
+		rampTo(audio, menuFade.gain, MENU_MUSIC_SHARE, MUSIC_FADE);
 	} else {
-		rampTo(menuFade.gain, 0, MUSIC_FADE);
+		rampTo(audio, menuFade.gain, 0, MUSIC_FADE);
 		menuPauseTimer = window.setTimeout(() => element.pause(), MUSIC_FADE * 1000);
 	}
 }
@@ -486,29 +490,33 @@ function updateMenuMusic(play) {
 /**
  * Create the gain nodes of the music and connect the audio element of the menu music.
  *
+ * @param {AudioContext} audio The audio context.
  * @returns {void}
  */
-function connectMusic() {
-	musicGain = context.createGain();
-	musicGain.gain.value = MUSIC_VOLUME * musicDuck;
-	musicGain.connect(context.destination);
-	menuFade = context.createGain();
-	menuFade.gain.value = 0;
-	menuFade.connect(musicGain);
-	context.createMediaElementSource(menuMusic()).connect(menuFade);
+function connectMusic(audio) {
+	const gain = audio.createGain();
+	gain.gain.value = MUSIC_VOLUME * musicDuck;
+	gain.connect(audio.destination);
+	const fade = audio.createGain();
+	fade.gain.value = 0;
+	fade.connect(gain);
+	audio.createMediaElementSource(menuMusic()).connect(fade);
+	musicGain = gain;
+	menuFade = fade;
 	updateMusic();
 }
 
 /**
  * Change an audio parameter in a straight line from its current value to a new value.
  *
+ * @param {AudioContext} audio The audio context, for the current time.
  * @param {AudioParam} param The audio parameter.
  * @param {number} value The new value.
  * @param {number} time The time of the change in seconds.
  * @returns {void}
  */
-function rampTo(param, value, time) {
-	const now = context.currentTime;
+function rampTo(audio, param, value, time) {
+	const now = audio.currentTime;
 	param.cancelScheduledValues(now);
 	param.setValueAtTime(param.value, now);
 	param.linearRampToValueAtTime(value, now + time);
@@ -522,12 +530,14 @@ function rampTo(param, value, time) {
  */
 function resumeAudio() {
 	if (!context) {
-		context = new AudioContext();
-		master = context.createGain();
-		master.connect(context.destination);
+		const audio = new AudioContext();
+		const output = audio.createGain();
+		output.connect(audio.destination);
+		context = audio;
+		master = output;
 		updateMasterVolume();
-		sounds.forEach(connectSound);
-		connectMusic();
+		for (const sound of sounds) connectSound(sound, audio, output);
+		connectMusic(audio);
 		setInterval(stopOldLoops, LOOP_HOLD / 2);
 	}
 	if (context.state === 'suspended') context.resume();

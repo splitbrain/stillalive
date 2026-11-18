@@ -174,7 +174,7 @@ export async function playMap(page, data) {
 	await page.evaluate(async (data) => {
 		const { parseMap } = await import('/js/stage/map/mapFile.js');
 		const hooks = window.__test;
-		hooks.stage.play({ ...parseMap(data), campaign: 'test', number: 1, fromBelow: false });
+		hooks.stage.play({ ...parseMap(data), campaign: 'test', number: 1 });
 		while (!hooks.world().phase.isRunning()) hooks.tick();
 	}, data);
 }

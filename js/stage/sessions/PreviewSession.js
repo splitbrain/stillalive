@@ -18,7 +18,7 @@ export class PreviewSession {
 	/**
 	 * Create the preview of a level or of a map.
 	 *
-	 * @param {{tiles: number[], bg: number, boss?: number, fromBelow?: boolean}} level The level or the map.
+	 * @param {{tiles: number[], bg: number, boss?: number}} level The level or the map.
 	 * @param {import('../browser/InputState.js').InputState} input The keys and the mouse.
 	 */
 	constructor(level, input) {

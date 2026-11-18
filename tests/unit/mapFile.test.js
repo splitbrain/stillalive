@@ -75,6 +75,12 @@ test('parseMap() reads the boss and accepts the tube only in a boss level', () =
 	assert.throws(() => parseMap(data), INVALID);
 });
 
+test('parseMap() accepts the player launch up as a body', () => {
+	const data = validMap();
+	data.tiles[23 * 32 + 8] = Tile.PLAYER_LAUNCH_UP;
+	assert.equal(parseMap(data).tiles[23 * 32 + 8], Tile.PLAYER_LAUNCH_UP);
+});
+
 test('parseMap() rejects a damaged map', () => {
 	const tiles = (index, value) => validMap().tiles.with(index, value);
 	const cases = {
@@ -85,7 +91,7 @@ test('parseMap() rejects a damaged map', () => {
 		'negative tile id': { ...validMap(), tiles: tiles(5, -1) },
 		'unknown tile id': { ...validMap(), tiles: tiles(5, 99) },
 		'unknown body id': { ...validMap(), tiles: tiles(5, 112) },
-		'id between the bodies and the tube in a boss level': { ...validMap(), boss: 1, tiles: tiles(5, 111) },
+		'id between the bodies and the tube in a boss level': { ...validMap(), boss: 1, tiles: tiles(5, 112) },
 		'logic tile of a gravitational pipe': { ...validMap(), tiles: tiles(5, Tile.GRAVPIPE_BLOCK) },
 		'tile id as text': { ...validMap(), tiles: tiles(5, '1') },
 		'negative background': { ...validMap(), bg: -1 },

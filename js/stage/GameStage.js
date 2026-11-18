@@ -199,7 +199,7 @@ export class GameStage extends HTMLElement {
 	/**
 	 * Show the still picture of a level or of a map.
 	 *
-	 * @param {{tiles: number[], bg: number, boss?: number, fromBelow?: boolean}} level The level or the map.
+	 * @param {{tiles: number[], bg: number, boss?: number}} level The level or the map.
 	 * @returns {void}
 	 */
 	preview(level) {

@@ -9,7 +9,7 @@ import { Crate } from '../bodies/Crate.js';
 import { GravPipe } from '../bodies/GravPipe.js';
 import { Platform } from '../bodies/Platform.js';
 import { Turret } from '../bodies/Turret.js';
-import { GRAVPIPE_DIRECTIONS, plasmaLaunch } from './level.js';
+import { GRAVPIPE_DIRECTIONS, PLAYER_LAUNCH_DIRECTIONS, plasmaLaunch } from './level.js';
 import { FIRST_OF_KIND, LAST_OF_KIND, Tile, TileKind, isTileKind } from '../map/tiles.js';
 import { toSubpixels } from '../utils.js';
 
@@ -32,6 +32,16 @@ const ANIMATED_KINDS = [
  */
 
 /**
+ * The start of the player from a player start tile or a player launch tile.
+ *
+ * @typedef {object} PlayerStart
+ * @property {number} x The x position of the tile in 1/256 pixels.
+ * @property {number} y The y position of the tile in 1/256 pixels.
+ * @property {number|null} launch The direction of the launch, a value of Direction, or null for a player start
+ *     without a launch.
+ */
+
+/**
  * The bodies of a map at their start positions.
  *
  * @typedef {object} MapBodies
@@ -41,7 +51,8 @@ const ANIMATED_KINDS = [
  * @property {GravPipe[]} gravPipes The gravitational pipes.
  * @property {Platform[]} platforms The moving platforms.
  * @property {AnimatedTile[]} animatedTiles The animated tiles. Only a level start creates them.
- * @property {Position|null} playerStart The position of the last player start tile, or null for a map without it.
+ * @property {PlayerStart|null} playerStart The last player start or player launch tile, or null for a map without
+ *     one.
  * @property {Position|null} tube The position of the last tube tile, or null for a map without it or for the editor.
  * @property {import('./level.js').PlasmaLaunch[]} plasmaLaunches The starts of the plasma balls, one for each plasma
  *     start tile with a valid launch. Only a level start gives launches.
@@ -132,7 +143,8 @@ export function createBodies(world, { levelStart = false, editor = false } = {})
 				bodies.crates.push(new Crate(world, px, py));
 				break;
 			case Tile.PLAYER_START:
-				bodies.playerStart = { x: px, y: py };
+			case Tile.PLAYER_LAUNCH_UP:
+				bodies.playerStart = { x: px, y: py, launch: PLAYER_LAUNCH_DIRECTIONS[tile] ?? null };
 				if (levelStart) map.setTile(i, Tile.EMPTY);
 				break;
 			case Tile.PLATFORM_RIGHT:

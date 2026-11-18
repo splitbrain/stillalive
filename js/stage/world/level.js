@@ -1,5 +1,6 @@
 /**
- * The Level type, the directions of the gravitational pipes and the launch of the plasma balls.
+ * The Level type, the directions of the gravitational pipes and of the player launches, and the launch of the plasma
+ * balls.
  */
 
 import { Direction, MAP_HEIGHT, MAP_WIDTH, TILE_SIZE } from '../constants.js';
@@ -19,7 +20,6 @@ import { toSubpixels } from '../utils.js';
  * @property {import('../map/mapFile.js').MapLabel[]} labels The texts at positions of the playfield.
  * @property {string} campaign The folder name of the campaign, for the replay file.
  * @property {number} number The level number, starting at 1, for the replay file.
- * @property {boolean} fromBelow True if the player jumps into the level from below the bottom edge.
  */
 
 /** @type {Object<number, number>} The direction of each gravitational pipe tile. */
@@ -28,6 +28,11 @@ export const GRAVPIPE_DIRECTIONS = {
 	[Tile.GRAVPIPE_LEFT]: Direction.LEFT,
 	[Tile.GRAVPIPE_UP]: Direction.UP,
 	[Tile.GRAVPIPE_DOWN]: Direction.DOWN,
+};
+
+/** @type {Object<number, number>} The direction of the launch of each player launch tile. */
+export const PLAYER_LAUNCH_DIRECTIONS = {
+	[Tile.PLAYER_LAUNCH_UP]: Direction.UP,
 };
 
 /** @type {number} The start speed of the plasma ball in 1/256 pixels per tick. */

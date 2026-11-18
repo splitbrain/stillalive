@@ -28,7 +28,7 @@ A map file is a JSON object with these properties:
 All positions in a map file are tile positions. The columns go from 0 at the left to 31 at the right, and the rows go
 from 0 at the top to 23 at the bottom.
 
-The tile ids in a map file are in three ranges: the tiles from 0 to 60, the bodies from 100 to 110, and the tube of
+The tile ids in a map file are in three ranges: the tiles from 0 to 60, the bodies from 100 to 111, and the tube of
 the boss with the id 120. The game rejects a map file with an id outside these ranges.
 
 ### Tiles
@@ -76,7 +76,7 @@ warning stripes or a conveyor belt. The edge of the playfield counts as a closed
 ### Bodies
 
 A body is a thing with a position and a size that is not part of the tile grid, e.g. the player, a crate or a platform.
-The ids from 100 to 110 are bodies. At the level start, the game removes them from the map and creates the bodies.
+The ids from 100 to 111 are bodies. At the level start, the game removes them from the map and creates the bodies.
 Some bodies are larger than one tile. The id of a body goes on its top left tile, and the other tiles that the body
 covers are empty (0).
 
@@ -93,6 +93,12 @@ covers are empty (0).
 | 108 | Gravitational pipe that carries the player, crates and turrets to the left         | 1 x 2         |
 | 109 | Gravitational pipe that carries the player, crates and turrets up                  | 2 x 1         |
 | 110 | Gravitational pipe that carries the player, crates and turrets down                | 2 x 1         |
+| 111 | Player launch up. A player start where the player jumps in upward, e.g. from below the bottom edge. | 1 x 1 |
+
+A player launch is a player start with a speed. The launch tile is the first cell that the player passes: the player
+starts one tile behind it, against the launch direction, and moves in the launch direction. So a launch tile on the
+edge of the map lets the player come in from outside the playfield. Only the launch up exists. A map has one player
+start or player launch, and the editor does not offer the launch.
 
 ### Tube of the boss
 

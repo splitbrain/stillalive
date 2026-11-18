@@ -101,7 +101,14 @@ function isTileHere(map, x, y) {
 const WIDE_BODIES = [Tile.PLATFORM_RIGHT, Tile.PLATFORM_LEFT, Tile.GRAVPIPE_UP, Tile.GRAVPIPE_DOWN];
 
 /** @type {number[]} The bodies that are two tiles high. */
-const TALL_BODIES = [Tile.PLAYER_START, Tile.TURRET_LEFT, Tile.TURRET_RIGHT, Tile.GRAVPIPE_RIGHT, Tile.GRAVPIPE_LEFT];
+const TALL_BODIES = [
+	Tile.PLAYER_START,
+	Tile.PLAYER_LAUNCH_UP,
+	Tile.TURRET_LEFT,
+	Tile.TURRET_RIGHT,
+	Tile.GRAVPIPE_RIGHT,
+	Tile.GRAVPIPE_LEFT,
+];
 
 /**
  * Remove the logic tile at a map position if the position is in the map and the tile passes a test.
@@ -119,8 +126,8 @@ function eraseIf(map, x, y, test) {
 }
 
 /**
- * Remove the body above a map position if the body reaches into the position: the player start, a turret or a
- * gravitational pipe.
+ * Remove the body above a map position if the body reaches into the position: the player start, the player launch, a
+ * turret or a gravitational pipe.
  *
  * @param {TileMap} map The map. The function changes the logic layer.
  * @param {number} x The column.
@@ -133,7 +140,11 @@ export function eraseBodyAbove(map, x, y) {
 		x,
 		y - 1,
 		(tile) =>
-			tile === Tile.PLAYER_START || tile === Tile.TURRET_LEFT || tile === Tile.TURRET_RIGHT || isGravPipeTile(tile),
+			tile === Tile.PLAYER_START ||
+			tile === Tile.PLAYER_LAUNCH_UP ||
+			tile === Tile.TURRET_LEFT ||
+			tile === Tile.TURRET_RIGHT ||
+			isGravPipeTile(tile),
 	);
 }
 

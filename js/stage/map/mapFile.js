@@ -100,7 +100,7 @@ const PORTAL_SIDES = ['up', 'down', 'left', 'right'];
  *
  * @param {*} tile The tile id.
  * @param {boolean} isBossLevel True for a boss level, which can contain the tube.
- * @returns {boolean} True for a tile id of the tile set, a body id from 100 to 110, or the tube 120 in a boss
+ * @returns {boolean} True for a tile id of the tile set, a body id from 100 to 111, or the tube 120 in a boss
  *     level.
  */
 function isValidTile(tile, isBossLevel) {

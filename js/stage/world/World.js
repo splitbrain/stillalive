@@ -10,7 +10,6 @@ import {
 	KEY_JUMP,
 	KEY_LEFT,
 	KEY_RIGHT,
-	PLAYFIELD_HEIGHT,
 	TILE_SIZE,
 	TILE_SIZE_BITS,
 	Transition,
@@ -32,6 +31,9 @@ import { inScreen, random, toSubpixels } from '../utils.js';
 
 /** @type {Object<string, typeof sfx_field>} The sound of the opening and the closing doors, by door kind. */
 const DOOR_SOUNDS = { [TileKind.SWITCH_DOOR]: sfx_field, [TileKind.PLASMA_DOOR]: sfx_plasmaField };
+
+/** @type {number} The speed of the player at a launch start in 1/256 pixels per tick. */
+const LAUNCH_SPEED = 2400;
 
 /** @typedef {import('../bodies/Boss.js').Boss} Boss */
 /** @typedef {import('../bodies/Crate.js').Crate} Crate */
@@ -168,7 +170,6 @@ export class World {
 		world.level = level;
 		world.#replaying = replay;
 		world.phase.transition = transition;
-		if (level.fromBelow) world.#jumpInFromBelow();
 		world.boss = level.boss ? createBoss(world, level.boss) : null;
 		world.#loadBodies({ levelStart: true });
 		world.effects.startCamera(world.player.x, world.player.y);
@@ -187,13 +188,12 @@ export class World {
 	 * Create the World of a preview of a level or of a map. The bodies stand at their start positions, and a map
 	 * without cakes shows the open exit.
 	 *
-	 * @param {{tiles: number[], bg: number, boss?: number, fromBelow?: boolean}} level The level or the editor map.
+	 * @param {{tiles: number[], bg: number, boss?: number}} level The level or the editor map.
 	 * @returns {World} The World.
 	 */
 	static forPreview(level) {
 		const world = new World(new TileMap(level.tiles));
 		world.#loadBodies();
-		if (level.fromBelow) world.#jumpInFromBelow();
 		world.boss = level.boss ? createBoss(world, level.boss) : null;
 		world.cakesLeft = world.cakes.length;
 		if (world.cakesLeft === 0) {
@@ -529,22 +529,28 @@ export class World {
 	}
 
 	/**
-	 * Place the player below the bottom edge with a speed upward, so the player jumps into the level.
+	 * Launch the player from a player launch tile: the player moves one tile back against the launch direction and
+	 * gets the launch speed in the launch direction. A tile on the edge of the map so puts the player outside the
+	 * playfield.
 	 *
+	 * @param {number} direction The direction of the launch, a value of Direction.
 	 * @returns {void}
 	 */
-	#jumpInFromBelow() {
-		this.player.vy = -2400;
-		this.player.x = toSubpixels(8 * TILE_SIZE);
-		this.player.y = toSubpixels(PLAYFIELD_HEIGHT);
+	#launchPlayer(direction) {
+		const step = DIRECTIONS[direction];
+		this.player.x -= toSubpixels(step.dx * TILE_SIZE);
+		this.player.y -= toSubpixels(step.dy * TILE_SIZE);
+		this.player.vx = step.dx * LAUNCH_SPEED;
+		this.player.vy = step.dy * LAUNCH_SPEED;
 	}
 
 	/**
 	 * Create the bodies of the map at their start positions and put them into the World. The method sets the position
-	 * of the player and of the tube when the map has their tiles. Each plasma launch starts a plasma ball when the World
-	 * has no boss. For a boss that shoots plasma balls, the plasma launch is the start point of its shots. Only a level
-	 * start has plasma launches, so forLevel() creates the boss first. A preview and the editor map have no plasma
-	 * launches, and the order of the boss does not matter there.
+	 * of the player and of the tube when the map has their tiles. At a level start, a player launch tile also launches
+	 * the player; a preview and the editor map show the player on the tile. Each plasma launch starts a plasma ball
+	 * when the World has no boss. For a boss that shoots plasma balls, the plasma launch is the start point of its
+	 * shots. Only a level start has plasma launches, so forLevel() creates the boss first. A preview and the editor map
+	 * have no plasma launches, and the order of the boss does not matter there.
 	 *
 	 * @param {object} [options] The options.
 	 * @param {boolean} [options.levelStart] True for a level start, see createBodies().
@@ -563,6 +569,7 @@ export class World {
 		if (bodies.playerStart) {
 			this.player.x = bodies.playerStart.x;
 			this.player.y = bodies.playerStart.y;
+			if (levelStart && bodies.playerStart.launch !== null) this.#launchPlayer(bodies.playerStart.launch);
 		}
 		if (bodies.tube) {
 			this.tubeX = bodies.tube.x;

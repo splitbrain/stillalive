@@ -2,7 +2,7 @@
  * The tile ids of the maps and the checks of their kinds.
  *
  * A map is a list of 768 tile ids. The ids below 100 are tiles of the tile set, and tileset[id] is their image. The
- * ids from 100 to 110 mark bodies in a level file. The level loader creates the bodies from them. The id 120 marks
+ * ids from 100 to 111 mark bodies in a level file. The level loader creates the bodies from them. The id 120 marks
  * the tube of the boss in a boss level. The id 199 is never in a file: it exists only in the logic layer of a running
  * level.
  */
@@ -46,6 +46,12 @@ export const Tile = {
 	GRAVPIPE_LEFT: 108,
 	GRAVPIPE_UP: 109,
 	GRAVPIPE_DOWN: 110,
+	/**
+	 * A player start with a launch up. A launch tile marks the first cell that the player passes: the player starts
+	 * one tile behind it, against the launch direction, with a speed in the launch direction. A marker on the edge of
+	 * the map lets the player come in from outside the playfield. Only the launch up exists.
+	 */
+	PLAYER_LAUNCH_UP: 111,
 	TUBE: 120,
 	/**
 	 * A solid tile without an image on the two tiles of a gravitational pipe. The level start writes it into the logic
@@ -155,10 +161,10 @@ export function isDeadlyTile(id) {
  * Check if a tile id marks a body in a level file.
  *
  * @param {number} id The tile id.
- * @returns {boolean} True for the ids from the left turret to the down gravitational pipe.
+ * @returns {boolean} True for the ids from the left turret to the player launch up.
  */
 export function isBodyTile(id) {
-	return id >= Tile.TURRET_LEFT && id <= Tile.GRAVPIPE_DOWN;
+	return id >= Tile.TURRET_LEFT && id <= Tile.PLAYER_LAUNCH_UP;
 }
 
 /**

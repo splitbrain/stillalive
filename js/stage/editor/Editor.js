@@ -96,7 +96,7 @@ export class Editor {
 	 * @returns {import('../world/level.js').Level} The level.
 	 */
 	testLevel() {
-		return { ...parseMap({ format: MAP_FORMAT, ...this.getMap() }), campaign: '', number: 0, fromBelow: false };
+		return { ...parseMap({ format: MAP_FORMAT, ...this.getMap() }), campaign: '', number: 0 };
 	}
 
 	/**
@@ -309,10 +309,10 @@ export class Editor {
 		const tile = map.index(column, row);
 		switch (input.mouseButton) {
 			case MouseButton.LEFT:
-				// a map has one player start
+				// a map has one player start, and a player launch tile is a player start too
 				if (brush === Tile.PLAYER_START) {
 					for (const [i, id] of map.tiles.entries()) {
-						if (id === Tile.PLAYER_START) map.setTile(i, Tile.EMPTY);
+						if (id === Tile.PLAYER_START || id === Tile.PLAYER_LAUNCH_UP) map.setTile(i, Tile.EMPTY);
 					}
 				}
 				eraseBodies(map, brush, column, row);

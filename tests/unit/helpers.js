@@ -60,7 +60,7 @@ export function floorTiles() {
  * @returns {import('../../js/stage/world/level.js').Level} The level.
  */
 export function testLevel(tiles, boss = 0) {
-	return { ...parseMap({ format: 1, tiles, bg: 0, boss }), campaign: 'test', number: 1, fromBelow: false };
+	return { ...parseMap({ format: 1, tiles, bg: 0, boss }), campaign: 'test', number: 1 };
 }
 
 /**

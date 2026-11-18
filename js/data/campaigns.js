@@ -141,7 +141,7 @@ class CustomCampaign extends Campaign {
 	#createLevel(slot, map) {
 		if (map == null) return null;
 		try {
-			return { ...parseMap({ format: MAP_FORMAT, ...map }), campaign: this.id, number: slot, fromBelow: false };
+			return { ...parseMap({ format: MAP_FORMAT, ...map }), campaign: this.id, number: slot };
 		} catch {
 			return null;
 		}
@@ -222,8 +222,7 @@ function loadCampaignFiles(campaign) {
 }
 
 /**
- * Load a level file of a campaign. In level 8 of the normal and the advanced campaign, the player jumps into the level
- * from below the bottom edge.
+ * Load a level file of a campaign.
  *
  * @param {Campaign} campaign The campaign.
  * @param {number} index The index of the level in the campaign, starting at 0.
@@ -236,7 +235,6 @@ function loadLevelFile(campaign, index, url) {
 			...parseMap(data),
 			campaign: campaign.id,
 			number: index + 1,
-			fromBelow: index === 7 && [CampaignId.NORMAL, CampaignId.ADVANCED].includes(campaign.id),
 		};
 		fileLoaded();
 	});

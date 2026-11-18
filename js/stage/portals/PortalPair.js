@@ -220,7 +220,7 @@ export class PortalPair {
 	/**
 	 * Find the portal on one side that a body touches. The method does not change the body.
 	 *
-	 * @param {import('../bodies/Body.js').Body} body The body. It must also have the speeds vx and vy.
+	 * @param {import('../bodies/MovingBody.js').MovingBody} body The body.
 	 * @param {number} side The side of the wall with the portal: Direction.LEFT, Direction.RIGHT, Direction.DOWN for a
 	 *     floor or Direction.UP for a ceiling.
 	 * @returns {{index: number, deep: boolean}|null} The index of the portal, and true in deep if the body moves into
@@ -274,7 +274,7 @@ export class PortalPair {
 	/**
 	 * Check if a body touches a portal on one side. The method does not change the body.
 	 *
-	 * @param {import('../bodies/Body.js').Body} body The body. It must also have the speeds vx and vy.
+	 * @param {import('../bodies/MovingBody.js').MovingBody} body The body.
 	 * @param {number} side The side of the wall with the portal, a value of Direction.
 	 * @returns {Portal|null} The portal, or null if the body touches no portal on this side.
 	 */
@@ -286,7 +286,7 @@ export class PortalPair {
 	/**
 	 * Check if a body touches a portal. The method does not change the body.
 	 *
-	 * @param {import('../bodies/Body.js').Body} body The body. It must also have the speeds vx and vy.
+	 * @param {import('../bodies/MovingBody.js').MovingBody} body The body.
 	 * @returns {Portal|null} The portal, or null if the body touches no portal.
 	 */
 	isInPortal(body) {
@@ -301,7 +301,7 @@ export class PortalPair {
 	 * Move a body through a portal on one side. A body in the portal moves to the middle of the portal. The body
 	 * teleports to the other portal when it moves into the portal far enough.
 	 *
-	 * @param {import('../bodies/Body.js').Body} body The body. It must also have the speeds vx and vy.
+	 * @param {import('../bodies/MovingBody.js').MovingBody} body The body.
 	 * @param {number} side The side of the wall with the portal, a value of Direction.
 	 * @returns {Portal|null} The portal, or null if the body touches no portal on this side.
 	 */
@@ -317,7 +317,7 @@ export class PortalPair {
 	/**
 	 * Move a body through a portal on any side.
 	 *
-	 * @param {import('../bodies/Body.js').Body} body The body. It must also have the speeds vx and vy.
+	 * @param {import('../bodies/MovingBody.js').MovingBody} body The body.
 	 * @returns {Portal|null} The portal, or null if the body touches no portal.
 	 */
 	passPortals(body) {
@@ -333,7 +333,7 @@ export class PortalPair {
 	 *
 	 * @param {Portal} entry The portal that the body enters.
 	 * @param {Portal} exit The other portal.
-	 * @param {import('../bodies/Body.js').Body} body The body.
+	 * @param {import('../bodies/MovingBody.js').MovingBody} body The body.
 	 * @returns {void}
 	 */
 	#teleport(entry, exit, body) {

@@ -27,7 +27,7 @@ import {
 	PLAYFIELD_HEIGHT,
 	TILE_SIZE,
 } from '../constants.js';
-import { Body } from './Body.js';
+import { MovingBody } from './MovingBody.js';
 import { Platform } from './Platform.js';
 import { DeathSparkle, LowLifeSparkle, TeleportSparkle } from '../effects/sparkles.js';
 import { isTileKind, TileKind } from '../map/tiles.js';
@@ -41,7 +41,7 @@ const PORTAL_COOLDOWN = 25;
 /**
  * The player.
  */
-export class Player extends Body {
+export class Player extends MovingBody {
 	/**
 	 * Create the player at the origin with full life.
 	 *
@@ -59,10 +59,6 @@ export class Player extends Body {
 		this.jump = false;
 		/** @type {boolean} True while the player holds the down key. */
 		this.down = false;
-		/** @type {number} The horizontal speed in 1/256 pixels per tick. */
-		this.vx = 0;
-		/** @type {number} The vertical speed in 1/256 pixels per tick. */
-		this.vy = 0;
 		/** @type {number} 1 when the player faces right, -1 when the player faces left. */
 		this.flip = 1;
 		/** @type {number} Ticks since the last portal shot, up to PORTAL_COOLDOWN. A new shot is possible then. */

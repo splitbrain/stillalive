@@ -3,6 +3,7 @@
  */
 
 import { Body } from './Body.js';
+import { MovingBody } from './MovingBody.js';
 import { playSound, sfx_bladeStick } from '../browser/audio.js';
 import { TILE_SIZE } from '../constants.js';
 import { FIRST_OF_KIND, LAST_OF_KIND, TileKind } from '../map/tiles.js';
@@ -10,7 +11,7 @@ import { FIRST_OF_KIND, LAST_OF_KIND, TileKind } from '../map/tiles.js';
 /**
  * A razor wheel that the boss throws.
  */
-export class Projectile extends Body {
+export class Projectile extends MovingBody {
 	/**
 	 * @param {import('../world/World.js').World} world The World of the body.
 	 * @param {number} x The x position in 1/256 pixels.
@@ -20,9 +21,7 @@ export class Projectile extends Body {
 	 */
 	constructor(world, x, y, vx, vy) {
 		super(world, x, y, TILE_SIZE, TILE_SIZE);
-		/** @type {number} The horizontal speed in 1/256 pixels per tick. */
 		this.vx = vx;
-		/** @type {number} The vertical speed in 1/256 pixels per tick. */
 		this.vy = vy;
 		/** @type {boolean} True after the wheel hit something. */
 		this.needKill = false;

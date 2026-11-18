@@ -2,14 +2,14 @@
  * The Throwable object.
  */
 
-import { Body } from './Body.js';
+import { MovingBody } from './MovingBody.js';
 import { BELT_SPEED, Direction, GRAVITY, Ground, PIPE_SPEED, TILE_SIZE } from '../constants.js';
 import { getCos, getSin, toPixels, toSubpixels } from '../utils.js';
 
 /**
  * A body that the player can pick up and throw. The base of Crate and Turret.
  */
-export class Throwable extends Body {
+export class Throwable extends MovingBody {
 	/**
 	 * @param {import('../world/World.js').World} world The World of the body.
 	 * @param {number} x The x position in 1/256 pixels.
@@ -19,10 +19,6 @@ export class Throwable extends Body {
 	 */
 	constructor(world, x, y, width, height) {
 		super(world, x, y, width, height);
-		/** @type {number} The horizontal speed in 1/256 pixels per tick. */
-		this.vx = 0;
-		/** @type {number} The vertical speed in 1/256 pixels per tick. */
-		this.vy = 0;
 		/** @type {number} The rotation in degrees while the body flies. */
 		this.angle = 0;
 	}

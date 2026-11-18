@@ -781,7 +781,7 @@ export class World {
 	/**
 	 * Get the conveyor belt that moves a body, directly or through the crate that the body stands on.
 	 *
-	 * @param {import('../bodies/Body.js').Body} body The body. It must also have the vertical speed vy.
+	 * @param {import('../bodies/MovingBody.js').MovingBody} body The body.
 	 * @returns {number} The direction of the belt: 1 to the right, -1 to the left, 0 for no belt.
 	 */
 	beltUnder(body) {

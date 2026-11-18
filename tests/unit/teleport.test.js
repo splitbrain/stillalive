@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Direction, MAP_HEIGHT, MAP_WIDTH } from '../../js/stage/constants.js';
-import { Body } from '../../js/stage/bodies/Body.js';
+import { MovingBody } from '../../js/stage/bodies/MovingBody.js';
 import { traceGravPipeField } from '../../js/stage/bodies/GravPipe.js';
 import { Plasma } from '../../js/stage/bodies/Plasma.js';
 import { Portal } from '../../js/stage/portals/Portal.js';
@@ -189,7 +189,7 @@ function portalAt(direction, x = 0, y = 0) {
 /**
  * Teleport a body with each start speed of SPEEDS for each pair of portal directions.
  *
- * @param {() => Body} create A function that creates the body.
+ * @param {() => MovingBody} create A function that creates the body.
  * @returns {Object<string, number[][]>} The speeds [vx, vy] after the teleport, by the directions of the entry portal
  *     and the exit portal.
  */
@@ -211,7 +211,7 @@ function teleportAll(create) {
 
 test('a body turns its speed in the same way for each pair of portal directions', () => {
 	assert.deepEqual(
-		teleportAll(() => new Body(null, 0, 0, 16, 16)),
+		teleportAll(() => new MovingBody(null, 0, 0, 16, 16)),
 		BODY_TURNS,
 	);
 });

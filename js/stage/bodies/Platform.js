@@ -2,13 +2,13 @@
  * The Platform object.
  */
 
-import { Body } from './Body.js';
+import { MovingBody } from './MovingBody.js';
 import { PLAYFIELD_WIDTH, TILE_SIZE } from '../constants.js';
 
 /**
  * A moving platform. It turns around at walls and at the edges of the playfield.
  */
-export class Platform extends Body {
+export class Platform extends MovingBody {
 	/**
 	 * @param {import('../world/World.js').World} world The World of the body.
 	 * @param {number} x The x position in 1/256 pixels.
@@ -18,9 +18,7 @@ export class Platform extends Body {
 	 */
 	constructor(world, x, y, vx, vy) {
 		super(world, x, y, 3 * TILE_SIZE, TILE_SIZE);
-		/** @type {number} The horizontal speed in 1/256 pixels per tick. */
 		this.vx = vx;
-		/** @type {number} The vertical speed in 1/256 pixels per tick. */
 		this.vy = vy;
 		/** @type {number} The direction of the arrow on the platform, 1 right or -1 left. */
 		this.dir = vx > 0 ? 1 : -1;

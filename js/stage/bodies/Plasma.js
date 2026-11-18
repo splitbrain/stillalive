@@ -2,16 +2,16 @@
  * The Plasma object.
  */
 
-import { Body, KEEP_SPEED } from './Body.js';
+import { KEEP_SPEED, MovingBody } from './MovingBody.js';
 import { playSound, setSoundVolume, sfx_bounce } from '../browser/audio.js';
 import { Direction, DIRECTIONS, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, TILE_SIZE, TILE_SIZE_BITS } from '../constants.js';
 import { Tile, TileKind, isTileKind } from '../map/tiles.js';
 import { getDistance, random, toSubpixels } from '../utils.js';
 
 /**
- * @type {Object<number, Object<number, import('./Body.js').SpeedTurn>>} The turns of the speed of a homing ball after a
- *     teleport, by the direction of the entry portal and then by the direction of the exit portal. The ball keeps the
- *     size of its speed: a turn swaps vx and vy, changes their signs, or keeps them.
+ * @type {Object<number, Object<number, import('./MovingBody.js').SpeedTurn>>} The turns of the speed of a homing ball
+ *     after a teleport, by the direction of the entry portal and then by the direction of the exit portal. The ball
+ *     keeps the size of its speed: a turn swaps vx and vy, changes their signs, or keeps them.
  */
 const HOMING_TURNS = {
 	[Direction.UP]: {
@@ -43,7 +43,7 @@ const HOMING_TURNS = {
 /**
  * A plasma ball. It bounces off walls and fills the plasma slots. It kills the player and the turrets.
  */
-export class Plasma extends Body {
+export class Plasma extends MovingBody {
 	/**
 	 * @param {import('../world/World.js').World} world The World of the body.
 	 * @param {number} x The x position in 1/256 pixels.
@@ -58,9 +58,7 @@ export class Plasma extends Body {
 		this.startX = x;
 		/** @type {number} The y position of the start, where the ball returns after a reset. */
 		this.startY = y;
-		/** @type {number} The horizontal speed in 1/256 pixels per tick. */
 		this.vx = vx;
-		/** @type {number} The vertical speed in 1/256 pixels per tick. */
 		this.vy = vy;
 		/** @type {number} The horizontal speed of the start. */
 		this.startVx = vx;

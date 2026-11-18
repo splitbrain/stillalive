@@ -399,7 +399,7 @@ export function drawTiles(map) {
 export function drawCakes(world) {
 	for (const cake of world.cakes) {
 		if (!cake.used) continue;
-		const float = world.phase.isRunning() ? cake.vy : 0;
+		const float = world.phase.isRunning() ? cake.floatOffset : 0;
 		drawImage(cakeImage, cake.pixelX, toPixels(cake.y + float), TILE_SIZE, 12);
 	}
 }

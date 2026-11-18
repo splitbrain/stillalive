@@ -1,63 +1,14 @@
 /**
- * The Body object and its helper functions.
+ * The Body object.
  */
 
-import { Direction, DIRECTIONS, Ground, TILE_SIZE } from '../constants.js';
-import { inForceFieldRange, isDeadlyTile, isTileKind, Tile, TileKind } from '../map/tiles.js';
-import { toPixels, toSubpixels } from '../utils.js';
-
-/**
- * @type {Array<{side: number, opposite: number, dx: number, dy: number}>} The sides in the order in which
- *     checkCollisions() resolves them, with the step of one pixel that moves the body away from the side.
- */
-const PUSH_OUT = [Direction.UP, Direction.DOWN, Direction.LEFT, Direction.RIGHT].map((side) => {
-	const opposite = DIRECTIONS[side].opposite;
-	return { side, opposite, dx: toSubpixels(DIRECTIONS[opposite].dx), dy: toSubpixels(DIRECTIONS[opposite].dy) };
-});
-
-/**
- * @typedef {(vx: number, vy: number) => number[]} SpeedTurn A function that gets the speeds of a body before a
- *     teleport and returns the speeds [vx, vy] after the teleport.
- */
-
-/** @type {SpeedTurn} The turn that keeps the speeds. */
-export const KEEP_SPEED = (vx, vy) => [vx, vy];
-
-/**
- * @type {Object<number, Object<number, SpeedTurn>>} The turns of the speed after a teleport, by the direction of the
- *     entry portal and then by the direction of the exit portal.
- */
-const TELEPORT_TURNS = {
-	[Direction.UP]: {
-		[Direction.UP]: (vx) => [vx, 650],
-		[Direction.DOWN]: (vx) => [vx, -1000],
-		[Direction.LEFT]: (vx, vy) => [650, vy],
-		[Direction.RIGHT]: (vx, vy) => [-650, vy],
-	},
-	[Direction.DOWN]: {
-		[Direction.UP]: KEEP_SPEED,
-		[Direction.DOWN]: (vx, vy) => [vx, Math.min(-vy, -1100)],
-		[Direction.LEFT]: (vx, vy) => [vy, vx],
-		[Direction.RIGHT]: (vx, vy) => [-vy, vx],
-	},
-	[Direction.LEFT]: {
-		[Direction.UP]: (vx) => [vx, 650],
-		[Direction.DOWN]: (vx) => [vx, -1000],
-		[Direction.LEFT]: (vx, vy) => [1000, vy],
-		[Direction.RIGHT]: (vx, vy) => [-650, vy],
-	},
-	[Direction.RIGHT]: {
-		[Direction.UP]: (vx) => [vx, 650],
-		[Direction.DOWN]: (vx) => [vx, -1000],
-		[Direction.LEFT]: (vx, vy) => [650, vy],
-		[Direction.RIGHT]: (vx, vy) => [-1000, vy],
-	},
-};
+import { inForceFieldRange, isDeadlyTile, Tile } from '../map/tiles.js';
+import { toPixels } from '../utils.js';
 
 /**
  * A body is a thing in the playfield with a position and a size that takes part in the physics of the level. Most
  * bodies move and collide with the tiles. A static body, e.g. a gravitational pipe, stays at its place, and the box of
- * the boss is the hit box for the crates. The methods that need a speed say so.
+ * the boss is the hit box for the crates. A body with a speed is a MovingBody.
  */
 export class Body {
 	/**
@@ -152,23 +103,6 @@ export class Body {
 	 */
 	overlaps(other) {
 		return this.overlapsBox(other.pixelX, other.pixelY, other.width, other.height);
-	}
-
-	/**
-	 * Check what the body stands on. The body must have the vertical speed vy.
-	 *
-	 * @returns {number} The ground, a value of Ground.
-	 */
-	touchingGround() {
-		if (this.vy < 0) return Ground.AIR;
-		const y = this.pixelY + this.height;
-		const hit = this.world.getTile(this.pixelX + 1, y);
-		const hit2 = this.world.getTile(this.pixelX + this.width - 1, y);
-
-		if (isTileKind(hit, TileKind.BELT_RIGHT) || isTileKind(hit2, TileKind.BELT_RIGHT)) return Ground.BELT_RIGHT;
-		if (isTileKind(hit, TileKind.BELT_LEFT) || isTileKind(hit2, TileKind.BELT_LEFT)) return Ground.BELT_LEFT;
-		if (hit === Tile.ICYWALL || hit2 === Tile.ICYWALL) return Ground.ICE;
-		return hit || hit2 ? Ground.FLOOR : Ground.AIR;
 	}
 
 	/**
@@ -338,100 +272,5 @@ export class Body {
 		];
 		const most = Math.max(...hits);
 		return most === 0 ? -1 : hits.indexOf(most);
-	}
-
-	/**
-	 * Push the body out of the solid tiles and stop its speed in that direction. The body must have the speeds vx
-	 * and vy.
-	 *
-	 * @returns {boolean} True if a collision was resolved, false if there was none or the body is stuck between two
-	 *     sides.
-	 */
-	checkCollisions() {
-		for (const { side, opposite, dx, dy } of PUSH_OUT) {
-			if (this.getCollision() !== side) continue;
-			this.#stopAgainst(side);
-			if (this.#pushOut(side, opposite, dx, dy)) return true;
-		}
-		return false;
-	}
-
-	/**
-	 * Stop the speed towards a side that touches a solid tile. A hit at the top also halves the horizontal speed.
-	 *
-	 * @param {number} side The side, a value of Direction.
-	 * @returns {void}
-	 */
-	#stopAgainst(side) {
-		const { dx, dy, horizontal } = DIRECTIONS[side];
-		if (horizontal) {
-			if (this.vx * dx > 0) this.vx = 0;
-		} else if (this.vy * dy > 0) {
-			if (side === Direction.UP) this.vx >>= 1;
-			this.vy = 0;
-		}
-	}
-
-	/**
-	 * Move the body away from a side in steps of one pixel until the side is free.
-	 *
-	 * @param {number} side The side that touches a solid tile, a value of Direction.
-	 * @param {number} opposite The opposite side.
-	 * @param {number} dx The horizontal step in 1/256 pixels.
-	 * @param {number} dy The vertical step in 1/256 pixels.
-	 * @returns {boolean} True if the side is free, false if the body is stuck because the opposite side touches a
-	 *     solid tile. A stuck body between two side walls also stops falling.
-	 */
-	#pushOut(side, opposite, dx, dy) {
-		do {
-			this.x += dx;
-			this.y += dy;
-			if (this.getCollision() === opposite) {
-				if (dx !== 0) this.vy = 0;
-				return false;
-			}
-		} while (this.getCollision() === side);
-		return true;
-	}
-
-	/**
-	 * Check if the body can go into a portal on one side.
-	 *
-	 * @param {number} side The side of the wall with the portal, a value of Direction.
-	 * @returns {boolean} True if the body can go into the portal.
-	 */
-	// eslint-disable-next-line no-unused-vars
-	canEnterPortal(side) {
-		return true;
-	}
-
-	/**
-	 * Move the body to the middle of a portal that it goes into. At a portal in a side wall, the body loses its
-	 * vertical speed. The body must have the speeds vx and vy.
-	 *
-	 * @param {import('../portals/Portal.js').Portal} portal The portal.
-	 * @param {number} side The side of the wall with the portal, a value of Direction.
-	 * @returns {void}
-	 */
-	alignToPortal(portal, side) {
-		if (DIRECTIONS[side].horizontal) {
-			const gap = (2 * TILE_SIZE - this.height) >> 1;
-			this.y = toSubpixels(toPixels(portal.y) + gap);
-			this.vy = 0;
-		} else {
-			this.x = toSubpixels(toPixels(portal.x) + TILE_SIZE / 2);
-		}
-	}
-
-	/**
-	 * Turn the speed of the body to the direction of the exit portal after a teleport. The body must have the
-	 * speeds vx and vy.
-	 *
-	 * @param {import('../portals/Portal.js').Portal} entry The portal that the body entered.
-	 * @param {import('../portals/Portal.js').Portal} exit The portal that the body came out of.
-	 * @returns {void}
-	 */
-	teleported(entry, exit) {
-		[this.vx, this.vy] = TELEPORT_TURNS[entry.direction][exit.direction](this.vx, this.vy);
 	}
 }

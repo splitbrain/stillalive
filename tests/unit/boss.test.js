@@ -20,13 +20,15 @@ test('a crate thrown against the boss counts a hit', (context) => {
 	context.after(seedRandom(1));
 	const world = startWorld(floorTiles(), { boss: 2, restart: true });
 	runUntilRunning(world);
+	const boss = world.boss;
+	assert.ok(boss);
 	const crate = throwCrate(world);
 	let ticks = 0;
-	while (world.boss.hits === 0 && ticks < 60) {
+	while (boss.hits === 0 && ticks < 60) {
 		runTicks(world, 1);
 		ticks++;
 	}
-	assert.equal(world.boss.hits, 1);
+	assert.equal(boss.hits, 1);
 	// boss 2 makes no crates, so the crate drops from the top again
 	assert.deepEqual([crate.x, crate.y, crate.vx], [5 << 12, -(1 << 12), 0]);
 });
@@ -35,13 +37,15 @@ test('a crate that hits a boss that makes crates goes away', (context) => {
 	context.after(seedRandom(1));
 	const world = startWorld(floorTiles(), { boss: 1, restart: true });
 	runUntilRunning(world);
+	const boss = world.boss;
+	assert.ok(boss);
 	const crate = throwCrate(world);
 	let ticks = 0;
-	while (world.boss.hits === 0 && ticks < 60) {
+	while (boss.hits === 0 && ticks < 60) {
 		runTicks(world, 1);
 		ticks++;
 	}
-	assert.equal(world.boss.hits, 1);
+	assert.equal(boss.hits, 1);
 	assert.equal(world.crates.includes(crate), false);
 });
 
@@ -49,16 +53,18 @@ test('the third hit kills the boss', (context) => {
 	context.after(seedRandom(1));
 	const world = startWorld(floorTiles(), { boss: 2, restart: true });
 	runUntilRunning(world);
+	const boss = world.boss;
+	assert.ok(boss);
 	for (let hit = 1; hit <= 3; hit++) {
 		throwCrate(world);
 		let ticks = 0;
-		while (world.boss.hits < hit && ticks < 60) {
+		while (boss.hits < hit && ticks < 60) {
 			runTicks(world, 1);
 			ticks++;
 		}
 	}
-	assert.equal(world.boss.hits, 3);
-	assert.equal(world.boss.phase(), 'leaving');
+	assert.equal(boss.hits, 3);
+	assert.equal(boss.phase(), 'leaving');
 	assert.deepEqual(world.projectiles, []);
 });
 
@@ -105,6 +111,7 @@ test('each boss has the abilities of its number', () => {
 	};
 	for (const [number, expected] of Object.entries(abilities)) {
 		const boss = startWorld(floorTiles(), { boss: Number(number) }).boss;
+		assert.ok(boss);
 		assert.equal(boss.number, Number(number));
 		assert.deepEqual([boss.makesCrates, boss.throwsCrates, boss.shootsWheels, boss.shootsPlasma], expected, number);
 	}

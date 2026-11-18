@@ -254,9 +254,9 @@ export function drawLevel(world, input, labelLayouts) {
 	drawCrates(world);
 
 	if (world.boss) {
-		drawBoss(world);
+		drawBoss(world.boss);
 		if (world.boss.shootsWheels) drawProjectiles(world);
-		drawTube(world);
+		drawTube(world, world.boss);
 	}
 
 	drawPlatforms(world, false);
@@ -583,10 +583,11 @@ export function drawGravPipe(dir, x, y) {
  * Draw the tube of the boss.
  *
  * @param {import('../world/World.js').World} world The World.
+ * @param {import('../bodies/Boss.js').Boss} boss The boss, whose number selects the image.
  * @returns {void}
  */
-function drawTube(world) {
-	drawImage(world.boss.number === 2 ? tube2 : tube, toPixels(world.tubeX), toPixels(world.tubeY));
+function drawTube(world, boss) {
+	drawImage(boss.number === 2 ? tube2 : tube, toPixels(world.tubeX), toPixels(world.tubeY));
 }
 
 /**
@@ -728,8 +729,8 @@ export function drawPreviewMap(world, input) {
 	drawGravPipes(world);
 
 	if (world.boss) {
-		drawTube(world);
-		drawBoss(world);
+		drawTube(world, world.boss);
+		drawBoss(world.boss);
 	}
 
 	drawImage(crosshair, input.mouseX - 8, input.mouseY - 8, 16, 16);

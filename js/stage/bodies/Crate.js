@@ -77,7 +77,8 @@ export class Crate extends Throwable {
 		this.move();
 		if (falling && this.vy === 0 && this.touchingGround() !== Ground.AIR) playSound(sfx_crateLand);
 
-		if (this.world.boss && this.#hitBoss()) return true;
+		const boss = this.world.boss;
+		if (boss && this.#hitBoss(boss)) return true;
 
 		const platform = this.world.onPlatform(this);
 		this.platform = platform;
@@ -111,10 +112,10 @@ export class Crate extends Throwable {
 	 * Let the crate hit the boss or crack the boss block in front of it. In a boss level that throws crates, the crate
 	 * also shrinks in the tube.
 	 *
+	 * @param {import('./Boss.js').Boss} boss The boss of the level.
 	 * @returns {boolean} True if the crate cracked a boss block, which uses it up.
 	 */
-	#hitBoss() {
-		const boss = this.world.boss;
+	#hitBoss(boss) {
 		if (boss.throwsCrates) this.#shrinkInTube();
 
 		const block = this.world.map.atPixel(this.pixelX + this.width + 1, this.pixelY);

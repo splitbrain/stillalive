@@ -262,7 +262,7 @@ export function drawLevel(world, input, labelLayouts) {
 	drawPlatforms(world, false);
 	drawFrontTiles(world);
 	drawPortals(world);
-	drawCamera(world);
+	if (world.effects.camera) drawCamera(world, world.effects.camera);
 	drawLabels(world, labelLayouts);
 
 	if (world.player.dead) {
@@ -646,17 +646,18 @@ function drawFrontTiles(world) {
  * Draw the security camera turned towards the player.
  *
  * @param {import('../world/World.js').World} world The World.
+ * @param {import('../effects/Camera.js').Camera} camera The security camera of the World.
  * @returns {void}
  */
-function drawCamera(world) {
+function drawCamera(world, camera) {
 	const angle = getAngle(
 		world.player.midX(),
 		world.player.pixelY + 8,
-		toPixels(world.effects.camera.x) + TILE_SIZE / 2,
-		toPixels(world.effects.camera.y) + TILE_SIZE / 2,
+		toPixels(camera.x) + TILE_SIZE / 2,
+		toPixels(camera.y) + TILE_SIZE / 2,
 	);
 	ctx.save();
-	ctx.translate(toPixels(world.effects.camera.x) + TILE_SIZE / 2, toPixels(world.effects.camera.y) + TILE_SIZE / 2);
+	ctx.translate(toPixels(camera.x) + TILE_SIZE / 2, toPixels(camera.y) + TILE_SIZE / 2);
 	ctx.rotate(angle);
 	drawImage(cameraFollow, 0, 0);
 	ctx.restore();

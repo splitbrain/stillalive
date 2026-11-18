@@ -15,6 +15,7 @@ import {
 	Transition,
 } from '../constants.js';
 import { createBoss } from '../bodies/bosses.js';
+import { InputState } from '../browser/InputState.js';
 import { Effects } from '../effects/Effects.js';
 import { traceGravPipeField } from '../bodies/GravPipe.js';
 import { Plasma } from '../bodies/Plasma.js';
@@ -123,16 +124,22 @@ export class World {
 	 *     The drawing then draws the tiles around the portals over the bodies.
 	 */
 	bodyInPortal = null;
-	/** @type {LevelEvents|null} The events of the level, or null outside a level. */
-	events = null;
+	/**
+	 * @type {LevelEvents} The events of the level. A preview and the editor map have a list without events, and a
+	 *     level start replaces it with the events of the level.
+	 */
+	events = new LevelEvents(this, [], false);
 	/**
 	 * @type {string|null} The result of the last tick: "finished" when the closing transition ended, "died" when the
 	 *     death fade ended, "brokenReplay" when the player died in a replay or when the replay has fewer inputs than
 	 *     the level needs, else null.
 	 */
 	outcome = null;
-	/** @type {import('../browser/InputState.js').InputState|null} The keys and the mouse of the tick, or null before a tick. */
-	input = null;
+	/**
+	 * @type {InputState} The keys and the mouse of the tick. Before the first tick, it is an input without keys and
+	 *     clicks, with the mouse at the top left corner.
+	 */
+	input = new InputState();
 
 	/**
 	 * Create a World without bodies at the start of the opening transition.

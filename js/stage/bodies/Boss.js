@@ -272,7 +272,9 @@ export class Boss extends Body {
 			playSound(sfx_bossHit);
 			if (this.hits < BOSS_LIVES) {
 				const block = FIRST_OF_KIND[TileKind.BOSS_BLOCK];
-				for (const [i, tile] of this.world.level.tiles.entries()) {
+				// a boss gets hits only in a tick of a level, so the World has a level
+				const level = /** @type {import('../world/level.js').Level} */ (this.world.level);
+				for (const [i, tile] of level.tiles.entries()) {
 					if (tile === block) this.world.map.set(i, block);
 				}
 			} else {

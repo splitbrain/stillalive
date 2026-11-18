@@ -101,12 +101,12 @@ export class Effects {
 	}
 
 	/**
-	 * Move the security camera for one tick.
+	 * Move the security camera for one tick. A preview and the editor map have no camera.
 	 *
 	 * @returns {void}
 	 */
 	moveCamera() {
-		this.camera.move();
+		this.camera?.move();
 	}
 
 	/**

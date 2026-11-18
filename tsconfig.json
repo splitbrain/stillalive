@@ -4,6 +4,7 @@
     "checkJs": true,
     "noEmit": true,
     "strict": false,
+    "strictNullChecks": true,
     "target": "esnext",
     "lib": ["esnext", "dom"],
     "module": "esnext",

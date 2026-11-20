@@ -27,7 +27,7 @@ export class EditorSession {
 	constructor(editor, input) {
 		this.#editor = editor;
 		this.#input = input;
-		this.scene = new EditorScene(input, () => editor.brush);
+		this.scene = new EditorScene(editor);
 		input.unclick();
 	}
 

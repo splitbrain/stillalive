@@ -26,15 +26,13 @@ import { TransitionPainter } from './painters/transitions.js';
 export class LevelScene extends Scene {
 	/**
 	 * Create the scene of a level.
-	 *
-	 * @param {import('../browser/InputState.js').InputState} input The mouse, for the player and the crosshair.
 	 */
-	constructor(input) {
+	constructor() {
 		super([
 			new TileLayerPainter(),
 			new AnimatedTilePainter(),
 			new GravPipePainter(),
-			new PlayerPainter({ pose: 'aim', input }),
+			new PlayerPainter({ pose: 'aim' }),
 			new CakePainter(),
 			new TurretPainter(),
 			new PlasmaPainter(),
@@ -50,7 +48,7 @@ export class LevelScene extends Scene {
 			new LabelPainter(),
 			new DeathFadePainter(),
 			new TransitionPainter(),
-			new CrosshairPainter(input),
+			new CrosshairPainter(),
 		]);
 	}
 }

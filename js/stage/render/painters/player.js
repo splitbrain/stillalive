@@ -18,11 +18,11 @@ const HEAD_BOB = [0, 0, -0.21, 0, -0.21];
 const HEAD_PIVOT = [7, 11];
 
 /**
- * The pose of the player. In the aim pose, the gun and the head follow the mouse. In the still pose, the gun points
- * right and the head is straight. The start pose has no gun and shows the standing figure that faces right.
+ * The pose of the player. In the aim pose, the gun and the head follow the mouse position of the last tick. In the
+ * still pose, the gun points right and the head is straight. The start pose has no gun and shows the standing figure
+ * that faces right.
  *
- * @typedef {{pose: 'aim', input: import('../../browser/InputState.js').InputState}|{pose: 'still'}|{pose: 'start'}}
- *     PlayerPose
+ * @typedef {{pose: 'aim'}|{pose: 'still'}|{pose: 'start'}} PlayerPose
  */
 
 /**
@@ -42,13 +42,13 @@ function limitHeadAngle(angle, facingLeft) {
  * The painter of the player in one pose.
  */
 export class PlayerPainter {
-	/** @type {PlayerPose} The pose, with the mouse for the aim pose. */
+	/** @type {PlayerPose} The pose. */
 	#pose;
 
 	/**
 	 * Create the painter of the player.
 	 *
-	 * @param {PlayerPose} pose The pose, with the mouse for the aim pose.
+	 * @param {PlayerPose} pose The pose.
 	 */
 	constructor(pose) {
 		this.#pose = pose;
@@ -65,7 +65,7 @@ export class PlayerPainter {
 		const player = world.player;
 		switch (pose.pose) {
 			case 'aim':
-				this.#drawAim(world, getAngle(player.midX(), player.midY(), pose.input.mouseX, pose.input.mouseY));
+				this.#drawAim(world, getAngle(player.midX(), player.midY(), world.input.mouseX, world.input.mouseY));
 				break;
 			case 'still':
 				this.#drawStill(player);

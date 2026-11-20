@@ -14,37 +14,32 @@ import { PlayerPainter } from './player.js';
  * The painter of the crosshair at the mouse.
  */
 export class CrosshairPainter {
-	/** @type {import('../../browser/InputState.js').InputState} The mouse position. */
-	#input;
-
 	/**
-	 * Create the painter of the crosshair.
+	 * Draw the crosshair at the mouse position of the last tick.
 	 *
-	 * @param {import('../../browser/InputState.js').InputState} input The mouse position.
-	 */
-	constructor(input) {
-		this.#input = input;
-	}
-
-	/**
-	 * Draw the crosshair at the mouse.
-	 *
+	 * @param {import('../../world/World.js').World} world The World.
 	 * @returns {void}
 	 */
-	draw() {
-		drawImage(crosshair, this.#input.mouseX - 8, this.#input.mouseY - 8, 16, 16);
+	draw(world) {
+		drawImage(crosshair, world.input.mouseX - 8, world.input.mouseY - 8, 16, 16);
 	}
 }
+
+/**
+ * The state of the editor that the brush shows.
+ *
+ * @typedef {object} BrushState
+ * @property {number} brush The tile id or the body tile id that the editor paints.
+ * @property {{column: number, row: number}|null} brushCell The tile under the mouse, or null while the pointer is
+ *     outside the canvas or the mouse is outside the map.
+ */
 
 /**
  * The painter of the brush of the editor: the tile or the body that the editor paints, at the mouse.
  */
 export class BrushPainter {
-	/** @type {import('../../browser/InputState.js').InputState} The mouse. */
-	#input;
-
-	/** @type {() => number} The function that gets the tile id or the body tile id that the editor paints. */
-	#brush;
+	/** @type {BrushState} The brush and the tile under the mouse. */
+	#state;
 
 	/** @type {Map<number, (x: number, y: number) => void>} The functions that draw each body brush, by body tile id. */
 	#bodies;
@@ -52,12 +47,10 @@ export class BrushPainter {
 	/**
 	 * Create the painter of the brush.
 	 *
-	 * @param {import('../../browser/InputState.js').InputState} input The mouse.
-	 * @param {() => number} brush The function that gets the tile id or the body tile id that the editor paints.
+	 * @param {BrushState} state The brush and the tile under the mouse.
 	 */
-	constructor(input, brush) {
-		this.#input = input;
-		this.#brush = brush;
+	constructor(state) {
+		this.#state = state;
 		const cake = new CakePainter();
 		const crate = new CratePainter();
 		const turret = new TurretPainter();
@@ -79,16 +72,15 @@ export class BrushPainter {
 	}
 
 	/**
-	 * Draw the brush on the tile under the mouse while the pointer is over the canvas and the mouse is over the map.
+	 * Draw the brush on the tile under the mouse.
 	 *
 	 * @returns {void}
 	 */
 	draw() {
-		const input = this.#input;
-		if (!input.mouseOver || !input.mouseOnPlayfield()) return;
-		const brush = this.#brush();
-		const x = (input.mouseX >> TILE_SIZE_BITS) << TILE_SIZE_BITS;
-		const y = (input.mouseY >> TILE_SIZE_BITS) << TILE_SIZE_BITS;
+		const { brush, brushCell } = this.#state;
+		if (!brushCell) return;
+		const x = brushCell.column << TILE_SIZE_BITS;
+		const y = brushCell.row << TILE_SIZE_BITS;
 		if (isBodyTile(brush)) this.#bodies.get(brush)?.(x, y);
 		else this.#drawTile(brush, x, y);
 	}

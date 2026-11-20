@@ -5,7 +5,6 @@
 import { Scene } from './Scene.js';
 import { CakePainter, CratePainter, GravPipePainter, PlatformPainter, TurretPainter } from './painters/bodies.js';
 import { BossPainter, TubePainter } from './painters/boss.js';
-import { CrosshairPainter } from './painters/cursors.js';
 import { PlayerPainter } from './painters/player.js';
 import { TileLayerPainter } from './painters/tiles.js';
 
@@ -15,10 +14,8 @@ import { TileLayerPainter } from './painters/tiles.js';
 export class PreviewScene extends Scene {
 	/**
 	 * Create the scene of a preview.
-	 *
-	 * @param {import('../browser/InputState.js').InputState} input The mouse, for the crosshair.
 	 */
-	constructor(input) {
+	constructor() {
 		super([
 			new TileLayerPainter(),
 			new PlayerPainter({ pose: 'still' }),
@@ -29,7 +26,6 @@ export class PreviewScene extends Scene {
 			new GravPipePainter(),
 			new TubePainter(),
 			new BossPainter(),
-			new CrosshairPainter(input),
 		]);
 	}
 }

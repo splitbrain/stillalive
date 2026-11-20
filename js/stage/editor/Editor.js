@@ -19,6 +19,12 @@ export class Editor {
 	brush = Tile.WALL;
 
 	/**
+	 * @type {{column: number, row: number}|null} The tile under the mouse, or null while the pointer is outside the
+	 *     canvas or the mouse is outside the map.
+	 */
+	brushCell = null;
+
+	/**
 	 * @type {object} The properties of the editor map other than the format, the tiles and the background, e.g. the
 	 *     title and the events. The editor replaces the object as a whole, so the undo list can share it.
 	 */
@@ -102,12 +108,17 @@ export class Editor {
 	}
 
 	/**
-	 * Run one tick: change the map at the mouse, undo or redo a change, and create the bodies again after a change.
+	 * Run one tick: find the tile under the mouse, change the map at the mouse, undo or redo a change, and create the
+	 * bodies again after a change.
 	 *
 	 * @param {import('../browser/InputState.js').InputState} input The keys and the mouse of the tick.
 	 * @returns {void}
 	 */
 	tick(input) {
+		this.brushCell =
+			input.mouseOver && input.mouseOnPlayfield()
+				? { column: input.mouseX >> TILE_SIZE_BITS, row: input.mouseY >> TILE_SIZE_BITS }
+				: null;
 		this.#updateDrawTile(input);
 		this.#updateDrawBody(input);
 		this.#manageUndoRedo(input);

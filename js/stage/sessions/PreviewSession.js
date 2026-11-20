@@ -27,7 +27,7 @@ export class PreviewSession {
 	 */
 	constructor(level, input) {
 		this.world = World.forPreview(level);
-		this.scene = new PreviewScene(input);
+		this.scene = new PreviewScene();
 		this.#input = input;
 	}
 

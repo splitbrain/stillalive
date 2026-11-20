@@ -64,7 +64,7 @@ export class PlaySession {
 		this.transition = transition;
 		this.#input = input;
 		this.#report = report;
-		this.scene = new LevelScene(input);
+		this.scene = new LevelScene();
 		this.#start(restart, replay);
 		input.unclick();
 	}

@@ -13,10 +13,9 @@ export class EditorScene extends Scene {
 	/**
 	 * Create the scene of the editor.
 	 *
-	 * @param {import('../browser/InputState.js').InputState} input The mouse, for the brush.
-	 * @param {() => number} brush The function that gets the tile id or the body tile id that the editor paints.
+	 * @param {import('./painters/cursors.js').BrushState} state The brush and the tile under the mouse.
 	 */
-	constructor(input, brush) {
-		super([new EditorLayerPainter(), new BrushPainter(input, brush)]);
+	constructor(state) {
+		super([new EditorLayerPainter(), new BrushPainter(state)]);
 	}
 }

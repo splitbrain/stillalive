@@ -386,7 +386,7 @@ export class PortalPair {
 		const bodies = [
 			...world.crates.filter((crate) => crate.shrink === 0),
 			...world.turrets.filter((turret) => !turret.dead),
-			...world.plasmaBall.slice(0, 1),
+			...world.plasmaBalls.slice(0, 1),
 			world.player,
 		];
 		if (!bodies.some((body) => this.isInPortal(body))) this.#removePortals();

@@ -75,7 +75,7 @@ export class Plasma extends MovingBody {
 		/** @type {boolean} True for a ball of the boss. It follows the player and fills no plasma slots. */
 		this.homing = homing;
 		/** @type {number} The frame of the ball image. */
-		this.animFrame = 0;
+		this.frame = 0;
 		/** @type {boolean} True when the ball must go away in the next tick. */
 		this.needKill = false;
 	}
@@ -90,8 +90,8 @@ export class Plasma extends MovingBody {
 		let frame;
 		do {
 			frame = random(0, 3);
-		} while (frame === this.animFrame);
-		this.animFrame = frame;
+		} while (frame === this.frame);
+		this.frame = frame;
 	}
 
 	/**

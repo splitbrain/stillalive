@@ -29,7 +29,7 @@ export class AnimatedTile {
 		/** @type {boolean} True while the tile is drawn and solid. False for an open door. */
 		this.used = true;
 		/** @type {number} The current frame, as a tile id. */
-		this.current = min;
+		this.frame = min;
 		/** @type {number} The first frame, as a tile id. */
 		this.min = min;
 		/** @type {number} The last frame, as a tile id. */
@@ -53,11 +53,11 @@ export class AnimatedTile {
 			let frame;
 			do {
 				frame = random(this.min, this.max + 1);
-			} while (frame === this.current);
-			this.current = frame;
+			} while (frame === this.frame);
+			this.frame = frame;
 		} else if (this.type === ORDERED) {
-			if (this.current === this.max) this.current = this.min;
-			else this.current++;
+			if (this.frame === this.max) this.frame = this.min;
+			else this.frame++;
 		}
 	}
 }

@@ -167,7 +167,7 @@ function drawRotatedHead(world, input, flipDx) {
 	const [pivotX, pivotY] = HEAD_PIVOT;
 	ctx.translate(
 		world.player.pixelX + (flipDx ? 16 - pivotX : pivotX),
-		world.player.pixelY + pivotY + HEAD_BOB[world.player.animationFrame],
+		world.player.pixelY + pivotY + HEAD_BOB[world.player.frame],
 	);
 	ctx.rotate(degToRad(limitHeadAngle(radToDeg(angle), flipDx)));
 	if (flipDx) ctx.scale(-1, 1);
@@ -241,10 +241,10 @@ export function drawLevel(world, input, labelLayouts) {
 
 	drawGravPipes(world);
 
-	const flipDx = world.player.flip < 0 ? 1 : 0;
+	const flipDx = world.player.facing < 0 ? 1 : 0;
 	if (!flipDx) drawPortalGun(world, input);
 	drawRotatedHead(world, input, flipDx);
-	drawPlayerBody(world.player.pixelX, world.player.pixelY, world.player.animationFrame, world.player.flip);
+	drawPlayerBody(world.player.pixelX, world.player.pixelY, world.player.frame, world.player.facing);
 	if (flipDx) drawPortalGun(world, input);
 
 	drawCakes(world);
@@ -361,7 +361,7 @@ function hashText(text) {
 function drawAnimatedTiles(world) {
 	for (const tile of world.animatedTiles) {
 		if (!tile.used) continue;
-		drawImage(tileset[tile.current], tile.x << TILE_SIZE_BITS, tile.y << TILE_SIZE_BITS, TILE_SIZE, TILE_SIZE);
+		drawImage(tileset[tile.frame], tile.x << TILE_SIZE_BITS, tile.y << TILE_SIZE_BITS, TILE_SIZE, TILE_SIZE);
 	}
 }
 
@@ -412,7 +412,7 @@ export function drawCakes(world) {
  */
 export function drawTurrets(world) {
 	for (const turret of world.turrets) {
-		const side = turret.dir < 0 ? 0 : 1;
+		const side = turret.facing < 0 ? 0 : 1;
 		const x = turret.pixelX;
 		const y = turret.pixelY;
 		ctx.save();
@@ -421,7 +421,7 @@ export function drawTurrets(world) {
 		drawImage(
 			turretImages[side],
 			0,
-			turret.animFrame * 2 * TILE_SIZE,
+			turret.frame * 2 * TILE_SIZE,
 			TILE_SIZE,
 			2 * TILE_SIZE,
 			-(turret.width >> 1),
@@ -430,9 +430,9 @@ export function drawTurrets(world) {
 			2 * TILE_SIZE,
 		);
 		ctx.restore();
-		const dx = turret.dir < 0 ? 0 : turret.width;
+		const dx = turret.facing < 0 ? 0 : turret.width;
 		const playerY = world.player.midY();
-		if (turret.animFrame === 1 && !turret.dead) {
+		if (turret.frame === 1 && !turret.dead) {
 			ctx.strokeStyle = 'rgb(255, 255, 0)';
 			ctx.lineWidth = 3;
 			const dy = random(-16, 16);
@@ -452,7 +452,7 @@ export function drawTurrets(world) {
  * @returns {void}
  */
 function drawPlasma(world) {
-	for (const ball of world.plasmaBall) {
+	for (const ball of world.plasmaBalls) {
 		if (!ball.used) continue;
 		let vx = 0;
 		let vy = 0;
@@ -461,7 +461,7 @@ function drawPlasma(world) {
 		drawImage(
 			plasma,
 			0,
-			ball.animFrame * TILE_SIZE,
+			ball.frame * TILE_SIZE,
 			TILE_SIZE,
 			TILE_SIZE,
 			ball.pixelX + vx,
@@ -561,7 +561,7 @@ function drawGravPipeFields(world) {
  */
 export function drawGravPipes(world) {
 	drawGravPipeFields(world);
-	for (const pipe of world.gravPipes) drawGravPipe(pipe.dir, pipe.pixelX, pipe.pixelY);
+	for (const pipe of world.gravPipes) drawGravPipe(pipe.direction, pipe.pixelX, pipe.pixelY);
 }
 
 /**
@@ -598,7 +598,7 @@ function drawTube(world, boss) {
  * @returns {void}
  */
 export function drawPlatforms(world, arrow) {
-	for (const platform of world.platforms) drawPlatform(platform.pixelX, platform.pixelY, platform.dir, arrow);
+	for (const platform of world.platforms) drawPlatform(platform.pixelX, platform.pixelY, platform.facing, arrow);
 }
 
 /**
@@ -721,7 +721,7 @@ export function drawPreviewMap(world, input) {
 	drawImage(portalGun, -5, -5);
 	ctx.restore();
 
-	drawPlayer(world.player.pixelX, world.player.pixelY, world.player.flip, world.player.animationFrame);
+	drawPlayer(world.player.pixelX, world.player.pixelY, world.player.facing, world.player.frame);
 
 	drawCakes(world);
 	drawTurrets(world);

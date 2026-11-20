@@ -21,12 +21,12 @@ export class Turret extends Throwable {
 	 * @param {import('../world/World.js').World} world The World of the body.
 	 * @param {number} x The x position in 1/256 pixels.
 	 * @param {number} y The y position in 1/256 pixels.
-	 * @param {number} dir The direction that the turret faces, -1 left or 1 right.
+	 * @param {number} facing The direction that the turret faces, -1 left or 1 right.
 	 */
-	constructor(world, x, y, dir) {
+	constructor(world, x, y, facing) {
 		super(world, x, y, TILE_SIZE, 2 * TILE_SIZE);
 		/** @type {number} The direction that the turret faces, -1 left or 1 right. */
-		this.dir = dir;
+		this.facing = facing;
 		/** @type {number} Ticks until the next shot. */
 		this.coolTime = 0;
 		/** @type {number} Ticks until the turret shoots after it saw the player, from 10 down to 0. */
@@ -34,7 +34,7 @@ export class Turret extends Throwable {
 		/** @type {boolean} True when the turret is destroyed. */
 		this.dead = false;
 		/** @type {number} The frame of the turret image. Frame 1 is the shot flash, frames 2 to 10 show the destruction. */
-		this.animFrame = 0;
+		this.frame = 0;
 		/** @type {boolean} True after a throw, a portal or a pipe field moved the turret. A hard landing then destroys it. */
 		this.canExplode = false;
 		/** @type {number} The x position where the laser sight ends, in 1/256 pixels. */
@@ -48,7 +48,7 @@ export class Turret extends Throwable {
 	 */
 	#explode() {
 		this.dead = true;
-		this.animFrame = 2;
+		this.frame = 2;
 		playSound(sfx_explode);
 		this.world.effects.addPuffSparkles(this.x, this.y, PuffSparkle.SMOKE, 4, 255);
 	}
@@ -118,7 +118,7 @@ export class Turret extends Throwable {
 		this.move();
 
 		if (this.dead) {
-			if (this.animFrame < 10 && this.world.time % 4 === 0) this.animFrame++;
+			if (this.frame < 10 && this.world.time % 4 === 0) this.frame++;
 		} else if (this.#isDestroyed(oldVx, oldVy)) {
 			this.dead = true;
 			this.#explode();
@@ -159,12 +159,12 @@ export class Turret extends Throwable {
 	 */
 	#traceBeam() {
 		const y = this.pixelY + 12;
-		let x = this.dir === 1 ? this.pixelX + TILE_SIZE : this.pixelX;
+		let x = this.facing === 1 ? this.pixelX + TILE_SIZE : this.pixelX;
 		while (x >= 0 && x < PLAYFIELD_WIDTH) {
 			if (this.world.getTile(x, y) !== Tile.EMPTY) break;
 			if (this.world.anyCrateAt(x, y)) return { target: 'crate', x };
 			if (this.world.player.contains(x, y)) return { target: 'player', x };
-			x += this.dir * 14;
+			x += this.facing * 14;
 		}
 		return { target: null, x };
 	}
@@ -176,12 +176,12 @@ export class Turret extends Throwable {
 	 */
 	shoot() {
 		const player = this.world.player;
-		const facesPlayer = (this.dir === -1 && this.x > player.x) || (this.dir === 1 && this.x < player.x);
+		const facesPlayer = (this.facing === -1 && this.x > player.x) || (this.facing === 1 && this.x < player.x);
 		const inLine = Math.abs(this.pixelY + 13 - (player.pixelY + 16)) <= this.height;
 
 		if (this.dead || !facesPlayer || !inLine || player.dead) {
 			if (!this.dead) {
-				this.animFrame = 0;
+				this.frame = 0;
 				this.rotation = 10;
 			}
 			return;
@@ -189,7 +189,7 @@ export class Turret extends Throwable {
 
 		this.coolTime = Math.max(this.coolTime - 1, 0);
 		if (this.coolTime > 0) {
-			this.animFrame = 0;
+			this.frame = 0;
 			return;
 		}
 
@@ -203,10 +203,10 @@ export class Turret extends Throwable {
 		this.rotation = Math.max(this.rotation - 1, 0);
 		if (beam.target !== 'player' || this.rotation > 0) return;
 
-		this.animFrame = 1 - this.animFrame;
+		this.frame = 1 - this.frame;
 		player.life -= 640; // 2.5 life points
 		player.recoveryTime = 300;
-		player.vx += toSubpixels(this.dir);
+		player.vx += toSubpixels(this.facing);
 		this.coolTime = COOL_TIME;
 		playSound(sfx_shoot);
 		playSoundIfFinished(sfx_pain);
@@ -217,7 +217,7 @@ export class Turret extends Throwable {
 					this.world,
 					player.x + (toSubpixels(this.width) >> 1) + random(toSubpixels(-8), toSubpixels(8)),
 					player.y + (toSubpixels(this.height) >> 2),
-					random(512, 1024) * this.dir,
+					random(512, 1024) * this.facing,
 					random(toSubpixels(-3), 0),
 					50,
 				),

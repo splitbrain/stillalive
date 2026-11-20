@@ -20,8 +20,8 @@ export class Platform extends MovingBody {
 		super(world, x, y, 3 * TILE_SIZE, TILE_SIZE);
 		this.vx = vx;
 		this.vy = vy;
-		/** @type {number} The direction of the arrow on the platform, 1 right or -1 left. */
-		this.dir = vx > 0 ? 1 : -1;
+		/** @type {number} The side that the arrow on the platform points to, 1 right or -1 left. */
+		this.facing = vx > 0 ? 1 : -1;
 	}
 
 	/**

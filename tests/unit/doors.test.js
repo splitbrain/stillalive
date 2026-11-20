@@ -106,7 +106,7 @@ test('the plasma door opens when the last plasma slot is filled', (context) => {
 	const door = at(20, MAP_HEIGHT - 2);
 	const slots = () => world.map.tiles.filter((tile) => tile === Tile.PLASMA_SLOT).length;
 	runUntilRunning(world);
-	assert.equal(world.plasmaBall.length, 2);
+	assert.equal(world.plasmaBalls.length, 2);
 
 	let ticks = 0;
 	while (slots() === 2 && ticks < 300) {
@@ -116,7 +116,7 @@ test('the plasma door opens when the last plasma slot is filled', (context) => {
 	assert.equal(slots(), 1);
 	assert.equal(world.map.tiles[door], Tile.PLASMA_DOOR);
 	// the ball of the filled slot goes back to its start and flies again
-	const [first] = world.plasmaBall;
+	const [first] = world.plasmaBalls;
 	assert.ok(first.used);
 	assert.deepEqual([first.x, first.y], [first.startX, first.startY]);
 
@@ -126,5 +126,5 @@ test('the plasma door opens when the last plasma slot is filled', (context) => {
 	}
 	assert.equal(slots(), 0);
 	assert.equal(world.map.tiles[door], Tile.EMPTY);
-	assert.equal(world.plasmaBall[1].used, false);
+	assert.equal(world.plasmaBalls[1].used, false);
 });

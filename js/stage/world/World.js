@@ -74,7 +74,7 @@ export class World {
 	/** @type {import('../bodies/Turret.js').Turret[]} The turrets. */
 	turrets = [];
 	/** @type {import('../bodies/Plasma.js').Plasma[]} The plasma balls. */
-	plasmaBall = [];
+	plasmaBalls = [];
 	/** @type {import('../bodies/Platform.js').Platform[]} The moving platforms. */
 	platforms = [];
 	/** @type {import('../bodies/GravPipe.js').GravPipe[]} The gravitational pipes. */
@@ -340,7 +340,7 @@ export class World {
 
 		for (const tile of this.animatedTiles) tile.animate();
 
-		this.player.flip = this.input.mouseX > this.player.midX() ? 1 : -1;
+		this.player.facing = this.input.mouseX > this.player.midX() ? 1 : -1;
 
 		this.#rebuildGravPipeFields();
 
@@ -354,7 +354,7 @@ export class World {
 			}
 		}
 
-		for (const ball of this.plasmaBall) {
+		for (const ball of this.plasmaBalls) {
 			if (!ball.used) continue;
 			ball.animate();
 			if (running) {
@@ -362,7 +362,7 @@ export class World {
 				if (!this.bodyInPortal) this.bodyInPortal = this.portals.isInPortal(ball);
 			}
 		}
-		if (running) this.plasmaBall = this.plasmaBall.filter((ball) => !ball.needKill);
+		if (running) this.plasmaBalls = this.plasmaBalls.filter((ball) => !ball.needKill);
 
 		this.effects.updateSparkles();
 
@@ -435,7 +435,7 @@ export class World {
 		if (this.gravPipes.length === 0) return;
 		this.gravPipeFields = [];
 		for (const pipe of this.gravPipes) {
-			const { dx, dy } = DIRECTIONS[pipe.dir];
+			const { dx, dy } = DIRECTIONS[pipe.direction];
 			this.gravPipeFields.push(...traceGravPipeField(this, pipe.pixelX, pipe.pixelY, dx, dy));
 		}
 	}
@@ -478,7 +478,7 @@ export class World {
 	setDoors(kind, open) {
 		playSound(DOOR_SOUNDS[kind]);
 		for (const door of this.animatedTiles) {
-			if (!isTileKind(door.current, kind)) continue;
+			if (!isTileKind(door.frame, kind)) continue;
 			door.used = !open;
 			this.map.setTile(door.place, open ? Tile.EMPTY : door.min);
 		}
@@ -522,7 +522,7 @@ export class World {
 	 * @returns {void}
 	 */
 	addPlasma(ball) {
-		this.plasmaBall.push(ball);
+		this.plasmaBalls.push(ball);
 	}
 
 	/**
@@ -532,7 +532,7 @@ export class World {
 	 */
 	clearBossAttacks() {
 		this.projectiles = [];
-		this.plasmaBall = [];
+		this.plasmaBalls = [];
 	}
 
 	/**
@@ -585,7 +585,7 @@ export class World {
 
 		for (const launch of bodies.plasmaLaunches) {
 			if (!this.boss) {
-				this.plasmaBall.push(new Plasma(this, launch.x, launch.y, launch.vx, launch.vy));
+				this.plasmaBalls.push(new Plasma(this, launch.x, launch.y, launch.vx, launch.vy));
 			} else if (this.boss.shootsPlasma) {
 				this.plasmaX = launch.x;
 				this.plasmaY = launch.y;
@@ -755,7 +755,7 @@ export class World {
 	 * @returns {boolean} True if a ball overlaps the body.
 	 */
 	plasmaTouching(body) {
-		return this.plasmaBall.some((ball) => ball.used && ball.overlaps(body));
+		return this.plasmaBalls.some((ball) => ball.used && ball.overlaps(body));
 	}
 
 	/**

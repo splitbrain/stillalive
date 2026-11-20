@@ -78,7 +78,7 @@ export class PlasmaBoss extends Boss {
 	attack() {
 		const hits = this.hits;
 		if (this.world.time % (90 - 30 * hits) !== 0) return;
-		if (this.world.plasmaBall.length < hits + 1) this.shootPlasma(800);
+		if (this.world.plasmaBalls.length < hits + 1) this.shootPlasma(800);
 		if (this.world.crates.length === 0) {
 			const crate = new Crate(this.world, toSubpixels((MAP_WIDTH - 1) * TILE_SIZE), toSubpixels(18 * TILE_SIZE));
 			crate.vx = -toSubpixels(12);
@@ -114,7 +114,7 @@ export class FinalBoss extends Boss {
 		const hits = this.hits;
 		if (time % (90 - 20 * hits) === 0) this.throwCrate(5, 20);
 		if (hits > 0 && time % (180 - 20 * hits) === 0) this.shootWheel(27 * TILE_SIZE, 2 * TILE_SIZE, 600);
-		if (hits > 1 && this.world.plasmaBall.length === 0) this.shootPlasma(400);
+		if (hits > 1 && this.world.plasmaBalls.length === 0) this.shootPlasma(400);
 	}
 }
 

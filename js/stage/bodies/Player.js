@@ -60,7 +60,7 @@ export class Player extends MovingBody {
 		/** @type {boolean} True while the player holds the down key. */
 		this.down = false;
 		/** @type {number} 1 when the player faces right, -1 when the player faces left. */
-		this.flip = 1;
+		this.facing = 1;
 		/** @type {number} Ticks since the last portal shot, up to PORTAL_COOLDOWN. A new shot is possible then. */
 		this.portalCooldown = PORTAL_COOLDOWN;
 		/**
@@ -71,7 +71,7 @@ export class Player extends MovingBody {
 		/** @type {number} The countdown to the next frame of the walk animation. */
 		this.animationTime = 10;
 		/** @type {number} The frame of the walk animation: 0 is the standing frame, 1 to 4 are the walk cycle. */
-		this.animationFrame = 0;
+		this.frame = 0;
 		/** @type {boolean} True if the player stood on the ground at the start of the last tick. */
 		this.onGround = false;
 		/** @type {boolean} True while the player touches acid. */
@@ -324,8 +324,8 @@ export class Player extends MovingBody {
 		this.animationTime -= ground === Ground.ICE ? 1 : 3;
 		if (this.animationTime > 0) return;
 		this.animationTime = 10;
-		if (++this.animationFrame === 5) this.animationFrame = 1;
-		if (ground !== Ground.AIR && this.left !== this.right && this.animationFrame % 2 === 1) {
+		if (++this.frame === 5) this.frame = 1;
+		if (ground !== Ground.AIR && this.left !== this.right && this.frame % 2 === 1) {
 			const steps = ground === Ground.ICE ? sfx_iceStep : sfx_step;
 			playSound(steps[random(0, steps.length)], randomRate(0.08));
 		}
@@ -473,7 +473,7 @@ export class Player extends MovingBody {
 		}
 
 		this.#applyFriction(ground);
-		if (dir === 0 && grounded) this.animationFrame = 0;
+		if (dir === 0 && grounded) this.frame = 0;
 		if (!floating) this.#limitSpeed(ground);
 
 		if (!grounded || portals.portalAt(this, Direction.DOWN)) {

@@ -81,7 +81,7 @@ export class SwitchDoors {
 			}
 		}
 
-		for (const ball of world.plasmaBall) {
+		for (const ball of world.plasmaBalls) {
 			if (this.#touchesDoor(ball)) ball.reset();
 		}
 	}

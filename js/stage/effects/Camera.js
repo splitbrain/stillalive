@@ -39,7 +39,7 @@ export class Camera {
 		this.x += this.vx;
 		this.y += this.vy;
 
-		const angle = this.world.player.flip === -1 ? 335 : 185;
+		const angle = this.world.player.facing === -1 ? 335 : 185;
 		const dx = this.world.player.x + Math.cos((angle / 180) * Math.PI) * toSubpixels(40);
 		const dy = this.world.player.y + Math.sin((angle / 180) * Math.PI) * toSubpixels(40);
 

@@ -207,15 +207,15 @@ export class GameStage extends HTMLElement {
 	}
 
 	/**
-	 * Open the editor on a map. A new map starts a new undo list.
+	 * Open the editor on a new map, or on the editor map from before. A new map starts a new undo list.
 	 *
-	 * @param {import('./map/mapFile.js').MapFile|null} [level] The map in the map file format, or nothing or null to open
-	 *     the editor map from before.
+	 * @param {import('./map/mapFile.js').MapFile|null} [level] The new map in the map file format, or nothing or null
+	 *     to open the editor map from before.
 	 * @returns {void}
 	 */
 	edit(level) {
 		this.#leave();
-		this.#editor.open(level);
+		if (level) this.#editor.open(level);
 		this.#session = new EditorSession(this.#editor, this.#input);
 		this.#publish();
 	}
@@ -427,17 +427,12 @@ export class GameStage extends HTMLElement {
 	}
 
 	/**
-	 * Leave the current session before a new command. A test run ends without the event "testend", and the editor
-	 * continues with its own map.
+	 * Leave the current session before a new command. A test run ends without the event "testend".
 	 *
 	 * @returns {void}
 	 */
 	#leave() {
-		const play = this.#play;
-		if (play) {
-			play.endPlayback();
-			if (play.testRun) this.#editor.open();
-		}
+		this.#play?.endPlayback();
 		this.#session = null;
 		this.#speed = 1;
 	}
@@ -496,7 +491,6 @@ export class GameStage extends HTMLElement {
 			return;
 		}
 		if (type === 'testend') {
-			this.#editor.open();
 			this.#session = new EditorSession(this.#editor, this.#input);
 		} else if (type === 'brokenreplay') {
 			this.#session = null;

@@ -16,8 +16,8 @@ export class Effects {
 	#world;
 	/** @type {Sparkle[]} The sparkles. */
 	sparkles = [];
-	/** @type {Camera|null} The security camera, or null for a preview or an editor map. */
-	camera = null;
+	/** @type {Camera} The security camera. The World creates it at the level start. */
+	camera;
 	/** @type {number} The x shift of the drawing in playfield units: the screen shake of the boss levels, else 0. */
 	shakeX = 0;
 	/** @type {number} The y shift of the drawing in playfield units: the screen shake of the boss levels, else 0. */
@@ -101,12 +101,12 @@ export class Effects {
 	}
 
 	/**
-	 * Move the security camera for one tick. A preview and the editor map have no camera.
+	 * Move the security camera for one tick.
 	 *
 	 * @returns {void}
 	 */
 	moveCamera() {
-		this.camera?.move();
+		this.camera.move();
 	}
 
 	/**

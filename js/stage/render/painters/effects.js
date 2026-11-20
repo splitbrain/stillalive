@@ -43,14 +43,13 @@ export class SparklePainter {
  */
 export class CameraPainter {
 	/**
-	 * Draw the security camera turned towards the player, if the World has a camera.
+	 * Draw the security camera turned towards the player.
 	 *
 	 * @param {import('../../world/World.js').World} world The World.
 	 * @returns {void}
 	 */
 	draw(world) {
 		const camera = world.effects.camera;
-		if (!camera) return;
 		const angle = getAngle(
 			world.player.midX(),
 			world.player.pixelY + 8,

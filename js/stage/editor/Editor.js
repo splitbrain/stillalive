@@ -76,15 +76,12 @@ export class Editor {
 	}
 
 	/**
-	 * Open the editor on a new map, or on the editor map from before, e.g. after a test run. A new map starts a new
-	 * undo list.
+	 * Put a new map into the editor and start a new undo list.
 	 *
-	 * @param {import('../map/mapFile.js').MapFile|null} [map] The new map in the map file format, or nothing or null for
-	 *     the editor map from before.
+	 * @param {import('../map/mapFile.js').MapFile} map The new map in the map file format.
 	 * @returns {void}
 	 */
 	open(map) {
-		if (!map) return;
 		const { tiles, bg, ...rest } = map;
 		delete rest.format;
 		this.#map = new TileMap(tiles);

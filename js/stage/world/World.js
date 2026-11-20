@@ -44,8 +44,7 @@ function isPassable(tile) {
 }
 
 /**
- * The state of one started level. Each level start creates a new World. A preview shows the World of a level start
- * and never ticks it.
+ * The state of one started level. Each level start creates a new World.
  */
 export class World {
 	/** @type {TileMap} The tiles of the map. */
@@ -123,8 +122,7 @@ export class World {
 	input = new InputState();
 
 	/**
-	 * Start a level: the body tiles leave the map, the exits close, and the animated tiles and the plasma balls start.
-	 * The World is at the start of the opening transition.
+	 * Start a level. The World is at the start of the opening transition.
 	 *
 	 * @param {import('./level.js').Level} level The level.
 	 * @param {object} [options] The options.

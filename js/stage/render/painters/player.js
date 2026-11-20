@@ -77,7 +77,7 @@ export class PlayerPainter {
 	}
 
 	/**
-	 * Draw the player in the start pose as the brush of the editor.
+	 * Draw the player in the start pose on a tile of the editor.
 	 *
 	 * @param {number} x The x coordinate in canvas pixels.
 	 * @param {number} y The y coordinate in canvas pixels.

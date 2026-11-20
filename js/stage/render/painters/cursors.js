@@ -6,7 +6,7 @@ import { ctx, drawImage } from '../../browser/canvas.js';
 import { TILE_SIZE, TILE_SIZE_BITS } from '../../constants.js';
 import { crosshair, tileset } from '../../browser/images.js';
 import { isBodyTile } from '../../map/tiles.js';
-import { BodyTilePainter } from './bodies.js';
+import { BodyTilePainter } from './editor.js';
 
 /**
  * The painter of the crosshair at the mouse.
@@ -33,7 +33,7 @@ export class BrushPainter {
 	/**
 	 * Draw the brush on the tile under the mouse.
 	 *
-	 * @param {import('../EditorScene.js').EditorState} state The state of the editor.
+	 * @param {import('./editor.js').EditorState} state The state of the editor.
 	 * @returns {void}
 	 */
 	draw(state) {

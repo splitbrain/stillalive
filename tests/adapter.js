@@ -134,7 +134,7 @@ export async function waitForNarrator(page) {
 export function runTicks(page, count) {
 	return page.evaluate((count) => {
 		for (let tick = 0; tick < count; tick++) window.__test.tick();
-		return window.__test.world().events?.message ?? null;
+		return window.__test.world().events.message ?? null;
 	}, count);
 }
 
@@ -148,7 +148,7 @@ export function runTicks(page, count) {
 export function runTicksUntilMessage(page, maxTime) {
 	return page.evaluate((maxTime) => {
 		const hooks = window.__test;
-		while (!hooks.world().events?.message && hooks.world().time < maxTime) hooks.tick();
+		while (!hooks.world().events.message && hooks.world().time < maxTime) hooks.tick();
 		return hooks.world().time;
 	}, maxTime);
 }

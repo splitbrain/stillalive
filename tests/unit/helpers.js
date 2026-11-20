@@ -4,7 +4,7 @@
 
 import { MAP_SIZE, MAP_WIDTH } from '../../js/stage/constants.js';
 import { InputState } from '../../js/stage/browser/InputState.js';
-import { parseMap } from '../../js/stage/map/mapFile.js';
+import { levelFromMap } from '../../js/stage/world/level.js';
 import { emptyTiles } from '../../js/stage/world/TileMap.js';
 import { Tile } from '../../js/stage/map/tiles.js';
 import { World } from '../../js/stage/world/World.js';
@@ -60,7 +60,7 @@ export function floorTiles() {
  * @returns {import('../../js/stage/world/level.js').Level} The level.
  */
 export function testLevel(tiles, boss = 0) {
-	return { ...parseMap({ format: 1, tiles, bg: 0, boss }), campaign: 'test', number: 1 };
+	return levelFromMap({ tiles, bg: 0, boss }, 'test', 1);
 }
 
 /**

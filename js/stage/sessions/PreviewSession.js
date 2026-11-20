@@ -15,7 +15,7 @@ export class PreviewSession {
 	world;
 
 	/** @type {PreviewScene} The scene that draws the World of the preview. */
-	scene;
+	#scene;
 
 	/** @type {import('../browser/InputState.js').InputState} The keys and the mouse. */
 	#input;
@@ -28,7 +28,7 @@ export class PreviewSession {
 	 */
 	constructor(level, input) {
 		this.world = new World(level);
-		this.scene = new PreviewScene();
+		this.#scene = new PreviewScene();
 		this.#input = input;
 	}
 
@@ -48,7 +48,7 @@ export class PreviewSession {
 	 */
 	draw() {
 		beginFrame(this.world.effects.shakeX, this.world.effects.shakeY);
-		this.scene.draw(this.world);
+		this.#scene.draw(this.world);
 	}
 
 	/**

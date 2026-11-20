@@ -11,7 +11,7 @@ import { EditorScene } from '../render/EditorScene.js';
  */
 export class EditorSession {
 	/** @type {EditorScene} The scene that draws the editor map and the brush. */
-	scene = new EditorScene();
+	#scene = new EditorScene();
 
 	/** @type {import('../editor/Editor.js').Editor} The editor. */
 	#editor;
@@ -47,7 +47,7 @@ export class EditorSession {
 	 */
 	draw() {
 		beginFrame(0, 0);
-		this.scene.draw(this.#editor);
+		this.#scene.draw(this.#editor);
 	}
 
 	/**

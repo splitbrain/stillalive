@@ -28,8 +28,6 @@ import { World } from '../world/World.js';
 export class PlaySession {
 	/** @type {World} The World of the current level start. */
 	world;
-	/** @type {LevelScene} The scene that draws the World of the level. */
-	scene;
 	/** @type {import('../world/level.js').Level} The level. */
 	level;
 	/** @type {Recorder|ReplayPlayer|null} The input source of the level, or null in a test run. */
@@ -41,6 +39,8 @@ export class PlaySession {
 
 	/** @type {boolean} True while the level time stands still for a pause. */
 	#paused = false;
+	/** @type {LevelScene} The scene that draws the World of the level. */
+	#scene;
 	/** @type {import('../browser/InputState.js').InputState} The keys and the mouse. */
 	#input;
 	/** @type {SessionReport} The function that gets the events of the session. */
@@ -65,7 +65,7 @@ export class PlaySession {
 		this.transition = transition;
 		this.#input = input;
 		this.#report = report;
-		this.scene = new LevelScene();
+		this.#scene = new LevelScene();
 		this.#start(restart, replay);
 		input.unclick();
 	}
@@ -105,7 +105,7 @@ export class PlaySession {
 	 */
 	draw() {
 		beginFrame(this.world.effects.shakeX, this.world.effects.shakeY);
-		this.scene.draw(this.world);
+		this.#scene.draw(this.world);
 	}
 
 	/**

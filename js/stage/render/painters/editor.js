@@ -1,5 +1,5 @@
 /**
- * The painter of the editor layer.
+ * The painters of the editor layer and of the body tiles of the editor.
  */
 
 import { ctx, drawImage } from '../../browser/canvas.js';
@@ -8,12 +8,23 @@ import { bg } from '../../browser/images.js';
 import { Tile } from '../../map/tiles.js';
 import { GRAVPIPE_DIRECTIONS, plasmaLaunch } from '../../world/level.js';
 import { LayerCache } from '../LayerCache.js';
-import { BodyTilePainter } from './bodies.js';
+import { CakePainter, CratePainter, GravPipePainter, PlatformPainter, TurretPainter } from './bodies.js';
+import { PlayerPainter } from './player.js';
 import { drawTiles } from './tiles.js';
 
 /**
- * @type {number[][]} The body tile ids of the editor map in the draw order of their kinds: cakes, turrets, crates,
- *     platforms, gravitational pipes and the player. Within a kind, the bodies follow the map order.
+ * The state of the editor that the editor scene draws.
+ *
+ * @typedef {object} EditorState
+ * @property {import('../../world/TileMap.js').TileMap} map The editor map.
+ * @property {number} background The index of the background image.
+ * @property {number} brush The tile id or the body tile id that the editor paints.
+ * @property {{column: number, row: number}|null} brushCell The tile under the mouse, or null.
+ */
+
+/**
+ * @type {number[][]} The body tile ids of the editor map in the draw order of their kinds. Within a kind, the bodies
+ *     follow the map order.
  */
 const BODY_TILE_ORDER = [
 	[Tile.CAKE],
@@ -23,6 +34,52 @@ const BODY_TILE_ORDER = [
 	Object.keys(GRAVPIPE_DIRECTIONS).map(Number),
 	[Tile.PLAYER_START, Tile.PLAYER_LAUNCH_UP],
 ];
+
+/**
+ * The painter of the body tiles of the editor. It draws the body of a body tile at a position. A player
+ * start tile and a player launch tile both show the player in the start pose.
+ */
+export class BodyTilePainter {
+	/** @type {Map<number, (x: number, y: number) => void>} The functions that draw each body tile, by body tile id. */
+	#bodies;
+
+	/**
+	 * Create the painter of the body tiles.
+	 */
+	constructor() {
+		const cake = new CakePainter();
+		const crate = new CratePainter();
+		const turret = new TurretPainter();
+		const platform = new PlatformPainter({ arrows: true });
+		const gravPipe = new GravPipePainter();
+		const player = new PlayerPainter({ pose: 'start' });
+		this.#bodies = new Map([
+			[Tile.TURRET_LEFT, (x, y) => turret.drawBrush(x, y, -1)],
+			[Tile.TURRET_RIGHT, (x, y) => turret.drawBrush(x, y, 1)],
+			[Tile.CRATE, (x, y) => crate.drawBrush(x, y)],
+			[Tile.CAKE, (x, y) => cake.drawBrush(x, y)],
+			[Tile.PLAYER_START, (x, y) => player.drawBrush(x, y)],
+			[Tile.PLAYER_LAUNCH_UP, (x, y) => player.drawBrush(x, y)],
+			[Tile.PLATFORM_RIGHT, (x, y) => platform.drawBrush(x, y, 1)],
+			[Tile.PLATFORM_LEFT, (x, y) => platform.drawBrush(x, y, -1)],
+		]);
+		for (const [tile, direction] of Object.entries(GRAVPIPE_DIRECTIONS)) {
+			this.#bodies.set(Number(tile), (x, y) => gravPipe.drawBrush(x, y, direction));
+		}
+	}
+
+	/**
+	 * Draw the body of a body tile. A tile id without a body draws nothing.
+	 *
+	 * @param {number} tile The body tile id.
+	 * @param {number} x The x coordinate in canvas pixels.
+	 * @param {number} y The y coordinate in canvas pixels.
+	 * @returns {void}
+	 */
+	drawTile(tile, x, y) {
+		this.#bodies.get(tile)?.(x, y);
+	}
+}
 
 /**
  * The painter of the background, the plasma start markers, the tiles and the body tiles of the editor map, from a
@@ -38,7 +95,7 @@ export class EditorLayerPainter {
 	/**
 	 * Draw the layer of the editor map.
 	 *
-	 * @param {import('../EditorScene.js').EditorState} state The state of the editor.
+	 * @param {EditorState} state The state of the editor.
 	 * @returns {void}
 	 */
 	draw(state) {

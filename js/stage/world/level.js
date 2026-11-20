@@ -26,7 +26,7 @@ import { toSubpixels } from '../utils.js';
 /**
  * Make a level from a map file.
  *
- * @param {import('../map/mapFile.js').MapFile} map The map in the map file format. The format property is optional.
+ * @param {import('../map/mapFile.js').MapFile} map The map in the map file format.
  * @param {string} campaign The folder name of the campaign, for the replay file.
  * @param {number} number The level number, for the replay file.
  * @returns {Level} The level.

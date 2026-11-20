@@ -73,7 +73,7 @@ export function testLevel(tiles, boss = 0) {
  * @returns {World} The World at the start of the opening transition.
  */
 export function startWorld(tiles, { boss = 0, restart = false } = {}) {
-	return World.forLevel(testLevel(tiles, boss), { restart });
+	return new World(testLevel(tiles, boss), { restart });
 }
 
 /**

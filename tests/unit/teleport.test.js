@@ -6,8 +6,7 @@ import { traceGravPipeField } from '../../js/stage/bodies/GravPipe.js';
 import { Plasma } from '../../js/stage/bodies/Plasma.js';
 import { Portal } from '../../js/stage/portals/Portal.js';
 import { Tile } from '../../js/stage/map/tiles.js';
-import { emptyTiles, TileMap } from '../../js/stage/world/TileMap.js';
-import { World } from '../../js/stage/world/World.js';
+import { emptyTiles } from '../../js/stage/world/TileMap.js';
 import { at, floorTiles, startWorld } from './helpers.js';
 
 /** @type {number[][]} The speeds [vx, vy] before a teleport, the same for each pair of portal directions. */
@@ -213,21 +212,21 @@ function teleportAll(create) {
 
 test('a body turns its speed in the same way for each pair of portal directions', () => {
 	assert.deepEqual(
-		teleportAll(() => new MovingBody(new World(new TileMap(emptyTiles())), 0, 0, 16, 16)),
+		teleportAll(() => new MovingBody(startWorld(emptyTiles()), 0, 0, 16, 16)),
 		BODY_TURNS,
 	);
 });
 
 test('a plasma ball that is not homing turns its speed like a body', () => {
 	assert.deepEqual(
-		teleportAll(() => new Plasma(new World(new TileMap(emptyTiles())), 0, 0, 0, 0)),
+		teleportAll(() => new Plasma(startWorld(emptyTiles()), 0, 0, 0, 0)),
 		BODY_TURNS,
 	);
 });
 
 test('a homing plasma ball swaps or mirrors its speed for each pair of portal directions', () => {
 	assert.deepEqual(
-		teleportAll(() => new Plasma(new World(new TileMap(emptyTiles())), 0, 0, 0, 0, true)),
+		teleportAll(() => new Plasma(startWorld(emptyTiles()), 0, 0, 0, 0, true)),
 		HOMING_TURNS,
 	);
 });

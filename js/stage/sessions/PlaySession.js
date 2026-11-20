@@ -241,7 +241,7 @@ export class PlaySession {
 		// a test run does not record
 		if (this.testRun) this.source = null;
 		else this.source = replay === null ? new Recorder() : new ReplayPlayer(replay);
-		this.world = World.forLevel(this.level, { restart, replay: replay !== null, transition: this.transition });
+		this.world = new World(this.level, { restart, replay: replay !== null, transition: this.transition });
 		this.#paused = false;
 		this.#updateMouseLock();
 		this.#input.keys = 0;

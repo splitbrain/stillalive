@@ -27,7 +27,7 @@ export class PreviewSession {
 	 * @param {import('../browser/InputState.js').InputState} input The keys and the mouse.
 	 */
 	constructor(level, input) {
-		this.world = World.forLevel(level);
+		this.world = new World(level);
 		this.scene = new PreviewScene();
 		this.#input = input;
 	}

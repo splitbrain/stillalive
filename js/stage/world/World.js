@@ -50,8 +50,8 @@ function isPassable(tile) {
 export class World {
 	/** @type {TileMap} The tiles of the map. */
 	map;
-	/** @type {import('./level.js').Level|null} The level that runs, or null before the level start. */
-	level = null;
+	/** @type {import('./level.js').Level} The level that runs. */
+	level;
 	/** @type {boolean} True if a replay plays the level. */
 	#replaying = false;
 	/** @type {import('../bodies/Cake.js').Cake[]} The cakes. */
@@ -107,10 +107,9 @@ export class World {
 	/** @type {SwitchDoors} The switches and the switch doors. */
 	switches = new SwitchDoors(this);
 	/**
-	 * @type {LevelEvents} The events of the level. Before the level start, the list has no events. The level start
-	 *     replaces it with the events of the level.
+	 * @type {LevelEvents} The events of the level.
 	 */
-	events = new LevelEvents(this, [], false);
+	events;
 	/**
 	 * @type {string|null} The result of the last tick: "finished" when the closing transition ended, "died" when the
 	 *     death fade ended, "brokenReplay" when the player died in a replay or when the replay has fewer inputs than
@@ -124,13 +123,33 @@ export class World {
 	input = new InputState();
 
 	/**
-	 * Create a World without bodies at the start of the opening transition.
+	 * Start a level: the body tiles leave the map, the exits close, and the animated tiles and the plasma balls start.
+	 * The World is at the start of the opening transition.
 	 *
-	 * @param {TileMap} map The map. The World uses the object and does not copy it.
+	 * @param {import('./level.js').Level} level The level.
+	 * @param {object} [options] The options.
+	 * @param {boolean} [options.restart] True for a restart of the same level, for example after a death. A restart and
+	 *     a replay skip the waits of the events and the entrance of the boss.
+	 * @param {boolean} [options.replay] True if a replay plays the level.
+	 * @param {number} [options.transition] The effect of the opening transition, a value of Transition.
 	 */
-	constructor(map) {
-		this.map = map;
+	constructor(level, { restart = false, replay = false, transition = Transition.HORIZONTAL_LINES } = {}) {
+		this.map = new TileMap(level.tiles);
 		this.player = new Player(this);
+		this.level = level;
+		this.#replaying = replay;
+		this.phase.transition = transition;
+		this.boss = level.boss ? createBoss(this, level.boss) : null;
+		this.#loadBodies();
+		this.effects.startCamera(this.player.x, this.player.y);
+		this.cakesLeft = this.cakes.length;
+		if (this.cakesLeft === 0) this.openExit();
+		this.background = level.bg;
+		this.abilities = { ...level.abilities };
+		this.labels = level.labels;
+		this.events = new LevelEvents(this, level.events, restart || replay);
+		this.events.update(); // fire the start events
+		if (this.boss && (restart || replay)) this.boss.skipEntry();
 	}
 
 	/**
@@ -140,37 +159,6 @@ export class World {
 	 */
 	get replaying() {
 		return this.#replaying;
-	}
-
-	/**
-	 * Create the World of a level start. The body tiles leave the map, the exits close, and the animated tiles and
-	 * the plasma balls start.
-	 *
-	 * @param {import('./level.js').Level} level The level.
-	 * @param {object} [options] The options.
-	 * @param {boolean} [options.restart] True for a restart of the same level, for example after a death. A restart and
-	 *     a replay skip the waits of the events and the entrance of the boss.
-	 * @param {boolean} [options.replay] True if a replay plays the level.
-	 * @param {number} [options.transition] The effect of the opening transition, a value of Transition.
-	 * @returns {World} The World.
-	 */
-	static forLevel(level, { restart = false, replay = false, transition = Transition.HORIZONTAL_LINES } = {}) {
-		const world = new World(new TileMap(level.tiles));
-		world.level = level;
-		world.#replaying = replay;
-		world.phase.transition = transition;
-		world.boss = level.boss ? createBoss(world, level.boss) : null;
-		world.#loadBodies({ levelStart: true });
-		world.effects.startCamera(world.player.x, world.player.y);
-		world.cakesLeft = world.cakes.length;
-		if (world.cakesLeft === 0) world.openExit();
-		world.background = level.bg;
-		world.abilities = { ...level.abilities };
-		world.labels = level.labels;
-		world.events = new LevelEvents(world, level.events, restart || replay);
-		world.events.update(); // fire the start events
-		if (world.boss && (restart || replay)) world.boss.skipEntry();
-		return world;
 	}
 
 	/**
@@ -420,17 +408,14 @@ export class World {
 
 	/**
 	 * Create the bodies of the map at their start positions and put them into the World. The method sets the position
-	 * of the player and of the tube when the map has their tiles. At a level start, a player launch tile also launches
-	 * the player. Each plasma launch starts a plasma ball when the World has no boss. For a boss that shoots plasma
-	 * balls, the plasma launch is the start point of its shots. Only a level start has plasma launches, so forLevel()
-	 * creates the boss first.
+	 * of the player and of the tube when the map has their tiles. A player launch tile also launches the player. Each
+	 * plasma launch starts a plasma ball when the World has no boss. For a boss that shoots plasma balls, the plasma
+	 * launch is the start point of its shots, so the constructor creates the boss first.
 	 *
-	 * @param {object} [options] The options.
-	 * @param {boolean} [options.levelStart] True for a level start, see createBodies().
 	 * @returns {void}
 	 */
-	#loadBodies({ levelStart = false } = {}) {
-		const bodies = createBodies(this, { levelStart });
+	#loadBodies() {
+		const bodies = createBodies(this);
 		this.cakes = bodies.cakes;
 		this.turrets = bodies.turrets;
 		this.crates = bodies.crates;
@@ -440,7 +425,7 @@ export class World {
 		this.animatedTiles = bodies.animatedTiles;
 		if (bodies.playerStart) {
 			this.player.putAt(bodies.playerStart.x, bodies.playerStart.y);
-			if (levelStart && bodies.playerStart.launch !== null) this.player.launch(bodies.playerStart.launch);
+			if (bodies.playerStart.launch !== null) this.player.launch(bodies.playerStart.launch);
 		}
 		if (bodies.tube) {
 			this.tubeX = bodies.tube.x;

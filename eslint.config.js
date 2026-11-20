@@ -31,7 +31,7 @@ const LAYERS = [
 			'./js/stage/sessions/[r]eplay.js',
 		],
 	},
-	{ name: 'drawing', files: ['./js/stage/render/*.js'] },
+	{ name: 'drawing', files: ['./js/stage/render/**/*.js'] },
 	{
 		name: 'flow',
 		files: [

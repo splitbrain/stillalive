@@ -4,8 +4,24 @@
 
 import { beginFrame } from '../browser/canvas.js';
 import { drawCursor, drawEditorLayer } from './editor.js';
-import { drawLevel, drawPreviewMap, drawTileLayer } from './game.js';
 import { LayerCache } from './LayerCache.js';
+import { Scene } from './Scene.js';
+import {
+	CakePainter,
+	CratePainter,
+	GravPipePainter,
+	PlasmaPainter,
+	PlatformPainter,
+	TurretPainter,
+} from './painters/bodies.js';
+import { BossPainter, RazorWheelPainter, TubePainter } from './painters/boss.js';
+import { CrosshairPainter } from './painters/cursors.js';
+import { CameraPainter, DeathFadePainter, SparklePainter } from './painters/effects.js';
+import { LabelPainter } from './painters/labels.js';
+import { PlayerPainter } from './painters/player.js';
+import { FrontTilePainter, PortalPainter } from './painters/portals.js';
+import { AnimatedTilePainter, TileLayerPainter } from './painters/tiles.js';
+import { TransitionPainter } from './painters/transitions.js';
 
 /**
  * A session that the Renderer draws: a level, a preview or the editor.
@@ -16,20 +32,20 @@ import { LayerCache } from './LayerCache.js';
  */
 
 /**
- * The drawing of the stage. It keeps the cached layers and the label layouts for the next frames.
+ * The drawing of the stage with the scenes of a level and of a preview.
  */
 export class Renderer {
 	/** @type {import('../browser/InputState.js').InputState} The keys and the mouse. */
 	#input;
 
-	/** @type {LayerCache} The cached background and tiles of a level or a preview. */
-	#tileLayer = new LayerCache();
+	/** @type {Scene} The draw order of a level. */
+	#level;
+
+	/** @type {Scene} The draw order of a preview. */
+	#preview;
 
 	/** @type {LayerCache} The cached background, tiles and bodies of the editor map. */
 	#editorLayer = new LayerCache();
-
-	/** @type {import('./game.js').LabelLayouts} The layouts of the labels that were measured with the label font. */
-	#labelLayouts = new WeakMap();
 
 	/**
 	 * Create the drawing of the stage.
@@ -38,6 +54,42 @@ export class Renderer {
 	 */
 	constructor(input) {
 		this.#input = input;
+		// the level and the preview share the cached tile layer
+		const tileLayer = new TileLayerPainter();
+		this.#level = new Scene([
+			tileLayer,
+			new AnimatedTilePainter(),
+			new GravPipePainter(),
+			new PlayerPainter({ pose: 'aim', input }),
+			new CakePainter(),
+			new TurretPainter(),
+			new PlasmaPainter(),
+			new SparklePainter(),
+			new CratePainter(),
+			new BossPainter(),
+			new RazorWheelPainter(),
+			new TubePainter(),
+			new PlatformPainter({ arrows: false }),
+			new FrontTilePainter(),
+			new PortalPainter(),
+			new CameraPainter(),
+			new LabelPainter(),
+			new DeathFadePainter(),
+			new TransitionPainter(),
+			new CrosshairPainter(input),
+		]);
+		this.#preview = new Scene([
+			tileLayer,
+			new PlayerPainter({ pose: 'still' }),
+			new CakePainter(),
+			new TurretPainter(),
+			new CratePainter(),
+			new PlatformPainter({ arrows: false }),
+			new GravPipePainter(),
+			new TubePainter(),
+			new BossPainter(),
+			new CrosshairPainter(input),
+		]);
 	}
 
 	/**
@@ -59,8 +111,7 @@ export class Renderer {
 	 * @returns {void}
 	 */
 	drawLevel(world) {
-		this.#drawTileLayer(world);
-		drawLevel(world, this.#input, this.#labelLayouts);
+		this.#level.draw(world);
 	}
 
 	/**
@@ -70,8 +121,7 @@ export class Renderer {
 	 * @returns {void}
 	 */
 	drawPreview(world) {
-		this.#drawTileLayer(world);
-		drawPreviewMap(world, this.#input);
+		this.#preview.draw(world);
 	}
 
 	/**
@@ -83,15 +133,5 @@ export class Renderer {
 	drawEditor(editor) {
 		this.#editorLayer.draw(editor.map, editor.background, () => drawEditorLayer(editor));
 		drawCursor(editor.brush, this.#input);
-	}
-
-	/**
-	 * Draw the background and the tiles of a World from the cached tile layer.
-	 *
-	 * @param {import('../world/World.js').World} world The World.
-	 * @returns {void}
-	 */
-	#drawTileLayer(world) {
-		this.#tileLayer.draw(world.map, world.background, () => drawTileLayer(world));
 	}
 }

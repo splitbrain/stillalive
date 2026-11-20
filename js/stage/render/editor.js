@@ -7,17 +7,28 @@ import { MAP_HEIGHT, MAP_WIDTH, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, TILE_SIZE, TI
 import { bg, cakeImage, crateImage, tileset, turretImages } from '../browser/images.js';
 import { GRAVPIPE_DIRECTIONS, plasmaLaunch } from '../world/level.js';
 import { Tile, isBodyTile } from '../map/tiles.js';
-import {
-	drawCakes,
-	drawCrates,
-	drawGravPipe,
-	drawGravPipes,
-	drawPlatform,
-	drawPlatforms,
-	drawPlayer,
-	drawTiles,
-	drawTurrets,
-} from './game.js';
+import { CakePainter, CratePainter, GravPipePainter, PlatformPainter, TurretPainter } from './painters/bodies.js';
+import { PlayerPainter } from './painters/player.js';
+import { drawTiles } from './painters/tiles.js';
+
+/** @type {PlatformPainter} The painter of the platforms with the arrows of their directions. */
+const platformPainter = new PlatformPainter({ arrows: true });
+
+/** @type {GravPipePainter} The painter of the gravitational pipes. */
+const gravPipePainter = new GravPipePainter();
+
+/** @type {PlayerPainter} The painter of the player at the start. */
+const playerPainter = new PlayerPainter({ pose: 'start' });
+
+/** @type {import('./Scene.js').Painter[]} The painters of the bodies of the editor map, in the draw order. */
+const BODY_PAINTERS = [
+	new CakePainter(),
+	new TurretPainter(),
+	new CratePainter(),
+	platformPainter,
+	gravPipePainter,
+	playerPainter,
+];
 
 /**
  * Draw the cursor of the editor: the tile or the body that the editor paints, at the mouse.
@@ -38,12 +49,7 @@ export function drawCursor(brush, input) {
  * @returns {void}
  */
 function drawBodies(world) {
-	drawCakes(world);
-	drawTurrets(world);
-	drawCrates(world);
-	drawPlatforms(world, true);
-	drawGravPipes(world);
-	drawPlayer(world.player.pixelX, world.player.pixelY, 0);
+	for (const painter of BODY_PAINTERS) painter.draw(world);
 }
 
 /**
@@ -115,19 +121,19 @@ function drawBodyCursor(body, input) {
 			drawImage(turretImages[1], 0, 0, TILE_SIZE, 2 * TILE_SIZE, x, y, TILE_SIZE, 2 * TILE_SIZE);
 			break;
 		case Tile.PLATFORM_RIGHT:
-			drawPlatform(x, y, 1, true);
+			platformPainter.drawPlatform(x, y, 1);
 			break;
 		case Tile.PLATFORM_LEFT:
-			drawPlatform(x, y, -1, true);
+			platformPainter.drawPlatform(x, y, -1);
 			break;
 		case Tile.PLAYER_START:
-			drawPlayer(x, y, 0);
+			playerPainter.drawFigure(x, y, 1, 0);
 			break;
 		case Tile.GRAVPIPE_RIGHT:
 		case Tile.GRAVPIPE_LEFT:
 		case Tile.GRAVPIPE_UP:
 		case Tile.GRAVPIPE_DOWN:
-			drawGravPipe(GRAVPIPE_DIRECTIONS[body], x, y);
+			gravPipePainter.drawGravPipe(GRAVPIPE_DIRECTIONS[body], x, y);
 			break;
 	}
 }

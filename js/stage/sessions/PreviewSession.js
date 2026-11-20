@@ -3,6 +3,7 @@
  */
 
 import { StageMode } from '../constants.js';
+import { PreviewScene } from '../render/PreviewScene.js';
 import { World } from '../world/World.js';
 
 /**
@@ -11,6 +12,9 @@ import { World } from '../world/World.js';
 export class PreviewSession {
 	/** @type {World} The World of the preview. */
 	world;
+
+	/** @type {PreviewScene} The scene that draws the World of the preview. */
+	scene;
 
 	/** @type {import('../browser/InputState.js').InputState} The keys and the mouse. */
 	#input;
@@ -23,6 +27,7 @@ export class PreviewSession {
 	 */
 	constructor(level, input) {
 		this.world = World.forPreview(level);
+		this.scene = new PreviewScene(input);
 		this.#input = input;
 	}
 
@@ -43,15 +48,5 @@ export class PreviewSession {
 	tick() {
 		this.#input.update();
 		this.#input.endTick();
-	}
-
-	/**
-	 * Draw the preview.
-	 *
-	 * @param {import('../render/Renderer.js').Renderer} renderer The drawing of the stage.
-	 * @returns {void}
-	 */
-	draw(renderer) {
-		renderer.drawPreview(this.world);
 	}
 }

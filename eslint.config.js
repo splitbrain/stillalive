@@ -26,7 +26,7 @@ const LAYERS = [
 		files: [
 			'./js/stage/{bodies,effects,portals}/*.js',
 			'./js/stage/world/{AnimatedTile,level,LevelEvents,mapBodies,SwitchDoors,World}.js',
-			'./js/stage/editor/{mapEdit,UndoList}.js',
+			'./js/stage/editor/{Editor,mapEdit,UndoList}.js',
 			'./js/stage/map/[m]apFile.js',
 			'./js/stage/sessions/[r]eplay.js',
 		],
@@ -36,9 +36,8 @@ const LAYERS = [
 		name: 'flow',
 		files: [
 			'./js/stage/[G]ameStage.js',
-			'./js/stage/editor/[E]ditor.js',
 			'./js/stage/browser/[i]nput.js',
-			'./js/stage/sessions/{PlaySession,PreviewSession}.js',
+			'./js/stage/sessions/{EditorSession,PlaySession,PreviewSession}.js',
 		],
 	},
 	{ name: 'data', files: ['./js/data/*.js'] },

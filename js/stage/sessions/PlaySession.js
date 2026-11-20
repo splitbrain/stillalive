@@ -3,6 +3,7 @@
  */
 
 import { StageMode } from '../constants.js';
+import { LevelScene } from '../render/LevelScene.js';
 import { Recorder, ReplayPlayer, encodeReplay } from './replay.js';
 import { World } from '../world/World.js';
 
@@ -26,6 +27,8 @@ import { World } from '../world/World.js';
 export class PlaySession {
 	/** @type {World} The World of the current level start. */
 	world;
+	/** @type {LevelScene} The scene that draws the World of the level. */
+	scene;
 	/** @type {import('../world/level.js').Level} The level. */
 	level;
 	/** @type {Recorder|ReplayPlayer|null} The input source of the level, or null in a test run. */
@@ -61,6 +64,7 @@ export class PlaySession {
 		this.transition = transition;
 		this.#input = input;
 		this.#report = report;
+		this.scene = new LevelScene(input);
 		this.#start(restart, replay);
 		input.unclick();
 	}
@@ -132,16 +136,6 @@ export class PlaySession {
 				}
 				break;
 		}
-	}
-
-	/**
-	 * Draw the level.
-	 *
-	 * @param {import('../render/Renderer.js').Renderer} renderer The drawing of the stage.
-	 * @returns {void}
-	 */
-	draw(renderer) {
-		renderer.drawLevel(this.world);
 	}
 
 	/**

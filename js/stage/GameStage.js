@@ -17,13 +17,13 @@ import {
 	sfx_hover,
 	sfx_tick,
 } from './browser/audio.js';
-import { clearCanvas, ctx, setCanvas, watchCanvasSize } from './browser/canvas.js';
+import { beginFrame, clearCanvas, ctx, setCanvas, watchCanvasSize } from './browser/canvas.js';
 import { PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, StageMode, Transition } from './constants.js';
 import { Editor } from './editor/Editor.js';
 import { InputState } from './browser/InputState.js';
 import { setupInput } from './browser/input.js';
 import { getFps, startLoop } from './browser/loop.js';
-import { Renderer } from './render/Renderer.js';
+import { EditorSession } from './sessions/EditorSession.js';
 import { PlaySession } from './sessions/PlaySession.js';
 import { PreviewSession } from './sessions/PreviewSession.js';
 import { decodeReplay } from './sessions/replay.js';
@@ -62,13 +62,13 @@ const BOSS_MUSIC_RATE = 1.4;
 const BOSS_MUSIC_DUCK = 0.5;
 
 /**
- * A mode of the stage: a PlaySession, a PreviewSession or the Editor.
+ * A mode of the stage: a PlaySession, a PreviewSession or an EditorSession.
  *
  * @typedef {object} Session
  * @property {string} mode The mode of the stage for the session, a value of StageMode.
  * @property {import('./world/World.js').World} world The World that the session shows.
  * @property {() => void} tick The function that runs one tick of the session, with the input of the tick.
- * @property {(renderer: Renderer) => void} draw The function that draws the session with the methods of the Renderer.
+ * @property {import('./render/Scene.js').Scene} scene The scene that draws the World of the session.
  */
 
 /**
@@ -86,7 +86,7 @@ const BOSS_MUSIC_DUCK = 0.5;
 
 /**
  * The game stage. It plays a level, shows the preview of a level or opens the editor on a map. Each of these is a
- * session: a PlaySession, a PreviewSession or the Editor. Without a session, the stage is idle.
+ * session: a PlaySession, a PreviewSession or an EditorSession. Without a session, the stage is idle.
  */
 export class GameStage extends HTMLElement {
 	/** @type {Value<string>} What the stage shows, a value of StageMode. */
@@ -110,7 +110,7 @@ export class GameStage extends HTMLElement {
 	/** @type {InputState} The keys and the mouse, and the changes of each tick. */
 	#input = new InputState();
 	/** @type {Editor} The level editor. It keeps the editor map while the stage shows something else. */
-	#editor = new Editor(this.#input);
+	#editor = new Editor();
 	/** @type {Value<number>} The tile id or the body id that the editor paints. */
 	brush = new Value(this.#editor.brush);
 	/** @type {Value<number>} The measured number of frames per second. */
@@ -128,9 +128,6 @@ export class GameStage extends HTMLElement {
 
 	/** @type {Session|null} The session that the stage shows, or null for an idle stage. */
 	#session = null;
-
-	/** @type {Renderer} The drawing of the stage. */
-	#renderer = new Renderer(this.#input);
 
 	/** @type {number} The effect of the opening transition of the next level, a value of Transition. */
 	#transition = Transition.HORIZONTAL_LINES;
@@ -166,7 +163,7 @@ export class GameStage extends HTMLElement {
 
 		startLoop(
 			() => this.#step(),
-			() => this.#renderer.render(this.#session),
+			() => this.#render(),
 		);
 		this.#addTestHook();
 	}
@@ -218,7 +215,7 @@ export class GameStage extends HTMLElement {
 	edit(level) {
 		this.#leave();
 		this.#editor.open(level);
-		this.#session = this.#editor;
+		this.#session = new EditorSession(this.#editor, this.#input);
 		this.#publish();
 	}
 
@@ -229,7 +226,7 @@ export class GameStage extends HTMLElement {
 	 * @returns {void}
 	 */
 	test() {
-		if (this.#session !== this.#editor) return;
+		if (!this.#editing) return;
 		this.#session = new PlaySession(this.#editor.testLevel(), {
 			input: this.#input,
 			report: (type, detail) => this.#onSessionEvent(type, detail),
@@ -310,7 +307,7 @@ export class GameStage extends HTMLElement {
 	 * @returns {void}
 	 */
 	setBackground(index) {
-		if (this.#session === this.#editor) this.#editor.setBackground(index);
+		if (this.#editing) this.#editor.setBackground(index);
 	}
 
 	/**
@@ -329,7 +326,7 @@ export class GameStage extends HTMLElement {
 	 * @returns {void}
 	 */
 	clearMap() {
-		if (this.#session === this.#editor) this.#editor.clear();
+		if (this.#editing) this.#editor.clear();
 	}
 
 	/**
@@ -338,7 +335,7 @@ export class GameStage extends HTMLElement {
 	 * @returns {void}
 	 */
 	undo() {
-		if (this.#session === this.#editor) this.#editor.undo();
+		if (this.#editing) this.#editor.undo();
 	}
 
 	/**
@@ -347,7 +344,7 @@ export class GameStage extends HTMLElement {
 	 * @returns {void}
 	 */
 	redo() {
-		if (this.#session === this.#editor) this.#editor.redo();
+		if (this.#editing) this.#editor.redo();
 	}
 
 	/**
@@ -420,6 +417,15 @@ export class GameStage extends HTMLElement {
 	}
 
 	/**
+	 * Check if the stage shows the editor.
+	 *
+	 * @returns {boolean} True in the mode "edit".
+	 */
+	get #editing() {
+		return this.#session instanceof EditorSession;
+	}
+
+	/**
 	 * Leave the current session before a new command. A test run ends without the event "testend", and the editor
 	 * continues with its own map.
 	 *
@@ -445,6 +451,18 @@ export class GameStage extends HTMLElement {
 		for (let i = 0; i < this.#speed; i++) this.#tick();
 		setSoundMuted(false);
 		this.#publish();
+	}
+
+	/**
+	 * Draw a frame of the current session with its scene. Without a session, the canvas stays the same.
+	 *
+	 * @returns {void}
+	 */
+	#render() {
+		const session = this.#session;
+		if (!session) return;
+		beginFrame(session.world.effects.shakeX, session.world.effects.shakeY);
+		session.scene.draw(session.world);
 	}
 
 	/**
@@ -481,7 +499,7 @@ export class GameStage extends HTMLElement {
 		}
 		if (type === 'testend') {
 			this.#editor.open();
-			this.#session = this.#editor;
+			this.#session = new EditorSession(this.#editor, this.#input);
 		} else if (type === 'brokenreplay') {
 			this.#session = null;
 		}
@@ -570,7 +588,7 @@ export class GameStage extends HTMLElement {
 			endReplay: () => this.#play?.endPlayback(),
 			input: this.#input,
 			tick: () => this.#step(),
-			render: () => this.#renderer.render(this.#session),
+			render: () => this.#render(),
 		};
 	}
 }

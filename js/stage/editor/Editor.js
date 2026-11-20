@@ -1,8 +1,8 @@
 /**
- * The level editor, the session of the mode "edit". It also provides the level for the test run of the editor map.
+ * The Editor object.
  */
 
-import { BACKGROUND_COUNT, MouseButton, StageMode, TILE_SIZE_BITS } from '../constants.js';
+import { BACKGROUND_COUNT, MouseButton, TILE_SIZE_BITS } from '../constants.js';
 import { allowTile, build, eraseBodyAbove, eraseBodies, fill } from './mapEdit.js';
 import { MAP_FORMAT, parseMap } from '../map/mapFile.js';
 import { emptyTiles, TileMap } from '../world/TileMap.js';
@@ -11,8 +11,8 @@ import { UndoList } from './UndoList.js';
 import { World } from '../world/World.js';
 
 /**
- * The level editor, the session of the mode "edit". It holds the editor map, its bodies and its undo list as long as
- * the stage exists.
+ * The state of the level editor: the editor map with its bodies, the brush and the undo list. It exists as long as
+ * the stage, so the editor map stays during a test run.
  */
 export class Editor {
 	/** @type {number} The tile id or the body id that the editor paints. */
@@ -27,10 +27,7 @@ export class Editor {
 	/** @type {TileMap} The tiles of the editor map. */
 	#map = new TileMap(emptyTiles());
 
-	/** @type {number} The index of the background image of the editor map. */
-	#background = 0;
-
-	/** @type {World} The World with the bodies of the editor map. It uses the TileMap of the editor. */
+	/** @type {World} The World with the background and the bodies of the editor map. It uses the TileMap of the editor. */
 	#world = World.forEditor(this.#map);
 
 	/** @type {UndoList} The maps after each change. It starts with the empty map. */
@@ -42,44 +39,11 @@ export class Editor {
 	/** @type {boolean} True when the bodies of the editor map must be created again. */
 	#bodiesChanged = false;
 
-	/** @type {import('../browser/InputState.js').InputState} The keys and the mouse. */
-	#input;
-
 	/**
 	 * Create the editor with an empty map.
-	 *
-	 * @param {import('../browser/InputState.js').InputState} input The keys and the mouse.
 	 */
-	constructor(input) {
-		this.#input = input;
+	constructor() {
 		this.#addUndo();
-	}
-
-	/**
-	 * Get the mode of the stage for the session.
-	 *
-	 * @returns {string} StageMode.EDIT.
-	 */
-	get mode() {
-		return StageMode.EDIT;
-	}
-
-	/**
-	 * Get the tiles of the editor map.
-	 *
-	 * @returns {TileMap} The TileMap of the editor.
-	 */
-	get map() {
-		return this.#map;
-	}
-
-	/**
-	 * Get the background of the editor map.
-	 *
-	 * @returns {number} The index of the background image.
-	 */
-	get background() {
-		return this.#background;
 	}
 
 	/**
@@ -114,7 +78,7 @@ export class Editor {
 			delete rest.format;
 			this.#map = new TileMap(tiles);
 			this.#world = World.forEditor(this.#map);
-			this.#background = bg;
+			this.#world.background = bg;
 			this.#properties = rest;
 		} else {
 			this.#world.createEditorBodies();
@@ -124,7 +88,6 @@ export class Editor {
 			this.#addUndo();
 		}
 
-		this.#input.unclick();
 		this.#bodiesChanged = false;
 	}
 
@@ -135,43 +98,22 @@ export class Editor {
 	 *     a copy of the tiles.
 	 */
 	getMap() {
-		return { ...this.#properties, bg: this.#background, tiles: [...this.#map.tiles] };
+		return { ...this.#properties, bg: this.#world.background, tiles: [...this.#map.tiles] };
 	}
 
 	/**
-	 * Run one tick: the input of the tick and the edit at the mouse. When the map of the editor changed, its bodies
-	 * are created again.
+	 * Run one tick: change the map at the mouse, undo or redo a change, and create the bodies again after a change.
 	 *
+	 * @param {import('../browser/InputState.js').InputState} input The keys and the mouse of the tick.
 	 * @returns {void}
 	 */
-	tick() {
-		this.#input.update();
-		this.#input.endTick();
-		this.#edit();
-	}
+	tick(input) {
+		this.#updateDrawTile(input);
+		this.#updateDrawBody(input);
+		this.#manageUndoRedo(input);
 
-	/**
-	 * Draw the editor map and the cursor.
-	 *
-	 * @param {import('../render/Renderer.js').Renderer} renderer The drawing of the stage.
-	 * @returns {void}
-	 */
-	draw(renderer) {
-		renderer.drawEditor(this);
-	}
-
-	/**
-	 * Change the map at the mouse, undo or redo a change, and create the bodies again after a change.
-	 *
-	 * @returns {void}
-	 */
-	#edit() {
-		this.#updateDrawTile();
-		this.#updateDrawBody();
-		this.#manageUndoRedo();
-
-		if (this.#oldMouseReleased && this.#input.mouseReleased) this.#input.mouseReleased = false;
-		this.#oldMouseReleased = this.#input.mouseReleased;
+		if (this.#oldMouseReleased && input.mouseReleased) input.mouseReleased = false;
+		this.#oldMouseReleased = input.mouseReleased;
 
 		if (this.#bodiesChanged) this.#rebuildBodies();
 	}
@@ -195,7 +137,7 @@ export class Editor {
 	 * @returns {void}
 	 */
 	setBackground(index) {
-		this.#background = ((index % BACKGROUND_COUNT) + BACKGROUND_COUNT) % BACKGROUND_COUNT;
+		this.#world.background = ((index % BACKGROUND_COUNT) + BACKGROUND_COUNT) % BACKGROUND_COUNT;
 		this.#mapChanged();
 	}
 
@@ -276,22 +218,23 @@ export class Editor {
 	/**
 	 * Undo or redo a change when the player released the undo or redo keys.
 	 *
+	 * @param {import('../browser/InputState.js').InputState} input The keys and the mouse of the tick.
 	 * @returns {void}
 	 */
-	#manageUndoRedo() {
-		if (this.#input.undoPressed) this.undo();
-		else if (this.#input.redoPressed) this.redo();
-		this.#input.undoPressed = false;
-		this.#input.redoPressed = false;
+	#manageUndoRedo(input) {
+		if (input.undoPressed) this.undo();
+		else if (input.redoPressed) this.redo();
+		input.undoPressed = false;
+		input.redoPressed = false;
 	}
 
 	/**
 	 * Place or remove a body at the mouse while a button is pressed.
 	 *
+	 * @param {import('../browser/InputState.js').InputState} input The keys and the mouse of the tick.
 	 * @returns {void}
 	 */
-	#updateDrawBody() {
-		const input = this.#input;
+	#updateDrawBody(input) {
 		const brush = this.brush;
 		const map = this.#map;
 		if (!input.mouseOnPlayfield() || !isBodyTile(brush)) return;
@@ -331,10 +274,10 @@ export class Editor {
 	/**
 	 * Draw, remove or fill tiles at the mouse while a button is pressed.
 	 *
+	 * @param {import('../browser/InputState.js').InputState} input The keys and the mouse of the tick.
 	 * @returns {void}
 	 */
-	#updateDrawTile() {
-		const input = this.#input;
+	#updateDrawTile(input) {
 		const brush = this.brush;
 		const map = this.#map;
 		if (!input.mouseOnPlayfield() || isBodyTile(brush)) return;

@@ -43,6 +43,9 @@ export class BrushPainter {
 	/** @type {import('../../browser/InputState.js').InputState} The mouse. */
 	#input;
 
+	/** @type {() => number} The function that gets the tile id or the body tile id that the editor paints. */
+	#brush;
+
 	/** @type {Map<number, (x: number, y: number) => void>} The functions that draw each body brush, by body tile id. */
 	#bodies;
 
@@ -50,9 +53,11 @@ export class BrushPainter {
 	 * Create the painter of the brush.
 	 *
 	 * @param {import('../../browser/InputState.js').InputState} input The mouse.
+	 * @param {() => number} brush The function that gets the tile id or the body tile id that the editor paints.
 	 */
-	constructor(input) {
+	constructor(input, brush) {
 		this.#input = input;
+		this.#brush = brush;
 		const cake = new CakePainter();
 		const crate = new CratePainter();
 		const turret = new TurretPainter();
@@ -76,12 +81,12 @@ export class BrushPainter {
 	/**
 	 * Draw the brush on the tile under the mouse while the pointer is over the canvas and the mouse is over the map.
 	 *
-	 * @param {number} brush The tile id or the body tile id that the editor paints.
 	 * @returns {void}
 	 */
-	draw(brush) {
+	draw() {
 		const input = this.#input;
 		if (!input.mouseOver || !input.mouseOnPlayfield()) return;
+		const brush = this.#brush();
 		const x = (input.mouseX >> TILE_SIZE_BITS) << TILE_SIZE_BITS;
 		const y = (input.mouseY >> TILE_SIZE_BITS) << TILE_SIZE_BITS;
 		if (isBodyTile(brush)) this.#bodies.get(brush)?.(x, y);

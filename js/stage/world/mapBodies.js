@@ -17,7 +17,7 @@ import { toSubpixels } from '../utils.js';
 const ANIMATED_KINDS = [
 	{ kind: TileKind.PLASMA_DOOR, type: RANDOM, speed: 6 },
 	{ kind: TileKind.SWITCH_DOOR, type: RANDOM, speed: 6 },
-	{ kind: TileKind.WHEEL, type: ORDERED, speed: 15 },
+	{ kind: TileKind.RAZOR_WHEEL, type: ORDERED, speed: 15 },
 	{ kind: TileKind.ACID, type: ORDERED, speed: 15 },
 	{ kind: TileKind.ENERGYWALL, type: RANDOM, speed: 6 },
 	{ kind: TileKind.FORCE_FIELD, type: ORDERED, speed: 6 },

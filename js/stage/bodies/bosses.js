@@ -33,26 +33,26 @@ export class CrateBoss extends Boss {
 /**
  * Boss 2 shoots razor wheels. It makes no crates, so a crate that hits it drops from the top again.
  */
-export class WheelBoss extends Boss {
+export class RazorWheelBoss extends Boss {
 	/**
 	 * @param {import('../world/World.js').World} world The World of the body.
 	 */
 	constructor(world) {
 		super(world, 2);
-		this.shootsWheels = true;
+		this.shootsRazorWheels = true;
 	}
 
 	/**
-	 * Shoot a razor wheel at the player. Each hit makes the shots faster, and after the second hit a second wheel comes
-	 * from the left.
+	 * Shoot a razor wheel at the player. Each hit makes the shots faster, and after the second hit a second razor wheel
+	 * comes from the left.
 	 *
 	 * @returns {void}
 	 */
 	attack() {
 		const hits = this.hits;
 		if (this.world.time % (90 - 15 * hits) !== 0) return;
-		this.shootWheel(435, 50, 1200, 1200 - this.world.player.vx);
-		if (hits === 2) this.shootWheel(TILE_SIZE, 3 * TILE_SIZE, 1200);
+		this.shootRazorWheel(435, 50, 1200, 1200 - this.world.player.vx);
+		if (hits === 2) this.shootRazorWheel(TILE_SIZE, 3 * TILE_SIZE, 1200);
 	}
 }
 
@@ -99,7 +99,7 @@ export class FinalBoss extends Boss {
 		super(world, 4);
 		this.makesCrates = true;
 		this.throwsCrates = true;
-		this.shootsWheels = true;
+		this.shootsRazorWheels = true;
 		this.shootsPlasma = true;
 	}
 
@@ -113,13 +113,13 @@ export class FinalBoss extends Boss {
 		const time = this.world.time;
 		const hits = this.hits;
 		if (time % (90 - 20 * hits) === 0) this.throwCrate(5, 20);
-		if (hits > 0 && time % (180 - 20 * hits) === 0) this.shootWheel(27 * TILE_SIZE, 2 * TILE_SIZE, 600);
+		if (hits > 0 && time % (180 - 20 * hits) === 0) this.shootRazorWheel(27 * TILE_SIZE, 2 * TILE_SIZE, 600);
 		if (hits > 1 && this.world.plasmaBalls.length === 0) this.shootPlasma(400);
 	}
 }
 
 /** @type {Array<new (world: import('../world/World.js').World) => Boss>} The boss classes, by the boss number minus 1. */
-const BOSSES = [CrateBoss, WheelBoss, PlasmaBoss, FinalBoss];
+const BOSSES = [CrateBoss, RazorWheelBoss, PlasmaBoss, FinalBoss];
 
 /**
  * Create the boss of a boss level.

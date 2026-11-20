@@ -68,7 +68,7 @@ const BINS = [
 	[
 		[
 			{
-				tile: Tile.WHEEL,
+				tile: Tile.RAZOR_WHEEL,
 				title: 'Razor wheel: kills the player, breaks turrets and sends crates back, portal shots go through it',
 			},
 			{ tile: Tile.ACID, title: 'Acid surface: kills the player, breaks turrets, sends crates and plasma balls back' },

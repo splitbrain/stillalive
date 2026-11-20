@@ -7,7 +7,7 @@ import { MAP_WIDTH, TILE_SIZE } from '../constants.js';
 import { Body } from './Body.js';
 import { Crate } from './Crate.js';
 import { Plasma } from './Plasma.js';
-import { Projectile } from './Projectile.js';
+import { RazorWheel } from './RazorWheel.js';
 import { PuffSparkle } from '../effects/sparkles.js';
 import { FIRST_OF_KIND, TileKind } from '../map/tiles.js';
 import { getCos, getDistance, getSin, random, toPixels, toSubpixels } from '../utils.js';
@@ -72,7 +72,7 @@ export class Boss extends Body {
 		/** @type {boolean} True if the boss throws crates. */
 		this.throwsCrates = false;
 		/** @type {boolean} True if the boss shoots razor wheels. */
-		this.shootsWheels = false;
+		this.shootsRazorWheels = false;
 		/** @type {boolean} True if the boss shoots plasma balls. These balls follow the player. */
 		this.shootsPlasma = false;
 	}
@@ -167,10 +167,10 @@ export class Boss extends Body {
 	 * @param {number} [speedX] The speed along x, if it differs from the speed.
 	 * @returns {void}
 	 */
-	shootWheel(x, y, speed, speedX = speed) {
+	shootRazorWheel(x, y, speed, speedX = speed) {
 		const [dx, dy] = this.#aimAtPlayer(x + TILE_SIZE / 2, y + TILE_SIZE / 2);
-		this.world.addProjectile(
-			new Projectile(this.world, toSubpixels(x), toSubpixels(y), Math.trunc(dx * speedX), Math.trunc(dy * speed)),
+		this.world.addRazorWheel(
+			new RazorWheel(this.world, toSubpixels(x), toSubpixels(y), Math.trunc(dx * speedX), Math.trunc(dy * speed)),
 		);
 	}
 

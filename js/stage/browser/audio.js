@@ -608,7 +608,7 @@ export const sfx_wallCrack = new Sound('wallCrack');
 /** @type {Sound} A crate hits the yellow wall of a boss level, and the wall falls apart. */
 export const sfx_wallBreak = new Sound('wallBreak');
 /** @type {Sound} A razor wheel of the boss sticks in a wall or the floor. */
-export const sfx_bladeStick = new Sound('bladeStick');
+export const sfx_razorWheelStick = new Sound('razorWheelStick');
 /** @type {Sound} A turret shoots. */
 export const sfx_shoot = new Sound('shoot');
 /** @type {Sound} The player is hit by a shot. */

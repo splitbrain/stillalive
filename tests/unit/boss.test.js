@@ -65,7 +65,7 @@ test('the third hit kills the boss', (context) => {
 	}
 	assert.equal(boss.hits, 3);
 	assert.equal(boss.phase(), 'leaving');
-	assert.deepEqual(world.projectiles, []);
+	assert.deepEqual(world.razorWheels, []);
 });
 
 test('the boss removes the oldest removable crate when more than ten crates exist', (context) => {
@@ -102,7 +102,7 @@ test('removeCrate() changes nothing for a crate that is not in the list', () => 
 });
 
 test('each boss has the abilities of its number', () => {
-	// makesCrates, throwsCrates, shootsWheels, shootsPlasma
+	// makesCrates, throwsCrates, shootsRazorWheels, shootsPlasma
 	const abilities = {
 		1: [true, true, false, false],
 		2: [false, false, true, false],
@@ -113,6 +113,10 @@ test('each boss has the abilities of its number', () => {
 		const boss = startWorld(floorTiles(), { boss: Number(number) }).boss;
 		assert.ok(boss);
 		assert.equal(boss.number, Number(number));
-		assert.deepEqual([boss.makesCrates, boss.throwsCrates, boss.shootsWheels, boss.shootsPlasma], expected, number);
+		assert.deepEqual(
+			[boss.makesCrates, boss.throwsCrates, boss.shootsRazorWheels, boss.shootsPlasma],
+			expected,
+			number,
+		);
 	}
 });

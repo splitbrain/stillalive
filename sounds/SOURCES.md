@@ -11,7 +11,7 @@ https://kenney.nl/assets
 | enterPortal.ogg              | Digital Audio, phaserDown3                  |
 | iceStep1.ogg to iceStep4.ogg | Impact Sounds, impactGlass_light_001 to 004 |
 | crateLand.ogg                | Impact Sounds, impactWood_light_002         |
-| bladeStick.ogg               | Impact Sounds, impactPlate_light_002        |
+| razorWheelStick.ogg          | Impact Sounds, impactPlate_light_002        |
 | field.ogg                    | Sci-Fi Sounds, forceField_000               |
 | plasmaField.ogg              | Sci-Fi Sounds, forceField_003               |
 | noPortal.ogg                 | Interface Sounds, error_001                 |

@@ -27,7 +27,7 @@ export const Tile = {
 	SWITCH_DOOR: 23,
 	PLASMA_DOOR: 29,
 	EXIT_CLOSED: 35,
-	WHEEL: 36,
+	RAZOR_WHEEL: 36,
 	ACID: 38,
 	ENERGYWALL: 40,
 	ICYWALL: 46,
@@ -72,7 +72,7 @@ export const TileKind = {
 	SWITCH_DOOR: 'switchDoor',
 	PLASMA_DOOR: 'plasmaDoor',
 	EXIT_CLOSED: 'exitClosed',
-	WHEEL: 'wheel',
+	RAZOR_WHEEL: 'razorWheel',
 	ACID: 'acid',
 	ENERGYWALL: 'energyWall',
 	ICYWALL: 'icyWall',
@@ -99,7 +99,7 @@ const TILE_RANGES = [
 	[23, 28, TileKind.SWITCH_DOOR],
 	[29, 34, TileKind.PLASMA_DOOR],
 	[35, 35, TileKind.EXIT_CLOSED],
-	[36, 37, TileKind.WHEEL],
+	[36, 37, TileKind.RAZOR_WHEEL],
 	[38, 39, TileKind.ACID],
 	[40, 45, TileKind.ENERGYWALL],
 	[46, 46, TileKind.ICYWALL],
@@ -154,7 +154,7 @@ export function inForceFieldRange(id) {
  * @returns {boolean} True for the razor wheels, the acid surface and the acid pool.
  */
 export function isDeadlyTile(id) {
-	return isTileKind(id, TileKind.WHEEL, TileKind.ACID, TileKind.ACIDPOOL);
+	return isTileKind(id, TileKind.RAZOR_WHEEL, TileKind.ACID, TileKind.ACIDPOOL);
 }
 
 /**

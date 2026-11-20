@@ -83,8 +83,8 @@ export class World {
 	gravPipeFields = [];
 	/** @type {import('./AnimatedTile.js').AnimatedTile[]} The animated tiles. */
 	animatedTiles = [];
-	/** @type {import('../bodies/Projectile.js').Projectile[]} The projectiles of the boss. */
-	projectiles = [];
+	/** @type {import('../bodies/RazorWheel.js').RazorWheel[]} The razor wheels of the boss. */
+	razorWheels = [];
 	/** @type {Player} The player. */
 	player;
 	/** @type {PortalPair} The two portals. */
@@ -387,7 +387,7 @@ export class World {
 		}
 
 		if (this.boss && running) {
-			if (this.boss.shootsWheels) this.#updateProjectiles();
+			if (this.boss.shootsRazorWheels) this.#updateRazorWheels();
 			this.boss.updateRumble();
 		}
 
@@ -404,22 +404,22 @@ export class World {
 	}
 
 	/**
-	 * Move the razor wheels of the boss, kill the player on a hit and remove the stopped wheels after their timer.
+	 * Move the razor wheels of the boss, kill the player on a hit and remove the stopped razor wheels after their timer.
 	 *
 	 * @returns {void}
 	 */
-	#updateProjectiles() {
-		// a hit ends the loop, so the loop removes the stopped wheels at once
-		for (let i = 0; i < this.projectiles.length; i++) {
-			const wheel = this.projectiles[i];
-			wheel.move();
-			if (!wheel.needKill && wheel.overlaps(this.player)) {
-				this.projectiles.splice(i, 1);
+	#updateRazorWheels() {
+		// a hit ends the loop, so the loop removes the stopped razor wheels at once
+		for (let i = 0; i < this.razorWheels.length; i++) {
+			const razorWheel = this.razorWheels[i];
+			razorWheel.move();
+			if (!razorWheel.needKill && razorWheel.overlaps(this.player)) {
+				this.razorWheels.splice(i, 1);
 				this.player.takeFatalHit();
 				return;
 			}
-			if (wheel.needKill && wheel.timer === 0) {
-				this.projectiles.splice(i, 1);
+			if (razorWheel.needKill && razorWheel.timer === 0) {
+				this.razorWheels.splice(i, 1);
 				i--;
 			}
 		}
@@ -508,11 +508,11 @@ export class World {
 	/**
 	 * Add a razor wheel of the boss.
 	 *
-	 * @param {import('../bodies/Projectile.js').Projectile} wheel The razor wheel.
+	 * @param {import('../bodies/RazorWheel.js').RazorWheel} razorWheel The razor wheel.
 	 * @returns {void}
 	 */
-	addProjectile(wheel) {
-		this.projectiles.push(wheel);
+	addRazorWheel(razorWheel) {
+		this.razorWheels.push(razorWheel);
 	}
 
 	/**
@@ -531,7 +531,7 @@ export class World {
 	 * @returns {void}
 	 */
 	clearBossAttacks() {
-		this.projectiles = [];
+		this.razorWheels = [];
 		this.plasmaBalls = [];
 	}
 
@@ -647,8 +647,8 @@ export class World {
 	}
 
 	/**
-	 * Get the tile or platform at a point for a portal shot. The shot passes through the exit, the first wheel frame,
-	 * the red energy walls, the cakes and the player start.
+	 * Get the tile or platform at a point for a portal shot. The shot passes through the exit, the first razor wheel
+	 * frame, the red energy walls, the cakes and the player start.
 	 *
 	 * @param {number} x The x coordinate in pixels.
 	 * @param {number} y The y coordinate in pixels.
@@ -660,7 +660,7 @@ export class World {
 		const tile = map.tiles[map.index(x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS)];
 		const passes =
 			tile === Tile.EXIT ||
-			tile === FIRST_OF_KIND[TileKind.WHEEL] ||
+			tile === FIRST_OF_KIND[TileKind.RAZOR_WHEEL] ||
 			isTileKind(tile, TileKind.ENERGYWALL) ||
 			tile === Tile.CAKE ||
 			tile === Tile.PLAYER_START;

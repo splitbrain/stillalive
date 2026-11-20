@@ -255,7 +255,7 @@ export function drawLevel(world, input, labelLayouts) {
 
 	if (world.boss) {
 		drawBoss(world.boss);
-		if (world.boss.shootsWheels) drawProjectiles(world);
+		if (world.boss.shootsRazorWheels) drawRazorWheels(world);
 		drawTube(world, world.boss);
 	}
 
@@ -478,17 +478,29 @@ function drawPlasma(world) {
  * @param {import('../world/World.js').World} world The World.
  * @returns {void}
  */
-function drawProjectiles(world) {
-	for (const wheel of world.projectiles) {
-		const image = tileset[wheel.frame];
-		if (!wheel.needKill) {
+function drawRazorWheels(world) {
+	for (const razorWheel of world.razorWheels) {
+		const image = tileset[razorWheel.frame];
+		if (!razorWheel.needKill) {
 			ctx.globalAlpha = 0.5;
-			drawImage(image, toPixels(wheel.x - wheel.vx * 4), toPixels(wheel.y - wheel.vy * 4), TILE_SIZE, TILE_SIZE);
+			drawImage(
+				image,
+				toPixels(razorWheel.x - razorWheel.vx * 4),
+				toPixels(razorWheel.y - razorWheel.vy * 4),
+				TILE_SIZE,
+				TILE_SIZE,
+			);
 			ctx.globalAlpha = 0.75;
-			drawImage(image, toPixels(wheel.x - wheel.vx * 2), toPixels(wheel.y - wheel.vy * 2), TILE_SIZE, TILE_SIZE);
+			drawImage(
+				image,
+				toPixels(razorWheel.x - razorWheel.vx * 2),
+				toPixels(razorWheel.y - razorWheel.vy * 2),
+				TILE_SIZE,
+				TILE_SIZE,
+			);
 			ctx.globalAlpha = 1;
 		}
-		drawImage(image, wheel.pixelX, wheel.pixelY, TILE_SIZE, TILE_SIZE);
+		drawImage(image, razorWheel.pixelX, razorWheel.pixelY, TILE_SIZE, TILE_SIZE);
 	}
 }
 

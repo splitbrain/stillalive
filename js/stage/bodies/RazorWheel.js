@@ -1,17 +1,17 @@
 /**
- * The Projectile object.
+ * The RazorWheel object.
  */
 
 import { Body } from './Body.js';
 import { MovingBody } from './MovingBody.js';
-import { playSound, sfx_bladeStick } from '../browser/audio.js';
+import { playSound, sfx_razorWheelStick } from '../browser/audio.js';
 import { TILE_SIZE } from '../constants.js';
 import { FIRST_OF_KIND, LAST_OF_KIND, TileKind } from '../map/tiles.js';
 
 /**
  * A razor wheel that the boss throws.
  */
-export class Projectile extends MovingBody {
+export class RazorWheel extends MovingBody {
 	/**
 	 * @param {import('../world/World.js').World} world The World of the body.
 	 * @param {number} x The x position in 1/256 pixels.
@@ -23,16 +23,16 @@ export class Projectile extends MovingBody {
 		super(world, x, y, TILE_SIZE, TILE_SIZE);
 		this.vx = vx;
 		this.vy = vy;
-		/** @type {boolean} True after the wheel hit something. */
+		/** @type {boolean} True after the razor wheel hit something. */
 		this.needKill = false;
-		/** @type {number} Ticks until the stopped wheel goes away. */
+		/** @type {number} Ticks until the stopped razor wheel goes away. */
 		this.timer = 0;
-		/** @type {number} The tile id of the wheel frame to draw. */
-		this.frame = FIRST_OF_KIND[TileKind.WHEEL];
+		/** @type {number} The tile id of the razor wheel frame to draw. */
+		this.frame = FIRST_OF_KIND[TileKind.RAZOR_WHEEL];
 	}
 
 	/**
-	 * Move the wheel for one tick and stop it when it hits a wall, a platform or a crate.
+	 * Move the razor wheel for one tick and stop it when it hits a wall, a platform or a crate.
 	 *
 	 * @returns {void}
 	 */
@@ -44,24 +44,24 @@ export class Projectile extends MovingBody {
 
 		this.x += this.vx;
 		this.y += this.vy;
-		if (this.world.time % 6 === 0 && ++this.frame > LAST_OF_KIND[TileKind.WHEEL]) {
-			this.frame = FIRST_OF_KIND[TileKind.WHEEL];
+		if (this.world.time % 6 === 0 && ++this.frame > LAST_OF_KIND[TileKind.RAZOR_WHEEL]) {
+			this.frame = FIRST_OF_KIND[TileKind.RAZOR_WHEEL];
 		}
 
 		const hit = this.world.getTile(this.pixelX + TILE_SIZE / 2, this.pixelY + TILE_SIZE / 2);
 		if (hit) {
-			// a wheel sticks in a wall for a while, and goes away at once at a body
+			// a razor wheel sticks in a wall for a while, and goes away at once at a body
 			this.needKill = true;
 			if (hit instanceof Body) {
 				this.timer = 0;
 			} else {
 				this.timer = 180;
-				playSound(sfx_bladeStick);
+				playSound(sfx_razorWheelStick);
 			}
 			return;
 		}
 
-		// a crate at a corner of the wheel stops it
+		// a crate at a corner of the razor wheel stops it
 		const x = this.pixelX;
 		const y = this.pixelY;
 		const corners = [

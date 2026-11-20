@@ -38,6 +38,7 @@ import {
 } from '../browser/images.js';
 import { drawBoss } from './boss.js';
 import { drawTransition } from './transitions.js';
+import { arrow, line, mirrorAround } from './shapes.js';
 import { degToRad, getAngle, radToDeg, random, toPixels } from '../utils.js';
 
 /**
@@ -82,44 +83,6 @@ const GRAVPIPE_FRAMES = {
 
 // the canvas does not load a font by itself before the first label needs it
 document.fonts.load(LABEL_FONT);
-
-/**
- * Draw a line with the current stroke style.
- *
- * @param {number} x1 The x coordinate of the start in canvas pixels.
- * @param {number} y1 The y coordinate of the start in canvas pixels.
- * @param {number} x2 The x coordinate of the end in canvas pixels.
- * @param {number} y2 The y coordinate of the end in canvas pixels.
- * @returns {void}
- */
-function line(x1, y1, x2, y2) {
-	ctx.beginPath();
-	ctx.moveTo(x1, y1);
-	ctx.lineTo(x2, y2);
-	ctx.stroke();
-	ctx.closePath();
-}
-
-/**
- * Fill a triangle with the current fill style.
- *
- * @param {number} x1 The x coordinate of the first corner in canvas pixels.
- * @param {number} y1 The y coordinate of the first corner in canvas pixels.
- * @param {number} x2 The x coordinate of the second corner in canvas pixels.
- * @param {number} y2 The y coordinate of the second corner in canvas pixels.
- * @param {number} x3 The x coordinate of the third corner in canvas pixels.
- * @param {number} y3 The y coordinate of the third corner in canvas pixels.
- * @returns {void}
- */
-function triangle(x1, y1, x2, y2, x3, y3) {
-	ctx.beginPath();
-	ctx.moveTo(x1, y1);
-	ctx.lineTo(x2, y2);
-	ctx.lineTo(x3, y3);
-	ctx.lineTo(x1, y1);
-	ctx.fill();
-	ctx.closePath();
-}
 
 /**
  * Draw the portal gun of the player, turned towards the mouse.
@@ -173,17 +136,6 @@ function drawRotatedHead(world, input, flipDx) {
 	if (flipDx) ctx.scale(-1, 1);
 	drawImage(head, -pivotX, -pivotY, 16, 14);
 	ctx.restore();
-}
-
-/**
- * Mirror the next drawings of the canvas around a vertical line.
- *
- * @param {number} x The x coordinate of the line in canvas pixels.
- * @returns {void}
- */
-function mirrorAround(x) {
-	ctx.translate(2 * x, 0);
-	ctx.scale(-1, 1);
 }
 
 /**
@@ -532,25 +484,6 @@ export function drawCrates(world) {
 }
 
 /**
- * Draw a horizontal arrow.
- *
- * @param {number} x1 The x coordinate of the start in canvas pixels.
- * @param {number} y1 The y coordinate of the line in canvas pixels.
- * @param {number} x2 The x coordinate of the end in canvas pixels.
- * @param {number} y2 The y coordinate of the end in canvas pixels.
- * @param {number} lineWidth The width of the line.
- * @param {number} dir The direction of the arrow head, -1 left or 1 right.
- * @returns {void}
- */
-export function drawArrow(x1, y1, x2, y2, lineWidth, dir) {
-	ctx.lineWidth = lineWidth;
-	line(x1, y1, x2, y2);
-	const xa = x1 + (Math.abs(x1 - x2) >> 1) + dir * 2;
-	const tip = dir === -1 ? xa - 6 : xa + 6;
-	triangle(tip, y1, xa, y1 - 6, xa, y1 + 6);
-}
-
-/**
  * Draw the pipe fields as half transparent areas.
  *
  * @param {import('../world/World.js').World} world The World.
@@ -606,11 +539,11 @@ function drawTube(world, boss) {
  * Draw the platforms.
  *
  * @param {import('../world/World.js').World} world The World.
- * @param {boolean} arrow True to show the direction of each platform with an arrow.
+ * @param {boolean} withArrow True to show the direction of each platform with an arrow.
  * @returns {void}
  */
-export function drawPlatforms(world, arrow) {
-	for (const platform of world.platforms) drawPlatform(platform.pixelX, platform.pixelY, platform.facing, arrow);
+export function drawPlatforms(world, withArrow) {
+	for (const platform of world.platforms) drawPlatform(platform.pixelX, platform.pixelY, platform.facing, withArrow);
 }
 
 /**
@@ -619,15 +552,15 @@ export function drawPlatforms(world, arrow) {
  * @param {number} x The x coordinate in canvas pixels.
  * @param {number} y The y coordinate in canvas pixels.
  * @param {number} dir The direction, -1 left or 1 right.
- * @param {boolean} arrow True to show the direction with an arrow.
+ * @param {boolean} withArrow True to show the direction with an arrow.
  * @returns {void}
  */
-export function drawPlatform(x, y, dir, arrow) {
+export function drawPlatform(x, y, dir, withArrow) {
 	drawImage(platformImage, x, y);
-	if (arrow) {
+	if (withArrow) {
 		ctx.fillStyle = 'rgb(255, 0, 0)';
 		ctx.strokeStyle = 'rgb(255, 0, 0)';
-		drawArrow(x + 5, y + TILE_SIZE / 2, x + 15, y + TILE_SIZE / 2, 3, dir);
+		arrow(x + 5, y + TILE_SIZE / 2, x + 15, y + TILE_SIZE / 2, 3, dir);
 	}
 }
 

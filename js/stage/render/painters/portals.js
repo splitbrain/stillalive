@@ -50,7 +50,7 @@ export class FrontTilePainter {
 	 * @returns {void}
 	 */
 	draw(world) {
-		if (!world.bodyInPortal) return;
+		if (!world.portals.anyBodyInPortal()) return;
 		for (const portal of world.portals.list) {
 			if (portal.platform) continue;
 			const onFloor = !DIRECTIONS[portal.direction].horizontal;

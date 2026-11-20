@@ -80,10 +80,9 @@ export class PlasmaBoss extends Boss {
 		if (this.world.time % (90 - 30 * hits) !== 0) return;
 		if (this.world.plasmaBalls.length < hits + 1) this.shootPlasma(800);
 		if (this.world.crates.length === 0) {
-			const crate = new Crate(this.world, toSubpixels((MAP_WIDTH - 1) * TILE_SIZE), toSubpixels(18 * TILE_SIZE));
-			crate.vx = -toSubpixels(12);
-			crate.vy = -toSubpixels(2);
-			this.world.addCrate(crate);
+			const x = toSubpixels((MAP_WIDTH - 1) * TILE_SIZE);
+			const y = toSubpixels(18 * TILE_SIZE);
+			this.world.addCrate(new Crate(this.world, x, y, -toSubpixels(12), -toSubpixels(2)));
 		}
 	}
 }

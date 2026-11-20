@@ -32,7 +32,17 @@ export class RazorWheel extends MovingBody {
 	}
 
 	/**
-	 * Move the razor wheel for one tick and stop it when it hits a wall, a platform or a crate.
+	 * Check if the razor wheel went away.
+	 *
+	 * @returns {boolean} True after the razor wheel stopped and its timer ended.
+	 */
+	get gone() {
+		return this.needKill && this.timer === 0;
+	}
+
+	/**
+	 * Move the razor wheel for one tick. A wall, a platform or a crate stops it. A razor wheel that still flies kills
+	 * the player on contact and goes away.
 	 *
 	 * @returns {void}
 	 */
@@ -70,6 +80,15 @@ export class RazorWheel extends MovingBody {
 			[x, y + TILE_SIZE],
 			[x + TILE_SIZE, y + TILE_SIZE],
 		];
-		if (corners.some(([cx, cy]) => this.world.anyCrateAt(cx, cy))) this.needKill = true;
+		if (corners.some(([cx, cy]) => this.world.anyCrateAt(cx, cy))) {
+			this.needKill = true;
+			return;
+		}
+
+		if (this.overlaps(this.world.player)) {
+			this.world.player.takeFatalHit();
+			this.needKill = true;
+			this.timer = 0;
+		}
 	}
 }

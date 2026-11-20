@@ -123,9 +123,7 @@ export class InputState {
 			this.mouseReleased ? 1 : 0,
 			this.mouseButton,
 			this.mouseNewPress ? 1 : 0,
-			player.jump ? 1 : 0,
-			player.oldJump ? 1 : 0,
-			player.askClear ? 1 : 0,
+			...player.captureKeys(),
 		];
 	}
 
@@ -142,8 +140,6 @@ export class InputState {
 		this.mouseReleased = state[2] === 1;
 		this.mouseButton = state[3];
 		this.mouseNewPress = state[4] === 1;
-		player.jump = state[5] === 1;
-		player.oldJump = state[6] === 1;
-		player.askClear = state[7] === 1;
+		player.restoreKeys(state.slice(5));
 	}
 }

@@ -32,6 +32,39 @@ export class Body {
 	}
 
 	/**
+	 * Check if the body went away. The World then removes it.
+	 *
+	 * @returns {boolean} True if the body is no longer part of the level.
+	 */
+	get gone() {
+		return false;
+	}
+
+	/**
+	 * Take the input of a tick before the tick runs, also during a pause. A body that the player does not control does
+	 * nothing.
+	 *
+	 * @param {import('../browser/InputState.js').InputState} input The keys of the tick and of the previous tick.
+	 * @returns {void}
+	 */
+	// eslint-disable-next-line no-unused-vars
+	readInput(input) {}
+
+	/**
+	 * Run one tick of the body while the level time runs. A body without behavior does nothing.
+	 *
+	 * @returns {void}
+	 */
+	move() {}
+
+	/**
+	 * Run one tick of the body while the level time stands still. A body that waits for the level time does nothing.
+	 *
+	 * @returns {void}
+	 */
+	idle() {}
+
+	/**
 	 * Get the x position in whole pixels.
 	 *
 	 * @returns {number} The left edge in pixels.

@@ -161,7 +161,7 @@ export class Throwable extends MovingBody {
 	 *
 	 * @returns {void}
 	 */
-	move() {
+	moveByForces() {
 		const portals = this.world.portals;
 		const fields = this.world.gravPipeFieldsAt(this);
 		for (const field of fields) {

@@ -76,6 +76,20 @@ export class MovingBody extends Body {
 	}
 
 	/**
+	 * Put the body at a position without speed.
+	 *
+	 * @param {number} x The x position in 1/256 pixels.
+	 * @param {number} y The y position in 1/256 pixels.
+	 * @returns {void}
+	 */
+	putAt(x, y) {
+		this.x = x;
+		this.y = y;
+		this.vx = 0;
+		this.vy = 0;
+	}
+
+	/**
 	 * Check what the body stands on.
 	 *
 	 * @returns {number} The ground, a value of Ground.
@@ -172,6 +186,28 @@ export class MovingBody extends Body {
 		} else {
 			this.x = toSubpixels(toPixels(portal.x) + TILE_SIZE / 2);
 		}
+	}
+
+	/**
+	 * Move the body from a portal to the middle of the other portal.
+	 *
+	 * @param {import('../portals/Portal.js').Portal} entry The portal that the body entered.
+	 * @param {import('../portals/Portal.js').Portal} exit The portal that the body comes out of.
+	 * @returns {void}
+	 */
+	teleport(entry, exit) {
+		if (DIRECTIONS[exit.direction].horizontal) {
+			const gap = (2 * TILE_SIZE - this.height) >> 1;
+			this.x = exit.x - toSubpixels(this.width >> 1);
+			this.y = exit.y + toSubpixels(gap);
+		} else {
+			// a body that comes out of a ceiling starts 4 pixels lower
+			const drop = exit.direction === Direction.UP ? toSubpixels(4) : 0;
+			this.x = exit.x + toSubpixels(TILE_SIZE / 2);
+			this.y = exit.y - toSubpixels(this.height >> 1) + drop;
+		}
+
+		this.teleported(entry, exit);
 	}
 
 	/**

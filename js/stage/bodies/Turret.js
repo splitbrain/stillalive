@@ -93,12 +93,12 @@ export class Turret extends Throwable {
 	}
 
 	/**
-	 * Update the turret for one tick and shoot at the player. A hard landing, a deadly tile, a moving crate, a plasma
-	 * ball or a platform destroys the turret.
+	 * Run one tick while the level time runs and shoot at the player. A hard landing, a deadly tile, a moving crate, a
+	 * plasma ball or a platform destroys the turret.
 	 *
 	 * @returns {void}
 	 */
-	update() {
+	move() {
 		if (this.carried) this.place();
 		else this.#fall();
 		if (!this.dead) this.shoot();
@@ -115,7 +115,7 @@ export class Turret extends Throwable {
 
 		const oldVx = this.vx;
 		const oldVy = this.vy;
-		this.move();
+		this.moveByForces();
 
 		if (this.dead) {
 			if (this.frame < 10 && this.world.time % 4 === 0) this.frame++;
@@ -204,9 +204,7 @@ export class Turret extends Throwable {
 		if (beam.target !== 'player' || this.rotation > 0) return;
 
 		this.frame = 1 - this.frame;
-		player.life -= 640; // 2.5 life points
-		player.recoveryTime = 300;
-		player.vx += toSubpixels(this.facing);
+		player.shot(this.facing);
 		this.coolTime = COOL_TIME;
 		playSound(sfx_shoot);
 		playSoundIfFinished(sfx_pain);

@@ -91,27 +91,47 @@ export class Boss extends Body {
 	}
 
 	/**
-	 * Update the boss for one tick. The boss comes in after the waits of the start events, attacks the player, and
-	 * kills the player on contact.
+	 * Run one tick while the level time runs: the dead boss leaves, and the living boss attacks the player when it is
+	 * ready.
 	 *
 	 * @returns {void}
 	 */
-	update() {
+	move() {
+		this.#rumble();
+		if (this.#prepareAttack()) this.attack();
+	}
+
+	/**
+	 * Run one tick while the level time stands still: the boss does all but the attack.
+	 *
+	 * @returns {void}
+	 */
+	idle() {
+		this.#prepareAttack();
+	}
+
+	/**
+	 * Run the part of a tick before the attack. The boss comes in after the waits of the start events, and it kills
+	 * the player on contact. The attacks of the boss go away when the player is dead.
+	 *
+	 * @returns {boolean} True if the living boss is in the playfield and the player lives.
+	 */
+	#prepareAttack() {
 		if (this.entering) {
 			this.#enter();
-			return;
+			return false;
 		}
 
 		const player = this.world.player;
 		if (this.hits < BOSS_LIVES && !player.dead && this.#touchesPlayer()) {
 			player.takeFatalHit();
-			return;
+			return false;
 		}
 		if (player.dead) {
 			this.world.clearBossAttacks();
-			return;
+			return false;
 		}
-		if (this.hits < BOSS_LIVES && this.world.phase.isRunning()) this.attack();
+		return this.hits < BOSS_LIVES;
 	}
 
 	/**
@@ -197,15 +217,15 @@ export class Boss extends Body {
 	 * @returns {void}
 	 */
 	throwCrate(row, divisor) {
-		const crate = new Crate(this.world, toSubpixels((MAP_WIDTH - 1) * TILE_SIZE), toSubpixels(row * TILE_SIZE));
-		this.world.addCrate(crate);
+		const x = (MAP_WIDTH - 1) * TILE_SIZE;
+		const y = row * TILE_SIZE;
+		const distance = getDistance(this.world.player.pixelX, this.world.player.pixelY, x, y);
+		const speed = Math.min(Math.max(Math.trunc(distance / divisor), 3), 16);
+		this.world.addCrate(new Crate(this.world, toSubpixels(x), toSubpixels(y), -toSubpixels(speed)));
 		if (this.world.crates.length > 10) {
 			const oldest = this.world.crates.slice(0, 10).find((candidate) => !candidate.carried && candidate.noRemove === 0);
 			if (oldest) this.world.removeCrate(oldest);
 		}
-		const distance = getDistance(this.world.player.pixelX, this.world.player.pixelY, crate.pixelX, crate.pixelY);
-		const speed = Math.min(Math.max(Math.trunc(distance / divisor), 3), 16);
-		crate.vx = -toSubpixels(speed);
 	}
 
 	/**
@@ -213,7 +233,7 @@ export class Boss extends Body {
 	 *
 	 * @returns {void}
 	 */
-	updateRumble() {
+	#rumble() {
 		if (this.hits !== BOSS_LIVES || this.imageX >= BOSS_GONE_X) return;
 		playLoop(sfx_bossRumble);
 		this.#shakeScreen();
@@ -292,14 +312,8 @@ export class Boss extends Body {
 	 * @returns {void}
 	 */
 	useUpCrate(crate) {
-		if (this.makesCrates) {
-			crate.needKill = true;
-		} else {
-			crate.x = toSubpixels(5 * TILE_SIZE);
-			crate.y = toSubpixels(-TILE_SIZE);
-			crate.vx = 0;
-			crate.vy = 0;
-		}
+		if (this.makesCrates) crate.destroy();
+		else crate.putAt(toSubpixels(5 * TILE_SIZE), toSubpixels(-TILE_SIZE));
 	}
 
 	/**

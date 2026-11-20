@@ -20,8 +20,13 @@ import {
 	BELT_SPEED,
 	DEATH_FADE,
 	Direction,
+	DIRECTIONS,
 	GRAVITY,
 	Ground,
+	KEY_DOWN,
+	KEY_JUMP,
+	KEY_LEFT,
+	KEY_RIGHT,
 	MouseButton,
 	PIPE_SPEED,
 	PLAYFIELD_HEIGHT,
@@ -37,6 +42,8 @@ import { getDistance, random, toSubpixels } from '../utils.js';
 const MAX_LIFE = 100 * 256;
 /** @type {number} The ticks from one portal shot until the next shot is possible. */
 const PORTAL_COOLDOWN = 25;
+/** @type {number} The speed of the player at a launch start in 1/256 pixels per tick. */
+const LAUNCH_SPEED = 2400;
 
 /**
  * The player.
@@ -86,6 +93,168 @@ export class Player extends MovingBody {
 		this.carrying = null;
 		/** @type {boolean} True when the player pressed the clear key and the portals must go away in the next tick. */
 		this.askClear = false;
+	}
+
+	/**
+	 * Set the control flags from the keys of the tick. The player jumps only with the jump ability and outside a
+	 * portal.
+	 *
+	 * @param {import('../browser/InputState.js').InputState} input The keys of the tick and of the previous tick.
+	 * @returns {void}
+	 */
+	readInput(input) {
+		if (input.clearPressed) this.askClear = true;
+
+		this.left = (input.keys & KEY_LEFT) !== 0;
+		this.right = (input.keys & KEY_RIGHT) !== 0;
+		this.down = (input.keys & KEY_DOWN) !== 0;
+
+		if (input.keys & KEY_JUMP && this.world.abilities.jump && !this.world.portals.isInPortal(this)) {
+			if (!(input.oldKeys & KEY_JUMP)) this.oldJump = this.jump;
+			this.jump = true;
+		}
+		if (!(input.keys & KEY_JUMP)) {
+			if (input.oldKeys & KEY_JUMP) this.oldJump = this.jump;
+			this.jump = false;
+		}
+	}
+
+	/**
+	 * Run one tick while the level time runs: the living player moves, the dead player fades out, and the player turns
+	 * to the mouse.
+	 *
+	 * @returns {void}
+	 */
+	move() {
+		if (!this.dead) this.#moveAlive();
+		this.idle();
+	}
+
+	/**
+	 * Run one tick while the level time stands still: the dead player fades out, and the player turns to the mouse.
+	 *
+	 * @returns {void}
+	 */
+	idle() {
+		if (this.dead) this.#advanceDeathFade();
+		this.#faceMouse();
+	}
+
+	/**
+	 * Take the shot of a turret: the player loses 2.5 life points and gets a push.
+	 *
+	 * @param {number} direction The direction of the shot, -1 left or 1 right.
+	 * @returns {void}
+	 */
+	shot(direction) {
+		this.life -= 640;
+		this.recoveryTime = 300;
+		this.vx += toSubpixels(direction);
+	}
+
+	/**
+	 * Move with a crate that pushes the player sideways, but not into a wall.
+	 *
+	 * @param {number} speed The horizontal speed of the crate in 1/256 pixels per tick.
+	 * @returns {boolean} True if a wall stopped the player.
+	 */
+	pushed(speed) {
+		this.x += speed >> 3;
+		if (speed < 0 && this.leftCollision()) {
+			while (this.leftCollision()) this.x += 128;
+			return true;
+		}
+		if (speed > 0 && this.rightCollision()) {
+			while (this.rightCollision()) this.x -= 128;
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Take the horizontal speed after the carried crate met another crate.
+	 *
+	 * @param {number} speed The horizontal speed in 1/256 pixels per tick.
+	 * @returns {void}
+	 */
+	followCarriedCrate(speed) {
+		this.vx = speed;
+	}
+
+	/**
+	 * Start the level with a launch: the player moves one tile back against the launch direction and gets the launch
+	 * speed in the launch direction. A start on the edge of the map so puts the player outside the playfield.
+	 *
+	 * @param {number} direction The direction of the launch, a value of Direction.
+	 * @returns {void}
+	 */
+	launch(direction) {
+		const step = DIRECTIONS[direction];
+		this.x -= toSubpixels(step.dx * TILE_SIZE);
+		this.y -= toSubpixels(step.dy * TILE_SIZE);
+		this.vx = step.dx * LAUNCH_SPEED;
+		this.vy = step.dy * LAUNCH_SPEED;
+	}
+
+	/**
+	 * Get the key state for a replay: the control flags that the tick derives from the keys of the previous ticks.
+	 *
+	 * @returns {number[]} The jump flag, the jump flag of the previous tick and the clear flag, each as 0 or 1.
+	 */
+	captureKeys() {
+		return [this.jump ? 1 : 0, this.oldJump ? 1 : 0, this.askClear ? 1 : 0];
+	}
+
+	/**
+	 * Restore a key state from captureKeys().
+	 *
+	 * @param {number[]} state The key state.
+	 * @returns {void}
+	 */
+	restoreKeys(state) {
+		this.jump = state[0] === 1;
+		this.oldJump = state[1] === 1;
+		this.askClear = state[2] === 1;
+	}
+
+	/**
+	 * Eat the cakes that the player touches.
+	 *
+	 * @returns {void}
+	 */
+	#eatCakes() {
+		for (const cake of this.world.cakes) {
+			if (this.overlaps(cake)) cake.eaten();
+		}
+	}
+
+	/**
+	 * Turn the player to the side of the mouse.
+	 *
+	 * @returns {void}
+	 */
+	#faceMouse() {
+		this.facing = this.world.input.mouseX > this.midX() ? 1 : -1;
+	}
+
+	/**
+	 * Let go of a body without a throw. A body that the player does not carry changes nothing.
+	 *
+	 * @param {import('./Throwable.js').Throwable} body The crate or turret.
+	 * @returns {void}
+	 */
+	release(body) {
+		if (this.carrying === body) this.carrying = null;
+	}
+
+	/**
+	 * Advance the death fade of the dead player for one tick. The end of the fade sets the outcome "died".
+	 *
+	 * @returns {void}
+	 */
+	#advanceDeathFade() {
+		this.life += 6;
+		this.checkDeath();
 	}
 
 	/**
@@ -410,8 +579,9 @@ export class Player extends MovingBody {
 		const portals = this.world.portals;
 		if (!this.world.abilities.portals || !input.mousePressed || this.portalCooldown !== PORTAL_COOLDOWN) return;
 		if (portals.isInPortal(this) || this.carrying) return;
-		if (input.mouseButton === MouseButton.LEFT) portals.launchPortal(0, input.mouseX, input.mouseY);
-		else if (input.mouseButton === MouseButton.RIGHT) portals.launchPortal(1, input.mouseX, input.mouseY);
+		if (input.mouseButton !== MouseButton.LEFT && input.mouseButton !== MouseButton.RIGHT) return;
+		this.portalCooldown = 0;
+		portals.launchPortal(input.mouseButton === MouseButton.LEFT ? 0 : 1, input.mouseX, input.mouseY);
 	}
 
 	/**
@@ -430,11 +600,11 @@ export class Player extends MovingBody {
 	}
 
 	/**
-	 * Update the player for one tick from the input and the level bodies.
+	 * Move the living player for one tick from the input and the level bodies.
 	 *
 	 * @returns {void}
 	 */
-	move() {
+	#moveAlive() {
 		const portals = this.world.portals;
 		this.#updateTeleportSparkles();
 
@@ -507,7 +677,7 @@ export class Player extends MovingBody {
 			this.vy = -this.vy;
 		}
 
-		this.world.collectCakes();
+		this.#eatCakes();
 		this.#grabBody();
 		portals.clearPortalsAtForceField();
 		this.#shootPortal();

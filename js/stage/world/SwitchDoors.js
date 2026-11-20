@@ -73,16 +73,11 @@ export class SwitchDoors {
 		}
 
 		for (const crate of world.crates) {
-			if (this.#touchesDoor(crate)) {
-				crate.x = crate.startX;
-				crate.y = crate.startY;
-				crate.vx = 0;
-				crate.vy = 0;
-			}
+			if (this.#touchesDoor(crate)) crate.reset();
 		}
 
-		for (const ball of world.plasmaBalls) {
-			if (this.#touchesDoor(ball)) ball.reset();
+		for (const plasmaBall of world.plasmaBalls) {
+			if (this.#touchesDoor(plasmaBall)) plasmaBall.reset();
 		}
 	}
 

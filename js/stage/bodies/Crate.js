@@ -16,9 +16,13 @@ export class Crate extends Throwable {
 	 * @param {import('../world/World.js').World} world The World of the body.
 	 * @param {number} x The x position in 1/256 pixels.
 	 * @param {number} y The y position in 1/256 pixels.
+	 * @param {number} [vx] The horizontal start speed in 1/256 pixels per tick.
+	 * @param {number} [vy] The vertical start speed in 1/256 pixels per tick.
 	 */
-	constructor(world, x, y) {
+	constructor(world, x, y, vx = 0, vy = 0) {
 		super(world, x, y, TILE_SIZE, TILE_SIZE);
+		this.vx = vx;
+		this.vy = vy;
 		/** @type {number} The x position of the start, where the crate returns after a reset. */
 		this.startX = x;
 		/** @type {number} The y position of the start, where the crate returns after a reset. */
@@ -38,13 +42,72 @@ export class Crate extends Throwable {
 	}
 
 	/**
+	 * Check if the crate went away.
+	 *
+	 * @returns {boolean} True after the crate was destroyed or used up.
+	 */
+	get gone() {
+		return this.needKill;
+	}
+
+	/**
+	 * Let the crate go away.
+	 *
+	 * @returns {void}
+	 */
+	destroy() {
+		this.needKill = true;
+	}
+
+	/**
+	 * Put the crate back to its start without speed.
+	 *
+	 * @returns {void}
+	 */
+	reset() {
+		this.putAt(this.startX, this.startY);
+	}
+
+	/**
+	 * Take the speed of a crate that pushes this crate.
+	 *
+	 * @param {number} speed The horizontal speed in 1/256 pixels per tick.
+	 * @returns {void}
+	 */
+	pushed(speed) {
+		this.vx = speed;
+	}
+
+	/**
+	 * Run one tick while the level time runs. The player lets go of a crate that goes away.
+	 *
+	 * @returns {void}
+	 */
+	move() {
+		this.idle();
+		this.#update();
+		if (this.needKill) this.world.player.release(this);
+	}
+
+	/**
+	 * Run one tick while the level time stands still: a shrinking crate moves at half of its speed.
+	 *
+	 * @returns {void}
+	 */
+	idle() {
+		if (this.shrink <= 0) return;
+		this.x += this.vx >> 1;
+		this.y += this.vy >> 1;
+	}
+
+	/**
 	 * Update the crate for one tick. The crate advances the boss blocks that it touches. Outside the playfield, on a
 	 * deadly tile or at a plasma ball, the crate returns to its start or goes away in a boss level. In a force field,
 	 * the crate shrinks.
 	 *
 	 * @returns {void}
 	 */
-	update() {
+	#update() {
 		if (this.invincibility > 0) this.invincibility--;
 		if (this.noRemove > 0) this.noRemove--;
 
@@ -59,7 +122,7 @@ export class Crate extends Throwable {
 		}
 
 		if (this.shrink === 0 && this.inForceField()) {
-			if (this.carried) this.world.player.carrying = null;
+			this.world.player.release(this);
 			this.shrink = 60;
 			playSound(sfx_dissolve);
 		}
@@ -74,7 +137,7 @@ export class Crate extends Throwable {
 	 */
 	#moveLoose() {
 		const falling = this.vy > 0;
-		this.move();
+		this.moveByForces();
 		if (falling && this.vy === 0 && this.touchingGround() !== Ground.AIR) playSound(sfx_crateLand);
 
 		const boss = this.world.boss;
@@ -187,7 +250,7 @@ export class Crate extends Throwable {
 	 */
 	push() {
 		const player = this.world.player;
-		if (this.world.movingCrateTouching(player) && this.invincibility === 0) this.#pushPlayer();
+		if (this.world.movingCrateTouching(player) && this.invincibility === 0 && player.pushed(this.vx)) this.vx = 0;
 
 		const portals = this.world.portals;
 		if (this.vx === 0 || portals.isInPortal(this)) return false;
@@ -197,31 +260,14 @@ export class Crate extends Throwable {
 		for (const other of this.world.crates) {
 			if (portals.isInPortal(other) || (this.x === other.x && this.y === other.y)) continue;
 			if (other.contains(x, y + 1) || other.contains(x, y + TILE_SIZE / 2) || other.contains(x, y + 13)) {
-				if (other.carried) player.vx = this.vx;
-				else if (this.carried) player.vx = other.vx;
-				other.vx = this.vx;
+				if (other.carried) player.followCarriedCrate(this.vx);
+				else if (this.carried) player.followCarriedCrate(other.vx);
+				other.pushed(this.vx);
 				this.vx >>= 1;
 				return true;
 			}
 		}
 		return false;
-	}
-
-	/**
-	 * Push the player with the speed of the crate, but not into a wall.
-	 *
-	 * @returns {void}
-	 */
-	#pushPlayer() {
-		const player = this.world.player;
-		player.x += this.vx >> 3;
-		if (this.vx < 0 && player.leftCollision()) {
-			while (player.leftCollision()) player.x += 128;
-			this.vx = 0;
-		} else if (this.vx > 0 && player.rightCollision()) {
-			while (player.rightCollision()) player.x -= 128;
-			this.vx = 0;
-		}
 	}
 
 	/**
@@ -245,13 +291,10 @@ export class Crate extends Throwable {
 	 */
 	#destroyOrReset() {
 		if (this.world.boss?.makesCrates) {
-			this.needKill = true;
+			this.destroy();
 			return true;
 		}
-		this.x = this.startX;
-		this.y = this.startY;
-		this.vx = 0;
-		this.vy = 0;
+		this.reset();
 		return false;
 	}
 }

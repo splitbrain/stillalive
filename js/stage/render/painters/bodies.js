@@ -40,7 +40,6 @@ export class CakePainter {
 	 */
 	draw(world) {
 		for (const cake of world.cakes) {
-			if (!cake.used) continue;
 			const float = world.phase.isRunning() ? cake.floatOffset : 0;
 			drawImage(cakeImage, cake.pixelX, toPixels(cake.y + float), TILE_SIZE, 12);
 		}
@@ -171,20 +170,20 @@ export class PlasmaPainter {
 	 * @returns {void}
 	 */
 	draw(world) {
-		for (const ball of world.plasmaBalls) {
-			if (!ball.used) continue;
+		for (const plasmaBall of world.plasmaBalls) {
+			if (!plasmaBall.used) continue;
 			let vx = 0;
 			let vy = 0;
-			if (ball.vx !== 0) vy = ball.scale;
-			else if (ball.vy !== 0) vx = ball.scale;
+			if (plasmaBall.vx !== 0) vy = plasmaBall.scale;
+			else if (plasmaBall.vy !== 0) vx = plasmaBall.scale;
 			drawImage(
 				plasma,
 				0,
-				ball.frame * TILE_SIZE,
+				plasmaBall.frame * TILE_SIZE,
 				TILE_SIZE,
 				TILE_SIZE,
-				ball.pixelX + vx,
-				ball.pixelY + vy,
+				plasmaBall.pixelX + vx,
+				plasmaBall.pixelY + vy,
 				TILE_SIZE,
 				TILE_SIZE,
 			);

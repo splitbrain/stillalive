@@ -2,18 +2,8 @@
  * The World object.
  */
 
-import { playSound, sfx_exit, sfx_field, sfx_grabCake, sfx_plasmaField, sfx_transition } from '../browser/audio.js';
-import {
-	DIRECTIONS,
-	Ground,
-	KEY_DOWN,
-	KEY_JUMP,
-	KEY_LEFT,
-	KEY_RIGHT,
-	TILE_SIZE,
-	TILE_SIZE_BITS,
-	Transition,
-} from '../constants.js';
+import { playSound, sfx_exit, sfx_field, sfx_plasmaField, sfx_transition } from '../browser/audio.js';
+import { DIRECTIONS, Ground, TILE_SIZE, TILE_SIZE_BITS, Transition } from '../constants.js';
 import { createBoss } from '../bodies/bosses.js';
 import { InputState } from '../browser/InputState.js';
 import { Effects } from '../effects/Effects.js';
@@ -21,7 +11,6 @@ import { traceGravPipeField } from '../bodies/GravPipe.js';
 import { Plasma } from '../bodies/Plasma.js';
 import { Player } from '../bodies/Player.js';
 import { PortalPair } from '../portals/PortalPair.js';
-import { PuffSparkle } from '../effects/sparkles.js';
 import { LevelEvents } from './LevelEvents.js';
 import { LevelPhase } from './LevelPhase.js';
 import { createBodies } from './mapBodies.js';
@@ -32,9 +21,6 @@ import { inScreen, random, toSubpixels } from '../utils.js';
 
 /** @type {Object<string, typeof sfx_field>} The sound of the opening and the closing doors, by door kind. */
 const DOOR_SOUNDS = { [TileKind.SWITCH_DOOR]: sfx_field, [TileKind.PLASMA_DOOR]: sfx_plasmaField };
-
-/** @type {number} The speed of the player at a launch start in 1/256 pixels per tick. */
-const LAUNCH_SPEED = 2400;
 
 /** @typedef {import('../bodies/Boss.js').Boss} Boss */
 /** @typedef {import('../bodies/Crate.js').Crate} Crate */
@@ -119,11 +105,6 @@ export class World {
 	phase = new LevelPhase();
 	/** @type {SwitchDoors} The switches and the switch doors. */
 	switches = new SwitchDoors(this);
-	/**
-	 * @type {import('../portals/Portal.js').Portal|null} The portal that a body is in during this tick, or null.
-	 *     The drawing then draws the tiles around the portals over the bodies.
-	 */
-	bodyInPortal = null;
 	/**
 	 * @type {LevelEvents} The events of the level. A preview and the editor map have a list without events, and a
 	 *     level start replaces it with the events of the level.
@@ -233,33 +214,61 @@ export class World {
 	 */
 	createEditorBodies() {
 		this.player = new Player(this);
-		this.player.x = -toSubpixels(TILE_SIZE);
+		this.player.putAt(-toSubpixels(TILE_SIZE), 0);
 		this.phase.reset();
 		this.#loadBodies({ editor: true });
 	}
 
 	/**
-	 * Set the control flags of the player from the keys of the tick. The player jumps only with the jump ability and
-	 * outside a portal.
+	 * Give the input of a tick to the bodies before the tick runs.
 	 *
 	 * @param {import('../browser/InputState.js').InputState} input The keys of the tick and of the previous tick.
 	 * @returns {void}
 	 */
 	applyInput(input) {
-		const player = this.player;
-		if (input.clearPressed) player.askClear = true;
+		/** @type {import('../bodies/Body.js').Body[]} */
+		const bodies = [
+			this.player,
+			...this.cakes,
+			...this.turrets,
+			...this.plasmaBalls,
+			...this.crates,
+			...this.platforms,
+			...this.gravPipes,
+			...this.razorWheels,
+		];
+		if (this.boss) bodies.push(this.boss);
+		for (const body of bodies) body.readInput(input);
+	}
 
-		player.left = (input.keys & KEY_LEFT) !== 0;
-		player.right = (input.keys & KEY_RIGHT) !== 0;
-		player.down = (input.keys & KEY_DOWN) !== 0;
+	/**
+	 * Run one tick of a body: the body moves while the level time runs, else it idles.
+	 *
+	 * @param {import('../bodies/Body.js').Body} body The body.
+	 * @param {boolean} running True while the level time runs.
+	 * @returns {void}
+	 */
+	#update(body, running) {
+		if (running) body.move();
+		else body.idle();
+	}
 
-		if (input.keys & KEY_JUMP && this.abilities.jump && !this.portals.isInPortal(player)) {
-			if (!(input.oldKeys & KEY_JUMP)) player.oldJump = player.jump;
-			player.jump = true;
-		}
-		if (!(input.keys & KEY_JUMP)) {
-			if (input.oldKeys & KEY_JUMP) player.oldJump = player.jump;
-			player.jump = false;
+	/**
+	 * Run one tick of each body of a list. A body that went away leaves the list at once, so the bodies after it do
+	 * not see it. A body can add bodies to the list during its tick.
+	 *
+	 * @param {import('../bodies/Body.js').Body[]} bodies The list of the bodies.
+	 * @param {boolean} running True while the level time runs.
+	 * @returns {void}
+	 */
+	#updateAll(bodies, running) {
+		for (let i = 0; i < bodies.length; i++) {
+			const body = bodies[i];
+			this.#update(body, running);
+			if (body.gone) {
+				bodies.splice(i, 1);
+				i--;
+			}
 		}
 	}
 
@@ -278,11 +287,7 @@ export class World {
 			if (this.time === 0) input.unclick();
 			this.time++;
 		}
-		this.bodyInPortal = null;
-		if (!this.player.dead && phase.isRunning()) {
-			this.player.move();
-			if (!this.bodyInPortal) this.bodyInPortal = this.portals.isInPortal(this.player);
-		}
+		this.#update(this.player, phase.isRunning());
 
 		this.switches.update();
 		if (this.#atExit()) {
@@ -297,7 +302,7 @@ export class World {
 		this.#updateContents();
 		// the caller starts the level again after this tick, so the boss and the events do not run in this tick
 		if (this.outcome === 'died') return;
-		this.boss?.update();
+		if (this.boss) this.#update(this.boss, phase.isRunning());
 		if (!phase.reachedExit()) this.events.update();
 	}
 
@@ -330,8 +335,8 @@ export class World {
 	}
 
 	/**
-	 * Update the contents of the World for one tick: the animated tiles, the bodies, the fields of the gravitational
-	 * pipes, the portals, the effects and the death fade. No body moves while the level time stands still.
+	 * Update the contents of the World for one tick: the animated tiles, the fields of the gravitational pipes, the
+	 * bodies, the portals and the effects. The World removes the bodies that went away.
 	 *
 	 * @returns {void}
 	 */
@@ -340,89 +345,19 @@ export class World {
 
 		for (const tile of this.animatedTiles) tile.animate();
 
-		this.player.facing = this.input.mouseX > this.player.midX() ? 1 : -1;
-
 		this.#rebuildGravPipeFields();
 
-		if (running) {
-			for (const cake of this.cakes) {
-				if (cake.used) cake.move();
-			}
-			for (const turret of this.turrets) {
-				turret.update();
-				if (!this.bodyInPortal) this.bodyInPortal = this.portals.isInPortal(turret);
-			}
-		}
-
-		for (const ball of this.plasmaBalls) {
-			if (!ball.used) continue;
-			ball.animate();
-			if (running) {
-				ball.move();
-				if (!this.bodyInPortal) this.bodyInPortal = this.portals.isInPortal(ball);
-			}
-		}
-		if (running) this.plasmaBalls = this.plasmaBalls.filter((ball) => !ball.needKill);
+		this.#updateAll(this.cakes, running);
+		this.#updateAll(this.turrets, running);
+		this.#updateAll(this.plasmaBalls, running);
 
 		this.effects.updateSparkles();
 
-		// an update can add crates, and the other crates must not see a removed crate, so the loop removes it at once
-		for (let i = 0; i < this.crates.length; i++) {
-			const crate = this.crates[i];
-			// a shrinking crate moves at half of its speed
-			if (crate.shrink > 0) {
-				crate.x += crate.vx >> 1;
-				crate.y += crate.vy >> 1;
-			}
-			if (running) {
-				crate.update();
-				if (crate.needKill) {
-					if (crate.carried) this.player.carrying = null;
-					this.crates.splice(i, 1);
-					i--;
-					continue;
-				}
-				if (!this.bodyInPortal) this.bodyInPortal = this.portals.isInPortal(crate);
-			}
-		}
-
-		if (this.boss && running) {
-			if (this.boss.shootsRazorWheels) this.#updateRazorWheels();
-			this.boss.updateRumble();
-		}
-
-		if (running) {
-			for (const platform of this.platforms) platform.move();
-		}
+		this.#updateAll(this.crates, running);
+		this.#updateAll(this.razorWheels, running);
+		this.#updateAll(this.platforms, running);
 		this.portals.update();
 		this.effects.moveCamera();
-
-		if (this.player.dead) {
-			this.player.life += 6;
-			this.player.checkDeath();
-		}
-	}
-
-	/**
-	 * Move the razor wheels of the boss, kill the player on a hit and remove the stopped razor wheels after their timer.
-	 *
-	 * @returns {void}
-	 */
-	#updateRazorWheels() {
-		// a hit ends the loop, so the loop removes the stopped razor wheels at once
-		for (let i = 0; i < this.razorWheels.length; i++) {
-			const razorWheel = this.razorWheels[i];
-			razorWheel.move();
-			if (!razorWheel.needKill && razorWheel.overlaps(this.player)) {
-				this.razorWheels.splice(i, 1);
-				this.player.takeFatalHit();
-				return;
-			}
-			if (razorWheel.needKill && razorWheel.timer === 0) {
-				this.razorWheels.splice(i, 1);
-				i--;
-			}
-		}
 	}
 
 	/**
@@ -441,21 +376,15 @@ export class World {
 	}
 
 	/**
-	 * Collect the cakes that the player touches, and open the exit when the last cake is collected.
+	 * Count a cake that the player ate, and open the exit after the last cake.
 	 *
 	 * @returns {void}
 	 */
-	collectCakes() {
-		for (const cake of this.cakes) {
-			if (!cake.used || !this.player.overlaps(cake)) continue;
-			cake.used = false;
-			this.cakesLeft--;
-			this.effects.addPuffSparkles(cake.x, cake.y, PuffSparkle.CAKE, 2, 180);
-			playSound(sfx_grabCake);
-			if (this.cakesLeft === 0) {
-				this.openExit();
-				playSound(sfx_exit);
-			}
+	cakeEaten() {
+		this.cakesLeft--;
+		if (this.cakesLeft === 0) {
+			this.openExit();
+			playSound(sfx_exit);
 		}
 	}
 
@@ -518,11 +447,11 @@ export class World {
 	/**
 	 * Add a plasma ball.
 	 *
-	 * @param {Plasma} ball The plasma ball.
+	 * @param {Plasma} plasmaBall The plasma ball.
 	 * @returns {void}
 	 */
-	addPlasma(ball) {
-		this.plasmaBalls.push(ball);
+	addPlasma(plasmaBall) {
+		this.plasmaBalls.push(plasmaBall);
 	}
 
 	/**
@@ -533,22 +462,6 @@ export class World {
 	clearBossAttacks() {
 		this.razorWheels = [];
 		this.plasmaBalls = [];
-	}
-
-	/**
-	 * Launch the player from a player launch tile: the player moves one tile back against the launch direction and
-	 * gets the launch speed in the launch direction. A tile on the edge of the map so puts the player outside the
-	 * playfield.
-	 *
-	 * @param {number} direction The direction of the launch, a value of Direction.
-	 * @returns {void}
-	 */
-	#launchPlayer(direction) {
-		const step = DIRECTIONS[direction];
-		this.player.x -= toSubpixels(step.dx * TILE_SIZE);
-		this.player.y -= toSubpixels(step.dy * TILE_SIZE);
-		this.player.vx = step.dx * LAUNCH_SPEED;
-		this.player.vy = step.dy * LAUNCH_SPEED;
 	}
 
 	/**
@@ -574,9 +487,8 @@ export class World {
 		this.platforms = bodies.platforms;
 		this.animatedTiles = bodies.animatedTiles;
 		if (bodies.playerStart) {
-			this.player.x = bodies.playerStart.x;
-			this.player.y = bodies.playerStart.y;
-			if (levelStart && bodies.playerStart.launch !== null) this.#launchPlayer(bodies.playerStart.launch);
+			this.player.putAt(bodies.playerStart.x, bodies.playerStart.y);
+			if (levelStart && bodies.playerStart.launch !== null) this.player.launch(bodies.playerStart.launch);
 		}
 		if (bodies.tube) {
 			this.tubeX = bodies.tube.x;
@@ -755,7 +667,7 @@ export class World {
 	 * @returns {boolean} True if a ball overlaps the body.
 	 */
 	plasmaTouching(body) {
-		return this.plasmaBalls.some((ball) => ball.used && ball.overlaps(body));
+		return this.plasmaBalls.some((plasmaBall) => plasmaBall.used && plasmaBall.overlaps(body));
 	}
 
 	/**

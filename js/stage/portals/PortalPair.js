@@ -43,7 +43,6 @@ export class PortalPair {
 	 */
 	launchPortal(index, targetX, targetY) {
 		const portal = this.list[index];
-		this.world.player.portalCooldown = 0;
 
 		let x = this.world.player.x + toSubpixels(this.world.player.width >> 1);
 		let y = this.world.player.y + toSubpixels(this.world.player.height >> 1);
@@ -338,19 +337,7 @@ export class PortalPair {
 	 */
 	#teleport(entry, exit, body) {
 		playSound(sfx_enterPortal);
-
-		if (DIRECTIONS[exit.direction].horizontal) {
-			const gap = (2 * TILE_SIZE - body.height) >> 1;
-			body.x = exit.x - toSubpixels(body.width >> 1);
-			body.y = exit.y + toSubpixels(gap);
-		} else {
-			// a body that comes out of a ceiling starts 4 pixels lower
-			const drop = exit.direction === Direction.UP ? toSubpixels(4) : 0;
-			body.x = exit.x + toSubpixels(TILE_SIZE / 2);
-			body.y = exit.y - toSubpixels(body.height >> 1) + drop;
-		}
-
-		body.teleported(entry, exit);
+		body.teleport(entry, exit);
 	}
 
 	/**
@@ -374,6 +361,17 @@ export class PortalPair {
 			this.world.effects.removeSparkles(PortalGlow, i);
 		}
 		playSound(sfx_cancelPortals);
+	}
+
+	/**
+	 * Check if the player, a turret, a plasma ball or a crate is in a portal.
+	 *
+	 * @returns {boolean} True if a body is in a portal.
+	 */
+	anyBodyInPortal() {
+		const world = this.world;
+		const bodies = [world.player, ...world.turrets, ...world.plasmaBalls, ...world.crates];
+		return bodies.some((body) => this.isInPortal(body));
 	}
 
 	/**

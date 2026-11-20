@@ -81,11 +81,40 @@ export class Plasma extends MovingBody {
 	}
 
 	/**
+	 * Check if the ball went away.
+	 *
+	 * @returns {boolean} True after a ball of the boss reached the tube.
+	 */
+	get gone() {
+		return this.needKill;
+	}
+
+	/**
+	 * Run one tick while the level time runs: the ball changes its frame and flies. A ball that went away does nothing.
+	 *
+	 * @returns {void}
+	 */
+	move() {
+		if (!this.used) return;
+		this.#changeFrame();
+		this.#fly();
+	}
+
+	/**
+	 * Run one tick while the level time stands still: the ball changes its frame.
+	 *
+	 * @returns {void}
+	 */
+	idle() {
+		if (this.used) this.#changeFrame();
+	}
+
+	/**
 	 * Change the frame of the ball image to another random frame every 10 ticks.
 	 *
 	 * @returns {void}
 	 */
-	animate() {
+	#changeFrame() {
 		if (this.world.time % 10 !== 0) return;
 		let frame;
 		do {
@@ -100,7 +129,7 @@ export class Plasma extends MovingBody {
 	 *
 	 * @returns {void}
 	 */
-	move() {
+	#fly() {
 		if (this.world.time % 10 === 0) {
 			this.scale += 1 * this.scaleDir;
 			if (this.scale < -2 || this.scale > 2) this.scaleDir = -this.scaleDir;

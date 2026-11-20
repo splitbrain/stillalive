@@ -22,6 +22,8 @@ import { TransitionPainter } from './painters/transitions.js';
 
 /**
  * The scene of a level during play, a test run or a replay.
+ *
+ * @extends {Scene<import('../world/World.js').World>}
  */
 export class LevelScene extends Scene {
 	/**

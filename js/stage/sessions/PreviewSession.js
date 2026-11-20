@@ -2,6 +2,7 @@
  * The PreviewSession object.
  */
 
+import { beginFrame } from '../browser/canvas.js';
 import { StageMode } from '../constants.js';
 import { PreviewScene } from '../render/PreviewScene.js';
 import { World } from '../world/World.js';
@@ -38,6 +39,16 @@ export class PreviewSession {
 	 */
 	get mode() {
 		return StageMode.PREVIEW;
+	}
+
+	/**
+	 * Draw a frame of the World with the shake of its effects.
+	 *
+	 * @returns {void}
+	 */
+	draw() {
+		beginFrame(this.world.effects.shakeX, this.world.effects.shakeY);
+		this.scene.draw(this.world);
 	}
 
 	/**

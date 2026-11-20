@@ -2,6 +2,7 @@
  * The PlaySession object.
  */
 
+import { beginFrame } from '../browser/canvas.js';
 import { StageMode } from '../constants.js';
 import { LevelScene } from '../render/LevelScene.js';
 import { Recorder, ReplayPlayer, encodeReplay } from './replay.js';
@@ -95,6 +96,16 @@ export class PlaySession {
 	 */
 	get replaying() {
 		return this.source instanceof ReplayPlayer && this.source.playing;
+	}
+
+	/**
+	 * Draw a frame of the World with the shake of its effects.
+	 *
+	 * @returns {void}
+	 */
+	draw() {
+		beginFrame(this.world.effects.shakeX, this.world.effects.shakeY);
+		this.scene.draw(this.world);
 	}
 
 	/**

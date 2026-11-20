@@ -13,8 +13,11 @@ import {
 	platformImage,
 	turretImages,
 } from '../../browser/images.js';
+import { Tile } from '../../map/tiles.js';
+import { GRAVPIPE_DIRECTIONS } from '../../world/level.js';
 import { arrow, line } from '../shapes.js';
 import { degToRad, random, toPixels } from '../../utils.js';
+import { PlayerPainter } from './player.js';
 
 /**
  * @type {Object<number, number[]>} The position [x, y] of the frame of a gravitational pipe in its image, by the
@@ -96,7 +99,7 @@ export class CratePainter {
 	 * @returns {void}
 	 */
 	drawBrush(x, y) {
-		drawImage(crateImage, x, y);
+		drawImage(crateImage, 0, 0, TILE_SIZE, TILE_SIZE, x, y, TILE_SIZE, TILE_SIZE);
 	}
 }
 
@@ -292,5 +295,51 @@ export class GravPipePainter {
 		const [width, height] = horizontal ? [TILE_SIZE, 2 * TILE_SIZE] : [2 * TILE_SIZE, TILE_SIZE];
 		const [sx, sy] = GRAVPIPE_FRAMES[direction];
 		drawImage(horizontal ? gravPipe : gravPipe2, sx, sy, width, height, x, y, width, height);
+	}
+}
+
+/**
+ * The painter of the body tiles of the editor. It draws the body of a body tile at a position, without a body object.
+ * A player start tile and a player launch tile both show the player in the start pose.
+ */
+export class BodyTilePainter {
+	/** @type {Map<number, (x: number, y: number) => void>} The functions that draw each body tile, by body tile id. */
+	#bodies;
+
+	/**
+	 * Create the painter of the body tiles.
+	 */
+	constructor() {
+		const cake = new CakePainter();
+		const crate = new CratePainter();
+		const turret = new TurretPainter();
+		const platform = new PlatformPainter({ arrows: true });
+		const gravPipe = new GravPipePainter();
+		const player = new PlayerPainter({ pose: 'start' });
+		this.#bodies = new Map([
+			[Tile.TURRET_LEFT, (x, y) => turret.drawBrush(x, y, -1)],
+			[Tile.TURRET_RIGHT, (x, y) => turret.drawBrush(x, y, 1)],
+			[Tile.CRATE, (x, y) => crate.drawBrush(x, y)],
+			[Tile.CAKE, (x, y) => cake.drawBrush(x, y)],
+			[Tile.PLAYER_START, (x, y) => player.drawBrush(x, y)],
+			[Tile.PLAYER_LAUNCH_UP, (x, y) => player.drawBrush(x, y)],
+			[Tile.PLATFORM_RIGHT, (x, y) => platform.drawBrush(x, y, 1)],
+			[Tile.PLATFORM_LEFT, (x, y) => platform.drawBrush(x, y, -1)],
+		]);
+		for (const [tile, direction] of Object.entries(GRAVPIPE_DIRECTIONS)) {
+			this.#bodies.set(Number(tile), (x, y) => gravPipe.drawBrush(x, y, direction));
+		}
+	}
+
+	/**
+	 * Draw the body of a body tile. A tile id without a body draws nothing.
+	 *
+	 * @param {number} tile The body tile id.
+	 * @param {number} x The x coordinate in canvas pixels.
+	 * @param {number} y The y coordinate in canvas pixels.
+	 * @returns {void}
+	 */
+	drawTile(tile, x, y) {
+		this.#bodies.get(tile)?.(x, y);
 	}
 }

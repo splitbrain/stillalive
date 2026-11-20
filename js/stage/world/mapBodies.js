@@ -53,7 +53,7 @@ const ANIMATED_KINDS = [
  * @property {AnimatedTile[]} animatedTiles The animated tiles. Only a level start creates them.
  * @property {PlayerStart|null} playerStart The last player start or player launch tile, or null for a map without
  *     one.
- * @property {Position|null} tube The position of the last tube tile, or null for a map without it or for the editor.
+ * @property {Position|null} tube The position of the last tube tile, or null for a map without it.
  * @property {import('./level.js').PlasmaLaunch[]} plasmaLaunches The starts of the plasma balls, one for each plasma
  *     start tile with a valid launch. Only a level start gives launches.
  */
@@ -67,11 +67,9 @@ const ANIMATED_KINDS = [
  * @param {object} [options] The options.
  * @param {boolean} [options.levelStart] True for a level start: the body tiles leave the map, the gravitational
  *     pipes block their tiles, the exits close, and the animated tiles and the plasma launches start.
- * @param {boolean} [options.editor] True for the editor map: both layers stay the same, and the tube tile is a tile of
- *     the map.
  * @returns {MapBodies} The bodies.
  */
-export function createBodies(world, { levelStart = false, editor = false } = {}) {
+export function createBodies(world, { levelStart = false } = {}) {
 	/** @type {MapBodies} */
 	const bodies = {
 		cakes: [],
@@ -106,7 +104,7 @@ export function createBodies(world, { levelStart = false, editor = false } = {})
 		}
 		if (tile === Tile.EXIT) {
 			if (levelStart) map.setTile(i, Tile.EXIT_CLOSED);
-			if (!editor) map.setDisplay(i, Tile.EXIT_CLOSED);
+			map.setDisplay(i, Tile.EXIT_CLOSED);
 			continue;
 		}
 		if (animated) {
@@ -153,7 +151,6 @@ export function createBodies(world, { levelStart = false, editor = false } = {})
 				if (levelStart) map.setTile(i, Tile.EMPTY);
 				break;
 			case Tile.TUBE:
-				if (editor) break;
 				bodies.tube = { x: px, y: py };
 				if (levelStart) map.set(i, Tile.EMPTY);
 				break;

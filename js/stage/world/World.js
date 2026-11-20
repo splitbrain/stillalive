@@ -17,7 +17,7 @@ import { createBodies } from './mapBodies.js';
 import { SwitchDoors } from './SwitchDoors.js';
 import { TileMap } from './TileMap.js';
 import { FIRST_OF_KIND, Tile, TileKind, inForceFieldRange, isDeadlyTile, isTileKind } from '../map/tiles.js';
-import { inScreen, random, toSubpixels } from '../utils.js';
+import { inScreen, random } from '../utils.js';
 
 /** @type {Object<string, typeof sfx_field>} The sound of the opening and the closing doors, by door kind. */
 const DOOR_SOUNDS = { [TileKind.SWITCH_DOOR]: sfx_field, [TileKind.PLASMA_DOOR]: sfx_plasmaField };
@@ -44,12 +44,12 @@ function isPassable(tile) {
 }
 
 /**
- * The state of one level, one preview or one editor map. Each level start creates a new World.
+ * The state of one level or one preview. Each level start creates a new World.
  */
 export class World {
 	/** @type {TileMap} The tiles of the map. */
 	map;
-	/** @type {import('./level.js').Level|null} The level that runs, or null for a preview or an editor map. */
+	/** @type {import('./level.js').Level|null} The level that runs, or null for a preview. */
 	level = null;
 	/** @type {boolean} True if a replay plays the level. */
 	#replaying = false;
@@ -106,8 +106,8 @@ export class World {
 	/** @type {SwitchDoors} The switches and the switch doors. */
 	switches = new SwitchDoors(this);
 	/**
-	 * @type {LevelEvents} The events of the level. A preview and the editor map have a list without events, and a
-	 *     level start replaces it with the events of the level.
+	 * @type {LevelEvents} The events of the level. A preview has a list without events, and a level start replaces it
+	 *     with the events of the level.
 	 */
 	events = new LevelEvents(this, [], false);
 	/**
@@ -192,31 +192,6 @@ export class World {
 		}
 		world.background = level.bg;
 		return world;
-	}
-
-	/**
-	 * Create the World of the editor map with the bodies of the map.
-	 *
-	 * @param {TileMap} map The editor map. The World uses the object and does not copy it.
-	 * @returns {World} The World.
-	 */
-	static forEditor(map) {
-		const world = new World(map);
-		world.createEditorBodies();
-		return world;
-	}
-
-	/**
-	 * Create the bodies of the editor map again. The player stays outside the playfield if the map has no player
-	 * start tile.
-	 *
-	 * @returns {void}
-	 */
-	createEditorBodies() {
-		this.player = new Player(this);
-		this.player.putAt(-toSubpixels(TILE_SIZE), 0);
-		this.phase.reset();
-		this.#loadBodies({ editor: true });
 	}
 
 	/**
@@ -467,18 +442,17 @@ export class World {
 	/**
 	 * Create the bodies of the map at their start positions and put them into the World. The method sets the position
 	 * of the player and of the tube when the map has their tiles. At a level start, a player launch tile also launches
-	 * the player; a preview and the editor map show the player on the tile. Each plasma launch starts a plasma ball
-	 * when the World has no boss. For a boss that shoots plasma balls, the plasma launch is the start point of its
-	 * shots. Only a level start has plasma launches, so forLevel() creates the boss first. A preview and the editor map
-	 * have no plasma launches, and the order of the boss does not matter there.
+	 * the player; a preview shows the player on the tile. Each plasma launch starts a plasma ball when the World has no
+	 * boss. For a boss that shoots plasma balls, the plasma launch is the start point of its shots. Only a level start
+	 * has plasma launches, so forLevel() creates the boss first. A preview has no plasma launches, and the order of the
+	 * boss does not matter there.
 	 *
 	 * @param {object} [options] The options.
 	 * @param {boolean} [options.levelStart] True for a level start, see createBodies().
-	 * @param {boolean} [options.editor] True for the editor map, see createBodies().
 	 * @returns {void}
 	 */
-	#loadBodies({ levelStart = false, editor = false } = {}) {
-		const bodies = createBodies(this, { levelStart, editor });
+	#loadBodies({ levelStart = false } = {}) {
+		const bodies = createBodies(this, { levelStart });
 		this.cakes = bodies.cakes;
 		this.turrets = bodies.turrets;
 		this.crates = bodies.crates;

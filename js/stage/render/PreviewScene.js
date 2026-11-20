@@ -10,6 +10,8 @@ import { TileLayerPainter } from './painters/tiles.js';
 
 /**
  * The scene of the still picture of a level or of a map.
+ *
+ * @extends {Scene<import('../world/World.js').World>}
  */
 export class PreviewScene extends Scene {
 	/**

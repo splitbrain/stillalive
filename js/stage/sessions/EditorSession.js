@@ -2,6 +2,7 @@
  * The EditorSession object.
  */
 
+import { beginFrame } from '../browser/canvas.js';
 import { StageMode } from '../constants.js';
 import { EditorScene } from '../render/EditorScene.js';
 
@@ -10,7 +11,7 @@ import { EditorScene } from '../render/EditorScene.js';
  */
 export class EditorSession {
 	/** @type {EditorScene} The scene that draws the editor map and the brush. */
-	scene;
+	scene = new EditorScene();
 
 	/** @type {import('../editor/Editor.js').Editor} The editor. */
 	#editor;
@@ -27,7 +28,6 @@ export class EditorSession {
 	constructor(editor, input) {
 		this.#editor = editor;
 		this.#input = input;
-		this.scene = new EditorScene(editor);
 		input.unclick();
 	}
 
@@ -41,12 +41,13 @@ export class EditorSession {
 	}
 
 	/**
-	 * Get the World with the bodies of the editor map.
+	 * Draw a frame of the editor without a shake.
 	 *
-	 * @returns {import('../world/World.js').World} The World of the editor.
+	 * @returns {void}
 	 */
-	get world() {
-		return this.#editor.world;
+	draw() {
+		beginFrame(0, 0);
+		this.scene.draw(this.#editor);
 	}
 
 	/**

@@ -32,16 +32,6 @@ export class LevelPhase {
 	transition = Transition.HORIZONTAL_LINES;
 
 	/**
-	 * Set the start of the opening transition.
-	 *
-	 * @returns {void}
-	 */
-	reset() {
-		this.current = LevelPhase.OPENING;
-		this.fade = FADE_START;
-	}
-
-	/**
 	 * Check if the opening transition of the level runs.
 	 *
 	 * @returns {boolean} True during the opening transition.

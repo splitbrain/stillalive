@@ -17,7 +17,7 @@ import {
 	sfx_hover,
 	sfx_tick,
 } from './browser/audio.js';
-import { beginFrame, clearCanvas, ctx, setCanvas, watchCanvasSize } from './browser/canvas.js';
+import { clearCanvas, ctx, setCanvas, watchCanvasSize } from './browser/canvas.js';
 import { PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, StageMode, Transition } from './constants.js';
 import { Editor } from './editor/Editor.js';
 import { InputState } from './browser/InputState.js';
@@ -66,9 +66,9 @@ const BOSS_MUSIC_DUCK = 0.5;
  *
  * @typedef {object} Session
  * @property {string} mode The mode of the stage for the session, a value of StageMode.
- * @property {import('./world/World.js').World} world The World that the session shows.
+ * @property {import('./world/World.js').World} [world] The World that the session shows. The editor has no World.
  * @property {() => void} tick The function that runs one tick of the session, with the input of the tick.
- * @property {import('./render/Scene.js').Scene} scene The scene that draws the World of the session.
+ * @property {() => void} draw The function that draws a frame of the session.
  */
 
 /**
@@ -76,7 +76,8 @@ const BOSS_MUSIC_DUCK = 0.5;
  *
  * @typedef {object} TestHook
  * @property {GameStage} stage The stage element.
- * @property {() => import('./world/World.js').World} world Get the World of the session. It throws for an idle stage.
+ * @property {() => import('./world/World.js').World} world Get the World of the session. It throws for an idle stage
+ *     and for the editor, which has no World.
  * @property {() => import('./sessions/replay.js').Replay|undefined} replay Get the replay of the play session.
  * @property {() => void} endReplay End the playback of a replay.
  * @property {InputState} input The keys and the mouse.
@@ -454,15 +455,12 @@ export class GameStage extends HTMLElement {
 	}
 
 	/**
-	 * Draw a frame of the current session with its scene. Without a session, the canvas stays the same.
+	 * Draw a frame of the current session. Without a session, the canvas stays the same.
 	 *
 	 * @returns {void}
 	 */
 	#render() {
-		const session = this.#session;
-		if (!session) return;
-		beginFrame(session.world.effects.shakeX, session.world.effects.shakeY);
-		session.scene.draw(session.world);
+		this.#session?.draw();
 	}
 
 	/**
@@ -561,7 +559,7 @@ export class GameStage extends HTMLElement {
 		this.speed.set(this.#speed);
 		this.brush.set(this.#editor.brush);
 		this.fps.set(getFps());
-		const phase = session?.mode === StageMode.PLAY ? (session.world.boss?.phase() ?? null) : null;
+		const phase = session?.mode === StageMode.PLAY ? (world?.boss?.phase() ?? null) : null;
 		setMusicMood(
 			phase === 'fight' ? BOSS_MUSIC_RATE : 1,
 			phase === 'coming' || phase === 'leaving' ? BOSS_MUSIC_DUCK : 1,
@@ -581,8 +579,9 @@ export class GameStage extends HTMLElement {
 		window.__test = {
 			stage: this,
 			world: () => {
-				if (!this.#session) throw new Error('The stage is idle and has no World.');
-				return this.#session.world;
+				const world = this.#session?.world;
+				if (!world) throw new Error('The stage has no World: it is idle or shows the editor.');
+				return world;
 			},
 			replay: () => this.#play?.source?.replay,
 			endReplay: () => this.#play?.endPlayback(),

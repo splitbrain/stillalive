@@ -6,50 +6,55 @@ import { ctx, drawImage } from '../../browser/canvas.js';
 import { MAP_HEIGHT, MAP_WIDTH, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, TILE_SIZE } from '../../constants.js';
 import { bg } from '../../browser/images.js';
 import { Tile } from '../../map/tiles.js';
-import { plasmaLaunch } from '../../world/level.js';
+import { GRAVPIPE_DIRECTIONS, plasmaLaunch } from '../../world/level.js';
 import { LayerCache } from '../LayerCache.js';
-import { CakePainter, CratePainter, GravPipePainter, PlatformPainter, TurretPainter } from './bodies.js';
-import { PlayerPainter } from './player.js';
+import { BodyTilePainter } from './bodies.js';
 import { drawTiles } from './tiles.js';
 
 /**
- * The painter of the background, the plasma start markers, the tiles and the bodies of the editor map, from a cached
- * layer.
+ * @type {number[][]} The body tile ids of the editor map in the draw order of their kinds: cakes, turrets, crates,
+ *     platforms, gravitational pipes and the player. Within a kind, the bodies follow the map order.
+ */
+const BODY_TILE_ORDER = [
+	[Tile.CAKE],
+	[Tile.TURRET_LEFT, Tile.TURRET_RIGHT],
+	[Tile.CRATE],
+	[Tile.PLATFORM_RIGHT, Tile.PLATFORM_LEFT],
+	Object.keys(GRAVPIPE_DIRECTIONS).map(Number),
+	[Tile.PLAYER_START, Tile.PLAYER_LAUNCH_UP],
+];
+
+/**
+ * The painter of the background, the plasma start markers, the tiles and the body tiles of the editor map, from a
+ * cached layer.
  */
 export class EditorLayerPainter {
-	/** @type {LayerCache} The cached layer. The bodies of the editor come from the map, so they change only with it. */
+	/** @type {LayerCache} The cached layer. The body tiles are part of the map, so they change only with it. */
 	#cache = new LayerCache();
 
-	/** @type {import('../Scene.js').Painter[]} The painters of the bodies of the editor map in the draw order. */
-	#bodies = [
-		new CakePainter(),
-		new TurretPainter(),
-		new CratePainter(),
-		new PlatformPainter({ arrows: true }),
-		new GravPipePainter(),
-		new PlayerPainter({ pose: 'start' }),
-	];
+	/** @type {BodyTilePainter} The painter of the body tiles. */
+	#bodyTiles = new BodyTilePainter();
 
 	/**
-	 * Draw the layer of the editor map of a World.
+	 * Draw the layer of the editor map.
 	 *
-	 * @param {import('../../world/World.js').World} world The World of the editor map.
+	 * @param {import('../EditorScene.js').EditorState} state The state of the editor.
 	 * @returns {void}
 	 */
-	draw(world) {
-		this.#cache.draw(world.map, world.background, () => this.#drawLayer(world));
+	draw(state) {
+		this.#cache.draw(state.map, state.background, () => this.#drawLayer(state.map, state.background));
 	}
 
 	/**
 	 * Draw the layer onto the canvas. A plasma start that cannot launch its ball gets red markers on the tiles next
 	 * to it.
 	 *
-	 * @param {import('../../world/World.js').World} world The World of the editor map.
+	 * @param {import('../../world/TileMap.js').TileMap} map The editor map.
+	 * @param {number} background The index of the background image.
 	 * @returns {void}
 	 */
-	#drawLayer(world) {
-		const map = world.map;
-		drawImage(bg[world.background], 0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
+	#drawLayer(map, background) {
+		drawImage(bg[background], 0, 0, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 		ctx.fillStyle = 'rgba(255, 0, 0, 0.7)';
 		const start = map.tiles.indexOf(Tile.PLASMA_START);
 		if (start >= 0) {
@@ -64,6 +69,10 @@ export class EditorLayerPainter {
 		}
 
 		drawTiles(map);
-		for (const painter of this.#bodies) painter.draw(world);
+		for (const kind of BODY_TILE_ORDER) {
+			for (const [i, tile] of map.tiles.entries()) {
+				if (kind.includes(tile)) this.#bodyTiles.drawTile(tile, map.column(i) * TILE_SIZE, map.row(i) * TILE_SIZE);
+			}
+		}
 	}
 }

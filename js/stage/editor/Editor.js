@@ -8,10 +8,9 @@ import { MAP_FORMAT, parseMap } from '../map/mapFile.js';
 import { emptyTiles, TileMap } from '../world/TileMap.js';
 import { Tile, isBodyTile } from '../map/tiles.js';
 import { UndoList } from './UndoList.js';
-import { World } from '../world/World.js';
 
 /**
- * The state of the level editor: the editor map with its bodies, the brush and the undo list. It exists as long as
+ * The state of the level editor: the editor map, its background, the brush and the undo list. It exists as long as
  * the stage, so the editor map stays during a test run.
  */
 export class Editor {
@@ -33,17 +32,14 @@ export class Editor {
 	/** @type {TileMap} The tiles of the editor map. */
 	#map = new TileMap(emptyTiles());
 
-	/** @type {World} The World with the background and the bodies of the editor map. It uses the TileMap of the editor. */
-	#world = World.forEditor(this.#map);
+	/** @type {number} The index of the background image of the editor map. */
+	#background = 0;
 
 	/** @type {UndoList} The maps after each change. It starts with the empty map. */
 	#undoList = new UndoList();
 
 	/** @type {boolean} The mouse release state of the previous tick. */
 	#oldMouseReleased = false;
-
-	/** @type {boolean} True when the bodies of the editor map must be created again. */
-	#bodiesChanged = false;
 
 	/**
 	 * Create the editor with an empty map.
@@ -53,12 +49,21 @@ export class Editor {
 	}
 
 	/**
-	 * Get the World with the bodies of the editor map.
+	 * Get the tiles of the editor map.
 	 *
-	 * @returns {World} The World of the editor.
+	 * @returns {TileMap} The editor map.
 	 */
-	get world() {
-		return this.#world;
+	get map() {
+		return this.#map;
+	}
+
+	/**
+	 * Get the background of the editor map.
+	 *
+	 * @returns {number} The index of the background image.
+	 */
+	get background() {
+		return this.#background;
 	}
 
 	/**
@@ -72,29 +77,21 @@ export class Editor {
 
 	/**
 	 * Open the editor on a new map, or on the editor map from before, e.g. after a test run. A new map starts a new
-	 * undo list. The editor creates the bodies of the map again.
+	 * undo list.
 	 *
 	 * @param {import('../map/mapFile.js').MapFile|null} [map] The new map in the map file format, or nothing or null for
 	 *     the editor map from before.
 	 * @returns {void}
 	 */
 	open(map) {
-		if (map) {
-			const { tiles, bg, ...rest } = map;
-			delete rest.format;
-			this.#map = new TileMap(tiles);
-			this.#world = World.forEditor(this.#map);
-			this.#world.background = bg;
-			this.#properties = rest;
-		} else {
-			this.#world.createEditorBodies();
-		}
-		if (map) {
-			this.#undoList = new UndoList();
-			this.#addUndo();
-		}
-
-		this.#bodiesChanged = false;
+		if (!map) return;
+		const { tiles, bg, ...rest } = map;
+		delete rest.format;
+		this.#map = new TileMap(tiles);
+		this.#background = bg;
+		this.#properties = rest;
+		this.#undoList = new UndoList();
+		this.#addUndo();
 	}
 
 	/**
@@ -104,12 +101,11 @@ export class Editor {
 	 *     a copy of the tiles.
 	 */
 	getMap() {
-		return { ...this.#properties, bg: this.#world.background, tiles: [...this.#map.tiles] };
+		return { ...this.#properties, bg: this.#background, tiles: [...this.#map.tiles] };
 	}
 
 	/**
-	 * Run one tick: find the tile under the mouse, change the map at the mouse, undo or redo a change, and create the
-	 * bodies again after a change.
+	 * Run one tick: find the tile under the mouse, change the map at the mouse, and undo or redo a change.
 	 *
 	 * @param {import('../browser/InputState.js').InputState} input The keys and the mouse of the tick.
 	 * @returns {void}
@@ -125,8 +121,6 @@ export class Editor {
 
 		if (this.#oldMouseReleased && input.mouseReleased) input.mouseReleased = false;
 		this.#oldMouseReleased = input.mouseReleased;
-
-		if (this.#bodiesChanged) this.#rebuildBodies();
 	}
 
 	/**
@@ -138,7 +132,6 @@ export class Editor {
 		this.#map.replace(emptyTiles());
 		this.#properties = {};
 		this.#addUndo();
-		this.#mapChanged();
 	}
 
 	/**
@@ -148,8 +141,7 @@ export class Editor {
 	 * @returns {void}
 	 */
 	setBackground(index) {
-		this.#world.background = ((index % BACKGROUND_COUNT) + BACKGROUND_COUNT) % BACKGROUND_COUNT;
-		this.#mapChanged();
+		this.#background = ((index % BACKGROUND_COUNT) + BACKGROUND_COUNT) % BACKGROUND_COUNT;
 	}
 
 	/**
@@ -180,41 +172,18 @@ export class Editor {
 		if (!entry) return;
 		this.#map.replace(entry.tiles);
 		this.#properties = entry.properties;
-		this.#mapChanged();
 	}
 
 	/**
-	 * Mark the map as changed, so the update creates the bodies again.
+	 * Show the edited logic tiles in the display layer.
 	 *
 	 * @returns {void}
 	 */
-	#mapChanged() {
-		this.#bodiesChanged = true;
-	}
-
-	/**
-	 * Show the edited logic tiles in the display layer, and mark the map as changed if a tile changed. Before the edit,
-	 * the two layers are equal, so the version increases only for a tile with a new id.
-	 *
-	 * @param {number} version The version of the map before the edit.
-	 * @returns {void}
-	 */
-	#mapChangedSince(version) {
+	#showEditedTiles() {
 		const map = this.#map;
 		for (const [i, tile] of map.tiles.entries()) {
 			if (map.display[i] !== tile) map.setDisplay(i, tile);
 		}
-		if (map.version !== version) this.#mapChanged();
-	}
-
-	/**
-	 * Create the bodies of the editor map again.
-	 *
-	 * @returns {void}
-	 */
-	#rebuildBodies() {
-		this.#world.createEditorBodies();
-		this.#bodiesChanged = false;
 	}
 
 	/**
@@ -253,12 +222,10 @@ export class Editor {
 			if (input.mouseReleased) {
 				input.mouseReleased = false;
 				this.#addUndo();
-				this.#mapChanged();
 			}
 			return;
 		}
 
-		const version = map.version;
 		const column = input.mouseX >> TILE_SIZE_BITS;
 		const row = input.mouseY >> TILE_SIZE_BITS;
 		const tile = map.index(column, row);
@@ -279,7 +246,7 @@ export class Editor {
 				break;
 		}
 		build(map);
-		this.#mapChangedSince(version);
+		this.#showEditedTiles();
 	}
 
 	/**
@@ -300,7 +267,6 @@ export class Editor {
 			return;
 		}
 
-		const version = map.version;
 		const column = input.mouseX >> TILE_SIZE_BITS;
 		const row = input.mouseY >> TILE_SIZE_BITS;
 		const tile = map.index(column, row);
@@ -325,6 +291,6 @@ export class Editor {
 		eraseBodyAbove(map, column, row);
 
 		build(map);
-		this.#mapChangedSince(version);
+		this.#showEditedTiles();
 	}
 }

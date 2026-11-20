@@ -45,6 +45,17 @@ export class CakePainter {
 			drawImage(cakeImage, cake.pixelX, toPixels(cake.y + float), TILE_SIZE, 12);
 		}
 	}
+
+	/**
+	 * Draw a cake as the brush of the editor.
+	 *
+	 * @param {number} x The x coordinate in canvas pixels.
+	 * @param {number} y The y coordinate in canvas pixels.
+	 * @returns {void}
+	 */
+	drawBrush(x, y) {
+		drawImage(cakeImage, x, y);
+	}
 }
 
 /**
@@ -76,6 +87,17 @@ export class CratePainter {
 			);
 			ctx.restore();
 		}
+	}
+
+	/**
+	 * Draw a crate as the brush of the editor.
+	 *
+	 * @param {number} x The x coordinate in canvas pixels.
+	 * @param {number} y The y coordinate in canvas pixels.
+	 * @returns {void}
+	 */
+	drawBrush(x, y) {
+		drawImage(crateImage, x, y);
 	}
 }
 
@@ -122,6 +144,19 @@ export class TurretPainter {
 				line(x + dx, y + 13, toPixels(turret.sightEndX), playerY);
 			}
 		}
+	}
+
+	/**
+	 * Draw a turret as the brush of the editor.
+	 *
+	 * @param {number} x The x coordinate in canvas pixels.
+	 * @param {number} y The y coordinate in canvas pixels.
+	 * @param {number} facing The direction, -1 left, else right.
+	 * @returns {void}
+	 */
+	drawBrush(x, y, facing) {
+		const side = facing < 0 ? 0 : 1;
+		drawImage(turretImages[side], 0, 0, TILE_SIZE, 2 * TILE_SIZE, x, y, TILE_SIZE, 2 * TILE_SIZE);
 	}
 }
 
@@ -180,7 +215,19 @@ export class PlatformPainter {
 	 * @returns {void}
 	 */
 	draw(world) {
-		for (const platform of world.platforms) this.drawPlatform(platform.pixelX, platform.pixelY, platform.facing);
+		for (const platform of world.platforms) this.#drawPlatform(platform.pixelX, platform.pixelY, platform.facing);
+	}
+
+	/**
+	 * Draw a platform as the brush of the editor.
+	 *
+	 * @param {number} x The x coordinate in canvas pixels.
+	 * @param {number} y The y coordinate in canvas pixels.
+	 * @param {number} facing The direction, -1 left or 1 right.
+	 * @returns {void}
+	 */
+	drawBrush(x, y, facing) {
+		this.#drawPlatform(x, y, facing);
 	}
 
 	/**
@@ -191,7 +238,7 @@ export class PlatformPainter {
 	 * @param {number} facing The direction, -1 left or 1 right.
 	 * @returns {void}
 	 */
-	drawPlatform(x, y, facing) {
+	#drawPlatform(x, y, facing) {
 		drawImage(platformImage, x, y);
 		if (this.#arrows) {
 			ctx.fillStyle = 'rgb(255, 0, 0)';
@@ -218,18 +265,30 @@ export class GravPipePainter {
 			ctx.fillRect(field.x, field.y, field.width, field.height);
 		}
 		ctx.globalAlpha = 1;
-		for (const pipe of world.gravPipes) this.drawGravPipe(pipe.direction, pipe.pixelX, pipe.pixelY);
+		for (const pipe of world.gravPipes) this.#drawGravPipe(pipe.pixelX, pipe.pixelY, pipe.direction);
+	}
+
+	/**
+	 * Draw a gravitational pipe as the brush of the editor.
+	 *
+	 * @param {number} x The x coordinate in canvas pixels.
+	 * @param {number} y The y coordinate in canvas pixels.
+	 * @param {number} direction The direction of the push, a value of Direction.
+	 * @returns {void}
+	 */
+	drawBrush(x, y, direction) {
+		this.#drawGravPipe(x, y, direction);
 	}
 
 	/**
 	 * Draw a gravitational pipe.
 	 *
-	 * @param {number} direction The direction of the push, a value of Direction.
 	 * @param {number} x The x coordinate in canvas pixels.
 	 * @param {number} y The y coordinate in canvas pixels.
+	 * @param {number} direction The direction of the push, a value of Direction.
 	 * @returns {void}
 	 */
-	drawGravPipe(direction, x, y) {
+	#drawGravPipe(x, y, direction) {
 		const horizontal = DIRECTIONS[direction].horizontal;
 		const [width, height] = horizontal ? [TILE_SIZE, 2 * TILE_SIZE] : [2 * TILE_SIZE, TILE_SIZE];
 		const [sx, sy] = GRAVPIPE_FRAMES[direction];

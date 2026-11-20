@@ -50,14 +50,14 @@ export function triangle(x1, y1, x2, y2, x3, y3) {
  * @param {number} x2 The x coordinate of the end in canvas pixels.
  * @param {number} y2 The y coordinate of the end in canvas pixels.
  * @param {number} lineWidth The width of the line.
- * @param {number} dir The direction of the arrow head, -1 left or 1 right.
+ * @param {number} facing The direction of the arrow head, -1 left or 1 right.
  * @returns {void}
  */
-export function arrow(x1, y1, x2, y2, lineWidth, dir) {
+export function arrow(x1, y1, x2, y2, lineWidth, facing) {
 	ctx.lineWidth = lineWidth;
 	line(x1, y1, x2, y2);
-	const xa = x1 + (Math.abs(x1 - x2) >> 1) + dir * 2;
-	const tip = dir === -1 ? xa - 6 : xa + 6;
+	const xa = x1 + (Math.abs(x1 - x2) >> 1) + facing * 2;
+	const tip = facing === -1 ? xa - 6 : xa + 6;
 	triangle(tip, y1, xa, y1 - 6, xa, y1 + 6);
 }
 

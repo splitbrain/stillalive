@@ -3,8 +3,7 @@
  */
 
 import { beginFrame } from '../browser/canvas.js';
-import { drawCursor, drawEditorLayer } from './editor.js';
-import { LayerCache } from './LayerCache.js';
+import { EditorScene } from './EditorScene.js';
 import { Scene } from './Scene.js';
 import {
 	CakePainter,
@@ -32,28 +31,24 @@ import { TransitionPainter } from './painters/transitions.js';
  */
 
 /**
- * The drawing of the stage with the scenes of a level and of a preview.
+ * The drawing of the stage with the scenes of a level, of a preview and of the editor.
  */
 export class Renderer {
-	/** @type {import('../browser/InputState.js').InputState} The keys and the mouse. */
-	#input;
-
 	/** @type {Scene} The draw order of a level. */
 	#level;
 
 	/** @type {Scene} The draw order of a preview. */
 	#preview;
 
-	/** @type {LayerCache} The cached background, tiles and bodies of the editor map. */
-	#editorLayer = new LayerCache();
+	/** @type {EditorScene} The drawing of the editor. */
+	#editor;
 
 	/**
 	 * Create the drawing of the stage.
 	 *
-	 * @param {import('../browser/InputState.js').InputState} input The keys and the mouse, for the crosshair and the cursor.
+	 * @param {import('../browser/InputState.js').InputState} input The mouse, for the player, the crosshair and the brush.
 	 */
 	constructor(input) {
-		this.#input = input;
 		// the level and the preview share the cached tile layer
 		const tileLayer = new TileLayerPainter();
 		this.#level = new Scene([
@@ -90,6 +85,7 @@ export class Renderer {
 			new BossPainter(),
 			new CrosshairPainter(input),
 		]);
+		this.#editor = new EditorScene(input);
 	}
 
 	/**
@@ -125,13 +121,12 @@ export class Renderer {
 	}
 
 	/**
-	 * Draw the editor map and the cursor. The cached editor layer holds the background, the tiles and the bodies.
+	 * Draw the editor map and the brush.
 	 *
 	 * @param {import('../editor/Editor.js').Editor} editor The editor.
 	 * @returns {void}
 	 */
 	drawEditor(editor) {
-		this.#editorLayer.draw(editor.map, editor.background, () => drawEditorLayer(editor));
-		drawCursor(editor.brush, this.#input);
+		this.#editor.draw(editor);
 	}
 }

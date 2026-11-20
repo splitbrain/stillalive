@@ -71,9 +71,31 @@ export class PlayerPainter {
 				this.#drawStill(player);
 				break;
 			case 'start':
-				this.drawFigure(player.pixelX, player.pixelY, 1, 0);
+				this.#drawStart(player.pixelX, player.pixelY);
 				break;
 		}
+	}
+
+	/**
+	 * Draw the player in the start pose as the brush of the editor.
+	 *
+	 * @param {number} x The x coordinate in canvas pixels.
+	 * @param {number} y The y coordinate in canvas pixels.
+	 * @returns {void}
+	 */
+	drawBrush(x, y) {
+		this.#drawStart(x, y);
+	}
+
+	/**
+	 * Draw the player in the start pose.
+	 *
+	 * @param {number} x The x coordinate in canvas pixels.
+	 * @param {number} y The y coordinate in canvas pixels.
+	 * @returns {void}
+	 */
+	#drawStart(x, y) {
+		this.#drawFigure(x, y, 1, 0);
 	}
 
 	/**
@@ -82,16 +104,16 @@ export class PlayerPainter {
 	 *
 	 * @param {number} x The x coordinate in canvas pixels.
 	 * @param {number} y The y coordinate in canvas pixels.
-	 * @param {number} facing The direction, -1 for left, else right.
+	 * @param {number} facing The direction, -1 left, else right.
 	 * @param {number} frame The frame of the body: 0 for the standing figure, 1 to 4 for the walk cycle.
 	 * @returns {void}
 	 */
-	drawFigure(x, y, facing, frame) {
+	#drawFigure(x, y, facing, frame) {
 		ctx.save();
 		if (facing < 0) mirrorAround(x + TILE_SIZE / 2);
 		drawImage(head, x, y + HEAD_BOB[frame], 16, 14);
 		ctx.restore();
-		this.#drawBody(x, y, frame, facing);
+		this.#drawBody(x, y, facing, frame);
 	}
 
 	/**
@@ -107,7 +129,7 @@ export class PlayerPainter {
 		const facingLeft = player.facing < 0;
 		if (!facingLeft && world.abilities.portals) this.#drawGun(player, angle);
 		this.#drawRotatedHead(player, angle, facingLeft);
-		this.#drawBody(player.pixelX, player.pixelY, player.frame, player.facing);
+		this.#drawBody(player.pixelX, player.pixelY, player.facing, player.frame);
 		if (facingLeft && world.abilities.portals) this.#drawGun(player, angle);
 	}
 
@@ -119,7 +141,7 @@ export class PlayerPainter {
 	 */
 	#drawStill(player) {
 		this.#drawGun(player, 0);
-		this.drawFigure(player.pixelX, player.pixelY, player.facing, player.frame);
+		this.#drawFigure(player.pixelX, player.pixelY, player.facing, player.frame);
 	}
 
 	/**
@@ -161,11 +183,11 @@ export class PlayerPainter {
 	 *
 	 * @param {number} x The x coordinate in canvas pixels.
 	 * @param {number} y The y coordinate in canvas pixels.
+	 * @param {number} facing The direction, -1 left, else right.
 	 * @param {number} frame The frame: 0 for the standing figure, 1 to 4 for the walk cycle.
-	 * @param {number} facing The direction, -1 for left, else right.
 	 * @returns {void}
 	 */
-	#drawBody(x, y, frame, facing) {
+	#drawBody(x, y, facing, frame) {
 		ctx.save();
 		if (facing < 0) mirrorAround(x + TILE_SIZE / 2);
 		drawImage(playerBody, frame * TILE_SIZE, 0, TILE_SIZE, 27, x, y, TILE_SIZE, 27);

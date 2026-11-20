@@ -19,6 +19,7 @@ import {
 	saveProgress,
 	saveSoundSetting,
 } from '../../data/storage.js';
+import { levelFromMap } from '../../stage/world/level.js';
 import { toTime } from '../time.js';
 import { checkReady, ready } from '../../loader.js';
 
@@ -435,7 +436,7 @@ export class Root extends UiElement {
 	 * @returns {void}
 	 */
 	#previewEditorMap() {
-		this.stage.preview(this.stage.getMap());
+		this.stage.preview(levelFromMap(this.stage.getMap(), '', 0));
 	}
 
 	/**

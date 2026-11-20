@@ -6,6 +6,8 @@ import { RouteName, up } from '../../router.js';
 import { requireElement, setAttributes } from '../dom.js';
 import { loadMarkup, Screen } from '../element.js';
 import { editorMap, saveEditorMap } from '../../data/storage.js';
+import { CampaignId } from '../../stage/constants.js';
+import { levelFromMap } from '../../stage/world/level.js';
 import { askConfirmation, confirmReplaceMap, showAlert } from './Dialog.js';
 import { Selection } from './Selection.js';
 
@@ -62,13 +64,22 @@ export class EditorFiles extends Selection {
 	}
 
 	/**
-	 * Show the preview of the map of a slot on the stage. An empty slot shows the editor map.
+	 * Show the preview of the map of a slot on the stage. An empty slot shows the editor map. A slot with a map that
+	 * is not valid stops the stage and shows no preview.
 	 *
 	 * @param {number} slot The slot number, or 0 for the editor map.
 	 * @returns {void}
 	 */
 	previewChoice(slot) {
-		this.stage.preview((slot > 0 && editorMap(slot).get()) || this.stage.getMap());
+		const stored = slot > 0 ? editorMap(slot).get() : null;
+		let level;
+		try {
+			level = stored ? levelFromMap(stored, CampaignId.CUSTOM, slot) : levelFromMap(this.stage.getMap(), '', 0);
+		} catch {
+			this.stage.stop();
+			return;
+		}
+		this.stage.preview(level);
 	}
 
 	/**

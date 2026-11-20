@@ -6,10 +6,10 @@ import { Scene } from './Scene.js';
 import { CakePainter, CratePainter, GravPipePainter, PlatformPainter, TurretPainter } from './painters/bodies.js';
 import { BossPainter, TubePainter } from './painters/boss.js';
 import { PlayerPainter } from './painters/player.js';
-import { TileLayerPainter } from './painters/tiles.js';
+import { AnimatedTilePainter, TileLayerPainter } from './painters/tiles.js';
 
 /**
- * The scene of the still picture of a level or of a map.
+ * The scene of the still picture of a level.
  *
  * @extends {Scene<import('../world/World.js').World>}
  */
@@ -20,6 +20,7 @@ export class PreviewScene extends Scene {
 	constructor() {
 		super([
 			new TileLayerPainter(),
+			new AnimatedTilePainter(),
 			new PlayerPainter({ pose: 'still' }),
 			new CakePainter(),
 			new TurretPainter(),

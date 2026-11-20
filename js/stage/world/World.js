@@ -44,12 +44,13 @@ function isPassable(tile) {
 }
 
 /**
- * The state of one level or one preview. Each level start creates a new World.
+ * The state of one started level. Each level start creates a new World. A preview shows the World of a level start
+ * and never ticks it.
  */
 export class World {
 	/** @type {TileMap} The tiles of the map. */
 	map;
-	/** @type {import('./level.js').Level|null} The level that runs, or null for a preview. */
+	/** @type {import('./level.js').Level|null} The level that runs, or null before the level start. */
 	level = null;
 	/** @type {boolean} True if a replay plays the level. */
 	#replaying = false;
@@ -106,8 +107,8 @@ export class World {
 	/** @type {SwitchDoors} The switches and the switch doors. */
 	switches = new SwitchDoors(this);
 	/**
-	 * @type {LevelEvents} The events of the level. A preview has a list without events, and a level start replaces it
-	 *     with the events of the level.
+	 * @type {LevelEvents} The events of the level. Before the level start, the list has no events. The level start
+	 *     replaces it with the events of the level.
 	 */
 	events = new LevelEvents(this, [], false);
 	/**
@@ -169,28 +170,6 @@ export class World {
 		world.events = new LevelEvents(world, level.events, restart || replay);
 		world.events.update(); // fire the start events
 		if (world.boss && (restart || replay)) world.boss.skipEntry();
-		return world;
-	}
-
-	/**
-	 * Create the World of a preview of a level or of a map. The bodies stand at their start positions, and a map
-	 * without cakes shows the open exit.
-	 *
-	 * @param {{tiles: number[], bg: number, boss?: number}} level The level or the editor map.
-	 * @returns {World} The World.
-	 */
-	static forPreview(level) {
-		const world = new World(new TileMap(level.tiles));
-		world.#loadBodies();
-		world.boss = level.boss ? createBoss(world, level.boss) : null;
-		world.cakesLeft = world.cakes.length;
-		if (world.cakesLeft === 0) {
-			const map = world.map;
-			for (const [i, tile] of map.display.entries()) {
-				if (tile === Tile.EXIT_CLOSED) map.setDisplay(i, Tile.EXIT);
-			}
-		}
-		world.background = level.bg;
 		return world;
 	}
 
@@ -442,10 +421,9 @@ export class World {
 	/**
 	 * Create the bodies of the map at their start positions and put them into the World. The method sets the position
 	 * of the player and of the tube when the map has their tiles. At a level start, a player launch tile also launches
-	 * the player; a preview shows the player on the tile. Each plasma launch starts a plasma ball when the World has no
-	 * boss. For a boss that shoots plasma balls, the plasma launch is the start point of its shots. Only a level start
-	 * has plasma launches, so forLevel() creates the boss first. A preview has no plasma launches, and the order of the
-	 * boss does not matter there.
+	 * the player. Each plasma launch starts a plasma ball when the World has no boss. For a boss that shoots plasma
+	 * balls, the plasma launch is the start point of its shots. Only a level start has plasma launches, so forLevel()
+	 * creates the boss first.
 	 *
 	 * @param {object} [options] The options.
 	 * @param {boolean} [options.levelStart] True for a level start, see createBodies().

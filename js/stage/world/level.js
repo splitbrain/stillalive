@@ -1,9 +1,10 @@
 /**
- * The Level type, the directions of the gravitational pipes and of the player launches, and the launch of the plasma
- * balls.
+ * The Level type, the level of a map file, the directions of the gravitational pipes and of the player launches, and
+ * the launch of the plasma balls.
  */
 
 import { Direction, MAP_HEIGHT, MAP_WIDTH, TILE_SIZE } from '../constants.js';
+import { MAP_FORMAT, parseMap } from '../map/mapFile.js';
 import { Tile } from '../map/tiles.js';
 import { toSubpixels } from '../utils.js';
 
@@ -21,6 +22,19 @@ import { toSubpixels } from '../utils.js';
  * @property {string} campaign The folder name of the campaign, for the replay file.
  * @property {number} number The level number, starting at 1, for the replay file.
  */
+
+/**
+ * Make a level from a map file.
+ *
+ * @param {import('../map/mapFile.js').MapFile} map The map in the map file format. The format property is optional.
+ * @param {string} campaign The folder name of the campaign, for the replay file.
+ * @param {number} number The level number, for the replay file.
+ * @returns {Level} The level.
+ * @throws {Error} If the map is not valid.
+ */
+export function levelFromMap(map, campaign, number) {
+	return { ...parseMap({ format: MAP_FORMAT, ...map }), campaign, number };
+}
 
 /** @type {Object<number, number>} The direction of each gravitational pipe tile. */
 export const GRAVPIPE_DIRECTIONS = {

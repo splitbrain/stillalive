@@ -4,10 +4,10 @@
 
 import { BACKGROUND_COUNT, MouseButton, TILE_SIZE_BITS } from '../constants.js';
 import { allowTile, build, eraseBodyAbove, eraseBodies, fill } from './mapEdit.js';
-import { MAP_FORMAT, parseMap } from '../map/mapFile.js';
 import { emptyTiles, TileMap } from '../world/TileMap.js';
 import { Tile, isBodyTile } from '../map/tiles.js';
 import { UndoList } from './UndoList.js';
+import { levelFromMap } from '../world/level.js';
 
 /**
  * The state of the level editor: the editor map, its background, the brush and the undo list. It exists as long as
@@ -72,7 +72,7 @@ export class Editor {
 	 * @returns {import('../world/level.js').Level} The level.
 	 */
 	testLevel() {
-		return { ...parseMap({ format: MAP_FORMAT, ...this.getMap() }), campaign: '', number: 0 };
+		return levelFromMap(this.getMap(), '', 0);
 	}
 
 	/**

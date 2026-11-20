@@ -195,9 +195,9 @@ export class GameStage extends HTMLElement {
 	}
 
 	/**
-	 * Show the still picture of a level or of a map.
+	 * Show the still picture of a level.
 	 *
-	 * @param {{tiles: number[], bg: number, boss?: number}} level The level or the map.
+	 * @param {import('./world/level.js').Level} level The level.
 	 * @returns {void}
 	 */
 	preview(level) {
@@ -536,9 +536,9 @@ export class GameStage extends HTMLElement {
 	}
 
 	/**
-	 * Update the Value properties from the session and dispatch the events of the sessions. Without a session, the
-	 * life, the cakes, the steps, the portal shots and the time keep their last values. The speed and the volume of the
-	 * music follow the phase of the boss fight.
+	 * Update the Value properties from the session and dispatch the events of the sessions. Without a World, the life,
+	 * the cakes, the steps, the portal shots and the time keep their last values. Only a play session shows a message
+	 * for the narrator. The speed and the volume of the music follow the phase of the boss fight.
 	 *
 	 * @returns {void}
 	 */
@@ -555,7 +555,7 @@ export class GameStage extends HTMLElement {
 			this.time.set(world.phase.isRunning() ? time - (time % TIME_UPDATE_INTERVAL) : time);
 		}
 		this.paused.set(this.#play?.paused ?? false);
-		this.message.set(world?.events?.message ?? null);
+		this.message.set(this.#play?.world.events.message ?? null);
 		this.speed.set(this.#speed);
 		this.brush.set(this.#editor.brush);
 		this.fps.set(getFps());

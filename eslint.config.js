@@ -58,6 +58,7 @@ const STAGE_DATA_MODULES = [
 	'./map/mapFile.js',
 	'./sessions/replay.js',
 	'./map/tiles.js',
+	'./world/level.js',
 ];
 
 /**

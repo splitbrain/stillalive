@@ -8,7 +8,7 @@ import { PreviewScene } from '../render/PreviewScene.js';
 import { World } from '../world/World.js';
 
 /**
- * The still picture of a level or of a map.
+ * The still picture of a level: the World of the level start, which never ticks.
  */
 export class PreviewSession {
 	/** @type {World} The World of the preview. */
@@ -21,13 +21,13 @@ export class PreviewSession {
 	#input;
 
 	/**
-	 * Create the preview of a level or of a map.
+	 * Create the preview of a level.
 	 *
-	 * @param {{tiles: number[], bg: number, boss?: number}} level The level or the map.
+	 * @param {import('../world/level.js').Level} level The level.
 	 * @param {import('../browser/InputState.js').InputState} input The keys and the mouse.
 	 */
 	constructor(level, input) {
-		this.world = World.forPreview(level);
+		this.world = World.forLevel(level);
 		this.scene = new PreviewScene();
 		this.#input = input;
 	}

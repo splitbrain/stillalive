@@ -3,7 +3,8 @@
  */
 
 import { CAMPAIGN_FOLDERS, CampaignId, LEVELS_PER_CAMPAIGN } from '../stage/constants.js';
-import { MAP_FORMAT, parseMap } from '../stage/map/mapFile.js';
+import { parseMap } from '../stage/map/mapFile.js';
+import { levelFromMap } from '../stage/world/level.js';
 import { Value } from '../value.js';
 import { editorMap, getBestTime, maxLevel } from './storage.js';
 
@@ -135,13 +136,14 @@ class CustomCampaign extends Campaign {
 	 * Make the level of a slot.
 	 *
 	 * @param {number} slot The slot number.
-	 * @param {object|null} map The editor map in the map file format without the format, or null for an empty slot.
+	 * @param {import('../stage/map/mapFile.js').MapFile|null} map The editor map in the map file format without the
+	 *     format, or null for an empty slot.
 	 * @returns {import('../stage/world/level.js').Level|null} The level, or null if the slot is empty or the map is not valid.
 	 */
 	#createLevel(slot, map) {
 		if (map == null) return null;
 		try {
-			return { ...parseMap({ format: MAP_FORMAT, ...map }), campaign: this.id, number: slot };
+			return levelFromMap(map, this.id, slot);
 		} catch {
 			return null;
 		}

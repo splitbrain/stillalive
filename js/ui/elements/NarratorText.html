@@ -136,6 +136,28 @@
 					close
 				);
 			}
+
+			/* the mouse icon after the text of a message that waits for a click; it clicks once per second */
+			&.wait::after {
+				content: '';
+				display: inline-block;
+				height: 21px;
+				aspect-ratio: 22 / 26;
+				margin-left: 10px;
+				vertical-align: -5px;
+				background: url('gfx/ui/click.svg') left top / 100% 200% no-repeat;
+				animation: narrator-click 1s step-end infinite;
+			}
+		}
+	}
+
+	@keyframes narrator-click {
+		0% {
+			background-position-y: 0;
+		}
+		60%,
+		100% {
+			background-position-y: 100%;
 		}
 	}
 </style>

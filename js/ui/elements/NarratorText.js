@@ -17,7 +17,7 @@ const TYPE_TIME = 1000 / 45;
  * The custom element <ui-narrator-text>. It types a text one character after the other. The typing starts again for
  * each new text and for each new message of the stage, also when the message has the same text. The typing stops while
  * the stage is paused. On the replay route, each text shows in full at once, because the playback can run faster than
- * the typing.
+ * the typing. When a message of the stage waits for a click, a mouse icon shows after the full text.
  *
  * During the test run of the editor map, the text is the message of the stage. Else the text is the attribute text,
  * and without the attribute the message of the stage.
@@ -34,6 +34,9 @@ export class NarratorText extends UiElement {
 
 	/** @type {string} The text that the element types. */
 	#text = '';
+
+	/** @type {boolean} True if the text is a message of the stage that waits for a click. */
+	#wait = false;
 
 	/** @type {number} The number of characters of the text that show. */
 	#shown = 0;
@@ -72,6 +75,7 @@ export class NarratorText extends UiElement {
 		if (source !== this.#source) {
 			this.#source = source;
 			this.#text = typeof source === 'string' ? source : (source?.text ?? '');
+			this.#wait = typeof source !== 'string' && Boolean(source?.wait);
 			this.#shown = route.get().name === RouteName.REPLAY ? this.#text.length : 0;
 			this.#show();
 		}
@@ -123,13 +127,15 @@ export class NarratorText extends UiElement {
 	}
 
 	/**
-	 * Show the typed part of the text, and scroll to its end.
+	 * Show the typed part of the text and, after the full text of a message that waits, the mouse icon. Then scroll
+	 * to the end.
 	 *
 	 * @returns {void}
 	 */
 	#show() {
 		const paragraph = requireElement(this, 'p', HTMLElement);
 		paragraph.textContent = this.#text.slice(0, this.#shown);
+		paragraph.classList.toggle('wait', this.#wait && this.#shown >= this.#text.length);
 		paragraph.scrollTop = paragraph.scrollHeight;
 	}
 
